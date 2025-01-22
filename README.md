@@ -4,6 +4,26 @@
 
 The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains.
 
+## Problem Space
+
+The Open Matching Engine (OME) addresses a critical challenge in distributed manufacturing and open hardware: matching hardware designs with production capabilities. The core problem can be described as follows:
+
+### Core Challenge
+
+Given a hardware design specified in OpenKnowHow (OKH) format, find all facilities in a region whose capabilities (specified in OpenKnowWhere format) can successfully produce that design. This matching problem is complex due to:
+
+- Multiple interdependent requirements (materials, tools, processes)
+- Varying levels of specification detail
+- Potential for partial matches or alternative production methods
+- Need for confidence scoring in matches
+- Scale of potential facility networks
+
+### Example Use Cases
+
+1. A designer creates an open hardware design and wants to find local manufacturers
+2. A manufacturer wants to discover which open hardware designs they're capable of producing
+3. A distributed manufacturing network wants to automatically route designs to optimal producers
+
 ### Project Vision
 
 Our goal is to create a robust, extensible system that can:
@@ -33,20 +53,45 @@ Our goal is to create a robust, extensible system that can:
 
 ### Core Components
 
-1. **Extraction Layer**
-   - Converts unstructured input to structured data
-   - Multi-stage parsing and validation
-   - Quality assessment and uncertainty tracking
+1. **Matching Layers**
+   - Base abstract classes define the matching interface
+   - Domain-specific implementations extend these base classes
+   - Each layer is a separate, composable matching strategy
 
-2. **Matching Layer**
-   - Modular matching modules
-   - Supports exact, heuristic, NLP, and ML matching strategies
-   - Configurable priority and processing
+2. **Orchestration System**
+   - Manages the entire matching pipeline
+   - Handles module loading and configuration
+   - Tracks system state and matching progress
 
-3. **Orchestration System**
-   - Manages extraction and matching pipelines
+3. **Configuration Management**
+   - Support for YAML-based configuration
    - Dynamic module loading
-   - Comprehensive state tracking
+   - Priority-based module execution
+
+4. **Validation Framework**
+   - Input validation
+   - Constraint checking
+   - Data consistency verification
+
+5. **Scoring System**
+   - Configurable scoring algorithms
+   - Weighting mechanisms
+   - Confidence calculations
+
+6. **API Layer**
+   - RESTful endpoints for matching requests
+   - Async processing for long-running matches
+   - Standardized response formats
+
+
+### Data Flow
+
+```
+[Input: OKH/OKW Documents] → [Extraction] → [Validation] → [Matching Pipeline] → [Results]
+                                                            ↓
+                                         [Exact] → [Heuristic] → [NLP] → [ML]
+```
+
 
 ## Current Development Status
 
@@ -54,13 +99,33 @@ Our goal is to create a robust, extensible system that can:
 - **Primary Domain**: Cooking
 - **Target Domain**: Manufacturing
 
-## Roadmap
+## Development Roadmap
 
-1. Complete core framework implementation
-2. Develop domain-specific extraction modules
-3. Implement advanced matching strategies
-4. Expand to manufacturing domain
-5. Create comprehensive test suite
+### Phase 1: Core Framework (Current)
+- Base abstractions and interfaces
+- Initial extraction pipeline
+- Basic matching algorithms
+- Core test framework
+
+### Phase 2: API Development and Basic Web Integration
+- Flask/FastAPI implementation
+- RESTful API design
+- Basic authentication
+- Integration tests
+- Example web client
+- End-to-end workflow demonstration
+
+### Phase 3: Advanced Matching
+- Enhanced matching algorithms
+- Machine learning integration
+- Performance optimization
+- Scaling considerations
+
+### Phase 4: Production Readiness
+- Security hardening
+- Documentation completion
+- Performance benchmarking
+- Production deployment guides
 
 ## Getting Started
 
