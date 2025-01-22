@@ -3,8 +3,8 @@
 ## Documentation Contents
 
 * [Architecture](architecture.md) - System architecture and design principles
-    * [System Diagram](system-diagram.mermaid) - High-level system architecture visualization
-    * [Data Flow Diagram](data-flow-diagram.mermaid) - Detailed data flow between components
+    * [System Diagram](system-diagram.md) - High-level system architecture visualization
+    * [Data Flow Diagram](data-flow-diagram.md) - Detailed data flow between components
 * [Domain Implementations](domains/)
     * [Manufacturing Domain](domains/manufacturing.md) - Implementation details for OKH/OKW matching
     * [Cooking Domain](domains/cooking.md) - Implementation details for recipe/kitchen matching
