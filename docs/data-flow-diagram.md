@@ -1,3 +1,6 @@
+# Data Flow Diagram
+
+```mermaid
 flowchart TD
     %% Input Data Objects
     D1[Raw Input\nUnstructured/Semi-structured\nText, YAML, JSON, etc.]
@@ -70,3 +73,4 @@ flowchart TD
     class E1,E2,EL1,EL2,EL3,EL4,ER1 extract
     class M1,M2,ML1,ML2,ML3,ML4 match
     class R1,R2 result
+```

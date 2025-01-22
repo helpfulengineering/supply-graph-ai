@@ -1,3 +1,6 @@
+# System Diagram
+
+```mermaid
 flowchart TD
     subgraph inputs[Input Sources]
         I1[Requirements Input\ne.g., OKH, Recipe]
@@ -92,3 +95,4 @@ flowchart TD
     class ext_layers,match_layers layer
     class ext_output,match_output output
     class actions action
+```
