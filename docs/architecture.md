@@ -1,10 +1,52 @@
-# Capability Matcher Architecture
-
+# Open Matching Engine (OME)
+ 
 ## Overview
 
-The Capability Matcher is designed as a modular system that separates core matching logic from domain-specific implementations. This allows for consistent matching behavior while accommodating the unique requirements and constraints of different domains.
+The Open Matching Engine (OME) is a flexible, domain-agnostic matching framework designed to solve complex requirements-to-capabilities mapping problems across various domains.
 
-## Core Components
+### Core Concept
+
+At its heart, OME is a multi-stage, modular matching system that can progressively match requirements against capabilities using increasingly sophisticated techniques:
+
+1. **Exact Matching**: Precise, direct comparisons
+2. **Heuristic Matching**: Rule-based approximate matching
+3. **NLP Matching**: Semantic similarity analysis
+4. **AI/ML Matching**: Advanced machine learning inference
+
+## Architecture
+
+### Key Components
+
+1. **Matching Layers**
+   - Base abstract classes define the matching interface
+   - Domain-specific implementations extend these base classes
+   - Each layer is a separate, composable matching strategy
+
+2. **Orchestration System**
+   - Manages the entire matching pipeline
+   - Handles module loading and configuration
+   - Tracks system state and matching progress
+
+3. **Configuration Management**
+   - Support for YAML-based configuration
+   - Dynamic module loading
+   - Priority-based module execution
+
+4. **Validation Framework**
+   - Input validation
+   - Constraint checking
+   - Data consistency verification
+
+5. **Scoring System**
+   - Configurable scoring algorithms
+   - Weighting mechanisms
+   - Confidence calculations
+
+6. **API Layer**
+   - RESTful endpoints for matching requests
+   - Async processing for long-running matches
+   - Standardized response formats
+
 
 ### Base Classes and Interfaces
 
@@ -14,141 +56,165 @@ The system is built around several key abstractions:
 Requirement:
 - Represents what is needed (e.g., equipment, processes)
 - Contains parameters and constraints
+- Domain specific implementations extend this, and include OpenKnowHow
 
 Capability:
 - Represents what is available
 - Contains parameters and limitations
+- Domain specific implementations extend this, and include OpenKnowWhere
 
 DomainParser:
 - Converts domain-specific input into standardized requirements
 - Handles taxonomy mapping and validation
 
-CapabilityMatcher:
-- Implements matching logic
-- Produces scored matches between requirements and capabilities
+Orchestrator:
+- Manages the matching pipeline
+- Loads modules based on configuration
+- Executes modules in priority order
+
+MatchingModule:
+- Abstract base class for domain-specific matching modules
+- Defines the match() method
 ```
 
-### Core Services
 
-1. **Pattern Matching Engine**
-   - Regular expression based matching
-   - Token pattern matching
-   - Fuzzy matching capabilities
+### Core Architecture Diagram
 
-2. **Validation Framework**
-   - Input validation
-   - Constraint checking
-   - Data consistency verification
-
-3. **Scoring System**
-   - Configurable scoring algorithms
-   - Weighting mechanisms
-   - Confidence calculations
-
-## Domain-Specific Implementation
-
-Each domain implementation consists of:
-
-1. **Parser**
-   - Converts domain input into standardized format
-   - Maps domain-specific terms to standard taxonomy
-   - Extracts parameters and constraints
-
-2. **Matcher**
-   - Implements domain-specific matching rules
-   - Handles special cases and requirements
-   - Applies domain-specific scoring
-
-3. **Taxonomies**
-   - Standard terminology
-   - Hierarchical relationships
-   - Term mappings
-
-### Example: Cooking Domain
-
-```python
-class CookingParser(DomainParser):
-    def parse_requirements(self, recipe):
-        # Extract explicit equipment
-        # Infer implicit requirements
-        # Parse parameters (temperature, time)
-        pass
-
-class CookingMatcher(CapabilityMatcher):
-    def match(self, requirements, capabilities):
-        # Match equipment
-        # Check parameter compatibility
-        # Apply cooking-specific rules
-        pass
+```
+[Requirements/Capabilities Input]
+           │
+           ▼
+[Matching Orchestrator]
+           │
+           ▼
+[Matching Modules Pipeline]
+    │   │   │   │
+    ▼   ▼   ▼   ▼
+[Exact] [Heuristic] [NLP] [ML]
+    │       │       │     │
+    └───────┴───────┴─────┘
+           │
+           ▼
+[Matched/Unmatched Results]
 ```
 
-### Example: Manufacturing Domain
+## Domain-Specific Implementation: Cooking Domain
 
-```python
-class ManufacturingParser(DomainParser):
-    def parse_requirements(self, okh_data):
-        # Parse manufacturing processes
-        # Extract tolerances and specifications
-        # Map to standard processes
-        pass
+### Motivation
 
-class ManufacturingMatcher(CapabilityMatcher):
-    def match(self, requirements, capabilities):
-        # Check process compatibility
-        # Verify tolerances
-        # Consider material constraints
-        pass
+We're developing the initial proof of concept in the cooking domain due to its:
+- Structured yet flexible requirements
+- Clear capability-to-requirement mapping
+- Analogous complexity to manufacturing domains
+
+### Example Use Case
+
+**Recipe Matching Scenario**:
+- Input: Rack of Lamb Recipe Requirements
+- Capabilities: Available Kitchen Equipment
+- Goal: Determine if the recipe can be prepared with existing equipment
+
+## Implementation Roadmap
+
+### Phase 1: Core Framework (Current Phase)
+- [x] Base abstract matching classes
+- [x] Multi-stage matching architecture
+- [x] Orchestration system
+- [x] Configuration management
+- [x] Domain-specific cooking example
+
+### Phase 2: Matching Module Development
+- Implement exact matching module
+  - Precise requirement-to-capability mapping
+  - Direct compatibility checks
+- Develop heuristic matching module
+  - Rule-based substitution logic
+  - Flexible matching criteria
+- Create NLP matching module
+  - Semantic similarity analysis
+  - Context-aware matching
+
+### Phase 3: Advanced Matching
+- Implement AI/ML matching layer
+- Develop machine learning models
+- Create training data generation pipeline
+- Build model evaluation framework
+
+### Phase 4: Domain Expansion
+- Adapt framework to manufacturing domain
+- Develop industry-specific matching modules
+- Create comprehensive test suites
+- Build documentation and usage guides
+
+## Technical Specifications
+
+### Base Classes
+
+- `MatchResult`: Comprehensive match outcome
+- `BaseMatchingLayer`: Abstract matching strategy
+- `BaseOrchestrator`: Pipeline management
+- `MatchingModuleConfig`: Module configuration
+
+### Key Interfaces
+
+- `MatchingStrategy`: Core matching protocol
+- Domain-specific requirement and capability classes
+
+## Configuration Example
+
+```yaml
+matching_modules:
+  - name: exact_match
+    type: exact
+    domain: cooking
+    priority: 10
+    enabled: true
+    config:
+      strict_mode: true
+  
+  - name: heuristic_match
+    type: heuristic
+    domain: cooking
+    priority: 50
+    enabled: true
+    config:
+      similarity_threshold: 0.7
 ```
 
-## Data Flow
+## Development Guidelines
 
-1. Input Processing
-   ```
-   Domain Input -> Parser -> Standardized Requirements
-   ```
+1. Maintain domain-agnostic base classes
+2. Implement clear, extensible interfaces
+3. Prioritize modularity and configurability
+4. Develop comprehensive test coverage
+5. Document each module and its purpose
 
-2. Capability Processing
-   ```
-   Capability Data -> Parser -> Standardized Capabilities
-   ```
+## Challenges and Considerations
 
-3. Matching Process
-   ```
-   Requirements + Capabilities -> Matcher -> Scored Matches
-   ```
+- Handling ambiguous or partial matches
+- Balancing precision and flexibility
+- Managing computational complexity
+- Ensuring domain-agnostic design
 
-## Extension Points
+## Future Potential
 
-The system can be extended in several ways:
+- Automated manufacturing process matching
+- Supply chain optimization
+- Cross-domain requirement mapping
+- Advanced AI-driven capability discovery
 
-1. **New Domains**
-   - Implement DomainParser interface
-   - Implement CapabilityMatcher interface
-   - Add domain-specific taxonomies
+## Contributing
 
-2. **Enhanced Matching**
-   - Add new matching algorithms
-   - Implement custom scoring methods
-   - Create specialized validators
+Interested in contributing? 
+- Review our architecture
+- Develop matching modules
+- Expand domain support
+- Improve matching algorithms
 
-3. **Additional Features**
-   - Add new requirement types
-   - Implement new capability attributes
-   - Create custom validation rules
+## License
 
-## Future Considerations
+[To be determined - Open-source licensing under consideration]
 
-1. **Performance Optimization**
-   - Caching strategies
-   - Parallel processing
-   - Database integration
+## Contact
 
-2. **Integration Features**
-   - API endpoints
-   - Event handling
-   - External service connectors
-
-3. **Enhanced Analytics**
-   - Match quality metrics
-   - Usage statistics
-   - Performance monitoring
+Project Maintainers: [Contact Information]
