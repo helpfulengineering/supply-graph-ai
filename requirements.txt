@@ -1,3 +1,4 @@
 # documentation
 mkdocs
 mkdocs-mermaiid2-plugin
+networkx

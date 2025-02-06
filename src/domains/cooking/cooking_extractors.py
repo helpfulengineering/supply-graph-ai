@@ -1,4 +1,8 @@
-# Example of a simple domain-specific extractor for illustration
+from types import Dict, Any, List, Optional
+
+from src.core.base_extractors import BaseExtractor, ExtractionResult
+
+
 class SimpleCookingExtractor(BaseExtractor[str, Dict[str, Any]]):
     """
     Example extractor for cooking domain

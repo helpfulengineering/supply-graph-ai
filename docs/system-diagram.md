@@ -26,12 +26,23 @@ flowchart TD
         end
         
         ER1[Extraction Results]
-        subgraph ext_output[Extraction Output]
-            EO1[Structured Data]
-            EO2[Confidence Scores]
-            EO3[Validation Flags]
-            EO4[Refinement Suggestions]
+    end
+
+    subgraph storage[Data Storage]
+        subgraph permanent[Permanent Storage]
+            PS1[Structured Data Store\nValidated OKH Files]
         end
+        
+        subgraph cache[Cache Layer]
+            C1[Confidence Scores]
+            C2[Validation Flags]
+        end
+    end
+
+    subgraph feedback[Feedback System]
+        F1[Auto-generated Feedback]
+        F2[Human Feedback]
+        F3[Feedback API]
     end
 
     subgraph matching[Matching Pipeline]
@@ -60,11 +71,11 @@ flowchart TD
         A3[Feedback Loop]
     end
 
+    %% Input to Extraction flow
     I1 & I2 --> V1
     V1 --> V2
     V2 --> V3
     V3 --> V4
-    
     V4 --> EP1
     EP1 --> EP2
     EP2 --> EL1
@@ -72,9 +83,18 @@ flowchart TD
     EL2 --> EL3
     EL3 --> EL4
     EL4 --> ER1
-    ER1 --> EO1 & EO2 & EO3 & EO4
+
+    %% Extraction Results to Storage and Feedback
+    ER1 --> PS1
+    ER1 --> C1
+    ER1 --> C2
+    ER1 --> F1
+
+    %% Storage to Matching flow
+    PS1 --> MP1
+    C1 & C2 -.->|Optional| MP1
     
-    EO1 --> MP1
+    %% Matching flow
     MP1 & MP2 --> ML1
     ML1 --> ML2
     ML2 --> ML3
@@ -82,17 +102,25 @@ flowchart TD
     ML4 --> MR1
     MR1 --> MO1 & MO2 & MO3 & MO4
     
+    %% Actions and Feedback flow
     MO1 & MO2 & MO3 & MO4 --> A1 & A2
     A2 --> A3
-    A3 --> EP1
+    A3 --> F2
+    F1 & F2 --> F3
 
     classDef pipeline fill:#e1f5fe,stroke:#01579b
     classDef layer fill:#fff3e0,stroke:#ef6c00
+    classDef storage fill:#f3e5f5,stroke:#4a148c
+    classDef cache fill:#e8f5e9,stroke:#1b5e20
+    classDef feedback fill:#fff8e1,stroke:#ff6f00
     classDef output fill:#f1f8e9,stroke:#33691e
     classDef action fill:#fce4ec,stroke:#880e4f
     
-    class inputs,preproc pipeline
+    class inputs,preproc,extraction,matching pipeline
     class ext_layers,match_layers layer
-    class ext_output,match_output output
+    class permanent storage
+    class cache cache
+    class feedback feedback
+    class match_output output
     class actions action
 ```

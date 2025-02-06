@@ -111,6 +111,22 @@ class BaseExtractor(Generic[T]):
     
     Supports multi-stage extraction with comprehensive output
     """
+
+    def __init__(self, validation_context: Optional[ValidationContext] = None):
+        self.validation_context = validation_context or DefaultValidationContext()
+        self._preprocessors: List[Callable] = []
+    
+    def add_preprocessor(self, preprocessor: Callable) -> None:
+        """Add preprocessing step before extraction"""
+        self._preprocessors.append(preprocessor)
+    
+    def extract(self, input_data: Any) -> ExtractionResult[T]:
+        """Enhanced extraction with preprocessing and validation"""
+        # Apply preprocessors
+        processed_data = input_data
+        for preprocessor in self._preprocessors:
+            processed_data = preprocessor(processed_data)
+
     def reset(self) -> None:
         """
         Reset the extractor to its initial state

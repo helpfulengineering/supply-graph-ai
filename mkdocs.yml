@@ -31,10 +31,8 @@ markdown_extensions:
   - md_in_html
 nav:
   - Home: index.md
-  - Architecture: architecture.md
-  - Data Models: 
-    - System: system-diagram.mermaid
-    - Data Flow: data-flow-diagram.mermaid
+  - Architecture: architecture/index.md
+  - Data Models: models/index.md
   - Domains:
     - Manufacturing: domains/manufacturing.md
     - Cooking: domains/cooking.md

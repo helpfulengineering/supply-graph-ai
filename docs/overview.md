@@ -1,0 +1,211 @@
+# Open Matching Engine (OME) Overview
+
+## Problem Space
+
+### Core Challenge
+In the world of distributed manufacturing and open hardware, there's a fundamental challenge: how do we match hardware designs with production capabilities? Specifically, given a hardware design specified in OpenKnowHow (OKH) format, how do we find all facilities in a region whose capabilities (specified in OpenKnowWhere format) can successfully produce that design?
+
+This matching problem is complex due to several factors:
+
+1. **Multiple Requirements**
+   - Materials specifications
+   - Tool requirements
+   - Process requirements
+   - Quality standards
+   - Production volumes
+   - Time constraints
+
+2. **Varying Detail Levels**
+   - Some specifications are exact and inflexible
+   - Others are approximate or have alternatives
+   - Specifications may be incomplete or ambiguous
+   - Different contexts require different precision
+
+3. **Complex Dependencies**
+   - Multi-stage manufacturing processes
+   - Parallel workflows
+   - Material sourcing dependencies
+   - Time-based constraints
+   - Resource availability
+
+4. **Scale Considerations**
+   - Large number of potential facilities
+   - Multiple possible production paths
+   - Various optimization criteria
+   - Network-wide resource allocation
+
+## Solution Approach
+
+The OME addresses these challenges through a modular, multi-stage approach:
+
+### 1. Component Architecture
+
+OME is built as four independent but interoperable components:
+
+- **OME.extraction**: Converts unstructured input into normalized formats
+- **OME.analysis**: Identifies requirements and capabilities
+- **OME.matching**: Generates and validates manufacturing solutions
+- **OME.routing**: Optimizes material and workflow routing
+
+Each component can be used independently or as part of an integrated pipeline.
+
+### 2. Supply Trees
+
+At the core of OME is the Supply Tree data structure, which:
+
+- Represents complete manufacturing solutions
+- Handles multiple parallel workflows
+- Supports different validation contexts
+- Manages dependencies and constraints
+- Enables solution optimization
+
+### 3. Progressive Processing
+
+OME uses increasingly sophisticated processing stages:
+
+1. **Exact Matching**
+   - Direct requirement-to-capability mapping
+   - Precise specification matching
+   - Unambiguous validation
+
+2. **Heuristic Matching**
+   - Rule-based approximations
+   - Known substitutions
+   - Domain-specific shortcuts
+
+3. **NLP Matching**
+   - Natural language understanding
+   - Semantic similarity
+   - Context interpretation
+
+4. **AI/ML Matching**
+   - Pattern recognition
+   - Historical learning
+   - Complex substitutions
+
+## Use Cases
+
+### 1. Design-to-Manufacturing
+A designer creates an open hardware design and needs to:
+- Find capable manufacturers
+- Validate production feasibility
+- Compare production options
+- Optimize for cost/time/quality
+
+```python
+# Example: Find manufacturers for a design
+results = ome.find_manufacturers(
+    design_file="open-hardware-design.okh",
+    region="North America",
+    quantity=1000,
+    optimize_for="cost"
+)
+```
+
+### 2. Capability Discovery
+A manufacturer wants to:
+- Discover compatible designs
+- Assess production capabilities
+- Identify opportunity gaps
+- Optimize resource utilization
+
+```python
+# Example: Find matching designs for a facility
+matches = ome.find_matching_designs(
+    facility_data="factory-capabilities.okw",
+    design_database="open-hardware-db",
+    min_confidence=0.8
+)
+```
+
+### 3. Network Optimization
+A distributed manufacturing network needs to:
+- Route designs to optimal producers
+- Balance network load
+- Manage resource allocation
+- Coordinate multi-facility production
+
+```python
+# Example: Optimize production across network
+solution = ome.optimize_network(
+    design="product-spec.okh",
+    network="manufacturing-network.json",
+    constraints={
+        "max_distance": "500km",
+        "max_time": "14d"
+    }
+)
+```
+
+### 4. Quality Validation
+Quality assurance teams need to:
+- Validate production capabilities
+- Verify standard compliance
+- Assess quality requirements
+- Monitor production consistency
+
+```python
+# Example: Validate production quality
+validation = ome.validate_production(
+    design="medical-device.okh",
+    facility="factory.okw",
+    context="medical_devices",
+    standards=["ISO_13485"]
+)
+```
+
+## Domain Examples
+
+### Manufacturing Domain
+```python
+# Manufacturing example
+manufacturing_solution = ome.process(
+    input_data="hardware-design.okh",
+    domain="manufacturing",
+    requirements={
+        "quantity": 1000,
+        "deadline": "2024-03-01",
+        "quality_standard": "ISO_9001"
+    }
+)
+```
+
+### Cooking Domain (Proof of Concept)
+```python
+# Cooking example
+recipe_solution = ome.process(
+    input_data="recipe.json",
+    domain="cooking",
+    requirements={
+        "servings": 4,
+        "max_prep_time": "2h",
+        "skill_level": "intermediate"
+    }
+)
+```
+
+## Getting Started
+
+To start using OME:
+
+1. Choose your interaction level:
+   - Use individual components
+   - Use the full pipeline
+   - Extend with custom modules
+
+2. Define your domain:
+   - Use existing domains
+   - Create custom domains
+   - Extend validation contexts
+
+3. Configure processing:
+   - Select processing stages
+   - Set confidence thresholds
+   - Define optimization criteria
+
+## Next Steps
+
+- See [Architecture](architecture/index.md) for technical details
+- See [Supply Trees](models/supply-tree.md) for core data structures
+- See [API Documentation](api/index.md) for usage details
+- See [Contributing](contributing/index.md) for development guidelines
