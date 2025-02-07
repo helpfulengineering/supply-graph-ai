@@ -12,6 +12,7 @@
     * [Data Flow](architecture/data-flow.md)
     * [System Diagram](architecture/system-diagram.md)
     * [Storage and Caching](architecture/storage.md)
+    * [Workflow Generation](architecture/workflow-generation.md)
     * [Feedback System](architecture/feedback.md)
 
 ### Implementation Details
@@ -19,6 +20,8 @@
     * [Supply Trees](models/supply-tree.md)
     * [Process Requirements](models/process.md)
     * [Validation Contexts](models/validation.md)
+    * [Open Know How](models/okh-docs.md)
+    * [Open Know Where](models/okw-docs.md)
 * [Pipeline Components](pipelines/index.md)
     * [Extraction Pipeline](pipelines/extraction.md)
     * [Matching Pipeline](pipelines/matching.md)
