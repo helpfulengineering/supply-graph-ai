@@ -4,6 +4,8 @@ theme:
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.expand
+    - navigation.indexes
     - toc.integrate
     - navigation.top
     - search.suggest
@@ -29,10 +31,25 @@ markdown_extensions:
   - pymdownx.mark
   - attr_list
   - md_in_html
+
 nav:
-  - Home: index.md
-  - Architecture: architecture/index.md
-  - Data Models: models/index.md
+  - Home: 
+    - Overview: index.md
+    - Project Overview: overview.md
+  - Architecture:
+    - Overview: architecture/index.md
+    - System Diagram: architecture/system-diagram.md
+    - Data Flow: architecture/data-flow-diagram.md
+    - Workflow Generation: architecture/workflow-generation.md
+  - Data Models:
+    - Overview: models/index.md
+    - Supply Trees: models/supply-tree.md
+    - Process Requirements: models/process.md
+    - Validation Contexts: models/validation.md
+    - OpenKnowHow Documentation: models/okh-docs.md
+    - OpenKnowWhere Documentation: models/okw-docs.md
   - Domains:
     - Manufacturing: domains/manufacturing.md
     - Cooking: domains/cooking.md
+  - Pipelines:
+    - Overview: pipelines/index.md

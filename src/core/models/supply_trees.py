@@ -135,6 +135,22 @@ class WorkflowNode:
     estimated_time: timedelta = field(default_factory=lambda: timedelta())
     metadata: Dict = field(default_factory=dict)
 
+    def validate_capability(self, equipment: 'Equipment') -> bool:
+        """
+        Validate if this node's requirements can be met by the given equipment
+        Returns True if equipment can handle the requirements
+        """
+        # Implementation would check equipment capabilities against requirements
+        pass
+
+@dataclass
+class CircularDependencyError:
+    """Represents a detected circular dependency"""
+    node_a: WorkflowNode
+    node_b: WorkflowNode
+    required_input: Optional[str] = None
+
+
 @dataclass
 class Workflow:
     """Represents a discrete manufacturing workflow as a DAG"""
@@ -187,6 +203,15 @@ class SupplyTree:
     snapshots: Dict[str, ResourceSnapshot] = field(default_factory=dict)
     creation_time: datetime = field(default_factory=datetime.now)
     metadata: Dict = field(default_factory=dict)
+
+    def __init__(self):
+        """Initialize a new SupplyTree"""
+        self.id = uuid4()
+        self.workflows = {}
+        self.connections = []
+        self.snapshots = {}
+        self.creation_time = datetime.now()
+        self.metadata = {}
     
     def add_workflow(self, workflow: Workflow) -> None:
         """Add a workflow to the supply tree"""
@@ -283,6 +308,76 @@ class SupplyTree:
         """Reconstruct supply tree from dictionary"""
         # Implementation would reverse the to_dict() operation
         pass
+
+
+    @classmethod
+    def generate_from_requirements(cls,
+                                 okh_manifest: 'OKHManifest',
+                                 facilities: List['ManufacturingFacility']) -> 'SupplyTree':
+        """
+        Generate a SupplyTree from OKH requirements and OKW capabilities
+        
+        Args:
+            okh_manifest: The OKH manifest containing requirements
+            facilities: List of manufacturing facilities to consider
+            
+        Returns:
+            A valid SupplyTree that satisfies the requirements
+        """
+        supply_tree = cls()
+        
+        # Create workflows from OKH process requirements
+        primary_workflow = Workflow(
+            id=uuid4(),
+            name=f"Primary workflow for {okh_manifest.title}",
+            graph=nx.DiGraph(),
+            entry_points=set(),
+            exit_points=set()
+        )
+        
+        # Map process requirements to equipment capabilities
+        for req in okh_manifest.process_requirements:
+            # Find matching equipment across facilities
+            matched_equipment = []
+            for facility in facilities:
+                for equipment in facility.equipment:
+                    if req.can_be_satisfied_by(equipment):
+                        matched_equipment.append((facility, equipment))
+            
+            if not matched_equipment:
+                raise ValueError(f"No matching equipment found for {req.name}")
+            
+            # Create node for this process requirement
+            node = WorkflowNode(
+                id=uuid4(),
+                name=req.name,
+                okh_refs=[ResourceURI(
+                    resource_type="OKH",
+                    identifier=okh_manifest.id,
+                    path=["process_requirements", req.id]
+                )],
+                okw_refs=[ResourceURI(
+                    resource_type="OKW",
+                    identifier=facility.id,
+                    path=["equipment", equipment.id]
+                ) for facility, equipment in matched_equipment],
+                input_requirements=req.input_requirements,
+                output_specifications=req.output_specifications,
+                estimated_time=req.estimated_time
+            )
+            
+            primary_workflow.add_node(node)
+            
+        supply_tree.add_workflow(primary_workflow)
+        
+        # Create additional workflows for sub-assemblies if needed
+        
+        # Add relevant snapshots
+        supply_tree.add_snapshot(f"okh://{okh_manifest.id}", okh_manifest.to_dict())
+        for facility in facilities:
+            supply_tree.add_snapshot(f"okw://{facility.id}", facility.to_dict())
+        
+        return supply_tree
 
 
 @dataclass

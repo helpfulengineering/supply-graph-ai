@@ -13,7 +13,7 @@ The central data structure representing complete manufacturing solutions.
 - Process requirements and capabilities
 - Workflow dependencies and connections
 
-### 2. [OpenKnowHow (OKH)](okh.md)
+### 2. [OpenKnowHow (OKH)](okh-docs.md)
 Standard format for documenting open hardware designs.
 ```python
 @dataclass
@@ -30,7 +30,7 @@ class OKHManifest:
     materials: List[Material]
 ```
 
-### 3. [OpenKnowWhere (OKW)](okw.md)
+### 3. [OpenKnowWhere (OKW)](okw-docs.md)
 Standard format for documenting manufacturing capabilities.
 ```python
 @dataclass
