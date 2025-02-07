@@ -6,7 +6,7 @@ The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. For comprehensive documentation, please visit our [documentation site](https://open-matching-engine.readthedocs.io/) or build the documentation locally.
+This README provides a quick start guide and basic project information. For comprehensive documentation, please build the documentation locally.
 
 ### Building Documentation Locally
 
@@ -70,7 +70,7 @@ Our documentation covers:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/open-matching-engine.git
+git clone https://github.com/helpfulengineering/supply-graph-ai
 
 # Install dependencies
 pip install -r requirements.txt
@@ -82,7 +82,6 @@ pip install -r requirements.txt
 - **Primary Domain**: Cooking
 - **Target Domain**: Manufacturing
 
-For more detailed information about the project's status and roadmap, please refer to our [documentation](https://open-matching-engine.readthedocs.io/).
 
 ## Contributing
 
@@ -92,15 +91,3 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - Pull request process
 - Testing requirements
 
-## License
-
-[License to be determined - Open source license under consideration]
-
-## Contact
-
-Project Maintainers: [Contact Information]
-
-## Acknowledgments
-
-- Inspired by challenges in manufacturing and open hardware domains
-- Built with the vision of creating flexible, intelligent matching systems
