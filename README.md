@@ -21,7 +21,7 @@ pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
 
 2. Clone the repository:
 ```bash
-git clone https://github.com/your-org/open-matching-engine.git
+git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd open-matching-engine
 ```
 
