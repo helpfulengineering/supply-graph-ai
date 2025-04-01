@@ -38,9 +38,12 @@ nav:
     - Project Overview: overview.md
   - Architecture:
     - Overview: architecture/index.md
-    - System Diagram: architecture/system-diagram.md
-    - Data Flow: architecture/data-flow-diagram.md
-    - Workflow Generation: architecture/workflow-generation.md
+    - Matching Layers:  architecture/matching-layers.md
+    - Diagrams: 
+      - System Diagram: architecture/system-diagram.md
+      - Data Flow: architecture/data-flow-diagram.md
+      - Workflow Generation: architecture/workflow-generation.md
+
   - Data Models:
     - Overview: models/index.md
     - Supply Trees: models/supply-tree.md

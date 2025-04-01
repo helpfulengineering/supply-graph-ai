@@ -1,7 +1,33 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Any
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Any
 from enum import Enum
+
+
+class ResourceType(Enum):
+    OKH = "okh"
+    OKW = "okw"
+    RECIPE = "recipe"
+    KITCHEN = "kitchen"
+
+
+@dataclass
+class NormalizedData:
+    """Base class for normalized data with domain tracking"""
+    content: Dict[str, Any]
+    domain: str
+    confidence: float = 1.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class NormalizedRequirements(NormalizedData):
+    """Normalized requirements data"""
+    pass
+
+@dataclass
+class NormalizedCapabilities(NormalizedData):
+    """Normalized capabilities data"""
+    pass
 
 class MatchConfidence(Enum):
     """Standardized confidence levels for matches"""

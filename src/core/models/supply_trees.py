@@ -6,6 +6,9 @@ from datetime import datetime
 import networkx as nx
 from uuid import UUID, uuid4
 
+from src.core.models.base_types import ResourceType
+from src.core.models.okh import OKHManifest
+from src.core.models.okw import Equipment, ManufacturingFacility
 
 
 
@@ -32,8 +35,8 @@ class ProcessRequirement:
 @dataclass
 class ProcessNode:
     """A node in the supply tree representing a manufacturing step"""
-    id: UUID = field(default_factory=uuid4)
     process: ProcessRequirement
+    id: UUID = field(default_factory=uuid4)
     facility_id: Optional[str] = None  # OKW facility reference
     status: ProcessStatus = ProcessStatus.PENDING
     start_time: Optional[timedelta] = None
@@ -55,12 +58,6 @@ class CircularDependencyError:
             base += f"\nCan be resolved by providing: {self.required_input}"
         return base
 
-
-
-class ResourceType(Enum):
-    """Types of resources that can be referenced"""
-    OKH = "okh"
-    OKW = "okw"
 
 @dataclass
 class ResourceURI:
@@ -126,8 +123,8 @@ class ResourceSnapshot:
 @dataclass
 class WorkflowNode:
     """Node representing a step in a manufacturing workflow"""
-    id: UUID = field(default_factory=uuid4)
     name: str
+    id: UUID = field(default_factory=uuid4)
     okh_refs: List[ResourceURI] = field(default_factory=list)  # What needs to be done
     okw_refs: List[ResourceURI] = field(default_factory=list)  # Where it can be done
     input_requirements: Dict[str, any] = field(default_factory=dict)
@@ -154,8 +151,8 @@ class CircularDependencyError:
 @dataclass
 class Workflow:
     """Represents a discrete manufacturing workflow as a DAG"""
-    id: UUID = field(default_factory=uuid4)
     name: str
+    id: UUID = field(default_factory=uuid4)
     graph: nx.DiGraph = field(default_factory=nx.DiGraph)
     entry_points: Set[UUID] = field(default_factory=set)  # Nodes that start the workflow
     exit_points: Set[UUID] = field(default_factory=set)   # Nodes that end the workflow

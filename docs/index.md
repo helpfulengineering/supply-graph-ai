@@ -15,6 +15,10 @@
     * [Workflow Generation](architecture/workflow-generation.md)
     * [Feedback System](architecture/feedback.md)
 
+### Development Plans
+* [OME MVP Plan](development/ome-mvp-plan.md)
+* [Domain Management](development/domain-management.md)
+
 ### Implementation Details
 * [Data Models](models/index.md)
     * [Supply Trees](models/supply-tree.md)
@@ -34,11 +38,13 @@
         * Recipe/Kitchen matching
         * Example implementations
 
+
 ### Developer Resources
 * [Getting Started](getting-started/index.md)
     * [Installation](getting-started/installation.md)
     * [Basic Usage](getting-started/usage.md)
     * [Configuration](getting-started/configuration.md)
+    * [MVP Roadmap](development/ome-mvp-plan.md)
 * [API Documentation](api/index.md)
     * [REST API](api/rest.md)
     * [Python API](api/python.md)

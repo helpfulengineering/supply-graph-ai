@@ -12,7 +12,7 @@ A Supply Tree is a data structure representing a complete manufacturing solution
 class SupplyTree:
     """Container for interconnected manufacturing workflows"""
     id: UUID
-    workflows: Dict[UUID, Workflow]     # Connected workflows
+    workflows: Dict[UUID, Workflow]
     connections: List[WorkflowConnection]
     snapshots: Dict[str, ResourceSnapshot]
     creation_time: datetime

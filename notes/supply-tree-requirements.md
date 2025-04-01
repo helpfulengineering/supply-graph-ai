@@ -123,13 +123,6 @@ Example: Restaurant meal preparation
 - Depth 1: Ingredient suppliers
 - Depth 2: Raw ingredient processors
 
-## Questions for Clarification
-
-1. How should circular dependencies be handled?
-2. What is the preferred way to represent time-based dependencies?
-3. Should the structure include transportation/logistics information?
-4. How should versioning of manufacturing processes be handled?
-5. What is the preferred way to represent quality/certification requirements?
 
 ## Success Criteria
 

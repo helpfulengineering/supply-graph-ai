@@ -2,3 +2,5 @@
 mkdocs
 mkdocs-mermaiid2-plugin
 networkx
+fastapi
+uvicorn
