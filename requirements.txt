@@ -1,6 +1,6 @@
 # documentation
 mkdocs
-mkdocs-mermaiid2-plugin
+mkdocs-mermaid2-plugin
 networkx
 fastapi
 uvicorn
