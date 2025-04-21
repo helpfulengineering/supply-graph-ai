@@ -20,8 +20,12 @@ class MatchingService:
         validator = DomainRegistry.get_validator(domain)
         
         # 3. Extract data
-        normalized_req = extractor.extract_requirements(requirements.content)
-        normalized_cap = extractor.extract_capabilities(capabilities.content)
+        extraction_result_req = extractor.extract_requirements(requirements.content)
+        extraction_result_cap = extractor.extract_capabilities(capabilities.content)
+        
+        # Access the .data attribute of ExtractionResult, not .content
+        normalized_req = extraction_result_req.data
+        normalized_cap = extraction_result_cap.data
         
         # 4. Generate supply tree
         supply_tree = matcher.generate_supply_tree(normalized_req, normalized_cap)
@@ -35,14 +39,16 @@ class MatchingService:
             # Convert nodes
             nodes = {}
             for node_id in workflow.graph.nodes():
-                node_data = workflow.graph.nodes[node_id].get('data', {})
+                # Get the node data correctly - it's stored as an attribute in the node
+                node_data = workflow.graph.nodes[node_id]['data']  # Get the WorkflowNode object
+                
                 nodes[str(node_id)] = ProcessNode(
                     id=node_id,
-                    name=node_data.get('name', f"Node-{node_id}"),
-                    inputs=list(node_data.get('input_requirements', {}).keys()),
-                    outputs=list(node_data.get('output_specifications', {}).keys()),
-                    requirements=node_data.get('input_requirements', {}),
-                    capabilities=node_data.get('output_specifications', {})
+                    name=node_data.name,  # Access attribute directly
+                    inputs=list(node_data.input_requirements.keys()),
+                    outputs=list(node_data.output_specifications.keys()),
+                    requirements=node_data.input_requirements,
+                    capabilities=node_data.output_specifications
                 )
             
             # Convert edges

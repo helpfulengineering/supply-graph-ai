@@ -1,0 +1,32 @@
+{
+  "run_id": "1bc8ce93-fc63-4e62-bd56-3892c1a822d9",
+  "timestamp": "2025-04-01T14:16:55.312217",
+  "total_tests": 3,
+  "passed_tests": 0,
+  "failed_tests": 3,
+  "success_rate": 0.0,
+  "total_duration_ms": 10.34,
+  "test_results": [
+    {
+      "test_name": "Health Check",
+      "success": false,
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x101e5a590>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration_ms": 8.41,
+      "timestamp": "2025-04-01T14:16:55.320687"
+    },
+    {
+      "test_name": "Basic Cooking Match",
+      "success": false,
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /match (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1028ea1d0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration_ms": 0.92,
+      "timestamp": "2025-04-01T14:16:55.321614"
+    },
+    {
+      "test_name": "Invalid Match Input",
+      "success": false,
+      "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /match (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x1028eb710>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration_ms": 1.01,
+      "timestamp": "2025-04-01T14:16:55.322678"
+    }
+  ]
+}

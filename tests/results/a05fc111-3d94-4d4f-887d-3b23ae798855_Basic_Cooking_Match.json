@@ -1,0 +1,189 @@
+{
+  "test_name": "Basic Cooking Match",
+  "url": "http://localhost:8000/match",
+  "method": "POST",
+  "request_data": {
+    "requirements": {
+      "type": "recipe",
+      "content": {
+        "name": "Simple Pasta",
+        "ingredients": [
+          {
+            "name": "pasta",
+            "amount": "200g"
+          },
+          {
+            "name": "tomato sauce",
+            "amount": "300g"
+          },
+          {
+            "name": "grated cheese",
+            "amount": "50g"
+          }
+        ],
+        "instructions": [
+          "Boil water in a large pot.",
+          "Add pasta and cook according to package instructions.",
+          "Drain pasta and return to pot.",
+          "Heat tomato sauce in a separate pan.",
+          "Mix sauce with pasta.",
+          "Serve with grated cheese on top."
+        ],
+        "equipment": [
+          "large pot",
+          "strainer",
+          "pan"
+        ]
+      }
+    },
+    "capabilities": {
+      "type": "kitchen",
+      "content": {
+        "name": "Home Kitchen",
+        "tools": [
+          "large pot",
+          "strainer",
+          "pan",
+          "knife",
+          "cutting board"
+        ],
+        "appliances": [
+          "stove",
+          "oven",
+          "refrigerator"
+        ],
+        "ingredients": [
+          {
+            "name": "pasta",
+            "amount": "500g"
+          },
+          {
+            "name": "tomato sauce",
+            "amount": "500g"
+          },
+          {
+            "name": "grated cheese",
+            "amount": "100g"
+          },
+          {
+            "name": "salt",
+            "amount": "50g"
+          }
+        ]
+      }
+    }
+  },
+  "response_code": 200,
+  "response_data": {
+    "id": "fda1d190-2787-4af1-bbf6-d2332f20c5c5",
+    "domain": "cooking",
+    "workflows": {
+      "c34ed86a-9c46-4b6d-951b-5db95ab0b9d7": {
+        "id": "c34ed86a-9c46-4b6d-951b-5db95ab0b9d7",
+        "name": "Cooking Process",
+        "nodes": {
+          "3606df4a-d627-4b50-a078-219e43f87168": {
+            "id": "3606df4a-d627-4b50-a078-219e43f87168",
+            "name": "Step 1: Boil water in a large pot....",
+            "inputs": [
+              "step"
+            ],
+            "outputs": [],
+            "requirements": {
+              "step": "Boil water in a large pot."
+            },
+            "capabilities": {}
+          },
+          "a5174788-8c68-4f6f-aa9f-612d46c3dfb0": {
+            "id": "a5174788-8c68-4f6f-aa9f-612d46c3dfb0",
+            "name": "Step 2: Add pasta and cook according t...",
+            "inputs": [
+              "step"
+            ],
+            "outputs": [],
+            "requirements": {
+              "step": "Add pasta and cook according to package instructions."
+            },
+            "capabilities": {}
+          },
+          "988ebd1e-c4e8-4c0b-93cf-53238ee8f9a2": {
+            "id": "988ebd1e-c4e8-4c0b-93cf-53238ee8f9a2",
+            "name": "Step 3: Drain pasta and return to pot....",
+            "inputs": [
+              "step"
+            ],
+            "outputs": [],
+            "requirements": {
+              "step": "Drain pasta and return to pot."
+            },
+            "capabilities": {}
+          },
+          "d5281bf9-32d3-4455-8e4c-ccc8ff9f8742": {
+            "id": "d5281bf9-32d3-4455-8e4c-ccc8ff9f8742",
+            "name": "Step 4: Heat tomato sauce in a separat...",
+            "inputs": [
+              "step"
+            ],
+            "outputs": [],
+            "requirements": {
+              "step": "Heat tomato sauce in a separate pan."
+            },
+            "capabilities": {}
+          },
+          "01f91d18-f3fb-4749-adc2-dd681ce3ff9a": {
+            "id": "01f91d18-f3fb-4749-adc2-dd681ce3ff9a",
+            "name": "Step 5: Mix sauce with pasta....",
+            "inputs": [
+              "step"
+            ],
+            "outputs": [],
+            "requirements": {
+              "step": "Mix sauce with pasta."
+            },
+            "capabilities": {}
+          },
+          "0978fb60-e9e2-47a0-83ac-8bd41a62e5d3": {
+            "id": "0978fb60-e9e2-47a0-83ac-8bd41a62e5d3",
+            "name": "Step 6: Serve with grated cheese on to...",
+            "inputs": [
+              "step"
+            ],
+            "outputs": [],
+            "requirements": {
+              "step": "Serve with grated cheese on top."
+            },
+            "capabilities": {}
+          }
+        },
+        "edges": [
+          {
+            "source": "3606df4a-d627-4b50-a078-219e43f87168",
+            "target": "a5174788-8c68-4f6f-aa9f-612d46c3dfb0"
+          },
+          {
+            "source": "a5174788-8c68-4f6f-aa9f-612d46c3dfb0",
+            "target": "988ebd1e-c4e8-4c0b-93cf-53238ee8f9a2"
+          },
+          {
+            "source": "988ebd1e-c4e8-4c0b-93cf-53238ee8f9a2",
+            "target": "d5281bf9-32d3-4455-8e4c-ccc8ff9f8742"
+          },
+          {
+            "source": "d5281bf9-32d3-4455-8e4c-ccc8ff9f8742",
+            "target": "01f91d18-f3fb-4749-adc2-dd681ce3ff9a"
+          },
+          {
+            "source": "01f91d18-f3fb-4749-adc2-dd681ce3ff9a",
+            "target": "0978fb60-e9e2-47a0-83ac-8bd41a62e5d3"
+          }
+        ]
+      }
+    },
+    "confidence": 0.9,
+    "validation_status": true,
+    "metadata": {
+      "creation_time": "2025-04-01T14:39:12.041723"
+    }
+  },
+  "duration_ms": 3.28
+}

@@ -189,31 +189,3 @@ class OKHManifest:
         """Save the manifest to a TOML file"""
         # Implementation would go here
         pass
-
-
-
-# Example usage:
-# if __name__ == "__main__":
-#     # Create a basic manifest
-#     license = License(
-#         hardware="CERN-OHL-S-2.0",
-#         documentation="CC-BY-4.0",
-#         software="GPL-3.0-or-later"
-#     )
-    
-#     manifest = OKHManifest(
-#         title="Example Hardware Project",
-#         repo="https://github.com/example/project",
-#         version="1.0.0",
-#         license=license,
-#         licensor="John Doe",
-#         documentation_language="en",
-#         function="This project demonstrates the OKH manifest structure"
-#     )
-    
-#     # Validate the manifest
-#     try:
-#         manifest.validate()
-#         print("Manifest is valid!")
-#     except ValueError as e:
-#         print(f"Manifest validation failed: {e}")

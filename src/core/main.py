@@ -8,6 +8,11 @@ from src.core.registry.domain_registry import DomainRegistry
 # Create FastAPI app
 app = FastAPI(title="Open Matching Engine API")
 
+@app.get("/health")
+async def health_check():
+    """Simple health check endpoint."""
+    return {"status": "ok", "domains": list(DomainRegistry._extractors.keys())}
+
 # Register routes
 app.include_router(match_router, tags=["matching"])
 

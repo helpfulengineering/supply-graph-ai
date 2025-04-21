@@ -9,11 +9,9 @@
     * Use cases
 * [Architecture](architecture/index.md)
     * [System Components](architecture/components.md)
-    * [Data Flow](architecture/data-flow.md)
+    * [Data Flow Diagram](architecture/data-flow-diagram.md)
     * [System Diagram](architecture/system-diagram.md)
-    * [Storage and Caching](architecture/storage.md)
     * [Workflow Generation](architecture/workflow-generation.md)
-    * [Feedback System](architecture/feedback.md)
 
 ### Development Plans
 * [OME MVP Plan](development/ome-mvp-plan.md)
@@ -40,20 +38,10 @@
 
 
 ### Developer Resources
-* [Getting Started](getting-started/index.md)
-    * [Installation](getting-started/installation.md)
-    * [Basic Usage](getting-started/usage.md)
-    * [Configuration](getting-started/configuration.md)
-    * [MVP Roadmap](development/ome-mvp-plan.md)
 * [API Documentation](api/index.md)
     * [REST API](api/rest.md)
     * [Python API](api/python.md)
     * [Authentication](api/auth.md)
-* [Contributing](contributing/index.md)
-    * [Development Setup](contributing/setup.md)
-    * [Code Style](contributing/style.md)
-    * [Testing](contributing/testing.md)
-    * [Documentation](contributing/documentation.md)
 
 # Overview
 

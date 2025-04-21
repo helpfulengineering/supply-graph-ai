@@ -1,0 +1,41 @@
+{
+  "run_id": "bcc1eff5-1573-4898-9679-59ee187760f6",
+  "timestamp": "2025-04-01T14:25:17.308822",
+  "total_tests": 3,
+  "passed_tests": 0,
+  "failed_tests": 3,
+  "success_rate": 0.0,
+  "total_duration_ms": 8.35,
+  "test_results": [
+    {
+      "test_name": "Health Check",
+      "success": false,
+      "status_code": 404,
+      "expected_status_code": 200,
+      "duration_ms": 5.26,
+      "missing_fields": [],
+      "response_file": "tests/results/bcc1eff5-1573-4898-9679-59ee187760f6_Health_Check.json",
+      "timestamp": "2025-04-01T14:25:17.314359"
+    },
+    {
+      "test_name": "Basic Cooking Match",
+      "success": false,
+      "status_code": 500,
+      "expected_status_code": 200,
+      "duration_ms": 1.49,
+      "missing_fields": [],
+      "response_file": "tests/results/bcc1eff5-1573-4898-9679-59ee187760f6_Basic_Cooking_Match.json",
+      "timestamp": "2025-04-01T14:25:17.316302"
+    },
+    {
+      "test_name": "Invalid Match Input",
+      "success": false,
+      "status_code": 422,
+      "expected_status_code": 400,
+      "duration_ms": 1.6,
+      "missing_fields": [],
+      "response_file": "tests/results/bcc1eff5-1573-4898-9679-59ee187760f6_Invalid_Match_Input.json",
+      "timestamp": "2025-04-01T14:25:17.318096"
+    }
+  ]
+}

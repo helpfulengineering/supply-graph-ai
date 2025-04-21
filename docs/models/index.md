@@ -56,7 +56,7 @@ class ProcessRequirement:
     failure_responses: Dict[str, ValidationFailureResponse]
 ```
 
-### 5. [Validation Contexts](validation-contexts.md)
+### 5. [Validation Contexts](validation.md)
 Context-specific validation rules and acceptance criteria.
 ```python
 @dataclass
