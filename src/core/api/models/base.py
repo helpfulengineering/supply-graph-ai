@@ -1,10 +1,12 @@
 from pydantic import BaseModel, Field
-from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional, List
 from uuid import UUID, uuid4
 import networkx as nx
-from supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI
 
+from src.core.registry.domain_registry import DomainRegistry
+from src.core.models.supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI, ResourceType
+
+ 
 
 class RequirementsInput(BaseModel):
     content: Dict[str, Any]
@@ -96,7 +98,6 @@ class ManufacturingExtractor(BaseExtractor):
             "equipment": content.get("equipment", []),
             "processes": content.get("manufacturing_processes", []),
             "materials": content.get("typical_materials", []),
-            # Additional processing of OKW fields
         }
         return processed
 
@@ -132,9 +133,6 @@ class CookingExtractor(BaseExtractor):
 class ManufacturingMatcher(BaseMatcher):
     def generate_supply_tree(self, requirements: NormalizedRequirements, 
                            capabilities: NormalizedCapabilities) -> 'SupplyTree':
-        # Create a basic manufacturing supply tree
-
-        
         supply_tree = SupplyTree()
         
         # Create primary workflow
@@ -179,7 +177,6 @@ class ManufacturingMatcher(BaseMatcher):
         
     def _create_resource_uri(self, type_str: str, identifier: str, path: List[str]) -> 'ResourceURI':
         # Create a resource URI
-        from supply_trees import ResourceURI, ResourceType
         return ResourceURI(
             resource_type=ResourceType(type_str),
             identifier=identifier,
@@ -189,9 +186,6 @@ class ManufacturingMatcher(BaseMatcher):
 class CookingMatcher(BaseMatcher):
     def generate_supply_tree(self, requirements: NormalizedRequirements, 
                            capabilities: NormalizedCapabilities) -> 'SupplyTree':
-        # Create a basic cooking supply tree
-        from supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI
-        from uuid import uuid4
         
         supply_tree = SupplyTree()
         
@@ -248,9 +242,7 @@ class CookingMatcher(BaseMatcher):
         return all(any(req.lower() in avail.lower() for avail in available_tools) for req in required_tools)
         
     def _create_resource_uri(self, type_str: str, identifier: str, path: List[str]) -> 'ResourceURI':
-        # Create a resource URI
-        from supply_trees import ResourceURI, ResourceType
-        return ResourceURI(
+            return ResourceURI(
             resource_type=ResourceType(type_str),
             identifier=identifier,
             path=path

@@ -1,3 +1,9 @@
+from dataclasses import dataclass
+
+from typing import Optional, Dict, Any, List
+from src.core.api.models.base import BaseExtractor
+
+
 @dataclass
 class ManufacturingSpecification:
     """

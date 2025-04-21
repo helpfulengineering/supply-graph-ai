@@ -1,4 +1,3 @@
-# src/core/domains/cooking/extractors.py
 from typing import Dict, Any, List
 from ...models.base_extractors import BaseExtractor
 from ...models.base_types import NormalizedRequirements, NormalizedCapabilities
@@ -8,7 +7,7 @@ class CookingExtractor(BaseExtractor):
     
     def _initial_parse_requirements(self, content: Dict[str, Any]) -> Dict[str, Any]:
         """Initial parsing of recipe data"""
-        # Basic normalization and parsing
+        # For MVP, just pass through the content
         return content
     
     def _detailed_extract_requirements(self, parsed_data: Dict[str, Any]) -> NormalizedRequirements:
@@ -20,14 +19,14 @@ class CookingExtractor(BaseExtractor):
             "time": parsed_data.get("totalTime", "")
         }
         
-        # Set confidence scores for critical fields
+        # Create normalized requirements
         result = NormalizedRequirements(content=processed, domain="cooking")
         
         return result
     
     def _initial_parse_capabilities(self, content: Dict[str, Any]) -> Dict[str, Any]:
         """Initial parsing of kitchen data"""
-        # Basic normalization and parsing
+        # For MVP, just pass through the content
         return content
     
     def _detailed_extract_capabilities(self, parsed_data: Dict[str, Any]) -> NormalizedCapabilities:
@@ -38,7 +37,7 @@ class CookingExtractor(BaseExtractor):
             "appliances": parsed_data.get("appliances", [])
         }
         
-        # Set confidence scores for critical fields
+        # Create normalized capabilities
         result = NormalizedCapabilities(content=processed, domain="cooking")
         
         return result

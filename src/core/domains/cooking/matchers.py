@@ -7,7 +7,7 @@ class CookingMatcher:
     """Matcher for cooking domain"""
     
     def generate_supply_tree(self, requirements: 'NormalizedRequirements', 
-                           capabilities: 'NormalizedCapabilities') -> SupplyTree:
+                        capabilities: 'NormalizedCapabilities') -> SupplyTree:
         """Generate a cooking supply tree"""
         # Create supply tree
         supply_tree = SupplyTree()
@@ -35,7 +35,7 @@ class CookingMatcher:
                 output_specifications={}
             )
             
-            # Add to workflow
+            # Add node to workflow - make sure data is stored correctly
             workflow.add_node(node)
             
             # Connect to previous node if it exists
@@ -43,7 +43,7 @@ class CookingMatcher:
                 workflow.graph.add_edge(prev_node.id, node.id)
             
             prev_node = node
-        
+            
         # Add workflow to supply tree
         supply_tree.add_workflow(workflow)
         

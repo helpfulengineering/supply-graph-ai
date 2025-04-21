@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from uuid import UUID, uuid4
 
 class ProcessNode(BaseModel):
