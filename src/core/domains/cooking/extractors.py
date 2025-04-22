@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
-from ...models.base_extractors import BaseExtractor
-from ...models.base_types import NormalizedRequirements, NormalizedCapabilities
+from ...models.base.base_extractors import BaseExtractor
+from ...models.base.base_types import NormalizedRequirements, NormalizedCapabilities
 
 class CookingExtractor(BaseExtractor):
     """Extractor for cooking domain"""

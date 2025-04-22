@@ -1,5 +1,5 @@
 from typing import Dict, Type, Any
-from ..models.base_extractors import BaseExtractor
+from ..models.base.base_extractors import BaseExtractor
 
 class DomainRegistry:
     """Registry for domain-specific components"""
