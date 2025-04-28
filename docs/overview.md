@@ -7,7 +7,7 @@ In the world of distributed manufacturing and open hardware, there's a fundament
 
 This matching problem is complex due to several factors:
 
-1. **Multiple Requirements**
+#### **Multiple Requirements**
    - Materials specifications
    - Tool requirements
    - Process requirements
@@ -15,20 +15,20 @@ This matching problem is complex due to several factors:
    - Production volumes
    - Time constraints
 
-2. **Varying Detail Levels**
+#### **Varying Detail Levels**
    - Some specifications are exact and inflexible
    - Others are approximate or have alternatives
    - Specifications may be incomplete or ambiguous
    - Different contexts require different precision
 
-3. **Complex Dependencies**
+#### **Complex Dependencies**
    - Multi-stage manufacturing processes
    - Parallel workflows
    - Material sourcing dependencies
    - Time-based constraints
    - Resource availability
 
-4. **Scale Considerations**
+#### **Scale Considerations**
    - Large number of potential facilities
    - Multiple possible production paths
    - Various optimization criteria
@@ -63,22 +63,22 @@ At the core of OME is the Supply Tree data structure, which:
 
 OME uses increasingly sophisticated processing stages:
 
-1. **Exact Matching**
+#### **Exact Matching**
    - Direct requirement-to-capability mapping
    - Precise specification matching
    - Unambiguous validation
 
-2. **Heuristic Matching**
+#### **Heuristic Matching**
    - Rule-based approximations
    - Known substitutions
    - Domain-specific shortcuts
 
-3. **NLP Matching**
+#### **NLP Matching**
    - Natural language understanding
    - Semantic similarity
    - Context interpretation
 
-4. **AI/ML Matching**
+#### **AI/ML Matching**
    - Pattern recognition
    - Historical learning
    - Complex substitutions
@@ -183,22 +183,3 @@ recipe_solution = ome.process(
     }
 )
 ```
-
-## Getting Started
-
-To start using OME:
-
-1. Choose your interaction level:
-   - Use individual components
-   - Use the full pipeline
-   - Extend with custom modules
-
-2. Define your domain:
-   - Use existing domains
-   - Create custom domains
-   - Extend validation contexts
-
-3. Configure processing:
-   - Select processing stages
-   - Set confidence thresholds
-   - Define optimization criteria

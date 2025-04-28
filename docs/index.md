@@ -8,39 +8,30 @@
     * Project vision
     * Use cases
 * [Architecture](architecture/index.md)
-    * [System Components](architecture/components.md)
     * [Data Flow Diagram](architecture/data-flow-diagram.md)
     * [System Diagram](architecture/system-diagram.md)
     * [Workflow Generation](architecture/workflow-generation.md)
 
 ### Development Plans
+* [Getting Started](development/getting-started.md)
 * [OME MVP Plan](development/ome-mvp-plan.md)
 * [Domain Management](development/domain-management.md)
 
-### Implementation Details
+### Data Models
 * [Data Models](models/index.md)
     * [Supply Trees](models/supply-tree.md)
+    * [Bill of Materials](models/bom.md)
     * [Process Requirements](models/process.md)
     * [Validation Contexts](models/validation.md)
     * [Open Know How](models/okh-docs.md)
     * [Open Know Where](models/okw-docs.md)
-* [Pipeline Components](pipelines/index.md)
-    * [Extraction Pipeline](pipelines/extraction.md)
-    * [Matching Pipeline](pipelines/matching.md)
-    * [Validation Pipeline](pipelines/validation.md)
 * [Domain Implementations](domains/index.md)
     * [Manufacturing Domain](domains/manufacturing.md)
-        * OKH/OKW integration
-        * Manufacturing-specific validation
     * [Cooking Domain](domains/cooking.md)
-        * Recipe/Kitchen matching
-        * Example implementations
 
-
-### Developer Resources
+### API Documentation
 * [API Documentation](api/index.md)
-    * [REST API](api/rest.md)
-    * [Python API](api/python.md)
+    * [Routes & Endpoints](api/routes.md)
     * [Authentication](api/auth.md)
 
 # Overview
@@ -80,17 +71,9 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 ### For Users
 If you're looking to use OME:
 
-1. Start with our [Installation Guide](getting-started/installation.md)
-2. Review the [Basic Usage Guide](getting-started/usage.md)
-3. Explore our [API Documentation](api/index.md)
+1. Start with our [Installation Guide](development/getting-started.md)
+2. Explore our [API Documentation](api/index.md)
 
-### For Developers
-If you want to contribute to OME:
-
-1. Set up your [Development Environment](contributing/setup.md)
-2. Review our [Code Style Guide](contributing/style.md)
-3. Learn about our [Testing Requirements](contributing/testing.md)
-4. Check our [Documentation Guidelines](contributing/documentation.md)
 
 ## Project Status
 

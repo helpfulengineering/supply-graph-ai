@@ -31,14 +31,7 @@ The API follows these key design patterns:
    - Services (business logic)
    - Repositories (data access)
 
-## Available APIs
 
-OME offers two main API interfaces:
-
-1. [**REST API**](rest.md): HTTP-based API for integration with any client
-2. [**Python API**](python.md): Direct Python interface for tighter integration
-
-Both APIs offer the same core functionality with different integration patterns.
 
 ## Core API Concepts
 

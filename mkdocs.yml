@@ -43,16 +43,23 @@ nav:
       - System Diagram: architecture/system-diagram.md
       - Data Flow: architecture/data-flow-diagram.md
       - Workflow Generation: architecture/workflow-generation.md
-
+  - API:
+    - Overview: api/index.md
+    - Authentication: api/auth.md
+    - Routes & Models: api/routes.md
+  - Development:
+    - Domain Management: development/domain-management.md
+    - Roadmap: development/ome-mvp-plan.md
+    - Getting Started: development/getting-started.md
   - Data Models:
     - Overview: models/index.md
+    - Bill Of Materials: models/bom.md
     - Supply Trees: models/supply-tree.md
     - Process Requirements: models/process.md
     - Validation Contexts: models/validation.md
     - OpenKnowHow Documentation: models/okh-docs.md
     - OpenKnowWhere Documentation: models/okw-docs.md
   - Domains:
+    - Overview: domains/index.md
     - Manufacturing: domains/manufacturing.md
     - Cooking: domains/cooking.md
-  - Pipelines:
-    - Overview: pipelines/index.md
