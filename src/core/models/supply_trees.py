@@ -10,9 +10,16 @@ from src.core.models.okw import ManufacturingFacility, Equipment, Material, Faci
 
 
 class ResourceType(Enum):
-    """Types of resources that can be referenced"""
-    OKH = "okh"
-    OKW = "okw"
+    """Resource types that can be referenced in a Supply Tree"""
+    OKH = "okh"                      # OpenKnowHow manifest
+    OKH_PROCESS = "okh_process"      # OKH process requirement
+    OKH_MATERIAL = "okh_material"    # OKH material specification
+    OKH_PART = "okh_part"            # OKH part specification
+    OKW = "okw"                      # OpenKnowWhere facility
+    OKW_EQUIPMENT = "okw_equipment"  # OKW equipment
+    OKW_PROCESS = "okw_process"      # OKW manufacturing process
+    RECIPE = "recipe"                # Cooking domain recipe
+    KITCHEN = "kitchen"              # Cooking domain kitchen
 
 
 class ProcessStatus(Enum):
@@ -28,10 +35,10 @@ class ProcessStatus(Enum):
 class ResourceURI:
     """Standardized reference to OKH/OKW resources"""
     resource_type: ResourceType
-    identifier: str  # UUID or ID of the referenced object
-    path: List[str]  # Path to specific element within the object
-    fragment: Optional[str] = None  # Fragment within the element
-
+    identifier: str
+    path: List[str]
+    fragment: Optional[str] = None
+    
     def __str__(self) -> str:
         """Convert to URI string"""
         path_str = "/".join(self.path)
@@ -43,7 +50,13 @@ class ResourceURI:
         """Parse URI string into ResourceURI object"""
         # Parse uri_str like "okh://part-123/process/milling#tolerance"
         scheme, rest = uri_str.split("://", 1)
-        resource_type = ResourceType(scheme)
+        
+        # Handle resource type
+        try:
+            resource_type = ResourceType(scheme)
+        except ValueError:
+            # For backward compatibility
+            resource_type = ResourceType.OKH if scheme == "okh" else ResourceType.OKW
         
         # Split identifier and path
         parts = rest.split("/")
@@ -64,6 +77,16 @@ class ResourceURI:
             path=path,
             fragment=fragment
         )
+    
+    def get_value_from_okh(self, okh_manifest: 'OKHManifest') -> Any:
+        """Extract referenced value from an OKH manifest"""
+        # Implementation to navigate the OKH manifest structure
+        # based on path and fragment
+    
+    def get_value_from_okw(self, facility: 'ManufacturingFacility') -> Any:
+        """Extract referenced value from an OKW facility"""
+        # Implementation to navigate the OKW facility structure
+        # based on path and fragment
 
 
 @dataclass
@@ -104,53 +127,43 @@ class WorkflowNode:
     assigned_equipment: Optional[str] = None  # UUID of equipment
     materials: List[str] = field(default_factory=list)  # Material references
     metadata: Dict = field(default_factory=dict)
+    confidence_score: float = 1.0  # Confidence in this node's match
+    substitution_used: bool = False  # Whether this uses a substitution
 
-    def validate_capability(self, equipment: Equipment) -> bool:
-        """
-        Validate if this node's requirements can be met by the given equipment
-        Returns True if equipment can handle the requirements
-        """
-        # Get required manufacturing process from OKH reference
-        required_process = None
+    def validate_capability(self, equipment: 'Equipment') -> bool:
+        """Validate if equipment can handle node requirements"""
+        # Check if equipment type matches process requirements
         for ref in self.okh_refs:
-            if "process" in ref.path:
-                required_process = ref.path[-1]
-                break
+            if ref.resource_type in [ResourceType.OKH_PROCESS, ResourceType.OKH]:
+                # Extract process name from OKH reference
+                process_name = self._extract_process_name(ref)
+                
+                # Check if equipment supports this process
+                if process_name in equipment.manufacturing_process or any(
+                    process_name in proc for proc in 
+                    getattr(equipment, 'manufacturing_processes', [])
+                ):
+                    return True
+                    
+                # Check if equipment has this process in additional properties
+                if hasattr(equipment, 'additional_properties') and equipment.additional_properties:
+                    if 'processes' in equipment.additional_properties:
+                        if process_name in equipment.additional_properties['processes']:
+                            return True
         
-        if not required_process:
-            return False
+        return False
+    
+    def _extract_process_name(self, uri: ResourceURI) -> str:
+        """Extract process name from URI"""
+        # Extract process name based on path structure
+        # This is a simplification and would need proper implementation
+        if 'process' in uri.path:
+            idx = uri.path.index('process')
+            if idx + 1 < len(uri.path):
+                return uri.path[idx + 1]
         
-        # Check if equipment supports this process
-        if required_process != equipment.manufacturing_process:
-            # Check for process in equipment capabilities
-            process_found = False
-            for process in equipment.manufacturing_process.split(','):
-                if process.strip() == required_process:
-                    process_found = True
-                    break
-            
-            if not process_found:
-                return False
-        
-        # Check if equipment can handle required materials
-        required_materials = []
-        for material_id in self.materials:
-            required_materials.append(material_id)
-        
-        if required_materials:
-            has_material_capability = False
-            for mat in equipment.materials_worked:
-                for req_mat in required_materials:
-                    if mat.material_type == req_mat:
-                        has_material_capability = True
-                        break
-            
-            if not has_material_capability:
-                return False
-        
-        # Additional validation could check for size constraints, etc.
-        
-        return True
+        # Default to node name if no process found
+        return self.name
 
     def assign_resources(self, facility_id: str, equipment_id: str) -> None:
         """Assign facility and equipment to this node"""
@@ -388,14 +401,41 @@ class SupplyTree:
         # Validate all references exist in snapshots
         for workflow in self.workflows.values():
             for node_id in workflow.graph.nodes:
-                node: WorkflowNode = workflow.graph.nodes[node_id]['data']
-                for ref in node.okh_refs + node.okw_refs:
+                node_data = workflow.graph.nodes[node_id].get('data')
+                if not node_data:
+                    return False
+                    
+                for ref in node_data.okh_refs + node_data.okw_refs:
                     uri_str = str(ref)
                     if uri_str not in self.snapshots:
                         return False
+                        
                     # Validate referenced data exists in snapshot
-                    if self.snapshots[uri_str].get_value() is None:
-                        return False
+                    snapshot = self.snapshots[uri_str]
+                    if snapshot.get_value() is None:
+                        # Check if this is a child path reference
+                        # For example, okh://manifest-id/process_requirements/3d_printing
+                        # might not exist directly, but may be resolvable
+                        if not self._validate_child_path(ref, snapshot):
+                            return False
+                            
+        return True
+    
+    def _validate_child_path(self, ref: ResourceURI, snapshot: ResourceSnapshot) -> bool:
+        """Validate a complex path reference by traversing parent paths"""
+        # This would handle cases where paths reference nested structures
+        # Implementation would traverse the path segments to validate
+        
+        # Simplified example:
+        content = snapshot.content
+        for segment in ref.path:
+            if isinstance(content, dict) and segment in content:
+                content = content[segment]
+            elif isinstance(content, list) and segment.isdigit() and int(segment) < len(content):
+                content = content[int(segment)]
+            else:
+                return False
+                
         return True
     
     def find_facility_for_node(self, node: WorkflowNode, facilities: List[ManufacturingFacility]) -> List[Tuple[ManufacturingFacility, Equipment]]:
@@ -550,93 +590,125 @@ class SupplyTree:
                 supply_tree.snapshots[uri_str] = snapshot
         
         return supply_tree
-    
+        
     @classmethod
     def generate_from_requirements(cls,
-                                 okh_manifest: 'OKHManifest',
-                                 facilities: List['ManufacturingFacility']) -> 'SupplyTree':
+                                okh_manifest: 'OKHManifest',
+                                facilities: List['ManufacturingFacility']) -> 'SupplyTree':
         """
         Generate a SupplyTree from OKH requirements and OKW capabilities
         
         Args:
             okh_manifest: The OKH manifest containing requirements
             facilities: List of manufacturing facilities to consider
-            
+                
         Returns:
             A valid SupplyTree that satisfies the requirements
         """
         supply_tree = cls()
-        supply_tree.okh_reference = str(okh_manifest.id)
         
         # Create workflows from OKH process requirements
         primary_workflow = Workflow(
             name=f"Primary workflow for {okh_manifest.title}",
+            graph=nx.DiGraph(),
+            entry_points=set(),
+            exit_points=set()
         )
         
         # Extract process requirements
         process_requirements = okh_manifest.extract_requirements()
         
-        # Create nodes for each process requirement
-        previous_node_id = None
-        for i, req in enumerate(process_requirements):
-            # Find matching facilities and equipment
+        # Create dependency graph for processes if dependencies exist
+        dependency_graph = nx.DiGraph()
+        previous_node = None
+        
+        for req in process_requirements:
+            # Create node for this process requirement
+            node_id = uuid4()
             node = WorkflowNode(
-                name=f"Process: {req.process_name}",
+                id=node_id,
+                name=req.process_name,
                 okh_refs=[ResourceURI(
-                    resource_type=ResourceType.OKH,
+                    resource_type=ResourceType.OKH_PROCESS,
                     identifier=str(okh_manifest.id),
-                    path=["process_requirements", str(i)],
-                    fragment="process_name"
+                    path=["process_requirements", req.process_name]
                 )],
                 input_requirements=req.parameters,
                 output_specifications=req.validation_criteria,
+                estimated_time=timedelta(minutes=30)  # Default estimation, should be refined
             )
             
-            # Add to workflow - sequentially for now
-            dependencies = set([previous_node_id]) if previous_node_id else None
-            primary_workflow.add_node(node, dependencies)
-            previous_node_id = node.id
+            # Find matching equipment across facilities
+            for facility in facilities:
+                for equipment in facility.equipment:
+                    # Check if equipment can handle this process
+                    if hasattr(req, 'can_be_satisfied_by'):
+                        # Use OKH method if available
+                        if req.can_be_satisfied_by(equipment):
+                            node.okw_refs.append(ResourceURI(
+                                resource_type=ResourceType.OKW_EQUIPMENT,
+                                identifier=str(facility.id),
+                                path=["equipment", getattr(equipment, "id", "0")]
+                            ))
+                    else:
+                        # Fallback to process name matching
+                        if req.process_name in equipment.manufacturing_process:
+                            node.okw_refs.append(ResourceURI(
+                                resource_type=ResourceType.OKW_EQUIPMENT,
+                                identifier=str(facility.id),
+                                path=["equipment", getattr(equipment, "id", "0")]
+                            ))
             
-            # Find and assign suitable facilities/equipment
-            facility_matches = supply_tree.find_facility_for_node(node, facilities)
-            if facility_matches:
-                # For now, just pick the first match
-                facility, equipment = facility_matches[0]
-                node.assign_resources(str(facility.id), str(getattr(equipment, 'id', uuid4())))
+            # Add node to workflow 
+            primary_workflow.graph.add_node(node_id, data=node)
+            
+            # If we're building a linear workflow, connect to previous node
+            if previous_node:
+                primary_workflow.graph.add_edge(previous_node, node_id)
                 
-                # Add references to OKW resources
-                node.okw_refs.append(ResourceURI(
-                    resource_type=ResourceType.OKW,
-                    identifier=str(facility.id),
-                    path=["equipment", str(getattr(equipment, 'id', uuid4()))]
-                ))
+            previous_node = node_id
+            
+            # Update entry/exit points
+            if not primary_workflow.graph.in_degree(node_id):
+                primary_workflow.entry_points.add(node_id)
+            if not primary_workflow.graph.out_degree(node_id):
+                primary_workflow.exit_points.add(node_id)
         
-        # Add workflow to supply tree if it has nodes
-        if primary_workflow.graph.number_of_nodes() > 0:
-            supply_tree.add_workflow(primary_workflow)
+        supply_tree.add_workflow(primary_workflow)
         
-        # Add snapshots
-        supply_tree.add_snapshot(
-            ResourceURI(
-                resource_type=ResourceType.OKH,
-                identifier=str(okh_manifest.id),
-                path=[]
-            ),
-            okh_manifest.to_dict()
-        )
-        
+        # Add relevant snapshots
+        supply_tree.add_snapshot(f"okh://{okh_manifest.id}", okh_manifest.to_dict())
         for facility in facilities:
-            supply_tree.add_snapshot(
-                ResourceURI(
-                    resource_type=ResourceType.OKW,
-                    identifier=str(facility.id),
-                    path=[]
-                ),
-                facility.to_dict()
-            )
+            supply_tree.add_snapshot(f"okw://{facility.id}", facility.to_dict())
         
         return supply_tree
 
+    def calculate_confidence(self) -> float:
+        """Calculate overall confidence score for the supply tree"""
+        if not self.workflows:
+            return 0.0
+            
+        total_nodes = 0
+        confidence_sum = 0.0
+        
+        for workflow in self.workflows.values():
+            for node_id in workflow.graph.nodes:
+                node_data = workflow.graph.nodes[node_id].get('data')
+                if node_data:
+                    total_nodes += 1
+                    # Use node confidence if available, otherwise check references
+                    if hasattr(node_data, 'confidence_score'):
+                        confidence_sum += node_data.confidence_score
+                    else:
+                        # Calculate based on references
+                        if node_data.okw_refs:
+                            confidence_sum += 1.0
+                        elif node_data.substitution_used:
+                            confidence_sum += 0.7  # Lower confidence for substitutions
+                        else:
+                            confidence_sum += 0.0  # No capability found
+        
+        return confidence_sum / total_nodes if total_nodes > 0 else 0.0
 
 @dataclass
 class SupplyTreeSolution:
