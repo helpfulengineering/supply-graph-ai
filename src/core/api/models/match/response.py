@@ -1,25 +1,34 @@
 from pydantic import BaseModel, Field
-from typing import Dict, Any, List
-from uuid import UUID, uuid4
+from typing import Dict, List, Optional, Any, Union
+from uuid import UUID
 
-class ProcessNode(BaseModel):
-    id: UUID
-    name: str
-    inputs: List[str]
-    outputs: List[str]
-    requirements: Dict[str, Any]
-    capabilities: Dict[str, Any]
+from ..supply_tree.response import SupplyTreeResponse, OptimizationMetrics
 
-class Workflow(BaseModel):
-    id: UUID
-    name: str
-    nodes: Dict[str, ProcessNode]
-    edges: List[Dict[str, UUID]]
-
-class SupplyTreeResponse(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
-    domain: str
-    workflows: Dict[str, Workflow]
+class MatchResponse(BaseModel):
+    """Response model for matching requirements to capabilities"""
+    # Required fields first
+    supply_trees: List[SupplyTreeResponse]
     confidence: float
-    validation_status: bool
-    metadata: Dict[str, Any] = {}
+    
+    # Optional fields after
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class ValidationResult(BaseModel):
+    """Response model for validation results"""
+    # Required fields first
+    valid: bool
+    confidence: float
+    
+    # Optional fields after
+    issues: List[Dict[str, Any]] = []
+
+class SimulationResult(BaseModel):
+    """Response model for simulation results"""
+    # Required fields first
+    success: bool
+    completion_time: str
+    
+    # Optional fields after
+    critical_path: List[Dict[str, Any]] = []
+    bottlenecks: List[Dict[str, Any]] = []
+    resource_utilization: Dict[str, Any] = {}
