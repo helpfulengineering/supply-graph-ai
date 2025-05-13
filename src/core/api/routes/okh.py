@@ -22,7 +22,7 @@ from ...services.okh_service import OKHService
 logger = logging.getLogger(__name__)
 
 # Create router with prefix and tags
-router = APIRouter(prefix="/v1/okh", tags=["okh"])
+router = APIRouter(tags=["okh"])
 
 # Dependency to get OKH service
 async def get_okh_service():

@@ -12,7 +12,7 @@ from ..models.utility.response import (
 )
 
 # Create router with prefix and tags
-router = APIRouter(prefix="/v1", tags=["utility"])
+router = APIRouter(tags=["utility"])
 
 @router.get("/domains", response_model=DomainsResponse)
 async def get_domains(
