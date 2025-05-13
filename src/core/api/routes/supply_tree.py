@@ -14,7 +14,7 @@ from ..models.supply_tree.response import (
 )
 
 # Create router with prefix and tags
-router = APIRouter(prefix="/v1/supply-tree", tags=["supply-tree"])
+router = APIRouter(tags=["supply-tree"])
 
 @router.post("/create", response_model=SupplyTreeResponse, status_code=status.HTTP_201_CREATED)
 async def create_supply_tree(request: SupplyTreeCreateRequest):

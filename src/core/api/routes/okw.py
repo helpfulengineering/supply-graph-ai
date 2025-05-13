@@ -21,7 +21,7 @@ from ..models.okw.response import (
 logger = logging.getLogger(__name__)
 
 # Create router with prefix and tags
-router = APIRouter(prefix="/v1/okw", tags=["okw"])
+router = APIRouter(tags=["okw"])
 
 @router.post("/create", response_model=OKWResponse, status_code=status.HTTP_201_CREATED)
 async def create_okw(request: OKWCreateRequest):

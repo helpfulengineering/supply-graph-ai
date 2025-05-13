@@ -12,7 +12,7 @@ from ..models.match.response import (
 from ..models.supply_tree.response import SupplyTreeResponse
 
 # Create router with prefix and tags
-router = APIRouter(prefix="/v1/match", tags=["match"])
+router = APIRouter(tags=["match"])
 
 @router.post("", response_model=MatchResponse)
 async def match_requirements_to_capabilities(request: MatchRequest):
