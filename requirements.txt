@@ -6,3 +6,7 @@ fastapi
 uvicorn
 dotenv
 groq
+pytest
+pytest-asyncio
+pytest-mock
+httpx
