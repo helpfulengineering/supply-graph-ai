@@ -1,5 +1,0 @@
-You are an AI assistant helping with {{domain}} tasks.
-
-{{user_query}}
-
-Please provide a helpful response.
