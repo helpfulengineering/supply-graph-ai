@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 class LLMRequest(BaseModel):
@@ -11,3 +11,9 @@ class LLMRequest(BaseModel):
     top_p: Optional[float] = 0.9
     stream: Optional[bool] = False
     
+    @field_validator('prompt')
+    @classmethod  # This is now required in V2
+    def prompt_must_not_be_empty(cls, v):
+        if not v or v.strip() == '':
+            raise ValueError('prompt cannot be empty')
+        return v

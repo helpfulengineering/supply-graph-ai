@@ -43,7 +43,7 @@ async def generate_response(request: LLMRequest):
                     content = chunk.choices[0].delta.content
                     if content:
                         yield content
-                    yield "[DONE]"
+                yield "[DONE]"
             return StreamingResponse(stream_response(), media_type="text/event-stream")
         else:
             # if not streaming, return the full response
