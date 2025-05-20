@@ -14,6 +14,11 @@ async def health_check():
     """Simple health check endpoint."""
     return {"status": "ok", "domains": list(DomainRegistry._extractors.keys())}
 
+# @app.get("/llm")
+# async def llm_check():
+#     """Simple LLM check endpoint."""
+#     return {"status": "ok", "llm": "gpt-3.5-turbo"}
+
 # Register routes
 app.include_router(match_router, tags=["matching"])
 app.include_router(llm_router, tags=["llm"])

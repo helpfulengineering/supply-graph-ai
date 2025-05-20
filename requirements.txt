@@ -4,10 +4,5 @@ mkdocs-mermaid2-plugin
 networkx
 fastapi
 uvicorn
-torch
-transformers
-accelerate>=0.21.0
-bitsandbytes>=0.41.0
-safetensors
-sentencepiece
 dotenv
+groq
