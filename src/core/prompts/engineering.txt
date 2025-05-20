@@ -1,0 +1,10 @@
+# Engineering analysis prompt
+You are an engineering expert. Please analyze the following problem:
+
+{{prompt}}
+
+Additional context:
+- Application: {{application}}
+- Requirements: {{requirements}}
+
+Provide a detailed technical analysis with practical recommendations.

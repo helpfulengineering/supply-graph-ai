@@ -1,0 +1,11 @@
+{
+    "description": "Engineering domain knowledge",
+    "data": {
+      "common_materials": ["steel", "aluminum", "titanium", "composites"],
+      "analysis_methods": ["FEA", "CFD", "experimental testing"],
+      "standards": {
+        "mechanical": ["ASME", "ISO", "ASTM"],
+        "electrical": ["IEC", "IEEE", "UL"]
+      }
+    }
+  }
