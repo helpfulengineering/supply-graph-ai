@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional, List
 from uuid import UUID, uuid4
+from enum import Enum
 import networkx as nx
 
 from src.core.registry.domain_registry import DomainRegistry
 from src.core.models.supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI, ResourceType
 
- 
 
 class RequirementsInput(BaseModel):
     content: Dict[str, Any]
