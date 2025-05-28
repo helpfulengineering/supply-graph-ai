@@ -80,7 +80,7 @@ async def health_check():
 api_v1 = FastAPI()
 
 # Include routers with appropriate prefixes
-api_v1.include_router(match_router, prefix="/match", tags=["matching"])
+api_v1.include_router(match_router, prefix="/match", tags=["match"])
 api_v1.include_router(okh_router, prefix="/okh", tags=["okh"])
 api_v1.include_router(okw_router, prefix="/okw", tags=["okw"])
 api_v1.include_router(supply_tree_router, prefix="/supply-tree", tags=["supply-tree"])
