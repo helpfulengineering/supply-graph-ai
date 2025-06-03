@@ -7,8 +7,9 @@ from ..models.okw import ManufacturingFacility
 from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from .okh_service import OKHService
 from .okw_service import OKWService
+from ..utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class MatchingService:
     """Service for matching OKH requirements to OKW capabilities"""
@@ -47,41 +48,210 @@ class MatchingService:
         self._initialized = True
         logger.info("Matching service initialized")
     
-    async def find_matches(self, okh_id: UUID) -> List[SupplyTreeSolution]:
+    async def find_matches(
+        self,
+        okh_id: UUID,
+        optimization_criteria: Optional[Dict[str, float]] = None
+    ) -> List[SupplyTreeSolution]:
         """Find matching facilities for an OKH manifest"""
         await self.ensure_initialized()
-        logger.info(f"Finding matches for OKH manifest {okh_id}")
         
-        # Get OKH manifest
-        manifest = await self.okh_service.get(okh_id)
-        if not manifest:
-            logger.error(f"OKH manifest {okh_id} not found")
-            return []
-        
-        # Get all facilities
-        facilities, _ = await self.okw_service.list()
-        if not facilities:
-            logger.warning("No facilities found")
-            return []
-        
-        # Generate supply tree
-        supply_tree = SupplyTree.generate_from_requirements(manifest, facilities)
-        
-        # Calculate confidence score
-        confidence = supply_tree.calculate_confidence()
-        
-        # Create solution
-        solution = SupplyTreeSolution(
-            tree=supply_tree,
-            score=confidence,
-            metrics={
-                "facility_count": len(facilities),
-                "process_count": len(manifest.extract_requirements()),
-                "confidence": confidence
+        logger.info(
+            "Finding matches for OKH manifest",
+            extra={
+                "okh_id": str(okh_id),
+                "optimization_criteria": optimization_criteria
             }
         )
         
-        return [solution]
+        try:
+            # Get OKH manifest
+            manifest = await self.okh_service.get(okh_id)
+            if not manifest:
+                logger.warning(
+                    "OKH manifest not found",
+                    extra={"okh_id": str(okh_id)}
+                )
+                return []
+            
+            # Extract requirements
+            requirements = manifest.extract_requirements()
+            logger.info(
+                "Extracted requirements from OKH manifest",
+                extra={
+                    "okh_id": str(okh_id),
+                    "requirement_count": len(requirements)
+                }
+            )
+            
+            # Get all facilities
+            facilities, total = await self.okw_service.list()
+            logger.info(
+                "Retrieved manufacturing facilities",
+                extra={
+                    "facility_count": len(facilities),
+                    "total_facilities": total
+                }
+            )
+            
+            # Find matches
+            solutions = []
+            for facility in facilities:
+                logger.debug(
+                    "Checking facility for matches",
+                    extra={
+                        "okh_id": str(okh_id),
+                        "facility_id": str(facility.id),
+                        "facility_name": facility.name
+                    }
+                )
+                
+                # Extract capabilities
+                capabilities = facility.extract_capabilities()
+                
+                # Check if facility can satisfy requirements
+                if self._can_satisfy_requirements(requirements, capabilities):
+                    # Generate supply tree
+                    tree = self._generate_supply_tree(manifest, facility)
+                    
+                    # Calculate confidence score
+                    score = self._calculate_confidence_score(
+                        requirements,
+                        capabilities,
+                        optimization_criteria
+                    )
+                    
+                    # Create solution
+                    solution = SupplyTreeSolution(
+                        tree=tree,
+                        score=score,
+                        metrics={
+                            "facility_count": 1,
+                            "requirement_count": len(requirements),
+                            "capability_count": len(capabilities)
+                        }
+                    )
+                    solutions.append(solution)
+                    
+                    logger.info(
+                        "Found matching facility",
+                        extra={
+                            "okh_id": str(okh_id),
+                            "facility_id": str(facility.id),
+                            "confidence_score": score
+                        }
+                    )
+            
+            logger.info(
+                "Match finding completed",
+                extra={
+                    "okh_id": str(okh_id),
+                    "solution_count": len(solutions)
+                }
+            )
+            
+            return solutions
+            
+        except Exception as e:
+            logger.error(
+                "Error finding matches",
+                extra={
+                    "okh_id": str(okh_id),
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    def _can_satisfy_requirements(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]]
+    ) -> bool:
+        """Check if capabilities can satisfy requirements"""
+        try:
+            # TODO: Implement actual matching logic
+            # For now, return True if any capability matches any requirement
+            for req in requirements:
+                for cap in capabilities:
+                    if req["process_name"] == cap["process_name"]:
+                        return True
+            return False
+            
+        except Exception as e:
+            logger.error(
+                "Error checking requirement satisfaction",
+                extra={
+                    "requirement_count": len(requirements),
+                    "capability_count": len(capabilities),
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    def _generate_supply_tree(
+        self,
+        manifest: OKHManifest,
+        facility: ManufacturingFacility
+    ) -> SupplyTree:
+        """Generate a supply tree for a manifest and facility"""
+        try:
+            # TODO: Implement actual tree generation logic
+            # For now, return a simple tree
+            return SupplyTree(
+                root_node={
+                    "type": "facility",
+                    "id": str(facility.id),
+                    "name": facility.name
+                },
+                edges=[],
+                metadata={
+                    "okh_id": str(manifest.id),
+                    "facility_id": str(facility.id)
+                }
+            )
+            
+        except Exception as e:
+            logger.error(
+                "Error generating supply tree",
+                extra={
+                    "okh_id": str(manifest.id),
+                    "facility_id": str(facility.id),
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    def _calculate_confidence_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]],
+        optimization_criteria: Optional[Dict[str, float]] = None
+    ) -> float:
+        """Calculate confidence score for a match"""
+        try:
+            # TODO: Implement actual scoring logic
+            # For now, return a simple score based on requirement coverage
+            matched_requirements = sum(
+                1 for req in requirements
+                if any(req["process_name"] == cap["process_name"] for cap in capabilities)
+            )
+            return matched_requirements / len(requirements) if requirements else 0.0
+            
+        except Exception as e:
+            logger.error(
+                "Error calculating confidence score",
+                extra={
+                    "requirement_count": len(requirements),
+                    "capability_count": len(capabilities),
+                    "optimization_criteria": optimization_criteria,
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
     
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""

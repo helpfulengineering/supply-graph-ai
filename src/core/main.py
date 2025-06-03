@@ -20,8 +20,16 @@ from src.core.registry.domain_registry import DomainRegistry
 from src.core.services.storage_service import StorageService
 from src.core.services.service_registry import DomainMetadata, DomainStatus
 from src.config import settings
+from src.utils.logging import setup_logging, get_logger
 
+# Setup logging
+setup_logging(
+    level=settings.LOG_LEVEL,
+    log_file=settings.LOG_FILE
+)
 
+# Get logger for this module
+logger = get_logger(__name__)
 
 # Initialize API key security
 API_KEY_HEADER = APIKeyHeader(name="Authorization")
@@ -29,22 +37,28 @@ API_KEY_HEADER = APIKeyHeader(name="Authorization")
 # Define lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize storage and register domain components
+    """Lifespan context manager for FastAPI application"""
     try:
-        # Initialize storage first
-        storage_service = await StorageService.get_instance()
-        await storage_service.configure(settings.STORAGE_CONFIG)
+        logger.info("Starting application")
         
-        # Then register domain components
+        # Initialize storage
+        logger.info("Initializing storage service")
+        storage_service = StorageService.get_instance()
+        await storage_service.initialize(settings.STORAGE_CONFIG)
+        
+        # Register domain components
+        logger.info("Registering domain components")
         await register_domain_components()
         
         yield
         
-        # Shutdown: Clean up resources
-        await storage_service.disconnect()
     except Exception as e:
-        logger.error(f"Error during application startup: {e}")
+        logger.error("Error during startup", exc_info=True)
         raise
+    finally:
+        logger.info("Shutting down application")
+        # Cleanup resources
+        await cleanup_resources()
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -142,6 +156,14 @@ async def register_domain_components():
             supported_output_types={"okh", "okw"}
         )
     )
+
+async def cleanup_resources():
+    """Cleanup resources on shutdown"""
+    try:
+        logger.info("Cleaning up resources")
+        # Add cleanup logic here
+    except Exception as e:
+        logger.error("Error during cleanup", exc_info=True)
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":

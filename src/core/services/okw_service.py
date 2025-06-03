@@ -4,8 +4,9 @@ import logging
 
 from src.core.services.storage_service import StorageService
 from ..models.okw import ManufacturingFacility
+from ..utils.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class OKWService:
     """Service for managing OKW manufacturing facilities"""
