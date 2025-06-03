@@ -2,16 +2,19 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
-from ..supply_tree.response import SupplyTreeResponse, OptimizationMetrics
+from ...models.supply_trees import SupplyTree
 
 class MatchResponse(BaseModel):
     """Response model for matching requirements to capabilities"""
     # Required fields first
-    supply_trees: List[SupplyTreeResponse]
+    supply_trees: List[SupplyTree]
     confidence: float
     
     # Optional fields after
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional metadata about the matching process"
+    )
 
 class ValidationResult(BaseModel):
     """Response model for validation results"""
@@ -20,7 +23,14 @@ class ValidationResult(BaseModel):
     confidence: float
     
     # Optional fields after
-    issues: List[Dict[str, Any]] = []
+    issues: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of validation issues if any"
+    )
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional metadata about the validation process"
+    )
 
 class SimulationResult(BaseModel):
     """Response model for simulation results"""

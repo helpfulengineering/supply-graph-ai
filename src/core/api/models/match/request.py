@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
+
+from ...models.okh import OKHManifest
 
 class OptimizationCriteria(BaseModel):
     """Model for optimization criteria"""
@@ -12,22 +14,41 @@ class OptimizationCriteria(BaseModel):
 
 class MatchRequest(BaseModel):
     """Request model for matching requirements to capabilities"""
-    # Required fields first
-    requirements: Dict[str, Any]
-    capabilities: List[str]
+    # Optional fields - either okh_id or okh_manifest must be provided
+    okh_id: Optional[UUID] = None
+    okh_manifest: Optional[OKHManifest] = None
     
     # Optional fields after
-    context: Optional[str] = None
-    optimization_criteria: Optional[OptimizationCriteria] = None
+    optimization_criteria: Optional[Dict[str, float]] = Field(
+        default_factory=dict,
+        description="Optional weights for different optimization criteria"
+    )
+
+    @validator('okh_id', 'okh_manifest')
+    def validate_okh_input(cls, v, values):
+        """Ensure either okh_id or okh_manifest is provided, but not both"""
+        if 'okh_id' in values and values['okh_id'] is not None and v is not None:
+            raise ValueError("Cannot provide both okh_id and okh_manifest")
+        return v
+
+    @validator('okh_manifest')
+    def validate_okh_manifest(cls, v, values):
+        """Ensure at least one of okh_id or okh_manifest is provided"""
+        if v is None and values.get('okh_id') is None:
+            raise ValueError("Must provide either okh_id or okh_manifest")
+        return v
 
 class ValidateMatchRequest(BaseModel):
     """Request model for validating an existing supply tree"""
     # Required fields first
-    supply_tree: Dict[str, Any]
+    okh_id: UUID
+    supply_tree_id: UUID
     
     # Optional fields after
-    okh_reference: Optional[str] = None
-    okw_references: Optional[List[str]] = None
+    validation_criteria: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Optional criteria for validation"
+    )
 
 class SimulationParameters(BaseModel):
     """Parameters for simulation"""

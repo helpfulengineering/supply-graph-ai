@@ -1,3 +1,4 @@
+import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +17,11 @@ from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 from src.core.domains.manufacturing.okh_validator import OKHValidator
 from src.core.registry.domain_registry import DomainRegistry
+from src.core.services.storage_service import StorageService
+from src.core.services.service_registry import DomainMetadata, DomainStatus
 from src.config import settings
+
+
 
 # Initialize API key security
 API_KEY_HEADER = APIKeyHeader(name="Authorization")
@@ -24,11 +29,22 @@ API_KEY_HEADER = APIKeyHeader(name="Authorization")
 # Define lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Register domain components
-    register_domain_components()
-    yield
-    # Shutdown: Clean up resources if needed
-    # This section runs when the application is shutting down
+    # Startup: Initialize storage and register domain components
+    try:
+        # Initialize storage first
+        storage_service = await StorageService.get_instance()
+        await storage_service.configure(settings.STORAGE_CONFIG)
+        
+        # Then register domain components
+        await register_domain_components()
+        
+        yield
+        
+        # Shutdown: Clean up resources
+        await storage_service.disconnect()
+    except Exception as e:
+        logger.error(f"Error during application startup: {e}")
+        raise
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -86,26 +102,47 @@ api_v1.include_router(okw_router, prefix="/okw", tags=["okw"])
 api_v1.include_router(supply_tree_router, prefix="/supply-tree", tags=["supply-tree"])
 api_v1.include_router(utility_router, tags=["utility"])
 
-
-
 # Mount the versioned API
 app.mount("/v1", api_v1)
 
 # Register domain components function (now called from lifespan)
-def register_domain_components():
+async def register_domain_components():
     """Register all domain components with the registry."""
     
     # Register Cooking domain components
-    DomainRegistry.register_extractor("cooking", CookingExtractor())
-    DomainRegistry.register_matcher("cooking", CookingMatcher())
-    DomainRegistry.register_validator("cooking", CookingValidator())
+    await DomainRegistry.register_domain(
+        "cooking",
+        CookingExtractor(),
+        CookingMatcher(),
+        CookingValidator(),
+        DomainMetadata(
+            name="cooking",
+            display_name="Cooking Domain",
+            description="Domain for cooking-related matching",
+            version="1.0.0",
+            status=DomainStatus.ACTIVE,
+            supported_input_types={"recipe", "ingredient"},
+            supported_output_types={"recipe", "ingredient"}
+        )
+    )
     
     # Register Manufacturing domain components
-    DomainRegistry.register_extractor("manufacturing", OKHExtractor())
-    DomainRegistry.register_matcher("manufacturing", OKHMatcher())
-    DomainRegistry.register_validator("manufacturing", OKHValidator())
+    await DomainRegistry.register_domain(
+        "manufacturing",
+        OKHExtractor(),
+        OKHMatcher(),
+        OKHValidator(),
+        DomainMetadata(
+            name="manufacturing",
+            display_name="Manufacturing Domain",
+            description="Domain for manufacturing-related matching",
+            version="1.0.0",
+            status=DomainStatus.ACTIVE,
+            supported_input_types={"okh", "okw"},
+            supported_output_types={"okh", "okw"}
+        )
+    )
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
