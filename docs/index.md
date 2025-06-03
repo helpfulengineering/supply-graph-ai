@@ -8,6 +8,7 @@
     * Project vision
     * Use cases
 * [Architecture](architecture/index.md)
+    * [Storage](architecture/storage.md)
     * [Data Flow Diagram](architecture/data-flow-diagram.md)
     * [System Diagram](architecture/system-diagram.md)
     * [Workflow Generation](architecture/workflow-generation.md)
