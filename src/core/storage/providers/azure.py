@@ -1,9 +1,11 @@
 import logging
 from typing import Optional, Dict, Any, List, AsyncIterator
-from datetime import datetime
+from datetime import datetime, timedelta
 import asyncio
 from azure.storage.blob.aio import BlobServiceClient, ContainerClient, BlobClient
-from azure.core.exceptions import ResourceNotFoundError
+from azure.core.exceptions import ResourceNotFoundError, ServiceRequestError
+from azure.core.pipeline.policies import RetryPolicy
+from azure.storage.blob import BlobLeaseClient
 
 from ..base import StorageProvider, StorageConfig, StorageMetadata
 
@@ -17,6 +19,11 @@ class AzureBlobProvider(StorageProvider):
         self._client: Optional[BlobServiceClient] = None
         self._container: Optional[ContainerClient] = None
         self._connected = False
+        self._retry_policy = RetryPolicy(
+            retry_total=3,
+            retry_backoff_factor=0.5,
+            retry_backoff_max=30
+        )
     
     async def connect(self) -> None:
         """Connect to Azure Blob Storage"""
@@ -32,8 +39,11 @@ class AzureBlobProvider(StorageProvider):
                 # Create connection string
                 conn_str = f"DefaultEndpointsProtocol=https;AccountName={account_name};AccountKey={account_key};EndpointSuffix=core.windows.net"
                 
-                # Create client
-                self._client = BlobServiceClient.from_connection_string(conn_str)
+                # Create client with retry policy
+                self._client = BlobServiceClient.from_connection_string(
+                    conn_str,
+                    retry_policy=self._retry_policy
+                )
                 
                 # Get container client
                 self._container = self._client.get_container_client(self.config.bucket_name)
@@ -68,7 +78,8 @@ class AzureBlobProvider(StorageProvider):
         key: str,
         data: bytes,
         content_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, str]] = None
+        metadata: Optional[Dict[str, str]] = None,
+        tier: Optional[str] = None
     ) -> StorageMetadata:
         """Store an object in Azure Blob Storage"""
         await self.ensure_connected()
@@ -76,6 +87,10 @@ class AzureBlobProvider(StorageProvider):
         try:
             # Get blob client
             blob_client = self._container.get_blob_client(key)
+            
+            # Set blob tier if specified
+            if tier:
+                await blob_client.set_standard_blob_tier(tier)
             
             # Upload blob with metadata
             await blob_client.upload_blob(
@@ -101,13 +116,24 @@ class AzureBlobProvider(StorageProvider):
             logger.error(f"Failed to store object {key}: {e}")
             raise
     
-    async def get_object(self, key: str, version_id: Optional[str] = None) -> bytes:
+    async def get_object(
+        self,
+        key: str,
+        version_id: Optional[str] = None,
+        snapshot: Optional[str] = None
+    ) -> bytes:
         """Retrieve an object from Azure Blob Storage"""
         await self.ensure_connected()
         
         try:
             # Get blob client
             blob_client = self._container.get_blob_client(key)
+            
+            # Set version if specified
+            if version_id:
+                blob_client = blob_client.get_blob_client(version_id=version_id)
+            elif snapshot:
+                blob_client = blob_client.get_blob_client(snapshot=snapshot)
             
             # Download blob
             download = await blob_client.download_blob()
@@ -297,3 +323,102 @@ class AzureBlobProvider(StorageProvider):
         """Get container policy (not implemented for Azure)"""
         logger.warning("Container policies not implemented for Azure Blob Storage")
         return {}
+    
+    async def acquire_lease(
+        self,
+        key: str,
+        duration: int = 60,
+        proposed_lease_id: Optional[str] = None
+    ) -> str:
+        """Acquire a lease on a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            lease_client = BlobLeaseClient(blob_client)
+            
+            # Acquire lease
+            lease_id = await lease_client.acquire_lease(
+                duration=duration,
+                proposed_lease_id=proposed_lease_id
+            )
+            
+            logger.info(f"Acquired lease on blob {key}: {lease_id}")
+            return lease_id
+        except Exception as e:
+            logger.error(f"Failed to acquire lease on blob {key}: {e}")
+            raise
+    
+    async def release_lease(self, key: str, lease_id: str) -> None:
+        """Release a lease on a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            lease_client = BlobLeaseClient(blob_client)
+            
+            # Release lease
+            await lease_client.release_lease(lease_id)
+            logger.info(f"Released lease on blob {key}: {lease_id}")
+        except Exception as e:
+            logger.error(f"Failed to release lease on blob {key}: {e}")
+            raise
+    
+    async def create_snapshot(self, key: str, metadata: Optional[Dict[str, str]] = None) -> str:
+        """Create a snapshot of a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            snapshot = await blob_client.create_snapshot(metadata=metadata)
+            logger.info(f"Created snapshot of blob {key}: {snapshot.snapshot}")
+            return snapshot.snapshot
+        except Exception as e:
+            logger.error(f"Failed to create snapshot of blob {key}: {e}")
+            raise
+    
+    async def list_snapshots(self, key: str) -> List[Dict[str, Any]]:
+        """List snapshots of a blob"""
+        await self.ensure_connected()
+        
+        try:
+            snapshots = []
+            async for blob in self._container.list_blobs(
+                name_starts_with=key,
+                include=['snapshots']
+            ):
+                if blob.snapshot:
+                    snapshots.append({
+                        "snapshot": blob.snapshot,
+                        "last_modified": blob.last_modified,
+                        "size": blob.size,
+                        "metadata": blob.metadata
+                    })
+            return snapshots
+        except Exception as e:
+            logger.error(f"Failed to list snapshots of blob {key}: {e}")
+            raise
+    
+    async def set_blob_tier(self, key: str, tier: str) -> None:
+        """Set the tier of a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            await blob_client.set_standard_blob_tier(tier)
+            logger.info(f"Set tier of blob {key} to {tier}")
+        except Exception as e:
+            logger.error(f"Failed to set tier of blob {key}: {e}")
+            raise
+    
+    async def get_blob_tier(self, key: str) -> str:
+        """Get the tier of a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            properties = await blob_client.get_blob_properties()
+            return properties.blob_tier
+        except Exception as e:
+            logger.error(f"Failed to get tier of blob {key}: {e}")
+            raise
