@@ -7,8 +7,14 @@ uvicorn
 
 # storage
 aiofiles>=23.2.1
+aiohttp>=3.8.0
 boto3>=1.26.0
 azure-storage-blob>=12.14.0
 google-cloud-storage>=2.7.0
 PyYAML>=6.0
 pydantic[email]>=1.10.0
+python-dotenv>=1.0.0
+
+# testing
+pytest>=7.0.0
+httpx>=0.24.0

@@ -19,11 +19,13 @@ class AzureBlobProvider(StorageProvider):
         self._client: Optional[BlobServiceClient] = None
         self._container: Optional[ContainerClient] = None
         self._connected = False
-        self._retry_policy = RetryPolicy(
-            retry_total=3,
-            retry_backoff_factor=0.5,
-            retry_backoff_max=30
-        )
+        # Remove retry policy for now to avoid async issues
+        self._retry_policy = None
+    
+    async def ensure_connected(self) -> None:
+        """Ensure connection to Azure Blob Storage"""
+        if not self._connected:
+            await self.connect()
     
     async def connect(self) -> None:
         """Connect to Azure Blob Storage"""
@@ -39,11 +41,8 @@ class AzureBlobProvider(StorageProvider):
                 # Create connection string
                 conn_str = f"DefaultEndpointsProtocol=https;AccountName={account_name};AccountKey={account_key};EndpointSuffix=core.windows.net"
                 
-                # Create client with retry policy
-                self._client = BlobServiceClient.from_connection_string(
-                    conn_str,
-                    retry_policy=self._retry_policy
-                )
+                # Create client without retry policy for now
+                self._client = BlobServiceClient.from_connection_string(conn_str)
                 
                 # Get container client
                 self._container = self._client.get_container_client(self.config.bucket_name)
@@ -51,9 +50,10 @@ class AzureBlobProvider(StorageProvider):
                 # Ensure container exists
                 try:
                     await self._container.get_container_properties()
+                    logger.info(f"Container exists: {self.config.bucket_name}")
                 except ResourceNotFoundError:
-                    await self._container.create_container()
-                    logger.info(f"Created container: {self.config.bucket_name}")
+                    logger.warning(f"Container {self.config.bucket_name} not found, but continuing...")
+                    # Don't create container automatically for read-only testing
                 
                 self._connected = True
                 logger.info(f"Connected to Azure Blob Storage: {account_name}")
@@ -78,8 +78,7 @@ class AzureBlobProvider(StorageProvider):
         key: str,
         data: bytes,
         content_type: str = "application/octet-stream",
-        metadata: Optional[Dict[str, str]] = None,
-        tier: Optional[str] = None
+        metadata: Optional[Dict[str, str]] = None
     ) -> StorageMetadata:
         """Store an object in Azure Blob Storage"""
         await self.ensure_connected()
@@ -87,10 +86,6 @@ class AzureBlobProvider(StorageProvider):
         try:
             # Get blob client
             blob_client = self._container.get_blob_client(key)
-            
-            # Set blob tier if specified
-            if tier:
-                await blob_client.set_standard_blob_tier(tier)
             
             # Upload blob with metadata
             await blob_client.upload_blob(
@@ -119,8 +114,7 @@ class AzureBlobProvider(StorageProvider):
     async def get_object(
         self,
         key: str,
-        version_id: Optional[str] = None,
-        snapshot: Optional[str] = None
+        version_id: Optional[str] = None
     ) -> bytes:
         """Retrieve an object from Azure Blob Storage"""
         await self.ensure_connected()
@@ -132,8 +126,6 @@ class AzureBlobProvider(StorageProvider):
             # Set version if specified
             if version_id:
                 blob_client = blob_client.get_blob_client(version_id=version_id)
-            elif snapshot:
-                blob_client = blob_client.get_blob_client(snapshot=snapshot)
             
             # Download blob
             download = await blob_client.download_blob()
@@ -151,6 +143,10 @@ class AzureBlobProvider(StorageProvider):
         try:
             # Get blob client
             blob_client = self._container.get_blob_client(key)
+            
+            # Set version if specified
+            if version_id:
+                blob_client = blob_client.get_blob_client(version_id=version_id)
             
             # Delete blob
             await blob_client.delete_blob()
@@ -171,11 +167,12 @@ class AzureBlobProvider(StorageProvider):
         await self.ensure_connected()
         
         try:
-            # List blobs with prefix
-            async for blob in self._container.list_blobs(
-                name_starts_with=prefix,
-                delimiter=delimiter
-            ):
+            # List blobs with prefix (remove delimiter for now)
+            list_kwargs = {"name_starts_with": prefix}
+            if delimiter:
+                list_kwargs["delimiter"] = delimiter
+            
+            async for blob in self._container.list_blobs(**list_kwargs):
                 yield {
                     "key": blob.name,
                     "size": blob.size,
@@ -203,6 +200,10 @@ class AzureBlobProvider(StorageProvider):
         try:
             # Get blob client
             blob_client = self._container.get_blob_client(key)
+            
+            # Set version if specified
+            if version_id:
+                blob_client = blob_client.get_blob_client(version_id=version_id)
             
             # Get blob properties
             properties = await blob_client.get_blob_properties()
@@ -235,6 +236,10 @@ class AzureBlobProvider(StorageProvider):
             # Get source and destination blob clients
             source_blob = self._container.get_blob_client(source_key)
             dest_blob = self._container.get_blob_client(destination_key)
+            
+            # Set source version if specified
+            if source_version_id:
+                source_blob = source_blob.get_blob_client(version_id=source_version_id)
             
             # Start copy operation
             await dest_blob.start_copy_from_url(source_blob.url)
@@ -324,6 +329,32 @@ class AzureBlobProvider(StorageProvider):
         logger.warning("Container policies not implemented for Azure Blob Storage")
         return {}
     
+    # Azure-specific methods (not part of base interface)
+    
+    async def set_blob_tier(self, key: str, tier: str) -> None:
+        """Set the tier of a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            await blob_client.set_standard_blob_tier(tier)
+            logger.info(f"Set tier of blob {key} to {tier}")
+        except Exception as e:
+            logger.error(f"Failed to set tier of blob {key}: {e}")
+            raise
+    
+    async def get_blob_tier(self, key: str) -> str:
+        """Get the tier of a blob"""
+        await self.ensure_connected()
+        
+        try:
+            blob_client = self._container.get_blob_client(key)
+            properties = await blob_client.get_blob_properties()
+            return properties.blob_tier
+        except Exception as e:
+            logger.error(f"Failed to get tier of blob {key}: {e}")
+            raise
+    
     async def acquire_lease(
         self,
         key: str,
@@ -397,28 +428,4 @@ class AzureBlobProvider(StorageProvider):
             return snapshots
         except Exception as e:
             logger.error(f"Failed to list snapshots of blob {key}: {e}")
-            raise
-    
-    async def set_blob_tier(self, key: str, tier: str) -> None:
-        """Set the tier of a blob"""
-        await self.ensure_connected()
-        
-        try:
-            blob_client = self._container.get_blob_client(key)
-            await blob_client.set_standard_blob_tier(tier)
-            logger.info(f"Set tier of blob {key} to {tier}")
-        except Exception as e:
-            logger.error(f"Failed to set tier of blob {key}: {e}")
-            raise
-    
-    async def get_blob_tier(self, key: str) -> str:
-        """Get the tier of a blob"""
-        await self.ensure_connected()
-        
-        try:
-            blob_client = self._container.get_blob_client(key)
-            properties = await blob_client.get_blob_properties()
-            return properties.blob_tier
-        except Exception as e:
-            logger.error(f"Failed to get tier of blob {key}: {e}")
             raise

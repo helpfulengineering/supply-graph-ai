@@ -53,9 +53,8 @@ class MatchingService:
         okh_id: UUID,
         optimization_criteria: Optional[Dict[str, float]] = None
     ) -> List[SupplyTreeSolution]:
-        """Find matching facilities for an OKH manifest"""
+        """Find matching facilities for an OKH manifest by ID (loads manifest and facilities, then delegates)."""
         await self.ensure_initialized()
-        
         logger.info(
             "Finding matches for OKH manifest",
             extra={
@@ -63,65 +62,74 @@ class MatchingService:
                 "optimization_criteria": optimization_criteria
             }
         )
-        
         try:
-            # Get OKH manifest
+            # Load manifest and facilities using services
             manifest = await self.okh_service.get(okh_id)
             if not manifest:
-                logger.warning(
-                    "OKH manifest not found",
-                    extra={"okh_id": str(okh_id)}
-                )
+                logger.warning("OKH manifest not found", extra={"okh_id": str(okh_id)})
                 return []
-            
-            # Extract requirements
-            requirements = manifest.extract_requirements()
-            logger.info(
-                "Extracted requirements from OKH manifest",
-                extra={
-                    "okh_id": str(okh_id),
-                    "requirement_count": len(requirements)
-                }
-            )
-            
-            # Get all facilities
             facilities, total = await self.okw_service.list()
             logger.info(
                 "Retrieved manufacturing facilities",
+                extra={"facility_count": len(facilities), "total_facilities": total}
+            )
+            # Delegate to the core logic
+            return await self.find_matches_with_manifest(
+                okh_manifest=manifest,
+                facilities=facilities,
+                optimization_criteria=optimization_criteria
+            )
+        except Exception as e:
+            logger.error(
+                "Error finding matches",
+                extra={"okh_id": str(okh_id), "error": str(e)},
+                exc_info=True
+            )
+            raise
+    
+    async def find_matches_with_manifest(
+        self,
+        okh_manifest: OKHManifest,
+        facilities: List[ManufacturingFacility],
+        optimization_criteria: Optional[Dict[str, float]] = None
+    ) -> List[SupplyTreeSolution]:
+        """Find matching facilities for an in-memory OKH manifest and provided facilities."""
+        await self.ensure_initialized()
+
+        logger.info(
+            "Finding matches for in-memory OKH manifest",
+            extra={
+                "manifest_id": str(getattr(okh_manifest, 'id', None)),
+                "optimization_criteria": optimization_criteria
+            }
+        )
+
+        try:
+            requirements = okh_manifest.extract_requirements()
+            logger.info(
+                "Extracted requirements from OKH manifest",
                 extra={
-                    "facility_count": len(facilities),
-                    "total_facilities": total
+                    "requirement_count": len(requirements)
                 }
             )
-            
-            # Find matches
+
             solutions = []
             for facility in facilities:
                 logger.debug(
                     "Checking facility for matches",
                     extra={
-                        "okh_id": str(okh_id),
                         "facility_id": str(facility.id),
                         "facility_name": facility.name
                     }
                 )
-                
-                # Extract capabilities
                 capabilities = facility.extract_capabilities()
-                
-                # Check if facility can satisfy requirements
                 if self._can_satisfy_requirements(requirements, capabilities):
-                    # Generate supply tree
-                    tree = self._generate_supply_tree(manifest, facility)
-                    
-                    # Calculate confidence score
+                    tree = self._generate_supply_tree(okh_manifest, facility)
                     score = self._calculate_confidence_score(
                         requirements,
                         capabilities,
                         optimization_criteria
                     )
-                    
-                    # Create solution
                     solution = SupplyTreeSolution(
                         tree=tree,
                         score=score,
@@ -132,31 +140,25 @@ class MatchingService:
                         }
                     )
                     solutions.append(solution)
-                    
                     logger.info(
                         "Found matching facility",
                         extra={
-                            "okh_id": str(okh_id),
                             "facility_id": str(facility.id),
                             "confidence_score": score
                         }
                     )
-            
             logger.info(
                 "Match finding completed",
                 extra={
-                    "okh_id": str(okh_id),
                     "solution_count": len(solutions)
                 }
             )
-            
             return solutions
-            
+
         except Exception as e:
             logger.error(
-                "Error finding matches",
+                "Error finding matches (in-memory manifest)",
                 extra={
-                    "okh_id": str(okh_id),
                     "error": str(e)
                 },
                 exc_info=True

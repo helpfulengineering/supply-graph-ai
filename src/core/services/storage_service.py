@@ -4,8 +4,11 @@ from typing import Optional, Dict, Any, List, TypeVar, Generic, Type
 from datetime import datetime
 from uuid import UUID
 
-from ..storage.base import StorageConfig, StorageMetadata
+from ..storage.base import StorageConfig
 from ..storage.manager import StorageManager
+from ..models.okh import OKHManifest
+from ..models.okw import ManufacturingFacility
+from ..models.supply_trees import SupplyTree
 
 logger = logging.getLogger(__name__)
 
@@ -344,6 +347,35 @@ class DomainStorageHandler(Generic[T]):
         
         key = self._get_storage_key(obj_id)
         return await self.storage_service.manager.delete_object(key)
+
+    # --- Add these generic aliases for service compatibility ---
+    async def save_object(self, obj_id: UUID, obj_data: dict) -> str:
+        """Save a domain object by ID and dict (for service compatibility)"""
+        # Convert dict to object
+        obj = self._deserialize(obj_data)
+        return await self.save(obj)
+
+    async def load_object(self, obj_id: UUID) -> Optional[dict]:
+        """Load a domain object by ID and return as dict (for service compatibility)"""
+        try:
+            obj = await self.load(obj_id)
+            return self._serialize(obj)
+        except Exception:
+            return None
+
+    async def list_objects(
+        self,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None
+    ) -> List[dict]:
+        """List all domain objects as dicts (for service compatibility)"""
+        objects = await self.list(limit=limit, offset=offset)
+        # Optionally, could load and serialize each object fully here if needed
+        return objects
+
+    async def delete_object(self, obj_id: UUID) -> bool:
+        """Delete a domain object by ID (for service compatibility)"""
+        return await self.delete(obj_id)
     
     def _serialize(self, obj: T) -> Dict[str, Any]:
         """Serialize object to dictionary"""
@@ -364,3 +396,31 @@ class DomainStorageHandler(Generic[T]):
     def _get_object_type(self, obj: T) -> str:
         """Get object type"""
         raise NotImplementedError
+
+class OKHStorageHandler(DomainStorageHandler[OKHManifest]):
+    def _serialize(self, obj: OKHManifest) -> dict:
+        return obj.to_dict()
+    def _deserialize(self, data: dict) -> OKHManifest:
+        return OKHManifest.from_dict(data)
+    def _get_object_id(self, obj: OKHManifest) -> UUID:
+        return obj.id
+    def _get_object_id_from_dict(self, data: dict) -> UUID:
+        return UUID(data["id"])
+    def _get_object_type(self, obj: OKHManifest) -> str:
+        return "okh_manifest"
+
+class OKWStorageHandler(DomainStorageHandler[ManufacturingFacility]):
+    def _serialize(self, obj: ManufacturingFacility) -> dict:
+        return obj.to_dict()
+    def _deserialize(self, data: dict) -> ManufacturingFacility:
+        return ManufacturingFacility.from_dict(data)
+    def _get_object_id(self, obj: ManufacturingFacility) -> UUID:
+        return obj.id
+    def _get_object_id_from_dict(self, data: dict) -> UUID:
+        return UUID(data["id"])
+    def _get_object_type(self, obj: ManufacturingFacility) -> str:
+        return "okw_facility"
+
+# Register handlers
+StorageRegistry.register_handler("okh", OKHStorageHandler)
+StorageRegistry.register_handler("okw", OKWStorageHandler)
