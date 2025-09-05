@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
-from ...models.supply_trees import SupplyTree
+from ....models.supply_trees import SupplyTree
 
 class MatchResponse(BaseModel):
     """Response model for matching requirements to capabilities"""
@@ -15,6 +15,8 @@ class MatchResponse(BaseModel):
         default_factory=dict,
         description="Additional metadata about the matching process"
     )
+    
+    model_config = {"arbitrary_types_allowed": True}
 
 class ValidationResult(BaseModel):
     """Response model for validation results"""

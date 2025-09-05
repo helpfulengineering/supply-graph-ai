@@ -20,7 +20,7 @@ from src.core.registry.domain_registry import DomainRegistry
 from src.core.services.storage_service import StorageService
 from src.core.services.service_registry import DomainMetadata, DomainStatus
 from src.config import settings
-from src.utils.logging import setup_logging, get_logger
+from src.core.utils.logging import setup_logging, get_logger
 
 # Setup logging
 setup_logging(
@@ -43,8 +43,8 @@ async def lifespan(app: FastAPI):
         
         # Initialize storage
         logger.info("Initializing storage service")
-        storage_service = StorageService.get_instance()
-        await storage_service.initialize(settings.STORAGE_CONFIG)
+        storage_service = await StorageService.get_instance()
+        await storage_service.configure(settings.STORAGE_CONFIG)
         
         # Register domain components
         logger.info("Registering domain components")
@@ -124,38 +124,14 @@ async def register_domain_components():
     """Register all domain components with the registry."""
     
     # Register Cooking domain components
-    await DomainRegistry.register_domain(
-        "cooking",
-        CookingExtractor(),
-        CookingMatcher(),
-        CookingValidator(),
-        DomainMetadata(
-            name="cooking",
-            display_name="Cooking Domain",
-            description="Domain for cooking-related matching",
-            version="1.0.0",
-            status=DomainStatus.ACTIVE,
-            supported_input_types={"recipe", "ingredient"},
-            supported_output_types={"recipe", "ingredient"}
-        )
-    )
+    DomainRegistry.register_extractor("cooking", CookingExtractor())
+    DomainRegistry.register_matcher("cooking", CookingMatcher())
+    DomainRegistry.register_validator("cooking", CookingValidator())
     
     # Register Manufacturing domain components
-    await DomainRegistry.register_domain(
-        "manufacturing",
-        OKHExtractor(),
-        OKHMatcher(),
-        OKHValidator(),
-        DomainMetadata(
-            name="manufacturing",
-            display_name="Manufacturing Domain",
-            description="Domain for manufacturing-related matching",
-            version="1.0.0",
-            status=DomainStatus.ACTIVE,
-            supported_input_types={"okh", "okw"},
-            supported_output_types={"okh", "okw"}
-        )
-    )
+    DomainRegistry.register_extractor("manufacturing", OKHExtractor())
+    DomainRegistry.register_matcher("manufacturing", OKHMatcher())
+    DomainRegistry.register_validator("manufacturing", OKHValidator())
 
 async def cleanup_resources():
     """Cleanup resources on shutdown"""

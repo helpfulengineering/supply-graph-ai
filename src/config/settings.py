@@ -5,10 +5,13 @@ from src.core.storage.base import StorageConfig
 
 from .storage_config import get_default_storage_config, StorageConfigError
 
+
 # Load environment variables from .env file
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_FILE = os.getenv("LOG_FILE", "logs/app.log")
 
 # API settings
 DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "t")

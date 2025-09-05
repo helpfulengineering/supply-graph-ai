@@ -1,8 +1,8 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
-from ...models.okh import OKHManifest
+from ....models.okh import OKHManifest
 
 class OptimizationCriteria(BaseModel):
     """Model for optimization criteria"""
@@ -24,16 +24,20 @@ class MatchRequest(BaseModel):
         description="Optional weights for different optimization criteria"
     )
 
-    @validator('okh_id', 'okh_manifest')
-    def validate_okh_input(cls, v, values):
+    @field_validator('okh_id', 'okh_manifest')
+    @classmethod
+    def validate_okh_input(cls, v, info):
         """Ensure either okh_id or okh_manifest is provided, but not both"""
+        values = info.data
         if 'okh_id' in values and values['okh_id'] is not None and v is not None:
             raise ValueError("Cannot provide both okh_id and okh_manifest")
         return v
 
-    @validator('okh_manifest')
-    def validate_okh_manifest(cls, v, values):
+    @field_validator('okh_manifest')
+    @classmethod
+    def validate_okh_manifest(cls, v, info):
         """Ensure at least one of okh_id or okh_manifest is provided"""
+        values = info.data
         if v is None and values.get('okh_id') is None:
             raise ValueError("Must provide either okh_id or okh_manifest")
         return v
