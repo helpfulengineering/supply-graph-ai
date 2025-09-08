@@ -313,10 +313,10 @@ class ManufacturingFacility:
     storage_capacity: Optional[str] = None
     typical_materials: List[Material] = field(default_factory=list)
     certifications: List[str] = field(default_factory=list)
-    backup_generator: bool = False
-    uninterrupted_power_supply: bool = False
-    road_access: bool = False
-    loading_dock: bool = False
+    backup_generator: Optional[bool] = False
+    uninterrupted_power_supply: Optional[bool] = False
+    road_access: Optional[bool] = False
+    loading_dock: Optional[bool] = False
     maintenance_schedule: Optional[str] = None
     typical_products: List[str] = field(default_factory=list)
     partners_funders: List[Agent] = field(default_factory=list)

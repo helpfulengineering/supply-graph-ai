@@ -26,6 +26,27 @@ All routes are prefixed with `/v1` to enable future versioning. This approach al
 
 Future versions would be accessible via `/v2`, `/v3`, etc., with the previous versions maintained for backward compatibility as needed.
 
+## Storage Integration
+
+The OME API includes comprehensive storage integration with Azure Blob Storage:
+
+### Azure Blob Storage Features
+- **Automatic OKW Loading**: The `/v1/match` endpoint automatically loads all OKW facilities from the configured Azure container
+- **File Format Support**: Supports both YAML and JSON file formats for OKW facilities
+- **Real-time Processing**: Processes files from storage in real-time during matching operations
+- **Domain Handlers**: Specialized storage handlers for different data types (OKH, OKW, supply trees)
+
+### Storage Configuration
+The system uses environment variables for Azure storage configuration:
+- `AZURE_STORAGE_ACCOUNT`: Azure storage account name
+- `AZURE_STORAGE_KEY`: Azure storage account key
+- `AZURE_STORAGE_CONTAINER`: Container name for OKW facilities
+
+### File Processing
+- **Automatic Parsing**: YAML and JSON files are automatically parsed and converted to `ManufacturingFacility` objects
+- **Error Handling**: Invalid files are logged and skipped, allowing the system to continue processing
+- **Filtering**: OKW facilities can be filtered by location, capabilities, access type, and facility status
+
 ## Authentication and Authorization
 
 The API requires authentication for all routes except public read operations. Authentication is implemented using API keys passed in the `Authorization` header:
@@ -623,17 +644,32 @@ The supply tree in the requested format.
 POST /v1/match
 ```
 
-Matches OKH requirements with OKW capabilities to generate valid supply trees.
+**Enhanced matching endpoint** that matches OKH requirements with OKW capabilities to generate valid supply trees. Supports multiple input methods and advanced filtering.
 
 **Request:**
 ```json
 {
-  "requirements": {...},  // OKH object
-  "capabilities": ["facility-id-1", "facility-id-2"],  // List of OKW facility IDs
-  "context": "manufacturing",  // Optional validation context
-  "optimization_criteria": {  // Optional optimization preferences
-    "priority": "cost",  // or "time", "quality"
-    "weights": {...}
+  // OKH Input (choose ONE of the following):
+  "okh_manifest": {...},           // Inline OKH manifest object
+  "okh_id": "uuid-here",          // Reference to stored OKH manifest
+  "okh_url": "https://example.com/manifest.yaml",  // Remote OKH manifest URL
+  
+  // Optional OKW Filtering
+  "okw_filters": {
+    "location": {
+      "country": "United States",
+      "city": "San Francisco"
+    },
+    "access_type": "public",
+    "capabilities": ["3D Printing", "CNC Milling"],
+    "facility_status": "active"
+  },
+  
+  // Optional Optimization
+  "optimization_criteria": {
+    "cost": 0.5,
+    "quality": 0.3,
+    "speed": 0.2
   }
 }
 ```
@@ -641,22 +677,51 @@ Matches OKH requirements with OKW capabilities to generate valid supply trees.
 **Response:**
 ```json
 {
-  "supply_trees": [
+  "solutions": [
     {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "confidence": 0.85,
-      "workflows": {...},
-      ...
-    },
-    ...
+      "tree": {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Manufacturing Solution",
+        "description": "Complete manufacturing workflow",
+        "node_count": 15,
+        "edge_count": 18
+      },
+      "score": 0.85,
+      "metrics": {
+        "facility_count": 3,
+        "requirement_count": 8,
+        "capability_count": 12
+      }
+    }
   ],
-  "confidence": 0.85,
   "metadata": {
-    "processing_time": "2.5s",
-    "optimization_metrics": {...}
+    "solution_count": 1,
+    "facility_count": 3,
+    "optimization_criteria": {
+      "cost": 0.5,
+      "quality": 0.3,
+      "speed": 0.2
+    }
   }
 }
 ```
+
+**Key Features:**
+- **Multiple OKH Input Methods**: Accept inline manifests, storage references, or remote URLs
+- **Automatic OKW Loading**: Loads all OKW facilities from Azure Blob Storage automatically
+- **Advanced Filtering**: Filter facilities by location, capabilities, access type, and status
+- **Real-time Processing**: Processes YAML/JSON files from storage in real-time
+- **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
+
+**Enhanced Matching Workflow:**
+1. **OKH Input Processing**: Validates and processes OKH manifest from one of three input methods
+2. **Storage Integration**: Automatically loads all OKW facilities from Azure Blob Storage
+3. **File Processing**: Parses YAML/JSON files and converts to `ManufacturingFacility` objects
+4. **Filtering**: Applies optional filters to narrow down relevant facilities
+5. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
+6. **Matching Logic**: Compares requirements against capabilities using domain-specific matching
+7. **Solution Generation**: Creates supply tree solutions with confidence scoring
+8. **Response Formatting**: Returns serialized solutions with metadata
 
 #### Validate Supply Tree
 
@@ -818,30 +883,78 @@ Paginated responses include consistent metadata:
 }
 ```
 
-## Implementation Priorities
+## Implementation Status
 
-The implementation of these routes should be prioritized as follows:
+### ✅ Fully Implemented Routes
 
-1. Core validation routes:
-   - `POST /v1/okh/validate`
-   - `POST /v1/okw/validate`
+**Core Matching Engine:**
+- `POST /v1/match` - Enhanced matching with multiple input methods and filtering
+- `POST /v1/match/validate` - Supply tree validation
 
-2. Basic matching functionality:
-   - `POST /v1/match`
-   - `GET /v1/supply-tree/{id}`
+**OKH Management:**
+- `POST /v1/okh/create` - Create OKH manifests
+- `GET /v1/okh/{id}` - Retrieve OKH manifests
+- `POST /v1/okh/validate` - Validate OKH manifests
+- `POST /v1/okh/extract` - Extract requirements from OKH
 
-3. Supporting routes:
-   - `POST /v1/okh/extract`
-   - `POST /v1/okw/extract`
-   - `POST /v1/match/validate`
+**OKW Management:**
+- `POST /v1/okw/create` - Create OKW facilities
+- `GET /v1/okw/{id}` - Retrieve OKW facilities
+- `GET /v1/okw/search` - Search OKW facilities
+- `POST /v1/okw/validate` - Validate OKW facilities
+- `POST /v1/okw/extract` - Extract capabilities from OKW
 
-4. Advanced functionality:
-   - Search and optimization routes
-   - Simulation capabilities
+**Supply Tree Management:**
+- `POST /v1/supply-tree/create` - Create supply trees
+- `GET /v1/supply-tree/{id}` - Retrieve supply trees
+- `POST /v1/supply-tree/{id}/validate` - Validate supply trees
 
-5. Utility routes:
-   - Available domains
-   - Validation contexts
+**Utility Routes:**
+- `GET /v1/domains` - List available domains
+- `GET /v1/contexts/{domain}` - Get domain contexts
+
+### 🚧 Partially Implemented Routes
+
+**List Operations:**
+- `GET /v1/okh` - List OKH manifests (basic implementation)
+- `GET /v1/okw` - List OKW facilities (basic implementation)
+- `GET /v1/supply-tree` - List supply trees (basic implementation)
+
+### 📋 Planned Routes
+
+**Advanced Operations:**
+- `PUT /v1/okh/{id}` - Update OKH manifests
+- `DELETE /v1/okh/{id}` - Delete OKH manifests
+- `PUT /v1/okw/{id}` - Update OKW facilities
+- `DELETE /v1/okw/{id}` - Delete OKW facilities
+- `PUT /v1/supply-tree/{id}` - Update supply trees
+- `DELETE /v1/supply-tree/{id}` - Delete supply trees
+
+**Advanced Features:**
+- `POST /v1/supply-tree/{id}/optimize` - Optimize supply trees
+- `GET /v1/supply-tree/{id}/export` - Export supply trees
+- `POST /v1/match/simulate` - Simulate supply tree execution
+
+## API Documentation & Developer Experience
+
+### Interactive Documentation
+The OME API provides comprehensive interactive documentation:
+
+- **Main API Docs**: `http://localhost:8001/docs` - System endpoints and overview
+- **Full API Docs**: `http://localhost:8001/v1/docs` - Complete API documentation with all 19 endpoints
+- **OpenAPI Schema**: `http://localhost:8001/v1/openapi.json` - Machine-readable API specification
+
+### Developer Features
+- **Request Validation**: Comprehensive input validation with detailed error messages
+- **Type Safety**: Full Pydantic model validation and serialization
+- **Error Handling**: Consistent error response format with helpful error messages
+- **Async Support**: Full async/await support for high-performance operations
+- **CORS Support**: Cross-origin resource sharing enabled for web applications
+
+### Testing & Development
+- **Health Check**: `GET /health` - System status and registered domains
+- **Root Endpoint**: `GET /` - API information and navigation links
+- **Hot Reload**: Development server with automatic reload on code changes
 
 ## Future Considerations
 

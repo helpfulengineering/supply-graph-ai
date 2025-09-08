@@ -1,78 +1,274 @@
-from ..api.models.match.request import RequirementsInput, CapabilitiesInput
-from ..api.models.match.response import SupplyTreeResponse, Workflow, ProcessNode
+from typing import Dict, List, Optional, Any, Tuple
+from uuid import UUID
+import logging
+
+from ..models.okh import OKHManifest
+from ..models.okw import ManufacturingFacility
+from ..models.supply_trees import SupplyTree, SupplyTreeSolution
+from .okh_service import OKHService
+from .okw_service import OKWService
 from ..registry.domain_registry import DomainRegistry
-from .domain_service import DomainDetector
+from ..utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 class MatchingService:
-    """Service for matching requirements to capabilities"""
+    """Service for matching OKH requirements to OKW capabilities"""
     
-    @staticmethod
-    async def match(requirements: RequirementsInput, capabilities: CapabilitiesInput) -> SupplyTreeResponse:
-        """Match requirements to capabilities and generate a SupplyTree"""
-        
-        # 1. Detect and validate domain
-        domain = DomainDetector.detect_domain(requirements, capabilities)
-        DomainDetector.validate_domain_consistency(requirements, capabilities, domain)
-        
-        # 2. Get domain components
-        extractor = DomainRegistry.get_extractor(domain)
-        matcher = DomainRegistry.get_matcher(domain)
-        validator = DomainRegistry.get_validator(domain)
-        
-        # 3. Extract data
-        extraction_result_req = extractor.extract_requirements(requirements.content)
-        extraction_result_cap = extractor.extract_capabilities(capabilities.content)
-        
-        # Access the .data attribute of ExtractionResult, not .content
-        normalized_req = extraction_result_req.data
-        normalized_cap = extraction_result_cap.data
-        
-        # 4. Generate supply tree
-        supply_tree = matcher.generate_supply_tree(normalized_req, normalized_cap)
-        
-        # 5. Validate
-        validation_result = validator.validate(supply_tree)
-        
-        # 6. Convert to response
-        workflows = {}
-        for wf_id, workflow in supply_tree.workflows.items():
-            # Convert nodes
-            nodes = {}
-            for node_id in workflow.graph.nodes():
-                # Get the node data correctly - it's stored as an attribute in the node
-                node_data = workflow.graph.nodes[node_id]['data']  # Get the WorkflowNode object
-                
-                nodes[str(node_id)] = ProcessNode(
-                    id=node_id,
-                    name=node_data.name,  # Access attribute directly
-                    inputs=list(node_data.input_requirements.keys()),
-                    outputs=list(node_data.output_specifications.keys()),
-                    requirements=node_data.input_requirements,
-                    capabilities=node_data.output_specifications
-                )
+    _instance = None
+    
+    @classmethod
+    async def get_instance(
+        cls,
+        okh_service: Optional[OKHService] = None,
+        okw_service: Optional[OKWService] = None
+    ) -> 'MatchingService':
+        """Get singleton instance"""
+        if cls._instance is None:
+            cls._instance = cls()
+            await cls._instance.initialize(okh_service, okw_service)
+        return cls._instance
+    
+    def __init__(self):
+        """Initialize the matching service"""
+        self.okh_service: Optional[OKHService] = None
+        self.okw_service: Optional[OKWService] = None
+        self._initialized = False
+    
+    async def initialize(
+        self,
+        okh_service: Optional[OKHService] = None,
+        okw_service: Optional[OKWService] = None
+    ) -> None:
+        """Initialize the service with dependencies"""
+        if self._initialized:
+            return
             
-            # Convert edges
-            edges = []
-            for source, target in workflow.graph.edges():
-                edges.append({"source": source, "target": target})
-            
-            workflows[str(wf_id)] = Workflow(
-                id=wf_id,
-                name=workflow.name,
-                nodes=nodes,
-                edges=edges
-            )
-        
-        # Create response
-        response = SupplyTreeResponse(
-            id=supply_tree.id,
-            domain=domain,
-            workflows=workflows,
-            confidence=validation_result.get('confidence', 0.0),
-            validation_status=validation_result.get('valid', False),
-            metadata={
-                "creation_time": supply_tree.creation_time.isoformat()
+        self.okh_service = okh_service or await OKHService.get_instance()
+        self.okw_service = okw_service or await OKWService.get_instance()
+        self._initialized = True
+        logger.info("Matching service initialized")
+    
+    async def find_matches(
+        self,
+        okh_id: UUID,
+        optimization_criteria: Optional[Dict[str, float]] = None
+    ) -> List[SupplyTreeSolution]:
+        """Find matching facilities for an OKH manifest by ID (loads manifest and facilities, then delegates)."""
+        await self.ensure_initialized()
+        logger.info(
+            "Finding matches for OKH manifest",
+            extra={
+                "okh_id": str(okh_id),
+                "optimization_criteria": optimization_criteria
             }
         )
-        
-        return response
+        try:
+            # Load manifest and facilities using services
+            manifest = await self.okh_service.get(okh_id)
+            if not manifest:
+                logger.warning("OKH manifest not found", extra={"okh_id": str(okh_id)})
+                return []
+            facilities, total = await self.okw_service.list()
+            logger.info(
+                "Retrieved manufacturing facilities",
+                extra={"facility_count": len(facilities), "total_facilities": total}
+            )
+            # Delegate to the core logic
+            return await self.find_matches_with_manifest(
+                okh_manifest=manifest,
+                facilities=facilities,
+                optimization_criteria=optimization_criteria
+            )
+        except Exception as e:
+            logger.error(
+                "Error finding matches",
+                extra={"okh_id": str(okh_id), "error": str(e)},
+                exc_info=True
+            )
+            raise
+    
+    async def find_matches_with_manifest(
+        self,
+        okh_manifest: OKHManifest,
+        facilities: List[ManufacturingFacility],
+        optimization_criteria: Optional[Dict[str, float]] = None
+    ) -> List[SupplyTreeSolution]:
+        """Find matching facilities for an in-memory OKH manifest and provided facilities."""
+        await self.ensure_initialized()
+
+        logger.info(
+            "Finding matches for in-memory OKH manifest",
+            extra={
+                "manifest_id": str(getattr(okh_manifest, 'id', None)),
+                "optimization_criteria": optimization_criteria
+            }
+        )
+
+        try:
+            # Get the manufacturing domain extractor
+            extractor = DomainRegistry.get_extractor("manufacturing")
+            
+            # Extract requirements using the domain extractor
+            manifest_data = okh_manifest.to_dict()
+            extraction_result = extractor.extract_requirements(manifest_data)
+            requirements = extraction_result.data.content.get('requirements', []) if extraction_result.data else []
+            
+            logger.info(
+                "Extracted requirements from OKH manifest",
+                extra={
+                    "requirement_count": len(requirements)
+                }
+            )
+
+            solutions = []
+            
+            for facility in facilities:
+                logger.debug(
+                    "Checking facility for matches",
+                    extra={
+                        "facility_id": str(facility.id),
+                        "facility_name": facility.name
+                    }
+                )
+                # Extract capabilities using the domain extractor
+                facility_data = facility.to_dict()
+                extraction_result = extractor.extract_capabilities(facility_data)
+                capabilities = extraction_result.data.content.get('capabilities', []) if extraction_result.data else []
+                
+                if self._can_satisfy_requirements(requirements, capabilities):
+                    tree = self._generate_supply_tree(okh_manifest, facility)
+                    score = self._calculate_confidence_score(
+                        requirements,
+                        capabilities,
+                        optimization_criteria
+                    )
+                    solution = SupplyTreeSolution(
+                        tree=tree,
+                        score=score,
+                        metrics={
+                            "facility_count": 1,
+                            "requirement_count": len(requirements),
+                            "capability_count": len(capabilities)
+                        }
+                    )
+                    solutions.append(solution)
+                    logger.info(
+                        "Found matching facility",
+                        extra={
+                            "facility_id": str(facility.id),
+                            "confidence_score": score
+                        }
+                    )
+            logger.info(
+                "Match finding completed",
+                extra={
+                    "solution_count": len(solutions)
+                }
+            )
+            return solutions
+
+        except Exception as e:
+            logger.error(
+                "Error finding matches (in-memory manifest)",
+                extra={
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    def _can_satisfy_requirements(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]]
+    ) -> bool:
+        """Check if capabilities can satisfy requirements"""
+        try:
+            # TODO: Implement actual matching logic
+            # For now, return True if any capability matches any requirement
+            for req in requirements:
+                for cap in capabilities:
+                    if req["process_name"] == cap["process_name"]:
+                        return True
+            return False
+            
+        except Exception as e:
+            logger.error(
+                "Error checking requirement satisfaction",
+                extra={
+                    "requirement_count": len(requirements),
+                    "capability_count": len(capabilities),
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    def _generate_supply_tree(
+        self,
+        manifest: OKHManifest,
+        facility: ManufacturingFacility
+    ) -> SupplyTree:
+        """Generate a supply tree for a manifest and facility"""
+        try:
+            # TODO: Implement actual tree generation logic
+            # For now, return a simple tree
+            return SupplyTree(
+                root_node={
+                    "type": "facility",
+                    "id": str(facility.id),
+                    "name": facility.name
+                },
+                edges=[],
+                metadata={
+                    "okh_id": str(manifest.id),
+                    "facility_id": str(facility.id)
+                }
+            )
+            
+        except Exception as e:
+            logger.error(
+                "Error generating supply tree",
+                extra={
+                    "okh_id": str(manifest.id),
+                    "facility_id": str(facility.id),
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    def _calculate_confidence_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]],
+        optimization_criteria: Optional[Dict[str, float]] = None
+    ) -> float:
+        """Calculate confidence score for a match"""
+        try:
+            # TODO: Implement actual scoring logic
+            # For now, return a simple score based on requirement coverage
+            matched_requirements = sum(
+                1 for req in requirements
+                if any(req["process_name"] == cap["process_name"] for cap in capabilities)
+            )
+            return matched_requirements / len(requirements) if requirements else 0.0
+            
+        except Exception as e:
+            logger.error(
+                "Error calculating confidence score",
+                extra={
+                    "requirement_count": len(requirements),
+                    "capability_count": len(capabilities),
+                    "optimization_criteria": optimization_criteria,
+                    "error": str(e)
+                },
+                exc_info=True
+            )
+            raise
+    
+    async def ensure_initialized(self) -> None:
+        """Ensure service is initialized"""
+        if not self._initialized:
+            raise RuntimeError("Matching service not initialized")
