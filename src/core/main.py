@@ -96,6 +96,18 @@ async def get_api_key(api_key: str = Depends(API_KEY_HEADER)):
     
     return token
 
+# Root endpoint
+@app.get("/", tags=["system"])
+async def root():
+    """Root endpoint with API information."""
+    return {
+        "message": "Open Matching Engine API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+        "api": "/v1"
+    }
+
 # Health check endpoint
 @app.get("/health", tags=["system"])
 async def health_check():

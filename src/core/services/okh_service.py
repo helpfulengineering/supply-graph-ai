@@ -1,6 +1,9 @@
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
 import logging
+import httpx
+import yaml
+import json
 
 from src.core.services.storage_service import StorageService
 from ..models.okh import OKHManifest, ProcessRequirement
@@ -62,6 +65,39 @@ class OKHService:
                 return OKHManifest.from_dict(data)
         
         return None
+    
+    async def fetch_from_url(self, url: str) -> OKHManifest:
+        """Fetch an OKH manifest from a remote URL"""
+        await self.ensure_initialized()
+        logger.info(f"Fetching OKH manifest from URL: {url}")
+        
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                
+                # Try to parse as YAML first, then JSON
+                content = response.text
+                try:
+                    if url.endswith('.yaml') or url.endswith('.yml') or 'yaml' in response.headers.get('content-type', ''):
+                        data = yaml.safe_load(content)
+                    else:
+                        data = json.loads(content)
+                except (yaml.YAMLError, json.JSONDecodeError) as e:
+                    logger.error(f"Failed to parse manifest content: {e}")
+                    raise ValueError(f"Invalid manifest format: {e}")
+                
+                # Create manifest object
+                manifest = OKHManifest.from_dict(data)
+                logger.info(f"Successfully fetched OKH manifest: {manifest.id}")
+                return manifest
+                
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error fetching manifest from {url}: {e}")
+            raise ValueError(f"Failed to fetch manifest from URL: {e}")
+        except Exception as e:
+            logger.error(f"Error fetching manifest from {url}: {e}")
+            raise ValueError(f"Error fetching manifest: {e}")
     
     async def list(
         self, 

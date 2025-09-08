@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from uuid import UUID
+import json
+import yaml
 
 from ..models.match.request import (
     MatchRequest,
@@ -11,6 +13,7 @@ from ..models.match.response import (
 )
 from ...services.matching_service import MatchingService
 from ...services.storage_service import StorageService
+from ...services.okh_service import OKHService
 from ...models.okh import OKHManifest
 from ...utils.logging import get_logger
 
@@ -24,50 +27,111 @@ async def get_matching_service() -> MatchingService:
 async def get_storage_service() -> StorageService:
     return await StorageService.get_instance()
 
+async def get_okh_service() -> OKHService:
+    return await OKHService.get_instance()
+
 @router.post("", response_model=MatchResponse)
 async def match_requirements_to_capabilities(
     request: MatchRequest,
     matching_service: MatchingService = Depends(get_matching_service),
-    storage_service: StorageService = Depends(get_storage_service)
+    storage_service: StorageService = Depends(get_storage_service),
+    okh_service: OKHService = Depends(get_okh_service)
 ):
     try:
-        # 1. Validate the OKH manifest from the request
-        if request.okh_manifest is None:
-            raise HTTPException(status_code=400, detail="OKH manifest must be provided")
+        # 1. Get the OKH manifest from the request
+        okh_manifest = None
+        
+        if request.okh_manifest is not None:
+            # Use provided manifest
+            okh_manifest = request.okh_manifest
+            logger.info("Using provided OKH manifest")
+            
+        elif request.okh_id is not None:
+            # Load manifest from storage by ID
+            okh_manifest = await okh_service.get(request.okh_id)
+            if okh_manifest is None:
+                raise HTTPException(status_code=404, detail=f"OKH manifest with ID {request.okh_id} not found")
+            logger.info(f"Loaded OKH manifest from storage: {request.okh_id}")
+            
+        elif request.okh_url is not None:
+            # Fetch manifest from remote URL
+            try:
+                okh_manifest = await okh_service.fetch_from_url(request.okh_url)
+                logger.info(f"Fetched OKH manifest from URL: {request.okh_url}")
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=f"Failed to fetch OKH manifest from URL: {str(e)}")
+        
+        if okh_manifest is None:
+            raise HTTPException(status_code=400, detail="No valid OKH manifest provided")
+        
+        # 2. Validate the OKH manifest
         try:
-            request.okh_manifest.validate()
+            okh_manifest.validate()
             logger.debug("OKH manifest validation successful")
         except ValueError as e:
             logger.error(f"OKH manifest validation failed: {e}")
             raise HTTPException(status_code=400, detail=f"Invalid OKH manifest: {str(e)}")
 
-        # 2. (Optional) Store the OKH manifest for audit/history
+        # 3. (Optional) Store the OKH manifest for audit/history
         try:
             okh_handler = storage_service.get_domain_handler("okh")
-            await okh_handler.save(request.okh_manifest)
+            await okh_handler.save(okh_manifest)
         except Exception as e:
             logger.warning(f"Failed to store OKH manifest: {e}")
 
-        # 3. Load all OKW facilities from storage
+        # 4. Load OKW facilities from storage
         okw_handler = storage_service.get_domain_handler("okw")
         facilities = []
         try:
-            okw_objects = await okw_handler.list()
-            for obj in okw_objects:
+            # Get all objects from storage (these are the actual OKW files)
+            objects = []
+            async for obj in storage_service.manager.list_objects():
+                objects.append(obj)
+            
+            logger.info(f"Found {len(objects)} objects in storage")
+            
+            # Load and parse each OKW file
+            for obj in objects:
                 try:
-                    facility = await okw_handler.load(obj["id"])
+                    # Read the file content
+                    data = await storage_service.manager.get_object(obj["key"])
+                    content = data.decode('utf-8')
+                    
+                    # Parse based on file extension
+                    if obj["key"].endswith(('.yaml', '.yml')):
+                        import yaml
+                        okw_data = yaml.safe_load(content)
+                    elif obj["key"].endswith('.json'):
+                        okw_data = json.loads(content)
+                    else:
+                        logger.warning(f"Skipping unsupported file format: {obj['key']}")
+                        continue
+                    
+                    # Create ManufacturingFacility object
+                    from ...models.okw import ManufacturingFacility
+                    facility = ManufacturingFacility.from_dict(okw_data)
+                    
+                    # Apply filters if provided
+                    if request.okw_filters:
+                        if not _matches_filters(facility, request.okw_filters):
+                            continue
+                    
                     facilities.append(facility)
+                    logger.debug(f"Loaded OKW facility from {obj['key']}: {facility.name}")
+                    
                 except Exception as e:
-                    logger.error(f"Failed to load OKW facility {obj['id']}: {e}")
+                    logger.error(f"Failed to load OKW facility from {obj['key']}: {e}")
+                    continue
+            
             logger.info(f"Loaded {len(facilities)} OKW facilities from storage.")
         except Exception as e:
             logger.error(f"Failed to list/load OKW facilities: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to load OKW facilities: {str(e)}")
 
-        # 4. Run the matching logic (pass the in-memory OKH manifest and loaded OKW facilities)
+        # 5. Run the matching logic (pass the in-memory OKH manifest and loaded OKW facilities)
         try:
             solutions = await matching_service.find_matches_with_manifest(
-                okh_manifest=request.okh_manifest,
+                okh_manifest=okh_manifest,
                 facilities=facilities,
                 optimization_criteria=request.optimization_criteria
             )
@@ -137,3 +201,39 @@ async def validate_match(
             status_code=500,
             detail=f"Error validating match: {str(e)}"
         )
+
+def _matches_filters(facility, filters: dict) -> bool:
+    """Check if a facility matches the provided filters"""
+    try:
+        # Location filter
+        if "location" in filters:
+            location_filter = filters["location"]
+            if "country" in location_filter:
+                if facility.location.get("country", "").lower() != location_filter["country"].lower():
+                    return False
+            if "city" in location_filter:
+                if facility.location.get("city", "").lower() != location_filter["city"].lower():
+                    return False
+        
+        # Capability filter
+        if "capabilities" in filters:
+            required_capabilities = filters["capabilities"]
+            facility_capabilities = [cap.get("name", "").lower() for cap in facility.equipment]
+            for required_cap in required_capabilities:
+                if required_cap.lower() not in facility_capabilities:
+                    return False
+        
+        # Access type filter
+        if "access_type" in filters:
+            if facility.access_type.lower() != filters["access_type"].lower():
+                return False
+        
+        # Facility status filter
+        if "facility_status" in filters:
+            if facility.facility_status.lower() != filters["facility_status"].lower():
+                return False
+        
+        return True
+    except Exception as e:
+        logger.warning(f"Error applying filters to facility {facility.name}: {e}")
+        return True  # Default to including the facility if filter fails

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
@@ -14,33 +14,37 @@ class OptimizationCriteria(BaseModel):
 
 class MatchRequest(BaseModel):
     """Request model for matching requirements to capabilities"""
-    # Optional fields - either okh_id or okh_manifest must be provided
+    # Optional fields - either okh_id, okh_manifest, or okh_url must be provided
     okh_id: Optional[UUID] = None
     okh_manifest: Optional[OKHManifest] = None
+    okh_url: Optional[str] = Field(None, description="URL to fetch OKH manifest from")
     
     # Optional fields after
     optimization_criteria: Optional[Dict[str, float]] = Field(
         default_factory=dict,
         description="Optional weights for different optimization criteria"
     )
+    okw_filters: Optional[Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Optional filters for OKW facilities (e.g., location, capabilities)"
+    )
 
-    @field_validator('okh_id', 'okh_manifest')
-    @classmethod
-    def validate_okh_input(cls, v, info):
-        """Ensure either okh_id or okh_manifest is provided, but not both"""
-        values = info.data
-        if 'okh_id' in values and values['okh_id'] is not None and v is not None:
-            raise ValueError("Cannot provide both okh_id and okh_manifest")
-        return v
-
-    @field_validator('okh_manifest')
-    @classmethod
-    def validate_okh_manifest(cls, v, info):
-        """Ensure at least one of okh_id or okh_manifest is provided"""
-        values = info.data
-        if v is None and values.get('okh_id') is None:
-            raise ValueError("Must provide either okh_id or okh_manifest")
-        return v
+    @model_validator(mode='after')
+    def validate_okh_input(self):
+        """Ensure only one of okh_id, okh_manifest, or okh_url is provided"""
+        provided_fields = []
+        if self.okh_id is not None:
+            provided_fields.append('okh_id')
+        if self.okh_manifest is not None:
+            provided_fields.append('okh_manifest')
+        if self.okh_url is not None:
+            provided_fields.append('okh_url')
+        
+        if len(provided_fields) > 1:
+            raise ValueError(f"Cannot provide multiple OKH inputs: {', '.join(provided_fields)}")
+        if len(provided_fields) == 0:
+            raise ValueError("Must provide either okh_id, okh_manifest, or okh_url")
+        return self
 
 class ValidateMatchRequest(BaseModel):
     """Request model for validating an existing supply tree"""

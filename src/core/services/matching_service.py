@@ -7,6 +7,7 @@ from ..models.okw import ManufacturingFacility
 from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from .okh_service import OKHService
 from .okw_service import OKWService
+from ..registry.domain_registry import DomainRegistry
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -105,7 +106,14 @@ class MatchingService:
         )
 
         try:
-            requirements = okh_manifest.extract_requirements()
+            # Get the manufacturing domain extractor
+            extractor = DomainRegistry.get_extractor("manufacturing")
+            
+            # Extract requirements using the domain extractor
+            manifest_data = okh_manifest.to_dict()
+            extraction_result = extractor.extract_requirements(manifest_data)
+            requirements = extraction_result.data.content.get('requirements', []) if extraction_result.data else []
+            
             logger.info(
                 "Extracted requirements from OKH manifest",
                 extra={
@@ -114,6 +122,7 @@ class MatchingService:
             )
 
             solutions = []
+            
             for facility in facilities:
                 logger.debug(
                     "Checking facility for matches",
@@ -122,7 +131,11 @@ class MatchingService:
                         "facility_name": facility.name
                     }
                 )
-                capabilities = facility.extract_capabilities()
+                # Extract capabilities using the domain extractor
+                facility_data = facility.to_dict()
+                extraction_result = extractor.extract_capabilities(facility_data)
+                capabilities = extraction_result.data.content.get('capabilities', []) if extraction_result.data else []
+                
                 if self._can_satisfy_requirements(requirements, capabilities):
                     tree = self._generate_supply_tree(okh_manifest, facility)
                     score = self._calculate_confidence_score(
