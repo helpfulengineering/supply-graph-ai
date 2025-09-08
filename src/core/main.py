@@ -103,7 +103,10 @@ async def root():
     return {
         "message": "Open Matching Engine API",
         "version": "1.0.0",
-        "docs": "/docs",
+        "docs": {
+            "main": "/docs",
+            "v1": "/v1/docs"
+        },
         "health": "/health",
         "api": "/v1"
     }
@@ -119,7 +122,11 @@ async def health_check():
     }
 
 # Create a versioned API
-api_v1 = FastAPI()
+api_v1 = FastAPI(
+    title="Open Matching Engine API v1",
+    description="Version 1 of the Open Matching Engine API",
+    version="1.0.0"
+)
 
 # Include routers with appropriate prefixes
 api_v1.include_router(match_router, prefix="/match", tags=["match"])

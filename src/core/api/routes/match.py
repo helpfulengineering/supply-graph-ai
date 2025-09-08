@@ -149,9 +149,23 @@ async def match_requirements_to_capabilities(
                     "optimization_criteria": request.optimization_criteria
                 }
             )
+        # Convert solutions to a serializable format
+        serialized_solutions = []
+        for solution in solutions:
+            serialized_solutions.append({
+                "tree": {
+                    "id": str(solution.tree.id),
+                    "name": solution.tree.name,
+                    "description": solution.tree.description,
+                    "node_count": len(solution.tree.workflow.graph.nodes) if solution.tree.workflow and solution.tree.workflow.graph else 0,
+                    "edge_count": len(solution.tree.workflow.graph.edges) if solution.tree.workflow and solution.tree.workflow.graph else 0
+                },
+                "score": solution.score,
+                "metrics": solution.metrics
+            })
+        
         return MatchResponse(
-            supply_trees=[solution.tree for solution in solutions],
-            confidence=sum(s.score for s in solutions) / len(solutions),
+            solutions=serialized_solutions,
             metadata={
                 "solution_count": len(solutions),
                 "facility_count": sum(s.metrics["facility_count"] for s in solutions),
