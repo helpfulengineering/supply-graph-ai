@@ -47,31 +47,45 @@ Each supported domain (e.g., cooking, manufacturing) has dedicated endpoints opt
 
 For production deployments, [authentication](auth.md) can be enabled to secure API access.
 
-## API Roadmap
+## Current API Status
 
-The OME API will be developed in phases:
+The OME API is currently in **Phase 2: Enhanced Matching** with the following implemented features:
 
-### Phase 1: Core Matching (Current)
+### ✅ Implemented Features
 
-- Basic requirement-to-capability matching
-- Simple domain registration
-- Supply Tree generation and validation
+#### Core Matching Engine
+- **Enhanced OKH Input Support**: Accept OKH manifests via inline JSON, storage ID reference, or remote URL
+- **Real-time OKW Loading**: Automatically loads and processes OKW facilities from Azure Blob Storage
+- **Advanced Filtering**: Filter OKW facilities by location, capabilities, access type, and facility status
+- **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
+- **Supply Tree Generation**: Creates complete manufacturing solutions with confidence scoring
 
-### Phase 2: Enhanced Matching
+#### API Endpoints (19 total)
+- **Match**: `/v1/match` - Enhanced matching with multiple input methods and filtering
+- **OKH Management**: Create, validate, extract, and retrieve OKH manifests
+- **OKW Management**: Create, search, validate, and retrieve OKW facilities  
+- **Supply Tree Management**: Create, validate, and retrieve supply trees
+- **Utility**: Domain listing and context information
 
-- Multi-stage matching process
-- Confidence scoring
-- Alternative path generation
-- Detailed validation feedback
+#### Storage Integration
+- **Azure Blob Storage**: Full integration with cloud storage for OKH/OKW data
+- **File Format Support**: Automatic parsing of YAML and JSON files
+- **Domain Handlers**: Specialized storage handlers for different data types
 
-### Phase 3: Advanced Features
+#### Documentation & Developer Experience
+- **Interactive API Docs**: Full OpenAPI documentation at `/v1/docs`
+- **Request Validation**: Comprehensive input validation with detailed error messages
+- **Type Safety**: Full Pydantic model validation and serialization
+
+### 🚧 Planned Features (Phase 3)
 
 - Real-time validation updates
 - Collaborative editing of Supply Trees
-- Matching optimization
+- Advanced matching optimization algorithms
 - External system integration
+- Batch processing capabilities
 
-### Phase 4: AI/ML Integration
+### 🔮 Future Features (Phase 4)
 
 - Machine learning for matching recommendations
 - Natural language processing for unstructured inputs
