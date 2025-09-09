@@ -4,3 +4,4 @@ mkdocs-mermaid2-plugin
 networkx
 fastapi
 uvicorn
+dotenv
