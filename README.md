@@ -105,6 +105,8 @@ open-matching-engine/
 
 ## Running the Application Locally
 
+Note: You may have add a directory called "logs" locally if the command below indicates it can't open the log file!
+
 ```bash
 # Start the FastAPI server
 python run.py
