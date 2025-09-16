@@ -206,9 +206,9 @@ class PartSpec:
     
     def to_dict(self) -> Dict:
         """Convert to dictionary"""
-        source_list = [source] if isinstance(source, str) else source
-        export_list = [export] if isinstance(export, str) else export
-        auxiliary_list = [auxiliary] if isinstance(auxiliary, str) else auxiliary
+        source_list = [self.source] if isinstance(self.source, str) else self.source
+        export_list = [self.export] if isinstance(self.export, str) else self.export
+        auxiliary_list = [self.auxiliary] if isinstance(self.auxiliary, str) else self.auxiliary
         
         return {
             "name": self.name,
@@ -394,7 +394,10 @@ class OKHManifest:
             "metadata": self.metadata
         }
         
-        # Filter out None values
+        # Merge optional fields with result
+        result.update(optional_fields)
+        
+        # Filter out None values, but keep empty lists and other falsy values that are meaningful
         return {k: v for k, v in result.items() if v is not None}
     
     def _convert_agent_to_dict(self, agent):
