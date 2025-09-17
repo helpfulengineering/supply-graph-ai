@@ -1,7 +1,9 @@
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
+from datetime import datetime, timedelta
 import logging
 import re
+import networkx as nx
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
@@ -291,19 +293,118 @@ class MatchingService:
     ) -> SupplyTree:
         """Generate a supply tree for a manifest and facility"""
         try:
-            # Create a simple supply tree
+            # Create a supply tree with proper metadata
             supply_tree = SupplyTree()
             
-            # Set metadata
+            # Set comprehensive metadata with fallback for empty facility names
+            facility_name = facility.name or f"Facility {str(facility.id)[:8]}"
             supply_tree.metadata = {
+                "name": f"{manifest.title} - {facility_name}",
+                "description": f"Manufacturing solution for {manifest.title} at {facility_name}",
                 "okh_id": str(manifest.id),
                 "facility_id": str(facility.id),
                 "okh_title": manifest.title,
-                "facility_name": facility.name
+                "facility_name": facility_name,
+                "generation_method": "multi_layered_matching",
+                "created_at": datetime.now().isoformat()
             }
             
             # Set OKH reference
             supply_tree.okh_reference = str(manifest.id)
+            
+            # Create a primary workflow for this manufacturing solution
+            from ..models.supply_trees import Workflow, WorkflowNode, ResourceURI, ResourceType
+            from uuid import uuid4
+            
+            primary_workflow = Workflow(
+                name=f"Manufacturing Workflow for {manifest.title}",
+                graph=nx.DiGraph(),
+                entry_points=set(),
+                exit_points=set()
+            )
+            
+            # Extract process requirements from the manifest
+            process_requirements = manifest.manufacturing_processes or []
+            
+            # Create nodes for each manufacturing process
+            previous_node_id = None
+            for i, process_name in enumerate(process_requirements):
+                # Create a workflow node for this process
+                node_id = uuid4()
+                node = WorkflowNode(
+                    id=node_id,
+                    name=f"{process_name} Process",
+                    okh_refs=[
+                        ResourceURI(
+                            resource_type=ResourceType.OKH_PROCESS,
+                            identifier=str(manifest.id),
+                            path=["manufacturing_processes", str(i)]
+                        )
+                    ],
+                    okw_refs=[
+                        ResourceURI(
+                            resource_type=ResourceType.OKW_PROCESS,
+                            identifier=str(facility.id),
+                            path=["manufacturing_processes", process_name.lower().replace(" ", "_")]
+                        )
+                    ],
+                    input_requirements={
+                        "process": process_name,
+                        "material": "as_specified_in_okh"
+                    },
+                    output_specifications={
+                        "process": process_name,
+                        "quality": "meets_okh_requirements"
+                    },
+                    estimated_time=timedelta(hours=2),  # Default estimation
+                    assigned_facility=str(facility.id),
+                    confidence_score=1.0,
+                    metadata={
+                        "process_index": i,
+                        "total_processes": len(process_requirements),
+                        "facility_capability": "verified"
+                    }
+                )
+                
+                # Add node to workflow
+                primary_workflow.graph.add_node(node_id, data=node)
+                
+                # Create linear workflow (each process depends on the previous one)
+                if previous_node_id is not None:
+                    primary_workflow.graph.add_edge(previous_node_id, node_id)
+                else:
+                    # First node is an entry point
+                    primary_workflow.entry_points.add(node_id)
+                
+                # Update exit points
+                primary_workflow.exit_points.discard(previous_node_id) if previous_node_id else None
+                primary_workflow.exit_points.add(node_id)
+                
+                previous_node_id = node_id
+            
+            # Add the workflow to the supply tree
+            supply_tree.add_workflow(primary_workflow)
+            
+            # Add snapshots of source data
+            supply_tree.add_snapshot(
+                f"okh://{manifest.id}",
+                manifest.to_dict()
+            )
+            supply_tree.add_snapshot(
+                f"okw://{facility.id}",
+                facility.to_dict()
+            )
+            
+            logger.info(
+                "Generated supply tree with workflows and nodes",
+                extra={
+                    "okh_id": str(manifest.id),
+                    "facility_id": str(facility.id),
+                    "workflow_count": len(supply_tree.workflows),
+                    "total_nodes": sum(len(wf.graph.nodes) for wf in supply_tree.workflows.values()),
+                    "process_count": len(process_requirements)
+                }
+            )
             
             return supply_tree
             

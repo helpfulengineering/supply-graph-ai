@@ -364,13 +364,19 @@ async def match_requirements_from_file(
         # Serialize results
         results = []
         for solution in solutions:
+            # Calculate actual node and edge counts from workflows
+            total_nodes = sum(len(workflow.graph.nodes) for workflow in solution.tree.workflows.values())
+            total_edges = sum(len(workflow.graph.edges) for workflow in solution.tree.workflows.values())
+            
             results.append({
                 "tree": {
                     "id": str(solution.tree.id),
                     "name": solution.tree.metadata.get("name", "Unnamed Supply Tree"),
                     "description": solution.tree.metadata.get("description", "No description available"),
-                    "node_count": len(solution.tree.workflows),
-                    "edge_count": sum(len(workflow.edges) for workflow in solution.tree.workflows)
+                    "node_count": total_nodes,
+                    "edge_count": total_edges,
+                    "workflow_count": len(solution.tree.workflows),
+                    "metadata": solution.tree.metadata
                 },
                 "score": solution.score,
                 "metrics": solution.metrics
