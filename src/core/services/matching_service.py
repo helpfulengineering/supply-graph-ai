@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
 import logging
+import re
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
@@ -16,6 +17,34 @@ class MatchingService:
     """Service for matching OKH requirements to OKW capabilities"""
     
     _instance = None
+    
+    # Heuristic matching rules for manufacturing domain
+    HEURISTIC_RULES = {
+        # Abbreviation expansions
+        "cnc": ["computer numerical control", "computer numerical control machining"],
+        "cad": ["computer aided design", "computer-aided design"],
+        "cam": ["computer aided manufacturing", "computer-aided manufacturing"],
+        "fms": ["flexible manufacturing system"],
+        "cim": ["computer integrated manufacturing"],
+        "plc": ["programmable logic controller"],
+        
+        # Process synonyms
+        "additive manufacturing": ["3d printing", "3-d printing", "rapid prototyping"],
+        "3d printing": ["additive manufacturing", "rapid prototyping"],
+        "subtractive manufacturing": ["cnc machining", "machining", "material removal"],
+        "cnc machining": ["subtractive manufacturing", "machining", "material removal"],
+        
+        # Material synonyms
+        "stainless steel": ["304 stainless", "316 stainless", "316l", "ss", "stainless"],
+        "aluminum": ["al", "aluminium", "aluminum alloy"],
+        "steel": ["carbon steel", "mild steel", "low carbon steel"],
+        "titanium": ["ti", "titanium alloy"],
+        
+        # Tool synonyms
+        "end mill": ["endmill", "milling cutter", "mill"],
+        "drill bit": ["drill", "twist drill", "drilling tool"],
+        "cutting tool": ["tool", "cutter", "machining tool"],
+    }
     
     @classmethod
     async def get_instance(
@@ -112,7 +141,7 @@ class MatchingService:
             # Extract requirements using the domain extractor
             manifest_data = okh_manifest.to_dict()
             extraction_result = extractor.extract_requirements(manifest_data)
-            requirements = extraction_result.data.content.get('requirements', []) if extraction_result.data else []
+            requirements = extraction_result.data.content.get('process_requirements', []) if extraction_result.data else []
             
             logger.info(
                 "Extracted requirements from OKH manifest",
@@ -183,14 +212,42 @@ class MatchingService:
         requirements: List[Dict[str, Any]],
         capabilities: List[Dict[str, Any]]
     ) -> bool:
-        """Check if capabilities can satisfy requirements"""
+        """Check if capabilities can satisfy requirements using multi-layered matching"""
         try:
-            # TODO: Implement actual matching logic
-            # For now, return True if any capability matches any requirement
             for req in requirements:
+                req_process = req.get("process_name", "").lower().strip()
+                if not req_process:
+                    continue
+                    
                 for cap in capabilities:
-                    if req["process_name"] == cap["process_name"]:
+                    cap_process = cap.get("process_name", "").lower().strip()
+                    if not cap_process:
+                        continue
+                    
+                    # Layer 1: Direct Matching (case-insensitive exact match)
+                    if self._direct_match(req_process, cap_process):
+                        logger.debug(
+                            "Direct match found",
+                            extra={
+                                "requirement": req.get("process_name"),
+                                "capability": cap.get("process_name"),
+                                "layer": "direct"
+                            }
+                        )
                         return True
+                    
+                    # Layer 2: Heuristic Matching (rule-based matching)
+                    if self._heuristic_match(req_process, cap_process):
+                        logger.debug(
+                            "Heuristic match found",
+                            extra={
+                                "requirement": req.get("process_name"),
+                                "capability": cap.get("process_name"),
+                                "layer": "heuristic"
+                            }
+                        )
+                        return True
+            
             return False
             
         except Exception as e:
@@ -205,6 +262,28 @@ class MatchingService:
             )
             raise
     
+    def _direct_match(self, req_process: str, cap_process: str) -> bool:
+        """Layer 1: Direct Matching - Case-insensitive exact string matching"""
+        return req_process == cap_process
+    
+    def _heuristic_match(self, req_process: str, cap_process: str) -> bool:
+        """Layer 2: Heuristic Matching - Rule-based matching with synonyms and abbreviations"""
+        # Check if either term matches any rule
+        for key, synonyms in self.HEURISTIC_RULES.items():
+            # Check if requirement matches key and capability matches any synonym
+            if req_process == key and cap_process in synonyms:
+                return True
+            
+            # Check if capability matches key and requirement matches any synonym
+            if cap_process == key and req_process in synonyms:
+                return True
+            
+            # Check if both requirement and capability are synonyms of the same key
+            if req_process in synonyms and cap_process in synonyms:
+                return True
+        
+        return False
+    
     def _generate_supply_tree(
         self,
         manifest: OKHManifest,
@@ -212,20 +291,21 @@ class MatchingService:
     ) -> SupplyTree:
         """Generate a supply tree for a manifest and facility"""
         try:
-            # TODO: Implement actual tree generation logic
-            # For now, return a simple tree
-            return SupplyTree(
-                root_node={
-                    "type": "facility",
-                    "id": str(facility.id),
-                    "name": facility.name
-                },
-                edges=[],
-                metadata={
-                    "okh_id": str(manifest.id),
-                    "facility_id": str(facility.id)
-                }
-            )
+            # Create a simple supply tree
+            supply_tree = SupplyTree()
+            
+            # Set metadata
+            supply_tree.metadata = {
+                "okh_id": str(manifest.id),
+                "facility_id": str(facility.id),
+                "okh_title": manifest.title,
+                "facility_name": facility.name
+            }
+            
+            # Set OKH reference
+            supply_tree.okh_reference = str(manifest.id)
+            
+            return supply_tree
             
         except Exception as e:
             logger.error(

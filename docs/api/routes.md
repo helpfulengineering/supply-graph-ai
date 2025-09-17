@@ -888,37 +888,33 @@ Paginated responses include consistent metadata:
 ### ✅ Fully Implemented Routes
 
 **Core Matching Engine:**
-- `POST /v1/match` - Enhanced matching with multiple input methods and filtering
-- `POST /v1/match/validate` - Supply tree validation
+- `POST /v1/match` - **Multi-layered matching with storage integration, filtering, and heuristic rules**
+- `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON)**
+- `POST /v1/match/validate` - Supply tree validation (placeholder)
 
 **OKH Management:**
-- `POST /v1/okh/create` - Create OKH manifests
-- `GET /v1/okh/{id}` - Retrieve OKH manifests
+- `GET /v1/okh/{id}` - Retrieve OKH manifests from storage
 - `POST /v1/okh/validate` - Validate OKH manifests
 - `POST /v1/okh/extract` - Extract requirements from OKH
 
 **OKW Management:**
-- `POST /v1/okw/create` - Create OKW facilities
-- `GET /v1/okw/{id}` - Retrieve OKW facilities
-- `GET /v1/okw/search` - Search OKW facilities
-- `POST /v1/okw/validate` - Validate OKW facilities
-- `POST /v1/okw/extract` - Extract capabilities from OKW
+- `GET /v1/okw` - **List OKW facilities with storage integration and pagination**
+- `GET /v1/okw/search` - **Search OKW facilities with comprehensive filtering (access_type, facility_status, location, capabilities, materials)**
+- `POST /v1/okw/validate` - Validate OKW facilities (placeholder)
+- `POST /v1/okw/extract` - Extract capabilities from OKW (placeholder)
 
-**Supply Tree Management:**
-- `POST /v1/supply-tree/create` - Create supply trees
-- `GET /v1/supply-tree/{id}` - Retrieve supply trees
-- `POST /v1/supply-tree/{id}/validate` - Validate supply trees
-
-**Utility Routes:**
-- `GET /v1/domains` - List available domains
-- `GET /v1/contexts/{domain}` - Get domain contexts
+**System Routes:**
+- `GET /health` - Health check endpoint
+- `GET /` - API information and documentation links
 
 ### 🚧 Partially Implemented Routes
 
-**List Operations:**
-- `GET /v1/okh` - List OKH manifests (basic implementation)
-- `GET /v1/okw` - List OKW facilities (basic implementation)
-- `GET /v1/supply-tree` - List supply trees (basic implementation)
+**OKH Management:**
+- `POST /v1/okh/create` - Create OKH manifests (placeholder)
+
+**OKW Management:**
+- `GET /v1/okw/{id}` - Get OKW facility by ID (placeholder)
+- `POST /v1/okw/create` - Create OKW facilities (placeholder)
 
 ### 📋 Planned Routes
 
@@ -934,6 +930,222 @@ Paginated responses include consistent metadata:
 - `POST /v1/supply-tree/{id}/optimize` - Optimize supply trees
 - `GET /v1/supply-tree/{id}/export` - Export supply trees
 - `POST /v1/match/simulate` - Simulate supply tree execution
+
+## Developer Guide
+
+### Quick Start for Developers
+
+#### 1. **Environment Setup**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd supply-graph-ai
+
+# Activate conda environment
+conda activate ome
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your Azure storage credentials
+```
+
+#### 2. **Start the Development Server**
+```bash
+python run.py
+# Server will be available at http://localhost:8001
+```
+
+#### 3. **Test the System**
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# List available OKW facilities
+curl http://localhost:8001/v1/okw
+
+# Test matching with a simple OKH manifest
+curl -X POST http://localhost:8001/v1/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "okh_manifest": {
+      "title": "Test Hardware",
+      "repo": "https://github.com/example/test",
+      "version": "1.0.0",
+      "license": {"hardware": "CERN-OHL-S-2.0"},
+      "licensor": "Test Org",
+      "documentation_language": "en",
+      "function": "Test hardware project",
+      "manufacturing_processes": ["CNC", "3D Printing"]
+    }
+  }'
+```
+
+### Core API Usage Patterns
+
+#### **Matching OKH Requirements to OKW Capabilities**
+
+**Basic Matching:**
+```python
+import httpx
+
+async def match_requirements():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_manifest": {
+                    "title": "CNC Machined Bracket",
+                    "manufacturing_processes": ["CNC", "Deburring"],
+                    # ... other required fields
+                }
+            }
+        )
+        return response.json()
+```
+
+**Matching with Filters:**
+```python
+async def match_with_filters():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_manifest": okh_data,
+                "okw_filters": {
+                    "access_type": "Restricted",
+                    "facility_status": "Active"
+                }
+            }
+        )
+        return response.json()
+```
+
+**Matching from URL:**
+```python
+async def match_from_url():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_url": "https://raw.githubusercontent.com/example/okh.yaml"
+            }
+        )
+        return response.json()
+```
+
+#### **OKW Facility Management**
+
+**List All Facilities:**
+```python
+async def list_facilities():
+    async with httpx.AsyncClient() as client:
+        response = await client.get("http://localhost:8001/v1/okw")
+        return response.json()
+```
+
+**Search Facilities:**
+```python
+async def search_facilities():
+    async with httpx.AsyncClient() as client:
+        # Search by access type
+        response = await client.get(
+            "http://localhost:8001/v1/okw/search",
+            params={"access_type": "Membership"}
+        )
+        
+        # Search by multiple criteria
+        response = await client.get(
+            "http://localhost:8001/v1/okw/search",
+            params={
+                "access_type": "Restricted",
+                "facility_status": "Active",
+                "location": "United States"
+            }
+        )
+        return response.json()
+```
+
+### Multi-Layered Matching System
+
+The matching system uses a sophisticated multi-layered approach:
+
+#### **Layer 1: Direct Matching**
+- Exact string comparison (case-insensitive)
+- Matches: "CNC" ↔ "CNC"
+
+#### **Layer 2: Heuristic Matching**
+- Rule-based matching with synonyms and abbreviations
+- Matches: "CNC" ↔ "Computer Numerical Control"
+- Matches: "3D Printing" ↔ "Additive Manufacturing"
+
+#### **Supported Heuristic Rules**
+```python
+HEURISTIC_RULES = {
+    # Abbreviations
+    "cnc": ["computer numerical control", "computer numerical control machining"],
+    "cad": ["computer aided design", "computer-aided design"],
+    "cam": ["computer aided manufacturing", "computer-aided manufacturing"],
+    
+    # Process synonyms
+    "additive manufacturing": ["3d printing", "3-d printing", "rapid prototyping"],
+    "subtractive manufacturing": ["cnc machining", "machining", "material removal"],
+    
+    # Material synonyms
+    "stainless steel": ["304 stainless", "316 stainless", "ss", "stainless"],
+    "aluminum": ["al", "aluminium", "aluminum alloy"],
+}
+```
+
+### Storage Integration
+
+#### **Azure Blob Storage Configuration**
+```bash
+# Environment variables
+AZURE_STORAGE_ACCOUNT=your_storage_account
+AZURE_STORAGE_KEY=your_storage_key
+AZURE_STORAGE_CONTAINER=okw
+```
+
+#### **Supported File Formats**
+- **YAML**: `.yaml`, `.yml` files
+- **JSON**: `.json` files
+
+#### **File Structure**
+OKW files should contain `ManufacturingFacility` data:
+```yaml
+id: "12345678-1234-1234-1234-123456789abc"
+name: "Professional Machine Shop"
+location:
+  address:
+    street: "123 Main St"
+    city: "Manufacturing City"
+    country: "United States"
+facility_status: "Active"
+access_type: "Restricted"
+manufacturing_processes:
+  - "https://en.wikipedia.org/wiki/CNC_mill"
+  - "https://en.wikipedia.org/wiki/CNC_lathe"
+equipment: []
+typical_materials: []
+```
+
+### Error Handling
+
+#### **Common Error Responses**
+```json
+{
+  "detail": "Error message describing what went wrong"
+}
+```
+
+#### **HTTP Status Codes**
+- `200`: Success
+- `400`: Bad Request (invalid input)
+- `404`: Not Found
+- `500`: Internal Server Error
 
 ## API Documentation & Developer Experience
 

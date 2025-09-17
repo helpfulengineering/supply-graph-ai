@@ -1,0 +1,244 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "ca7b32d4-d9de-459e-abb2-8076b6f4a4a4",
+  "title": "CNC Machined Aluminum Bracket",
+  "repo": "https://github.com/michael11/cnc-machined-aluminum-bracket",
+  "version": "2.4.1",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Stacy Orr",
+    "email": "brittanyperez@example.org",
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "de",
+  "function": "Precision mounting bracket for industrial equipment",
+  "keywords": [
+    "none",
+    "north",
+    "view",
+    "us",
+    "service",
+    "same",
+    "structure",
+    "firm"
+  ],
+  "contact": {
+    "name": "Rodney Hodges",
+    "email": "millerangela@example.net",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "donaldjohnson"
+      }
+    ]
+  },
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/leahsmith/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/qmunoz/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "User Manual",
+      "path": "https://github.com/perezkathleen/project/raw/main/docs/user_manual.html",
+      "type": "user-manual",
+      "metadata": {}
+    },
+    {
+      "title": "Maintenance Guide",
+      "path": "https://github.com/johnsonjeremy/project/raw/main/docs/maintenance_guide.pdf",
+      "type": "maintenance-instructions",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "CNC",
+    "Deburring",
+    "Anodizing"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "CNC",
+        "parameters": {
+          "tolerance": "±0.01mm",
+          "surface_finish": "Ra 1.6μm",
+          "cutting_speed": "129 m/min"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.01mm",
+          "surface_roughness": "Ra 1.6μm max"
+        },
+        "required_tools": [
+          "CNC mill",
+          "Cutting tools",
+          "CMM"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "standards_used": [],
+  "tsdc": [
+    "CNC"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "17e0bda0-217a-4391-ad0d-4334a782c6d8",
+      "source": [],
+      "export": [
+        "https://github.com/kcollins/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/robin72/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Aluminum 6061",
+      "outer_dimensions": {
+        "length": 73,
+        "width": 164,
+        "height": 46
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "7a27ac06-73dc-4b89-9883-16989c8875f1",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 63,
+        "width": 117,
+        "height": 53
+      },
+      "mass": 859.55,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "8d675539-6d47-4f86-9373-a55c24c3e073",
+      "source": [
+        "https://github.com/torresrachel/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/iwright/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/joyce83/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 171,
+        "width": 121,
+        "height": 89
+      },
+      "mass": 549.94,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "54389cdf-981c-4d83-8aec-ddbabe81c938",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/harrisshari/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Aluminum 6061",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Main Body",
+      "id": "cb8196c4-8c9e-4e2b-b21b-603e933d6c58",
+      "source": [],
+      "export": [
+        "https://github.com/alvaradofaith/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 167,
+        "width": 129,
+        "height": 64
+      },
+      "mass": 376.34,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

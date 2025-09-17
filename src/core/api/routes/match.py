@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from uuid import UUID
+from typing import Optional
 import json
 import yaml
 
@@ -142,8 +143,7 @@ async def match_requirements_to_capabilities(
         # 5. Return the results
         if not solutions:
             return MatchResponse(
-                supply_trees=[],
-                confidence=0.0,
+                solutions=[],
                 metadata={
                     "message": "No matching facilities found",
                     "optimization_criteria": request.optimization_criteria
@@ -152,13 +152,21 @@ async def match_requirements_to_capabilities(
         # Convert solutions to a serializable format
         serialized_solutions = []
         for solution in solutions:
+            # Get name and description from metadata or use defaults
+            name = solution.tree.metadata.get('okh_title', f'Supply Tree {str(solution.tree.id)[:8]}')
+            description = solution.tree.metadata.get('description', f'Manufacturing solution for {solution.tree.metadata.get("okh_title", "hardware project")}')
+            
+            # Calculate node and edge counts from workflows
+            total_nodes = sum(len(workflow.graph.nodes) for workflow in solution.tree.workflows.values())
+            total_edges = sum(len(workflow.graph.edges) for workflow in solution.tree.workflows.values())
+            
             serialized_solutions.append({
                 "tree": {
                     "id": str(solution.tree.id),
-                    "name": solution.tree.name,
-                    "description": solution.tree.description,
-                    "node_count": len(solution.tree.workflow.graph.nodes) if solution.tree.workflow and solution.tree.workflow.graph else 0,
-                    "edge_count": len(solution.tree.workflow.graph.edges) if solution.tree.workflow and solution.tree.workflow.graph else 0
+                    "name": name,
+                    "description": description,
+                    "node_count": total_nodes,
+                    "edge_count": total_edges
                 },
                 "score": solution.score,
                 "metrics": solution.metrics
@@ -251,3 +259,134 @@ def _matches_filters(facility, filters: dict) -> bool:
     except Exception as e:
         logger.warning(f"Error applying filters to facility {facility.name}: {e}")
         return True  # Default to including the facility if filter fails
+
+@router.post("/upload", response_model=MatchResponse)
+async def match_requirements_from_file(
+    okh_file: UploadFile = File(..., description="OKH file (YAML or JSON)"),
+    access_type: Optional[str] = Form(None, description="Filter by access type"),
+    facility_status: Optional[str] = Form(None, description="Filter by facility status"),
+    location: Optional[str] = Form(None, description="Filter by location"),
+    capabilities: Optional[str] = Form(None, description="Comma-separated list of required capabilities"),
+    materials: Optional[str] = Form(None, description="Comma-separated list of required materials"),
+    matching_service: MatchingService = Depends(get_matching_service),
+    storage_service: StorageService = Depends(get_storage_service),
+    okh_service: OKHService = Depends(get_okh_service)
+):
+    """
+    Match requirements to capabilities using an uploaded OKH file.
+    
+    This endpoint accepts a file upload (YAML or JSON) containing an OKH manifest
+    and returns matching supply trees based on the requirements in the file.
+    """
+    try:
+        # Validate file type
+        if not okh_file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        
+        file_extension = okh_file.filename.lower().split('.')[-1]
+        if file_extension not in ['yaml', 'yml', 'json']:
+            raise HTTPException(
+                status_code=400, 
+                detail="Unsupported file type. Please upload a YAML (.yaml, .yml) or JSON (.json) file"
+            )
+        
+        # Read and parse the file content
+        content = await okh_file.read()
+        content_str = content.decode('utf-8')
+        
+        try:
+            if file_extension == 'json':
+                okh_data = json.loads(content_str)
+            else:  # yaml or yml
+                okh_data = yaml.safe_load(content_str)
+        except (json.JSONDecodeError, yaml.YAMLError) as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file format: {str(e)}"
+            )
+        
+        # Convert to OKHManifest
+        try:
+            okh_manifest = OKHManifest.from_dict(okh_data)
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid OKH manifest: {str(e)}"
+            )
+        
+        # Build OKW filters from form data
+        okw_filters = {}
+        if access_type:
+            okw_filters["access_type"] = access_type
+        if facility_status:
+            okw_filters["facility_status"] = facility_status
+        if location:
+            okw_filters["location"] = location
+        if capabilities:
+            okw_filters["capabilities"] = [cap.strip() for cap in capabilities.split(',')]
+        if materials:
+            okw_filters["materials"] = [mat.strip() for mat in materials.split(',')]
+        
+        # Store the OKH manifest
+        okh_handler = storage_service.get_domain_handler("okh")
+        await okh_handler.save(okh_manifest)
+        
+        # Load OKW facilities from storage
+        okw_facilities = []
+        async for obj in storage_service.manager.list_objects():
+            try:
+                data = await storage_service.manager.get_object(obj["key"])
+                content = data.decode('utf-8')
+                
+                if obj["key"].endswith(('.yaml', '.yml')):
+                    okw_data = yaml.safe_load(content)
+                elif obj["key"].endswith('.json'):
+                    okw_data = json.loads(content)
+                else:
+                    continue
+                
+                from ...models.okw import ManufacturingFacility
+                facility = ManufacturingFacility.from_dict(okw_data)
+                
+                # Apply filters
+                if _matches_filters(facility, okw_filters):
+                    okw_facilities.append(facility)
+                    
+            except Exception as e:
+                logger.warning(f"Failed to load OKW facility from {obj['key']}: {e}")
+                continue
+        
+        # Find matches
+        solutions = await matching_service.find_matches_with_manifest(
+            okh_manifest, okw_facilities
+        )
+        
+        # Serialize results
+        results = []
+        for solution in solutions:
+            results.append({
+                "tree": {
+                    "id": str(solution.tree.id),
+                    "name": solution.tree.metadata.get("name", "Unnamed Supply Tree"),
+                    "description": solution.tree.metadata.get("description", "No description available"),
+                    "node_count": len(solution.tree.workflows),
+                    "edge_count": sum(len(workflow.edges) for workflow in solution.tree.workflows)
+                },
+                "score": solution.score,
+                "metrics": solution.metrics
+            })
+        
+        return MatchResponse(
+            solutions=results,
+            metadata={
+                "solution_count": len(results),
+                "facility_count": len(okw_facilities),
+                "optimization_criteria": {}
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in file upload matching: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

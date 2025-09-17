@@ -1,0 +1,156 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "cdde139f-706b-462c-b947-3bcf244f3147",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/avilamark/3d-printed-prosthetic-hand",
+  "version": "3.3.9",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Leslie Sullivan",
+    "email": "dwilson@example.org",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "franklinjesse"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "keywords": [],
+  "contributors": [
+    {
+      "name": "Ricky Wilson",
+      "email": "terryjustin@example.net",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "simonmichael"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Walker, Gonzalez and Hamilton",
+    "url": "https://mora-smith.com",
+    "email": "contact@jones.com"
+  },
+  "development_stage": "prototype",
+  "manufacturing_files": [],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/jameshill/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/cooperpaul/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "User Manual",
+      "path": "https://github.com/megan92/project/raw/main/docs/user_manual.pdf",
+      "type": "user-manual",
+      "metadata": {}
+    },
+    {
+      "title": "Maintenance Guide",
+      "path": "https://github.com/vanessataylor/project/raw/main/docs/maintenance_guide.pdf",
+      "type": "maintenance-instructions",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 910.75,
+      "unit": "m²",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: B"
+    }
+  ],
+  "standards_used": [],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "723e9815-279f-4d81-9746-046586e36092",
+      "source": [],
+      "export": [
+        "https://github.com/qharris/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/matthewross/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 130,
+        "width": 20,
+        "height": 69
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "d3400131-d44a-4793-aaa5-bbfcaa9f5158",
+      "source": [
+        "https://github.com/lisasmith/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/jeremy46/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

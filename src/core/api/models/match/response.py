@@ -19,12 +19,20 @@ class SupplyTreeSummary(BaseModel):
     @classmethod
     def from_supply_tree(cls, tree: 'SupplyTree') -> 'SupplyTreeSummary':
         """Create a summary from a full SupplyTree"""
+        # Get name and description from metadata or use defaults
+        name = tree.metadata.get('okh_title', f'Supply Tree {str(tree.id)[:8]}')
+        description = tree.metadata.get('description', f'Manufacturing solution for {tree.metadata.get("okh_title", "hardware project")}')
+        
+        # Calculate node and edge counts from workflows
+        total_nodes = sum(len(workflow.graph.nodes) for workflow in tree.workflows.values())
+        total_edges = sum(len(workflow.graph.edges) for workflow in tree.workflows.values())
+        
         return cls(
             id=str(tree.id),
-            name=tree.name,
-            description=tree.description,
-            node_count=len(tree.workflow.graph.nodes) if tree.workflow and tree.workflow.graph else 0,
-            edge_count=len(tree.workflow.graph.edges) if tree.workflow and tree.workflow.graph else 0,
+            name=name,
+            description=description,
+            node_count=total_nodes,
+            edge_count=total_edges,
             total_cost=getattr(tree, 'total_cost', None),
             estimated_time=getattr(tree, 'estimated_time', None),
             facilities=[str(facility_id) for facility_id in getattr(tree, 'facilities', [])]

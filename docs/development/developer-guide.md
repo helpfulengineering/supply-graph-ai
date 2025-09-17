@@ -1,0 +1,514 @@
+# Open Matching Engine - Developer Guide
+
+
+## Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [System Architecture](#system-architecture)
+3. [API Usage](#api-usage)
+4. [Multi-Layered Matching](#multi-layered-matching)
+5. [Storage Integration](#storage-integration)
+6. [Development Workflow](#development-workflow)
+7. [Testing](#testing)
+8. [Troubleshooting](#troubleshooting)
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Conda environment manager
+- Azure Blob Storage account (for OKW facilities)
+
+### Setup
+
+```bash
+# Clone the repository
+git clone git@github.com:helpfulengineering/supply-graph-ai.git
+cd supply-graph-ai
+
+# Activate or create conda environment
+conda create -n ome 
+conda activate ome
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your Azure storage credentials:
+# AZURE_STORAGE_ACCOUNT=your_storage_account
+# AZURE_STORAGE_KEY=your_storage_key
+# AZURE_STORAGE_CONTAINER=okw
+
+# Start the development server
+python run.py
+```
+
+### Verify Installation
+
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# List available OKW facilities
+curl http://localhost:8001/v1/okw
+
+# Test basic matching
+curl -X POST http://localhost:8001/v1/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "okh_manifest": {
+      "title": "Test Hardware",
+      "repo": "https://github.com/example/test",
+      "version": "1.0.0",
+      "license": {"hardware": "CERN-OHL-S-2.0"},
+      "licensor": "Test Org",
+      "documentation_language": "en",
+      "function": "Test hardware project",
+      "manufacturing_processes": ["CNC", "3D Printing"]
+    }
+  }'
+```
+
+## System Architecture
+
+### Core Components
+
+1. **Matching Service**: Multi-layered matching engine with direct and heuristic matching
+2. **Storage Service**: Azure Blob Storage integration for OKW facilities
+3. **Domain Registry**: Extensible domain system (manufacturing, cooking)
+4. **API Layer**: FastAPI-based REST API with comprehensive documentation
+
+### Data Flow
+
+```
+OKH Manifest → Matching Service → Storage Service → OKW Facilities → Supply Trees
+```
+
+### Key Services
+
+- **MatchingService**: Core matching logic with multi-layered approach
+- **StorageService**: Azure Blob Storage integration
+- **OKHService**: OKH manifest management
+- **OKWService**: OKW facility management
+- **DomainRegistry**: Domain-specific component registration
+
+## API Usage
+
+### Core Endpoints
+
+#### Matching Endpoint
+```python
+POST /v1/match
+```
+
+**Request Body:**
+```json
+{
+  "okh_manifest": {
+    "title": "Hardware Project",
+    "manufacturing_processes": ["CNC", "3D Printing"],
+    // ... other OKH fields
+  },
+  "okw_filters": {
+    "access_type": "Restricted",
+    "facility_status": "Active"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "solutions": [
+    {
+      "tree": {
+        "id": "uuid",
+        "name": "Hardware Project",
+        "description": "Manufacturing solution",
+        "node_count": 0,
+        "edge_count": 0
+      },
+      "score": 1.0,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 3,
+        "capability_count": 3
+      }
+    }
+  ],
+  "metadata": {
+    "solution_count": 1,
+    "facility_count": 1,
+    "optimization_criteria": {}
+  }
+}
+```
+
+#### File Upload Matching Endpoint
+```python
+POST /v1/match/upload
+```
+
+**Form Data:**
+- `okh_file`: Uploaded OKH file (YAML or JSON)
+- `access_type`: (Optional) Filter by access type
+- `facility_status`: (Optional) Filter by facility status  
+- `location`: (Optional) Filter by location
+- `capabilities`: (Optional) Comma-separated list of required capabilities
+- `materials`: (Optional) Comma-separated list of required materials
+
+**Example Usage:**
+```bash
+# Upload OKH file with filters
+curl -X POST http://localhost:8001/v1/match/upload \
+  -F "okh_file=@path/to/okh_manifest.json" \
+  -F "access_type=Restricted" \
+  -F "facility_status=Active"
+
+# Upload OKH file without filters
+curl -X POST http://localhost:8001/v1/match/upload \
+  -F "okh_file=@path/to/okh_manifest.yaml"
+```
+
+**Python Example:**
+```python
+import httpx
+
+async def match_from_file():
+    async with httpx.AsyncClient() as client:
+        with open("path/to/okh_manifest.json", "rb") as f:
+            files = {"okh_file": ("okh_manifest.json", f, "application/json")}
+            data = {
+                "access_type": "Restricted",
+                "facility_status": "Active"
+            }
+            response = await client.post(
+                "http://localhost:8001/v1/match/upload",
+                files=files,
+                data=data
+            )
+        return response.json()
+```
+
+#### OKW Management Endpoints
+
+**List Facilities:**
+```python
+GET /v1/okw
+```
+
+**Search Facilities:**
+```python
+GET /v1/okw/search?access_type=Restricted&facility_status=Active
+```
+
+### Python Client Examples
+
+```python
+import httpx
+import asyncio
+
+async def match_requirements():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_manifest": {
+                    "title": "CNC Bracket",
+                    "manufacturing_processes": ["CNC", "Deburring"],
+                    "license": {"hardware": "CERN-OHL-S-2.0"},
+                    "licensor": "Test Org",
+                    "documentation_language": "en",
+                    "function": "Precision bracket"
+                }
+            }
+        )
+        return response.json()
+
+async def search_facilities():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "http://localhost:8001/v1/okw/search",
+            params={"access_type": "Membership"}
+        )
+        return response.json()
+
+# Usage
+results = asyncio.run(match_requirements())
+facilities = asyncio.run(search_facilities())
+```
+
+## Multi-Layered Matching
+
+### Layer 1: Direct Matching
+- Exact string comparison (case-insensitive)
+- Example: "CNC" ↔ "CNC"
+
+### Layer 2: Heuristic Matching
+- Rule-based matching with synonyms and abbreviations
+- Example: "CNC" ↔ "Computer Numerical Control"
+
+### Supported Heuristic Rules
+
+```python
+HEURISTIC_RULES = {
+    # Abbreviations
+    "cnc": ["computer numerical control", "computer numerical control machining"],
+    "cad": ["computer aided design", "computer-aided design"],
+    "cam": ["computer aided manufacturing", "computer-aided manufacturing"],
+    
+    # Process synonyms
+    "additive manufacturing": ["3d printing", "3-d printing", "rapid prototyping"],
+    "subtractive manufacturing": ["cnc machining", "machining", "material removal"],
+    
+    # Material synonyms
+    "stainless steel": ["304 stainless", "316 stainless", "ss", "stainless"],
+    "aluminum": ["al", "aluminium", "aluminum alloy"],
+}
+```
+
+### Adding New Heuristic Rules
+
+To add new heuristic rules, update the `HEURISTIC_RULES` dictionary in `src/core/services/matching_service.py`:
+
+```python
+HEURISTIC_RULES = {
+    # ... existing rules ...
+    "your_new_rule": ["synonym1", "synonym2", "synonym3"],
+}
+```
+
+## Storage Integration
+
+### Azure Blob Storage Configuration
+
+**Environment Variables:**
+```bash
+AZURE_STORAGE_ACCOUNT=your_storage_account
+AZURE_STORAGE_KEY=your_storage_key
+AZURE_STORAGE_CONTAINER=okw
+```
+
+### Supported File Formats
+
+- **YAML**: `.yaml`, `.yml` files
+- **JSON**: `.json` files
+
+### OKW File Structure
+
+```yaml
+id: "12345678-1234-1234-1234-123456789abc"
+name: "Professional Machine Shop"
+location:
+  address:
+    street: "123 Main St"
+    city: "Manufacturing City"
+    country: "United States"
+facility_status: "Active"
+access_type: "Restricted"
+manufacturing_processes:
+  - "https://en.wikipedia.org/wiki/CNC_mill"
+  - "https://en.wikipedia.org/wiki/CNC_lathe"
+equipment: []
+typical_materials: []
+```
+
+### Adding New OKW Facilities
+
+1. Create a YAML or JSON file with the facility data
+2. Upload to your Azure Blob Storage container
+3. The system will automatically load it on the next request
+
+## Development Workflow
+
+### Code Organization
+
+```
+src/
+├── core/
+│   ├── api/           # FastAPI routes and models
+│   ├── services/      # Core business logic
+│   ├── models/        # Data models
+│   ├── domains/       # Domain-specific implementations
+│   └── storage/       # Storage providers
+├── config/            # Configuration management
+└── utils/             # Utility functions
+```
+
+### Adding New Features
+
+1. **Create tests first** (TDD approach)
+2. **Implement minimal changes**
+3. **Test incrementally**
+4. **Update documentation**
+
+### Code Style
+
+- Follow PEP 8
+- Use type hints
+- Write comprehensive docstrings
+- Include error handling
+
+### Testing
+
+```bash
+# Run all tests
+python -m pytest
+
+# Run specific test file
+python -m pytest tests/test_matching_layers.py
+
+# Run with coverage
+python -m pytest --cov=src
+```
+
+## Testing
+
+### Unit Tests
+
+```python
+import pytest
+from src.core.services.matching_service import MatchingService
+
+@pytest.mark.asyncio
+async def test_direct_matching():
+    service = await MatchingService.get_instance()
+    result = service._direct_match("CNC", "CNC")
+    assert result is True
+
+@pytest.mark.asyncio
+async def test_heuristic_matching():
+    service = await MatchingService.get_instance()
+    result = service._heuristic_match("CNC", "Computer Numerical Control")
+    assert result is True
+```
+
+### Integration Tests
+
+```python
+import httpx
+import pytest
+
+@pytest.mark.asyncio
+async def test_matching_endpoint():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_manifest": {
+                    "title": "Test Hardware",
+                    "manufacturing_processes": ["CNC"]
+                }
+            }
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "solutions" in data
+```
+
+### API Testing
+
+```bash
+# Test health endpoint
+curl http://localhost:8001/health
+
+# Test OKW listing
+curl http://localhost:8001/v1/okw
+
+# Test matching
+curl -X POST http://localhost:8001/v1/match \
+  -H "Content-Type: application/json" \
+  -d '{"okh_manifest": {...}}'
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### 1. Storage Connection Issues
+**Error**: `'NoneType' object has no attribute 'list_objects'`
+
+**Solution**: Check Azure storage configuration in `.env` file:
+```bash
+AZURE_STORAGE_ACCOUNT=your_account
+AZURE_STORAGE_KEY=your_key
+AZURE_STORAGE_CONTAINER=okw
+```
+
+#### 2. Enum Comparison Issues
+**Error**: Filtering returns 0 results when it should return matches
+
+**Solution**: This was fixed by using `.value` instead of `str()` for enum comparison:
+```python
+# Fixed
+facility_access_type = facility.access_type.value.lower()
+
+# Was broken
+facility_access_type = str(facility.access_type).lower()
+```
+
+#### 3. Route Conflicts
+**Error**: 404 errors or wrong endpoints being called
+
+**Solution**: Ensure route order is correct - specific routes before parameterized routes:
+```python
+@router.get("/search")  # Specific route first
+async def search_okw():
+    pass
+
+@router.get("/{id}")    # Parameterized route second
+async def get_okw(id: UUID):
+    pass
+```
+
+### Debugging
+
+#### Enable Debug Logging
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+#### Check Storage Status
+```python
+from src.core.services.storage_service import StorageService
+
+async def check_storage():
+    service = await StorageService.get_instance()
+    print(f"Storage configured: {service.manager is not None}")
+```
+
+#### Test Matching Logic
+```python
+from src.core.services.matching_service import MatchingService
+
+async def test_matching():
+    service = await MatchingService.get_instance()
+    await service.initialize()
+    
+    # Test direct matching
+    result = service._direct_match("CNC", "CNC")
+    print(f"Direct match: {result}")
+    
+    # Test heuristic matching
+    result = service._heuristic_match("CNC", "Computer Numerical Control")
+    print(f"Heuristic match: {result}")
+```
+
+### Performance Optimization
+
+#### Caching
+- OKW facilities are loaded from storage on each request
+- TODO: caching for production use
+
+#### Async Operations
+- All I/O operations are async
+- Use `httpx.AsyncClient` for API calls
+- Use `asyncio.run()` for testing
+
+#### Error Handling
+- All endpoints include comprehensive error handling
+- Check logs for detailed error information
+- Use appropriate HTTP status codes
