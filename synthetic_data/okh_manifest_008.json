@@ -1,0 +1,144 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "77c244cb-eff7-4618-89f1-85438dcf0159",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/troyross/sheet-metal-enclosure",
+  "version": "1.3.3",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Ashley Armstrong",
+    "email": "rachelsims@example.net",
+    "affiliation": "Johnston Inc",
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "keywords": [
+    "adult",
+    "represent",
+    "party",
+    "let",
+    "list",
+    "top",
+    "feeling"
+  ],
+  "contact": {
+    "name": "Philip Keller",
+    "email": "btaylor@example.net",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "lopezjonathan"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Jason Jackson",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "luis79"
+        }
+      ]
+    },
+    {
+      "name": "Randall Ramos",
+      "email": "ylang@example.org",
+      "affiliation": "Brown, Brown and Harris",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Patel and Sons",
+    "url": "https://wilkins.com",
+    "email": "contact@leach.net"
+  },
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/fosterpatrick/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/catherine66/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/michael14/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/marquezpatricia/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "standards_used": [],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "1702bb1f-0b93-47e2-bbe7-99e4cc2f0577",
+      "source": [
+        "https://github.com/amanda42/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/keithhall/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/angela91/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/zjohnson/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": 543.71,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

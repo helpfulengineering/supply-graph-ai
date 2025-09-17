@@ -1,0 +1,153 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b44db883-b03b-4ecd-9192-e3f45e6b7de8",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/gtorres/3d-printed-prosthetic-hand",
+  "version": "3.2.2",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Eric Cain",
+    "email": "kkelly@example.com",
+    "affiliation": "Davis, Schmidt and West",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "daniellewalker"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Chance affect ten option modern.",
+  "keywords": [
+    "different",
+    "fund",
+    "present",
+    "on",
+    "today",
+    "mouth"
+  ],
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [],
+  "design_files": [],
+  "making_instructions": [],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 613.9,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 331.91,
+      "unit": "m³",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 213,
+      "width": 451,
+      "height": 27
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "30%",
+          "temperature": "218°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "standards_used": [],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "fae18af6-6e35-4cd6-b294-2c9c98520aee",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/lyonsangelica/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 153,
+        "width": 176,
+        "height": 67
+      },
+      "mass": 176.2,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Main Body",
+      "id": "81c47f5c-d02c-4d38-a9cb-c27b2f7ca16a",
+      "source": [
+        "https://github.com/brittany55/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/susansteele/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/nathanwhite/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": {
+        "length": 30,
+        "width": 62,
+        "height": 99
+      },
+      "mass": 177.51,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

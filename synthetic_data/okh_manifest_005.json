@@ -1,0 +1,176 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "441b2ca3-752f-4b7c-ac51-1b143cc28165",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/laura71/laser-cut-acrylic-display-case",
+  "version": "3.6.0",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Cheryl Bailey",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Protective display case for electronic components",
+  "keywords": [
+    "bring",
+    "PM",
+    "skill",
+    "including",
+    "attention",
+    "along",
+    "success"
+  ],
+  "contact": {
+    "name": "Barbara Pennington",
+    "email": null,
+    "affiliation": "Johnson-Dixon",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "robert57"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Cameron Campbell",
+      "email": "joseph62@example.com",
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Rebecca Strickland",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "richard49"
+        }
+      ]
+    },
+    {
+      "name": "Brandon Gomez",
+      "email": "whitejennifer@example.com",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "april89"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "James-West",
+    "url": "https://arnold-thomas.com",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-2",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/julie45/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/biancadixon/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/hobbsderrick/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/gallowayrobert/project/raw/main/docs/technical_drawings.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "making_instructions": [],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: A"
+    }
+  ],
+  "standards_used": [],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "55d06828-7a21-45a9-92f2-c4d81ecdbcca",
+      "source": [],
+      "export": [
+        "https://github.com/gholder/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 186,
+        "width": 84,
+        "height": 25
+      },
+      "mass": 652.93,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "49c4ba8a-c825-415e-a349-3ab41dbea890",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/joseph20/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/fyoung/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

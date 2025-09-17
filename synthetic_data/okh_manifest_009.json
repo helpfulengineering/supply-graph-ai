@@ -1,0 +1,239 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "61bfb02e-c6e9-45cd-a8c5-085a280fdd18",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/leslielawson/sheet-metal-enclosure",
+  "version": "2.5.9",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Tina Martin",
+    "email": null,
+    "affiliation": "Collins Group",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "moodybrandon"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "intended_use": "Per by right provide let by.",
+  "keywords": [
+    "manager",
+    "treat",
+    "few",
+    "and",
+    "sign",
+    "they"
+  ],
+  "contact": {
+    "name": "Timothy Ward",
+    "email": null,
+    "affiliation": "Howell-Winters",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jon57"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Christy Patel",
+      "email": "vgillespie@example.com",
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Joanne Terry",
+      "email": "tsmith@example.org",
+      "affiliation": "Morris-Green",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "matthewsmaria"
+        }
+      ]
+    },
+    {
+      "name": "Edward Harris",
+      "email": null,
+      "affiliation": "Smith-Clark",
+      "social": []
+    }
+  ],
+  "development_stage": "deprecated",
+  "manufacturing_files": [],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "User Manual",
+      "path": "https://github.com/youngkara/project/raw/main/docs/user_manual.md",
+      "type": "user-manual",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Maintenance Guide",
+      "path": "https://github.com/cuevasholly/project/raw/main/docs/maintenance_guide.pdf",
+      "type": "maintenance-instructions",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 782.6,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "2fc200ee-2827-4d96-a2f4-abd8669f6a18",
+      "source": [
+        "https://github.com/austin92/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/batesandrew/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/btaylor/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/daniel33/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 85,
+        "width": 22,
+        "height": 37
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "5b1b2cfa-b801-4931-94f8-a50c120302d8",
+      "source": [],
+      "export": [
+        "https://github.com/lindseyayala/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/cookrichard/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 17,
+        "width": 25,
+        "height": 87
+      },
+      "mass": 491.85,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "8d50acc6-883e-4cb7-9434-10654f813685",
+      "source": [],
+      "export": [
+        "https://github.com/helen59/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/wbrock/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": 118.4,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "33bfad53-9afe-4927-bdaa-d0962dbcc720",
+      "source": [],
+      "export": [
+        "https://github.com/alexander15/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 193,
+        "width": 189,
+        "height": 88
+      },
+      "mass": 723.06,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "c0dd2c02-0ac4-4f99-a25e-551ecd2ec7b5",
+      "source": [
+        "https://github.com/ubailey/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/ashley69/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 152,
+        "width": 92,
+        "height": 78
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

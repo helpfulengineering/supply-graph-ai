@@ -26,6 +26,27 @@ All routes are prefixed with `/v1` to enable future versioning. This approach al
 
 Future versions would be accessible via `/v2`, `/v3`, etc., with the previous versions maintained for backward compatibility as needed.
 
+## Storage Integration
+
+The OME API includes comprehensive storage integration with Azure Blob Storage:
+
+### Azure Blob Storage Features
+- **Automatic OKW Loading**: The `/v1/match` endpoint automatically loads all OKW facilities from the configured Azure container
+- **File Format Support**: Supports both YAML and JSON file formats for OKW facilities
+- **Real-time Processing**: Processes files from storage in real-time during matching operations
+- **Domain Handlers**: Specialized storage handlers for different data types (OKH, OKW, supply trees)
+
+### Storage Configuration
+The system uses environment variables for Azure storage configuration:
+- `AZURE_STORAGE_ACCOUNT`: Azure storage account name
+- `AZURE_STORAGE_KEY`: Azure storage account key
+- `AZURE_STORAGE_CONTAINER`: Container name for OKW facilities
+
+### File Processing
+- **Automatic Parsing**: YAML and JSON files are automatically parsed and converted to `ManufacturingFacility` objects
+- **Error Handling**: Invalid files are logged and skipped, allowing the system to continue processing
+- **Filtering**: OKW facilities can be filtered by location, capabilities, access type, and facility status
+
 ## Authentication and Authorization
 
 The API requires authentication for all routes except public read operations. Authentication is implemented using API keys passed in the `Authorization` header:
@@ -623,17 +644,32 @@ The supply tree in the requested format.
 POST /v1/match
 ```
 
-Matches OKH requirements with OKW capabilities to generate valid supply trees.
+**Enhanced matching endpoint** that matches OKH requirements with OKW capabilities to generate valid supply trees. Supports multiple input methods and advanced filtering.
 
 **Request:**
 ```json
 {
-  "requirements": {...},  // OKH object
-  "capabilities": ["facility-id-1", "facility-id-2"],  // List of OKW facility IDs
-  "context": "manufacturing",  // Optional validation context
-  "optimization_criteria": {  // Optional optimization preferences
-    "priority": "cost",  // or "time", "quality"
-    "weights": {...}
+  // OKH Input (choose ONE of the following):
+  "okh_manifest": {...},           // Inline OKH manifest object
+  "okh_id": "uuid-here",          // Reference to stored OKH manifest
+  "okh_url": "https://example.com/manifest.yaml",  // Remote OKH manifest URL
+  
+  // Optional OKW Filtering
+  "okw_filters": {
+    "location": {
+      "country": "United States",
+      "city": "San Francisco"
+    },
+    "access_type": "public",
+    "capabilities": ["3D Printing", "CNC Milling"],
+    "facility_status": "active"
+  },
+  
+  // Optional Optimization
+  "optimization_criteria": {
+    "cost": 0.5,
+    "quality": 0.3,
+    "speed": 0.2
   }
 }
 ```
@@ -641,22 +677,51 @@ Matches OKH requirements with OKW capabilities to generate valid supply trees.
 **Response:**
 ```json
 {
-  "supply_trees": [
+  "solutions": [
     {
-      "id": "123e4567-e89b-12d3-a456-426614174000",
-      "confidence": 0.85,
-      "workflows": {...},
-      ...
-    },
-    ...
+      "tree": {
+        "id": "123e4567-e89b-12d3-a456-426614174000",
+        "name": "Manufacturing Solution",
+        "description": "Complete manufacturing workflow",
+        "node_count": 15,
+        "edge_count": 18
+      },
+      "score": 0.85,
+      "metrics": {
+        "facility_count": 3,
+        "requirement_count": 8,
+        "capability_count": 12
+      }
+    }
   ],
-  "confidence": 0.85,
   "metadata": {
-    "processing_time": "2.5s",
-    "optimization_metrics": {...}
+    "solution_count": 1,
+    "facility_count": 3,
+    "optimization_criteria": {
+      "cost": 0.5,
+      "quality": 0.3,
+      "speed": 0.2
+    }
   }
 }
 ```
+
+**Key Features:**
+- **Multiple OKH Input Methods**: Accept inline manifests, storage references, or remote URLs
+- **Automatic OKW Loading**: Loads all OKW facilities from Azure Blob Storage automatically
+- **Advanced Filtering**: Filter facilities by location, capabilities, access type, and status
+- **Real-time Processing**: Processes YAML/JSON files from storage in real-time
+- **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
+
+**Enhanced Matching Workflow:**
+1. **OKH Input Processing**: Validates and processes OKH manifest from one of three input methods
+2. **Storage Integration**: Automatically loads all OKW facilities from Azure Blob Storage
+3. **File Processing**: Parses YAML/JSON files and converts to `ManufacturingFacility` objects
+4. **Filtering**: Applies optional filters to narrow down relevant facilities
+5. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
+6. **Matching Logic**: Compares requirements against capabilities using domain-specific matching
+7. **Solution Generation**: Creates supply tree solutions with confidence scoring
+8. **Response Formatting**: Returns serialized solutions with metadata
 
 #### Validate Supply Tree
 
@@ -818,30 +883,290 @@ Paginated responses include consistent metadata:
 }
 ```
 
-## Implementation Priorities
+## Implementation Status
 
-The implementation of these routes should be prioritized as follows:
+### ✅ Fully Implemented Routes
 
-1. Core validation routes:
-   - `POST /v1/okh/validate`
-   - `POST /v1/okw/validate`
+**Core Matching Engine:**
+- `POST /v1/match` - **Multi-layered matching with storage integration, filtering, and heuristic rules**
+- `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON)**
+- `POST /v1/match/validate` - Supply tree validation (placeholder)
 
-2. Basic matching functionality:
-   - `POST /v1/match`
-   - `GET /v1/supply-tree/{id}`
+**OKH Management:**
+- `GET /v1/okh/{id}` - Retrieve OKH manifests from storage
+- `POST /v1/okh/validate` - Validate OKH manifests
+- `POST /v1/okh/extract` - Extract requirements from OKH
 
-3. Supporting routes:
-   - `POST /v1/okh/extract`
-   - `POST /v1/okw/extract`
-   - `POST /v1/match/validate`
+**OKW Management:**
+- `GET /v1/okw` - **List OKW facilities with storage integration and pagination**
+- `GET /v1/okw/search` - **Search OKW facilities with comprehensive filtering (access_type, facility_status, location, capabilities, materials)**
+- `POST /v1/okw/validate` - Validate OKW facilities (placeholder)
+- `POST /v1/okw/extract` - Extract capabilities from OKW (placeholder)
 
-4. Advanced functionality:
-   - Search and optimization routes
-   - Simulation capabilities
+**System Routes:**
+- `GET /health` - Health check endpoint
+- `GET /` - API information and documentation links
 
-5. Utility routes:
-   - Available domains
-   - Validation contexts
+### 🚧 Partially Implemented Routes
+
+**OKH Management:**
+- `POST /v1/okh/create` - Create OKH manifests (placeholder)
+
+**OKW Management:**
+- `GET /v1/okw/{id}` - Get OKW facility by ID (placeholder)
+- `POST /v1/okw/create` - Create OKW facilities (placeholder)
+
+### 📋 Planned Routes
+
+**Advanced Operations:**
+- `PUT /v1/okh/{id}` - Update OKH manifests
+- `DELETE /v1/okh/{id}` - Delete OKH manifests
+- `PUT /v1/okw/{id}` - Update OKW facilities
+- `DELETE /v1/okw/{id}` - Delete OKW facilities
+- `PUT /v1/supply-tree/{id}` - Update supply trees
+- `DELETE /v1/supply-tree/{id}` - Delete supply trees
+
+**Advanced Features:**
+- `POST /v1/supply-tree/{id}/optimize` - Optimize supply trees
+- `GET /v1/supply-tree/{id}/export` - Export supply trees
+- `POST /v1/match/simulate` - Simulate supply tree execution
+
+## Developer Guide
+
+### Quick Start for Developers
+
+#### 1. **Environment Setup**
+```bash
+# Clone the repository
+git clone <repository-url>
+cd supply-graph-ai
+
+# Activate conda environment
+conda activate ome
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your Azure storage credentials
+```
+
+#### 2. **Start the Development Server**
+```bash
+python run.py
+# Server will be available at http://localhost:8001
+```
+
+#### 3. **Test the System**
+```bash
+# Health check
+curl http://localhost:8001/health
+
+# List available OKW facilities
+curl http://localhost:8001/v1/okw
+
+# Test matching with a simple OKH manifest
+curl -X POST http://localhost:8001/v1/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "okh_manifest": {
+      "title": "Test Hardware",
+      "repo": "https://github.com/example/test",
+      "version": "1.0.0",
+      "license": {"hardware": "CERN-OHL-S-2.0"},
+      "licensor": "Test Org",
+      "documentation_language": "en",
+      "function": "Test hardware project",
+      "manufacturing_processes": ["CNC", "3D Printing"]
+    }
+  }'
+```
+
+### Core API Usage Patterns
+
+#### **Matching OKH Requirements to OKW Capabilities**
+
+**Basic Matching:**
+```python
+import httpx
+
+async def match_requirements():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_manifest": {
+                    "title": "CNC Machined Bracket",
+                    "manufacturing_processes": ["CNC", "Deburring"],
+                    # ... other required fields
+                }
+            }
+        )
+        return response.json()
+```
+
+**Matching with Filters:**
+```python
+async def match_with_filters():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_manifest": okh_data,
+                "okw_filters": {
+                    "access_type": "Restricted",
+                    "facility_status": "Active"
+                }
+            }
+        )
+        return response.json()
+```
+
+**Matching from URL:**
+```python
+async def match_from_url():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/match",
+            json={
+                "okh_url": "https://raw.githubusercontent.com/example/okh.yaml"
+            }
+        )
+        return response.json()
+```
+
+#### **OKW Facility Management**
+
+**List All Facilities:**
+```python
+async def list_facilities():
+    async with httpx.AsyncClient() as client:
+        response = await client.get("http://localhost:8001/v1/okw")
+        return response.json()
+```
+
+**Search Facilities:**
+```python
+async def search_facilities():
+    async with httpx.AsyncClient() as client:
+        # Search by access type
+        response = await client.get(
+            "http://localhost:8001/v1/okw/search",
+            params={"access_type": "Membership"}
+        )
+        
+        # Search by multiple criteria
+        response = await client.get(
+            "http://localhost:8001/v1/okw/search",
+            params={
+                "access_type": "Restricted",
+                "facility_status": "Active",
+                "location": "United States"
+            }
+        )
+        return response.json()
+```
+
+### Multi-Layered Matching System
+
+The matching system uses a sophisticated multi-layered approach:
+
+#### **Layer 1: Direct Matching**
+- Exact string comparison (case-insensitive)
+- Matches: "CNC" ↔ "CNC"
+
+#### **Layer 2: Heuristic Matching**
+- Rule-based matching with synonyms and abbreviations
+- Matches: "CNC" ↔ "Computer Numerical Control"
+- Matches: "3D Printing" ↔ "Additive Manufacturing"
+
+#### **Supported Heuristic Rules**
+```python
+HEURISTIC_RULES = {
+    # Abbreviations
+    "cnc": ["computer numerical control", "computer numerical control machining"],
+    "cad": ["computer aided design", "computer-aided design"],
+    "cam": ["computer aided manufacturing", "computer-aided manufacturing"],
+    
+    # Process synonyms
+    "additive manufacturing": ["3d printing", "3-d printing", "rapid prototyping"],
+    "subtractive manufacturing": ["cnc machining", "machining", "material removal"],
+    
+    # Material synonyms
+    "stainless steel": ["304 stainless", "316 stainless", "ss", "stainless"],
+    "aluminum": ["al", "aluminium", "aluminum alloy"],
+}
+```
+
+### Storage Integration
+
+#### **Azure Blob Storage Configuration**
+```bash
+# Environment variables
+AZURE_STORAGE_ACCOUNT=your_storage_account
+AZURE_STORAGE_KEY=your_storage_key
+AZURE_STORAGE_CONTAINER=okw
+```
+
+#### **Supported File Formats**
+- **YAML**: `.yaml`, `.yml` files
+- **JSON**: `.json` files
+
+#### **File Structure**
+OKW files should contain `ManufacturingFacility` data:
+```yaml
+id: "12345678-1234-1234-1234-123456789abc"
+name: "Professional Machine Shop"
+location:
+  address:
+    street: "123 Main St"
+    city: "Manufacturing City"
+    country: "United States"
+facility_status: "Active"
+access_type: "Restricted"
+manufacturing_processes:
+  - "https://en.wikipedia.org/wiki/CNC_mill"
+  - "https://en.wikipedia.org/wiki/CNC_lathe"
+equipment: []
+typical_materials: []
+```
+
+### Error Handling
+
+#### **Common Error Responses**
+```json
+{
+  "detail": "Error message describing what went wrong"
+}
+```
+
+#### **HTTP Status Codes**
+- `200`: Success
+- `400`: Bad Request (invalid input)
+- `404`: Not Found
+- `500`: Internal Server Error
+
+## API Documentation & Developer Experience
+
+### Interactive Documentation
+The OME API provides comprehensive interactive documentation:
+
+- **Main API Docs**: `http://localhost:8001/docs` - System endpoints and overview
+- **Full API Docs**: `http://localhost:8001/v1/docs` - Complete API documentation with all 19 endpoints
+- **OpenAPI Schema**: `http://localhost:8001/v1/openapi.json` - Machine-readable API specification
+
+### Developer Features
+- **Request Validation**: Comprehensive input validation with detailed error messages
+- **Type Safety**: Full Pydantic model validation and serialization
+- **Error Handling**: Consistent error response format with helpful error messages
+- **Async Support**: Full async/await support for high-performance operations
+- **CORS Support**: Cross-origin resource sharing enabled for web applications
+
+### Testing & Development
+- **Health Check**: `GET /health` - System status and registered domains
+- **Root Endpoint**: `GET /` - API information and navigation links
+- **Hot Reload**: Development server with automatic reload on code changes
 
 ## Future Considerations
 

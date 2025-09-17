@@ -1,0 +1,148 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "188e9793-921b-492d-9502-fbc5a43f1e94",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/uhopkins/laser-cut-acrylic-display-case",
+  "version": "3.8.6",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Jamie Hudson",
+    "email": null,
+    "affiliation": "Meyer, Campos and Vaughn",
+    "social": []
+  },
+  "documentation_language": "fr",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Church gun data argue light what beautiful.",
+  "intended_use": "Edge should only black indicate claim good.",
+  "keywords": [
+    "forward",
+    "decade",
+    "someone"
+  ],
+  "contributors": [
+    {
+      "name": "Sophia Wilson",
+      "email": null,
+      "affiliation": "Mack-Murphy",
+      "social": []
+    }
+  ],
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/nicolemcmillan/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/fgarner/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/arnoldkrystal/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/ismith/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "User Manual",
+      "path": "https://github.com/erodriguez/project/raw/main/docs/user_manual.pdf",
+      "type": "user-manual",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Maintenance Guide",
+      "path": "https://github.com/brandirandolph/project/raw/main/docs/maintenance_guide.pdf",
+      "type": "maintenance-instructions",
+      "metadata": {
+        "version": "v3.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 23.23,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 671.52,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 67.76,
+      "unit": "kg",
+      "notes": "Grade: B"
+    }
+  ],
+  "standards_used": [],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "58e30035-0b54-4fe5-a1ae-b0485c0e3e41",
+      "source": [],
+      "export": [
+        "https://github.com/mwilson/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/reginald96/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 143,
+        "width": 29,
+        "height": 99
+      },
+      "mass": 395.4,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

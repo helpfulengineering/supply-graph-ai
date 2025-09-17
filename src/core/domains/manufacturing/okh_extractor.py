@@ -128,11 +128,56 @@ class OKHExtractor(BaseExtractor):
         return content
     
     def _detailed_extract_capabilities(self, parsed_data: Dict) -> NormalizedCapabilities:
-        """Extract detailed capabilities"""
-        return NormalizedCapabilities(
-            content={},
-            domain="manufacturing"
+        """Extract detailed capabilities from facility data"""
+        # Extract manufacturing processes as capabilities
+        processes = parsed_data.get('manufacturing_processes', [])
+        
+        # Convert processes to capability format
+        capabilities = []
+        for process in processes:
+            capabilities.append({
+                "process_name": process,
+                "parameters": {},
+                "validation_criteria": {},
+                "required_tools": [],
+                "notes": ""
+            })
+        
+        # Build normalized capabilities content
+        content = {
+            "id": parsed_data.get('id', ''),
+            "name": parsed_data.get('name', ''),
+            "processes": processes,
+            "capabilities": capabilities,
+            "equipment": parsed_data.get('equipment', []),
+            "materials": parsed_data.get('typical_materials', []),
+            "access_type": parsed_data.get('access_type', ''),
+            "facility_status": parsed_data.get('facility_status', '')
+        }
+        
+        # Create confidence scores
+        confidence_scores = {
+            "name": 1.0 if parsed_data.get('name') else 0.0,
+            "processes": 1.0 if processes else 0.0,
+            "equipment": 1.0 if parsed_data.get('equipment') else 0.0,
+            "materials": 1.0 if parsed_data.get('typical_materials') else 0.0
+        }
+        
+        # Create extraction metadata
+        metadata = ExtractionMetadata(
+            confidence_scores=confidence_scores,
+            processing_logs=[f"Extracted {len(capabilities)} capabilities"]
         )
+        
+        # Create normalized capabilities with metadata
+        normalized_capabilities = NormalizedCapabilities(
+            content=content,
+            domain="manufacturing",
+            confidence=1.0,
+            metadata=metadata
+        )
+        
+        return normalized_capabilities
     
     def _get_critical_fields(self, extraction_type: str) -> List[str]:
         """Define critical fields for quality assessment"""

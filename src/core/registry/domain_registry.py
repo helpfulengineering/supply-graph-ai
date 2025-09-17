@@ -42,3 +42,12 @@ class DomainRegistry:
         if domain not in cls._validators:
             raise ValueError(f"No validator registered for domain: {domain}")
         return cls._validators[domain]
+    
+    @classmethod
+    def get_registered_domains(cls) -> list[str]:
+        """Get list of all registered domains"""
+        domains = set()
+        domains.update(cls._extractors.keys())
+        domains.update(cls._matchers.keys())
+        domains.update(cls._validators.keys())
+        return list(domains)

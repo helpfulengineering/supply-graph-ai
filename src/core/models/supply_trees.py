@@ -195,6 +195,9 @@ class Workflow:
     entry_points: Set[UUID] = field(default_factory=set)  # Nodes that start the workflow
     exit_points: Set[UUID] = field(default_factory=set)   # Nodes that end the workflow
     
+    class Config:
+        arbitrary_types_allowed = True
+    
     def add_node(self, node: WorkflowNode, dependencies: Set[UUID] = None) -> None:
         """Add a node to the workflow"""
         self.graph.add_node(node.id, data=node)
@@ -291,6 +294,9 @@ class SupplyTree:
     required_quantity: int = 1
     deadline: Optional[timedelta] = None
     metadata: Dict = field(default_factory=dict)
+    
+    class Config:
+        arbitrary_types_allowed = True
 
     def __init__(self):
         """Initialize a new SupplyTree"""

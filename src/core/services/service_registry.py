@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import logging
 
+from src.core.services.storage_service import StorageService
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
 
@@ -52,6 +53,7 @@ class DomainServices:
     validator: BaseValidator
     metadata: DomainMetadata
     orchestrator: Optional[Any] = None  # BaseOrchestrator when available
+    storage: Optional[StorageService] = None
 
 
 class DomainValidationError(Exception):
@@ -72,7 +74,7 @@ class ServiceRegistry:
         self._type_mappings: Dict[str, str] = {}
         self._logger = logging.getLogger(__name__)
     
-    def register_domain(self, 
+    async def register_domain(self, 
                        domain_name: str,
                        extractor: BaseExtractor,
                        matcher: BaseMatcher,
@@ -96,12 +98,21 @@ class ServiceRegistry:
         # Validate services
         self._validate_services(extractor, matcher, validator)
         
+        # Initialize storage for domain
+        storage = None
+        try:
+            storage = await StorageService.get_instance()
+            await storage.register_domain_handler(domain_name)
+        except Exception as e:
+            self._logger.warning(f"Failed to initialize storage for domain {domain_name}: {e}")
+        
         services = DomainServices(
             extractor=extractor,
             matcher=matcher,
             validator=validator,
             metadata=metadata,
-            orchestrator=orchestrator
+            orchestrator=orchestrator,
+            storage=storage
         )
         
         self._domains[domain_name] = services
