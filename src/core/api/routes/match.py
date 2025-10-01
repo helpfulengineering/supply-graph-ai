@@ -15,6 +15,8 @@ from ..models.match.response import (
 from ...services.matching_service import MatchingService
 from ...services.storage_service import StorageService
 from ...services.okh_service import OKHService
+from ...services.domain_service import DomainDetector
+from ...registry.domain_registry import DomainRegistry
 from ...models.okh import OKHManifest
 from ...utils.logging import get_logger
 
@@ -396,3 +398,141 @@ async def match_requirements_from_file(
     except Exception as e:
         logger.error(f"Error in file upload matching: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.get("/domains")
+async def list_domains():
+    """List all available domains with their metadata"""
+    try:
+        domains = DomainRegistry.list_domains()
+        metadata = DomainRegistry.get_all_metadata()
+        
+        result = []
+        for domain_name in domains:
+            domain_metadata = metadata[domain_name]
+            result.append({
+                "name": domain_name,
+                "display_name": domain_metadata.display_name,
+                "description": domain_metadata.description,
+                "version": domain_metadata.version,
+                "status": domain_metadata.status.value,
+                "supported_input_types": list(domain_metadata.supported_input_types),
+                "supported_output_types": list(domain_metadata.supported_output_types),
+                "documentation_url": domain_metadata.documentation_url,
+                "maintainer": domain_metadata.maintainer
+            })
+        
+        return {
+            "domains": result,
+            "total_count": len(result)
+        }
+    except Exception as e:
+        logger.error(f"Error listing domains: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error listing domains: {str(e)}")
+
+@router.get("/domains/{domain_name}")
+async def get_domain_info(domain_name: str):
+    """Get detailed information about a specific domain"""
+    try:
+        if domain_name not in DomainRegistry.list_domains():
+            raise HTTPException(status_code=404, detail=f"Domain '{domain_name}' not found")
+        
+        metadata = DomainRegistry.get_domain_metadata(domain_name)
+        supported_types = DomainRegistry.get_supported_types(domain_name)
+        
+        return {
+            "name": domain_name,
+            "display_name": metadata.display_name,
+            "description": metadata.description,
+            "version": metadata.version,
+            "status": metadata.status.value,
+            "supported_input_types": list(metadata.supported_input_types),
+            "supported_output_types": list(metadata.supported_output_types),
+            "documentation_url": metadata.documentation_url,
+            "maintainer": metadata.maintainer,
+            "type_mappings": supported_types
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting domain info for {domain_name}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error getting domain info: {str(e)}")
+
+@router.get("/domains/{domain_name}/health")
+async def get_domain_health(domain_name: str):
+    """Get health status for a specific domain"""
+    try:
+        if domain_name not in DomainRegistry.list_domains():
+            raise HTTPException(status_code=404, detail=f"Domain '{domain_name}' not found")
+        
+        # Get domain services
+        domain_services = DomainRegistry.get_domain_services(domain_name)
+        
+        # Basic health check
+        health_status = {
+            "domain": domain_name,
+            "status": "healthy",
+            "components": {
+                "extractor": {
+                    "type": type(domain_services.extractor).__name__,
+                    "status": "available"
+                },
+                "matcher": {
+                    "type": type(domain_services.matcher).__name__,
+                    "status": "available"
+                },
+                "validator": {
+                    "type": type(domain_services.validator).__name__,
+                    "status": "available"
+                }
+            }
+        }
+        
+        if domain_services.orchestrator:
+            health_status["components"]["orchestrator"] = {
+                "type": type(domain_services.orchestrator).__name__,
+                "status": "available"
+            }
+        
+        return health_status
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting domain health for {domain_name}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error getting domain health: {str(e)}")
+
+@router.post("/detect-domain")
+async def detect_domain_from_input(
+    requirements_data: dict,
+    capabilities_data: dict
+):
+    """Detect the appropriate domain from input data"""
+    try:
+        # Create mock objects with the provided data
+        class MockRequirements:
+            def __init__(self, data):
+                self.content = data
+                self.domain = data.get('domain')
+                self.type = data.get('type')
+        
+        class MockCapabilities:
+            def __init__(self, data):
+                self.content = data
+                self.domain = data.get('domain')
+                self.type = data.get('type')
+        
+        requirements = MockRequirements(requirements_data)
+        capabilities = MockCapabilities(capabilities_data)
+        
+        # Detect domain
+        detection_result = DomainDetector.detect_domain(requirements, capabilities)
+        
+        return {
+            "detected_domain": detection_result.domain,
+            "confidence": detection_result.confidence,
+            "method": detection_result.method,
+            "alternative_domains": detection_result.alternative_domains,
+            "is_confident": detection_result.is_confident()
+        }
+    except Exception as e:
+        logger.error(f"Error detecting domain: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error detecting domain: {str(e)}")

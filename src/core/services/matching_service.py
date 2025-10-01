@@ -11,6 +11,7 @@ from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from .okh_service import OKHService
 from .okw_service import OKWService
 from ..registry.domain_registry import DomainRegistry
+from .domain_service import DomainDetector
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -137,8 +138,14 @@ class MatchingService:
         )
 
         try:
-            # Get the manufacturing domain extractor
-            extractor = DomainRegistry.get_extractor("manufacturing")
+            # Detect domain from the inputs
+            # For now, we know this is manufacturing domain from OKH/OKW
+            # In the future, this could be more dynamic
+            domain = "manufacturing"
+            
+            # Get the domain services
+            domain_services = DomainRegistry.get_domain_services(domain)
+            extractor = domain_services.extractor
             
             # Extract requirements using the domain extractor
             manifest_data = okh_manifest.to_dict()

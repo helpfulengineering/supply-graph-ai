@@ -749,15 +749,172 @@ Validates an existing supply tree against requirements and capabilities.
 }
 ```
 
+### Domain Management Routes
+
+#### List All Domains
+
+```
+GET /v1/match/domains
+```
+
+Lists all available domains with their metadata and status.
+
+**Response:**
+```json
+{
+  "domains": [
+    {
+      "name": "manufacturing",
+      "display_name": "Manufacturing & Hardware Production",
+      "description": "Domain for OKH/OKW manufacturing capability matching",
+      "version": "1.0.0",
+      "status": "active",
+      "supported_input_types": ["okh", "okw"],
+      "supported_output_types": ["supply_tree", "manufacturing_plan"],
+      "documentation_url": "https://docs.ome.org/domains/manufacturing",
+      "maintainer": "OME Manufacturing Team"
+    },
+    {
+      "name": "cooking",
+      "display_name": "Cooking & Food Preparation",
+      "description": "Domain for recipe and kitchen capability matching",
+      "version": "1.0.0",
+      "status": "active",
+      "supported_input_types": ["recipe", "kitchen"],
+      "supported_output_types": ["cooking_workflow", "meal_plan"],
+      "documentation_url": "https://docs.ome.org/domains/cooking",
+      "maintainer": "OME Cooking Team"
+    }
+  ]
+}
+```
+
+#### Get Domain Information
+
+```
+GET /v1/match/domains/{domain_name}
+```
+
+Retrieves detailed information about a specific domain.
+
+**Path Parameters:**
+- `domain_name`: The name of the domain (e.g., "manufacturing", "cooking")
+
+**Response:**
+```json
+{
+  "name": "manufacturing",
+  "display_name": "Manufacturing & Hardware Production",
+  "description": "Domain for OKH/OKW manufacturing capability matching",
+  "version": "1.0.0",
+  "status": "active",
+  "supported_input_types": ["okh", "okw"],
+  "supported_output_types": ["supply_tree", "manufacturing_plan"],
+  "documentation_url": "https://docs.ome.org/domains/manufacturing",
+  "maintainer": "OME Manufacturing Team",
+  "components": {
+    "extractor": "OKHExtractor",
+    "matcher": "OKHMatcher",
+    "validator": "OKHValidator",
+    "orchestrator": null
+  }
+}
+```
+
+#### Domain Health Check
+
+```
+GET /v1/match/domains/{domain_name}/health
+```
+
+Performs a health check on a specific domain and its components.
+
+**Path Parameters:**
+- `domain_name`: The name of the domain to check
+
+**Response:**
+```json
+{
+  "domain": "manufacturing",
+  "status": "healthy",
+  "components": {
+    "extractor": {
+      "status": "healthy",
+      "class": "OKHExtractor"
+    },
+    "matcher": {
+      "status": "healthy",
+      "class": "OKHMatcher"
+    },
+    "validator": {
+      "status": "healthy",
+      "class": "OKHValidator"
+    },
+    "orchestrator": {
+      "status": "not_configured",
+      "class": null
+    }
+  },
+  "supported_types": ["okh", "okw"],
+  "last_checked": "2023-12-07T10:30:00Z"
+}
+```
+
+#### Detect Domain from Input
+
+```
+POST /v1/match/detect-domain
+```
+
+Detects the appropriate domain from input data using multi-layered detection.
+
+**Request:**
+```json
+{
+  "requirements_data": {
+    "type": "okh",
+    "content": {
+      "manufacturing_processes": ["CNC", "3D Printing"],
+      "materials": ["aluminum", "steel"]
+    }
+  },
+  "capabilities_data": {
+    "type": "okw",
+    "content": {
+      "equipment": ["CNC mill", "3D printer"],
+      "capabilities": ["precision machining", "additive manufacturing"]
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "domain": "manufacturing",
+  "confidence": 0.9,
+  "method": "type_mapping",
+  "alternative_domains": {
+    "cooking": 0.1
+  },
+  "detection_details": {
+    "explicit_domain": null,
+    "type_mapping_score": 0.9,
+    "content_analysis_score": 0.8,
+    "fallback_used": false
+  }
+}
+```
+
 ### Additional Utility Routes
 
-#### Available Domains
+#### Available Domains (Legacy)
 
 ```
 GET /v1/domains
 ```
 
-Lists available domains (manufacturing, cooking, etc.).
+Lists available domains (manufacturing, cooking, etc.). **Note: This endpoint is deprecated in favor of `/v1/match/domains`.**
 
 **Response:**
 ```json
@@ -891,6 +1048,12 @@ Paginated responses include consistent metadata:
 - `POST /v1/match` - **Multi-layered matching with storage integration, filtering, and heuristic rules**
 - `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON)**
 - `POST /v1/match/validate` - Supply tree validation (placeholder)
+
+**Domain Management:**
+- `GET /v1/match/domains` - **List all available domains with metadata**
+- `GET /v1/match/domains/{domain_name}` - **Get detailed domain information**
+- `GET /v1/match/domains/{domain_name}/health` - **Domain health check**
+- `POST /v1/match/detect-domain` - **Detect domain from input data**
 
 **OKH Management:**
 - `GET /v1/okh/{id}` - Retrieve OKH manifests from storage
