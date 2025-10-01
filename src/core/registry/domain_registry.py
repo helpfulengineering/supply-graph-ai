@@ -1,53 +1,214 @@
-from typing import Dict, Type, Any
+from typing import Dict, Type, Any, Optional, Set, List
+from dataclasses import dataclass
+from enum import Enum
+import logging
 from ..models.base.base_extractors import BaseExtractor
+from ..models.base.base_types import BaseMatcher, BaseValidator
+
+logger = logging.getLogger(__name__)
+
+class DomainStatus(Enum):
+    """Status of a domain registration"""
+    ACTIVE = "active"
+    DISABLED = "disabled"
+    DEPRECATED = "deprecated"
+
+@dataclass
+class DomainMetadata:
+    """Metadata for a domain registration"""
+    name: str
+    display_name: str
+    description: str
+    version: str
+    status: DomainStatus
+    supported_input_types: Set[str]
+    supported_output_types: Set[str]
+    documentation_url: Optional[str] = None
+    maintainer: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert metadata to dictionary"""
+        return {
+            "name": self.name,
+            "display_name": self.display_name,
+            "description": self.description,
+            "version": self.version,
+            "status": self.status.value,
+            "supported_input_types": list(self.supported_input_types),
+            "supported_output_types": list(self.supported_output_types),
+            "documentation_url": self.documentation_url,
+            "maintainer": self.maintainer
+        }
+
+@dataclass
+class DomainServices:
+    """Container for all services associated with a domain"""
+    extractor: BaseExtractor
+    matcher: Any  # TODO: Make this BaseMatcher when existing classes are refactored
+    validator: Any  # TODO: Make this BaseValidator when existing classes are refactored
+    metadata: DomainMetadata
+    orchestrator: Optional[Any] = None  # BaseOrchestrator when available
 
 class DomainRegistry:
-    """Registry for domain-specific components"""
-    _extractors: Dict[str, BaseExtractor] = {}
-    _matchers: Dict[str, Any] = {}
-    _validators: Dict[str, Any] = {}
+    """Unified registry for domain-specific components with comprehensive management"""
+    _domains: Dict[str, DomainServices] = {}
+    _type_mappings: Dict[str, str] = {}
     
     @classmethod
-    def register_extractor(cls, domain: str, extractor: BaseExtractor) -> None:
-        """Register an extractor for a specific domain"""
-        cls._extractors[domain] = extractor
+    def register_domain(
+        cls,
+        domain_name: str,
+        extractor: BaseExtractor,
+        matcher: Any,
+        validator: Any,
+        metadata: DomainMetadata,
+        orchestrator: Optional[Any] = None
+    ) -> None:
+        """Register a complete domain with all its services"""
+        if domain_name in cls._domains:
+            logger.warning(f"Overwriting existing domain: {domain_name}")
+        
+        # Validate services
+        cls._validate_services(extractor, matcher, validator)
+        
+        services = DomainServices(
+            extractor=extractor,
+            matcher=matcher,
+            validator=validator,
+            metadata=metadata,
+            orchestrator=orchestrator
+        )
+        
+        cls._domains[domain_name] = services
+        
+        # Register type mappings
+        for input_type in metadata.supported_input_types:
+            cls._type_mappings[input_type] = domain_name
+        
+        logger.info(f"Registered domain: {domain_name} with types: {metadata.supported_input_types}")
     
     @classmethod
-    def register_matcher(cls, domain: str, matcher: Any) -> None:
-        """Register a matcher for a specific domain"""
-        cls._matchers[domain] = matcher
+    def _validate_services(cls, extractor: BaseExtractor, matcher: Any, validator: Any) -> None:
+        """Validate that services implement required interfaces"""
+        if not isinstance(extractor, BaseExtractor):
+            raise TypeError(f"Extractor must inherit from BaseExtractor, got {type(extractor)}")
+        # For now, be flexible with matcher and validator types to work with existing code
+        # TODO: Refactor existing matchers and validators to inherit from base classes
+        if matcher is None:
+            raise TypeError("Matcher cannot be None")
+        if validator is None:
+            raise TypeError("Validator cannot be None")
     
     @classmethod
-    def register_validator(cls, domain: str, validator: Any) -> None:
-        """Register a validator for a specific domain"""
-        cls._validators[domain] = validator
+    def get_domain_services(cls, domain_name: str) -> DomainServices:
+        """Get all services for a domain"""
+        if domain_name not in cls._domains:
+            raise ValueError(f"Domain '{domain_name}' not found. Available domains: {list(cls._domains.keys())}")
+        return cls._domains[domain_name]
     
     @classmethod
     def get_extractor(cls, domain: str) -> BaseExtractor:
         """Get registered extractor for domain"""
-        if domain not in cls._extractors:
-            raise ValueError(f"No extractor registered for domain: {domain}")
-        return cls._extractors[domain]
+        return cls.get_domain_services(domain).extractor
     
     @classmethod
     def get_matcher(cls, domain: str) -> Any:
         """Get registered matcher for domain"""
-        if domain not in cls._matchers:
-            raise ValueError(f"No matcher registered for domain: {domain}")
-        return cls._matchers[domain]
+        return cls.get_domain_services(domain).matcher
     
     @classmethod
     def get_validator(cls, domain: str) -> Any:
         """Get registered validator for domain"""
-        if domain not in cls._validators:
-            raise ValueError(f"No validator registered for domain: {domain}")
-        return cls._validators[domain]
+        return cls.get_domain_services(domain).validator
     
     @classmethod
-    def get_registered_domains(cls) -> list[str]:
-        """Get list of all registered domains"""
-        domains = set()
-        domains.update(cls._extractors.keys())
-        domains.update(cls._matchers.keys())
-        domains.update(cls._validators.keys())
-        return list(domains)
+    def get_orchestrator(cls, domain_name: str) -> Optional[Any]:
+        """Get orchestrator for domain if available"""
+        return cls.get_domain_services(domain_name).orchestrator
+    
+    @classmethod
+    def list_domains(cls, include_disabled: bool = False) -> List[str]:
+        """List all available domain names"""
+        if include_disabled:
+            return list(cls._domains.keys())
+        
+        return [
+            name for name, services in cls._domains.items()
+            if services.metadata.status != DomainStatus.DISABLED
+        ]
+    
+    @classmethod
+    def get_domain_metadata(cls, domain_name: str) -> DomainMetadata:
+        """Get metadata for a specific domain"""
+        return cls.get_domain_services(domain_name).metadata
+    
+    @classmethod
+    def get_all_metadata(cls, include_disabled: bool = False) -> Dict[str, DomainMetadata]:
+        """Get metadata for all domains"""
+        result = {}
+        for name, services in cls._domains.items():
+            if include_disabled or services.metadata.status != DomainStatus.DISABLED:
+                result[name] = services.metadata
+        return result
+    
+    @classmethod
+    def infer_domain_from_type(cls, input_type: str) -> Optional[str]:
+        """Infer domain from input type"""
+        return cls._type_mappings.get(input_type)
+    
+    @classmethod
+    def validate_domain_compatibility(cls, requirements_domain: str, capabilities_domain: str) -> bool:
+        """Validate that two domains are compatible for matching"""
+        # For now, require exact match
+        # Future versions could support cross-domain matching
+        return requirements_domain == capabilities_domain
+    
+    @classmethod
+    def get_supported_types(cls, domain_name: str) -> Dict[str, Set[str]]:
+        """Get supported input and output types for a domain"""
+        metadata = cls.get_domain_metadata(domain_name)
+        return {
+            "input_types": metadata.supported_input_types,
+            "output_types": metadata.supported_output_types
+        }
+    
+    @classmethod
+    def validate_type_support(cls, domain_name: str, input_type: str) -> bool:
+        """Validate that a domain supports a specific input type"""
+        metadata = cls.get_domain_metadata(domain_name)
+        return input_type in metadata.supported_input_types
+    
+    @classmethod
+    def get_registered_domains(cls) -> List[str]:
+        """Get list of all registered domains (backward compatibility)"""
+        return cls.list_domains()
+    
+    @classmethod
+    def health_check(cls) -> Dict[str, Any]:
+        """Perform health check on all registered domains"""
+        health_status = {
+            "total_domains": len(cls._domains),
+            "active_domains": len(cls.list_domains()),
+            "domains": {}
+        }
+        
+        for name, services in cls._domains.items():
+            try:
+                # Basic health check - ensure services are accessible
+                domain_health = {
+                    "status": services.metadata.status.value,
+                    "extractor": type(services.extractor).__name__,
+                    "matcher": type(services.matcher).__name__,
+                    "validator": type(services.validator).__name__,
+                    "orchestrator": type(services.orchestrator).__name__ if services.orchestrator else None,
+                    "supported_types": list(services.metadata.supported_input_types)
+                }
+                health_status["domains"][name] = domain_health
+            except Exception as e:
+                health_status["domains"][name] = {
+                    "status": "error",
+                    "error": str(e)
+                }
+                logger.error(f"Domain '{name}' health check failed: {str(e)}")
+        
+        return health_status

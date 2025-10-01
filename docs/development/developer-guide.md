@@ -5,12 +5,13 @@
 
 1. [Quick Start](#quick-start)
 2. [System Architecture](#system-architecture)
-3. [API Usage](#api-usage)
-4. [Multi-Layered Matching](#multi-layered-matching)
-5. [Storage Integration](#storage-integration)
-6. [Development Workflow](#development-workflow)
-7. [Testing](#testing)
-8. [Troubleshooting](#troubleshooting)
+3. [Domain Management](#domain-management)
+4. [API Usage](#api-usage)
+5. [Multi-Layered Matching](#multi-layered-matching)
+6. [Storage Integration](#storage-integration)
+7. [Development Workflow](#development-workflow)
+8. [Testing](#testing)
+9. [Troubleshooting](#troubleshooting)
 
 ## Quick Start
 
@@ -92,7 +93,128 @@ OKH Manifest → Matching Service → Storage Service → OKW Facilities → Sup
 - **StorageService**: Azure Blob Storage integration
 - **OKHService**: OKH manifest management
 - **OKWService**: OKW facility management
-- **DomainRegistry**: Domain-specific component registration
+- **DomainRegistry**: Unified domain management and component registration
+- **DomainDetector**: Multi-layered domain detection system
+
+## Domain Management
+
+The Open Matching Engine supports multiple domains through a unified domain management system. This enables the engine to operate across different domains (manufacturing, cooking, etc.) while maintaining consistent behavior.
+
+### Domain System Overview
+
+The domain management system provides:
+
+- **Multi-domain Support**: Seamless operation across different domains
+- **Domain Detection**: Automatic detection of the appropriate domain from input data
+- **Domain-specific Components**: Specialized extractors, matchers, and validators
+- **Unified API**: Consistent interface regardless of domain
+- **Health Monitoring**: Real-time monitoring of domain system health
+
+### Supported Domains
+
+#### Manufacturing Domain
+- **Input Types**: `okh`, `okw`
+- **Output Types**: `supply_tree`, `manufacturing_plan`
+- **Components**: OKHExtractor, OKHMatcher, OKHValidator
+
+#### Cooking Domain
+- **Input Types**: `recipe`, `kitchen`
+- **Output Types**: `cooking_workflow`, `meal_plan`
+- **Components**: CookingExtractor, CookingMatcher, CookingValidator
+
+### Domain Detection
+
+The system uses a multi-layered approach:
+
+1. **Explicit Detection**: Uses domain attributes when provided
+2. **Type-based Detection**: Maps input types to domains
+3. **Content Analysis**: Analyzes content for domain-specific keywords
+4. **Fallback**: Uses single available domain when only one exists
+
+### Domain Management API
+
+#### List Domains
+```bash
+curl http://localhost:8001/v1/match/domains
+```
+
+#### Get Domain Information
+```bash
+curl http://localhost:8001/v1/match/domains/manufacturing
+```
+
+#### Domain Health Check
+```bash
+curl http://localhost:8001/v1/match/domains/manufacturing/health
+```
+
+#### Detect Domain
+```bash
+curl -X POST http://localhost:8001/v1/match/detect-domain \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requirements_data": {"type": "okh", "content": {"manufacturing_processes": ["CNC"]}},
+    "capabilities_data": {"type": "okw", "content": {"equipment": ["CNC mill"]}}
+  }'
+```
+
+### Adding New Domains
+
+1. **Create Domain Components**:
+   ```python
+   from src.core.registry.domain_registry import DomainRegistry, DomainMetadata, DomainStatus
+   
+   # Create your domain components
+   class NewDomainExtractor(BaseExtractor):
+       # Implementation
+   
+   class NewDomainMatcher:
+       # Implementation
+   
+   class NewDomainValidator:
+       # Implementation
+   ```
+
+2. **Register Domain**:
+   ```python
+   metadata = DomainMetadata(
+       name="new_domain",
+       display_name="New Domain",
+       description="Description of the new domain",
+       version="1.0.0",
+       status=DomainStatus.ACTIVE,
+       supported_input_types={"input_type1", "input_type2"},
+       supported_output_types={"output_type1", "output_type2"}
+   )
+   
+   DomainRegistry.register_domain(
+       domain_name="new_domain",
+       extractor=NewDomainExtractor(),
+       matcher=NewDomainMatcher(),
+       validator=NewDomainValidator(),
+       metadata=metadata
+   )
+   ```
+
+3. **Update Configuration**:
+   - Add to `src/config/domains.py`
+   - Update type mappings and keywords
+   - Add domain-specific documentation
+
+### Domain Testing
+
+Test the domain management system:
+
+```bash
+# Run simple integration test
+python test_domain_management_simple.py
+
+# Run interactive demo
+python test_domain_system.py
+
+# Run full pytest suite
+pytest tests/test_domain_management_integration.py -v
+```
 
 ## API Usage
 

@@ -18,7 +18,7 @@ from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 from src.core.domains.manufacturing.okh_validator import OKHValidator
 from src.core.registry.domain_registry import DomainRegistry
 from src.core.services.storage_service import StorageService
-from src.core.services.service_registry import DomainMetadata, DomainStatus
+from src.core.registry.domain_registry import DomainMetadata, DomainStatus
 from src.config import settings
 from src.core.utils.logging import setup_logging, get_logger
 
@@ -140,17 +140,49 @@ app.mount("/v1", api_v1)
 
 # Register domain components function (now called from lifespan)
 async def register_domain_components():
-    """Register all domain components with the registry."""
+    """Register all domain components with the unified registry."""
     
-    # Register Cooking domain components
-    DomainRegistry.register_extractor("cooking", CookingExtractor())
-    DomainRegistry.register_matcher("cooking", CookingMatcher())
-    DomainRegistry.register_validator("cooking", CookingValidator())
+    # Register Cooking domain
+    cooking_metadata = DomainMetadata(
+        name="cooking",
+        display_name="Cooking & Food Preparation",
+        description="Domain for recipe and kitchen capability matching",
+        version="1.0.0",
+        status=DomainStatus.ACTIVE,
+        supported_input_types={"recipe", "kitchen"},
+        supported_output_types={"cooking_workflow", "meal_plan"},
+        documentation_url="https://docs.ome.org/domains/cooking",
+        maintainer="OME Cooking Team"
+    )
     
-    # Register Manufacturing domain components
-    DomainRegistry.register_extractor("manufacturing", OKHExtractor())
-    DomainRegistry.register_matcher("manufacturing", OKHMatcher())
-    DomainRegistry.register_validator("manufacturing", OKHValidator())
+    DomainRegistry.register_domain(
+        domain_name="cooking",
+        extractor=CookingExtractor(),
+        matcher=CookingMatcher(),
+        validator=CookingValidator(),
+        metadata=cooking_metadata
+    )
+    
+    # Register Manufacturing domain
+    manufacturing_metadata = DomainMetadata(
+        name="manufacturing",
+        display_name="Manufacturing & Hardware Production",
+        description="Domain for OKH/OKW manufacturing capability matching",
+        version="1.0.0",
+        status=DomainStatus.ACTIVE,
+        supported_input_types={"okh", "okw"},
+        supported_output_types={"supply_tree", "manufacturing_plan"},
+        documentation_url="https://docs.ome.org/domains/manufacturing",
+        maintainer="OME Manufacturing Team"
+    )
+    
+    DomainRegistry.register_domain(
+        domain_name="manufacturing",
+        extractor=OKHExtractor(),
+        matcher=OKHMatcher(),
+        validator=OKHValidator(),
+        metadata=manufacturing_metadata
+    )
 
 async def cleanup_resources():
     """Cleanup resources on shutdown"""

@@ -7,11 +7,20 @@ flowchart TD
         I2[Capabilities Input\ne.g., OKW, Kitchen]
     end
 
+    subgraph domain_mgmt[Domain Management System]
+        DM1[Domain Registry]
+        DM2[Domain Detector]
+        DM3[Domain Validator]
+        DM4[Domain Services]
+    end
+
     subgraph preproc[Pre-processing & Validation]
         V1[Schema Validation]
         V2[Format Checking]
         V3[Required Fields Validation]
         V4[Data Type Validation]
+        V5[Domain Detection]
+        V6[Domain Validation]
     end
 
     subgraph extraction[Extraction Pipeline]
@@ -71,18 +80,29 @@ flowchart TD
         A3[Feedback Loop]
     end
 
+    %% Input to Domain Management flow
+    I1 & I2 --> DM2
+    DM2 --> DM3
+    DM3 --> DM1
+    DM1 --> DM4
+    
     %% Input to Extraction flow
     I1 & I2 --> V1
     V1 --> V2
     V2 --> V3
     V3 --> V4
-    V4 --> EP1
+    V4 --> V5
+    V5 --> V6
+    V6 --> EP1
     EP1 --> EP2
     EP2 --> EL1
     EL1 --> EL2
     EL2 --> EL3
     EL3 --> EL4
     EL4 --> ER1
+    
+    %% Domain Management to Extraction
+    DM4 -.->|Domain Services| EP2
 
     %% Extraction Results to Storage and Feedback
     ER1 --> PS1
@@ -93,6 +113,7 @@ flowchart TD
     %% Storage to Matching flow
     PS1 --> MP1
     C1 & C2 -.->|Optional| MP1
+    DM4 -.->|Domain Services| MP1
     
     %% Matching flow
     MP1 & MP2 --> ML1
@@ -115,6 +136,7 @@ flowchart TD
     classDef feedback fill:#fff8e1,stroke:#ff6f00
     classDef output fill:#f1f8e9,stroke:#33691e
     classDef action fill:#fce4ec,stroke:#880e4f
+    classDef domain fill:#e3f2fd,stroke:#0277bd
     
     class inputs,preproc,extraction,matching pipeline
     class ext_layers,match_layers layer
@@ -123,4 +145,5 @@ flowchart TD
     class feedback feedback
     class match_output output
     class actions action
+    class domain_mgmt domain
 ```
