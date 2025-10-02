@@ -1,6 +1,6 @@
 domain: manufacturing
 version: "1.0.0"
-description: "Heuristic matching rules for manufacturing and hardware production domain"
+description: "Capability-centric rules for manufacturing domain - defines what requirements each capability can satisfy"
 
 metadata:
   maintainer: "OME Manufacturing Team"
@@ -8,213 +8,220 @@ metadata:
   source: "Industry standards and manufacturing terminology"
 
 rules:
-  # Abbreviation expansions
-  cnc_abbreviation:
-    id: "cnc_abbreviation"
-    type: "abbreviation"
-    direction: "bidirectional"
-    key: "cnc"
-    values: ["computer numerical control", "computer numerical control machining", "cnc machining"]
+  # CNC Machining Capabilities
+  cnc_machining_capability:
+    id: "cnc_machining_capability"
+    type: "capability_match"
+    capability: "cnc machining"
+    satisfies_requirements: ["milling", "machining", "material removal", "subtractive manufacturing", "cnc", "computer numerical control"]
     confidence: 0.95
     domain: "manufacturing"
-    description: "Standard industry abbreviation for Computer Numerical Control"
+    description: "CNC machining can satisfy various milling and machining requirements"
     source: "ISO Manufacturing Terminology"
-    tags: ["abbreviation", "machining", "automation"]
+    tags: ["machining", "automation", "subtractive"]
 
-  cad_abbreviation:
-    id: "cad_abbreviation"
-    type: "abbreviation"
-    direction: "bidirectional"
-    key: "cad"
-    values: ["computer aided design", "computer-aided design", "cad software"]
+  cnc_milling_capability:
+    id: "cnc_milling_capability"
+    type: "capability_match"
+    capability: "cnc mill"
+    satisfies_requirements: ["milling", "machining", "material removal", "cnc machining", "mill", "milling machine"]
     confidence: 0.95
     domain: "manufacturing"
-    description: "Standard industry abbreviation for Computer Aided Design"
-    source: "ISO Manufacturing Terminology"
-    tags: ["abbreviation", "design", "software"]
+    description: "CNC mill can satisfy milling and machining requirements"
+    source: "Machine Tool Handbook"
+    tags: ["machining", "milling", "cnc"]
 
-  cam_abbreviation:
-    id: "cam_abbreviation"
-    type: "abbreviation"
-    direction: "bidirectional"
-    key: "cam"
-    values: ["computer aided manufacturing", "computer-aided manufacturing", "cam software"]
+  cnc_lathe_capability:
+    id: "cnc_lathe_capability"
+    type: "capability_match"
+    capability: "cnc lathe"
+    satisfies_requirements: ["turning", "machining", "material removal", "lathe", "turning machine"]
     confidence: 0.95
     domain: "manufacturing"
-    description: "Standard industry abbreviation for Computer Aided Manufacturing"
-    source: "ISO Manufacturing Terminology"
-    tags: ["abbreviation", "manufacturing", "software"]
+    description: "CNC lathe can satisfy turning and machining requirements"
+    source: "Machine Tool Handbook"
+    tags: ["machining", "turning", "cnc"]
 
-  fms_abbreviation:
-    id: "fms_abbreviation"
-    type: "abbreviation"
-    direction: "bidirectional"
-    key: "fms"
-    values: ["flexible manufacturing system", "flexible manufacturing"]
-    confidence: 0.9
+  # Additive Manufacturing Capabilities
+  additive_manufacturing_capability:
+    id: "additive_manufacturing_capability"
+    type: "capability_match"
+    capability: "3d printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "additive fabrication", "3d printing", "3-d printing"]
+    confidence: 0.95
     domain: "manufacturing"
-    description: "Standard industry abbreviation for Flexible Manufacturing System"
-    source: "ISO Manufacturing Terminology"
-    tags: ["abbreviation", "system", "automation"]
-
-  # Process synonyms
-  additive_manufacturing_synonyms:
-    id: "additive_manufacturing_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "additive manufacturing"
-    values: ["3d printing", "3-d printing", "rapid prototyping", "additive fabrication"]
-    confidence: 0.9
-    domain: "manufacturing"
-    description: "Synonyms for additive manufacturing processes"
+    description: "3D printing can satisfy additive manufacturing requirements"
     source: "ASTM F2792 Standard"
-    tags: ["process", "additive", "prototyping"]
+    tags: ["additive", "prototyping", "3d printing"]
 
-  subtractive_manufacturing_synonyms:
-    id: "subtractive_manufacturing_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "subtractive manufacturing"
-    values: ["cnc machining", "machining", "material removal", "milling"]
+  sla_printing_capability:
+    id: "sla_printing_capability"
+    type: "capability_match"
+    capability: "sla printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "3d printing", "stereolithography", "sla"]
     confidence: 0.9
     domain: "manufacturing"
-    description: "Synonyms for subtractive manufacturing processes"
-    source: "Manufacturing Engineering Handbook"
-    tags: ["process", "subtractive", "machining"]
+    description: "SLA printing can satisfy additive manufacturing requirements"
+    source: "ASTM F2792 Standard"
+    tags: ["additive", "prototyping", "sla"]
 
-  # Material synonyms
-  stainless_steel_synonyms:
-    id: "stainless_steel_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "stainless steel"
-    values: ["304 stainless", "316 stainless", "316l", "ss", "stainless", "inox"]
-    confidence: 0.85
+  fdm_printing_capability:
+    id: "fdm_printing_capability"
+    type: "capability_match"
+    capability: "fdm printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "3d printing", "fused deposition modeling", "fdm"]
+    confidence: 0.9
     domain: "manufacturing"
-    description: "Common variations and abbreviations for stainless steel"
+    description: "FDM printing can satisfy additive manufacturing requirements"
+    source: "ASTM F2792 Standard"
+    tags: ["additive", "prototyping", "fdm"]
+
+  # Material Capabilities
+  stainless_steel_capability:
+    id: "stainless_steel_capability"
+    type: "capability_match"
+    capability: "304 stainless"
+    satisfies_requirements: ["stainless steel", "corrosion resistant steel", "inox", "ss", "stainless", "304 stainless", "316 stainless"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "304 stainless steel can satisfy stainless steel requirements"
     source: "ASTM Material Standards"
     tags: ["material", "steel", "corrosion-resistant"]
 
-  aluminum_synonyms:
-    id: "aluminum_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "aluminum"
-    values: ["al", "aluminium", "aluminum alloy", "aluminium alloy"]
-    confidence: 0.9
+  aluminum_capability:
+    id: "aluminum_capability"
+    type: "capability_match"
+    capability: "aluminum"
+    satisfies_requirements: ["aluminum", "aluminium", "aluminum alloy", "aluminium alloy", "al", "lightweight metal"]
+    confidence: 0.95
     domain: "manufacturing"
-    description: "Common variations and abbreviations for aluminum"
+    description: "Aluminum can satisfy aluminum material requirements"
     source: "ASTM Material Standards"
     tags: ["material", "aluminum", "lightweight"]
 
-  steel_synonyms:
-    id: "steel_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "steel"
-    values: ["carbon steel", "mild steel", "low carbon steel", "structural steel"]
-    confidence: 0.8
+  steel_capability:
+    id: "steel_capability"
+    type: "capability_match"
+    capability: "carbon steel"
+    satisfies_requirements: ["steel", "carbon steel", "mild steel", "low carbon steel", "structural steel", "steel alloy"]
+    confidence: 0.9
     domain: "manufacturing"
-    description: "Common variations of steel materials"
+    description: "Carbon steel can satisfy steel material requirements"
     source: "ASTM Material Standards"
     tags: ["material", "steel", "structural"]
 
-  titanium_synonyms:
-    id: "titanium_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "titanium"
-    values: ["ti", "titanium alloy", "ti-6al-4v", "grade 5 titanium"]
-    confidence: 0.9
+  titanium_capability:
+    id: "titanium_capability"
+    type: "capability_match"
+    capability: "titanium"
+    satisfies_requirements: ["titanium", "ti", "titanium alloy", "ti-6al-4v", "grade 5 titanium", "aerospace titanium"]
+    confidence: 0.95
     domain: "manufacturing"
-    description: "Common variations and abbreviations for titanium"
+    description: "Titanium can satisfy titanium material requirements"
     source: "ASTM Material Standards"
     tags: ["material", "titanium", "aerospace"]
 
-  # Tool synonyms
-  end_mill_synonyms:
-    id: "end_mill_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "end mill"
-    values: ["endmill", "milling cutter", "mill", "end milling cutter"]
+  # Tool Capabilities
+  end_mill_capability:
+    id: "end_mill_capability"
+    type: "capability_match"
+    capability: "end mill"
+    satisfies_requirements: ["end mill", "endmill", "milling cutter", "mill", "end milling cutter", "cutting tool"]
     confidence: 0.9
     domain: "manufacturing"
-    description: "Synonyms for end mill cutting tools"
+    description: "End mill can satisfy end mill tool requirements"
     source: "Machining Handbook"
     tags: ["tool", "milling", "cutting"]
 
-  drill_bit_synonyms:
-    id: "drill_bit_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "drill bit"
-    values: ["drill", "twist drill", "drilling tool", "drill tool"]
+  drill_bit_capability:
+    id: "drill_bit_capability"
+    type: "capability_match"
+    capability: "drill bit"
+    satisfies_requirements: ["drill bit", "drill", "twist drill", "drilling tool", "drill tool", "cutting tool"]
     confidence: 0.9
     domain: "manufacturing"
-    description: "Synonyms for drill bit cutting tools"
+    description: "Drill bit can satisfy drill bit tool requirements"
     source: "Machining Handbook"
     tags: ["tool", "drilling", "cutting"]
 
-  cutting_tool_synonyms:
-    id: "cutting_tool_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "cutting tool"
-    values: ["tool", "cutter", "machining tool", "cutting implement"]
-    confidence: 0.8
+  # Equipment Capabilities
+  lathe_capability:
+    id: "lathe_capability"
+    type: "capability_match"
+    capability: "lathe"
+    satisfies_requirements: ["lathe", "turning machine", "cnc lathe", "manual lathe", "engine lathe", "turning"]
+    confidence: 0.95
     domain: "manufacturing"
-    description: "General synonyms for cutting tools"
-    source: "Machining Handbook"
-    tags: ["tool", "cutting", "general"]
-
-  # Process equipment synonyms
-  lathe_synonyms:
-    id: "lathe_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "lathe"
-    values: ["turning machine", "cnc lathe", "manual lathe", "engine lathe"]
-    confidence: 0.9
-    domain: "manufacturing"
-    description: "Synonyms for lathe machines"
+    description: "Lathe can satisfy lathe equipment requirements"
     source: "Machine Tool Handbook"
     tags: ["equipment", "turning", "machine"]
 
-  mill_synonyms:
-    id: "mill_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "mill"
-    values: ["milling machine", "cnc mill", "manual mill", "vertical mill", "horizontal mill"]
-    confidence: 0.9
+  mill_capability:
+    id: "mill_capability"
+    type: "capability_match"
+    capability: "mill"
+    satisfies_requirements: ["mill", "milling machine", "cnc mill", "manual mill", "vertical mill", "horizontal mill", "milling"]
+    confidence: 0.95
     domain: "manufacturing"
-    description: "Synonyms for milling machines"
+    description: "Mill can satisfy mill equipment requirements"
     source: "Machine Tool Handbook"
     tags: ["equipment", "milling", "machine"]
 
-  # Quality and tolerance synonyms
-  precision_synonyms:
-    id: "precision_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "precision"
-    values: ["accuracy", "tolerance", "dimensional accuracy", "precision machining"]
-    confidence: 0.8
+  # Quality and Tolerance Capabilities
+  precision_machining_capability:
+    id: "precision_machining_capability"
+    type: "capability_match"
+    capability: "precision machining"
+    satisfies_requirements: ["precision", "accuracy", "tolerance", "dimensional accuracy", "precision machining", "high precision"]
+    confidence: 0.9
     domain: "manufacturing"
-    description: "Synonyms related to precision and accuracy"
+    description: "Precision machining can satisfy precision and accuracy requirements"
     source: "Quality Control Standards"
     tags: ["quality", "precision", "tolerance"]
 
-  # Surface finish synonyms
-  surface_finish_synonyms:
-    id: "surface_finish_synonyms"
-    type: "synonym"
-    direction: "bidirectional"
-    key: "surface finish"
-    values: ["surface roughness", "ra value", "surface texture", "finish quality"]
+  # Surface Finish Capabilities
+  surface_finish_capability:
+    id: "surface_finish_capability"
+    type: "capability_match"
+    capability: "surface finishing"
+    satisfies_requirements: ["surface finish", "surface roughness", "ra value", "surface texture", "finish quality", "surface treatment"]
     confidence: 0.85
     domain: "manufacturing"
-    description: "Synonyms for surface finish specifications"
+    description: "Surface finishing can satisfy surface finish requirements"
     source: "Surface Finish Standards"
     tags: ["quality", "surface", "finish"]
+
+  # Welding Capabilities
+  welding_capability:
+    id: "welding_capability"
+    type: "capability_match"
+    capability: "welding"
+    satisfies_requirements: ["welding", "weld", "joining", "metal joining", "fusion welding", "arc welding"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Welding can satisfy welding and joining requirements"
+    source: "Welding Standards"
+    tags: ["joining", "welding", "metal"]
+
+  tig_welding_capability:
+    id: "tig_welding_capability"
+    type: "capability_match"
+    capability: "tig welding"
+    satisfies_requirements: ["tig welding", "tig", "tungsten inert gas", "welding", "precision welding", "clean welding"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "TIG welding can satisfy TIG welding requirements"
+    source: "Welding Standards"
+    tags: ["welding", "tig", "precision"]
+
+  # Assembly Capabilities
+  assembly_capability:
+    id: "assembly_capability"
+    type: "capability_match"
+    capability: "assembly"
+    satisfies_requirements: ["assembly", "assembling", "putting together", "component assembly", "final assembly"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Assembly can satisfy assembly requirements"
+    source: "Assembly Standards"
+    tags: ["assembly", "joining", "final"]

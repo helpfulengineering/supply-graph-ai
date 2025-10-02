@@ -23,7 +23,6 @@ from enum import Enum
 import yaml
 import json
 from pathlib import Path
-import logging
 from datetime import datetime
 
 from ..utils.logging import get_logger
@@ -266,11 +265,11 @@ class CapabilityRuleManager:
     def _get_default_rules_directory(self) -> str:
         """Get the default rules directory"""
         current_dir = Path(__file__).parent
-        rules_dir = current_dir / "capability_rules"
+        rules_dir = current_dir / "rules"
         if rules_dir.exists():
             return str(rules_dir)
         
-        config_dir = current_dir.parent / "config" / "capability_rules"
+        config_dir = current_dir.parent / "config" / "rules"
         return str(config_dir)
     
     async def initialize(self) -> None:
