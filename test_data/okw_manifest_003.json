@@ -1,0 +1,285 @@
+{
+  "id": "50fee51b-1535-45fe-a27d-eeeebc8e31c2",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "2203",
+      "street": "Catherine Mountain",
+      "city": "Williamberg",
+      "region": "Louisiana",
+      "country": "Grenada",
+      "postcode": "81023"
+    },
+    "gps_coordinates": "40.426917, -66.200054",
+    "directions": "Located near Washington LLC",
+    "city": "Williamberg",
+    "country": "Grenada"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Villa, Garcia and Turner",
+    "location": {
+      "address": {
+        "number": "5918",
+        "street": "Fox Branch",
+        "city": "East Ericview",
+        "region": "Kansas",
+        "country": "Cuba",
+        "postcode": "87748"
+      },
+      "gps_coordinates": "31.788526, -54.675907",
+      "directions": "Located behind Smith LLC",
+      "city": "East Ericview",
+      "country": "Cuba"
+    },
+    "contact_person": "Elizabeth Munoz",
+    "bio": "Established in 2020, we specialize in Advanced optimizing hardware",
+    "mailing_list": "xmckenzie@lists.pace.com",
+    "contact": {
+      "mobile": "+1-459-377-9654"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-17:00",
+  "description": "Public makerspace with basic fabrication equipment",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "Form 3",
+      "serial_number": "SN140858",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Relationship federal maybe else.",
+      "throughput": "26 parts/hour",
+      "maintenance_schedule": "Every 4 months",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8079",
+              "street": "Davis Rapid",
+              "city": "South Meganfort",
+              "region": "Oregon",
+              "country": "Burkina Faso",
+              "postcode": "82511"
+            },
+            "gps_coordinates": "57.554375, -18.257058",
+            "city": "South Meganfort",
+            "country": "Burkina Faso"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "supplier_location": {
+            "address": {
+              "number": "8612",
+              "street": "Gregory Run",
+              "city": "Robinsonview",
+              "region": "North Dakota",
+              "country": "French Southern Territories",
+              "postcode": "96161"
+            },
+            "gps_coordinates": "50.945686, 35.668828",
+            "directions": "Located behind Mckenzie-Mooney",
+            "city": "Robinsonview",
+            "country": "French Southern Territories"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "supplier_location": {
+            "address": {
+              "number": "4524",
+              "street": "Robert Passage",
+              "city": "Lake Anthony",
+              "region": "Tennessee",
+              "country": "United States Minor Outlying Islands",
+              "postcode": "08808"
+            },
+            "gps_coordinates": "31.239656, -107.995481",
+            "city": "Lake Anthony",
+            "country": "United States Minor Outlying Islands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "Speedy 300",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: However million chair nice she whether.",
+      "quantity": 5,
+      "power_rating": 7328,
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8515",
+              "street": "Cox Corners",
+              "city": "Port Tyler",
+              "region": "Utah",
+              "country": "Comoros",
+              "postcode": "71466"
+            },
+            "gps_coordinates": "25.827786, -59.410866",
+            "city": "Port Tyler",
+            "country": "Comoros"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8927",
+              "street": "Katherine Coves",
+              "city": "West Rodney",
+              "region": "Arkansas",
+              "country": "Bahrain",
+              "postcode": "94616"
+            },
+            "gps_coordinates": "37.15343, -83.387018",
+            "directions": "Located across from Anderson PLC",
+            "city": "West Rodney",
+            "country": "Bahrain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "supplier_location": {
+            "address": {
+              "number": "5663",
+              "street": "Morgan Key",
+              "city": "Hernandezborough",
+              "region": "Georgia",
+              "country": "Japan",
+              "postcode": "26574"
+            },
+            "gps_coordinates": "62.545197, -73.53865",
+            "directions": "Located behind Jimenez-Page",
+            "city": "Hernandezborough",
+            "country": "Japan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 300
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Onefinity",
+      "model": "Pro",
+      "condition": "Excellent",
+      "notes": "Equipment notes: One thing address soon.",
+      "power_rating": 2779,
+      "maintenance_schedule": "Every 4 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "1523",
+              "street": "Kirk Ville",
+              "city": "Port Tracyhaven",
+              "region": "Arizona",
+              "country": "Macao",
+              "postcode": "97933"
+            },
+            "gps_coordinates": "26.610437, 17.043028",
+            "directions": "Located across from Gonzalez PLC",
+            "city": "Port Tracyhaven",
+            "country": "Macao"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4511",
+              "street": "Kendra Rest",
+              "city": "Lake Yolanda",
+              "region": "Massachusetts",
+              "country": "Portugal",
+              "postcode": "32997"
+            },
+            "gps_coordinates": "69.363051, -21.281515",
+            "city": "Lake Yolanda",
+            "country": "Portugal"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "6437",
+              "street": "Campbell Meadow",
+              "city": "Jeffreyburgh",
+              "region": "Maryland",
+              "country": "Trinidad and Tobago",
+              "postcode": "15907"
+            },
+            "gps_coordinates": "32.542601, -12.969235",
+            "directions": "Located behind King Group",
+            "city": "Jeffreyburgh",
+            "country": "Trinidad and Tobago"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "864 cubic meters",
+  "road_access": true,
+  "typical_products": [
+    "Grass-roots content-based process improvement",
+    "Programmable mission-critical neural-net",
+    "Multi-channeled system-worthy contingency",
+    "Extended 4thgeneration data-warehouse"
+  ],
+  "human_capacity": {
+    "headcount": 30
+  }
+}

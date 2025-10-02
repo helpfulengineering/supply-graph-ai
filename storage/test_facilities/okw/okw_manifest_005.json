@@ -1,0 +1,85 @@
+{
+  "id": "229ab598-a5dd-4955-a44a-75a16add2ab6",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "5750",
+      "street": "Michael Hollow",
+      "city": "Lake Nicolehaven",
+      "region": "Indiana",
+      "country": "Mayotte",
+      "postcode": "15847"
+    },
+    "gps_coordinates": "68.174469, 8.720019",
+    "directions": "Located behind Henderson-Mcdonald",
+    "city": "Lake Nicolehaven",
+    "country": "Mayotte"
+  },
+  "facility_status": "Planned",
+  "contact": {
+    "name": "Lee-Mills",
+    "bio": "Established in 2006, we specialize in Synergistic zero tolerance open architecture",
+    "contact": {
+      "email": "info@miller-mercado.org",
+      "whatsapp": "+1-680-213-1175"
+    },
+    "social_media": {
+      "instagram": "@tbarnes",
+      "other_urls": [
+        "https://taylor-frye.com",
+        "https://montes-lynch.com"
+      ]
+    }
+  },
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Generic",
+      "model": "Model 502",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 423",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 475",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand A",
+      "model": "Model 421",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "storage_capacity": "42 cubic meters",
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 2 months"
+}

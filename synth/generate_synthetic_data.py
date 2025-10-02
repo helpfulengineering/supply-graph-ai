@@ -23,7 +23,7 @@ from uuid import uuid4
 from faker import Faker
 
 # Add the src directory to the path so we can import the models
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.models.okh import (
     OKHManifest, License, Person, Organization, DocumentRef, MaterialSpec,

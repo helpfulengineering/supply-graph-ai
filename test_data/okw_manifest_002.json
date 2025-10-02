@@ -1,0 +1,146 @@
+{
+  "id": "9da8b340-25a9-40ac-a642-4d761a442a33",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "5107",
+      "street": "Paul Drives",
+      "city": "Port Jacob",
+      "region": "New Jersey",
+      "country": "Guam",
+      "postcode": "99272"
+    },
+    "gps_coordinates": "30.985705, -121.58305",
+    "city": "Port Jacob",
+    "country": "Guam"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Morrow, Horton and Boyer",
+    "location": {
+      "address": {
+        "number": "1652",
+        "street": "Veronica Trail",
+        "city": "Port Angela",
+        "region": "South Carolina",
+        "country": "Austria",
+        "postcode": "94163"
+      },
+      "gps_coordinates": "55.404463, -113.521079",
+      "directions": "Located near Giles, Hernandez and Flores",
+      "city": "Port Angela",
+      "country": "Austria"
+    },
+    "contact_person": "Mary Pittman",
+    "bio": "Established in 1993, we specialize in Cross-group interactive approach",
+    "website": "https://patterson-stewart.com",
+    "mailing_list": "ericwhite@lists.weaver-hodges.com",
+    "contact": {
+      "landline": "+1-790-272-6736",
+      "mobile": "+1-609-811-9282",
+      "email": "info@hensley.biz",
+      "whatsapp": "+1-409-455-9416"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-21:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 138",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand A",
+      "model": "Model 232",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 339",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand A",
+      "model": "Model 296",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Versatile encompassing migration",
+    "Face-to-face bandwidth-monitored service-desk",
+    "Fully-configurable bifurcated toolset",
+    "Function-based needs-based approach"
+  ],
+  "human_capacity": {
+    "headcount": 42
+  },
+  "innovation_space": {
+    "staff": 4,
+    "learning_resources": [
+      "Focused tertiary hierarchy",
+      "Front-line real-time hub"
+    ],
+    "services": [
+      "Business-focused zero tolerance migration",
+      "Re-engineered intangible throughput",
+      "Horizontal maximized structure"
+    ],
+    "footfall": 6,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-10-02T00:14:04.796615",
+    "created_by": {
+      "name": "Moreno and Sons",
+      "bio": "Established in 2006, we specialize in Persistent value-added encryption",
+      "website": "https://christian-martin.com",
+      "mailing_list": "bakergregory@lists.gallagher.com",
+      "images": [
+        "images/perhaps.jpg"
+      ],
+      "contact": {
+        "landline": "+1-657-828-2461",
+        "mobile": "+1-788-581-9249",
+        "whatsapp": "+1-710-604-9177"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/brittneyray",
+        "instagram": "@sophiamartin",
+        "other_urls": [
+          "https://dunn.info",
+          "https://palmer.com"
+        ]
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

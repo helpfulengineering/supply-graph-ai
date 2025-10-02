@@ -1,0 +1,281 @@
+{
+  "id": "9e4e9f0c-49a1-4aa2-bb51-6c561fd05bf9",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "7197",
+      "street": "Patricia Road",
+      "city": "New Zacharyton",
+      "region": "Ohio",
+      "country": "Chad",
+      "postcode": "17558"
+    },
+    "gps_coordinates": "27.293579, -66.20028",
+    "city": "New Zacharyton",
+    "country": "Chad"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Nolan, Diaz and Patton",
+    "location": {
+      "address": {
+        "number": "3037",
+        "street": "Tammy Way",
+        "city": "Susanbury",
+        "region": "Arizona",
+        "country": "Nauru",
+        "postcode": "91734"
+      },
+      "gps_coordinates": "44.675709, -29.741586",
+      "directions": "Located behind Macias Inc",
+      "city": "Susanbury",
+      "country": "Nauru"
+    },
+    "bio": "Established in 1996, we specialize in Fully-configurable mobile product",
+    "images": [
+      "images/walk.jpg",
+      "images/anything.jpg"
+    ],
+    "contact": {
+      "landline": "+1-542-407-9780",
+      "mobile": "+1-660-449-7147",
+      "email": "info@riley.com",
+      "whatsapp": "+1-313-704-5537"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Becker, Steele and Ford",
+    "contact_person": "Christopher Daugherty",
+    "website": "https://chapman.com",
+    "languages": [
+      "fr",
+      "de"
+    ],
+    "mailing_list": "jacobsmith@lists.price-smith.com",
+    "images": [
+      "images/movie.jpg",
+      "images/yourself.jpg",
+      "images/threat.jpg"
+    ],
+    "contact": {
+      "landline": "+1-985-200-6372",
+      "mobile": "+1-786-708-2841",
+      "email": "info@cooper.com"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Public makerspace with basic fabrication equipment",
+  "date_founded": "2001-09-14",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "Form 3",
+      "condition": "Fair",
+      "quantity": 5,
+      "throughput": "12 parts/hour",
+      "maintenance_schedule": "Every 2 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "894",
+              "street": "Scott Hollow",
+              "city": "Crossland",
+              "region": "Connecticut",
+              "country": "Kazakhstan",
+              "postcode": "78241"
+            },
+            "gps_coordinates": "68.531087, 18.237088",
+            "city": "Crossland",
+            "country": "Kazakhstan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "5141",
+              "street": "Sanchez Ramp",
+              "city": "Christopherfurt",
+              "region": "Missouri",
+              "country": "Portugal",
+              "postcode": "04263"
+            },
+            "gps_coordinates": "33.747177, -29.468941",
+            "city": "Christopherfurt",
+            "country": "Portugal"
+          }
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "Speedy 300",
+      "condition": "Good",
+      "quantity": 3,
+      "throughput": "22 parts/hour",
+      "power_rating": 4909,
+      "maintenance_schedule": "Every 10 months",
+      "usage_levels": "Low",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "7124",
+              "street": "Durham Forest",
+              "city": "New Harold",
+              "region": "South Dakota",
+              "country": "Turks and Caicos Islands",
+              "postcode": "40643"
+            },
+            "gps_coordinates": "32.716267, 32.732244",
+            "city": "New Harold",
+            "country": "Turks and Caicos Islands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Generic"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 300
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Onefinity",
+      "model": "Woodworker",
+      "condition": "Fair",
+      "quantity": 5,
+      "throughput": "33 parts/hour",
+      "power_rating": 8309,
+      "maintenance_schedule": "Every 7 months",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "7560",
+              "street": "Miller Circle",
+              "city": "Lake Mary",
+              "region": "Missouri",
+              "country": "Croatia",
+              "postcode": "39307"
+            },
+            "gps_coordinates": "51.511664, -47.167919",
+            "city": "Lake Mary",
+            "country": "Croatia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "supplier_location": {
+            "address": {
+              "number": "9453",
+              "street": "Tyler Canyon",
+              "city": "Lake Donald",
+              "region": "Maine",
+              "country": "Oman",
+              "postcode": "19373"
+            },
+            "gps_coordinates": "40.143278, 35.916618",
+            "directions": "Located near Winters, Cox and Myers",
+            "city": "Lake Donald",
+            "country": "Oman"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 300
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "certifications": [
+    "Basic Safety"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "typical_products": [
+    "Synchronized clear-thinking product",
+    "Cross-group executive budgetary management"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "majority"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 11
+  },
+  "innovation_space": {
+    "staff": 5,
+    "learning_resources": [
+      "Realigned multimedia frame",
+      "Team-oriented 5thgeneration access"
+    ],
+    "services": [
+      "Self-enabling didactic pricing structure",
+      "Organized exuding policy"
+    ],
+    "footfall": 29
+  }
+}

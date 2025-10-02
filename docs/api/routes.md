@@ -719,9 +719,13 @@ POST /v1/match
 3. **File Processing**: Parses YAML/JSON files and converts to `ManufacturingFacility` objects
 4. **Filtering**: Applies optional filters to narrow down relevant facilities
 5. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
-6. **Matching Logic**: Compares requirements against capabilities using domain-specific matching
-7. **Solution Generation**: Creates supply tree solutions with confidence scoring
-8. **Response Formatting**: Returns serialized solutions with metadata
+6. **Multi-Layered Matching Logic**: 
+   - **Layer 1**: Enhanced Direct Matching with metadata tracking and confidence scoring
+   - **Layer 2**: Heuristic Matching with rule-based synonyms and abbreviations
+   - **Layer 3**: NLP Matching (planned)
+   - **Layer 4**: AI/ML Matching (planned)
+7. **Solution Generation**: Creates supply tree solutions with confidence scoring and detailed metadata
+8. **Response Formatting**: Returns serialized solutions with comprehensive matching metadata
 
 #### Validate Supply Tree
 
@@ -1045,7 +1049,7 @@ Paginated responses include consistent metadata:
 ### ✅ Fully Implemented Routes
 
 **Core Matching Engine:**
-- `POST /v1/match` - **Multi-layered matching with storage integration, filtering, and heuristic rules**
+- `POST /v1/match` - **Multi-layered matching with enhanced Direct Matching layer, storage integration, filtering, and heuristic rules**
 - `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON)**
 - `POST /v1/match/validate` - Supply tree validation (placeholder)
 
@@ -1233,11 +1237,26 @@ async def search_facilities():
 
 ### Multi-Layered Matching System
 
-The matching system uses a sophisticated multi-layered approach:
+The matching system uses a sophisticated multi-layered approach with detailed metadata tracking and confidence scoring:
 
-#### **Layer 1: Direct Matching**
-- Exact string comparison (case-insensitive)
-- Matches: "CNC" ↔ "CNC"
+#### **Layer 1: Direct Matching (Enhanced)**
+- **Case-insensitive exact string matching** with defensive confidence scoring
+- **Near-miss detection** using Levenshtein distance (≤2 character differences)
+- **Comprehensive metadata tracking** including match quality indicators
+- **Confidence penalties** for case/whitespace differences
+- **Domain-agnostic base class** with domain-specific implementations
+
+**Match Types:**
+- **Perfect Match** (confidence: 1.0): Exact case and whitespace match
+- **Case Difference** (confidence: 0.95): Case-insensitive exact match
+- **Near Miss** (confidence: 0.8): ≤2 character differences (e.g., "CNC" ↔ "CNC mill")
+- **No Match** (confidence: 0.0): >2 character differences
+
+**Example Matches:**
+- "CNC" ↔ "CNC" (perfect match)
+- "CNC" ↔ "cnc" (case difference)
+- "CNC" ↔ "CNC mill" (near miss)
+- "CNC" ↔ "3D Printing" (no match)
 
 #### **Layer 2: Heuristic Matching**
 - Rule-based matching with synonyms and abbreviations

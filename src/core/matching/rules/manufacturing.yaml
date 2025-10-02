@@ -1,0 +1,227 @@
+domain: manufacturing
+version: "1.0.0"
+description: "Capability-centric rules for manufacturing domain - defines what requirements each capability can satisfy"
+
+metadata:
+  maintainer: "OME Manufacturing Team"
+  last_updated: "2024-01-01"
+  source: "Industry standards and manufacturing terminology"
+
+rules:
+  # CNC Machining Capabilities
+  cnc_machining_capability:
+    id: "cnc_machining_capability"
+    type: "capability_match"
+    capability: "cnc machining"
+    satisfies_requirements: ["milling", "machining", "material removal", "subtractive manufacturing", "cnc", "computer numerical control"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "CNC machining can satisfy various milling and machining requirements"
+    source: "ISO Manufacturing Terminology"
+    tags: ["machining", "automation", "subtractive"]
+
+  cnc_milling_capability:
+    id: "cnc_milling_capability"
+    type: "capability_match"
+    capability: "cnc mill"
+    satisfies_requirements: ["milling", "machining", "material removal", "cnc machining", "mill", "milling machine"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "CNC mill can satisfy milling and machining requirements"
+    source: "Machine Tool Handbook"
+    tags: ["machining", "milling", "cnc"]
+
+  cnc_lathe_capability:
+    id: "cnc_lathe_capability"
+    type: "capability_match"
+    capability: "cnc lathe"
+    satisfies_requirements: ["turning", "machining", "material removal", "lathe", "turning machine"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "CNC lathe can satisfy turning and machining requirements"
+    source: "Machine Tool Handbook"
+    tags: ["machining", "turning", "cnc"]
+
+  # Additive Manufacturing Capabilities
+  additive_manufacturing_capability:
+    id: "additive_manufacturing_capability"
+    type: "capability_match"
+    capability: "3d printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "additive fabrication", "3d printing", "3-d printing"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "3D printing can satisfy additive manufacturing requirements"
+    source: "ASTM F2792 Standard"
+    tags: ["additive", "prototyping", "3d printing"]
+
+  sla_printing_capability:
+    id: "sla_printing_capability"
+    type: "capability_match"
+    capability: "sla printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "3d printing", "stereolithography", "sla"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "SLA printing can satisfy additive manufacturing requirements"
+    source: "ASTM F2792 Standard"
+    tags: ["additive", "prototyping", "sla"]
+
+  fdm_printing_capability:
+    id: "fdm_printing_capability"
+    type: "capability_match"
+    capability: "fdm printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "3d printing", "fused deposition modeling", "fdm"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "FDM printing can satisfy additive manufacturing requirements"
+    source: "ASTM F2792 Standard"
+    tags: ["additive", "prototyping", "fdm"]
+
+  # Material Capabilities
+  stainless_steel_capability:
+    id: "stainless_steel_capability"
+    type: "capability_match"
+    capability: "304 stainless"
+    satisfies_requirements: ["stainless steel", "corrosion resistant steel", "inox", "ss", "stainless", "304 stainless", "316 stainless"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "304 stainless steel can satisfy stainless steel requirements"
+    source: "ASTM Material Standards"
+    tags: ["material", "steel", "corrosion-resistant"]
+
+  aluminum_capability:
+    id: "aluminum_capability"
+    type: "capability_match"
+    capability: "aluminum"
+    satisfies_requirements: ["aluminum", "aluminium", "aluminum alloy", "aluminium alloy", "al", "lightweight metal"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Aluminum can satisfy aluminum material requirements"
+    source: "ASTM Material Standards"
+    tags: ["material", "aluminum", "lightweight"]
+
+  steel_capability:
+    id: "steel_capability"
+    type: "capability_match"
+    capability: "carbon steel"
+    satisfies_requirements: ["steel", "carbon steel", "mild steel", "low carbon steel", "structural steel", "steel alloy"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Carbon steel can satisfy steel material requirements"
+    source: "ASTM Material Standards"
+    tags: ["material", "steel", "structural"]
+
+  titanium_capability:
+    id: "titanium_capability"
+    type: "capability_match"
+    capability: "titanium"
+    satisfies_requirements: ["titanium", "ti", "titanium alloy", "ti-6al-4v", "grade 5 titanium", "aerospace titanium"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Titanium can satisfy titanium material requirements"
+    source: "ASTM Material Standards"
+    tags: ["material", "titanium", "aerospace"]
+
+  # Tool Capabilities
+  end_mill_capability:
+    id: "end_mill_capability"
+    type: "capability_match"
+    capability: "end mill"
+    satisfies_requirements: ["end mill", "endmill", "milling cutter", "mill", "end milling cutter", "cutting tool"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "End mill can satisfy end mill tool requirements"
+    source: "Machining Handbook"
+    tags: ["tool", "milling", "cutting"]
+
+  drill_bit_capability:
+    id: "drill_bit_capability"
+    type: "capability_match"
+    capability: "drill bit"
+    satisfies_requirements: ["drill bit", "drill", "twist drill", "drilling tool", "drill tool", "cutting tool"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Drill bit can satisfy drill bit tool requirements"
+    source: "Machining Handbook"
+    tags: ["tool", "drilling", "cutting"]
+
+  # Equipment Capabilities
+  lathe_capability:
+    id: "lathe_capability"
+    type: "capability_match"
+    capability: "lathe"
+    satisfies_requirements: ["lathe", "turning machine", "cnc lathe", "manual lathe", "engine lathe", "turning"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Lathe can satisfy lathe equipment requirements"
+    source: "Machine Tool Handbook"
+    tags: ["equipment", "turning", "machine"]
+
+  mill_capability:
+    id: "mill_capability"
+    type: "capability_match"
+    capability: "mill"
+    satisfies_requirements: ["mill", "milling machine", "cnc mill", "manual mill", "vertical mill", "horizontal mill", "milling"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Mill can satisfy mill equipment requirements"
+    source: "Machine Tool Handbook"
+    tags: ["equipment", "milling", "machine"]
+
+  # Quality and Tolerance Capabilities
+  precision_machining_capability:
+    id: "precision_machining_capability"
+    type: "capability_match"
+    capability: "precision machining"
+    satisfies_requirements: ["precision", "accuracy", "tolerance", "dimensional accuracy", "precision machining", "high precision"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Precision machining can satisfy precision and accuracy requirements"
+    source: "Quality Control Standards"
+    tags: ["quality", "precision", "tolerance"]
+
+  # Surface Finish Capabilities
+  surface_finish_capability:
+    id: "surface_finish_capability"
+    type: "capability_match"
+    capability: "surface finishing"
+    satisfies_requirements: ["surface finish", "surface roughness", "ra value", "surface texture", "finish quality", "surface treatment"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Surface finishing can satisfy surface finish requirements"
+    source: "Surface Finish Standards"
+    tags: ["quality", "surface", "finish"]
+
+  # Welding Capabilities
+  welding_capability:
+    id: "welding_capability"
+    type: "capability_match"
+    capability: "welding"
+    satisfies_requirements: ["welding", "weld", "joining", "metal joining", "fusion welding", "arc welding"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Welding can satisfy welding and joining requirements"
+    source: "Welding Standards"
+    tags: ["joining", "welding", "metal"]
+
+  tig_welding_capability:
+    id: "tig_welding_capability"
+    type: "capability_match"
+    capability: "tig welding"
+    satisfies_requirements: ["tig welding", "tig", "tungsten inert gas", "welding", "precision welding", "clean welding"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "TIG welding can satisfy TIG welding requirements"
+    source: "Welding Standards"
+    tags: ["welding", "tig", "precision"]
+
+  # Assembly Capabilities
+  assembly_capability:
+    id: "assembly_capability"
+    type: "capability_match"
+    capability: "assembly"
+    satisfies_requirements: ["assembly", "assembling", "putting together", "component assembly", "final assembly"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Assembly can satisfy assembly requirements"
+    source: "Assembly Standards"
+    tags: ["assembly", "joining", "final"]
