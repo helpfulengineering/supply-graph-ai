@@ -1,8 +1,6 @@
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
 from datetime import datetime, timedelta
-import logging
-import re
 import networkx as nx
 
 from ..models.okh import OKHManifest
@@ -11,8 +9,10 @@ from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from .okh_service import OKHService
 from .okw_service import OKWService
 from ..registry.domain_registry import DomainRegistry
-from .domain_service import DomainDetector
 from ..utils.logging import get_logger
+from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
+from ..domains.cooking.direct_matcher import CookingDirectMatcher
+from ..matching.capability_rules import CapabilityRuleManager, CapabilityMatcher
 
 logger = get_logger(__name__)
 
@@ -21,33 +21,18 @@ class MatchingService:
     
     _instance = None
     
-    # Heuristic matching rules for manufacturing domain
-    HEURISTIC_RULES = {
-        # Abbreviation expansions
-        "cnc": ["computer numerical control", "computer numerical control machining"],
-        "cad": ["computer aided design", "computer-aided design"],
-        "cam": ["computer aided manufacturing", "computer-aided manufacturing"],
-        "fms": ["flexible manufacturing system"],
-        "cim": ["computer integrated manufacturing"],
-        "plc": ["programmable logic controller"],
-        
-        # Process synonyms
-        "additive manufacturing": ["3d printing", "3-d printing", "rapid prototyping"],
-        "3d printing": ["additive manufacturing", "rapid prototyping"],
-        "subtractive manufacturing": ["cnc machining", "machining", "material removal"],
-        "cnc machining": ["subtractive manufacturing", "machining", "material removal"],
-        
-        # Material synonyms
-        "stainless steel": ["304 stainless", "316 stainless", "316l", "ss", "stainless"],
-        "aluminum": ["al", "aluminium", "aluminum alloy"],
-        "steel": ["carbon steel", "mild steel", "low carbon steel"],
-        "titanium": ["ti", "titanium alloy"],
-        
-        # Tool synonyms
-        "end mill": ["endmill", "milling cutter", "mill"],
-        "drill bit": ["drill", "twist drill", "drilling tool"],
-        "cutting tool": ["tool", "cutter", "machining tool"],
-    }
+    def __init__(self):
+        """Initialize the matching service with Direct Matching layers"""
+        self._initialized = False
+        self.direct_matchers = {
+            "manufacturing": MfgDirectMatcher(),
+            "cooking": CookingDirectMatcher()
+        }
+        self.capability_rule_manager = None
+        self.capability_matcher = None
+    
+    # Heuristic rules are now managed by the HeuristicRuleManager
+    # and loaded from domain-specific configuration files
     
     @classmethod
     async def get_instance(
@@ -72,14 +57,20 @@ class MatchingService:
         okh_service: Optional[OKHService] = None,
         okw_service: Optional[OKWService] = None
     ) -> None:
-        """Initialize the service with dependencies"""
+        """Initialize the matching service with all required components"""
         if self._initialized:
             return
             
-        self.okh_service = okh_service or await OKHService.get_instance()
-        self.okw_service = okw_service or await OKWService.get_instance()
+        self.okh_service = okh_service
+        self.okw_service = okw_service
+        
+        # Initialize capability-centric heuristic matching
+        self.capability_rule_manager = CapabilityRuleManager()
+        await self.capability_rule_manager.initialize()
+        self.capability_matcher = CapabilityMatcher(self.capability_rule_manager)
+        
         self._initialized = True
-        logger.info("Matching service initialized")
+        logger.info("MatchingService initialized with Direct Matching and Capability-Centric Heuristic Matching")
     
     async def find_matches(
         self,
@@ -174,8 +165,8 @@ class MatchingService:
                 extraction_result = extractor.extract_capabilities(facility_data)
                 capabilities = extraction_result.data.content.get('capabilities', []) if extraction_result.data else []
                 
-                if self._can_satisfy_requirements(requirements, capabilities):
-                    tree = self._generate_supply_tree(okh_manifest, facility)
+                if await self._can_satisfy_requirements(requirements, capabilities):
+                    tree = await self._generate_supply_tree(okh_manifest, facility, domain)
                     score = self._calculate_confidence_score(
                         requirements,
                         capabilities,
@@ -216,7 +207,7 @@ class MatchingService:
             )
             raise
     
-    def _can_satisfy_requirements(
+    async def _can_satisfy_requirements(
         self,
         requirements: List[Dict[str, Any]],
         capabilities: List[Dict[str, Any]]
@@ -233,8 +224,8 @@ class MatchingService:
                     if not cap_process:
                         continue
                     
-                    # Layer 1: Direct Matching (case-insensitive exact match)
-                    if self._direct_match(req_process, cap_process):
+                    # Layer 1: Direct Matching (using new Direct Matching layer)
+                    if self._direct_match(req_process, cap_process, domain="manufacturing"):
                         logger.debug(
                             "Direct match found",
                             extra={
@@ -245,8 +236,8 @@ class MatchingService:
                         )
                         return True
                     
-                    # Layer 2: Heuristic Matching (rule-based matching)
-                    if self._heuristic_match(req_process, cap_process):
+                    # Layer 2: Heuristic Matching (using new HeuristicRuleManager)
+                    if await self._heuristic_match(req_process, cap_process, domain="manufacturing"):
                         logger.debug(
                             "Heuristic match found",
                             extra={
@@ -271,34 +262,89 @@ class MatchingService:
             )
             raise
     
-    def _direct_match(self, req_process: str, cap_process: str) -> bool:
-        """Layer 1: Direct Matching - Case-insensitive exact string matching"""
-        return req_process == cap_process
-    
-    def _heuristic_match(self, req_process: str, cap_process: str) -> bool:
-        """Layer 2: Heuristic Matching - Rule-based matching with synonyms and abbreviations"""
-        # Check if either term matches any rule
-        for key, synonyms in self.HEURISTIC_RULES.items():
-            # Check if requirement matches key and capability matches any synonym
-            if req_process == key and cap_process in synonyms:
-                return True
+    def _direct_match(self, req_process: str, cap_process: str, domain: str = "manufacturing") -> bool:
+        """Layer 1: Direct Matching - Using the new Direct Matching layer with metadata tracking"""
+        try:
+            # Get the appropriate direct matcher for the domain
+            direct_matcher = self.direct_matchers.get(domain)
+            if not direct_matcher:
+                logger.warning(f"No direct matcher available for domain: {domain}, falling back to simple matching")
+                return req_process.lower() == cap_process.lower()
             
-            # Check if capability matches key and requirement matches any synonym
-            if cap_process == key and req_process in synonyms:
-                return True
+            # Use the Direct Matching layer
+            results = direct_matcher.match(req_process, [cap_process], near_miss_threshold=2)
             
-            # Check if both requirement and capability are synonyms of the same key
-            if req_process in synonyms and cap_process in synonyms:
-                return True
-        
-        return False
+            # Check if we have any matches
+            for result in results:
+                if result.matched and result.confidence >= 0.8:  # Use 0.8 as threshold for "match"
+                    logger.debug(
+                        "Direct match found using Direct Matching layer",
+                        extra={
+                            "requirement": req_process,
+                            "capability": cap_process,
+                            "confidence": result.confidence,
+                            "quality": result.metadata.quality,
+                            "method": result.metadata.method
+                        }
+                    )
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error in Direct Matching layer: {e}", exc_info=True)
+            # Fallback to simple matching
+            return req_process.lower() == cap_process.lower()
     
-    def _generate_supply_tree(
+    async def _heuristic_match(self, req_process: str, cap_process: str, domain: str = "manufacturing") -> bool:
+        """Layer 2: Heuristic Matching - Using the new capability-centric heuristic rules system"""
+        try:
+            # Use the capability-centric heuristic matcher
+            if not self.capability_matcher:
+                logger.warning("Capability matcher not initialized, skipping heuristic matching")
+                return False
+            
+            # Create requirement and capability objects for matching
+            requirements = [{"process_name": req_process}]
+            capabilities = [{"process_name": cap_process}]
+            
+            # Use the capability-centric matcher
+            results = await self.capability_matcher.match_requirements_to_capabilities(
+                requirements=requirements,
+                capabilities=capabilities,
+                domain=domain,
+                requirement_field="process_name",
+                capability_field="process_name"
+            )
+            
+            # Check if we have any matches
+            for result in results:
+                if result.matched and result.confidence >= 0.7:  # Use 0.7 as threshold for heuristic match
+                    logger.debug(
+                        "Heuristic match found using capability-centric rules",
+                        extra={
+                            "requirement": req_process,
+                            "capability": cap_process,
+                            "confidence": result.confidence,
+                            "rule_used": result.rule_used.id if result.rule_used else None,
+                            "domain": result.domain
+                        }
+                    )
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error in Heuristic Matching layer: {e}", exc_info=True)
+            return False
+    
+    async def _generate_supply_tree(
         self,
         manifest: OKHManifest,
-        facility: ManufacturingFacility
+        facility: ManufacturingFacility,
+        domain: str = "manufacturing"
     ) -> SupplyTree:
-        """Generate a supply tree for a manifest and facility"""
+        """Generate a supply tree for a manifest and facility using enhanced matching layers"""
         try:
             # Create a supply tree with proper metadata
             supply_tree = SupplyTree()
@@ -312,7 +358,9 @@ class MatchingService:
                 "facility_id": str(facility.id),
                 "okh_title": manifest.title,
                 "facility_name": facility_name,
-                "generation_method": "multi_layered_matching",
+                "generation_method": "enhanced_multi_layered_matching",
+                "matching_layers_used": ["direct", "heuristic"],
+                "domain": domain,
                 "created_at": datetime.now().isoformat()
             }
             
@@ -333,10 +381,64 @@ class MatchingService:
             # Extract process requirements from the manifest
             process_requirements = manifest.manufacturing_processes or []
             
-            # Create nodes for each manufacturing process
+            # Create nodes for each manufacturing process using enhanced matching
             previous_node_id = None
+            matching_results = []
+            
             for i, process_name in enumerate(process_requirements):
-                # Create a workflow node for this process
+                # Find matching capabilities in the facility using our enhanced matching layers
+                facility_capabilities = []
+                for equipment in facility.equipment:
+                    if hasattr(equipment, 'manufacturing_process'):
+                        facility_capabilities.extend(equipment.manufacturing_process)
+                    if hasattr(equipment, 'manufacturing_processes'):
+                        facility_capabilities.extend(equipment.manufacturing_processes)
+                
+                # Use our enhanced matching layers to find the best match
+                best_match_confidence = 0.0
+                best_match_method = "no_match"
+                best_match_capability = None
+                matching_details = {}
+                
+                for capability in facility_capabilities:
+                    # Layer 1: Direct Matching
+                    if self._direct_match(process_name, capability, domain):
+                        direct_matcher = self.direct_matchers.get(domain)
+                        if direct_matcher:
+                            direct_results = direct_matcher.match(process_name, [capability], near_miss_threshold=2)
+                            for result in direct_results:
+                                if result.matched and result.confidence > best_match_confidence:
+                                    best_match_confidence = result.confidence
+                                    best_match_method = f"direct_{result.metadata.method}"
+                                    best_match_capability = capability
+                                    matching_details = {
+                                        "quality": result.metadata.quality,
+                                        "character_difference": result.metadata.character_difference,
+                                        "case_difference": result.metadata.case_difference,
+                                        "whitespace_difference": result.metadata.whitespace_difference
+                                    }
+                    
+                    # Layer 2: Heuristic Matching (only if direct matching didn't find a good match)
+                    if best_match_confidence < 0.8 and await self._heuristic_match(process_name, capability, domain):
+                        if self.capability_matcher:
+                            heuristic_results = await self.capability_matcher.match_requirements_to_capabilities(
+                                requirements=[{"process_name": process_name}],
+                                capabilities=[{"process_name": capability}],
+                                domain=domain,
+                                requirement_field="process_name",
+                                capability_field="process_name"
+                            )
+                            for result in heuristic_results:
+                                if result.matched and result.confidence > best_match_confidence:
+                                    best_match_confidence = result.confidence
+                                    best_match_method = f"heuristic_{result.rule_used.id if result.rule_used else 'rule'}"
+                                    best_match_capability = capability
+                                    matching_details = {
+                                        "rule_used": result.rule_used.id if result.rule_used else None,
+                                        "transformation_details": result.transformation_details
+                                    }
+                
+                # Create a workflow node for this process with enhanced matching information
                 node_id = uuid4()
                 node = WorkflowNode(
                     id=node_id,
@@ -352,7 +454,7 @@ class MatchingService:
                         ResourceURI(
                             resource_type=ResourceType.OKW_PROCESS,
                             identifier=str(facility.id),
-                            path=["manufacturing_processes", process_name.lower().replace(" ", "_")]
+                            path=["manufacturing_processes", best_match_capability.lower().replace(" ", "_") if best_match_capability else process_name.lower().replace(" ", "_")]
                         )
                     ],
                     input_requirements={
@@ -365,13 +467,24 @@ class MatchingService:
                     },
                     estimated_time=timedelta(hours=2),  # Default estimation
                     assigned_facility=str(facility.id),
-                    confidence_score=1.0,
+                    confidence_score=best_match_confidence,
+                    substitution_used=best_match_method.startswith("heuristic_"),
                     metadata={
                         "process_index": i,
                         "total_processes": len(process_requirements),
-                        "facility_capability": "verified"
+                        "matching_method": best_match_method,
+                        "matched_capability": best_match_capability,
+                        "matching_details": matching_details,
+                        "facility_capability": "verified" if best_match_confidence > 0.7 else "uncertain"
                     }
                 )
+                
+                # Store matching result for overall confidence calculation
+                matching_results.append({
+                    "process": process_name,
+                    "confidence": best_match_confidence,
+                    "method": best_match_method
+                })
                 
                 # Add node to workflow
                 primary_workflow.graph.add_node(node_id, data=node)
@@ -391,6 +504,18 @@ class MatchingService:
             
             # Add the workflow to the supply tree
             supply_tree.add_workflow(primary_workflow)
+            
+            # Add enhanced metadata about matching results
+            supply_tree.metadata.update({
+                "matching_summary": {
+                    "total_processes": len(process_requirements),
+                    "matching_results": matching_results,
+                    "average_confidence": sum(r["confidence"] for r in matching_results) / len(matching_results) if matching_results else 0.0,
+                    "direct_matches": len([r for r in matching_results if r["method"].startswith("direct_")]),
+                    "heuristic_matches": len([r for r in matching_results if r["method"].startswith("heuristic_")]),
+                    "no_matches": len([r for r in matching_results if r["method"] == "no_match"])
+                }
+            })
             
             # Add snapshots of source data
             supply_tree.add_snapshot(

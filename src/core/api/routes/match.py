@@ -3,6 +3,7 @@ from uuid import UUID
 from typing import Optional
 import json
 import yaml
+from datetime import datetime
 
 from ..models.match.request import (
     MatchRequest,
@@ -151,25 +152,72 @@ async def match_requirements_to_capabilities(
                     "optimization_criteria": request.optimization_criteria
                 }
             )
-        # Convert solutions to a serializable format
+        # Convert solutions to proper SupplyTreeResponse format
+        from ..models.supply_tree.response import SupplyTreeResponse, WorkflowResponse, WorkflowNodeResponse, ResourceSnapshotResponse, ProcessStatus
+        
         serialized_solutions = []
         for solution in solutions:
-            # Get name and description from metadata or use defaults
-            name = solution.tree.metadata.get('okh_title', f'Supply Tree {str(solution.tree.id)[:8]}')
-            description = solution.tree.metadata.get('description', f'Manufacturing solution for {solution.tree.metadata.get("okh_title", "hardware project")}')
+            # Convert workflows to API response format
+            workflows = {}
+            for workflow_id, workflow in solution.tree.workflows.items():
+                # Convert nodes to WorkflowNodeResponse format
+                nodes = {}
+                for node_id in workflow.graph.nodes:
+                    node_data = workflow.graph.nodes[node_id]['data']
+                    nodes[str(node_id)] = WorkflowNodeResponse(
+                        id=node_data.id,
+                        name=node_data.name,
+                        process_status=ProcessStatus.PENDING,
+                        confidence_score=getattr(node_data, 'confidence_score', 1.0),
+                        substitution_used=getattr(node_data, 'substitution_used', False),
+                        okh_refs=[str(ref) for ref in node_data.okh_refs],
+                        okw_refs=[str(ref) for ref in node_data.okw_refs],
+                        input_requirements=node_data.input_requirements,
+                        output_specifications=node_data.output_specifications,
+                        estimated_time=str(node_data.estimated_time) if node_data.estimated_time else None,
+                        assigned_facility=node_data.assigned_facility,
+                        assigned_equipment=node_data.assigned_equipment,
+                        materials=node_data.materials,
+                        metadata=node_data.metadata
+                    )
+                
+                # Convert edges to API format
+                edges = [{"source": str(source), "target": str(target)} for source, target in workflow.graph.edges]
+                
+                workflows[str(workflow_id)] = WorkflowResponse(
+                    id=workflow_id,
+                    name=workflow.name,
+                    nodes=nodes,
+                    edges=edges,
+                    entry_points=[str(ep) for ep in workflow.entry_points],
+                    exit_points=[str(ep) for ep in workflow.exit_points]
+                )
             
-            # Calculate node and edge counts from workflows
-            total_nodes = sum(len(workflow.graph.nodes) for workflow in solution.tree.workflows.values())
-            total_edges = sum(len(workflow.graph.edges) for workflow in solution.tree.workflows.values())
+            # Convert snapshots to API format
+            snapshots = {}
+            for uri, snapshot in solution.tree.snapshots.items():
+                snapshots[uri] = ResourceSnapshotResponse(
+                    uri=str(snapshot.uri),
+                    content=snapshot.content,
+                    timestamp=snapshot.timestamp.isoformat() if hasattr(snapshot.timestamp, 'isoformat') else str(snapshot.timestamp)
+                )
+            
+            # Create proper SupplyTreeResponse
+            supply_tree_response = SupplyTreeResponse(
+                id=solution.tree.id,
+                workflows=workflows,
+                creation_time=solution.tree.creation_time.isoformat() if hasattr(solution.tree.creation_time, 'isoformat') else str(solution.tree.creation_time),
+                confidence=solution.score,
+                required_quantity=getattr(solution.tree, 'required_quantity', 1),
+                connections=[],  # TODO: Convert connections if they exist
+                snapshots=snapshots,
+                okh_reference=solution.tree.okh_reference,
+                deadline=getattr(solution.tree, 'deadline', None),
+                metadata=solution.tree.metadata
+            )
             
             serialized_solutions.append({
-                "tree": {
-                    "id": str(solution.tree.id),
-                    "name": name,
-                    "description": description,
-                    "node_count": total_nodes,
-                    "edge_count": total_edges
-                },
+                "tree": supply_tree_response,
                 "score": solution.score,
                 "metrics": solution.metrics
             })
@@ -363,23 +411,72 @@ async def match_requirements_from_file(
             okh_manifest, okw_facilities
         )
         
-        # Serialize results
+        # Serialize results using proper SupplyTreeResponse format
+        from ..models.supply_tree.response import SupplyTreeResponse, WorkflowResponse, WorkflowNodeResponse, ResourceSnapshotResponse, ProcessStatus
+        
         results = []
         for solution in solutions:
-            # Calculate actual node and edge counts from workflows
-            total_nodes = sum(len(workflow.graph.nodes) for workflow in solution.tree.workflows.values())
-            total_edges = sum(len(workflow.graph.edges) for workflow in solution.tree.workflows.values())
+            # Convert workflows to API response format
+            workflows = {}
+            for workflow_id, workflow in solution.tree.workflows.items():
+                # Convert nodes to WorkflowNodeResponse format
+                nodes = {}
+                for node_id in workflow.graph.nodes:
+                    node_data = workflow.graph.nodes[node_id]['data']
+                    nodes[str(node_id)] = WorkflowNodeResponse(
+                        id=node_data.id,
+                        name=node_data.name,
+                        process_status=ProcessStatus.PENDING,
+                        confidence_score=getattr(node_data, 'confidence_score', 1.0),
+                        substitution_used=getattr(node_data, 'substitution_used', False),
+                        okh_refs=[str(ref) for ref in node_data.okh_refs],
+                        okw_refs=[str(ref) for ref in node_data.okw_refs],
+                        input_requirements=node_data.input_requirements,
+                        output_specifications=node_data.output_specifications,
+                        estimated_time=str(node_data.estimated_time) if node_data.estimated_time else None,
+                        assigned_facility=node_data.assigned_facility,
+                        assigned_equipment=node_data.assigned_equipment,
+                        materials=node_data.materials,
+                        metadata=node_data.metadata
+                    )
+                
+                # Convert edges to API format
+                edges = [{"source": str(source), "target": str(target)} for source, target in workflow.graph.edges]
+                
+                workflows[str(workflow_id)] = WorkflowResponse(
+                    id=workflow_id,
+                    name=workflow.name,
+                    nodes=nodes,
+                    edges=edges,
+                    entry_points=[str(ep) for ep in workflow.entry_points],
+                    exit_points=[str(ep) for ep in workflow.exit_points]
+                )
+            
+            # Convert snapshots to API format
+            snapshots = {}
+            for uri, snapshot in solution.tree.snapshots.items():
+                snapshots[uri] = ResourceSnapshotResponse(
+                    uri=str(snapshot.uri),
+                    content=snapshot.content,
+                    timestamp=snapshot.timestamp.isoformat() if hasattr(snapshot.timestamp, 'isoformat') else str(snapshot.timestamp)
+                )
+            
+            # Create proper SupplyTreeResponse
+            supply_tree_response = SupplyTreeResponse(
+                id=solution.tree.id,
+                workflows=workflows,
+                creation_time=solution.tree.creation_time.isoformat() if hasattr(solution.tree.creation_time, 'isoformat') else str(solution.tree.creation_time),
+                confidence=solution.score,
+                required_quantity=getattr(solution.tree, 'required_quantity', 1),
+                connections=[],  # TODO: Convert connections if they exist
+                snapshots=snapshots,
+                okh_reference=solution.tree.okh_reference,
+                deadline=getattr(solution.tree, 'deadline', None),
+                metadata=solution.tree.metadata
+            )
             
             results.append({
-                "tree": {
-                    "id": str(solution.tree.id),
-                    "name": solution.tree.metadata.get("name", "Unnamed Supply Tree"),
-                    "description": solution.tree.metadata.get("description", "No description available"),
-                    "node_count": total_nodes,
-                    "edge_count": total_edges,
-                    "workflow_count": len(solution.tree.workflows),
-                    "metadata": solution.tree.metadata
-                },
+                "tree": supply_tree_response,
                 "score": solution.score,
                 "metrics": solution.metrics
             })
@@ -499,6 +596,8 @@ async def get_domain_health(domain_name: str):
     except Exception as e:
         logger.error(f"Error getting domain health for {domain_name}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error getting domain health: {str(e)}")
+
+
 
 @router.post("/detect-domain")
 async def detect_domain_from_input(

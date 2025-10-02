@@ -34,6 +34,13 @@
 * [API Documentation](api/index.md)
     * [Routes & Endpoints](api/routes.md)
     * [Authentication](api/auth.md)
+    * [Matching API](api/matching-api.md)
+
+### Matching System
+* [Matching Layers Architecture](architecture/matching-layers.md)
+    * [Direct Matching Layer](matching/direct-matching.md)
+    * [Capability-Centric Heuristic Rules](matching/capability-centric-rules.md)
+    * [Matching Demonstration Guide](api/matching-demonstration-guide.md) - Practical curl examples for testing Direct and Heuristic matching
 
 # Overview
 

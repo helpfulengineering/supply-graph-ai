@@ -1,0 +1,168 @@
+{
+  "id": "1db1724d-2afa-45d4-b9f5-c60d9782fa0d",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "4461",
+      "street": "George Wells",
+      "city": "South Michaelland",
+      "region": "North Carolina",
+      "country": "Czech Republic",
+      "postcode": "86270"
+    },
+    "gps_coordinates": "34.006787, 24.571451",
+    "directions": "Located behind Vincent, Brown and Maxwell",
+    "city": "South Michaelland",
+    "country": "Czech Republic"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Barnett-Ingram",
+    "contact_person": "Albert Miles",
+    "website": "https://tate.com",
+    "mailing_list": "scotthensley@lists.lewis.org",
+    "contact": {
+      "landline": "+1-248-823-2534",
+      "email": "info@lee-greene.com"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "1991-01-10",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "VTC-20",
+      "serial_number": "SN306481",
+      "condition": "Needs Maintenance",
+      "throughput": "69 parts/hour",
+      "maintenance_schedule": "Every 9 months",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2266",
+              "street": "Campos Green",
+              "city": "West Misty",
+              "region": "South Carolina",
+              "country": "Israel",
+              "postcode": "60891"
+            },
+            "gps_coordinates": "40.153526, 36.661051",
+            "city": "West Misty",
+            "country": "Israel"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5243",
+              "street": "Miller Cliff",
+              "city": "North Paul",
+              "region": "Hawaii",
+              "country": "Eritrea",
+              "postcode": "52700"
+            },
+            "gps_coordinates": "29.447234, -67.283969",
+            "city": "North Paul",
+            "country": "Eritrea"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 400
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 557",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 102",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 580",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 1832,
+  "storage_capacity": "162 cubic meters",
+  "uninterrupted_power_supply": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Decentralized mission-critical algorithm",
+    "Future-proofed mobile productivity"
+  ],
+  "human_capacity": {
+    "headcount": 2
+  },
+  "record_data": {
+    "date_created": "2025-10-02T00:14:04.794456",
+    "created_by": {
+      "name": "Mills Group",
+      "location": {
+        "address": {
+          "number": "6151",
+          "street": "Patrick Ridge",
+          "city": "Mirandaland",
+          "region": "South Carolina",
+          "country": "Eritrea",
+          "postcode": "89356"
+        },
+        "gps_coordinates": "43.822977, -117.499246",
+        "directions": "Located near Nelson-Welch",
+        "city": "Mirandaland",
+        "country": "Eritrea"
+      },
+      "website": "https://barber.info",
+      "contact": {
+        "mobile": "+1-787-508-2121",
+        "whatsapp": "+1-725-311-7482"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

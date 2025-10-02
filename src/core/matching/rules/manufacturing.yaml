@@ -1,0 +1,220 @@
+domain: manufacturing
+version: "1.0.0"
+description: "Heuristic matching rules for manufacturing and hardware production domain"
+
+metadata:
+  maintainer: "OME Manufacturing Team"
+  last_updated: "2024-01-01"
+  source: "Industry standards and manufacturing terminology"
+
+rules:
+  # Abbreviation expansions
+  cnc_abbreviation:
+    id: "cnc_abbreviation"
+    type: "abbreviation"
+    direction: "bidirectional"
+    key: "cnc"
+    values: ["computer numerical control", "computer numerical control machining", "cnc machining"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Standard industry abbreviation for Computer Numerical Control"
+    source: "ISO Manufacturing Terminology"
+    tags: ["abbreviation", "machining", "automation"]
+
+  cad_abbreviation:
+    id: "cad_abbreviation"
+    type: "abbreviation"
+    direction: "bidirectional"
+    key: "cad"
+    values: ["computer aided design", "computer-aided design", "cad software"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Standard industry abbreviation for Computer Aided Design"
+    source: "ISO Manufacturing Terminology"
+    tags: ["abbreviation", "design", "software"]
+
+  cam_abbreviation:
+    id: "cam_abbreviation"
+    type: "abbreviation"
+    direction: "bidirectional"
+    key: "cam"
+    values: ["computer aided manufacturing", "computer-aided manufacturing", "cam software"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "Standard industry abbreviation for Computer Aided Manufacturing"
+    source: "ISO Manufacturing Terminology"
+    tags: ["abbreviation", "manufacturing", "software"]
+
+  fms_abbreviation:
+    id: "fms_abbreviation"
+    type: "abbreviation"
+    direction: "bidirectional"
+    key: "fms"
+    values: ["flexible manufacturing system", "flexible manufacturing"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Standard industry abbreviation for Flexible Manufacturing System"
+    source: "ISO Manufacturing Terminology"
+    tags: ["abbreviation", "system", "automation"]
+
+  # Process synonyms
+  additive_manufacturing_synonyms:
+    id: "additive_manufacturing_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "additive manufacturing"
+    values: ["3d printing", "3-d printing", "rapid prototyping", "additive fabrication"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Synonyms for additive manufacturing processes"
+    source: "ASTM F2792 Standard"
+    tags: ["process", "additive", "prototyping"]
+
+  subtractive_manufacturing_synonyms:
+    id: "subtractive_manufacturing_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "subtractive manufacturing"
+    values: ["cnc machining", "machining", "material removal", "milling"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Synonyms for subtractive manufacturing processes"
+    source: "Manufacturing Engineering Handbook"
+    tags: ["process", "subtractive", "machining"]
+
+  # Material synonyms
+  stainless_steel_synonyms:
+    id: "stainless_steel_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "stainless steel"
+    values: ["304 stainless", "316 stainless", "316l", "ss", "stainless", "inox"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Common variations and abbreviations for stainless steel"
+    source: "ASTM Material Standards"
+    tags: ["material", "steel", "corrosion-resistant"]
+
+  aluminum_synonyms:
+    id: "aluminum_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "aluminum"
+    values: ["al", "aluminium", "aluminum alloy", "aluminium alloy"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Common variations and abbreviations for aluminum"
+    source: "ASTM Material Standards"
+    tags: ["material", "aluminum", "lightweight"]
+
+  steel_synonyms:
+    id: "steel_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "steel"
+    values: ["carbon steel", "mild steel", "low carbon steel", "structural steel"]
+    confidence: 0.8
+    domain: "manufacturing"
+    description: "Common variations of steel materials"
+    source: "ASTM Material Standards"
+    tags: ["material", "steel", "structural"]
+
+  titanium_synonyms:
+    id: "titanium_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "titanium"
+    values: ["ti", "titanium alloy", "ti-6al-4v", "grade 5 titanium"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Common variations and abbreviations for titanium"
+    source: "ASTM Material Standards"
+    tags: ["material", "titanium", "aerospace"]
+
+  # Tool synonyms
+  end_mill_synonyms:
+    id: "end_mill_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "end mill"
+    values: ["endmill", "milling cutter", "mill", "end milling cutter"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Synonyms for end mill cutting tools"
+    source: "Machining Handbook"
+    tags: ["tool", "milling", "cutting"]
+
+  drill_bit_synonyms:
+    id: "drill_bit_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "drill bit"
+    values: ["drill", "twist drill", "drilling tool", "drill tool"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Synonyms for drill bit cutting tools"
+    source: "Machining Handbook"
+    tags: ["tool", "drilling", "cutting"]
+
+  cutting_tool_synonyms:
+    id: "cutting_tool_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "cutting tool"
+    values: ["tool", "cutter", "machining tool", "cutting implement"]
+    confidence: 0.8
+    domain: "manufacturing"
+    description: "General synonyms for cutting tools"
+    source: "Machining Handbook"
+    tags: ["tool", "cutting", "general"]
+
+  # Process equipment synonyms
+  lathe_synonyms:
+    id: "lathe_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "lathe"
+    values: ["turning machine", "cnc lathe", "manual lathe", "engine lathe"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Synonyms for lathe machines"
+    source: "Machine Tool Handbook"
+    tags: ["equipment", "turning", "machine"]
+
+  mill_synonyms:
+    id: "mill_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "mill"
+    values: ["milling machine", "cnc mill", "manual mill", "vertical mill", "horizontal mill"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Synonyms for milling machines"
+    source: "Machine Tool Handbook"
+    tags: ["equipment", "milling", "machine"]
+
+  # Quality and tolerance synonyms
+  precision_synonyms:
+    id: "precision_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "precision"
+    values: ["accuracy", "tolerance", "dimensional accuracy", "precision machining"]
+    confidence: 0.8
+    domain: "manufacturing"
+    description: "Synonyms related to precision and accuracy"
+    source: "Quality Control Standards"
+    tags: ["quality", "precision", "tolerance"]
+
+  # Surface finish synonyms
+  surface_finish_synonyms:
+    id: "surface_finish_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "surface finish"
+    values: ["surface roughness", "ra value", "surface texture", "finish quality"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Synonyms for surface finish specifications"
+    source: "Surface Finish Standards"
+    tags: ["quality", "surface", "finish"]

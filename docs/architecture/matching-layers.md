@@ -54,15 +54,18 @@ Each matching layer operates independently and produces normalized outputs with 
 ## Layer 1: Direct Matching
 
 ### Purpose
-The Direct Matching layer handles exact, case-insensitive string matches between requirements and capabilities. While simple, this approach provides high-confidence matches when exact terminology is used.
+The Direct Matching layer handles exact, case-insensitive string matches between requirements and capabilities, with near-miss detection using Levenshtein distance. This approach provides high-confidence matches when exact or near-exact terminology is used.
 
 ### Characteristics
 - **Computational Complexity**: O(n) - Linear time complexity
-- **Confidence Level**: High (typically 0.9-1.0) but with defensive scoring
+- **Confidence Level**: High (typically 0.8-1.0) with defensive scoring
 - **Processing Speed**: Extremely fast
-- **Failure Mode**: Detailed metadata with match quality indicators
+- **Near-miss Detection**: Levenshtein distance ≤2 character differences
+- **Metadata Tracking**: Comprehensive match quality indicators
 
 ### Implementation Details
+
+The Direct Matching layer is implemented as a domain-agnostic base class with domain-specific implementations:
 
 ```python
 @dataclass
@@ -74,6 +77,9 @@ class MatchMetadata:
     character_difference: int = 0
     case_difference: bool = False
     whitespace_difference: bool = False
+    quality: str = "perfect"  # perfect, case_diff, whitespace_diff, near_miss, no_match
+    processing_time_ms: float = 0.0
+    timestamp: str = ""
     
 @dataclass
 class MatchResult:
@@ -84,73 +90,127 @@ class MatchResult:
     confidence: float
     metadata: MatchMetadata
 
-class DirectMatcher:
-    """Implements direct string matching between requirements and capabilities."""
+class DirectMatcher(ABC):
+    """Abstract base class for direct string matching."""
     
-    def match(self, requirement: str, capabilities: List[str]) -> List[MatchResult]:
+    def __init__(self, max_distance: int = 2):
+        self.max_distance = max_distance
+    
+    def match(self, requirement: str, capability: str) -> MatchResult:
         """Perform direct string matching with detailed metadata."""
-        results = []
-        requirement_lower = requirement.lower()
+        start_time = time.time()
         
-        for capability in capabilities:
-            capability_lower = capability.lower()
+        # Normalize strings
+        req_norm = self._normalize_string(requirement)
+        cap_norm = self._normalize_string(capability)
+        
+        # Check for exact match
+        if req_norm == cap_norm:
+            confidence = self._calculate_exact_match_confidence(requirement, capability)
+            quality = self._determine_match_quality(requirement, capability)
             
-            # Check for exact match (case-insensitive)
-            if requirement_lower == capability_lower:
-                # Calculate additional match quality indicators
-                case_difference = requirement != capability
-                whitespace_difference = self._has_whitespace_difference(requirement, capability)
-                
-                # Create detailed metadata
-                metadata = MatchMetadata(
-                    method="direct_match",
-                    confidence=1.0 if not (case_difference or whitespace_difference) else 0.95,
-                    reasons=["Exact string match (case-insensitive)"],
-                    case_difference=case_difference,
-                    whitespace_difference=whitespace_difference
-                )
-                
-                # Add slight confidence penalty for non-exact case or whitespace
-                confidence = metadata.confidence
-                
-                results.append(MatchResult(
-                    requirement=requirement,
-                    capability=capability,
-                    matched=True,
+            return MatchResult(
+                requirement=requirement,
+                capability=capability,
+                matched=True,
+                confidence=confidence,
+                metadata=MatchMetadata(
+                    method="direct_exact",
                     confidence=confidence,
-                    metadata=metadata
-                ))
-            else:
-                # For non-matches, still record the attempt with detailed metadata
-                char_diff = self._levenshtein_distance(requirement_lower, capability_lower)
-                
-                # If strings are very close, record as a near-miss
-                if char_diff <= 2:  # Allow for minor typos
-                    metadata = MatchMetadata(
-                        method="direct_match",
-                        confidence=0.8,  # High but below threshold
-                        reasons=[f"Near match with {char_diff} character differences"],
-                        character_difference=char_diff
-                    )
-                    
-                    results.append(MatchResult(
-                        requirement=requirement,
-                        capability=capability,
-                        matched=False,  # Not considered a match by direct matcher
-                        confidence=0.8,
-                        metadata=metadata
-                    ))
-                
-        return results
+                    reasons=[f"Exact match: '{requirement}' == '{capability}'"],
+                    quality=quality,
+                    processing_time_ms=(time.time() - start_time) * 1000,
+                    timestamp=datetime.now().isoformat()
+                )
+            )
         
-    def _has_whitespace_difference(self, str1: str, str2: str) -> bool:
-        """Check if strings differ only in whitespace."""
-        return re.sub(r'\s+', ' ', str1.strip()) != re.sub(r'\s+', ' ', str2.strip())
+        # Check for near-miss using Levenshtein distance
+        distance = self._levenshtein_distance(req_norm, cap_norm)
+        if distance <= self.max_distance:
+            confidence = self._calculate_near_miss_confidence(distance)
+            
+            return MatchResult(
+                requirement=requirement,
+                capability=capability,
+                matched=True,
+                confidence=confidence,
+                metadata=MatchMetadata(
+                    method="direct_near_miss",
+                    confidence=confidence,
+                    reasons=[f"Near-miss match: distance={distance}"],
+                    character_difference=distance,
+                    quality="near_miss",
+                    processing_time_ms=(time.time() - start_time) * 1000,
+                    timestamp=datetime.now().isoformat()
+                )
+            )
         
-    def _levenshtein_distance(self, str1: str, str2: str) -> int:
-        """Calculate the Levenshtein distance between two strings."""
-        # Implementation of Levenshtein distance algorithm
-        # Returns the number of single-character edits needed to change str1 into str2
+        # No match
+        return MatchResult(
+            requirement=requirement,
+            capability=capability,
+            matched=False,
+            confidence=0.0,
+            metadata=MatchMetadata(
+                method="direct_no_match",
+                confidence=0.0,
+                reasons=[f"No match: distance={distance} > {self.max_distance}"],
+                character_difference=distance,
+                quality="no_match",
+                processing_time_ms=(time.time() - start_time) * 1000,
+                timestamp=datetime.now().isoformat()
+            )
+        )
+```
+
+### Domain-Specific Implementations
+
+#### Manufacturing Domain
+```python
+class MfgDirectMatcher(DirectMatcher):
+    """Direct matcher for manufacturing domain."""
+    
+    def match_materials(self, requirement: str, capability: str) -> MatchResult:
+        """Match material requirements to capabilities."""
+        return self.match(requirement, capability)
+    
+    def match_processes(self, requirement: str, capability: str) -> MatchResult:
+        """Match process requirements to capabilities."""
+        return self.match(requirement, capability)
+    
+    def match_tools(self, requirement: str, capability: str) -> MatchResult:
+        """Match tool requirements to capabilities."""
+        return self.match(requirement, capability)
+```
+
+#### Cooking Domain
+```python
+class CookingDirectMatcher(DirectMatcher):
+    """Direct matcher for cooking domain."""
+    
+    def match_ingredients(self, requirement: str, capability: str) -> MatchResult:
+        """Match ingredient requirements to capabilities."""
+        return self.match(requirement, capability)
+    
+    def match_equipment(self, requirement: str, capability: str) -> MatchResult:
+        """Match equipment requirements to capabilities."""
+        return self.match(requirement, capability)
+    
+    def match_techniques(self, requirement: str, capability: str) -> MatchResult:
+        """Match technique requirements to capabilities."""
+        return self.match(requirement, capability)
+```
+
+### Confidence Scoring
+
+The Direct Matching layer uses defensive confidence scoring:
+
+- **Perfect Match**: 1.0 (exact string match)
+- **Case Difference**: 0.95 (same content, different case)
+- **Whitespace Difference**: 0.9 (same content, different whitespace)
+- **Near-miss (1 char)**: 0.8
+- **Near-miss (2 chars)**: 0.7
+- **No Match**: 0.0
 ```
 
 ### Use Cases
@@ -171,158 +231,316 @@ class DirectMatcher:
 - Sensitive to spelling errors
 - No semantic understanding
 
-## Layer 2: Heuristic Matching
+## Layer 2: Heuristic Matching (Capability-Centric)
 
 ### Purpose
-The Heuristic Matching layer applies domain-specific rules, substitutions, and pattern matching to handle variations in terminology, common abbreviations, and known equivalences.
+The Heuristic Matching layer applies capability-centric rule-based matching using predefined knowledge about what requirements each capability can satisfy. This layer bridges the gap between exact terminology and the variations commonly found in real-world data by explicitly defining capability-to-requirement relationships.
 
 ### Characteristics
 - **Computational Complexity**: O(n×m) where m is the number of rules
 - **Confidence Level**: High (typically 0.7-0.95) with defensive scoring
 - **Processing Speed**: Fast
-- **Failure Mode**: Detailed metadata with match quality indicators and rule provenance
+- **Capability-Centric**: Rules define what requirements a capability can satisfy
+- **Bidirectional**: Supports both capability-to-requirement and requirement-to-capability matching
+- **Domain Separation**: Rules organized by domain (manufacturing, cooking, etc.)
+- **Configuration-Driven**: Rules loaded from external YAML files
+- **Extensible**: Support for horizontal (new rules) and vertical (new domains) expansion
 
 ### Implementation Details
 
+The capability-centric heuristic matching system uses a modular architecture with the following components:
+
+#### Core Data Models
+
 ```python
 @dataclass
-class MatchingRule:
-    """Defines a heuristic matching rule."""
+class CapabilityRule:
+    """Individual capability-centric matching rule."""
     id: str                      # Unique identifier for the rule
-    pattern: Union[str, Pattern]  # String or regex pattern
-    substitutions: List[str]      # Acceptable substitutions
-    confidence: float             # Base confidence for this rule
-    bidirectional: bool = True    # Apply in both directions
-    domain: str = "general"       # Domain this rule applies to
-    rationale: str = ""           # Explanation of why this rule exists
-    source: str = ""              # Source of this rule (standard, expert, etc.)
+    type: RuleType              # Rule type (capability_match, etc.)
+    capability: str             # The capability being defined
+    satisfies_requirements: List[str]  # List of requirements this capability can satisfy
+    confidence: float           # Confidence score (0.0 to 1.0)
+    domain: str                 # Target domain for the rule
+    description: str            # Human-readable description
+    source: str                 # Source of the rule (standards, documentation, etc.)
+    tags: Set[str]             # Categorization tags for organization
     
-@dataclass
-class RuleApplication:
-    """Details about how a rule was applied."""
-    rule_id: str
-    original_text: str
-    transformed_text: str
-    transformation_type: str      # e.g., "abbreviation", "unit_conversion"
-    confidence_adjustment: float  # How much confidence was adjusted
+    def can_satisfy_requirement(self, requirement: str) -> bool:
+        """Check if this capability can satisfy the given requirement."""
+        return requirement.lower().strip() in [req.lower().strip() for req in self.satisfies_requirements]
+    
+    def requirement_can_be_satisfied_by(self, requirement: str, capability: str) -> bool:
+        """Check if the requirement can be satisfied by the capability."""
+        return (capability.lower().strip() == self.capability.lower().strip() and 
+                self.can_satisfy_requirement(requirement))
 
-class HeuristicMatcher:
-    """Implements rule-based matching for requirements and capabilities."""
+@dataclass
+class CapabilityRuleSet:
+    """Collection of capability rules for a specific domain."""
+    domain: str                 # Target domain name
+    version: str                # Rule set version
+    description: str            # Domain description
+    rules: Dict[str, CapabilityRule]  # Dictionary of rules by ID
     
-    def __init__(self, rules: List[MatchingRule]):
-        self.rules = rules
-        self.rule_index = {rule.id: rule for rule in rules}
+    def find_rules_for_capability_requirement(self, capability: str, requirement: str) -> List[CapabilityRule]:
+        """Find rules where the capability can satisfy the requirement."""
+        matching_rules = []
+        for rule in self.rules.values():
+            if rule.requirement_can_be_satisfied_by(requirement, capability):
+                matching_rules.append(rule)
+        return matching_rules
+
+class CapabilityRuleManager:
+    """Central manager for all capability rule sets with configuration loading."""
+    
+    def __init__(self, rules_directory: Optional[str] = None):
+        self.rules_directory = rules_directory or self._get_default_rules_directory()
+        self.rule_sets: Dict[str, CapabilityRuleSet] = {}
         
-    def match(self, requirement: str, capabilities: List[str]) -> List[MatchResult]:
-        """Apply heuristic matching rules with detailed metadata."""
+    async def initialize(self) -> None:
+        """Load all rule sets from configuration files."""
+        await self._load_all_rule_sets()
+        
+    def find_rules_for_capability_requirement(self, domain: str, capability: str, requirement: str) -> List[CapabilityRule]:
+        """Find rules where the capability can satisfy the requirement in the specified domain."""
+        rule_set = self.get_rule_set(domain)
+        if not rule_set:
+            return []
+        return rule_set.find_rules_for_capability_requirement(capability, requirement)
+```
+
+#### Capability Matcher
+
+```python
+@dataclass
+class CapabilityMatchResult:
+    """Result of a capability matching operation with full context."""
+    requirement_object: Dict[str, Any]  # The complete requirement object
+    capability_object: Dict[str, Any]   # The complete capability object
+    requirement_field: str              # The field that was matched (e.g., "process_name")
+    capability_field: str               # The field that was matched (e.g., "process_name")
+    requirement_value: str              # The extracted value that was compared
+    capability_value: str               # The extracted value that was compared
+    matched: bool                       # Whether a match was found
+    confidence: float                   # Confidence score
+    rule_used: Optional[CapabilityRule] # The rule that was used
+    match_type: str                     # Type of match
+    domain: str                         # Domain of the match
+    transformation_details: List[str]   # Details about the matching process
+
+class CapabilityMatcher:
+    """Handles capability-centric matching logic."""
+    
+    def __init__(self, rule_manager: CapabilityRuleManager):
+        self.rule_manager = rule_manager
+        
+    async def capability_can_satisfy_requirement(self, capability: str, requirement: str, domain: str) -> bool:
+        """Check if a capability can satisfy a requirement."""
+        rules = self.rule_manager.find_rules_for_capability_requirement(domain, capability, requirement)
+        return len(rules) > 0
+    
+    async def match_requirements_to_capabilities(
+        self, 
+        requirements: List[Dict[str, Any]], 
+        capabilities: List[Dict[str, Any]], 
+        domain: str = "manufacturing",
+        requirement_field: str = "process_name",
+        capability_field: str = "process_name"
+    ) -> List[CapabilityMatchResult]:
+        """Match requirement objects to capability objects."""
         results = []
         
-        # Apply each rule to the requirement and capabilities
-        for capability in capabilities:
-            # Track all applied rules for this pair
-            applied_rules = []
-            transformed_req = requirement
-            transformed_cap = capability
-            
-            for rule in self.rules:
-                # Try applying rule in requirement->capability direction
-                req_application = self._try_apply_rule(rule, transformed_req, "requirement")
-                if req_application:
-                    applied_rules.append(req_application)
-                    transformed_req = req_application.transformed_text
+        for requirement_obj in requirements:
+            for capability_obj in capabilities:
+                # Extract the values to compare
+                requirement_value = requirement_obj.get(requirement_field, "").lower().strip()
+                capability_value = capability_obj.get(capability_field, "").lower().strip()
                 
-                # If bidirectional, try capability->requirement direction
-                if rule.bidirectional:
-                    cap_application = self._try_apply_rule(rule, transformed_cap, "capability")
-                    if cap_application:
-                        applied_rules.append(cap_application)
-                        transformed_cap = cap_application.transformed_text
-            
-            # After all rules, check if we have a match
-            if self._strings_match(transformed_req, transformed_cap):
-                # Calculate confidence based on all applied rules
-                base_confidence = 0.9  # Start with high confidence
-                adjustments = sum(app.confidence_adjustment for app in applied_rules)
-                final_confidence = max(0.5, min(0.95, base_confidence + adjustments))
+                # Find matching rules
+                rules = self.rule_manager.find_rules_for_capability_requirement(domain, capability_value, requirement_value)
                 
-                # Create detailed metadata
-                rule_ids = [app.rule_id for app in applied_rules]
-                rules_used = [self.rule_index[rule_id] for rule_id in rule_ids]
-                
-                transformations = []
-                for app in applied_rules:
-                    transformations.append(f"{app.original_text} → {app.transformed_text} ({app.transformation_type})")
-                
-                metadata = MatchMetadata(
-                    method="heuristic_match",
-                    confidence=final_confidence,
-                    reasons=transformations,
-                    rules_applied=rule_ids,
-                    original_requirement=requirement,
-                    original_capability=capability,
-                    transformed_requirement=transformed_req,
-                    transformed_capability=transformed_cap,
-                    rule_sources=[rule.source for rule in rules_used]
-                )
-                
-                results.append(MatchResult(
-                    requirement=requirement,
-                    capability=capability,
-                    matched=True,
-                    confidence=final_confidence,
-                    metadata=metadata
-                ))
-            else:
-                # If rules were applied but still no match, record as near-miss
-                if applied_rules:
-                    # Calculate similarity between transformed strings
-                    similarity = self._calculate_similarity(transformed_req, transformed_cap)
+                if rules:
+                    # Use the rule with highest confidence
+                    best_rule = max(rules, key=lambda r: r.confidence)
                     
-                    if similarity > 0.7:  # Threshold for near-misses
-                        metadata = MatchMetadata(
-                            method="heuristic_match",
-                            confidence=similarity * 0.8,  # Reduced confidence for near-misses
-                            reasons=["Rules applied but strings still differ"],
-                            rules_applied=[app.rule_id for app in applied_rules],
-                            similarity_score=similarity
-                        )
-                        
-                        results.append(MatchResult(
-                            requirement=requirement,
-                            capability=capability,
-                            matched=False,
-                            confidence=similarity * 0.8,
-                            metadata=metadata
-                        ))
-                    
-        return results
-    
-    def _try_apply_rule(self, rule: MatchingRule, text: str, direction: str) -> Optional[RuleApplication]:
-        """Try to apply a rule to text, returning details if successful."""
-        # Implementation depends on rule type (regex, substitution, etc.)
-        # Returns RuleApplication with details if rule applies, None otherwise
+                    results.append(CapabilityMatchResult(
+                        requirement_object=requirement_obj,
+                        capability_object=capability_obj,
+                        requirement_field=requirement_field,
+                        capability_field=capability_field,
+                        requirement_value=requirement_value,
+                        capability_value=capability_value,
+                        matched=True,
+                        confidence=best_rule.confidence,
+                        rule_used=best_rule,
+                        domain=domain,
+                        transformation_details=[f"Capability '{capability_value}' can satisfy requirement '{requirement_value}'"]
+                    ))
+                else:
+                    results.append(CapabilityMatchResult(
+                        requirement_object=requirement_obj,
+                        capability_object=capability_obj,
+                        requirement_field=requirement_field,
+                        capability_field=capability_field,
+                        requirement_value=requirement_value,
+                        capability_value=capability_value,
+                        matched=False,
+                        confidence=0.0,
+                        domain=domain
+                    ))
         
-        # Example for regex pattern with substitution function
-        if isinstance(rule.pattern, Pattern):
-            match = rule.pattern.search(text)
-            if match:
-                for sub in rule.substitutions:
-                    if callable(sub):
-                        # Function-based substitution
-                        try:
-                            new_text = text[:match.start()] + sub(match) + text[match.end():]
-                            return RuleApplication(
-                                rule_id=rule.id,
-                                original_text=text,
-                                transformed_text=new_text,
-                                transformation_type=f"{direction}_transformation",
-                                confidence_adjustment=-0.05  # Slight penalty for transformation
-                            )
-                        except Exception:
-                            continue
-                    else:
-                        # String-based substitution
-                        new_text = text[:match.start()] + sub + text[match.end():]
+        return results
+```
+
+#### Rule Configuration
+
+Rules are stored in YAML files in the `src/core/matching/capability_rules/` directory:
+
+```yaml
+# src/core/matching/capability_rules/manufacturing.yaml
+domain: manufacturing
+version: "1.0.0"
+description: "Capability-centric rules for manufacturing domain - defines what requirements each capability can satisfy"
+
+rules:
+  cnc_machining_capability:
+    id: "cnc_machining_capability"
+    type: "capability_match"
+    capability: "cnc machining"
+    satisfies_requirements: ["milling", "machining", "material removal", "subtractive manufacturing", "cnc", "computer numerical control"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "CNC machining can satisfy various milling and machining requirements"
+    source: "Manufacturing Standards Institute"
+    tags: ["machining", "automation", "subtractive"]
+
+  additive_manufacturing_capability:
+    id: "additive_manufacturing_capability"
+    type: "capability_match"
+    capability: "3d printing"
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "additive fabrication", "3d printing", "3-d printing"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "3D printing can satisfy additive manufacturing requirements"
+    source: "Additive Manufacturing Standards"
+    tags: ["additive", "prototyping", "3d"]
+```
+
+#### Integration with Matching Service
+
+The capability-centric heuristic rules system is integrated into the MatchingService as Layer 2:
+
+```python
+# Layer 1: Direct Matching (exact and near-miss)
+if self._direct_match(req_process, cap_process, domain="manufacturing"):
+    return True
+
+# Layer 2: Heuristic Matching (capability-centric rules)
+if await self._heuristic_match(req_process, cap_process, domain="manufacturing"):
+    return True
+```
+
+### Capability-Centric Rule Examples
+
+The capability-centric heuristic rules system defines what requirements each capability can satisfy:
+
+#### Manufacturing Capabilities
+```yaml
+cnc_machining_capability:
+  capability: "cnc machining"
+  satisfies_requirements: ["milling", "machining", "material removal", "subtractive manufacturing"]
+  confidence: 0.95
+
+surface_finish_capability:
+  capability: "surface finishing"
+  satisfies_requirements: ["surface finish", "surface roughness", "ra value", "surface texture", "finish quality", "surface treatment"]
+  confidence: 0.85
+
+welding_capability:
+  capability: "welding"
+  satisfies_requirements: ["welding", "weld", "joining", "metal joining", "fusion welding", "arc welding"]
+  confidence: 0.9
+```
+
+#### Cooking Capabilities
+```yaml
+sauté_capability:
+  capability: "sauté pan"
+  satisfies_requirements: ["sauté", "saute", "sauted", "sautéed", "pan-fry", "pan fry", "frying", "sautéing"]
+  confidence: 0.95
+
+roasting_capability:
+  capability: "oven"
+  satisfies_requirements: ["roast", "roasted", "roasting", "bake", "baked", "baking", "oven cook", "oven cooking"]
+  confidence: 0.9
+
+pot_capability:
+  capability: "saucepan"
+  satisfies_requirements: ["pot", "saucepan", "cooking pot", "stock pot", "soup pot", "boiling"]
+  confidence: 0.9
+```
+
+### Key Differences from Traditional Heuristic Rules
+
+The capability-centric approach differs fundamentally from traditional synonym-based rules:
+
+#### Traditional Approach (❌ Removed)
+```yaml
+# Old synonym-based approach
+cnc_synonyms:
+  key: "cnc"
+  values: ["computer numerical control", "cnc machining"]
+  # This creates requirement-to-requirement relationships
+```
+
+#### Capability-Centric Approach (✅ Current)
+```yaml
+# New capability-centric approach
+cnc_machining_capability:
+  capability: "cnc machining"
+  satisfies_requirements: ["milling", "machining", "material removal"]
+  # This creates capability-to-requirement relationships
+```
+
+### Advantages of Capability-Centric Rules
+
+1. **Clear Business Logic**: Rules explicitly define what requirements a capability can satisfy
+2. **Bidirectional Matching**: Supports both capability-to-requirement and requirement-to-capability matching
+3. **Domain Separation**: Manufacturing and cooking rules are completely separate
+4. **Extensible**: Easy to add new capabilities and requirements
+5. **Traceable**: Full context preservation in match results
+6. **Confidence-Based**: Each rule has a confidence score for match quality
+additive_manufacturing_synonyms:
+  type: "synonym"
+  key: "additive manufacturing"
+  values: ["3d printing", "3-d printing", "rapid prototyping"]
+  confidence: 0.9
+```
+
+#### Material Rules
+Map material variations:
+```yaml
+stainless_steel_synonyms:
+  type: "synonym"
+  key: "stainless steel"
+  values: ["304 stainless", "316 stainless", "ss", "stainless"]
+  confidence: 0.85
+```
+
+### Domain Examples
+
+#### Manufacturing Domain
+- **Abbreviations**: CNC, CAD, CAM, FMS
+- **Process Synonyms**: Additive manufacturing ↔ 3D printing
+- **Material Synonyms**: Stainless steel variations, aluminum types
+- **Tool Synonyms**: End mill variations, drill bit types
+
+#### Cooking Domain
+- **Technique Synonyms**: Sauté ↔ Pan-fry
+- **Ingredient Synonyms**: Onion types, garlic variations
+- **Equipment Synonyms**: Knife types, pan variations
+- **Measurement Synonyms**: Teaspoon/tablespoon abbreviations
                         return RuleApplication(
                             rule_id=rule.id,
                             original_text=text,

@@ -1,0 +1,255 @@
+domain: cooking
+version: "1.0.0"
+description: "Heuristic matching rules for cooking and food preparation domain"
+
+metadata:
+  maintainer: "OME Cooking Team"
+  last_updated: "2024-01-01"
+  source: "Culinary terminology and cooking standards"
+
+rules:
+  # Cooking technique synonyms
+  saute_synonyms:
+    id: "saute_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "sauté"
+    values: ["saute", "sauted", "sautéed", "pan-fry", "pan fry"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Variations of sauté cooking technique"
+    source: "Culinary Arts Institute"
+    tags: ["technique", "cooking", "frying"]
+
+  braise_synonyms:
+    id: "braise_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "braise"
+    values: ["braised", "braising", "slow cook", "slow-cook"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Variations of braising cooking technique"
+    source: "Culinary Arts Institute"
+    tags: ["technique", "cooking", "slow"]
+
+  roast_synonyms:
+    id: "roast_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "roast"
+    values: ["roasted", "roasting", "bake", "baked", "oven cook"]
+    confidence: 0.85
+    domain: "cooking"
+    description: "Variations of roasting cooking technique"
+    source: "Culinary Arts Institute"
+    tags: ["technique", "cooking", "oven"]
+
+  # Ingredient synonyms
+  onion_synonyms:
+    id: "onion_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "onion"
+    values: ["yellow onion", "white onion", "sweet onion", "cooking onion"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Common types of cooking onions"
+    source: "Culinary Ingredient Guide"
+    tags: ["ingredient", "vegetable", "aromatic"]
+
+  garlic_synonyms:
+    id: "garlic_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "garlic"
+    values: ["garlic clove", "fresh garlic", "garlic bulb"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Variations of garlic ingredient"
+    source: "Culinary Ingredient Guide"
+    tags: ["ingredient", "aromatic", "seasoning"]
+
+  butter_synonyms:
+    id: "butter_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "butter"
+    values: ["unsalted butter", "salted butter", "sweet butter"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Types of butter for cooking"
+    source: "Culinary Ingredient Guide"
+    tags: ["ingredient", "dairy", "fat"]
+
+  olive_oil_synonyms:
+    id: "olive_oil_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "olive oil"
+    values: ["extra virgin olive oil", "evoo", "virgin olive oil", "olive oil"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Types of olive oil"
+    source: "Culinary Ingredient Guide"
+    tags: ["ingredient", "oil", "fat"]
+
+  # Equipment synonyms
+  knife_synonyms:
+    id: "knife_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "knife"
+    values: ["chef knife", "chef's knife", "cooking knife", "kitchen knife"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Types of kitchen knives"
+    source: "Kitchen Equipment Guide"
+    tags: ["equipment", "cutting", "tool"]
+
+  cutting_board_synonyms:
+    id: "cutting_board_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "cutting board"
+    values: ["chopping board", "cutting surface", "prep board", "work surface"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Variations of cutting boards"
+    source: "Kitchen Equipment Guide"
+    tags: ["equipment", "preparation", "surface"]
+
+  pan_synonyms:
+    id: "pan_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "pan"
+    values: ["frying pan", "skillet", "sauté pan", "cooking pan"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Types of cooking pans"
+    source: "Kitchen Equipment Guide"
+    tags: ["equipment", "cooking", "vessel"]
+
+  pot_synonyms:
+    id: "pot_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "pot"
+    values: ["large saucepan", "cooking pot", "stock pot", "soup pot"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Types of cooking pots"
+    source: "Kitchen Equipment Guide"
+    tags: ["equipment", "cooking", "vessel"]
+
+  oven_synonyms:
+    id: "oven_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "oven"
+    values: ["conventional oven", "electric oven", "gas oven", "baking oven", "range", "hob"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Types of ovens"
+    source: "Kitchen Equipment Guide"
+    tags: ["equipment", "baking", "appliance"]
+
+  # Measurement synonyms
+  teaspoon_synonyms:
+    id: "teaspoon_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "teaspoon"
+    values: ["tsp", "tsp.", "tea spoon", "small spoon"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Abbreviations and variations of teaspoon"
+    source: "Cooking Measurement Standards"
+    tags: ["measurement", "volume", "spoon"]
+
+  tablespoon_synonyms:
+    id: "tablespoon_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "tablespoon"
+    values: ["tbsp", "tbsp.", "tbl", "tbl.", "table spoon", "large spoon"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Abbreviations and variations of tablespoon"
+    source: "Cooking Measurement Standards"
+    tags: ["measurement", "volume", "spoon"]
+
+  cup_synonyms:
+    id: "cup_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "cup"
+    values: ["c", "c.", "measuring cup", "cup measure"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Abbreviations and variations of cup"
+    source: "Cooking Measurement Standards"
+    tags: ["measurement", "volume", "cup"]
+
+  # Cooking time synonyms
+  minutes_synonyms:
+    id: "minutes_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "minutes"
+    values: ["min", "mins", "minute", "min."]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Abbreviations for minutes"
+    source: "Cooking Time Standards"
+    tags: ["time", "duration", "measurement"]
+
+  hours_synonyms:
+    id: "hours_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "hours"
+    values: ["hr", "hrs", "hour", "hr."]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Abbreviations for hours"
+    source: "Cooking Time Standards"
+    tags: ["time", "duration", "measurement"]
+
+  # Preparation method synonyms
+  dice_synonyms:
+    id: "dice_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "dice"
+    values: ["diced", "dicing", "cube", "cubed", "cubing"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Variations of dicing preparation method"
+    source: "Culinary Preparation Guide"
+    tags: ["preparation", "cutting", "technique"]
+
+  chop_synonyms:
+    id: "chop_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "chop"
+    values: ["chopped", "chopping", "rough chop", "fine chop"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Variations of chopping preparation method"
+    source: "Culinary Preparation Guide"
+    tags: ["preparation", "cutting", "technique"]
+
+  mince_synonyms:
+    id: "mince_synonyms"
+    type: "synonym"
+    direction: "bidirectional"
+    key: "mince"
+    values: ["minced", "mincing", "finely chop", "very fine chop"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Variations of mincing preparation method"
+    source: "Culinary Preparation Guide"
+    tags: ["preparation", "cutting", "technique"]

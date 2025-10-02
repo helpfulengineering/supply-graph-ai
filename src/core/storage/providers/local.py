@@ -27,6 +27,11 @@ class LocalStorageProvider(StorageProvider):
         """No cleanup needed for local storage"""
         self._connected = False
     
+    async def ensure_connected(self) -> None:
+        """Ensure connection to local storage"""
+        if not self._connected:
+            await self.connect()
+    
     def _get_object_path(self, key: str) -> Path:
         """Get filesystem path for an object"""
         return self.base_path / key

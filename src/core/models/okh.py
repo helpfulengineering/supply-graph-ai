@@ -233,12 +233,14 @@ class OKHManifest:
     """Primary OKH manifest structure representing an open hardware module"""
     # Required fields
     title: str
-    repo: str  # URL to repository
     version: str
     license: License
     licensor: Union[str, Person, List[Union[str, Person]]]
     documentation_language: Union[str, List[str]]
     function: str
+    
+    # Optional fields
+    repo: Optional[str] = None  # URL to repository (optional for inline manifests)
     
     # Unique identifier
     id: UUID = field(default_factory=uuid4)
@@ -308,7 +310,6 @@ class OKHManifest:
         """
         required_fields = [
             self.title,
-            self.repo,
             self.version,
             self.license,
             self.licensor,
@@ -319,7 +320,7 @@ class OKHManifest:
         if not all(required_fields):
             missing = [
                 field for field, value in zip(
-                    ["title", "repo", "version", "license", "licensor", 
+                    ["title", "version", "license", "licensor", 
                      "documentation_language", "function"],
                     required_fields
                 ) if not value
@@ -424,12 +425,12 @@ class OKHManifest:
         # Initialize basic instance
         instance = cls(
             title=data.get('title', ''),
-            repo=data.get('repo', ''),
             version=data.get('version', ''),
             license=license_obj,
             licensor=cls._parse_agent(data.get('licensor')),
             documentation_language=data.get('documentation_language', ''),
-            function=data.get('function', '')
+            function=data.get('function', ''),
+            repo=data.get('repo')  # Optional field, defaults to None if not provided
         )
         
         # Set optional fields
