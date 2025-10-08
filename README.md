@@ -4,21 +4,8 @@
 
 The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. The system matches requirements (what needs to be done) with capabilities (what can be done) to create viable solutions.
 
-## Current Development Status
-
-- **Phase**: Proof of Concept / MVP
-- **Primary Domain**: Cooking (for concept validation)
-- **Target Domain**: Manufacturing (OKH/OKW integration)
 
 ## Quick Start for Developers
-
-### Prerequisites
-
-- Python 3.8+
-- FastAPI
-- NetworkX
-- Pydantic
-- PyYAML
 
 ### Installation
 
@@ -41,7 +28,7 @@ This README provides a quick start guide and basic project information. For comp
 
 ### Building Documentation Locally
 
-The OME documentation is built using [MkDocs](https://www.mkdocs.org/), a fast and simple static site generator that's excellent for project documentation.
+The OME documentation is built using [MkDocs](https://www.mkdocs.org/), a simple static site generator for project documentation.
 
 To build and view the documentation locally:
 
@@ -55,7 +42,7 @@ pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
 mkdocs serve
 ```
 
-4. Open your browser to `http://127.0.0.1:8000`
+4. Open your browser to `http://localhost:8000/`
 
 ### Documentation Structure
 
@@ -94,13 +81,18 @@ open-matching-engine/
 │   ├── core/               # Core framework components
 │   │   ├── api/            # API endpoints
 │   │   ├── domains/        # Domain implementations
+│   │   ├── matching/       # Matching Rules Manager
 │   │   ├── models/         # Data models
 │   │   ├── registry/       # Domain registry
-│   │   └── services/       # Core services
-│   └── utils/              # Utility functions
+│   │   ├── services/       # Core services
+│   │   ├── storage/        # Storage service for remote file mgmt
+│   │   └── utils/          # Utility functions
+│   └── config/             # Config management
+├── synth/                  # synthetic data for development, remove in prod
 ├── tests/                  # Test cases
 ├── mkdocs.yml              # Documentation configuration
-└── requirements.txt        # Project dependencies
+├── requirements.txt        # Project dependencies
+└── run.py                  # FastAPI server on uvicorn
 ```
 
 ## Running the Application Locally
@@ -112,6 +104,6 @@ Note: You may have add a directory called "logs" locally if the command below in
 python run.py
 
 # Visit the API documentation at:
-http://127.0.0.1:8000/docs
+http://127.0.0.1:8001/v1/docs
 ```
 

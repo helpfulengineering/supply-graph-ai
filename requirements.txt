@@ -1,9 +1,13 @@
 # documentation
 mkdocs
 mkdocs-mermaid2-plugin
+mkdocs-material
+
+# core systems
 networkx
 fastapi
 uvicorn
+python-multipart
 
 # storage
 aiofiles>=23.2.1
