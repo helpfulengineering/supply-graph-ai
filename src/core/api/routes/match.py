@@ -78,13 +78,13 @@ async def match_requirements_to_capabilities(
 
         # 3. (Optional) Store the OKH manifest for audit/history
         try:
-            okh_handler = storage_service.get_domain_handler("okh")
+            okh_handler = await storage_service.get_domain_handler("okh")
             await okh_handler.save(okh_manifest)
         except Exception as e:
             logger.warning(f"Failed to store OKH manifest: {e}")
 
         # 4. Load OKW facilities from storage
-        okw_handler = storage_service.get_domain_handler("okw")
+        okw_handler = await storage_service.get_domain_handler("okw")
         facilities = []
         try:
             # Get all objects from storage (these are the actual OKW files)
@@ -378,7 +378,7 @@ async def match_requirements_from_file(
             okw_filters["materials"] = [mat.strip() for mat in materials.split(',')]
         
         # Store the OKH manifest
-        okh_handler = storage_service.get_domain_handler("okh")
+        okh_handler = await storage_service.get_domain_handler("okh")
         await okh_handler.save(okh_manifest)
         
         # Load OKW facilities from storage

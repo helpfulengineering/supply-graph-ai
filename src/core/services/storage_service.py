@@ -1,6 +1,6 @@
 import logging
 import json
-from typing import Optional, Dict, Any, List, TypeVar, Generic, Type
+from typing import Optional, Dict, Any, List, TypeVar, Generic, Type, Tuple
 from datetime import datetime
 from uuid import UUID
 
@@ -59,7 +59,7 @@ class StorageService:
             logger.error(f"Failed to configure storage service: {e}")
             raise
     
-    def get_domain_handler(self, domain: str) -> 'DomainStorageHandler':
+    async def get_domain_handler(self, domain: str) -> 'DomainStorageHandler':
         """Get or create the storage handler for a specific domain"""
         if domain not in self._domain_handlers:
             handler_class = StorageRegistry.get_handler(domain)
@@ -367,11 +367,16 @@ class DomainStorageHandler(Generic[T]):
         self,
         limit: Optional[int] = None,
         offset: Optional[int] = None
-    ) -> List[dict]:
+    ) -> Tuple[List[dict], int]:
         """List all domain objects as dicts (for service compatibility)"""
         objects = await self.list(limit=limit, offset=offset)
-        # Optionally, could load and serialize each object fully here if needed
-        return objects
+        
+        # Get total count by listing all objects without limit/offset
+        total_count = 0
+        async for obj in self.storage_service.manager.list_objects(prefix=f"{self.domain}/"):
+            total_count += 1
+        
+        return objects, total_count
 
     async def delete_object(self, obj_id: UUID) -> bool:
         """Delete a domain object by ID (for service compatibility)"""

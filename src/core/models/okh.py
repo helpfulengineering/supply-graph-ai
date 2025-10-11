@@ -433,6 +433,10 @@ class OKHManifest:
             repo=data.get('repo')  # Optional field, defaults to None if not provided
         )
         
+        # Set the ID from data if provided
+        if 'id' in data and data['id']:
+            instance.id = UUID(data['id'])
+        
         # Set optional fields
         for field in [
             'description', 'intended_use', 'keywords', 'project_link',

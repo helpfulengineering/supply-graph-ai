@@ -83,3 +83,10 @@ class OKHExtractRequest(BaseModel):
     """Request model for extracting requirements from an OKH object"""
     # Required fields only
     content: Dict[str, Any]
+
+class OKHUploadRequest(BaseModel):
+    """Request model for uploading an OKH file"""
+    # Optional fields for upload metadata
+    description: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+    validation_context: Optional[str] = None

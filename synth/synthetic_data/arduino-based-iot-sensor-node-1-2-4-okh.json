@@ -1,0 +1,395 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "a736334a-efd3-4745-a59f-a386ba4abdeb",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/michellemoore/arduino-based-iot-sensor-node",
+  "version": "1.2.4",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Stephanie Rowe",
+    "email": "michelemason@example.com",
+    "affiliation": "Briggs, Hart and Massey",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "ytorres"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Nice which walk skill simply.",
+  "intended_use": "Authority year give ball determine.",
+  "keywords": [
+    "customizable",
+    "prototype",
+    "gear"
+  ],
+  "contact": {
+    "name": "Justin Johnson",
+    "email": "julia69@example.net",
+    "affiliation": "Webb, Matthews and Henderson",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "uhardin"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Patricia Simmons",
+      "email": "david59@example.org",
+      "affiliation": "Mckenzie LLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "burgessjohn"
+        }
+      ]
+    },
+    {
+      "name": "Dr. Katherine Wilson",
+      "email": "hensondavid@example.com",
+      "affiliation": "Davis-Snyder",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "haydenkeith"
+        }
+      ]
+    },
+    {
+      "name": "Tonya Carson",
+      "email": "woodardchristina@example.net",
+      "affiliation": "Chavez Inc",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "smoore"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Fitzpatrick, Knapp and Jackson",
+    "url": "https://bridges.com",
+    "email": "contact@johnson-ruiz.com"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/weekselizabeth/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.4"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/doughertyallen/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/victoria15/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/uwolfe/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/collinsrussell/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/gregorybrian/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/cunninghamwalter/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/mark30/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/vanessayu/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/crios/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.8"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/ocantrell/project/raw/main/docs/pcb_assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/nelsondavid/project/raw/main/docs/3d_printing_setup_and_parameters.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/holmesmichael/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/faulknerjoshua/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.5"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [
+    "PCB mill",
+    "Soldering station",
+    "Nozzle",
+    "Wrench set",
+    "Screwdriver set",
+    "Reflow oven",
+    "Crimping tool",
+    "Oscilloscope",
+    "Heat gun",
+    "Filament",
+    "Cable ties",
+    "Pliers"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 42.87,
+      "unit": "kg",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit"
+    ],
+    "outer_dimensions": {
+      "length": 338,
+      "width": 402,
+      "height": 153
+    },
+    "process_requirements": [
+      {
+        "process_name": "PCB",
+        "parameters": {
+          "board_thickness": "1.6mm",
+          "copper_thickness": "35μm",
+          "layers": 4
+        },
+        "validation_criteria": {
+          "trace_width": "≥0.1mm",
+          "via_diameter": "≥0.2mm"
+        },
+        "required_tools": [
+          "PCB mill",
+          "Soldering station",
+          "Multimeter"
+        ],
+        "notes": "Process notes: Save recently political test nor international those his."
+      },
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "10%",
+          "temperature": "231°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Agreement word pretty case employee long nothing."
+      }
+    ],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": "Manufacturing notes: Brother stuff turn station adult which wonder."
+  },
+  "bom": "https://github.com/denniscoleman/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "IPC-A-610",
+      "publisher": "IPC",
+      "reference": "IPC-A-610",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "PCB"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "c458d8d4-90be-499e-8ae1-b28331840ee7",
+      "source": [
+        "https://github.com/adam13/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/david90/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/hallsusan/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/lindaholloway/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": {
+        "length": 199,
+        "width": 10,
+        "height": 42
+      },
+      "mass": 762.53,
+      "manufacturing_params": {
+        "board_thickness": "1.6mm",
+        "copper_thickness": "35μm"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "23c9c522-db2d-47d9-8054-acf4a865bc68",
+      "source": [
+        "https://github.com/michaelkimberly/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/bsmith/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/matthewsscott/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/darrencalderon/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Copper",
+      "outer_dimensions": {
+        "length": 91,
+        "width": 190,
+        "height": 93
+      },
+      "mass": 111.82,
+      "manufacturing_params": {
+        "board_thickness": "1.6mm",
+        "copper_thickness": "35μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

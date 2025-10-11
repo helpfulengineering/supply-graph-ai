@@ -19,6 +19,7 @@ from ..models.okw.response import (
     SuccessResponse
 )
 from ...services.storage_service import StorageService
+from ...services.okw_service import OKWService
 from ...models.okw import ManufacturingFacility
 from ...utils.logging import get_logger
 
@@ -31,17 +32,52 @@ router = APIRouter(tags=["okw"])
 async def get_storage_service() -> StorageService:
     return await StorageService.get_instance()
 
+# Dependency to get OKW service
+async def get_okw_service():
+    return await OKWService.get_instance()
+
 @router.post("/create", response_model=OKWResponse, status_code=status.HTTP_201_CREATED)
-async def create_okw(request: OKWCreateRequest):
+async def create_okw(
+    request: OKWCreateRequest,
+    okw_service: OKWService = Depends(get_okw_service)
+):
     """Create a new OKW facility"""
-    # Placeholder implementation
-    return OKWResponse(
-        id=UUID("00000000-0000-0000-0000-000000000000"),
-        name=request.name,
-        location=request.location,
-        facility_status=request.facility_status,
-        access_type=request.access_type
-    )
+    try:
+        # Convert request to facility data
+        facility_data = request.dict()
+        
+        # Create facility using service
+        facility = await okw_service.create(facility_data)
+        
+        # Convert to response format
+        location_dict = facility.location.to_dict() if hasattr(facility.location, 'to_dict') else {
+            "address": facility.location.address.to_dict() if hasattr(facility.location.address, 'to_dict') else {
+                "street": getattr(facility.location.address, 'street', ''),
+                "city": getattr(facility.location.address, 'city', ''),
+                "region": getattr(facility.location.address, 'region', ''),
+                "postal_code": getattr(facility.location.address, 'postal_code', ''),
+                "country": getattr(facility.location.address, 'country', '')
+            },
+            "coordinates": {
+                "latitude": getattr(facility.location, 'latitude', None),
+                "longitude": getattr(facility.location, 'longitude', None)
+            }
+        }
+        
+        return {
+            "id": str(facility.id),
+            "name": facility.name,
+            "location": location_dict,
+            "facility_status": facility.facility_status,
+            "access_type": facility.access_type,
+            "manufacturing_processes": facility.manufacturing_processes,
+            "equipment": [eq.to_dict() for eq in facility.equipment] if facility.equipment else [],
+            "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating OKW facility: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error creating OKW facility: {str(e)}")
 
 @router.get("/search", response_model=OKWListResponse)
 async def search_okw(
@@ -185,71 +221,66 @@ async def search_okw(
         raise HTTPException(status_code=500, detail=f"Error searching OKW facilities: {str(e)}")
 
 @router.get("/{id}", response_model=OKWResponse)
-async def get_okw(id: UUID = Path(..., title="The ID of the OKW facility")):
+async def get_okw(
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service)
+):
     """Get an OKW facility by ID"""
-    # Placeholder implementation - return 404 for now
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"OKW facility with ID {id} not found"
-    )
+    try:
+        facility = await okw_service.get(id)
+        if not facility:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKW facility with ID {id} not found"
+            )
+        
+        # Convert to response format
+        location_dict = facility.location.to_dict() if hasattr(facility.location, 'to_dict') else {
+            "address": facility.location.address.to_dict() if hasattr(facility.location.address, 'to_dict') else {
+                "street": getattr(facility.location.address, 'street', ''),
+                "city": getattr(facility.location.address, 'city', ''),
+                "region": getattr(facility.location.address, 'region', ''),
+                "postal_code": getattr(facility.location.address, 'postal_code', ''),
+                "country": getattr(facility.location.address, 'country', '')
+            },
+            "coordinates": {
+                "latitude": getattr(facility.location, 'latitude', None),
+                "longitude": getattr(facility.location, 'longitude', None)
+            }
+        }
+        
+        return {
+            "id": str(facility.id),
+            "name": facility.name,
+            "location": location_dict,
+            "facility_status": facility.facility_status,
+            "access_type": facility.access_type,
+            "manufacturing_processes": facility.manufacturing_processes,
+            "equipment": [eq.to_dict() for eq in facility.equipment] if facility.equipment else [],
+            "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting OKW facility {id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error getting OKW facility: {str(e)}")
 
 @router.get("", response_model=OKWListResponse)
 async def list_okw(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     filter: Optional[str] = Query(None, description="Filter criteria"),
-    storage_service: StorageService = Depends(get_storage_service)
+    okw_service: OKWService = Depends(get_okw_service)
 ):
     """List OKW facilities from storage"""
     try:
-        # Load OKW facilities from storage (same logic as matching route)
-        facilities = []
-        try:
-            # Get all objects from storage (these are the actual OKW files)
-            objects = []
-            async for obj in storage_service.manager.list_objects():
-                objects.append(obj)
-            
-            logger.info(f"Found {len(objects)} objects in storage")
-            
-            # Load and parse each OKW file
-            for obj in objects:
-                try:
-                    # Read the file content
-                    data = await storage_service.manager.get_object(obj["key"])
-                    content = data.decode('utf-8')
-                    
-                    # Parse based on file extension
-                    if obj["key"].endswith(('.yaml', '.yml')):
-                        okw_data = yaml.safe_load(content)
-                    elif obj["key"].endswith('.json'):
-                        okw_data = json.loads(content)
-                    else:
-                        logger.warning(f"Skipping unsupported file format: {obj['key']}")
-                        continue
-                    
-                    # Create ManufacturingFacility object
-                    facility = ManufacturingFacility.from_dict(okw_data)
-                    facilities.append(facility)
-                    logger.debug(f"Loaded OKW facility from {obj['key']}: {facility.name}")
-                    
-                except Exception as e:
-                    logger.error(f"Failed to load OKW facility from {obj['key']}: {e}")
-                    continue
-            
-            logger.info(f"Loaded {len(facilities)} OKW facilities from storage.")
-        except Exception as e:
-            logger.error(f"Failed to list/load OKW facilities: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to load OKW facilities: {str(e)}")
-
-        # Apply pagination
-        start_idx = (page - 1) * page_size
-        end_idx = start_idx + page_size
-        paginated_facilities = facilities[start_idx:end_idx]
+        # Call service to list OKW facilities
+        facilities, total = await okw_service.list(page, page_size, None)
         
-        # Convert to response format
+        # Convert ManufacturingFacility objects to response format
         results = []
-        for facility in paginated_facilities:
+        for facility in facilities:
             # Convert Location object to dict for serialization
             location_dict = facility.location.to_dict() if hasattr(facility.location, 'to_dict') else {
                 "address": facility.location.address.to_dict() if hasattr(facility.location.address, 'to_dict') else {
@@ -278,7 +309,7 @@ async def list_okw(
         
         return OKWListResponse(
             results=results,
-            total=len(facilities),
+            total=total,
             page=page,
             page_size=page_size
         )
@@ -290,25 +321,92 @@ async def list_okw(
 @router.put("/{id}", response_model=OKWResponse)
 async def update_okw(
     request: OKWUpdateRequest,
-    id: UUID = Path(..., title="The ID of the OKW facility")
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service)
 ):
     """Update an OKW facility"""
-    # Placeholder implementation - return 404 for now
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail=f"OKW facility with ID {id} not found"
-    )
+    try:
+        # Check if facility exists
+        existing_facility = await okw_service.get(id)
+        if not existing_facility:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKW facility with ID {id} not found"
+            )
+        
+        # Convert request to facility data
+        facility_data = request.dict()
+        facility_data["id"] = str(id)  # Ensure ID is preserved
+        
+        # Update facility using service
+        facility = await okw_service.update(id, facility_data)
+        
+        # Convert to response format
+        location_dict = facility.location.to_dict() if hasattr(facility.location, 'to_dict') else {
+            "address": facility.location.address.to_dict() if hasattr(facility.location.address, 'to_dict') else {
+                "street": getattr(facility.location.address, 'street', ''),
+                "city": getattr(facility.location.address, 'city', ''),
+                "region": getattr(facility.location.address, 'region', ''),
+                "postal_code": getattr(facility.location.address, 'postal_code', ''),
+                "country": getattr(facility.location.address, 'country', '')
+            },
+            "coordinates": {
+                "latitude": getattr(facility.location, 'latitude', None),
+                "longitude": getattr(facility.location, 'longitude', None)
+            }
+        }
+        
+        return {
+            "id": str(facility.id),
+            "name": facility.name,
+            "location": location_dict,
+            "facility_status": facility.facility_status,
+            "access_type": facility.access_type,
+            "manufacturing_processes": facility.manufacturing_processes,
+            "equipment": [eq.to_dict() for eq in facility.equipment] if facility.equipment else [],
+            "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating OKW facility {id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error updating OKW facility: {str(e)}")
 
 @router.delete("/{id}", response_model=SuccessResponse)
 async def delete_okw(
-    id: UUID = Path(..., title="The ID of the OKW facility")
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service)
 ):
     """Delete an OKW facility"""
-    # Placeholder implementation
-    return SuccessResponse(
-        success=True,
-        message=f"OKW facility with ID {id} deleted successfully"
-    )
+    try:
+        # Check if facility exists
+        existing_facility = await okw_service.get(id)
+        if not existing_facility:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKW facility with ID {id} not found"
+            )
+        
+        # Delete facility using service
+        success = await okw_service.delete(id)
+        
+        if success:
+            return SuccessResponse(
+                success=True,
+                message=f"OKW facility with ID {id} deleted successfully"
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to delete OKW facility with ID {id}"
+            )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting OKW facility {id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error deleting OKW facility: {str(e)}")
 
 @router.post("/validate", response_model=OKWValidationResponse)
 async def validate_okw(request: OKWValidateRequest):

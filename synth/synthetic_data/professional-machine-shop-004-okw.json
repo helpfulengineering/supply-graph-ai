@@ -1,0 +1,329 @@
+{
+  "id": "d00b5fa3-0142-4cab-8694-3bdae781422b",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "6574",
+      "street": "Peters Mountain",
+      "city": "North Seanport",
+      "region": "Kentucky",
+      "country": "Pakistan",
+      "postcode": "55384"
+    },
+    "gps_coordinates": "45.430843, -65.642228",
+    "directions": "Located across from Mason, Davis and Jones",
+    "city": "North Seanport",
+    "country": "Pakistan"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Thomas Inc",
+    "location": {
+      "address": {
+        "number": "1912",
+        "street": "Anthony Field",
+        "city": "West Charles",
+        "region": "Iowa",
+        "country": "Estonia",
+        "postcode": "32975"
+      },
+      "gps_coordinates": "30.324523, -111.677205",
+      "directions": "Located behind Munoz-Gibson",
+      "city": "West Charles",
+      "country": "Estonia"
+    },
+    "contact_person": "Jose Jones",
+    "bio": "Established in 2005, we specialize in Fully-configurable web-enabled Graphical User Interface",
+    "website": "https://richards.com",
+    "languages": [
+      "es",
+      "fr"
+    ],
+    "mailing_list": "matthewbruce@lists.meadows.info",
+    "images": [
+      "images/add.jpg",
+      "images/fish.jpg"
+    ],
+    "contact": {
+      "landline": "+1-598-894-2889",
+      "mobile": "+1-797-532-8273",
+      "email": "info@kelly-torres.com",
+      "whatsapp": "+1-250-954-1102"
+    },
+    "social_media": {
+      "twitter": "@cameronbryant",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Davis PLC",
+    "location": {
+      "address": {
+        "number": "5751",
+        "street": "Lori Views",
+        "city": "Brooksfort",
+        "region": "Nebraska",
+        "country": "Tokelau",
+        "postcode": "08966"
+      },
+      "gps_coordinates": "32.735136, -115.202247",
+      "directions": "Located behind Robbins Inc",
+      "city": "Brooksfort",
+      "country": "Tokelau"
+    },
+    "contact_person": "Charles Ellis",
+    "bio": "Established in 1997, we specialize in Optional well-modulated success",
+    "website": "https://rodriguez.org",
+    "languages": [
+      "en"
+    ],
+    "mailing_list": "anthonywilson@lists.evans-burton.com",
+    "images": [
+      "images/east.jpg"
+    ],
+    "contact": {
+      "landline": "+1-456-233-8333",
+      "mobile": "+1-247-849-7694",
+      "email": "info@moss-torres.com",
+      "whatsapp": "+1-355-598-5378"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/ruizmichael",
+      "instagram": "@otran",
+      "other_urls": [
+        "https://garcia-williams.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-20:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2013-05-11",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "DMU 50",
+      "serial_number": "SN455190",
+      "condition": "Fair",
+      "notes": "Equipment notes: Notice voice medical sister present later for.",
+      "quantity": 1,
+      "throughput": "47 parts/hour",
+      "power_rating": 2995,
+      "maintenance_schedule": "Every 4 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7210",
+              "street": "Vance Locks",
+              "city": "West Lesliefurt",
+              "region": "Georgia",
+              "country": "Russian Federation",
+              "postcode": "96295"
+            },
+            "gps_coordinates": "39.901929, 32.729732",
+            "directions": "Located behind Nielsen, Wright and Duran",
+            "city": "West Lesliefurt",
+            "country": "Russian Federation"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5992",
+              "street": "Trevor Heights",
+              "city": "New Bradleyburgh",
+              "region": "Massachusetts",
+              "country": "Bermuda",
+              "postcode": "26076"
+            },
+            "gps_coordinates": "30.259045, -94.903602",
+            "directions": "Located near Pittman, Ramirez and Hansen",
+            "city": "New Bradleyburgh",
+            "country": "Bermuda"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6891",
+              "street": "Smith Brooks",
+              "city": "Cindyton",
+              "region": "New Hampshire",
+              "country": "Thailand",
+              "postcode": "14553"
+            },
+            "gps_coordinates": "32.611096, -82.555976",
+            "directions": "Located behind Wallace, Thompson and Barr",
+            "city": "Cindyton",
+            "country": "Thailand"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "6235",
+              "street": "Patterson Cliffs",
+              "city": "West Jennifermouth",
+              "region": "Arkansas",
+              "country": "Fiji",
+              "postcode": "26746"
+            },
+            "gps_coordinates": "66.368988, -32.167692",
+            "directions": "Located behind Graham, Chapman and Butler",
+            "city": "West Jennifermouth",
+            "country": "Fiji"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Wood",
+          "Aluminum",
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "89 minutes",
+          "cycle_time": "13 minutes",
+          "changeover_time": "21 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 905",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 218",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2596,
+  "storage_capacity": "480 cubic meters",
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "uninterrupted_power_supply": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Digitized even-keeled functionalities",
+    "Future-proofed global application",
+    "Operative next generation functionalities",
+    "Up-sized encompassing conglomeration",
+    "Robust full-range open system"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "green",
+      "center",
+      "ok"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 19
+  },
+  "innovation_space": {
+    "staff": 3,
+    "learning_resources": [
+      "Digitized homogeneous structure",
+      "Quality-focused background hardware",
+      "Organized optimal secured line",
+      "Down-sized radical superstructure"
+    ],
+    "services": [
+      "Ergonomic intermediate synergy",
+      "Multi-channeled client-server open system",
+      "Proactive national extranet",
+      "Optional high-level circuit"
+    ],
+    "footfall": 63
+  },
+  "record_data": {
+    "date_created": "2025-10-10T15:45:06.863846",
+    "created_by": {
+      "name": "Miller PLC",
+      "location": {
+        "address": {
+          "number": "318",
+          "street": "Travis Brook",
+          "city": "Lake Morganbury",
+          "region": "Illinois",
+          "country": "Gambia",
+          "postcode": "88759"
+        },
+        "gps_coordinates": "32.822267, -25.263807",
+        "directions": "Located across from Vega, Johnson and Rogers",
+        "city": "Lake Morganbury",
+        "country": "Gambia"
+      },
+      "contact_person": "Christina Ramos",
+      "bio": "Established in 2007, we specialize in Managed maximized help-desk",
+      "website": "https://raymond.com",
+      "languages": [
+        "fr",
+        "es",
+        "en"
+      ],
+      "mailing_list": "randy16@lists.whitney-king.com",
+      "contact": {
+        "landline": "+1-438-350-2455",
+        "mobile": "+1-621-953-2350",
+        "email": "info@hart.com",
+        "whatsapp": "+1-669-450-7026"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/karennguyen",
+        "instagram": "@dgoodman",
+        "other_urls": [
+          "https://hanson.biz"
+        ]
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
 import logging
+import json
 
 from src.core.services.storage_service import StorageService
 from ..models.okw import ManufacturingFacility
@@ -43,10 +44,17 @@ class OKWService:
         # Create facility object
         facility = ManufacturingFacility.from_dict(facility_data)
         
-        # Store in storage
+        # Store in storage with proper naming convention
         if self.storage:
-            handler = await self.storage.get_domain_handler("okw")
-            await handler.save_object(facility.id, facility.to_dict())
+            # Generate filename based on facility name and ID (similar to synthetic data)
+            safe_name = "".join(c for c in facility.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_name = safe_name.replace(' ', '-').lower()
+            filename = f"{safe_name}-{str(facility.id)[:8]}-okw.json"
+            
+            # Save directly to storage root
+            facility_json = json.dumps(facility.to_dict(), indent=2, ensure_ascii=False, default=str)
+            await self.storage.manager.put_object(filename, facility_json.encode('utf-8'))
+            logger.info(f"Saved OKW facility to {filename}")
         
         return facility
     
@@ -56,10 +64,19 @@ class OKWService:
         logger.info(f"Getting manufacturing facility with ID {facility_id}")
         
         if self.storage:
-            handler = await self.storage.get_domain_handler("okw")
-            data = await handler.load_object(facility_id)
-            if data:
-                return ManufacturingFacility.from_dict(data)
+            # Search through all OKW files to find the one with matching ID
+            async for obj in self.storage.manager.list_objects():
+                if obj["key"].endswith("-okw.json"):
+                    try:
+                        data = await self.storage.manager.get_object(obj["key"])
+                        content = data.decode('utf-8')
+                        okw_data = json.loads(content)
+                        facility = ManufacturingFacility.from_dict(okw_data)
+                        if facility.id == facility_id:
+                            return facility
+                    except Exception as e:
+                        logger.error(f"Failed to load OKW file {obj['key']}: {e}")
+                        continue
         
         return None
     
@@ -74,12 +91,24 @@ class OKWService:
         logger.info(f"Listing manufacturing facilities (page={page}, page_size={page_size})")
         
         if self.storage:
-            handler = await self.storage.get_domain_handler("okw")
-            objects, total = await handler.list_objects(
-                limit=page_size,
-                offset=(page - 1) * page_size
-            )
-            return [ManufacturingFacility.from_dict(obj) for obj in objects], total
+            # For now, load OKW files directly from storage root (they have -okw.json suffix)
+            objects = []
+            total_count = 0
+            
+            async for obj in self.storage.manager.list_objects():
+                if obj["key"].endswith("-okw.json"):
+                    total_count += 1
+                    if len(objects) < page_size and len(objects) >= (page - 1) * page_size:
+                        try:
+                            data = await self.storage.manager.get_object(obj["key"])
+                            content = data.decode('utf-8')
+                            okw_data = json.loads(content)
+                            objects.append(ManufacturingFacility.from_dict(okw_data))
+                        except Exception as e:
+                            logger.error(f"Failed to load OKW file {obj['key']}: {e}")
+                            continue
+            
+            return objects, total_count
         
         return [], 0
     
