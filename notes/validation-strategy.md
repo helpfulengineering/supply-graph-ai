@@ -398,7 +398,58 @@ class ValidationContextFactory:
 ### **5. Implementation Strategy**
 
 #### **Phase 1: Foundation (Week 1)**
-1. **Create Validation Framework**
+
+#### **1.1 Staging Existing Validation Infrastructure**
+**Priority: CRITICAL - Must be done first**
+
+Before implementing the new validation framework, we need to stage the existing validation infrastructure to avoid confusion and conflicts:
+
+**Files to Move to Staging:**
+```
+# Create staging directory
+mkdir -p src/core/validation/staging
+
+# Move existing validation files
+mv src/core/services/validation_service.py src/core/validation/staging/validation_service_legacy.py
+mv src/core/domains/manufacturing/okh_validator.py src/core/validation/staging/manufacturing_okh_validator_legacy.py
+mv src/core/domains/cooking/validators.py src/core/validation/staging/cooking_validators_legacy.py
+
+# Create staging documentation
+touch src/core/validation/staging/README.md
+```
+
+**Staging Documentation:**
+```markdown
+# Legacy Validation Infrastructure (Staged)
+
+This directory contains the existing validation infrastructure that has been temporarily moved to avoid conflicts during the implementation of the new domain-integrated validation framework.
+
+## Files Staged:
+- `validation_service_legacy.py` - Original empty validation service
+- `manufacturing_okh_validator_legacy.py` - Existing OKH validator for manufacturing domain
+- `cooking_validators_legacy.py` - Existing cooking domain validators
+
+## Migration Plan:
+1. **Phase 1**: New validation framework implemented alongside staged files
+2. **Phase 2**: Existing validators enhanced to work with new framework
+3. **Phase 3**: Staged files integrated back into new structure
+4. **Phase 4**: Legacy files removed after successful migration
+
+## Backward Compatibility:
+- All existing validation endpoints continue to work during migration
+- New framework provides enhanced functionality while maintaining existing interfaces
+- Gradual migration ensures no breaking changes
+```
+
+**Benefits of Staging:**
+1. **Clean Implementation** - No confusion between old and new validation code
+2. **Safe Migration** - Existing functionality preserved during transition
+3. **Clear Documentation** - Staged files documented for future reference
+4. **Rollback Safety** - Easy to restore original files if needed
+5. **Development Clarity** - Clear separation between legacy and new code
+
+#### **1.2 Create Validation Framework**
+1. **Implement Core Framework**
    - Implement `ValidationEngine` base classes integrated with `DomainRegistry`
    - Create `ValidationResult` and `ValidationError` models
    - Set up `ValidationContext` system integrated with existing domain infrastructure
