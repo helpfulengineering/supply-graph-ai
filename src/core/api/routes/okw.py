@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Path, status, Depends
+from fastapi import APIRouter, HTTPException, Query, Path, status, Depends, UploadFile, File, Form
 from typing import Optional, List
 from uuid import UUID
 import logging
@@ -16,7 +16,8 @@ from ..models.okw.response import (
     OKWValidationResponse, 
     OKWExtractResponse,
     OKWListResponse,
-    SuccessResponse
+    SuccessResponse,
+    OKWUploadResponse
 )
 from ...services.storage_service import StorageService
 from ...services.okw_service import OKWService
@@ -424,3 +425,82 @@ async def extract_capabilities(request: OKWExtractRequest):
     return OKWExtractResponse(
         capabilities=[]  # Return empty list for now
     )
+
+@router.post("/upload", response_model=OKWUploadResponse, status_code=status.HTTP_201_CREATED)
+async def upload_okw_file(
+    okw_file: UploadFile = File(..., description="OKW file (YAML or JSON)"),
+    description: Optional[str] = Form(None, description="Optional description for the uploaded OKW"),
+    tags: Optional[str] = Form(None, description="Comma-separated list of tags"),
+    validation_context: Optional[str] = Form(None, description="Validation context (e.g., 'manufacturing', 'hobby')"),
+    okw_service: OKWService = Depends(get_okw_service)
+):
+    """
+    Upload an OKW file
+    
+    Accepts a file upload (YAML or JSON) containing an OKW facility,
+    validates it, and stores it for use in matching operations.
+    """
+    try:
+        # Validate file type
+        if not okw_file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        
+        file_extension = okw_file.filename.lower().split('.')[-1]
+        if file_extension not in ['yaml', 'yml', 'json']:
+            raise HTTPException(
+                status_code=400, 
+                detail="Unsupported file type. Please upload a YAML (.yaml, .yml) or JSON (.json) file"
+            )
+        
+        # Read and parse the file content
+        content = await okw_file.read()
+        content_str = content.decode('utf-8')
+        
+        try:
+            if file_extension == 'json':
+                okw_data = json.loads(content_str)
+            else:  # yaml or yml
+                okw_data = yaml.safe_load(content_str)
+        except (json.JSONDecodeError, yaml.YAMLError) as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file format: {str(e)}"
+            )
+        
+        # Convert to ManufacturingFacility
+        try:
+            okw_facility = ManufacturingFacility.from_dict(okw_data)
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid OKW facility: {str(e)}"
+            )
+        
+        # Store the OKW facility
+        try:
+            result = await okw_service.create(okw_facility.to_dict())
+        except Exception as e:
+            logger.error(f"Error storing OKW facility: {str(e)}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Error storing OKW facility: {str(e)}"
+            )
+        
+        # Convert result to OKWResponse format
+        result_dict = result.to_dict()
+        okw_response = OKWResponse(**result_dict)
+        
+        return OKWUploadResponse(
+            success=True,
+            message=f"OKW file '{okw_file.filename}' uploaded and stored successfully",
+            okw=okw_response
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading OKW file: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error: {str(e)}"
+        )

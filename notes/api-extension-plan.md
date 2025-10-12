@@ -297,7 +297,7 @@ async def get_okh_service():
 
 ---
 
-## Current Implementation Status (Updated December 2024)
+## Current Implementation Status (Updated October 2025)
 
 Based on comprehensive analysis of the actual route implementations, here are the current gaps that need to be addressed:
 
