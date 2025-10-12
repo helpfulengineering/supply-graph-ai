@@ -1,10 +1,3 @@
-"""
-Temporary OKH validator for backward compatibility.
-
-This file provides a temporary validator that maintains the same interface
-as the original validator while the new validation framework is being integrated.
-"""
-
 import os
 from typing import Dict, Any, Optional
 
@@ -12,9 +5,8 @@ from src.core.models.base.base_types import BaseValidator, Requirement, Capabili
 from src.core.models.okh import OKHManifest
 from src.core.models.supply_trees import SupplyTree
 
-
 class OKHValidator(BaseValidator):
-    """Temporary implementation of BaseValidator for OKH data - maintains original interface"""
+    """Implementation of BaseValidator for OKH data"""
     
     def validate(self, 
                requirement: Requirement,

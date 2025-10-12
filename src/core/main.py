@@ -16,6 +16,10 @@ from src.core.domains.cooking.validators import CookingValidator
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 from src.core.domains.manufacturing.okh_validator import OKHValidator
+
+# Import new enhanced validators with compatibility layers
+from src.core.domains.manufacturing.validation.compatibility import ManufacturingOKHValidatorCompat
+from src.core.domains.cooking.validation.compatibility import CookingValidatorCompat
 from src.core.registry.domain_registry import DomainRegistry
 from src.core.services.storage_service import StorageService
 from src.core.registry.domain_registry import DomainMetadata, DomainStatus
@@ -159,7 +163,7 @@ async def register_domain_components():
         domain_name="cooking",
         extractor=CookingExtractor(),
         matcher=CookingMatcher(),
-        validator=CookingValidator(),
+        validator=CookingValidatorCompat(),
         metadata=cooking_metadata
     )
     
@@ -180,7 +184,7 @@ async def register_domain_components():
         domain_name="manufacturing",
         extractor=OKHExtractor(),
         matcher=OKHMatcher(),
-        validator=OKHValidator(),
+        validator=ManufacturingOKHValidatorCompat(),
         metadata=manufacturing_metadata
     )
 
