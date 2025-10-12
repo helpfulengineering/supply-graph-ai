@@ -68,6 +68,16 @@ class OKWListResponse(BaseModel):
     page: int
     page_size: int
 
+class OKWUploadResponse(BaseModel):
+    """Response model for OKW file upload"""
+    # Required fields first
+    success: bool
+    message: str
+    okw: OKWResponse
+    
+    # Optional fields after
+    validation_issues: Optional[List[ValidationIssue]] = None
+
 class SuccessResponse(BaseModel):
     """Response model for successful operations"""
     # Required fields only

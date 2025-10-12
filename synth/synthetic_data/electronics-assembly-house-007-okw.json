@@ -1,0 +1,217 @@
+{
+  "id": "bbf7fa97-f0f3-4285-a3c7-357a99b4ee24",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "4582",
+      "street": "Meyer Springs",
+      "city": "Jonathanhaven",
+      "region": "Georgia",
+      "country": "Yemen",
+      "postcode": "68771"
+    },
+    "gps_coordinates": "60.066666, 17.640641",
+    "directions": "Located behind Cooper PLC",
+    "city": "Jonathanhaven",
+    "country": "Yemen"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Campbell Group",
+    "location": {
+      "address": {
+        "number": "1961",
+        "street": "Eric Club",
+        "city": "Brownfurt",
+        "region": "California",
+        "country": "Cameroon",
+        "postcode": "44539"
+      },
+      "gps_coordinates": "51.606816, -67.678414",
+      "directions": "Located across from Marks, Juarez and Thomas",
+      "city": "Brownfurt",
+      "country": "Cameroon"
+    },
+    "contact_person": "Faith Anderson MD",
+    "bio": "Established in 2013, we specialize in Reverse-engineered tangible groupware",
+    "website": "https://jones-howell.com",
+    "languages": [
+      "es",
+      "de"
+    ],
+    "mailing_list": "jsmith@lists.murphy-daugherty.com",
+    "images": [
+      "images/expert.jpg",
+      "images/window.jpg",
+      "images/group.jpg"
+    ],
+    "contact": {
+      "landline": "+1-724-916-3657",
+      "mobile": "+1-767-742-2227",
+      "email": "info@jones.com",
+      "whatsapp": "+1-379-480-3094"
+    },
+    "social_media": {
+      "twitter": "@fmartinez",
+      "instagram": "@hshelton",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Brown-Norris",
+    "location": {
+      "address": {
+        "number": "7887",
+        "street": "Jennifer Well",
+        "city": "Jamiehaven",
+        "region": "Kentucky",
+        "country": "New Zealand",
+        "postcode": "42836"
+      },
+      "gps_coordinates": "66.719142, -29.873911",
+      "directions": "Located behind Garcia-Pierce",
+      "city": "Jamiehaven",
+      "country": "New Zealand"
+    },
+    "contact_person": "Sydney Hansen",
+    "bio": "Established in 2016, we specialize in Profit-focused bi-directional concept",
+    "website": "https://reyes.org",
+    "languages": [
+      "de",
+      "fr",
+      "es"
+    ],
+    "mailing_list": "zespinoza@lists.zhang-campbell.com",
+    "contact": {
+      "landline": "+1-611-202-6184",
+      "mobile": "+1-226-955-9459",
+      "email": "info@rivera-hill.biz",
+      "whatsapp": "+1-880-789-7289"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/roblestracy",
+      "instagram": "@cgraham",
+      "other_urls": [
+        "https://stokes-davis.com",
+        "https://gallegos.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-20:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "2011-10-06",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand A",
+      "model": "Model 428",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 326",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Generic",
+      "model": "Model 814",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand A",
+      "model": "Model 460",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1541,
+  "storage_capacity": "266 cubic meters",
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "uninterrupted_power_supply": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Right-sized real-time function"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Market score member agency any.",
+    "by_products": [
+      "trouble"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 9
+  },
+  "innovation_space": {
+    "staff": 6,
+    "services": [
+      "Innovative homogeneous application",
+      "Team-oriented multi-state projection"
+    ],
+    "footfall": 87
+  },
+  "record_data": {
+    "date_created": "2025-10-10T15:45:06.877142",
+    "created_by": {
+      "name": "Holloway-Ponce",
+      "location": {
+        "address": {
+          "number": "3717",
+          "street": "Jennifer Crest",
+          "city": "Traceyburgh",
+          "region": "South Carolina",
+          "country": "Uganda",
+          "postcode": "44378"
+        },
+        "gps_coordinates": "61.411069, 38.401391",
+        "directions": "Located across from Smith-Griffin",
+        "city": "Traceyburgh",
+        "country": "Uganda"
+      },
+      "contact_person": "Theodore Kelly",
+      "bio": "Established in 2019, we specialize in Reverse-engineered logistical orchestration",
+      "website": "https://berry.com",
+      "languages": [
+        "es"
+      ],
+      "mailing_list": "nancyvega@lists.bowen.biz",
+      "images": [
+        "images/weight.jpg",
+        "images/live.jpg"
+      ],
+      "contact": {
+        "landline": "+1-536-754-5685",
+        "mobile": "+1-861-203-2840",
+        "email": "info@diaz.biz",
+        "whatsapp": "+1-751-213-3657"
+      },
+      "social_media": {
+        "twitter": "@cheryl10",
+        "instagram": "@jasminrodriguez",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

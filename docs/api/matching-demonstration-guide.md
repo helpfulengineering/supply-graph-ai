@@ -34,7 +34,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test exact matching"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: High confidence (1.0) with `"quality": "perfect"` in metadata.
 
@@ -52,7 +52,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test case handling"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Confidence ~0.95 with `"case_difference": true` in metadata.
 
@@ -70,7 +70,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test typo tolerance"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Confidence ~0.8 with `"character_difference": 1` in metadata.
 
@@ -90,7 +90,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test process synonyms"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Heuristic match with `"matching_method": "heuristic_cnc_machining_capability"` and confidence ~0.95.
 
@@ -108,7 +108,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test surface process matching"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Heuristic match to "surface finishing" with confidence ~0.85.
 
@@ -126,7 +126,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test cooking domain"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Heuristic match to "sauté pan" capability with confidence ~0.95.
 
@@ -146,7 +146,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test mixed matching"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: 
 - "CNC Machining" → Direct match (confidence 1.0)
@@ -167,7 +167,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test complex matching"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Mix of direct and heuristic matches with detailed matching summary.
 
@@ -187,7 +187,7 @@ curl -X POST http://localhost:8001/v1/match \
       "documentation_language": "en",
       "function": "Test no matches"
     }
-  }'
+  }' | jq .
 ```
 **Expected**: Empty solutions array with appropriate metadata.
 

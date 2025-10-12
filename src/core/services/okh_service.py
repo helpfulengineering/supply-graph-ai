@@ -35,8 +35,16 @@ class OKHService:
             return
             
         self.storage = storage_service or await StorageService.get_instance()
+        if self.storage:
+            from src.config import settings
+            await self.storage.configure(settings.STORAGE_CONFIG)
         self._initialized = True
         logger.info("OKH service initialized")
+    
+    async def ensure_initialized(self) -> None:
+        """Ensure service is initialized"""
+        if not self._initialized:
+            raise RuntimeError("OKH service not initialized")
     
     async def create(self, manifest_data: Dict[str, Any]) -> OKHManifest:
         """Create a new OKH manifest"""
@@ -46,25 +54,74 @@ class OKHService:
         # Create manifest object
         manifest = OKHManifest.from_dict(manifest_data)
         
-        # Store in storage
+        # Store in storage with -okh.json suffix pattern (consistent with synthetic data)
         if self.storage:
-            handler = await self.storage.get_domain_handler("okh")
-            await handler.save_object(manifest.id, manifest.to_dict())
+            # Generate filename based on title and ID (similar to synthetic data)
+            safe_title = "".join(c for c in manifest.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+            safe_title = safe_title.replace(' ', '-').lower()
+            filename = f"{safe_title}-{str(manifest.id)[:8]}-okh.json"
+            
+            # Save directly to storage root
+            manifest_json = json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False, default=str)
+            await self.storage.manager.put_object(filename, manifest_json.encode('utf-8'))
+            logger.info(f"Saved OKH manifest to {filename}")
         
         return manifest
     
     async def get(self, manifest_id: UUID) -> Optional[OKHManifest]:
         """Get an OKH manifest by ID"""
-        await self.ensure_initialized()
-        logger.info(f"Getting OKH manifest with ID {manifest_id}")
-        
-        if self.storage:
-            handler = await self.storage.get_domain_handler("okh")
-            data = await handler.load_object(manifest_id)
-            if data:
-                return OKHManifest.from_dict(data)
-        
-        return None
+        try:
+            await self.ensure_initialized()
+            logger.info(f"Getting OKH manifest with ID {manifest_id}")
+            
+            if not self.storage:
+                logger.error("Storage service not available")
+                return None
+            
+            logger.info("Storage service is available, searching for OKH files...")
+            
+            # Search through all OKH files (they have -okh.json suffix)
+            file_count = 0
+            okh_file_count = 0
+            
+            async for obj in self.storage.manager.list_objects():
+                file_count += 1
+                logger.debug(f"Checking file {file_count}: {obj['key']}")
+                
+                if obj["key"].endswith("-okh.json"):
+                    okh_file_count += 1
+                    logger.info(f"Found OKH file {okh_file_count}: {obj['key']}")
+                    
+                    try:
+                        data = await self.storage.manager.get_object(obj["key"])
+                        content = data.decode('utf-8')
+                        okh_data = json.loads(content)
+                        
+                        logger.debug(f"Loaded OKH data from {obj['key']}, ID: {okh_data.get('id')}")
+                        
+                        # Check if this is the manifest we're looking for
+                        if okh_data.get("id") == str(manifest_id):
+                            logger.info(f"Found matching OKH manifest in {obj['key']}")
+                            manifest = OKHManifest.from_dict(okh_data)
+                            logger.info(f"Successfully created OKHManifest object for {manifest.title}")
+                            return manifest
+                        else:
+                            logger.debug(f"ID mismatch: looking for {manifest_id}, found {okh_data.get('id')}")
+                            
+                    except Exception as e:
+                        logger.error(f"Failed to load OKH file {obj['key']}: {e}")
+                        import traceback
+                        logger.error(f"Traceback: {traceback.format_exc()}")
+                        continue
+            
+            logger.warning(f"OKH manifest with ID {manifest_id} not found. Searched {file_count} files, {okh_file_count} OKH files")
+            return None
+            
+        except Exception as e:
+            logger.error(f"Unexpected error in get method: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise
     
     async def fetch_from_url(self, url: str) -> OKHManifest:
         """Fetch an OKH manifest from a remote URL"""
@@ -110,12 +167,24 @@ class OKHService:
         logger.info(f"Listing OKH manifests (page={page}, page_size={page_size})")
         
         if self.storage:
-            handler = await self.storage.get_domain_handler("okh")
-            objects, total = await handler.list_objects(
-                limit=page_size,
-                offset=(page - 1) * page_size
-            )
-            return [OKHManifest.from_dict(obj) for obj in objects], total
+            # For now, load OKH files directly from storage root (they have -okh.json suffix)
+            objects = []
+            total_count = 0
+            
+            async for obj in self.storage.manager.list_objects():
+                if obj["key"].endswith("-okh.json"):
+                    total_count += 1
+                    if len(objects) < page_size and len(objects) >= (page - 1) * page_size:
+                        try:
+                            data = await self.storage.manager.get_object(obj["key"])
+                            content = data.decode('utf-8')
+                            okh_data = json.loads(content)
+                            objects.append(OKHManifest.from_dict(okh_data))
+                        except Exception as e:
+                            logger.error(f"Failed to load OKH file {obj['key']}: {e}")
+                            continue
+            
+            return objects, total_count
         
         return [], 0
     

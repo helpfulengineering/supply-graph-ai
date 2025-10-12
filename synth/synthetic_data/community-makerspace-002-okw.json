@@ -1,0 +1,543 @@
+{
+  "id": "d24a04df-6137-4ffc-9b46-7c5df9016693",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "9043",
+      "street": "Murphy Dam",
+      "city": "Port Douglasfurt",
+      "region": "Maine",
+      "country": "Israel",
+      "postcode": "59958"
+    },
+    "gps_coordinates": "30.909039, -112.811658",
+    "directions": "Located near Byrd, Smith and Smith",
+    "city": "Port Douglasfurt",
+    "country": "Israel"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Fox-Mendez",
+    "location": {
+      "address": {
+        "number": "3568",
+        "street": "Tate Junctions",
+        "city": "Lake Davidburgh",
+        "region": "Iowa",
+        "country": "Tuvalu",
+        "postcode": "11951"
+      },
+      "gps_coordinates": "66.647195, -64.555968",
+      "directions": "Located across from Cunningham-Wright",
+      "city": "Lake Davidburgh",
+      "country": "Tuvalu"
+    },
+    "contact_person": "Thomas Rogers",
+    "bio": "Established in 1992, we specialize in Universal client-server initiative",
+    "website": "https://harris-parker.info",
+    "languages": [
+      "fr"
+    ],
+    "mailing_list": "melanie52@lists.martinez-tran.com",
+    "images": [
+      "images/majority.jpg"
+    ],
+    "contact": {
+      "landline": "+1-325-554-1899",
+      "mobile": "+1-316-764-3763",
+      "email": "info@adams-sparks.com",
+      "whatsapp": "+1-940-399-4035"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://webb.com",
+        "https://barr.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Rogers-Patterson",
+    "location": {
+      "address": {
+        "number": "4340",
+        "street": "Craig Ports",
+        "city": "New Jessicastad",
+        "region": "North Dakota",
+        "country": "Burundi",
+        "postcode": "80519"
+      },
+      "gps_coordinates": "61.135151, 12.884799",
+      "directions": "Located across from Parrish Group",
+      "city": "New Jessicastad",
+      "country": "Burundi"
+    },
+    "contact_person": "Mary Burton",
+    "bio": "Established in 2006, we specialize in Cloned optimizing budgetary management",
+    "website": "https://lewis.com",
+    "languages": [
+      "de",
+      "fr"
+    ],
+    "mailing_list": "tiffany37@lists.simmons.biz",
+    "images": [
+      "images/notice.jpg",
+      "images/many.jpg"
+    ],
+    "contact": {
+      "landline": "+1-652-810-7676",
+      "mobile": "+1-671-209-3029",
+      "email": "info@martinez.com",
+      "whatsapp": "+1-379-282-6034"
+    },
+    "social_media": {
+      "twitter": "@fostertammy",
+      "other_urls": [
+        "https://patterson-mason.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-19:00",
+  "description": "Public makerspace with basic fabrication equipment",
+  "date_founded": "2010-11-11",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Ultimaker",
+      "model": "Ender 3",
+      "serial_number": "SN125628",
+      "condition": "Fair",
+      "notes": "Equipment notes: Something rock eye deep try.",
+      "quantity": 5,
+      "throughput": "45 parts/hour",
+      "power_rating": 3699,
+      "maintenance_schedule": "Every 4 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1570",
+              "street": "Fritz Hollow",
+              "city": "West Josephtown",
+              "region": "Indiana",
+              "country": "Uzbekistan",
+              "postcode": "19674"
+            },
+            "gps_coordinates": "27.473186, 26.178155",
+            "directions": "Located near Jones, Mccarthy and Warner",
+            "city": "West Josephtown",
+            "country": "Uzbekistan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "706",
+              "street": "Jordan Plaza",
+              "city": "Emmaborough",
+              "region": "Maine",
+              "country": "Russian Federation",
+              "postcode": "92413"
+            },
+            "gps_coordinates": "65.928466, 33.39371",
+            "directions": "Located near Murphy-Wright",
+            "city": "Emmaborough",
+            "country": "Russian Federation"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9865",
+              "street": "Jackson Haven",
+              "city": "East Nataliefurt",
+              "region": "Texas",
+              "country": "Zimbabwe",
+              "postcode": "89370"
+            },
+            "gps_coordinates": "60.040003, -8.899138",
+            "directions": "Located across from Kelly PLC",
+            "city": "East Nataliefurt",
+            "country": "Zimbabwe"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2813",
+              "street": "Lauren Isle",
+              "city": "Adamfort",
+              "region": "Delaware",
+              "country": "Poland",
+              "postcode": "65398"
+            },
+            "gps_coordinates": "36.292143, -122.963031",
+            "directions": "Located across from Krueger-Shaw",
+            "city": "Adamfort",
+            "country": "Poland"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.6,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "ABS",
+          "PLA",
+          "PETG",
+          "TPU"
+        ],
+        "process_parameters": {
+          "setup_time": "89 minutes",
+          "cycle_time": "28 minutes",
+          "changeover_time": "29 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "LS-1630",
+      "serial_number": "SN542625",
+      "condition": "Good",
+      "notes": "Equipment notes: Health per fast man not.",
+      "quantity": 3,
+      "throughput": "10 parts/hour",
+      "power_rating": 4346,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9745",
+              "street": "Casey Shoals",
+              "city": "New Nathanland",
+              "region": "Illinois",
+              "country": "Qatar",
+              "postcode": "84830"
+            },
+            "gps_coordinates": "67.891442, -105.65829",
+            "directions": "Located behind Dennis, Fields and Moss",
+            "city": "New Nathanland",
+            "country": "Qatar"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5030",
+              "street": "Weiss Park",
+              "city": "Lake Christina",
+              "region": "North Carolina",
+              "country": "Russian Federation",
+              "postcode": "35694"
+            },
+            "gps_coordinates": "37.741, -59.099925",
+            "directions": "Located behind Webster-Carroll",
+            "city": "Lake Christina",
+            "country": "Russian Federation"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6400",
+              "street": "Anthony Terrace",
+              "city": "Kellyshire",
+              "region": "Alabama",
+              "country": "Saint Barthelemy",
+              "postcode": "12858"
+            },
+            "gps_coordinates": "45.931563, -40.903877",
+            "directions": "Located near Rogers LLC",
+            "city": "Kellyshire",
+            "country": "Saint Barthelemy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1228",
+              "street": "Natasha Isle",
+              "city": "East Michelle",
+              "region": "Arkansas",
+              "country": "Eritrea",
+              "postcode": "30186"
+            },
+            "gps_coordinates": "30.560942, -62.158333",
+            "directions": "Located behind Mason, King and Martinez",
+            "city": "East Michelle",
+            "country": "Eritrea"
+          }
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 300,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Acrylic",
+          "Fabric"
+        ],
+        "process_parameters": {
+          "setup_time": "35 minutes",
+          "cycle_time": "7 minutes",
+          "changeover_time": "24 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Shapeoko",
+      "model": "Woodworker",
+      "serial_number": "SN923470",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Hit military impact idea field.",
+      "quantity": 3,
+      "throughput": "5 parts/hour",
+      "power_rating": 8265,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "549",
+              "street": "Griffin Divide",
+              "city": "Jordanville",
+              "region": "New Jersey",
+              "country": "Taiwan",
+              "postcode": "79044"
+            },
+            "gps_coordinates": "50.364461, -13.125487",
+            "directions": "Located behind Padilla, Gilbert and Palmer",
+            "city": "Jordanville",
+            "country": "Taiwan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "7311",
+              "street": "Erika Centers",
+              "city": "Stevensonmouth",
+              "region": "West Virginia",
+              "country": "Timor-Leste",
+              "postcode": "18499"
+            },
+            "gps_coordinates": "45.616839, -14.902549",
+            "directions": "Located across from Weiss, Thomas and Sims",
+            "city": "Stevensonmouth",
+            "country": "Timor-Leste"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3224",
+              "street": "Elizabeth Summit",
+              "city": "Cheryltown",
+              "region": "Ohio",
+              "country": "Mongolia",
+              "postcode": "08734"
+            },
+            "gps_coordinates": "34.872275, -114.887657",
+            "directions": "Located near Williams PLC",
+            "city": "Cheryltown",
+            "country": "Mongolia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7501",
+              "street": "Crawford Street",
+              "city": "Jillmouth",
+              "region": "Kansas",
+              "country": "Mauritius",
+              "postcode": "71672"
+            },
+            "gps_coordinates": "47.237976, -1.44983",
+            "directions": "Located across from Wright-Barton",
+            "city": "Jillmouth",
+            "country": "Mauritius"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 300,
+      "detailed_capabilities": {
+        "tolerance": "±0.1mm",
+        "spindle_speed": "5000-24000 RPM",
+        "feed_rate": "100-5000 mm/min",
+        "tool_diameter": "0.5-25mm",
+        "cutting_depth": "0.1-50mm",
+        "tolerance_range": "±0.200mm",
+        "supported_materials": [
+          "Wood",
+          "Foam"
+        ],
+        "process_parameters": {
+          "setup_time": "36 minutes",
+          "cycle_time": "57 minutes",
+          "changeover_time": "36 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 527,
+  "storage_capacity": "322 cubic meters",
+  "certifications": [
+    "Basic Safety"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Mandatory background encoding"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "meeting",
+      "book",
+      "career"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 13
+  },
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "Object-based logistical info-mediaries",
+      "Centralized holistic neural-net",
+      "Optimized coherent model",
+      "Cross-group hybrid model"
+    ],
+    "services": [
+      "Quality-focused web-enabled utilization",
+      "Profit-focused maximized interface"
+    ],
+    "footfall": 34,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-10-10T15:45:06.852006",
+    "created_by": {
+      "name": "Roberts, Shelton and Kramer",
+      "location": {
+        "address": {
+          "number": "8151",
+          "street": "Joseph Underpass",
+          "city": "West April",
+          "region": "North Dakota",
+          "country": "Zimbabwe",
+          "postcode": "60024"
+        },
+        "gps_coordinates": "57.781396, 30.80445",
+        "directions": "Located behind Brown, Ramos and Morgan",
+        "city": "West April",
+        "country": "Zimbabwe"
+      },
+      "contact_person": "Brandon Shaw",
+      "bio": "Established in 2020, we specialize in Synergistic uniform solution",
+      "website": "https://king.com",
+      "languages": [
+        "fr"
+      ],
+      "mailing_list": "morganfarrell@lists.lewis.com",
+      "images": [
+        "images/effort.jpg"
+      ],
+      "contact": {
+        "landline": "+1-366-483-4263",
+        "mobile": "+1-766-728-8445",
+        "email": "info@phillips.net",
+        "whatsapp": "+1-208-900-8135"
+      },
+      "social_media": {
+        "instagram": "@knguyen",
+        "other_urls": [
+          "https://webb.biz"
+        ]
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

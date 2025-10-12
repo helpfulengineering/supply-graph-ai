@@ -27,7 +27,6 @@ class OKHResponse(BaseModel):
     # Required fields first
     id: UUID
     title: str
-    repo: str
     version: str
     license: Dict[str, Any]
     licensor: Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]
@@ -35,6 +34,7 @@ class OKHResponse(BaseModel):
     function: str
     
     # Optional fields after
+    repo: Optional[str] = None
     description: Optional[str] = None
     intended_use: Optional[str] = None
     keywords: List[str] = []
@@ -85,3 +85,14 @@ class SuccessResponse(BaseModel):
     # Required fields only
     success: bool
     message: str
+
+class OKHUploadResponse(BaseModel):
+    """Response model for OKH file upload"""
+    # Required fields first
+    success: bool
+    message: str
+    okh: OKHResponse
+    
+    # Optional fields after
+    validation_issues: Optional[List[ValidationIssue]] = None
+    completeness_score: Optional[float] = None

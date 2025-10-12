@@ -90,16 +90,15 @@ Creates a new OKH manifest.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete CRUD operations with service integration
+
 #### Read (Get)
 
 ```
 GET /v1/okh/{id}
 ```
 
-Retrieves an OKH object by ID.
-
-**Query Parameters:**
-- `component` (optional): Specific component to retrieve (e.g., "manufacturing_specs", "parts")
+Retrieves an OKH manifest by ID.
 
 **Response:**
 ```json
@@ -107,9 +106,16 @@ Retrieves an OKH object by ID.
   "id": "123e4567-e89b-12d3-a456-426614174000",
   "title": "Example Hardware Project",
   "version": "1.0.0",
+  "license": {...},
+  "licensor": {...},
+  "documentation_language": "en",
+  "function": "Hardware description",
+  "repo": "https://github.com/example/project",
   ...
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - Retrieves OKH manifests from storage with proper model conversion and validation
 
 #### List (Multiple Read)
 
@@ -141,6 +147,8 @@ Retrieves a list of OKH objects.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Paginated listing with filter support
+
 #### Update
 
 ```
@@ -167,6 +175,8 @@ Updates an existing OKH manifest.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete update functionality with validation
+
 #### Delete
 
 ```
@@ -182,6 +192,8 @@ Deletes an OKH manifest.
   "message": "OKH manifest deleted successfully"
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - Complete delete functionality with existence checking
 
 #### Validation and Normalization
 
@@ -215,6 +227,8 @@ Validates and normalizes an OKH object, returning a cleaned version with validat
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete validation with service integration
+
 #### Requirements Extraction
 
 ```
@@ -244,6 +258,38 @@ Extracts requirements from an OKH object for matching.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete requirements extraction with service integration
+
+#### File Upload
+
+```
+POST /v1/okh/upload
+```
+
+Upload an OKH file for storage and use in matching operations.
+
+**Request:** Multipart form data
+- `okh_file`: OKH file (YAML or JSON)
+- `description` (optional): Description for the uploaded OKH
+- `tags` (optional): Comma-separated list of tags
+- `validation_context` (optional): Validation context (e.g., 'manufacturing', 'hobby')
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "OKH file 'example.yaml' uploaded and stored successfully",
+  "okh": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "title": "Example Hardware Project",
+    "version": "1.0.0",
+    ...
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented** - File upload with validation, parsing, and storage integration
+
 ### OKW Routes
 
 #### Create
@@ -272,6 +318,8 @@ Creates a new OKW facility.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete CRUD operations with service integration
+
 #### Read (Get)
 
 ```
@@ -289,6 +337,8 @@ Retrieves an OKW facility by ID.
   ...
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - Retrieves OKW facilities from storage with proper serialization
 
 #### List (Multiple Read)
 
@@ -320,6 +370,8 @@ Retrieves a list of OKW facilities.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Paginated listing with service integration
+
 #### Update
 
 ```
@@ -346,6 +398,8 @@ Updates an existing OKW facility.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete update functionality with validation
+
 #### Delete
 
 ```
@@ -362,18 +416,22 @@ Deletes an OKW facility.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - Complete delete functionality with existence checking
+
 #### Search
 
 ```
 GET /v1/okw/search
 ```
 
-Searches for facilities by criteria.
+Searches for facilities by criteria with **Azure Blob Storage integration**.
 
 **Query Parameters:**
 - `location` (optional): Geographic location to search near
 - `capabilities` (optional): List of required capabilities
 - `materials` (optional): List of required materials
+- `access_type` (optional): Filter by access type (e.g., "Restricted", "Public", "Membership")
+- `facility_status` (optional): Filter by facility status (e.g., "Active", "Inactive")
 - `page` (optional): Page number (default: 1)
 - `page_size` (optional): Results per page (default: 20)
 
@@ -394,6 +452,14 @@ Searches for facilities by criteria.
   "page_size": 20
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
+
+**Key Features:**
+- **Real-time Storage Loading**: Automatically loads OKW facilities from Azure Blob Storage
+- **Multi-format Support**: Processes both YAML and JSON files
+- **Advanced Filtering**: Supports filtering by access type, facility status, location, capabilities, and materials
+- **Error Resilience**: Continues processing even if individual files fail to load
 
 #### Validation
 
@@ -418,6 +484,8 @@ Validates an OKW object, returning validation information.
   "issues": []  // Only present if validation issues found
 }
 ```
+
+**Status:** 🚧 **Placeholder Implementation** - Basic validation response, needs full implementation
 
 #### Capabilities Extraction
 
@@ -448,6 +516,8 @@ Extracts capabilities from an OKW object for matching.
 }
 ```
 
+**Status:** 🚧 **Placeholder Implementation** - Returns empty capabilities list, needs full implementation
+
 ### Supply Tree Routes
 
 #### Create
@@ -476,6 +546,8 @@ Creates a supply tree manually.
 }
 ```
 
+**Status:** 🚧 **Placeholder Implementation** - Returns mock data, needs full implementation
+
 #### Read (Get)
 
 ```
@@ -492,6 +564,8 @@ Retrieves a specific supply tree.
   ...
 }
 ```
+
+**Status:** 🚧 **Placeholder Implementation** - Returns 404, needs full implementation
 
 #### List (Multiple Read)
 
@@ -523,6 +597,8 @@ Retrieves a list of supply trees.
 }
 ```
 
+**Status:** 🚧 **Placeholder Implementation** - Returns empty list, needs full implementation
+
 #### Update
 
 ```
@@ -549,6 +625,8 @@ Updates an existing supply tree.
 }
 ```
 
+**Status:** 🚧 **Placeholder Implementation** - Returns 404, needs full implementation
+
 #### Delete
 
 ```
@@ -564,6 +642,8 @@ Deletes a supply tree.
   "message": "Supply tree deleted successfully"
 }
 ```
+
+**Status:** 🚧 **Placeholder Implementation** - Returns success message, needs full implementation
 
 #### Optimization
 
@@ -597,6 +677,8 @@ Optimizes a supply tree based on specific criteria.
 }
 ```
 
+**Status:** 📋 **Not Implemented** - Route not found in current implementation
+
 #### Validation
 
 ```
@@ -622,6 +704,8 @@ Validates a supply tree against specified requirements and capabilities.
 }
 ```
 
+**Status:** 🚧 **Placeholder Implementation** - Returns mock validation result, needs full implementation
+
 #### Export
 
 ```
@@ -635,6 +719,8 @@ Exports a supply tree to a specific format.
 
 **Response:**
 The supply tree in the requested format.
+
+**Status:** 📋 **Not Implemented** - Route not found in current implementation
 
 ### Matching Routes
 
@@ -681,10 +767,15 @@ POST /v1/match
     {
       "tree": {
         "id": "123e4567-e89b-12d3-a456-426614174000",
-        "name": "Manufacturing Solution",
-        "description": "Complete manufacturing workflow",
-        "node_count": 15,
-        "edge_count": 18
+        "workflows": {...},
+        "creation_time": "2023-12-07T10:30:00Z",
+        "confidence": 0.85,
+        "required_quantity": 1,
+        "connections": [],
+        "snapshots": {...},
+        "okh_reference": "okh-id",
+        "deadline": null,
+        "metadata": {...}
       },
       "score": 0.85,
       "metrics": {
@@ -706,12 +797,16 @@ POST /v1/match
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
+
 **Key Features:**
 - **Multiple OKH Input Methods**: Accept inline manifests, storage references, or remote URLs
 - **Automatic OKW Loading**: Loads all OKW facilities from Azure Blob Storage automatically
 - **Advanced Filtering**: Filter facilities by location, capabilities, access type, and status
 - **Real-time Processing**: Processes YAML/JSON files from storage in real-time
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
+- **Multi-layered Matching**: Enhanced Direct Matching with heuristic rules
+- **Supply Tree Generation**: Creates complete supply tree solutions with workflows and metadata
 
 **Enhanced Matching Workflow:**
 1. **OKH Input Processing**: Validates and processes OKH manifest from one of three input methods
@@ -727,6 +822,36 @@ POST /v1/match
 7. **Solution Generation**: Creates supply tree solutions with confidence scoring and detailed metadata
 8. **Response Formatting**: Returns serialized solutions with comprehensive matching metadata
 
+#### File Upload Matching
+
+```
+POST /v1/match/upload
+```
+
+Match requirements to capabilities using an uploaded OKH file.
+
+**Request:** Multipart form data
+- `okh_file`: OKH file (YAML or JSON)
+- `access_type` (optional): Filter by access type
+- `facility_status` (optional): Filter by facility status
+- `location` (optional): Filter by location
+- `capabilities` (optional): Comma-separated list of required capabilities
+- `materials` (optional): Comma-separated list of required materials
+
+**Response:**
+```json
+{
+  "solutions": [...],
+  "metadata": {
+    "solution_count": 1,
+    "facility_count": 3,
+    "optimization_criteria": {}
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented** - **File upload matching with comprehensive filtering**
+
 #### Validate Supply Tree
 
 ```
@@ -738,9 +863,9 @@ Validates an existing supply tree against requirements and capabilities.
 **Request:**
 ```json
 {
-  "supply_tree": {...},  // Supply tree object
-  "okh_reference": "okh-id",  // Optional OKH reference
-  "okw_references": ["facility-id-1", "facility-id-2"]  // Optional OKW references
+  "okh_id": "uuid-here",
+  "supply_tree_id": "uuid-here",
+  "validation_criteria": {...}
 }
 ```
 
@@ -748,10 +873,16 @@ Validates an existing supply tree against requirements and capabilities.
 ```json
 {
   "valid": true,
-  "issues": [],
-  "confidence": 0.85
+  "confidence": 0.8,
+  "metadata": {
+    "okh_id": "uuid-here",
+    "supply_tree_id": "uuid-here",
+    "validation_criteria": {...}
+  }
 }
 ```
+
+**Status:** 🚧 **Placeholder Implementation** - Returns mock validation result, needs full implementation
 
 ### Domain Management Routes
 
@@ -789,9 +920,12 @@ Lists all available domains with their metadata and status.
       "documentation_url": "https://docs.ome.org/domains/cooking",
       "maintainer": "OME Cooking Team"
     }
-  ]
+  ],
+  "total_count": 2
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - **Complete domain listing with registry integration**
 
 #### Get Domain Information
 
@@ -816,14 +950,11 @@ Retrieves detailed information about a specific domain.
   "supported_output_types": ["supply_tree", "manufacturing_plan"],
   "documentation_url": "https://docs.ome.org/domains/manufacturing",
   "maintainer": "OME Manufacturing Team",
-  "components": {
-    "extractor": "OKHExtractor",
-    "matcher": "OKHMatcher",
-    "validator": "OKHValidator",
-    "orchestrator": null
-  }
+  "type_mappings": {...}
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - **Complete domain information retrieval with error handling**
 
 #### Domain Health Check
 
@@ -843,26 +974,26 @@ Performs a health check on a specific domain and its components.
   "status": "healthy",
   "components": {
     "extractor": {
-      "status": "healthy",
-      "class": "OKHExtractor"
+      "type": "OKHExtractor",
+      "status": "available"
     },
     "matcher": {
-      "status": "healthy",
-      "class": "OKHMatcher"
+      "type": "OKHMatcher",
+      "status": "available"
     },
     "validator": {
-      "status": "healthy",
-      "class": "OKHValidator"
+      "type": "OKHValidator",
+      "status": "available"
     },
     "orchestrator": {
-      "status": "not_configured",
-      "class": null
+      "type": "None",
+      "status": "available"
     }
-  },
-  "supported_types": ["okh", "okw"],
-  "last_checked": "2023-12-07T10:30:00Z"
+  }
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - **Complete domain health checking with component status**
 
 #### Detect Domain from Input
 
@@ -895,20 +1026,17 @@ Detects the appropriate domain from input data using multi-layered detection.
 **Response:**
 ```json
 {
-  "domain": "manufacturing",
+  "detected_domain": "manufacturing",
   "confidence": 0.9,
   "method": "type_mapping",
   "alternative_domains": {
     "cooking": 0.1
   },
-  "detection_details": {
-    "explicit_domain": null,
-    "type_mapping_score": 0.9,
-    "content_analysis_score": 0.8,
-    "fallback_used": false
-  }
+  "is_confident": true
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - **Complete domain detection with confidence scoring**
 
 ### Additional Utility Routes
 
@@ -937,6 +1065,8 @@ Lists available domains (manufacturing, cooking, etc.). **Note: This endpoint is
   ]
 }
 ```
+
+**Status:** ✅ **Fully Implemented** - **Legacy domain listing with filtering support**
 
 #### Validation Contexts
 
@@ -969,6 +1099,8 @@ Lists validation contexts for a specific domain.
 }
 ```
 
+**Status:** ✅ **Fully Implemented** - **Context listing with domain-specific filtering**
+
 #### Simulation
 
 ```
@@ -998,6 +1130,8 @@ Simulates the execution of a supply tree.
   "resource_utilization": {...}
 }
 ```
+
+**Status:** 📋 **Not Implemented** - Route not found in current implementation
 
 ## Error Responses
 
@@ -1049,26 +1183,36 @@ Paginated responses include consistent metadata:
 ### ✅ Fully Implemented Routes
 
 **Core Matching Engine:**
-- `POST /v1/match` - **Multi-layered matching with enhanced Direct Matching layer, storage integration, filtering, and heuristic rules**
-- `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON)**
-- `POST /v1/match/validate` - Supply tree validation (placeholder)
+- `POST /v1/match` - **Complete matching engine with Azure Blob Storage integration, multi-layered matching, and supply tree generation**
+- `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON) with comprehensive filtering**
 
 **Domain Management:**
-- `GET /v1/match/domains` - **List all available domains with metadata**
-- `GET /v1/match/domains/{domain_name}` - **Get detailed domain information**
-- `GET /v1/match/domains/{domain_name}/health` - **Domain health check**
-- `POST /v1/match/detect-domain` - **Detect domain from input data**
+- `GET /v1/match/domains` - **Complete domain listing with registry integration**
+- `GET /v1/match/domains/{domain_name}` - **Complete domain information retrieval with error handling**
+- `GET /v1/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
+- `POST /v1/match/detect-domain` - **Complete domain detection with confidence scoring**
 
 **OKH Management:**
-- `GET /v1/okh/{id}` - Retrieve OKH manifests from storage
-- `POST /v1/okh/validate` - Validate OKH manifests
-- `POST /v1/okh/extract` - Extract requirements from OKH
+- `POST /v1/okh/create` - **Complete CRUD operations with service integration**
+- `GET /v1/okh/{id}` - **Retrieves OKH manifests from storage with proper model conversion and validation**
+- `GET /v1/okh` - **Paginated listing with filter support**
+- `PUT /v1/okh/{id}` - **Complete update functionality with validation**
+- `DELETE /v1/okh/{id}` - **Complete delete functionality with existence checking**
+- `POST /v1/okh/validate` - **Complete validation with service integration**
+- `POST /v1/okh/extract` - **Complete requirements extraction with service integration**
+- `POST /v1/okh/upload` - **File upload with validation, parsing, and storage integration**
 
 **OKW Management:**
-- `GET /v1/okw` - **List OKW facilities with storage integration and pagination**
-- `GET /v1/okw/search` - **Search OKW facilities with comprehensive filtering (access_type, facility_status, location, capabilities, materials)**
-- `POST /v1/okw/validate` - Validate OKW facilities (placeholder)
-- `POST /v1/okw/extract` - Extract capabilities from OKW (placeholder)
+- `POST /v1/okw/create` - **Complete CRUD operations with service integration**
+- `GET /v1/okw/{id}` - **Retrieves OKW facilities from storage with proper serialization**
+- `GET /v1/okw` - **Paginated listing with service integration**
+- `PUT /v1/okw/{id}` - **Complete update functionality with validation**
+- `DELETE /v1/okw/{id}` - **Complete delete functionality with existence checking**
+- `GET /v1/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
+
+**Utility Routes:**
+- `GET /v1/domains` - **Legacy domain listing with filtering support**
+- `GET /v1/contexts/{domain}` - **Context listing with domain-specific filtering**
 
 **System Routes:**
 - `GET /health` - Health check endpoint
@@ -1076,81 +1220,33 @@ Paginated responses include consistent metadata:
 
 ### 🚧 Partially Implemented Routes
 
-**OKH Management:**
-- `POST /v1/okh/create` - Create OKH manifests (placeholder)
+**Matching Engine:**
+- `POST /v1/match/validate` - **Placeholder implementation, returns mock validation result**
 
 **OKW Management:**
-- `GET /v1/okw/{id}` - Get OKW facility by ID (placeholder)
-- `POST /v1/okw/create` - Create OKW facilities (placeholder)
+- `POST /v1/okw/validate` - **Placeholder implementation, basic validation response**
+- `POST /v1/okw/extract` - **Placeholder implementation, returns empty capabilities list**
 
-### 📋 Planned Routes
+**Supply Tree Management:**
+- `POST /v1/supply-tree/create` - **Placeholder implementation, returns mock data**
+- `GET /v1/supply-tree/{id}` - **Placeholder implementation, returns 404**
+- `GET /v1/supply-tree` - **Placeholder implementation, returns empty list**
+- `PUT /v1/supply-tree/{id}` - **Placeholder implementation, returns 404**
+- `DELETE /v1/supply-tree/{id}` - **Placeholder implementation, returns success message**
+- `POST /v1/supply-tree/{id}/validate` - **Placeholder implementation, returns mock validation result**
 
-**Advanced Operations:**
-- `PUT /v1/okh/{id}` - Update OKH manifests
-- `DELETE /v1/okh/{id}` - Delete OKH manifests
-- `PUT /v1/okw/{id}` - Update OKW facilities
-- `DELETE /v1/okw/{id}` - Delete OKW facilities
-- `PUT /v1/supply-tree/{id}` - Update supply trees
-- `DELETE /v1/supply-tree/{id}` - Delete supply trees
+### 📋 Not Implemented Routes
 
-**Advanced Features:**
+**Advanced Supply Tree Operations:**
 - `POST /v1/supply-tree/{id}/optimize` - Optimize supply trees
 - `GET /v1/supply-tree/{id}/export` - Export supply trees
+
+**Advanced Features:**
 - `POST /v1/match/simulate` - Simulate supply tree execution
 
-## Developer Guide
 
-### Quick Start for Developers
 
-#### 1. **Environment Setup**
-```bash
-# Clone the repository
-git clone <repository-url>
-cd supply-graph-ai
-
-# Activate conda environment
-conda activate ome
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your Azure storage credentials
-```
-
-#### 2. **Start the Development Server**
-```bash
-python run.py
-# Server will be available at http://localhost:8001
-```
-
-#### 3. **Test the System**
-```bash
-# Health check
-curl http://localhost:8001/health
-
-# List available OKW facilities
-curl http://localhost:8001/v1/okw
-
-# Test matching with a simple OKH manifest
-curl -X POST http://localhost:8001/v1/match \
-  -H "Content-Type: application/json" \
-  -d '{
-    "okh_manifest": {
-      "title": "Test Hardware",
-      "repo": "https://github.com/example/test",
-      "version": "1.0.0",
-      "license": {"hardware": "CERN-OHL-S-2.0"},
-      "licensor": "Test Org",
-      "documentation_language": "en",
-      "function": "Test hardware project",
-      "manufacturing_processes": ["CNC", "3D Printing"]
-    }
-  }'
-```
-
-### Core API Usage Patterns
+## Core API Usage Patterns
 
 #### **Matching OKH Requirements to OKW Capabilities**
 
@@ -1349,20 +1445,3 @@ The OME API provides comprehensive interactive documentation:
 - **Health Check**: `GET /health` - System status and registered domains
 - **Root Endpoint**: `GET /` - API information and navigation links
 - **Hot Reload**: Development server with automatic reload on code changes
-
-## Future Considerations
-
-### API Extensions
-- Webhook support for asynchronous processing
-- WebSocket API for real-time updates
-- Batch processing for large-scale operations
-
-### Integration Support
-- OAuth 2.0 authentication
-- Integration with external manufacturing systems
-- Export to standard manufacturing formats
-
-### Advanced Features
-- Machine learning-based matching
-- Real-time facility status updates
-- Distributed manufacturing network optimization

@@ -319,12 +319,75 @@ def to_dict(self) -> Dict:
 def from_dict(cls, data: Dict) -> 'OKHManifest':
     """Create an OKHManifest instance from a dictionary"""
     # Implementation to reconstruct from dictionary
+    # CRITICAL: Preserves the original ID from data if provided
+    if 'id' in data and data['id']:
+        instance.id = UUID(data['id'])
     
 @classmethod
 def from_toml(cls, filepath: str) -> 'OKHManifest':
     """Load an OKHManifest from a TOML file"""
     # Implementation to load from TOML
 ```
+
+**Important**: The `from_dict()` method **must preserve the original ID** from the input data. This is critical for maintaining data integrity when loading manifests from storage. Without this, list and get operations will return different IDs, causing the system to fail.
+
+## API Integration and Critical Implementation Notes
+
+### **Critical Bug Prevention**
+
+#### **ID Preservation in Serialization**
+The most critical aspect of OKH manifest serialization is **preserving unique identifiers**. The `from_dict()` method must include this logic:
+
+```python
+@classmethod
+def from_dict(cls, data: Dict) -> 'OKHManifest':
+    """Create an OKHManifest instance from a dictionary"""
+    # ... create instance with basic fields ...
+    
+    # CRITICAL: Preserve the original ID from data
+    if 'id' in data and data['id']:
+        instance.id = UUID(data['id'])
+    
+    return instance
+```
+
+**Why this matters**: Without ID preservation, list operations return manifests with different IDs than what's stored, making get operations fail. This bug can break the entire OKH retrieval system.
+
+#### **Response Model Conversion**
+When using OKH manifests in API endpoints, always convert to the appropriate response model:
+
+```python
+# In API routes - ALWAYS convert OKHManifest to OKHResponse
+manifest_dict = result.to_dict()
+return OKHResponse(**manifest_dict)
+```
+
+**Why this matters**: FastAPI's response validation is strict about type matching. Returning `OKHManifest` objects directly when the endpoint expects `OKHResponse` objects causes validation errors.
+
+#### **Field Type Alignment**
+Ensure response models match the data structures being returned:
+
+- `OKHManifest.repo` is optional → `OKHResponse.repo` must also be optional
+- All field types must match exactly between models
+- Default values must be consistent
+
+### **Testing Requirements**
+
+#### **Integration Testing is Critical**
+Unit tests alone are insufficient for catching integration issues. Required testing approach:
+
+1. **Unit Tests** - Test individual components in isolation
+2. **Integration Tests** - Test component interactions (async/await, return types, model conversions)
+3. **End-to-End Tests** - Test complete API workflows with real HTTP calls
+4. **Data Structure Validation** - Verify object conversion and serialization
+
+#### **Data Flow Validation**
+Test the complete data flow:
+```
+Stored JSON → OKHManifest.from_dict() → OKHService → OKHManifest.to_dict() → OKHResponse → JSON Response
+```
+
+Each step must preserve data integrity and handle type conversions correctly.
 
 ## Best Practices
 
@@ -351,6 +414,13 @@ def from_toml(cls, filepath: str) -> 'OKHManifest':
 - Check required fields
 - Verify document references
 - Validate license specifications
+
+### 5. **Serialization Safety (CRITICAL)**
+- **Always preserve unique identifiers** in `from_dict()` methods
+- **Test model conversion chains** end-to-end
+- **Validate response models** match expected schemas
+- **Use integration tests** to catch serialization issues
+- **Monitor server logs** for validation errors
 
 ## OKH Framework Components
 

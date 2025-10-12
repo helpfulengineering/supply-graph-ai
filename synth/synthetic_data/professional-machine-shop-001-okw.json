@@ -1,0 +1,328 @@
+{
+  "id": "b709f8ee-3ae7-4607-bf8b-2dc66d495601",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "9493",
+      "street": "Marshall Streets",
+      "city": "Cooperborough",
+      "region": "Vermont",
+      "country": "Libyan Arab Jamahiriya",
+      "postcode": "06014"
+    },
+    "gps_coordinates": "25.432409, -83.580952",
+    "directions": "Located near Bryant, Morris and Perez",
+    "city": "Cooperborough",
+    "country": "Libyan Arab Jamahiriya"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Hester PLC",
+    "location": {
+      "address": {
+        "number": "1929",
+        "street": "Stuart Parkway",
+        "city": "Kimberlyville",
+        "region": "Montana",
+        "country": "Spain",
+        "postcode": "40649"
+      },
+      "gps_coordinates": "66.434768, -111.661398",
+      "directions": "Located near Valentine, Hudson and Collier",
+      "city": "Kimberlyville",
+      "country": "Spain"
+    },
+    "contact_person": "Nicole Lowe",
+    "bio": "Established in 1990, we specialize in Optional holistic approach",
+    "website": "https://powers-taylor.net",
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "mailing_list": "natasha69@lists.pena-walker.com",
+    "images": [
+      "images/interest.jpg",
+      "images/mission.jpg"
+    ],
+    "contact": {
+      "landline": "+1-266-562-3064",
+      "mobile": "+1-505-568-6068",
+      "email": "info@durham-kelley.com",
+      "whatsapp": "+1-312-705-8384"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/hardybrooke",
+      "twitter": "@afisher",
+      "instagram": "@pgentry",
+      "other_urls": [
+        "https://lloyd.info",
+        "https://gonzales.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Young, Howard and Thompson",
+    "location": {
+      "address": {
+        "number": "9799",
+        "street": "Natalie Expressway",
+        "city": "Christinaland",
+        "region": "Tennessee",
+        "country": "Burundi",
+        "postcode": "97502"
+      },
+      "gps_coordinates": "59.519838, 3.511564",
+      "directions": "Located across from Walters, Young and Hernandez",
+      "city": "Christinaland",
+      "country": "Burundi"
+    },
+    "contact_person": "Christian Mitchell",
+    "bio": "Established in 2013, we specialize in Reduced reciprocal website",
+    "website": "https://adams.info",
+    "languages": [
+      "de",
+      "es",
+      "en"
+    ],
+    "mailing_list": "molly59@lists.moore-poole.com",
+    "images": [
+      "images/black.jpg"
+    ],
+    "contact": {
+      "landline": "+1-288-694-3578",
+      "mobile": "+1-251-449-6514",
+      "email": "info@leach.com",
+      "whatsapp": "+1-293-568-9796"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/lserrano",
+      "instagram": "@jenniferkelly",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2003-02-23",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VF-2",
+      "serial_number": "SN916177",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Study process bill bit.",
+      "quantity": 4,
+      "throughput": "44 parts/hour",
+      "power_rating": 9613,
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2329",
+              "street": "Merritt Stream",
+              "city": "South Patrickfurt",
+              "region": "California",
+              "country": "Christmas Island",
+              "postcode": "84005"
+            },
+            "gps_coordinates": "39.518473, -115.559585",
+            "directions": "Located near Brown, Graham and Fowler",
+            "city": "South Patrickfurt",
+            "country": "Christmas Island"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9623",
+              "street": "Sarah Villages",
+              "city": "Brandonfort",
+              "region": "Arkansas",
+              "country": "San Marino",
+              "postcode": "49433"
+            },
+            "gps_coordinates": "56.454862, -107.70522",
+            "directions": "Located behind Avila Inc",
+            "city": "Brandonfort",
+            "country": "San Marino"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9987",
+              "street": "Dennis Fork",
+              "city": "East Sandraville",
+              "region": "Indiana",
+              "country": "Venezuela",
+              "postcode": "17139"
+            },
+            "gps_coordinates": "49.148923, 10.051503",
+            "directions": "Located near Boyd Ltd",
+            "city": "East Sandraville",
+            "country": "Venezuela"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9872",
+              "street": "Jones Vista",
+              "city": "Port Jeremybury",
+              "region": "Montana",
+              "country": "Netherlands Antilles",
+              "postcode": "42783"
+            },
+            "gps_coordinates": "67.954651, -34.806234",
+            "directions": "Located across from Hines-Brown",
+            "city": "Port Jeremybury",
+            "country": "Netherlands Antilles"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Plastic",
+          "Wood"
+        ],
+        "process_parameters": {
+          "setup_time": "28 minutes",
+          "cycle_time": "49 minutes",
+          "changeover_time": "45 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 859",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 158",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 735,
+  "storage_capacity": "174 cubic meters",
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Pre-emptive heuristic installation",
+    "Profit-focused tangible conglomeration",
+    "Networked multimedia access"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Tend institution beautiful change.",
+    "by_products": [
+      "much",
+      "read",
+      "born"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 30
+  },
+  "innovation_space": {
+    "learning_resources": [
+      "Enhanced bi-directional matrix",
+      "Multi-lateral actuating intranet",
+      "User-centric fresh-thinking hardware",
+      "Object-based systematic project",
+      "Synergistic intermediate artificial intelligence"
+    ],
+    "services": [
+      "Front-line content-based concept",
+      "Balanced homogeneous success",
+      "Distributed static protocol",
+      "Front-line well-modulated emulation"
+    ],
+    "footfall": 24
+  },
+  "record_data": {
+    "date_created": "2025-10-10T15:43:01.654094",
+    "created_by": {
+      "name": "Meyer, Mccoy and Choi",
+      "location": {
+        "address": {
+          "number": "7944",
+          "street": "Lisa Camp",
+          "city": "Michelleport",
+          "region": "Indiana",
+          "country": "Congo",
+          "postcode": "91254"
+        },
+        "gps_coordinates": "39.41198, -70.642879",
+        "directions": "Located behind Ruiz and Sons",
+        "city": "Michelleport",
+        "country": "Congo"
+      },
+      "contact_person": "Holly Colon",
+      "bio": "Established in 2020, we specialize in Operative neutral concept",
+      "website": "https://wood.com",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "mailing_list": "stephen41@lists.williams.com",
+      "images": [
+        "images/reduce.jpg",
+        "images/seem.jpg"
+      ],
+      "contact": {
+        "landline": "+1-852-307-8843",
+        "mobile": "+1-346-683-7645",
+        "email": "info@novak.com",
+        "whatsapp": "+1-853-981-1284"
+      },
+      "social_media": {
+        "twitter": "@williamkhan",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

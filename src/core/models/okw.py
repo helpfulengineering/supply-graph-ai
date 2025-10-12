@@ -508,7 +508,7 @@ class ManufacturingFacility:
             facility.wheelchair_accessibility = data['wheelchair_accessibility']
         if 'manufacturing_processes' in data:
             facility.manufacturing_processes = data['manufacturing_processes']
-        if 'typical_batch_size' in data:
+        if 'typical_batch_size' in data and data['typical_batch_size'] is not None:
             facility.typical_batch_size = BatchSize(data['typical_batch_size'])
         if 'floor_size' in data:
             facility.floor_size = data['floor_size']
@@ -556,7 +556,98 @@ class ManufacturingFacility:
             )
         
         # Parse complex types: owner, contact, affiliations, equipment, materials, etc.
-        # These would need to be handled with their own from_dict methods
-        # This is a simplified implementation
+        
+        # Parse equipment
+        if 'equipment' in data and data['equipment']:
+            equipment_list = []
+            for eq_data in data['equipment']:
+                if isinstance(eq_data, dict):
+                    # Parse location for equipment if present
+                    eq_location = None
+                    if 'location' in eq_data:
+                        eq_loc_data = eq_data['location']
+                        eq_address_data = eq_loc_data.get('address', {})
+                        eq_address = Address(
+                            number=eq_address_data.get('number'),
+                            street=eq_address_data.get('street'),
+                            district=eq_address_data.get('district'),
+                            city=eq_address_data.get('city'),
+                            region=eq_address_data.get('region'),
+                            country=eq_address_data.get('country'),
+                            postcode=eq_address_data.get('postcode')
+                        )
+                        eq_location = Location(
+                            address=eq_address,
+                            gps_coordinates=eq_loc_data.get('gps_coordinates'),
+                            directions=eq_loc_data.get('directions'),
+                            city=eq_loc_data.get('city'),
+                            country=eq_loc_data.get('country')
+                        )
+                    
+                    # Parse materials worked for equipment if present
+                    materials_worked = []
+                    if 'materials_worked' in eq_data:
+                        for mat_data in eq_data['materials_worked']:
+                            if isinstance(mat_data, dict):
+                                material = Material(
+                                    material_type=mat_data.get('material_type', ''),
+                                    manufacturer=mat_data.get('manufacturer'),
+                                    brand=mat_data.get('brand')
+                                )
+                                materials_worked.append(material)
+                    
+                    equipment = Equipment(
+                        equipment_type=eq_data.get('equipment_type', ''),
+                        manufacturing_process=eq_data.get('manufacturing_process', ''),
+                        make=eq_data.get('make'),
+                        model=eq_data.get('model'),
+                        serial_number=eq_data.get('serial_number'),
+                        location=eq_location,
+                        condition=eq_data.get('condition'),
+                        notes=eq_data.get('notes'),
+                        quantity=eq_data.get('quantity'),
+                        throughput=eq_data.get('throughput'),
+                        power_rating=eq_data.get('power_rating'),
+                        materials_worked=materials_worked,
+                        maintenance_schedule=eq_data.get('maintenance_schedule')
+                    )
+                    equipment_list.append(equipment)
+            facility.equipment = equipment_list
+        
+        # Parse typical materials
+        if 'typical_materials' in data and data['typical_materials']:
+            materials_list = []
+            for mat_data in data['typical_materials']:
+                if isinstance(mat_data, dict):
+                    # Parse supplier location if present
+                    supplier_location = None
+                    if 'supplier_location' in mat_data:
+                        sup_loc_data = mat_data['supplier_location']
+                        sup_address_data = sup_loc_data.get('address', {})
+                        sup_address = Address(
+                            number=sup_address_data.get('number'),
+                            street=sup_address_data.get('street'),
+                            district=sup_address_data.get('district'),
+                            city=sup_address_data.get('city'),
+                            region=sup_address_data.get('region'),
+                            country=sup_address_data.get('country'),
+                            postcode=sup_address_data.get('postcode')
+                        )
+                        supplier_location = Location(
+                            address=sup_address,
+                            gps_coordinates=sup_loc_data.get('gps_coordinates'),
+                            directions=sup_loc_data.get('directions'),
+                            city=sup_loc_data.get('city'),
+                            country=sup_loc_data.get('country')
+                        )
+                    
+                    material = Material(
+                        material_type=mat_data.get('material_type', ''),
+                        manufacturer=mat_data.get('manufacturer'),
+                        brand=mat_data.get('brand'),
+                        supplier_location=supplier_location
+                    )
+                    materials_list.append(material)
+            facility.typical_materials = materials_list
         
         return facility

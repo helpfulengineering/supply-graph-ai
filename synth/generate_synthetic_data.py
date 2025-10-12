@@ -16,9 +16,7 @@ import os
 import random
 import sys
 from datetime import date, datetime
-from pathlib import Path
-from typing import Dict, List, Optional, Union
-from uuid import uuid4
+from typing import Dict, List, Union
 
 from faker import Faker
 
@@ -27,11 +25,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from core.models.okh import (
     OKHManifest, License, Person, Organization, DocumentRef, MaterialSpec,
-    ProcessRequirement, ManufacturingSpec, Standard, Software, PartSpec,
+    ProcessRequirement, ManufacturingSpec, Standard, PartSpec,
     DocumentationType
 )
 from core.models.okw import (
-    ManufacturingFacility, Equipment, Location, Address, What3Words, Agent,
+    ManufacturingFacility, Equipment, Location, Address, Agent,
     Contact, SocialMedia, CircularEconomy, HumanCapacity, InnovationSpace,
     Material, RecordData, FacilityStatus, AccessType, BatchSize
 )
@@ -125,6 +123,50 @@ class OKHGenerator(SyntheticDataGenerator):
             {"id": "Acrylic", "name": "Acrylic Sheet", "unit": "m²"},
             {"id": "Wood", "name": "Hardwood", "unit": "m³"}
         ]
+        
+        # Domain-specific keywords for different hardware types
+        self.keyword_templates = {
+            "iot": ["sensor", "wireless", "connectivity", "monitoring", "data", "network", "embedded", "microcontroller"],
+            "cnc": ["precision", "machining", "tolerance", "surface", "finish", "dimensional", "accuracy", "metalworking"],
+            "laser": ["cutting", "engraving", "precision", "vector", "raster", "material", "thickness", "speed"],
+            "3d_printing": ["additive", "layer", "infill", "support", "resolution", "filament", "bed", "extrusion"],
+            "electronics": ["circuit", "pcb", "component", "soldering", "assembly", "testing", "voltage", "current"],
+            "mechanical": ["assembly", "fastener", "bearing", "gear", "shaft", "housing", "mount", "bracket"]
+        }
+        
+        # Standards by domain and process
+        self.standards_by_domain = {
+            "general": [
+                {"standard_title": "ISO 9001:2015", "publisher": "ISO", "reference": "ISO 9001:2015"},
+                {"standard_title": "CE Marking", "publisher": "EU", "reference": "CE"},
+                {"standard_title": "RoHS Compliance", "publisher": "EU", "reference": "RoHS 2011/65/EU"}
+            ],
+            "electronics": [
+                {"standard_title": "IPC-A-610", "publisher": "IPC", "reference": "IPC-A-610"},
+                {"standard_title": "FCC Part 15", "publisher": "FCC", "reference": "47 CFR Part 15"},
+                {"standard_title": "IEC 61000", "publisher": "IEC", "reference": "IEC 61000"}
+            ],
+            "mechanical": [
+                {"standard_title": "ISO 2768", "publisher": "ISO", "reference": "ISO 2768"},
+                {"standard_title": "ASME Y14.5", "publisher": "ASME", "reference": "ASME Y14.5"},
+                {"standard_title": "DIN 7168", "publisher": "DIN", "reference": "DIN 7168"}
+            ],
+            "safety": [
+                {"standard_title": "ISO 13849", "publisher": "ISO", "reference": "ISO 13849"},
+                {"standard_title": "IEC 61508", "publisher": "IEC", "reference": "IEC 61508"},
+                {"standard_title": "UL 94", "publisher": "UL", "reference": "UL 94"}
+            ]
+        }
+        
+        # Tool categories and specific tools
+        self.tool_categories = {
+            "3DP": ["3D printer", "Filament", "Build plate", "Nozzle", "Calipers", "Deburring tool", "Heat gun"],
+            "CNC": ["CNC mill", "Cutting tools", "Workholding", "CMM", "Surface plate", "Dial indicator", "Micrometer"],
+            "LASER": ["Laser cutter", "Air assist", "Focus lens", "Cutting bed", "Material guides", "Exhaust system"],
+            "PCB": ["PCB mill", "Soldering station", "Multimeter", "Oscilloscope", "Pick and place", "Reflow oven"],
+            "SHEET": ["Sheet metal brake", "Shear", "Punch press", "Welder", "Grinder", "Drill press"],
+            "Assembly": ["Screwdriver set", "Wrench set", "Pliers", "Crimping tool", "Heat shrink", "Cable ties"]
+        }
 
     def generate_license(self) -> License:
         """Generate a realistic license"""
@@ -182,6 +224,191 @@ class OKHGenerator(SyntheticDataGenerator):
             unit=material["unit"],
             notes=f"Grade: {random.choice(['A', 'B', 'C'])}" if self.should_include_field() else None
         )
+
+    def generate_keywords(self, template: Dict) -> List[str]:
+        """Generate domain-specific keywords based on template"""
+        keywords = []
+        
+        # Add keywords based on manufacturing processes
+        for process in template["manufacturing_processes"]:
+            if process in self.keyword_templates:
+                keywords.extend(random.sample(self.keyword_templates[process], random.randint(2, 4)))
+        
+        # Add general hardware keywords
+        keywords.extend(random.sample(self.keyword_templates["mechanical"], random.randint(1, 3)))
+        
+        # Add some random technical terms
+        tech_terms = ["prototype", "open-source", "modular", "customizable", "reproducible", "documented"]
+        keywords.extend(random.sample(tech_terms, random.randint(1, 2)))
+        
+        return list(set(keywords))  # Remove duplicates
+    
+    def generate_standards(self, template: Dict) -> List[Standard]:
+        """Generate relevant standards based on template"""
+        standards = []
+        
+        # Always include general standards
+        general_standards = random.sample(self.standards_by_domain["general"], random.randint(1, 2))
+        for std_data in general_standards:
+            standards.append(Standard(
+                standard_title=std_data["standard_title"],
+                publisher=std_data["publisher"],
+                reference=std_data["reference"],
+                certifications=[{"type": "compliance", "status": "required"}] if self.should_include_field() else []
+            ))
+        
+        # Add domain-specific standards
+        if "PCB" in template["manufacturing_processes"]:
+            electronics_standards = random.sample(self.standards_by_domain["electronics"], random.randint(1, 2))
+            for std_data in electronics_standards:
+                standards.append(Standard(
+                    standard_title=std_data["standard_title"],
+                    publisher=std_data["publisher"],
+                    reference=std_data["reference"],
+                    certifications=[{"type": "testing", "status": "passed"}] if self.should_include_field() else []
+                ))
+        
+        if any(proc in template["manufacturing_processes"] for proc in ["CNC", "SHEET"]):
+            mechanical_standards = random.sample(self.standards_by_domain["mechanical"], random.randint(1, 2))
+            for std_data in mechanical_standards:
+                standards.append(Standard(
+                    standard_title=std_data["standard_title"],
+                    publisher=std_data["publisher"],
+                    reference=std_data["reference"],
+                    certifications=[{"type": "certification", "status": "valid"}] if self.should_include_field() else []
+                ))
+        
+        return standards
+    
+    def generate_tool_list(self, template: Dict) -> List[str]:
+        """Generate comprehensive tool list based on manufacturing processes"""
+        tools = []
+        
+        # Add tools for each manufacturing process
+        for process in template["manufacturing_processes"]:
+            if process in self.tool_categories:
+                # Select 3-5 tools from each category
+                selected_tools = random.sample(self.tool_categories[process], random.randint(3, 5))
+                tools.extend(selected_tools)
+        
+        # Add general assembly tools
+        if self.should_include_field():
+            assembly_tools = random.sample(self.tool_categories["Assembly"], random.randint(2, 4))
+            tools.extend(assembly_tools)
+        
+        return list(set(tools))  # Remove duplicates
+    
+    def generate_making_instructions(self, template: Dict) -> List[DocumentRef]:
+        """Generate detailed making instruction documents"""
+        instructions = []
+        
+        # Assembly guide
+        instructions.append(self.generate_document_ref(
+            DocumentationType.MANUFACTURING_FILES,
+            f"Assembly Guide for {template['title']}"
+        ))
+        
+        # Manufacturing instructions for each process
+        for process in template["manufacturing_processes"]:
+            if process == "3DP":
+                instructions.append(self.generate_document_ref(
+                    DocumentationType.MANUFACTURING_FILES,
+                    "3D Printing Setup and Parameters"
+                ))
+            elif process == "CNC":
+                instructions.append(self.generate_document_ref(
+                    DocumentationType.MANUFACTURING_FILES,
+                    "CNC Machining Instructions"
+                ))
+            elif process == "PCB":
+                instructions.append(self.generate_document_ref(
+                    DocumentationType.MANUFACTURING_FILES,
+                    "PCB Assembly Guide"
+                ))
+        
+        # Quality control instructions
+        if self.should_include_field():
+            instructions.append(self.generate_document_ref(
+                DocumentationType.QUALITY_INSTRUCTIONS,
+                "Quality Control and Testing Procedures"
+            ))
+        
+        # Risk assessment
+        if self.should_include_field():
+            instructions.append(self.generate_document_ref(
+                DocumentationType.RISK_ASSESSMENT,
+                "Safety and Risk Assessment"
+            ))
+        
+        return instructions
+    
+    def generate_bom_reference(self, template: Dict) -> str:
+        """Generate bill of materials reference"""
+        return f"https://github.com/{self.faker.user_name()}/project/raw/main/docs/bom_{template['title'].lower().replace(' ', '_')}.csv"
+    
+    def generate_quality_instructions(self, template: Dict) -> List[DocumentRef]:
+        """Generate quality control instruction documents"""
+        quality_docs = []
+        
+        # Basic quality control
+        quality_docs.append(self.generate_document_ref(
+            DocumentationType.QUALITY_INSTRUCTIONS,
+            "Quality Control Checklist"
+        ))
+        
+        # Process-specific quality instructions
+        for process in template["manufacturing_processes"]:
+            if process == "CNC":
+                quality_docs.append(self.generate_document_ref(
+                    DocumentationType.QUALITY_INSTRUCTIONS,
+                    "Dimensional Inspection Procedures"
+                ))
+            elif process == "PCB":
+                quality_docs.append(self.generate_document_ref(
+                    DocumentationType.QUALITY_INSTRUCTIONS,
+                    "Electrical Testing Protocol"
+                ))
+        
+        return quality_docs
+    
+    def generate_risk_assessment(self, template: Dict) -> List[DocumentRef]:
+        """Generate risk assessment documents"""
+        risk_docs = []
+        
+        # General risk assessment
+        risk_docs.append(self.generate_document_ref(
+            DocumentationType.RISK_ASSESSMENT,
+            "General Safety and Risk Assessment"
+        ))
+        
+        # Process-specific risk assessments
+        for process in template["manufacturing_processes"]:
+            if process in ["CNC", "LASER", "SHEET"]:
+                risk_docs.append(self.generate_document_ref(
+                    DocumentationType.RISK_ASSESSMENT,
+                    f"{process} Safety Procedures"
+                ))
+        
+        return risk_docs
+    
+    def generate_compliance_docs(self, template: Dict) -> List[DocumentRef]:
+        """Generate regulatory compliance documents"""
+        compliance_docs = []
+        
+        # General compliance
+        compliance_docs.append(self.generate_document_ref(
+            DocumentationType.MANUFACTURING_FILES,
+            "Regulatory Compliance Statement"
+        ))
+        
+        # Standards compliance
+        if self.should_include_field():
+            compliance_docs.append(self.generate_document_ref(
+                DocumentationType.MANUFACTURING_FILES,
+                "Standards Compliance Documentation"
+            ))
+        
+        return compliance_docs
 
     def generate_process_requirement(self, process_name: str) -> ProcessRequirement:
         """Generate a realistic process requirement"""
@@ -311,8 +538,8 @@ class OKHGenerator(SyntheticDataGenerator):
         if self.should_include_field():
             manifest.intended_use = self.faker.sentence()
             
-        if self.should_include_field():
-            manifest.keywords = [self.faker.word() for _ in range(random.randint(3, 8))]
+        # Enhanced keywords generation
+        manifest.keywords = self.generate_keywords(template)
             
         if self.should_include_field():
             manifest.contact = self.generate_person()
@@ -329,6 +556,19 @@ class OKHGenerator(SyntheticDataGenerator):
         if self.should_include_field():
             manifest.technology_readiness_level = f"TRL-{random.randint(1, 9)}"
             
+        # Enhanced tool list generation
+        manifest.tool_list = self.generate_tool_list(template)
+        
+        # Enhanced standards generation
+        manifest.standards_used = self.generate_standards(template)
+        
+        # Enhanced making instructions
+        manifest.making_instructions = self.generate_making_instructions(template)
+        
+        # BOM reference
+        if self.should_include_field():
+            manifest.bom = self.generate_bom_reference(template)
+            
         # Add documentation references
         if self.should_include_field():
             manifest.design_files = [
@@ -342,11 +582,20 @@ class OKHGenerator(SyntheticDataGenerator):
                 self.generate_document_ref(DocumentationType.MANUFACTURING_FILES, "Bill of Materials")
             ]
             
+        # Quality instructions and risk assessment
         if self.should_include_field():
-            manifest.making_instructions = [
-                self.generate_document_ref(DocumentationType.USER_MANUAL, "User Manual"),
-                self.generate_document_ref(DocumentationType.MAINTENANCE_INSTRUCTIONS, "Maintenance Guide")
-            ]
+            quality_instructions = self.generate_quality_instructions(template)
+            # Add to manufacturing_files since OKH doesn't have separate quality_instructions field
+            manifest.manufacturing_files.extend(quality_instructions)
+            
+        if self.should_include_field():
+            risk_assessments = self.generate_risk_assessment(template)
+            # Add to manufacturing_files since OKH doesn't have separate risk_assessment field
+            manifest.manufacturing_files.extend(risk_assessments)
+            
+        if self.should_include_field():
+            compliance_docs = self.generate_compliance_docs(template)
+            manifest.manufacturing_files.extend(compliance_docs)
             
         # Add manufacturing processes
         manifest.manufacturing_processes = template["manufacturing_processes"]
@@ -440,29 +689,133 @@ class OKWGenerator(SyntheticDataGenerator):
                 "models": ["i3 MK3S+", "S5", "Ender 3", "Form 3"],
                 "process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
                 "materials": ["PLA", "PETG", "ABS", "TPU"],
-                "properties": {"build_volume": [200, 300, 400], "nozzle_size": [0.4, 0.6, 0.8]}
+                "properties": {"build_volume": [200, 300, 400], "nozzle_size": [0.4, 0.6, 0.8]},
+                "capabilities": {
+                    "layer_height_range": "0.1-0.3mm",
+                    "print_speed": "20-100mm/s",
+                    "temperature_range": "200-280°C",
+                    "bed_temperature": "60-100°C",
+                    "supported_formats": ["STL", "OBJ", "3MF"]
+                }
             },
             "CNC mill": {
                 "makes": ["Haas", "Mazak", "DMG Mori", "Tormach"],
                 "models": ["VF-2", "VTC-20", "DMU 50", "PCNC 440"],
                 "process": "https://en.wikipedia.org/wiki/Machining",
                 "materials": ["Aluminum", "Steel", "Plastic", "Wood"],
-                "properties": {"working_surface": [400, 600, 800], "axes": [3, 4, 5]}
+                "properties": {"working_surface": [400, 600, 800], "axes": [3, 4, 5]},
+                "capabilities": {
+                    "tolerance": "±0.01mm",
+                    "surface_finish": "Ra 0.8-3.2μm",
+                    "spindle_speed": "1000-12000 RPM",
+                    "feed_rate": "100-2000 mm/min",
+                    "tool_changer": "Automatic"
+                }
             },
             "Laser cutter": {
                 "makes": ["Epilog", "Trotec", "Universal", "Boss"],
                 "models": ["Fusion Pro", "Speedy 300", "VLS 3.50", "LS-1630"],
                 "process": "https://en.wikipedia.org/wiki/Laser_cutting",
                 "materials": ["Acrylic", "Wood", "Fabric", "Leather"],
-                "properties": {"laser_power": [30, 60, 100], "working_surface": [300, 600, 900]}
+                "properties": {"laser_power": [30, 60, 100], "working_surface": [300, 600, 900]},
+                "capabilities": {
+                    "cutting_thickness": "0.1-25mm",
+                    "engraving_depth": "0.1-2mm",
+                    "cutting_speed": "1-1000 mm/min",
+                    "resolution": "1000 DPI",
+                    "supported_formats": ["DXF", "AI", "PDF"]
+                }
             },
             "CNC router": {
                 "makes": ["ShopBot", "Axiom", "Shapeoko", "Onefinity"],
                 "models": ["Desktop", "Pro", "XXL", "Woodworker"],
                 "process": "https://en.wikipedia.org/wiki/CNC_router",
                 "materials": ["Wood", "Plastic", "Aluminum", "Foam"],
-                "properties": {"working_surface": [300, 600, 1200], "axes": [3, 4]}
+                "properties": {"working_surface": [300, 600, 1200], "axes": [3, 4]},
+                "capabilities": {
+                    "tolerance": "±0.1mm",
+                    "spindle_speed": "5000-24000 RPM",
+                    "feed_rate": "100-5000 mm/min",
+                    "tool_diameter": "0.5-25mm",
+                    "cutting_depth": "0.1-50mm"
+                }
             }
+        }
+        
+        # Certification templates by facility type
+        self.certification_templates = {
+            "makerspace": [
+                "Basic Safety Training",
+                "Equipment Operation Certification",
+                "First Aid Training"
+            ],
+            "professional": [
+                "ISO 9001:2015",
+                "AS9100",
+                "ISO 14001",
+                "OHSAS 18001",
+                "NADCAP"
+            ],
+            "university": [
+                "Research Grade Equipment",
+                "Academic Standards Compliance",
+                "Safety Protocol Certification"
+            ],
+            "industrial": [
+                "ISO 9001:2015",
+                "ISO 14001",
+                "ISO 45001",
+                "IATF 16949",
+                "AS9100"
+            ],
+            "electronics": [
+                "IPC-A-610",
+                "IPC-J-STD-001",
+                "ISO 9001:2015",
+                "RoHS Compliance"
+            ]
+        }
+        
+        # Capacity metrics templates
+        self.capacity_metrics = {
+            "throughput": {
+                "3D printer": "1-10 parts/hour",
+                "CNC mill": "1-50 parts/hour", 
+                "Laser cutter": "10-100 parts/hour",
+                "CNC router": "5-30 parts/hour"
+            },
+            "lead_times": {
+                "prototype": "1-3 days",
+                "small_batch": "1-2 weeks",
+                "medium_batch": "2-4 weeks",
+                "large_batch": "4-8 weeks"
+            },
+            "queue_status": ["Available", "Busy", "Booked", "Maintenance"]
+        }
+        
+        # Quality systems templates
+        self.quality_systems = {
+            "inspection_equipment": [
+                "CMM (Coordinate Measuring Machine)",
+                "Surface roughness tester",
+                "Digital calipers",
+                "Micrometers",
+                "Go/no-go gauges",
+                "Optical comparator"
+            ],
+            "qms_standards": [
+                "ISO 9001:2015",
+                "AS9100",
+                "IATF 16949",
+                "ISO 13485"
+            ],
+            "measurement_capabilities": [
+                "Dimensional inspection",
+                "Surface finish measurement",
+                "Material testing",
+                "Electrical testing",
+                "Functional testing"
+            ]
         }
 
     def generate_address(self) -> Address:
@@ -536,6 +889,284 @@ class OKWGenerator(SyntheticDataGenerator):
             brand=random.choice(["Standard", "Professional", "Industrial"]) if self.should_include_field() else None,
             supplier_location=self.generate_location() if self.should_include_field() else None
         )
+
+    def generate_detailed_capabilities(self, equipment_type: str) -> Dict:
+        """Generate detailed process capabilities for equipment"""
+        if equipment_type not in self.equipment_specs:
+            return {}
+        
+        spec = self.equipment_specs[equipment_type]
+        capabilities = spec.get("capabilities", {}).copy()
+        
+        # Add some variability to capabilities
+        if "tolerance" in capabilities:
+            # Add tolerance variations - handle the tolerance string properly
+            base_tolerance = capabilities["tolerance"]
+            try:
+                # Extract numeric value from tolerance string like "±0.01mm"
+                if "±" in base_tolerance and "mm" in base_tolerance:
+                    tolerance_value = float(base_tolerance.split('±')[1].replace('mm', ''))
+                    variations = [
+                        base_tolerance, 
+                        f"±{tolerance_value * 1.5:.3f}mm", 
+                        f"±{tolerance_value * 2:.3f}mm"
+                    ]
+                    capabilities["tolerance_range"] = random.choice(variations)
+                else:
+                    capabilities["tolerance_range"] = base_tolerance
+            except (ValueError, IndexError):
+                # If parsing fails, just use the original tolerance
+                capabilities["tolerance_range"] = base_tolerance
+        
+        # Add material-specific capabilities
+        materials = spec.get("materials", [])
+        if materials:
+            capabilities["supported_materials"] = random.sample(materials, random.randint(2, len(materials)))
+        
+        # Add process parameters
+        capabilities["process_parameters"] = {
+            "setup_time": f"{random.randint(15, 120)} minutes",
+            "cycle_time": f"{random.randint(5, 60)} minutes",
+            "changeover_time": f"{random.randint(10, 45)} minutes"
+        }
+        
+        return capabilities
+    
+    def generate_certification_details(self, facility_type: str) -> List[Dict]:
+        """Generate detailed certification information"""
+        cert_templates = self.certification_templates.get(facility_type, self.certification_templates["professional"])
+        certifications = []
+        
+        # Select 2-4 certifications
+        selected_certs = random.sample(cert_templates, random.randint(2, min(4, len(cert_templates))))
+        
+        for cert in selected_certs:
+            cert_detail = {
+                "name": cert,
+                "issuing_body": self._get_cert_issuing_body(cert),
+                "issue_date": self.faker.date_between(start_date="-5y", end_date="today").isoformat(),
+                "expiry_date": self.faker.date_between(start_date="today", end_date="+3y").isoformat(),
+                "certification_number": f"CERT-{random.randint(100000, 999999)}",
+                "scope": self._get_cert_scope(cert),
+                "status": random.choice(["Active", "Active", "Active", "Pending Renewal"])
+            }
+            certifications.append(cert_detail)
+        
+        return certifications
+    
+    def _get_cert_issuing_body(self, cert_name: str) -> str:
+        """Get issuing body for certification"""
+        issuing_bodies = {
+            "ISO": "International Organization for Standardization",
+            "AS9100": "SAE International",
+            "IPC": "IPC - Association Connecting Electronics Industries",
+            "NADCAP": "PRI (Performance Review Institute)",
+            "IATF": "International Automotive Task Force"
+        }
+        
+        for key, body in issuing_bodies.items():
+            if key in cert_name:
+                return body
+        return "Certification Body"
+    
+    def _get_cert_scope(self, cert_name: str) -> str:
+        """Get scope for certification"""
+        scopes = {
+            "ISO 9001": "Quality Management System",
+            "AS9100": "Aerospace Quality Management",
+            "IPC-A-610": "Acceptability of Electronic Assemblies",
+            "ISO 14001": "Environmental Management System",
+            "IATF 16949": "Automotive Quality Management"
+        }
+        
+        for key, scope in scopes.items():
+            if key in cert_name:
+                return scope
+        return "General Manufacturing"
+    
+    def generate_capacity_metrics(self, equipment_types: List[str]) -> Dict:
+        """Generate capacity metrics for facility"""
+        metrics = {}
+        
+        # Throughput metrics
+        total_throughput = []
+        for eq_type in equipment_types:
+            if eq_type in self.capacity_metrics["throughput"]:
+                throughput = self.capacity_metrics["throughput"][eq_type]
+                total_throughput.append(throughput)
+        
+        if total_throughput:
+            metrics["throughput"] = {
+                "equipment_throughput": dict(zip(equipment_types, total_throughput)),
+                "facility_capacity": f"{random.randint(10, 1000)} parts/day",
+                "utilization_rate": f"{random.randint(60, 95)}%"
+            }
+        
+        # Lead times
+        metrics["lead_times"] = {
+            "prototype": self.capacity_metrics["lead_times"]["prototype"],
+            "small_batch": self.capacity_metrics["lead_times"]["small_batch"],
+            "medium_batch": self.capacity_metrics["lead_times"]["medium_batch"],
+            "large_batch": self.capacity_metrics["lead_times"]["large_batch"]
+        }
+        
+        # Queue status
+        metrics["queue_status"] = {
+            "current_status": random.choice(self.capacity_metrics["queue_status"]),
+            "queue_length": random.randint(0, 20),
+            "estimated_wait_time": f"{random.randint(1, 14)} days"
+        }
+        
+        return metrics
+    
+    def generate_material_inventory(self, equipment_types: List[str]) -> List[Dict]:
+        """Generate material inventory with quantities and specifications"""
+        inventory = []
+        
+        # Get materials from equipment specs
+        all_materials = set()
+        for eq_type in equipment_types:
+            if eq_type in self.equipment_specs:
+                materials = self.equipment_specs[eq_type].get("materials", [])
+                all_materials.update(materials)
+        
+        # Generate inventory for each material
+        for material in list(all_materials)[:random.randint(3, 8)]:  # Limit to 3-8 materials
+            item = {
+                "material_name": material,
+                "quantity_available": random.randint(10, 1000),
+                "unit": random.choice(["kg", "m", "m²", "pieces", "rolls"]),
+                "specifications": {
+                    "grade": random.choice(["A", "B", "C", "Premium", "Standard"]),
+                    "color": random.choice(["Natural", "Black", "White", "Clear", "Custom"]) if "PLA" in material or "ABS" in material else None,
+                    "thickness": f"{random.uniform(0.1, 10):.1f}mm" if "sheet" in material.lower() else None
+                },
+                "supplier": self.faker.company(),
+                "last_restocked": self.faker.date_between(start_date="-3M", end_date="today").isoformat(),
+                "cost_per_unit": f"${random.uniform(1, 100):.2f}"
+            }
+            inventory.append(item)
+        
+        return inventory
+    
+    def generate_quality_systems(self, facility_type: str) -> Dict:
+        """Generate quality systems information"""
+        qs = {}
+        
+        # Inspection equipment
+        if self.should_include_field():
+            qs["inspection_equipment"] = random.sample(
+                self.quality_systems["inspection_equipment"], 
+                random.randint(2, 5)
+            )
+        
+        # QMS standards
+        if self.should_include_field():
+            qs["qms_standards"] = random.sample(
+                self.quality_systems["qms_standards"],
+                random.randint(1, 3)
+            )
+        
+        # Measurement capabilities
+        if self.should_include_field():
+            qs["measurement_capabilities"] = random.sample(
+                self.quality_systems["measurement_capabilities"],
+                random.randint(2, 4)
+            )
+        
+        # Quality metrics
+        qs["quality_metrics"] = {
+            "first_pass_yield": f"{random.randint(85, 99)}%",
+            "defect_rate": f"{random.uniform(0.1, 2.0):.1f}%",
+            "customer_satisfaction": f"{random.randint(4, 5)}.{random.randint(0, 9)}/5.0",
+            "on_time_delivery": f"{random.randint(90, 100)}%"
+        }
+        
+        return qs
+    
+    def generate_process_parameters(self, equipment_types: List[str]) -> Dict:
+        """Generate detailed process parameters for each equipment type"""
+        parameters = {}
+        
+        for eq_type in equipment_types:
+            if eq_type in self.equipment_specs:
+                spec = self.equipment_specs[eq_type]
+                capabilities = spec.get("capabilities", {})
+                
+                eq_params = {
+                    "process_name": eq_type,
+                    "capabilities": capabilities,
+                    "operating_parameters": {
+                        "power_consumption": f"{random.randint(1000, 10000)}W",
+                        "operating_temperature": f"{random.randint(15, 35)}°C",
+                        "humidity_range": f"{random.randint(30, 70)}%",
+                        "noise_level": f"{random.randint(60, 85)}dB"
+                    },
+                    "safety_requirements": [
+                        "Safety glasses required",
+                        "Proper ventilation",
+                        "Emergency stop accessible"
+                    ],
+                    "maintenance_schedule": f"Every {random.randint(1, 6)} months",
+                    "calibration_required": random.choice([True, False])
+                }
+                
+                parameters[eq_type] = eq_params
+        
+        return parameters
+    
+    def generate_tool_inventory(self, equipment_types: List[str]) -> List[Dict]:
+        """Generate tool inventory with specifications"""
+        tools = []
+        
+        # Define tool categories directly to avoid import issues
+        tool_categories = {
+            "3DP": ["3D printer", "Filament", "Build plate", "Nozzle", "Calipers", "Deburring tool", "Heat gun"],
+            "CNC": ["CNC mill", "Cutting tools", "Workholding", "CMM", "Surface plate", "Dial indicator", "Micrometer"],
+            "LASER": ["Laser cutter", "Air assist", "Focus lens", "Cutting bed", "Material guides", "Exhaust system"],
+            "PCB": ["PCB mill", "Soldering station", "Multimeter", "Oscilloscope", "Pick and place", "Reflow oven"],
+            "SHEET": ["Sheet metal brake", "Shear", "Punch press", "Welder", "Grinder", "Drill press"],
+            "Assembly": ["Screwdriver set", "Wrench set", "Pliers", "Crimping tool", "Heat shrink", "Cable ties"]
+        }
+        
+        for eq_type in equipment_types:
+            if eq_type in tool_categories:
+                tool_list = tool_categories[eq_type]
+                # Select 2-4 tools per equipment type
+                selected_tools = random.sample(tool_list, random.randint(2, min(4, len(tool_list))))
+                
+                for tool in selected_tools:
+                    tool_spec = {
+                        "tool_name": tool,
+                        "equipment_type": eq_type,
+                        "quantity": random.randint(1, 5),
+                        "condition": random.choice(["Excellent", "Good", "Fair", "Needs Replacement"]),
+                        "specifications": {
+                            "size": f"{random.uniform(0.1, 25):.1f}mm" if "nozzle" in tool.lower() or "bit" in tool.lower() else None,
+                            "material": random.choice(["Carbide", "HSS", "Ceramic", "Diamond"]) if "cutting" in tool.lower() else None,
+                            "coating": random.choice(["TiN", "TiAlN", "DLC", "None"]) if "cutting" in tool.lower() else None
+                        },
+                        "last_maintenance": self.faker.date_between(start_date="-6M", end_date="today").isoformat(),
+                        "next_maintenance": self.faker.date_between(start_date="today", end_date="+6M").isoformat(),
+                        "cost": f"${random.uniform(10, 500):.2f}"
+                    }
+                    tools.append(tool_spec)
+        
+        return tools
+    
+    def _get_facility_type_from_template(self, template: Dict) -> str:
+        """Determine facility type from template for certification purposes"""
+        name = template["name"].lower()
+        if "makerspace" in name or "community" in name:
+            return "makerspace"
+        elif "university" in name or "research" in name:
+            return "university"
+        elif "electronics" in name or "assembly" in name:
+            return "electronics"
+        elif "industrial" in name or "plant" in name:
+            return "industrial"
+        else:
+            return "professional"
 
     def generate_equipment(self, equipment_type: str) -> Equipment:
         """Generate realistic equipment"""
@@ -632,6 +1263,61 @@ class OKWGenerator(SyntheticDataGenerator):
         # Add batch size
         facility.typical_batch_size = template["batch_size"]
         
+        # Enhanced capabilities and metrics
+        if self.should_include_field():
+            # Add detailed capabilities to equipment
+            for equipment in facility.equipment:
+                equipment_type = equipment.equipment_type.split('/')[-1].replace('_', ' ')
+                detailed_capabilities = self.generate_detailed_capabilities(equipment_type)
+                if detailed_capabilities:
+                    equipment.additional_properties["detailed_capabilities"] = detailed_capabilities
+        
+        # Add certification details
+        if self.should_include_field():
+            facility_type = self._get_facility_type_from_template(template)
+            cert_details = self.generate_certification_details(facility_type)
+            facility.certifications = [cert["name"] for cert in cert_details]
+            # Store detailed certification info in metadata
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["certification_details"] = cert_details
+        
+        # Add capacity metrics
+        if self.should_include_field():
+            capacity_metrics = self.generate_capacity_metrics(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["capacity_metrics"] = capacity_metrics
+        
+        # Add material inventory
+        if self.should_include_field():
+            material_inventory = self.generate_material_inventory(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["material_inventory"] = material_inventory
+        
+        # Add quality systems
+        if self.should_include_field():
+            facility_type = self._get_facility_type_from_template(template)
+            quality_systems = self.generate_quality_systems(facility_type)
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["quality_systems"] = quality_systems
+        
+        # Add process parameters
+        if self.should_include_field():
+            process_parameters = self.generate_process_parameters(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["process_parameters"] = process_parameters
+        
+        # Add tool inventory
+        if self.should_include_field():
+            tool_inventory = self.generate_tool_inventory(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["tool_inventory"] = tool_inventory
+        
         # Add facility properties
         if self.should_include_field():
             facility.floor_size = random.randint(100, 5000)  # square meters
@@ -704,8 +1390,18 @@ def save_record(record: Union[OKHManifest, ManufacturingFacility], output_dir: s
     """Save a record to a JSON file"""
     os.makedirs(output_dir, exist_ok=True)
     
-    record_type = "okh" if isinstance(record, OKHManifest) else "okw"
-    filename = f"{record_type}_manifest_{index:03d}.json"
+    if isinstance(record, OKHManifest):
+        # Use title and version for OKH files
+        safe_title = "".join(c for c in record.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_title = safe_title.replace(' ', '-').lower()
+        safe_version = record.version.replace('.', '-')
+        filename = f"{safe_title}-{safe_version}-okh.json"
+    else:
+        # Use name for OKW files
+        safe_name = "".join(c for c in record.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_name = safe_name.replace(' ', '-').lower()
+        filename = f"{safe_name}-{index:03d}-okw.json"
+    
     filepath = os.path.join(output_dir, filename)
     
     with open(filepath, 'w', encoding='utf-8') as f:

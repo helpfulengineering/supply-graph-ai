@@ -1,22 +1,28 @@
-from fastapi import APIRouter, HTTPException, Query, Path, Depends, status
+from fastapi import APIRouter, HTTPException, Query, Path, Depends, status, UploadFile, File, Form
 from typing import Optional
 from uuid import UUID
 import logging
+import json
+import yaml
 
 from ..models.okh.request import (
     OKHCreateRequest, 
     OKHUpdateRequest, 
     OKHValidateRequest,
-    OKHExtractRequest
+    OKHExtractRequest,
+    OKHUploadRequest
 )
 from ..models.okh.response import (
     OKHResponse, 
     OKHValidationResponse, 
     OKHExtractResponse,
     OKHListResponse,
-    SuccessResponse
+    SuccessResponse,
+    OKHUploadResponse
 )
 from ...services.okh_service import OKHService
+from ...services.storage_service import StorageService
+from src.config import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -26,9 +32,7 @@ router = APIRouter(tags=["okh"])
 
 # Dependency to get OKH service
 async def get_okh_service():
-    # In a real implementation, this would use dependency injection
-    # or configuration to create the service
-    return OKHService()
+    return await OKHService.get_instance()
 
 @router.post("/create", response_model=OKHResponse, status_code=status.HTTP_201_CREATED)
 async def create_okh(
@@ -43,7 +47,7 @@ async def create_okh(
     """
     try:
         # Call service to create OKH manifest
-        result = await okh_service.create(request.dict())
+        result = await okh_service.create(request.model_dump())
         return result
     except ValueError as e:
         # Handle validation errors
@@ -73,13 +77,16 @@ async def get_okh(
     """
     try:
         # Call service to get OKH manifest
-        result = await okh_service.get(id, component)
+        result = await okh_service.get(id)
         if not result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"OKH manifest with ID {id} not found"
             )
-        return result
+        
+        # Convert OKHManifest to OKHResponse
+        manifest_dict = result.to_dict()
+        return OKHResponse(**manifest_dict)
     except ValueError as e:
         # Handle invalid parameters
         raise HTTPException(
@@ -126,7 +133,14 @@ async def list_okh(
                     }
         
         # Call service to list OKH manifests
-        results, total = await okh_service.list(page, page_size, filter_params)
+        manifests, total = await okh_service.list(page, page_size, filter_params)
+        
+        # Convert OKHManifest objects to OKHResponse objects
+        results = []
+        for manifest in manifests:
+            # Convert OKHManifest to dict, then to OKHResponse
+            manifest_dict = manifest.to_dict()
+            results.append(OKHResponse(**manifest_dict))
         
         return OKHListResponse(
             results=results,
@@ -169,7 +183,7 @@ async def update_okh(
             )
         
         # Call service to update OKH manifest
-        result = await okh_service.update(id, request.dict())
+        result = await okh_service.update(id, request.model_dump())
         return result
     except ValueError as e:
         # Handle validation errors
@@ -279,4 +293,93 @@ async def extract_requirements(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while extracting requirements"
+        )
+
+@router.post("/upload", response_model=OKHUploadResponse, status_code=status.HTTP_201_CREATED)
+async def upload_okh_file(
+    okh_file: UploadFile = File(..., description="OKH file (YAML or JSON)"),
+    description: Optional[str] = Form(None, description="Optional description for the uploaded OKH"),
+    tags: Optional[str] = Form(None, description="Comma-separated list of tags"),
+    validation_context: Optional[str] = Form(None, description="Validation context (e.g., 'manufacturing', 'hobby')"),
+    okh_service: OKHService = Depends(get_okh_service)
+):
+    """
+    Upload an OKH file
+    
+    Accepts a file upload (YAML or JSON) containing an OKH manifest,
+    validates it, and stores it for use in matching operations.
+    """
+    try:
+        # Validate file type
+        if not okh_file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        
+        file_extension = okh_file.filename.lower().split('.')[-1]
+        if file_extension not in ['yaml', 'yml', 'json']:
+            raise HTTPException(
+                status_code=400, 
+                detail="Unsupported file type. Please upload a YAML (.yaml, .yml) or JSON (.json) file"
+            )
+        
+        # Read and parse the file content
+        content = await okh_file.read()
+        content_str = content.decode('utf-8')
+        
+        try:
+            if file_extension == 'json':
+                okh_data = json.loads(content_str)
+            else:  # yaml or yml
+                okh_data = yaml.safe_load(content_str)
+        except (json.JSONDecodeError, yaml.YAMLError) as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file format: {str(e)}"
+            )
+        
+        # Convert to OKHManifest
+        try:
+            from ...models.okh import OKHManifest
+            okh_manifest = OKHManifest.from_dict(okh_data)
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid OKH manifest: {str(e)}"
+            )
+        
+        # Validate the manifest
+        try:
+            okh_manifest.validate()
+        except ValueError as e:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"OKH validation failed: {str(e)}"
+            )
+        
+        # Store the OKH manifest
+        try:
+            result = await okh_service.create(okh_manifest.to_dict())
+        except Exception as e:
+            logger.error(f"Error storing OKH manifest: {str(e)}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Error storing OKH manifest: {str(e)}"
+            )
+        
+        # Convert result to OKHResponse format
+        result_dict = result.to_dict()
+        okh_response = OKHResponse(**result_dict)
+        
+        return OKHUploadResponse(
+            success=True,
+            message=f"OKH file '{okh_file.filename}' uploaded and stored successfully",
+            okh=okh_response
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading OKH file: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error: {str(e)}"
         )

@@ -1,0 +1,429 @@
+{
+  "id": "baffd969-ec52-4e0b-aa27-4608ea5e51d6",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "4234",
+      "street": "Bennett Groves",
+      "city": "Amandaville",
+      "region": "North Dakota",
+      "country": "United States Minor Outlying Islands",
+      "postcode": "50573"
+    },
+    "gps_coordinates": "63.133649, -113.782515",
+    "directions": "Located across from Dixon-Smith",
+    "city": "Amandaville",
+    "country": "United States Minor Outlying Islands"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Taylor Ltd",
+    "location": {
+      "address": {
+        "number": "5893",
+        "street": "Frances Point",
+        "city": "Port Melissa",
+        "region": "West Virginia",
+        "country": "North Macedonia",
+        "postcode": "31253"
+      },
+      "gps_coordinates": "29.056581, -5.294645",
+      "directions": "Located behind Moreno LLC",
+      "city": "Port Melissa",
+      "country": "North Macedonia"
+    },
+    "contact_person": "Benjamin Hanson",
+    "bio": "Established in 2010, we specialize in Intuitive executive support",
+    "website": "https://ellis-johnson.com",
+    "languages": [
+      "fr",
+      "en",
+      "de"
+    ],
+    "mailing_list": "mcguiredeanna@lists.smith-jones.com",
+    "images": [
+      "images/great.jpg",
+      "images/this.jpg"
+    ],
+    "contact": {
+      "landline": "+1-697-898-3443",
+      "mobile": "+1-603-912-5940",
+      "email": "info@rowe.com",
+      "whatsapp": "+1-652-267-8587"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/reyeskevin",
+      "other_urls": [
+        "https://george-henry.net",
+        "https://myers.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Martin Ltd",
+    "location": {
+      "address": {
+        "number": "9211",
+        "street": "Bailey Park",
+        "city": "East Erinton",
+        "region": "New Hampshire",
+        "country": "Russian Federation",
+        "postcode": "13927"
+      },
+      "gps_coordinates": "65.065993, 39.246331",
+      "directions": "Located across from Campbell Group",
+      "city": "East Erinton",
+      "country": "Russian Federation"
+    },
+    "contact_person": "Nicole Carter",
+    "bio": "Established in 2020, we specialize in Multi-tiered tertiary conglomeration",
+    "website": "https://yang-phillips.com",
+    "languages": [
+      "en"
+    ],
+    "mailing_list": "osbornescott@lists.dillon.com",
+    "images": [
+      "images/personal.jpg",
+      "images/owner.jpg",
+      "images/professional.jpg"
+    ],
+    "contact": {
+      "landline": "+1-787-866-3174",
+      "mobile": "+1-368-626-8132",
+      "email": "info@mccall.com",
+      "whatsapp": "+1-946-407-5061"
+    },
+    "social_media": {
+      "twitter": "@browningnicholas",
+      "other_urls": [
+        "https://johnson-lucas.org",
+        "https://clarke-gibbs.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-19:00",
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "1996-10-07",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "S5",
+      "serial_number": "SN647564",
+      "condition": "Fair",
+      "notes": "Equipment notes: Decide behavior out indicate trouble speak.",
+      "quantity": 2,
+      "throughput": "46 parts/hour",
+      "power_rating": 6114,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8753",
+              "street": "Malone Mountains",
+              "city": "Port Patrick",
+              "region": "South Carolina",
+              "country": "Bosnia and Herzegovina",
+              "postcode": "79349"
+            },
+            "gps_coordinates": "26.220525, -0.488032",
+            "directions": "Located across from Strong PLC",
+            "city": "Port Patrick",
+            "country": "Bosnia and Herzegovina"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3548",
+              "street": "Riley Trafficway",
+              "city": "Port Kevin",
+              "region": "New Mexico",
+              "country": "New Zealand",
+              "postcode": "13288"
+            },
+            "gps_coordinates": "56.123704, -98.296783",
+            "directions": "Located near Hill, Reed and Golden",
+            "city": "Port Kevin",
+            "country": "New Zealand"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8031",
+              "street": "White Spurs",
+              "city": "Stoneview",
+              "region": "Connecticut",
+              "country": "Aruba",
+              "postcode": "48460"
+            },
+            "gps_coordinates": "61.76853, -67.487376",
+            "directions": "Located across from Trevino PLC",
+            "city": "Stoneview",
+            "country": "Aruba"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "886",
+              "street": "Cannon Keys",
+              "city": "Smithmouth",
+              "region": "Utah",
+              "country": "Jamaica",
+              "postcode": "60384"
+            },
+            "gps_coordinates": "25.256812, -6.92694",
+            "directions": "Located behind Thomas, Thompson and Ward",
+            "city": "Smithmouth",
+            "country": "Jamaica"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "PLA",
+          "PETG"
+        ],
+        "process_parameters": {
+          "setup_time": "43 minutes",
+          "cycle_time": "50 minutes",
+          "changeover_time": "22 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 834",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VF-2",
+      "serial_number": "SN991393",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Find we thousand mean unit summer.",
+      "quantity": 1,
+      "throughput": "68 parts/hour",
+      "power_rating": 3600,
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2874",
+              "street": "Stephens Center",
+              "city": "Kingview",
+              "region": "Alabama",
+              "country": "Wallis and Futuna",
+              "postcode": "76731"
+            },
+            "gps_coordinates": "53.543383, -109.005061",
+            "directions": "Located near Dawson Inc",
+            "city": "Kingview",
+            "country": "Wallis and Futuna"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6820",
+              "street": "Tony Pines",
+              "city": "Melanieton",
+              "region": "Maryland",
+              "country": "Nigeria",
+              "postcode": "23389"
+            },
+            "gps_coordinates": "25.601237, -9.803383",
+            "directions": "Located behind Rivas-Reilly",
+            "city": "Melanieton",
+            "country": "Nigeria"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6340",
+              "street": "Mendoza Manors",
+              "city": "Douglasfort",
+              "region": "Illinois",
+              "country": "Colombia",
+              "postcode": "81627"
+            },
+            "gps_coordinates": "42.907575, -88.829096",
+            "directions": "Located across from Ochoa-Nelson",
+            "city": "Douglasfort",
+            "country": "Colombia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4106",
+              "street": "Smith Road",
+              "city": "Powerston",
+              "region": "Vermont",
+              "country": "South Africa",
+              "postcode": "84998"
+            },
+            "gps_coordinates": "55.511359, -6.958142",
+            "directions": "Located across from Singleton and Sons",
+            "city": "Powerston",
+            "country": "South Africa"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.015mm",
+        "supported_materials": [
+          "Aluminum",
+          "Wood",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "67 minutes",
+          "cycle_time": "10 minutes",
+          "changeover_time": "14 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 133,
+  "storage_capacity": "811 cubic meters",
+  "certifications": [
+    "Research Grade"
+  ],
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Innovative fresh-thinking attitude"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Pick month its.",
+    "by_products": [
+      "art",
+      "wrong"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 1
+  },
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "Persevering directional firmware"
+    ],
+    "services": [
+      "Multi-channeled 5thgeneration secured line"
+    ],
+    "footfall": 5
+  },
+  "record_data": {
+    "date_created": "2025-10-10T15:45:06.882037",
+    "created_by": {
+      "name": "Meyer Ltd",
+      "location": {
+        "address": {
+          "number": "4201",
+          "street": "Arellano Circles",
+          "city": "Paulmouth",
+          "region": "South Dakota",
+          "country": "Papua New Guinea",
+          "postcode": "98956"
+        },
+        "gps_coordinates": "55.191007, -103.755095",
+        "directions": "Located across from Richards, Carr and Richardson",
+        "city": "Paulmouth",
+        "country": "Papua New Guinea"
+      },
+      "contact_person": "Crystal Hernandez",
+      "bio": "Established in 2003, we specialize in Optimized secondary attitude",
+      "website": "https://hunter.net",
+      "languages": [
+        "fr",
+        "de",
+        "en"
+      ],
+      "mailing_list": "ireynolds@lists.norris.biz",
+      "contact": {
+        "landline": "+1-395-526-9274",
+        "mobile": "+1-290-320-4495",
+        "email": "info@clarke.com",
+        "whatsapp": "+1-338-314-2912"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/anna19",
+        "twitter": "@kevin01",
+        "instagram": "@karen00",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}
