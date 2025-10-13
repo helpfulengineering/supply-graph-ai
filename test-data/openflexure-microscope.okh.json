@@ -1,0 +1,265 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "title": "OpenFlexure Microscope",
+  "repo": "https://github.com/rwb27/openflexure_microscope",
+  "version": "5.20",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CERN-OHL-S-2.0",
+    "software": "CERN-OHL-S-2.0"
+  },
+  "licensor": {
+    "name": "Richard Bowman",
+    "email": "r.w.bowman@bath.ac.uk",
+    "affiliation": "University of Bath"
+  },
+  "documentation_language": "en",
+  "function": "3D printable microscope with precise mechanical stage for sample positioning and focus control",
+  "description": "The OpenFlexure Microscope is a 3D printable microscope, including a precise mechanical stage to move the sample and focus the optics. There are many different options for the optics, ranging from a webcam lens to a 100x, oil immersion objective.",
+  "intended_use": "Scientific research, education, and general microscopy applications",
+  "keywords": [
+    "microscope",
+    "3d-printing",
+    "openscad",
+    "scientific-instrument",
+    "open-hardware"
+  ],
+  "contact": {
+    "name": "Richard Bowman",
+    "email": "r.w.bowman@bath.ac.uk",
+    "affiliation": "University of Bath"
+  },
+  "organization": {
+    "name": "University of Bath",
+    "url": "https://www.bath.ac.uk/",
+    "email": "r.w.bowman@bath.ac.uk"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Bill of Materials",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/0_bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Printing Instructions",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/0_printing.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Compile Instructions",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/COMPILE.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Makefile",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/Makefile",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "Test STL File",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/test.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Actuator Assembly Tools STL",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/stl/actuator_assembly_tools.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Actuator Column STL",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/stl/actuator_column.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "README - Build Instructions",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/README.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Actuator Assembly Instructions",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/1_actuator_assembly.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    },
+    {
+      "title": "Basic Optics Module Instructions",
+      "path": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/2a_basic_optics_module.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "5.20"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [
+    "3D printer",
+    "OpenSCAD software",
+    "Standard 3D printing tools",
+    "Webcam or camera module",
+    "Optics (various options available)"
+  ],
+  "manufacturing_processes": [
+    "3DP"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 500,
+      "unit": "g",
+      "notes": "Primary material for 3D printing"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit",
+      "Screw assembly"
+    ],
+    "outer_dimensions": {
+      "length": 200,
+      "width": 150,
+      "height": 100
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill": "20%",
+          "support": "required for some parts"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "smooth"
+        },
+        "required_tools": [
+          "3D printer",
+          "PLA filament",
+          "Calipers"
+        ],
+        "notes": "High precision 3D printing required for mechanical stage"
+      }
+    ],
+    "quality_standards": [
+      "Dimensional accuracy",
+      "Mechanical stability"
+    ],
+    "notes": "Requires precise 3D printing for mechanical stage functionality"
+  },
+  "bom": "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/bom.md",
+  "standards_used": [
+    {
+      "standard_title": "CERN Open Hardware License",
+      "publisher": "CERN",
+      "reference": "CERN-OHL-S-2.0",
+      "certifications": [
+        {
+          "type": "license",
+          "status": "compliant"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Actuator Assembly Tools",
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "source": [
+        "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/openscad/actuator_assembly_tools.scad"
+      ],
+      "export": [
+        "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/stl/actuator_assembly_tools.stl"
+      ],
+      "auxiliary": [
+        "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/1_actuator_assembly.md"
+      ],
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": {
+        "length": 50,
+        "width": 30,
+        "height": 20
+      },
+      "mass": 25.0,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Actuator Column",
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "source": [
+        "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/openscad/actuator_column.scad"
+      ],
+      "export": [
+        "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/stl/actuator_column.stl"
+      ],
+      "auxiliary": [
+        "https://raw.githubusercontent.com/rwb27/openflexure_microscope/master/docs/1_actuator_assembly.md"
+      ],
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": {
+        "length": 100,
+        "width": 50,
+        "height": 150
+      },
+      "mass": 75.0,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {
+    "original_repository": "https://github.com/rwb27/openflexure_microscope",
+    "moved_to": "https://gitlab.com/openflexure/openflexure-microscope",
+    "paper_reference": "Review of Scientific Instruments",
+    "research_group": "University of Bath"
+  }
+}

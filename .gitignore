@@ -173,7 +173,10 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# local files
 logs/
 notes/
+packages/
 
+#cursor files
 .cursorrules

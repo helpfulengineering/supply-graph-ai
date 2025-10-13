@@ -9,6 +9,7 @@ from src.core.api.routes.okh import router as okh_router
 from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.utility import router as utility_router
+from src.core.api.routes.package import router as package_router
 
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -138,6 +139,7 @@ api_v1.include_router(okh_router, prefix="/okh", tags=["okh"])
 api_v1.include_router(okw_router, prefix="/okw", tags=["okw"])
 api_v1.include_router(supply_tree_router, prefix="/supply-tree", tags=["supply-tree"])
 api_v1.include_router(utility_router, tags=["utility"])
+api_v1.include_router(package_router, tags=["package"])
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

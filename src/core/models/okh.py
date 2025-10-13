@@ -679,3 +679,26 @@ class OKHManifest:
                 return True
         
         return False
+    
+    def get_package_name(self) -> str:
+        """Generate package name from manifest fields"""
+        # Extract organization
+        if self.organization:
+            if isinstance(self.organization, str):
+                org_name = self.organization
+            else:
+                org_name = self.organization.name
+        else:
+            org_name = "community"
+        
+        # Sanitize names
+        from .package import sanitize_package_name
+        org_sanitized = sanitize_package_name(org_name)
+        project_sanitized = sanitize_package_name(self.title)
+        
+        return f"{org_sanitized}/{project_sanitized}"
+    
+    def get_package_path(self, base_dir: str = "packages") -> str:
+        """Get the full package path including version"""
+        package_name = self.get_package_name()
+        return f"{base_dir}/{package_name}/{self.version}"
