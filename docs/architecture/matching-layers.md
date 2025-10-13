@@ -481,42 +481,6 @@ pot_capability:
   confidence: 0.9
 ```
 
-### Key Differences from Traditional Heuristic Rules
-
-The capability-centric approach differs fundamentally from traditional synonym-based rules:
-
-#### Traditional Approach (❌ Removed)
-```yaml
-# Old synonym-based approach
-cnc_synonyms:
-  key: "cnc"
-  values: ["computer numerical control", "cnc machining"]
-  # This creates requirement-to-requirement relationships
-```
-
-#### Capability-Centric Approach (✅ Current)
-```yaml
-# New capability-centric approach
-cnc_machining_capability:
-  capability: "cnc machining"
-  satisfies_requirements: ["milling", "machining", "material removal"]
-  # This creates capability-to-requirement relationships
-```
-
-### Advantages of Capability-Centric Rules
-
-1. **Clear Business Logic**: Rules explicitly define what requirements a capability can satisfy
-2. **Bidirectional Matching**: Supports both capability-to-requirement and requirement-to-capability matching
-3. **Domain Separation**: Manufacturing and cooking rules are completely separate
-4. **Extensible**: Easy to add new capabilities and requirements
-5. **Traceable**: Full context preservation in match results
-6. **Confidence-Based**: Each rule has a confidence score for match quality
-additive_manufacturing_synonyms:
-  type: "synonym"
-  key: "additive manufacturing"
-  values: ["3d printing", "3-d printing", "rapid prototyping"]
-  confidence: 0.9
-```
 
 #### Material Rules
 Map material variations:

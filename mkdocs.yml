@@ -1,6 +1,21 @@
 site_name: "Open Matching Engine (OME) Docs"
 theme:
   name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
     - navigation.tabs
     - navigation.sections
@@ -47,11 +62,10 @@ nav:
   - API:
     - Overview: api/index.md
     - Authentication: api/auth.md
+    - Matching API: api/matching-api.md
     - Routes & Models: api/routes.md
   - Development:
-    - Domain Management: development/domain-management.md
-    - Roadmap: development/ome-mvp-plan.md
-    - Getting Started: development/getting-started.md
+    - Developer Guide: development/developer-guide.md
   - Data Models:
     - Overview: models/index.md
     - Bill Of Materials: models/bom.md
@@ -60,6 +74,7 @@ nav:
     - Validation Contexts: models/validation.md
     - OpenKnowHow Documentation: models/okh-docs.md
     - OpenKnowWhere Documentation: models/okw-docs.md
+    - Validation: models/validation.md
   - Domains:
     - Overview: domains/index.md
     - Manufacturing: domains/manufacturing.md
