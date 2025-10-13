@@ -9,6 +9,9 @@ import httpx
 from ..core.models.okh import OKHManifest
 from ..core.models.package import BuildOptions
 from ..core.services.package_service import PackageService
+from ..core.services.storage_service import StorageService
+from ..core.packaging.remote_storage import PackageRemoteStorage
+from ..config import settings
 
 
 @click.group()
@@ -317,6 +320,166 @@ def delete(package_name: str, version: str, force: bool, verbose: bool):
             sys.exit(1)
     
     asyncio.run(_delete())
+
+
+@package.command()
+@click.argument('package_name')
+@click.argument('version')
+@click.option('--output-dir', '-o', help='Output directory for pulled package')
+@click.option('--verbose', '-v', is_flag=True, help='Verbose output')
+def push(package_name: str, version: str, output_dir: Optional[str], verbose: bool):
+    """Push a local package to remote storage"""
+    
+    async def _push():
+        try:
+            # Initialize services
+            package_service = await PackageService.get_instance()
+            storage_service = await StorageService.get_instance()
+            await storage_service.configure(settings.STORAGE_CONFIG)
+            
+            remote_storage = PackageRemoteStorage(storage_service)
+            
+            # Get package metadata
+            metadata = await package_service.get_package_metadata(package_name, version)
+            if not metadata:
+                click.echo(f"❌ Package {package_name}:{version} not found locally")
+                return
+            
+            package_path = Path(metadata.package_path)
+            if not package_path.exists():
+                click.echo(f"❌ Package directory not found: {package_path}")
+                return
+            
+            click.echo(f"🚀 Pushing package {package_name}:{version} to remote storage...")
+            
+            # Push package
+            result = await remote_storage.push_package(metadata, package_path)
+            
+            # Display results
+            click.echo(f"✅ Successfully pushed {package_name}:{version}")
+            click.echo(f"📄 Uploaded {len(result['uploaded_files'])} files")
+            click.echo(f"💾 Total size: {result['total_size']:,} bytes")
+            
+            if result['failed_files']:
+                click.echo(f"⚠️  {len(result['failed_files'])} files failed to upload:")
+                for failed in result['failed_files']:
+                    click.echo(f"  - {failed['file']}: {failed['error']}")
+            
+            if verbose:
+                click.echo("\n📋 Uploaded files:")
+                for file_path in result['uploaded_files']:
+                    click.echo(f"  - {file_path}")
+            
+        except Exception as e:
+            click.echo(f"❌ Error pushing package: {e}")
+            if verbose:
+                import traceback
+                traceback.print_exc()
+    
+    asyncio.run(_push())
+
+
+@package.command()
+@click.argument('package_name')
+@click.argument('version')
+@click.option('--output-dir', '-o', help='Output directory for pulled package')
+@click.option('--verbose', '-v', is_flag=True, help='Verbose output')
+def pull(package_name: str, version: str, output_dir: Optional[str], verbose: bool):
+    """Pull a remote package to local storage"""
+    
+    async def _pull():
+        try:
+            # Initialize services
+            storage_service = await StorageService.get_instance()
+            await storage_service.configure(settings.STORAGE_CONFIG)
+            
+            remote_storage = PackageRemoteStorage(storage_service)
+            
+            # Determine output directory
+            if output_dir:
+                output_path = Path(output_dir)
+            else:
+                # Use default packages directory
+                from ..core.services.package_service import PackageService
+                package_service = await PackageService.get_instance()
+                # Get the correct repo root (3 levels up from this file)
+                repo_root = Path(__file__).parent.parent.parent
+                output_path = repo_root / "packages"
+            
+            click.echo(f"📥 Pulling package {package_name}:{version} from remote storage...")
+            
+            # Pull package
+            metadata = await remote_storage.pull_package(package_name, version, output_path)
+            
+            # Display results
+            click.echo(f"✅ Successfully pulled {package_name}:{version}")
+            click.echo(f"📁 Local path: {metadata.package_path}")
+            click.echo(f"📄 Files: {metadata.total_files}")
+            click.echo(f"💾 Size: {metadata.total_size_bytes:,} bytes")
+            
+            if verbose:
+                click.echo("\n📋 Downloaded files:")
+                for file_info in metadata.file_inventory:
+                    click.echo(f"  - {file_info.local_path} ({file_info.size_bytes} bytes)")
+            
+        except Exception as e:
+            click.echo(f"❌ Error pulling package: {e}")
+            if verbose:
+                import traceback
+                traceback.print_exc()
+    
+    asyncio.run(_pull())
+
+
+@package.command()
+@click.option('--verbose', '-v', is_flag=True, help='Verbose output')
+def list_remote(verbose: bool):
+    """List packages available in remote storage"""
+    
+    async def _list_remote():
+        try:
+            # Initialize services
+            storage_service = await StorageService.get_instance()
+            await storage_service.configure(settings.STORAGE_CONFIG)
+            
+            remote_storage = PackageRemoteStorage(storage_service)
+            
+            click.echo("📦 Remote packages:")
+            
+            # List remote packages
+            packages = await remote_storage.list_remote_packages()
+            
+            if not packages:
+                click.echo("  No packages found in remote storage")
+                return
+            
+            # Group by package name
+            packages_by_name = {}
+            for pkg in packages:
+                name = pkg['package_name']
+                if name not in packages_by_name:
+                    packages_by_name[name] = []
+                packages_by_name[name].append(pkg)
+            
+            # Display packages
+            for package_name, versions in packages_by_name.items():
+                click.echo(f"\n📦 {package_name}")
+                for pkg in sorted(versions, key=lambda x: x['version']):
+                    size_mb = pkg['size'] / (1024 * 1024) if pkg['size'] else 0
+                    click.echo(f"  📄 {pkg['version']} ({size_mb:.1f} MB)")
+                    
+                    if verbose and pkg.get('last_modified'):
+                        click.echo(f"    🕒 Modified: {pkg['last_modified']}")
+            
+            click.echo(f"\nTotal: {len(packages)} package versions")
+            
+        except Exception as e:
+            click.echo(f"❌ Error listing remote packages: {e}")
+            if verbose:
+                import traceback
+                traceback.print_exc()
+    
+    asyncio.run(_list_remote())
 
 
 if __name__ == '__main__':
