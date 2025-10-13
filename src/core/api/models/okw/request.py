@@ -56,6 +56,9 @@ class OKWValidateRequest(BaseModel):
     """Request model for validating an OKW object"""
     # Required fields only
     content: Dict[str, Any]
+    
+    # Optional fields after
+    validation_context: Optional[str] = None
 
 class OKWExtractRequest(BaseModel):
     """Request model for extracting capabilities from an OKW object"""

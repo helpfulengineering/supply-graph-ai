@@ -138,6 +138,58 @@ class OKWService:
         
         return True
     
+    async def validate(self, content: Dict[str, Any], validation_context: Optional[str] = None, strict_mode: bool = False) -> Dict[str, Any]:
+        """Validate OKW facility content using the new validation framework"""
+        await self.ensure_initialized()
+        logger.info(f"Validating OKW facility content")
+        
+        try:
+            # Import the new validation framework
+            from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
+            from ..validation.context import ValidationContext
+            
+            # Create validator
+            validator = ManufacturingOKWValidator()
+            
+            # Create validation context if provided
+            context = None
+            if validation_context:
+                context = ValidationContext(
+                    name=f"okw_validation_{validation_context}",
+                    domain="manufacturing",
+                    quality_level=validation_context if validation_context in ["hobby", "professional", "medical"] else "professional",
+                    strict_mode=strict_mode
+                )
+            
+            # Validate the content
+            result = await validator.validate(content, context)
+            
+            # Convert to API response format
+            return {
+                "valid": result.valid,
+                "normalized_content": content,  # For now, return original content
+                "completeness_score": result.metadata.get("completeness_score", 0.0),
+                "issues": [
+                    {
+                        "severity": "error",
+                        "message": error.message,
+                        "path": [error.field] if error.field else [],
+                        "code": error.code
+                    } for error in result.errors
+                ] + [
+                    {
+                        "severity": "warning", 
+                        "message": warning.message,
+                        "path": [warning.field] if warning.field else [],
+                        "code": warning.code
+                    } for warning in result.warnings
+                ]
+            }
+            
+        except Exception as e:
+            logger.error(f"Error validating OKW facility: {str(e)}")
+            raise ValueError(f"Validation failed: {str(e)}")
+    
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""
         if not self._initialized:

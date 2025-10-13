@@ -410,13 +410,50 @@ async def delete_okw(
         raise HTTPException(status_code=500, detail=f"Error deleting OKW facility: {str(e)}")
 
 @router.post("/validate", response_model=OKWValidationResponse)
-async def validate_okw(request: OKWValidateRequest):
-    """Validate an OKW object"""
-    # Placeholder implementation
-    return OKWValidationResponse(
-        valid=True,
-        normalized_content=request.content
-    )
+async def validate_okw(
+    request: OKWValidateRequest,
+    quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
+    strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
+    okw_service: OKWService = Depends(get_okw_service)
+):
+    """
+    Validate an OKW facility with domain-aware validation
+    
+    Validates an OpenKnowWhere facility object against domain-specific validation rules
+    based on the specified quality level. The validation framework provides:
+    
+    - **Hobby Level**: Relaxed validation for makerspaces and hobby facilities
+    - **Professional Level**: Standard validation for commercial manufacturing facilities  
+    - **Medical Level**: Strict validation for medical device manufacturing facilities
+    
+    Returns detailed validation results including errors, warnings, and
+    completeness scoring.
+    """
+    try:
+        # Use quality_level from query parameter, fallback to validation_context
+        validation_context = quality_level or request.validation_context or "professional"
+        
+        # Call service to validate OKW facility with enhanced parameters
+        result = await okw_service.validate(
+            request.content, 
+            validation_context,
+            strict_mode
+        )
+        
+        return result
+    except ValueError as e:
+        # Handle validation errors
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
+    except Exception as e:
+        # Log unexpected errors
+        logger.error(f"Error validating OKW facility: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while validating the OKW facility"
+        )
 
 @router.post("/extract", response_model=OKWExtractResponse)
 async def extract_capabilities(request: OKWExtractRequest):

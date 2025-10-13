@@ -99,6 +99,39 @@ class ManufacturingValidationRules(BaseValidationRules):
         return base_optional
     
     @staticmethod
+    def get_okw_required_fields(quality_level: str) -> List[str]:
+        """Get required fields for OKW validation based on quality level"""
+        base_required = ['name', 'location', 'facility_status']
+        
+        if quality_level == "hobby":
+            return base_required
+        elif quality_level == "professional":
+            return base_required + ['equipment', 'manufacturing_processes']
+        elif quality_level == "medical":
+            return base_required + ['equipment', 'manufacturing_processes', 'certifications']
+        
+        return base_required
+    
+    @staticmethod
+    def get_okw_optional_fields(quality_level: str) -> List[str]:
+        """Get optional fields for OKW validation based on quality level"""
+        base_optional = [
+            'description', 'owner', 'contact', 'affiliations', 'opening_hours',
+            'date_founded', 'access_type', 'wheelchair_accessibility',
+            'typical_batch_size', 'floor_size', 'storage_capacity',
+            'typical_materials', 'certifications', 'metadata'
+        ]
+        
+        if quality_level == "hobby":
+            return base_optional
+        elif quality_level == "professional":
+            return base_optional + ['quality_standards']
+        elif quality_level == "medical":
+            return base_optional + ['quality_standards', 'regulatory_compliance']
+        
+        return base_optional
+    
+    @staticmethod
     def get_okh_validation_rules(quality_level: str = "professional") -> Dict[str, Any]:
         """Get OKH validation rules based on quality level"""
         base_rules = {

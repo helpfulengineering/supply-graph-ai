@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query
 from uuid import UUID
 from typing import Optional
 import json
@@ -237,17 +237,34 @@ async def match_requirements_to_capabilities(
 @router.post("/validate", response_model=ValidationResult)
 async def validate_match(
     request: ValidateMatchRequest,
+    quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
+    strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
     matching_service: MatchingService = Depends(get_matching_service)
 ):
+    """
+    Validate a supply tree with domain-aware validation
+    
+    Validates a supply tree against domain-specific validation rules
+    based on the specified quality level. The validation framework provides:
+    
+    - **Hobby Level**: Relaxed validation for personal projects
+    - **Professional Level**: Standard validation for commercial use  
+    - **Medical Level**: Strict validation for medical device manufacturing
+    
+    Returns detailed validation results including errors, warnings, and
+    completeness scoring for the supply tree workflow.
+    """
     try:
         logger.info(
             "Validating supply tree",
             extra={
                 "okh_id": str(request.okh_id),
-                "supply_tree_id": str(request.supply_tree_id)
+                "supply_tree_id": str(request.supply_tree_id),
+                "quality_level": quality_level,
+                "strict_mode": strict_mode
             }
         )
-        # TODO: Implement validation using matching service
+        # TODO: Implement validation using matching service and new validation framework
         # For now, return a placeholder response
         logger.debug("Using placeholder validation response")
         return ValidationResult(

@@ -39,16 +39,81 @@ class ManufacturingOKWValidator(Validator):
         if isinstance(data, ManufacturingFacility):
             return await self._validate_manufacturing_facility(data, context)
         elif isinstance(data, dict):
-            # Try to create ManufacturingFacility from dict
-            try:
-                facility = ManufacturingFacility.from_dict(data)
-                return await self._validate_manufacturing_facility(facility, context)
-            except Exception as e:
-                result.add_error(f"Failed to parse OKW facility: {str(e)}")
-                return result
+            # Validate raw dictionary data without requiring full object parsing
+            return await self._validate_okw_dict(data, context)
         else:
             result.add_error(f"Unsupported data type for OKW validation: {type(data)}")
             return result
+    
+    async def _validate_okw_dict(self, data: Dict[str, Any], 
+                                context: Optional[ValidationContext] = None) -> ValidationResult:
+        """Validate OKW facility data as dictionary"""
+        result = ValidationResult(valid=True)
+        
+        # Get quality level from context or default to professional
+        quality_level = "professional"
+        if context:
+            quality_level = context.quality_level
+        
+        # Validate quality level is supported
+        if quality_level not in self.validation_rules.get_supported_quality_levels():
+            result.add_error(f"Unsupported quality level: {quality_level}")
+            return result
+        
+        rules = self.validation_rules.get_okw_validation_rules(quality_level)
+        
+        # 1. Required fields validation
+        required_fields = self.validation_rules.get_okw_required_fields(quality_level)
+        missing_required_fields = [field for field in required_fields if field not in data or data[field] is None]
+        for field in missing_required_fields:
+            result.add_error(f"Missing required field: '{field}'", field=field, code="missing_required_field")
+        
+        # 2. Basic type and format validation
+        if 'name' in data:
+            if not isinstance(data['name'], str):
+                result.add_error("Name must be a string", field="name", code="invalid_type")
+            elif not data['name'].strip():
+                result.add_error("Name cannot be empty", field="name", code="empty_field")
+        if 'location' in data and not isinstance(data['location'], (str, dict)):
+            result.add_error("Location must be a string or dictionary", field="location", code="invalid_type")
+        if 'facility_status' in data:
+            if not isinstance(data['facility_status'], str):
+                result.add_error("Facility status must be a string", field="facility_status", code="invalid_type")
+            elif not data['facility_status'].strip():
+                result.add_error("Facility status cannot be empty", field="facility_status", code="empty_field")
+        
+        # 3. Equipment validation (if present)
+        if 'equipment' in data and isinstance(data['equipment'], list):
+            for i, equipment_item in enumerate(data['equipment']):
+                if not isinstance(equipment_item, dict):
+                    result.add_error(f"Equipment item at index {i} must be a dictionary", field=f"equipment.{i}", code="invalid_type")
+                    continue
+                # Check required fields for equipment
+                eq_required = rules.get('equipment_validation', {}).get('required_fields', [])
+                for field in eq_required:
+                    if field not in equipment_item or equipment_item[field] is None:
+                        result.add_error(f"Equipment item at index {i} is missing required field: '{field}'",
+                                        field=f"equipment.{i}.{field}", code="missing_required_equipment_field")
+        
+        # 4. Manufacturing processes validation (if present)
+        if 'manufacturing_processes' in data and isinstance(data['manufacturing_processes'], list):
+            valid_processes = rules.get('process_validation', {}).get('valid_processes', [])
+            for i, process_url in enumerate(data['manufacturing_processes']):
+                if not isinstance(process_url, str) or not re.match(r'^https?://[^\s]+$', process_url):
+                    result.add_error(f"Manufacturing process at index {i} is not a valid URL",
+                                    field=f"manufacturing_processes.{i}", code="invalid_url_format")
+                elif valid_processes and process_url not in valid_processes:
+                    result.add_warning(f"Manufacturing process '{process_url}' is not in the list of known valid processes",
+                                     field=f"manufacturing_processes.{i}", code="unknown_process")
+        
+        # Add warnings for recommended fields if strict_mode is off
+        if not (context and context.strict_mode):
+            optional_fields = self.validation_rules.get_okw_optional_fields(quality_level)
+            for field in optional_fields:
+                if field not in data or data[field] is None:
+                    result.add_warning(f"Recommended field '{field}' is missing", field=field, code="missing_recommended_field")
+        
+        return result
     
     async def _validate_manufacturing_facility(self, facility: ManufacturingFacility, 
                                             context: Optional[ValidationContext] = None) -> ValidationResult:

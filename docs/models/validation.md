@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) implements a comprehensive, domain-integrated validation framework that provides consistent, context-aware validation across all API operations. The framework integrates seamlessly with the existing domain management system and supports quality-level-based validation for different use cases.
+The Open Matching Engine (OME) implements a domain-integrated validation framework that provides consistent, context-aware validation across all API operations. The framework integrates seamlessly with the existing domain management system and supports quality-level-based validation for different use cases.
 
 ## Architecture
 

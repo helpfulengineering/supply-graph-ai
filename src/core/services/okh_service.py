@@ -225,7 +225,7 @@ class OKHService:
             
         return manifest.extract_requirements()
     
-    async def validate(self, content: Dict[str, Any], validation_context: Optional[str] = None) -> Dict[str, Any]:
+    async def validate(self, content: Dict[str, Any], validation_context: Optional[str] = None, strict_mode: bool = False) -> Dict[str, Any]:
         """Validate OKH manifest content using the new validation framework"""
         await self.ensure_initialized()
         logger.info(f"Validating OKH manifest content")
@@ -244,7 +244,8 @@ class OKHService:
                 context = ValidationContext(
                     name=f"okh_validation_{validation_context}",
                     domain="manufacturing",
-                    quality_level=validation_context if validation_context in ["hobby", "professional", "medical"] else "professional"
+                    quality_level=validation_context if validation_context in ["hobby", "professional", "medical"] else "professional",
+                    strict_mode=strict_mode
                 )
             
             # Validate the content
