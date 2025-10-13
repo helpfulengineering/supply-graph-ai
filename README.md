@@ -88,10 +88,12 @@ open-matching-engine/
 │   │   ├── storage/        # Storage service for remote file mgmt
 │   │   ├── utils/          # Utility functions
 │   │   └── validation/     # Validation Engine
+│   ├── cli/                # Command Line Interface
 │   └── config/             # Config management
 ├── synth/                  # synthetic data for development, remove in prod
 ├── tests/                  # Test files for development
 ├── mkdocs.yml              # Documentation configuration
+├── ome                     # Entrypoint for CLI
 ├── requirements.txt        # Project dependencies
 └── run.py                  # FastAPI server on uvicorn
 ```
