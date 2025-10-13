@@ -64,6 +64,11 @@ nav:
     - Authentication: api/auth.md
     - Matching API: api/matching-api.md
     - Routes & Models: api/routes.md
+  - CLI:
+    - Overview: CLI/index.md
+    - Quick Start Guide: CLI/quick-start.md
+    - Examples: CLI/examples.md
+    - Architecture: CLI/architecture.md
   - Matching:
     - Overview: matching/index.md
     - Direct Matching: matching/direct-matching.md

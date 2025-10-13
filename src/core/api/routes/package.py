@@ -8,6 +8,8 @@ from ...models.okh import OKHManifest
 from ...models.package import BuildOptions, PackageMetadata
 from ...services.package_service import PackageService
 from ...services.okh_service import OKHService
+from ...packaging.remote_storage import PackageRemoteStorage
+from src.config import settings
 from ...utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -23,6 +25,14 @@ async def get_package_service() -> PackageService:
 async def get_okh_service() -> OKHService:
     """Dependency to get OKH service instance"""
     return await OKHService.get_instance()
+
+
+async def get_remote_storage() -> PackageRemoteStorage:
+    """Dependency to get package remote storage instance"""
+    from ...services.storage_service import StorageService
+    storage_service = await StorageService.get_instance()
+    await storage_service.configure(settings.STORAGE_CONFIG)
+    return PackageRemoteStorage(storage_service)
 
 
 @router.post("/build", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
@@ -269,3 +279,122 @@ async def download_package(
     except Exception as e:
         logger.error(f"Error creating package tarball: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create package tarball: {str(e)}")
+
+
+@router.post("/push", response_model=Dict[str, Any])
+async def push_package(
+    request_data: Dict[str, str],
+    remote_storage: PackageRemoteStorage = Depends(get_remote_storage)
+):
+    """
+    Push a local package to remote storage
+    
+    Args:
+        request_data: JSON data containing package_name and version
+        
+    Returns:
+        Push result
+    """
+    try:
+        package_name = request_data.get("package_name")
+        version = request_data.get("version")
+        
+        if not package_name or not version:
+            raise HTTPException(status_code=400, detail="package_name and version are required")
+        
+        # Get package metadata first
+        package_service = await get_package_service()
+        metadata = await package_service.get_package_metadata(package_name, version)
+        
+        if not metadata:
+            raise HTTPException(status_code=404, detail=f"Package {package_name}:{version} not found")
+        
+        # Push package
+        from pathlib import Path
+        local_package_path = Path(metadata.package_path)
+        result = await remote_storage.push_package(metadata, local_package_path)
+        
+        return {
+            "status": "success",
+            "message": f"Package {package_name}:{version} pushed successfully",
+            "remote_path": result.get("remote_path", "unknown")
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error pushing package: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to push package: {str(e)}")
+
+
+@router.post("/pull", response_model=Dict[str, Any])
+async def pull_package(
+    request_data: Dict[str, Any],
+    remote_storage: PackageRemoteStorage = Depends(get_remote_storage)
+):
+    """
+    Pull a remote package to local storage
+    
+    Args:
+        request_data: JSON data containing package_name, version, and optional output_dir
+        
+    Returns:
+        Pull result
+    """
+    try:
+        package_name = request_data.get("package_name")
+        version = request_data.get("version")
+        output_dir = request_data.get("output_dir")
+        
+        if not package_name or not version:
+            raise HTTPException(status_code=400, detail="package_name and version are required")
+        
+        # Determine output directory
+        if output_dir:
+            from pathlib import Path
+            output_path = Path(output_dir)
+        else:
+            # Use default packages directory
+            from pathlib import Path
+            repo_root = Path(__file__).parent.parent.parent.parent.parent
+            output_path = repo_root / "packages"
+        
+        # Pull package
+        metadata = await remote_storage.pull_package(package_name, version, output_path)
+        
+        return {
+            "status": "success",
+            "message": f"Package {package_name}:{version} pulled successfully",
+            "metadata": metadata.to_dict()
+        }
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error pulling package: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to pull package: {str(e)}")
+
+
+@router.get("/remote", response_model=Dict[str, Any])
+async def list_remote_packages(
+    remote_storage: PackageRemoteStorage = Depends(get_remote_storage)
+):
+    """
+    List packages available in remote storage
+    
+    Returns:
+        List of remote packages
+    """
+    try:
+        # List remote packages
+        packages = await remote_storage.list_remote_packages()
+        
+        return {
+            "status": "success",
+            "packages": packages,
+            "total": len(packages)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error listing remote packages: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to list remote packages: {str(e)}")
