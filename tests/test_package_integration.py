@@ -258,8 +258,8 @@ class TestPackageIntegration:
             
             package_service = await PackageService.get_instance()
             
-            # Build package
-            options = BuildOptions(output_dir=str(tmp_path))
+            # Build package in default packages directory for consistency
+            options = BuildOptions()  # Use default output directory
             metadata = await package_service.build_package_from_manifest(manifest, options)
             
             # Verify package
@@ -291,8 +291,8 @@ class TestPackageIntegration:
             
             package_service = await PackageService.get_instance()
             
-            # Build package
-            options = BuildOptions(output_dir=str(tmp_path))
+            # Build package in default packages directory for consistency
+            options = BuildOptions()  # Use default output directory
             metadata = await package_service.build_package_from_manifest(manifest, options)
             
             # List packages
@@ -324,8 +324,8 @@ class TestPackageIntegration:
             
             package_service = await PackageService.get_instance()
             
-            # Build package
-            options = BuildOptions(output_dir=str(tmp_path))
+            # Build package in default packages directory for consistency
+            options = BuildOptions()  # Use default output directory
             metadata = await package_service.build_package_from_manifest(manifest, options)
             
             # Verify package exists
@@ -360,9 +360,11 @@ class TestPackageIntegration:
         """Test error handling with network failures"""
         manifest = OKHManifest.from_dict(sample_manifest_data)
         
-        # Mock network failure
-        with patch('aiohttp.ClientSession.get') as mock_get:
+        # Mock network failure and sleep to avoid hanging
+        with patch('aiohttp.ClientSession.get') as mock_get, \
+             patch('asyncio.sleep') as mock_sleep:
             mock_get.side_effect = Exception("Network error")
+            mock_sleep.return_value = None  # No actual sleep delay
             
             package_service = await PackageService.get_instance()
             

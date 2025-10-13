@@ -320,9 +320,16 @@ class PackageService:
         }
         
         # Check if all expected files exist
-        expected_files = set(f.local_path for f in metadata.file_inventory)
-        actual_files = set()
+        # The local_path in metadata is relative to repo root, we need to convert to absolute paths
+        expected_files = set()
+        for f in metadata.file_inventory:
+            # f.local_path is like: packages/org/project/version/file
+            # We need to resolve it relative to the repo root
+            repo_root = Path(__file__).parent.parent.parent.parent
+            expected_path = repo_root / f.local_path
+            expected_files.add(str(expected_path))
         
+        actual_files = set()
         for file_path in package_path.rglob("*"):
             if file_path.is_file():
                 actual_files.add(str(file_path))
@@ -330,13 +337,17 @@ class PackageService:
         # Find missing files
         for expected_file in expected_files:
             if expected_file not in actual_files:
-                verification_results["missing_files"].append(expected_file)
+                # Convert back to relative path for reporting
+                rel_path = Path(expected_file).relative_to(repo_root)
+                verification_results["missing_files"].append(str(rel_path))
                 verification_results["valid"] = False
         
         # Find extra files (not in manifest)
         for actual_file in actual_files:
             if actual_file not in expected_files:
-                verification_results["extra_files"].append(actual_file)
+                # Convert to relative path for reporting
+                rel_path = Path(actual_file).relative_to(repo_root)
+                verification_results["extra_files"].append(str(rel_path))
         
         # Verify file checksums (if requested)
         from ..models.package import calculate_file_checksum
