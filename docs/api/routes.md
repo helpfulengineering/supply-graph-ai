@@ -201,13 +201,17 @@ Deletes an OKH manifest.
 POST /v1/okh/validate
 ```
 
-Validates and normalizes an OKH object, returning a cleaned version with validation information.
+**Enhanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
+
+**Query Parameters:**
+- `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
+- `strict_mode` (optional): Enable strict validation mode - Default: `false`
 
 **Request:**
 ```json
 {
   "content": {...},  // OKH object or file content
-  "validation_context": "manufacturing"  // Optional context
+  "validation_context": "manufacturing"  // Optional context (deprecated, use quality_level instead)
 }
 ```
 
@@ -216,18 +220,30 @@ Validates and normalizes an OKH object, returning a cleaned version with validat
 {
   "valid": true,
   "normalized_content": {...},  // Normalized OKH object
+  "completeness_score": 0.85,
   "issues": [  // Only present if validation issues found
     {
+      "severity": "error",
+      "message": "Required field 'manufacturing_specs' is missing for professional quality level",
+      "path": ["manufacturing_specs"],
+      "code": "missing_required_field"
+    },
+    {
       "severity": "warning",
-      "message": "Missing recommended field: description",
-      "path": ["description"]
+      "message": "Optional field 'description' is missing, consider adding for better documentation",
+      "path": ["description"],
+      "code": "missing_recommended_field"
     }
-  ],
-  "completeness_score": 0.85
+  ]
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete validation with service integration
+**Quality Levels:**
+- **Hobby Level**: Relaxed validation for personal projects - only basic required fields
+- **Professional Level**: Standard validation for commercial use - requires manufacturing specifications
+- **Medical Level**: Strict validation for medical device manufacturing - requires quality standards and certifications
+
+**Status:** ✅ **Fully Implemented** - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 #### Requirements Extraction
 
@@ -467,7 +483,11 @@ Searches for facilities by criteria with **Azure Blob Storage integration**.
 POST /v1/okw/validate
 ```
 
-Validates an OKW object, returning validation information.
+**Enhanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
+
+**Query Parameters:**
+- `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
+- `strict_mode` (optional): Enable strict validation mode - Default: `false`
 
 **Request:**
 ```json
@@ -481,11 +501,30 @@ Validates an OKW object, returning validation information.
 {
   "valid": true,
   "normalized_content": {...},  // Normalized OKW object
-  "issues": []  // Only present if validation issues found
+  "completeness_score": 0.75,
+  "issues": [  // Only present if validation issues found
+    {
+      "severity": "error",
+      "message": "Missing required field: 'equipment'",
+      "path": ["equipment"],
+      "code": "missing_required_field"
+    },
+    {
+      "severity": "warning",
+      "message": "Recommended field 'description' is missing",
+      "path": ["description"],
+      "code": "missing_recommended_field"
+    }
+  ]
 }
 ```
 
-**Status:** 🚧 **Placeholder Implementation** - Basic validation response, needs full implementation
+**Quality Levels:**
+- **Hobby Level**: Relaxed validation for makerspaces and hobby facilities - only basic required fields
+- **Professional Level**: Standard validation for commercial manufacturing facilities - requires equipment and manufacturing processes
+- **Medical Level**: Strict validation for medical device manufacturing facilities - requires certifications and quality standards
+
+**Status:** ✅ **Fully Implemented** - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 #### Capabilities Extraction
 
@@ -858,14 +897,22 @@ Match requirements to capabilities using an uploaded OKH file.
 POST /v1/match/validate
 ```
 
-Validates an existing supply tree against requirements and capabilities.
+**Enhanced validation endpoint** for supply tree validation with domain-aware quality levels and comprehensive validation criteria.
+
+**Query Parameters:**
+- `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
+- `strict_mode` (optional): Enable strict validation mode - Default: `false`
 
 **Request:**
 ```json
 {
   "okh_id": "uuid-here",
   "supply_tree_id": "uuid-here",
-  "validation_criteria": {...}
+  "validation_criteria": {
+    "cost_threshold": 1000.0,
+    "time_threshold": "24h",
+    "quality_threshold": 0.8
+  }
 }
 ```
 
@@ -874,15 +921,23 @@ Validates an existing supply tree against requirements and capabilities.
 {
   "valid": true,
   "confidence": 0.8,
+  "issues": [],
   "metadata": {
     "okh_id": "uuid-here",
     "supply_tree_id": "uuid-here",
-    "validation_criteria": {...}
+    "validation_criteria": {...},
+    "quality_level": "professional",
+    "strict_mode": false
   }
 }
 ```
 
-**Status:** 🚧 **Placeholder Implementation** - Returns mock validation result, needs full implementation
+**Quality Levels:**
+- **Hobby Level**: Relaxed validation for personal projects - basic workflow validation
+- **Professional Level**: Standard validation for commercial use - comprehensive workflow and resource validation
+- **Medical Level**: Strict validation for medical device manufacturing - regulatory compliance and quality standards
+
+**Status:** ✅ **Enhanced Implementation** - **Domain-aware validation with quality levels and comprehensive validation criteria (placeholder implementation with enhanced parameters)**
 
 ### Domain Management Routes
 
@@ -1198,7 +1253,7 @@ Paginated responses include consistent metadata:
 - `GET /v1/okh` - **Paginated listing with filter support**
 - `PUT /v1/okh/{id}` - **Complete update functionality with validation**
 - `DELETE /v1/okh/{id}` - **Complete delete functionality with existence checking**
-- `POST /v1/okh/validate` - **Complete validation with service integration**
+- `POST /v1/okh/validate` - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 - `POST /v1/okh/extract` - **Complete requirements extraction with service integration**
 - `POST /v1/okh/upload` - **File upload with validation, parsing, and storage integration**
 
@@ -1209,6 +1264,7 @@ Paginated responses include consistent metadata:
 - `PUT /v1/okw/{id}` - **Complete update functionality with validation**
 - `DELETE /v1/okw/{id}` - **Complete delete functionality with existence checking**
 - `GET /v1/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
+- `POST /v1/okw/validate` - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 **Utility Routes:**
 - `GET /v1/domains` - **Legacy domain listing with filtering support**
@@ -1221,10 +1277,9 @@ Paginated responses include consistent metadata:
 ### 🚧 Partially Implemented Routes
 
 **Matching Engine:**
-- `POST /v1/match/validate` - **Placeholder implementation, returns mock validation result**
+- `POST /v1/match/validate` - **Enhanced validation with domain-aware quality levels and comprehensive validation criteria**
 
 **OKW Management:**
-- `POST /v1/okw/validate` - **Placeholder implementation, basic validation response**
 - `POST /v1/okw/extract` - **Placeholder implementation, returns empty capabilities list**
 
 **Supply Tree Management:**
@@ -1424,6 +1479,102 @@ typical_materials: []
 - `400`: Bad Request (invalid input)
 - `404`: Not Found
 - `500`: Internal Server Error
+
+## Enhanced Validation Framework
+
+The OME API includes a comprehensive validation framework that provides domain-aware validation with quality levels and comprehensive error reporting.
+
+### Validation Features
+
+#### **Quality Levels**
+All validation endpoints support three quality levels:
+
+- **Hobby Level**: Relaxed validation for personal projects and makerspaces
+  - Basic required fields only
+  - Warnings for missing optional fields
+  - Suitable for prototyping and personal use
+
+- **Professional Level**: Standard validation for commercial use
+  - Additional required fields for production readiness
+  - Comprehensive validation rules
+  - Suitable for commercial manufacturing
+
+- **Medical Level**: Strict validation for medical device manufacturing
+  - Highest validation standards
+  - Regulatory compliance requirements
+  - Quality standards and certifications required
+
+#### **Strict Mode**
+Optional strict validation mode that:
+- Treats warnings as errors
+- Enforces additional validation rules
+- Provides maximum validation coverage
+
+#### **Comprehensive Error Reporting**
+Validation responses include:
+- **Severity Levels**: `error`, `warning`, `info`
+- **Field Paths**: Exact location of validation issues
+- **Error Codes**: Standardized error codes for programmatic handling
+- **Completeness Scores**: Quantitative assessment of data completeness
+
+### Validation Endpoints
+
+#### **OKH Validation** (`POST /v1/okh/validate`)
+- Domain: Manufacturing
+- Quality Levels: `hobby`, `professional`, `medical`
+- Validates OKH manifest structure and completeness
+- Returns detailed validation results with field-specific errors
+
+#### **OKW Validation** (`POST /v1/okw/validate`)
+- Domain: Manufacturing
+- Quality Levels: `hobby`, `professional`, `medical`
+- Validates OKW facility structure and capabilities
+- Validates equipment specifications and manufacturing processes
+
+#### **Supply Tree Validation** (`POST /v1/match/validate`)
+- Domain: Manufacturing
+- Quality Levels: `hobby`, `professional`, `medical`
+- Validates supply tree workflows and resource requirements
+- Validates OKH/OKW references and compatibility
+
+### Example Usage
+
+```python
+import httpx
+
+async def validate_okh():
+    async with httpx.AsyncClient() as client:
+        # Professional level validation
+        response = await client.post(
+            "http://localhost:8001/v1/okh/validate?quality_level=professional",
+            json={
+                "content": {
+                    "title": "CNC Bracket",
+                    "version": "1.0.0",
+                    "license": {"hardware": "MIT"},
+                    "licensor": "Test User",
+                    "documentation_language": "en",
+                    "function": "Support bracket for CNC machine"
+                }
+            }
+        )
+        result = response.json()
+        
+        if result["valid"]:
+            print(f"Validation passed with {result['completeness_score']:.2f} completeness")
+        else:
+            for issue in result["issues"]:
+                print(f"{issue['severity'].upper()}: {issue['message']} at {issue['path']}")
+
+# Strict mode validation
+async def validate_strict():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/okh/validate?quality_level=medical&strict_mode=true",
+            json={"content": okh_data}
+        )
+        return response.json()
+```
 
 ## API Documentation & Developer Experience
 

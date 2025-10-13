@@ -1,9 +1,17 @@
+"""
+Temporary cooking validators for backward compatibility.
+
+This file provides temporary validators that maintain the same interface
+as the original validators while the new validation framework is being integrated.
+"""
+
 from typing import Dict, Any
 from ...models.supply_trees import SupplyTree
 import networkx as nx
 
+
 class CookingValidator:
-    """Validator for cooking domain"""
+    """Temporary validator for cooking domain - maintains original interface"""
     
     def validate(self, supply_tree: SupplyTree) -> Dict[str, Any]:
         """Validate cooking supply tree"""

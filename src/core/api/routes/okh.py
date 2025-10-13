@@ -236,19 +236,32 @@ async def delete_okh(
 @router.post("/validate", response_model=OKHValidationResponse)
 async def validate_okh(
     request: OKHValidateRequest,
+    quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
+    strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
     okh_service: OKHService = Depends(get_okh_service)
 ):
     """
-    Validate an OKH object
+    Validate an OKH object with domain-aware validation
     
-    Validates an OpenKnowHow object against the schema and returns
-    normalized content with validation information.
+    Validates an OpenKnowHow object against domain-specific validation rules
+    based on the specified quality level. The validation framework provides:
+    
+    - **Hobby Level**: Relaxed validation for personal projects
+    - **Professional Level**: Standard validation for commercial use  
+    - **Medical Level**: Strict validation for medical device manufacturing
+    
+    Returns detailed validation results including errors, warnings, and
+    completeness scoring.
     """
     try:
-        # Call service to validate OKH manifest
+        # Use quality_level from query parameter, fallback to validation_context
+        validation_context = quality_level or request.validation_context or "professional"
+        
+        # Call service to validate OKH manifest with enhanced parameters
         result = await okh_service.validate(
             request.content, 
-            request.validation_context
+            validation_context,
+            strict_mode
         )
         
         return result
