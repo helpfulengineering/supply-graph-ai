@@ -129,16 +129,26 @@ def status(ctx):
     
     async def http_status():
         """Get status via HTTP API"""
-        # Get multiple endpoints for comprehensive status
-        health_response = await cli_ctx.api_client.request("GET", "/health")
-        domains_response = await cli_ctx.api_client.request("GET", "/utility/domains")
-        
-        return {
-            "health": health_response,
-            "domains": domains_response,
-            "server_url": cli_ctx.config.server_url,
-            "mode": "http"
-        }
+        try:
+            # Get multiple endpoints for comprehensive status
+            # Health endpoint is at root level, not under /v1
+            async with httpx.AsyncClient(timeout=cli_ctx.config.timeout) as client:
+                health_response = await client.get(f"{cli_ctx.config.server_url}/health")
+                health_response.raise_for_status()
+                health_data = health_response.json()
+                
+                # Domains endpoint is under /v1
+                domains_response = await cli_ctx.api_client.request("GET", "/domains")
+            
+            return {
+                "health": health_data,
+                "domains": domains_response,
+                "server_url": cli_ctx.config.server_url,
+                "mode": "http"
+            }
+        except Exception as e:
+            # If HTTP fails, raise an exception to trigger fallback
+            raise Exception(f"HTTP request failed: {e}")
     
     async def fallback_status():
         """Get status using direct service calls"""
@@ -186,7 +196,9 @@ def status(ctx):
         domains = result.get("domains", {}).get("domains", [])
         click.echo(f"Registered Domains ({len(domains)}):")
         for domain in domains:
-            status_icon = "✅" if domain.get("status") == "active" else "❌"
+            # Default to active if no status field is present
+            status = domain.get("status", "active")
+            status_icon = "✅" if status == "active" else "❌"
             click.echo(f"  {status_icon} {domain['id']}")
 
 

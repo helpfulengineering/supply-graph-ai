@@ -187,13 +187,18 @@ class SmartCommand:
             result = await http_operation()
             self.ctx.log("Connected to server successfully", "success")
             return result
-        except click.ClickException as e:
-            if "Could not connect to server" in str(e):
+        except (click.ClickException, Exception) as e:
+            # Check if it's a connection error
+            error_msg = str(e).lower()
+            if any(keyword in error_msg for keyword in [
+                "connection", "connect", "timeout", "unreachable", 
+                "refused", "failed", "not found", "404", "500"
+            ]):
                 # Fallback to direct service calls
                 self.ctx.log("Server unavailable, using direct service calls...", "warning")
                 return await fallback_operation()
             else:
-                # Re-raise other HTTP errors
+                # Re-raise other errors
                 raise e
 
 
