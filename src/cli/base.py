@@ -192,7 +192,7 @@ class SmartCommand:
             error_msg = str(e).lower()
             if any(keyword in error_msg for keyword in [
                 "connection", "connect", "timeout", "unreachable", 
-                "refused", "failed", "not found", "404", "500"
+                "refused", "failed", "not found", "404", "405", "500"
             ]):
                 # Fallback to direct service calls
                 self.ctx.log("Server unavailable, using direct service calls...", "warning")

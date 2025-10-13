@@ -383,3 +383,105 @@ def upload(ctx, file_path: str, quality_level: str, strict_mode: bool):
         echo_success(f"OKH manifest uploaded with ID: {manifest_id}")
     else:
         echo_error("Failed to upload OKH manifest")
+
+
+@okh_group.command()
+@click.argument('url', type=str)
+@click.option('--output', '-o', type=click.Path(), help='Output file path for generated manifest')
+@click.option('--format', '-f', type=click.Choice(['json', 'yaml']), default='json', help='Output format')
+@click.option('--no-review', is_flag=True, help='Skip interactive review and generate manifest directly')
+@click.pass_context
+def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
+    """Generate OKH manifest from repository URL"""
+    cli_ctx = ctx.obj
+    
+    echo_info(f"🔍 Analyzing repository: {url}")
+    
+    async def http_generate():
+        """Generate via HTTP API"""
+        payload = {"url": url, "skip_review": no_review}
+        response = await cli_ctx.api_client.request("POST", "/okh/generate-from-url", json_data=payload)
+        return response
+    
+    async def fallback_generate():
+        """Generate using direct service calls"""
+        from ..core.generation.url_router import URLRouter
+        from ..core.generation.engine import GenerationEngine
+        from ..core.generation.review import ReviewInterface
+        from ..core.generation.models import GenerationResult, PlatformType
+        
+        # Validate and route URL
+        router = URLRouter()
+        if not router.validate_url(url):
+            raise ValueError(f"Invalid URL: {url}")
+        
+        platform = router.detect_platform(url)
+        if platform is None:
+            raise ValueError(f"Unsupported platform for URL: {url}")
+        
+        echo_info(f"📋 Detected platform: {platform.value}")
+        
+        # Generate project data from URL
+        echo_info("📥 Fetching project data...")
+        
+        # Get platform-specific generator
+        if platform == PlatformType.GITHUB:
+            from ..core.generation.platforms.github import GitHubExtractor
+            generator = GitHubExtractor()
+        elif platform == PlatformType.GITLAB:
+            from ..core.generation.platforms.gitlab import GitLabExtractor
+            generator = GitLabExtractor()
+        else:
+            raise ValueError(f"Unsupported platform: {platform}")
+        
+        project_data = await generator.extract_project(url)
+        
+        # Generate manifest from project data
+        engine = GenerationEngine()
+        echo_info("⚙️  Generating manifest fields...")
+        
+        result = await engine.generate_manifest_async(project_data)
+        
+        if not no_review:
+            echo_info("📝 Starting interactive review...")
+            review_interface = ReviewInterface(result)
+            result = await review_interface.review()
+        
+        return result.to_dict()
+    
+    try:
+        command = SmartCommand(cli_ctx)
+        result = asyncio.run(command.execute_with_fallback(http_generate, fallback_generate))
+        
+        # Handle output
+        if output:
+            output_path = Path(output)
+            if format == 'yaml':
+                import yaml
+                with open(output_path, 'w') as f:
+                    yaml.dump(result, f, default_flow_style=False)
+            else:
+                with open(output_path, 'w') as f:
+                    json.dump(result, f, indent=2)
+            echo_success(f"✅ Manifest saved to: {output_path}")
+        else:
+            if cli_ctx.output_format == 'json' or format == 'json':
+                click.echo(format_json_output(result))
+            else:
+                # Show summary
+                title = result.get('title', 'Unknown')
+                version = result.get('version', 'Unknown')
+                quality = result.get('quality_report', {}).get('overall_quality', 0)
+                
+                echo_success(f"✅ Generated manifest for: {title} v{version}")
+                echo_info(f"📊 Quality score: {quality:.1%}")
+                
+                if result.get('quality_report', {}).get('missing_required_fields'):
+                    missing = result['quality_report']['missing_required_fields']
+                    echo_error(f"⚠️  Missing required fields: {', '.join(missing)}")
+    
+    except Exception as e:
+        echo_error(f"❌ Generation failed: {str(e)}")
+        if cli_ctx.verbose:
+            import traceback
+            click.echo(traceback.format_exc())
