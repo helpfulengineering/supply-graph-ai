@@ -96,3 +96,13 @@ class OKHUploadResponse(BaseModel):
     # Optional fields after
     validation_issues: Optional[List[ValidationIssue]] = None
     completeness_score: Optional[float] = None
+
+class OKHGenerateResponse(BaseModel):
+    """Response model for OKH manifest generation from URL"""
+    # Required fields first
+    success: bool
+    message: str
+    manifest: Dict[str, Any]
+    
+    # Optional fields after
+    quality_report: Optional[Dict[str, Any]] = None

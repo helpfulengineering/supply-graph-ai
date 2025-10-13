@@ -10,7 +10,8 @@ from ..models.okh.request import (
     OKHUpdateRequest, 
     OKHValidateRequest,
     OKHExtractRequest,
-    OKHUploadRequest
+    OKHUploadRequest,
+    OKHGenerateRequest
 )
 from ..models.okh.response import (
     OKHResponse, 
@@ -18,7 +19,8 @@ from ..models.okh.response import (
     OKHExtractResponse,
     OKHListResponse,
     SuccessResponse,
-    OKHUploadResponse
+    OKHUploadResponse,
+    OKHGenerateResponse
 )
 from ...services.okh_service import OKHService
 from ...services.storage_service import StorageService
@@ -395,4 +397,46 @@ async def upload_okh_file(
         raise HTTPException(
             status_code=500, 
             detail=f"Internal server error: {str(e)}"
+        )
+
+@router.post("/generate-from-url", response_model=OKHGenerateResponse)
+async def generate_from_url(
+    request: OKHGenerateRequest,
+    okh_service: OKHService = Depends(get_okh_service)
+):
+    """
+    Generate OKH manifest from repository URL
+    
+    Generates an OpenKnowHow manifest from a repository URL by analyzing
+    the repository structure, metadata, and content. Supports GitHub and GitLab
+    repositories with optional interactive review.
+    
+    The generation process includes:
+    - URL validation and platform detection
+    - Repository metadata extraction
+    - Content analysis and field generation
+    - Quality assessment and recommendations
+    - Optional interactive review for field validation
+    """
+    try:
+        # Call service to generate manifest from URL
+        result = await okh_service.generate_from_url(
+            url=request.url,
+            skip_review=request.skip_review
+        )
+        
+        return OKHGenerateResponse(**result)
+        
+    except ValueError as e:
+        # Handle validation errors
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
+    except Exception as e:
+        # Log unexpected errors
+        logger.error(f"Error generating manifest from URL {request.url}: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred while generating the manifest"
         )

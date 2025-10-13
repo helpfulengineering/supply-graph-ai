@@ -9,12 +9,14 @@ import click
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional
 from uuid import UUID
+from ..core.models.okh import OKHManifest
+from ..core.services.okh_service import OKHService
 
 from .base import (
-    CLIContext, SmartCommand, with_async_context,
-    echo_success, echo_error, echo_info, format_json_output
+    SmartCommand, echo_success, echo_error, 
+    echo_info, echo_warning, format_json_output
 )
 
 
@@ -388,7 +390,7 @@ def upload(ctx, file_path: str, quality_level: str, strict_mode: bool):
 @okh_group.command()
 @click.argument('url', type=str)
 @click.option('--output', '-o', type=click.Path(), help='Output file path for generated manifest')
-@click.option('--format', '-f', type=click.Choice(['json', 'yaml']), default='json', help='Output format')
+@click.option('--format', '-f', type=click.Choice(['json', 'yaml', 'okh', 'api']), default='okh', help='Output format: okh (OKH manifest), api (API wrapper), json/yaml (legacy)')
 @click.option('--no-review', is_flag=True, help='Skip interactive review and generate manifest directly')
 @click.pass_context
 def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
@@ -447,11 +449,31 @@ def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
             review_interface = ReviewInterface(result)
             result = await review_interface.review()
         
-        return result.to_dict()
+        # Return appropriate format based on CLI option
+        if format == 'okh':
+            return result.to_okh_manifest()
+        elif format == 'api':
+            return {
+                "success": True,
+                "message": "Manifest generated successfully",
+                "manifest": result.to_dict(),
+                "quality_report": {
+                    "overall_quality": result.quality_report.overall_quality,
+                    "required_fields_complete": result.quality_report.required_fields_complete,
+                    "missing_required_fields": result.quality_report.missing_required_fields,
+                    "recommendations": result.quality_report.recommendations
+                }
+            }
+        else:
+            return result.to_dict()
     
     try:
-        command = SmartCommand(cli_ctx)
-        result = asyncio.run(command.execute_with_fallback(http_generate, fallback_generate))
+        # For OKH format, always use direct generation to get proper manifest format
+        if format == 'okh':
+            result = asyncio.run(fallback_generate())
+        else:
+            command = SmartCommand(cli_ctx)
+            result = asyncio.run(command.execute_with_fallback(http_generate, fallback_generate))
         
         # Handle output
         if output:
@@ -465,20 +487,33 @@ def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
                     json.dump(result, f, indent=2)
             echo_success(f"✅ Manifest saved to: {output_path}")
         else:
-            if cli_ctx.output_format == 'json' or format == 'json':
+            if cli_ctx.output_format == 'json' or format in ['json', 'api']:
                 click.echo(format_json_output(result))
             else:
-                # Show summary
-                title = result.get('title', 'Unknown')
-                version = result.get('version', 'Unknown')
-                quality = result.get('quality_report', {}).get('overall_quality', 0)
-                
-                echo_success(f"✅ Generated manifest for: {title} v{version}")
-                echo_info(f"📊 Quality score: {quality:.1%}")
-                
-                if result.get('quality_report', {}).get('missing_required_fields'):
-                    missing = result['quality_report']['missing_required_fields']
-                    echo_error(f"⚠️  Missing required fields: {', '.join(missing)}")
+                # Show summary for OKH format
+                if format == 'okh':
+                    title = result.get('title', 'Unknown')
+                    version = result.get('version', 'Unknown')
+                    quality = result.get('metadata', {}).get('generation_confidence', 0)
+                    missing_fields = result.get('metadata', {}).get('missing_required_fields', [])
+                    
+                    echo_success(f"✅ Generated OKH manifest for: {title} v{version}")
+                    echo_info(f"📊 Generation confidence: {quality:.1%}")
+                    
+                    if missing_fields:
+                        echo_warning(f"⚠️  Missing required fields: {', '.join(missing_fields)}")
+                else:
+                    # Legacy format summary
+                    title = result.get('title', 'Unknown')
+                    version = result.get('version', 'Unknown')
+                    quality = result.get('quality_report', {}).get('overall_quality', 0)
+                    
+                    echo_success(f"✅ Generated manifest for: {title} v{version}")
+                    echo_info(f"📊 Quality score: {quality:.1%}")
+                    
+                    if result.get('quality_report', {}).get('missing_required_fields'):
+                        missing = result['quality_report']['missing_required_fields']
+                        echo_warning(f"⚠️  Missing required fields: {', '.join(missing)}")
     
     except Exception as e:
         echo_error(f"❌ Generation failed: {str(e)}")

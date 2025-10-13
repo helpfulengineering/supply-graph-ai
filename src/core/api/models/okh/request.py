@@ -90,3 +90,11 @@ class OKHUploadRequest(BaseModel):
     description: Optional[str] = None
     tags: List[str] = Field(default_factory=list)
     validation_context: Optional[str] = None
+
+class OKHGenerateRequest(BaseModel):
+    """Request model for generating OKH manifest from URL"""
+    # Required fields
+    url: str = Field(..., description="Repository URL to generate manifest from")
+    
+    # Optional fields
+    skip_review: bool = Field(False, description="Skip interactive review and generate manifest directly")

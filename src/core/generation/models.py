@@ -140,10 +140,76 @@ class ManifestGeneration:
             "repo": fields_dict.get("repo", ""),
             "license": fields_dict.get("license", ""),
             "description": fields_dict.get("description", ""),
-            "quality_report": quality_dict,
             "confidence_scores": self.confidence_scores,
             "missing_fields": self.missing_fields
         }
+    
+    def to_okh_manifest(self) -> Dict[str, Any]:
+        """Convert to proper OKH manifest format"""
+        import uuid
+        from datetime import datetime
+        
+        # Convert generated fields to simple dict
+        fields_dict = {}
+        for field_name, field_gen in self.generated_fields.items():
+            fields_dict[field_name] = field_gen.value
+        
+        # Generate deterministic UUID based on repo URL
+        repo_url = fields_dict.get("repo", "")
+        if repo_url:
+            # Create deterministic UUID from repo URL
+            namespace = uuid.NAMESPACE_URL
+            manifest_id = str(uuid.uuid5(namespace, repo_url))
+        else:
+            manifest_id = str(uuid.uuid4())
+        
+        # Build proper OKH manifest structure
+        manifest = {
+            "okhv": "OKH-LOSHv1.0",
+            "id": manifest_id,
+            "title": fields_dict.get("title", "Unknown"),
+            "repo": fields_dict.get("repo", ""),
+            "version": fields_dict.get("version", "1.0.0"),
+            "license": fields_dict.get("license", ""),
+            "description": fields_dict.get("description", ""),
+            "function": fields_dict.get("function", ""),
+            "intended_use": fields_dict.get("intended_use", ""),
+            "keywords": fields_dict.get("keywords", []),
+            "contact": fields_dict.get("contact", {}),
+            "organization": fields_dict.get("organization", {}),
+            "development_stage": fields_dict.get("development_stage", "development"),
+            "technology_readiness_level": fields_dict.get("technology_readiness_level", "TRL-1"),
+            "manufacturing_files": fields_dict.get("manufacturing_files", []),
+            "design_files": fields_dict.get("design_files", []),
+            "making_instructions": fields_dict.get("making_instructions", []),
+            "operating_instructions": fields_dict.get("operating_instructions", []),
+            "tool_list": fields_dict.get("tool_list", []),
+            "manufacturing_processes": fields_dict.get("manufacturing_processes", []),
+            "materials": fields_dict.get("materials", []),
+            "manufacturing_specs": fields_dict.get("manufacturing_specs", {}),
+            "bom": fields_dict.get("bom", ""),
+            "standards_used": fields_dict.get("standards_used", []),
+            "tsdc": fields_dict.get("tsdc", []),
+            "parts": fields_dict.get("parts", []),
+            "sub_parts": fields_dict.get("sub_parts", []),
+            "software": fields_dict.get("software", []),
+            "metadata": {
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "generation_confidence": self.quality_report.overall_quality,
+                "missing_required_fields": self.missing_fields,
+                "generation_method": "automated_extraction"
+            }
+        }
+        
+        # Add optional fields if they exist
+        optional_fields = [
+            "licensor", "documentation_language", "contact", "organization"
+        ]
+        for field in optional_fields:
+            if field in fields_dict and fields_dict[field]:
+                manifest[field] = fields_dict[field]
+        
+        return manifest
 
 
 @dataclass

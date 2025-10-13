@@ -35,13 +35,14 @@ class ReviewInterface:
             'quit': self._quit
         }
     
-    def review(self) -> Optional[OKHManifest]:
+    async def review(self) -> Optional[OKHManifest]:
         """
         Start the interactive review process.
         
         Returns:
             OKHManifest if exported, None if quit
         """
+            
         print("🔍 OKH Manifest Review Interface")
         print("=" * 50)
         print(f"Project: {self.manifest_generation.project_data.url}")

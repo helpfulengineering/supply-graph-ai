@@ -277,6 +277,64 @@ class OKHService:
             logger.error(f"Error validating OKH manifest: {str(e)}")
             raise ValueError(f"Validation failed: {str(e)}")
     
+    async def generate_from_url(self, url: str, skip_review: bool = False) -> Dict[str, Any]:
+        """Generate OKH manifest from repository URL"""
+        try:
+            await self.ensure_initialized()
+            
+            # Import generation modules
+            from ..generation.url_router import URLRouter
+            from ..generation.engine import GenerationEngine
+            from ..generation.review import ReviewInterface
+            from ..generation.models import PlatformType
+            
+            # Validate and route URL
+            router = URLRouter()
+            if not router.validate_url(url):
+                raise ValueError(f"Invalid URL: {url}")
+            
+            platform = router.detect_platform(url)
+            if platform is None:
+                raise ValueError(f"Unsupported platform for URL: {url}")
+            
+            # Get platform-specific generator
+            if platform == PlatformType.GITHUB:
+                from ..generation.platforms.github import GitHubExtractor
+                generator = GitHubExtractor()
+            elif platform == PlatformType.GITLAB:
+                from ..generation.platforms.gitlab import GitLabExtractor
+                generator = GitLabExtractor()
+            else:
+                raise ValueError(f"Unsupported platform: {platform}")
+            
+            # Generate project data
+            project_data = await generator.extract_project(url)
+            
+            # Generate manifest
+            engine = GenerationEngine()
+            result = await engine.generate_manifest_async(project_data)
+            
+            # Note: Review interface is handled by CLI, not API service
+            
+            # Convert to response format
+            manifest_dict = result.to_dict()
+            
+            return {
+                "success": True,
+                "message": "Manifest generated successfully",
+                "manifest": manifest_dict,
+                "quality_report": {
+                    "overall_quality": result.quality_report.overall_quality,
+                    "required_fields_complete": result.quality_report.required_fields_complete,
+                    "missing_required_fields": result.quality_report.missing_required_fields,
+                    "recommendations": result.quality_report.recommendations
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating manifest from URL {url}: {str(e)}")
+            raise ValueError(f"Generation failed: {str(e)}")
+    
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""
         if not self._initialized:
