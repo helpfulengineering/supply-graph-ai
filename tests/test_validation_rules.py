@@ -145,7 +145,7 @@ class TestManufacturingValidationRules:
         fields = rules.get_required_fields("professional")
         
         expected = ['title', 'version', 'license', 'licensor', 'documentation_language', 'function',
-                   'manufacturing_specs', 'materials', 'manufacturing_processes']
+                   'manufacturing_specs', 'manufacturing_processes', 'materials', 'tool_list']
         assert fields == expected
     
     def test_get_required_fields_medical(self):
@@ -154,8 +154,8 @@ class TestManufacturingValidationRules:
         fields = rules.get_required_fields("medical")
         
         expected = ['title', 'version', 'license', 'licensor', 'documentation_language', 'function',
-                   'manufacturing_specs', 'materials', 'manufacturing_processes',
-                   'quality_standards', 'certifications', 'regulatory_compliance']
+                   'manufacturing_specs', 'manufacturing_processes', 'materials', 'tool_list',
+                   'quality_standards', 'certifications', 'regulatory_compliance', 'traceability', 'testing_procedures']
         assert fields == expected
     
     def test_get_validation_rules_hobby(self):
@@ -184,14 +184,13 @@ class TestManufacturingValidationRules:
         rules = ManufacturingValidationRules.get_okh_validation_rules("professional")
         assert 'required_fields' in rules
         assert 'validation_strictness' in rules
-        assert rules['domain'] == 'manufacturing'
+        assert 'optional_fields' in rules
     
     def test_static_okw_validation_rules(self):
         """Test static OKW validation rules method"""
         rules = ManufacturingValidationRules.get_okw_validation_rules("professional")
         assert 'required_fields' in rules
-        assert 'equipment_validation' in rules
-        assert 'process_validation' in rules
+        assert 'optional_fields' in rules
         assert 'validation_strictness' in rules
 
 

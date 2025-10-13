@@ -35,15 +35,18 @@ class TestValidationEngine:
         assert len(result.warnings) == 0
     
     @pytest.mark.asyncio
-    @patch('src.core.registry.domain_registry.DomainRegistry')
-    async def test_validate_with_context(self, mock_registry):
+    @patch('src.core.validation.context.DomainRegistry')
+    @patch('src.core.validation.engine.DomainRegistry')
+    async def test_validate_with_context(self, mock_engine_registry, mock_context_registry):
         """Test validation with context"""
         # Mock domain registry
         mock_services = MagicMock()
         mock_validator = MagicMock()
         mock_validator.validate.return_value = {"valid": True, "issues": [], "warnings": []}
         mock_services.validator = mock_validator
-        mock_registry.get_domain_services.return_value = mock_services
+        mock_engine_registry.get_domain_services.return_value = mock_services
+        mock_engine_registry.list_domains.return_value = ["manufacturing", "cooking"]
+        mock_context_registry.list_domains.return_value = ["manufacturing", "cooking"]
         
         engine = ValidationEngine()
         context = ValidationContext(
@@ -60,19 +63,20 @@ class TestValidationEngine:
         mock_validator.validate.assert_called_once_with(data)
     
     @pytest.mark.asyncio
-    @patch('src.core.registry.domain_registry.DomainRegistry')
+    @patch('src.core.validation.engine.DomainRegistry')
     async def test_validate_with_domain_validation_failure(self, mock_registry):
         """Test validation with domain validation failure"""
         # Mock domain registry
         mock_services = MagicMock()
         mock_validator = MagicMock()
         mock_validator.validate.return_value = {
-            "valid": False, 
-            "issues": ["Test validation failed"], 
+            "valid": False,
+            "issues": ["Test validation failed"],
             "warnings": []
         }
         mock_services.validator = mock_validator
         mock_registry.get_domain_services.return_value = mock_services
+        mock_registry.list_domains.return_value = ["manufacturing", "cooking"]
         
         engine = ValidationEngine()
         context = ValidationContext(
@@ -90,7 +94,7 @@ class TestValidationEngine:
         assert result.errors[0].message == "Test validation failed"
     
     @pytest.mark.asyncio
-    @patch('src.core.registry.domain_registry.DomainRegistry')
+    @patch('src.core.validation.engine.DomainRegistry')
     async def test_validate_with_invalid_quality_level(self, mock_registry):
         """Test validation with invalid quality level"""
         # Mock domain registry
@@ -99,6 +103,7 @@ class TestValidationEngine:
         mock_validator.validate.return_value = {"valid": True, "issues": [], "warnings": []}
         mock_services.validator = mock_validator
         mock_registry.get_domain_services.return_value = mock_services
+        mock_registry.list_domains.return_value = ["manufacturing", "cooking"]
         
         engine = ValidationEngine()
         context = ValidationContext(
@@ -116,7 +121,7 @@ class TestValidationEngine:
         assert "Invalid quality level" in result.errors[0].message
     
     @pytest.mark.asyncio
-    @patch('src.core.registry.domain_registry.DomainRegistry')
+    @patch('src.core.validation.engine.DomainRegistry')
     async def test_validate_with_custom_rules(self, mock_registry):
         """Test validation with custom rules"""
         # Mock domain registry
@@ -125,6 +130,7 @@ class TestValidationEngine:
         mock_validator.validate.return_value = {"valid": True, "issues": [], "warnings": []}
         mock_services.validator = mock_validator
         mock_registry.get_domain_services.return_value = mock_services
+        mock_registry.list_domains.return_value = ["manufacturing", "cooking"]
         
         engine = ValidationEngine()
         context = ValidationContext(

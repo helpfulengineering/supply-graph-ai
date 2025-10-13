@@ -56,7 +56,7 @@ class CookingRecipeValidator(Validator):
             quality_level = context.quality_level
         
         # Validate quality level is supported
-        if not CookingValidationRules.validate_quality_level(quality_level):
+        if quality_level not in self.validation_rules.get_supported_quality_levels():
             result.add_error(f"Unsupported quality level: {quality_level}")
             return result
         
