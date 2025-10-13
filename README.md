@@ -86,10 +86,11 @@ open-matching-engine/
 │   │   ├── registry/       # Domain registry
 │   │   ├── services/       # Core services
 │   │   ├── storage/        # Storage service for remote file mgmt
-│   │   └── utils/          # Utility functions
+│   │   ├── utils/          # Utility functions
+│   │   └── validation/     # Validation Engine
 │   └── config/             # Config management
 ├── synth/                  # synthetic data for development, remove in prod
-├── tests/                  # Test cases
+├── tests/                  # Test files for development
 ├── mkdocs.yml              # Documentation configuration
 ├── requirements.txt        # Project dependencies
 └── run.py                  # FastAPI server on uvicorn
