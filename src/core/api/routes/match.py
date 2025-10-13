@@ -83,54 +83,79 @@ async def match_requirements_to_capabilities(
         except Exception as e:
             logger.warning(f"Failed to store OKH manifest: {e}")
 
-        # 4. Load OKW facilities from storage
-        okw_handler = await storage_service.get_domain_handler("okw")
+        # 4. Load OKW facilities (from inline data or storage)
         facilities = []
-        try:
-            # Get all objects from storage (these are the actual OKW files)
-            objects = []
-            async for obj in storage_service.manager.list_objects():
-                objects.append(obj)
-            
-            logger.info(f"Found {len(objects)} objects in storage")
-            
-            # Load and parse each OKW file
-            for obj in objects:
+
+        if request.okw_facilities is not None:
+            # Use provided inline facilities - convert dicts to ManufacturingFacility objects
+            facilities = []
+            for facility_data in request.okw_facilities:
                 try:
-                    # Read the file content
-                    data = await storage_service.manager.get_object(obj["key"])
-                    content = data.decode('utf-8')
-                    
-                    # Parse based on file extension
-                    if obj["key"].endswith(('.yaml', '.yml')):
-                        import yaml
-                        okw_data = yaml.safe_load(content)
-                    elif obj["key"].endswith('.json'):
-                        okw_data = json.loads(content)
-                    else:
-                        logger.warning(f"Skipping unsupported file format: {obj['key']}")
-                        continue
-                    
-                    # Create ManufacturingFacility object
                     from ...models.okw import ManufacturingFacility
-                    facility = ManufacturingFacility.from_dict(okw_data)
-                    
-                    # Apply filters if provided
-                    if request.okw_filters:
-                        if not _matches_filters(facility, request.okw_filters):
-                            continue
-                    
+                    facility = ManufacturingFacility.from_dict(facility_data)
                     facilities.append(facility)
-                    logger.debug(f"Loaded OKW facility from {obj['key']}: {facility.name}")
-                    
                 except Exception as e:
-                    logger.error(f"Failed to load OKW facility from {obj['key']}: {e}")
+                    logger.error(f"Failed to parse inline OKW facility: {e}")
                     continue
             
-            logger.info(f"Loaded {len(facilities)} OKW facilities from storage.")
-        except Exception as e:
-            logger.error(f"Failed to list/load OKW facilities: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to load OKW facilities: {str(e)}")
+            logger.info(f"Using {len(facilities)} inline OKW facilities")
+            
+            # Apply filters if provided
+            if request.okw_filters:
+                filtered_facilities = []
+                for facility in facilities:
+                    if _matches_filters(facility, request.okw_filters):
+                        filtered_facilities.append(facility)
+                facilities = filtered_facilities
+                logger.info(f"Filtered to {len(facilities)} facilities")
+        else:
+            # Load from storage (existing behavior)
+            okw_handler = await storage_service.get_domain_handler("okw")
+            try:
+                # Get all objects from storage (these are the actual OKW files)
+                objects = []
+                async for obj in storage_service.manager.list_objects():
+                    objects.append(obj)
+                
+                logger.info(f"Found {len(objects)} objects in storage")
+                
+                # Load and parse each OKW file
+                for obj in objects:
+                    try:
+                        # Read the file content
+                        data = await storage_service.manager.get_object(obj["key"])
+                        content = data.decode('utf-8')
+                        
+                        # Parse based on file extension
+                        if obj["key"].endswith(('.yaml', '.yml')):
+                            import yaml
+                            okw_data = yaml.safe_load(content)
+                        elif obj["key"].endswith('.json'):
+                            okw_data = json.loads(content)
+                        else:
+                            logger.warning(f"Skipping unsupported file format: {obj['key']}")
+                            continue
+                        
+                        # Create ManufacturingFacility object
+                        from ...models.okw import ManufacturingFacility
+                        facility = ManufacturingFacility.from_dict(okw_data)
+                        
+                        # Apply filters if provided
+                        if request.okw_filters:
+                            if not _matches_filters(facility, request.okw_filters):
+                                continue
+                        
+                        facilities.append(facility)
+                        logger.debug(f"Loaded OKW facility from {obj['key']}: {facility.name}")
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to load OKW facility from {obj['key']}: {e}")
+                        continue
+                
+                logger.info(f"Loaded {len(facilities)} OKW facilities from storage.")
+            except Exception as e:
+                logger.error(f"Failed to list/load OKW facilities: {e}")
+                raise HTTPException(status_code=500, detail=f"Failed to load OKW facilities: {str(e)}")
 
         # 5. Run the matching logic (pass the in-memory OKH manifest and loaded OKW facilities)
         try:

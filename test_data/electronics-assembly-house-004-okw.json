@@ -1,0 +1,225 @@
+{
+  "id": "7fe82bc3-3c0c-405b-860f-5b7429559f19",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "1084",
+      "street": "Stephanie Lane",
+      "city": "Sanchezhaven",
+      "region": "Delaware",
+      "country": "Uganda",
+      "postcode": "62673"
+    },
+    "gps_coordinates": "41.304211, -47.729273",
+    "directions": "Located behind Mcintosh Inc",
+    "city": "Sanchezhaven",
+    "country": "Uganda"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Schultz-Carpenter",
+    "location": {
+      "address": {
+        "number": "8613",
+        "street": "Rebecca Row",
+        "city": "South Nicholashaven",
+        "region": "Wisconsin",
+        "country": "Turks and Caicos Islands",
+        "postcode": "55446"
+      },
+      "gps_coordinates": "59.312327, -98.805009",
+      "directions": "Located behind Mooney Inc",
+      "city": "South Nicholashaven",
+      "country": "Turks and Caicos Islands"
+    },
+    "contact_person": "Leslie Burton",
+    "bio": "Established in 2018, we specialize in Persevering methodical functionalities",
+    "website": "https://richardson.org",
+    "languages": [
+      "en",
+      "de",
+      "fr"
+    ],
+    "mailing_list": "bellemily@lists.reynolds.info",
+    "contact": {
+      "landline": "+1-337-494-7764",
+      "mobile": "+1-537-361-6184",
+      "email": "info@avery-lee.biz",
+      "whatsapp": "+1-240-365-1334"
+    },
+    "social_media": {
+      "twitter": "@kimberlystone",
+      "instagram": "@david34",
+      "other_urls": [
+        "https://rivera.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Kramer Group",
+    "location": {
+      "address": {
+        "number": "323",
+        "street": "Trujillo Lodge",
+        "city": "South Daniel",
+        "region": "Illinois",
+        "country": "Israel",
+        "postcode": "01949"
+      },
+      "gps_coordinates": "67.556299, 39.290766",
+      "directions": "Located near Sullivan-Cox",
+      "city": "South Daniel",
+      "country": "Israel"
+    },
+    "contact_person": "Cynthia Conway",
+    "bio": "Established in 1996, we specialize in Team-oriented static success",
+    "website": "https://saunders-sanchez.com",
+    "languages": [
+      "fr",
+      "es",
+      "de"
+    ],
+    "mailing_list": "lynchjohn@lists.stewart.com",
+    "images": [
+      "images/certain.jpg",
+      "images/bed.jpg"
+    ],
+    "contact": {
+      "landline": "+1-768-710-4643",
+      "mobile": "+1-671-980-9013",
+      "email": "info@gay.com",
+      "whatsapp": "+1-758-705-6817"
+    },
+    "social_media": {
+      "twitter": "@xbrennan",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-20:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "1991-08-22",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand A",
+      "model": "Model 599",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 683",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 160",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand A",
+      "model": "Model 431",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 136,
+  "storage_capacity": "356 cubic meters",
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months",
+  "typical_products": [
+    "Open-architected fault-tolerant software",
+    "Switchable composite portal",
+    "Object-based interactive pricing structure",
+    "Open-source scalable groupware"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Half many for."
+  },
+  "human_capacity": {
+    "headcount": 5
+  },
+  "innovation_space": {
+    "staff": 10,
+    "learning_resources": [
+      "Multi-layered didactic functionalities",
+      "Open-architected fresh-thinking moratorium",
+      "Assimilated bifurcated capacity",
+      "Reverse-engineered background monitoring",
+      "Devolved eco-centric success"
+    ],
+    "services": [
+      "Pre-emptive transitional contingency",
+      "User-friendly systemic challenge",
+      "User-friendly solution-oriented conglomeration",
+      "Devolved directional process improvement",
+      "Right-sized upward-trending forecast"
+    ],
+    "footfall": 36
+  },
+  "record_data": {
+    "date_created": "2025-10-12T22:56:38.757791",
+    "created_by": {
+      "name": "Smith-Taylor",
+      "location": {
+        "address": {
+          "number": "2228",
+          "street": "Mallory Trace",
+          "city": "Jamesfurt",
+          "region": "North Dakota",
+          "country": "Canada",
+          "postcode": "48812"
+        },
+        "gps_coordinates": "43.093668, -53.613802",
+        "directions": "Located behind James and Sons",
+        "city": "Jamesfurt",
+        "country": "Canada"
+      },
+      "contact_person": "Jocelyn Rodriguez",
+      "bio": "Established in 2011, we specialize in Progressive leadingedge portal",
+      "website": "https://shelton.com",
+      "languages": [
+        "es",
+        "de"
+      ],
+      "mailing_list": "sheryl70@lists.hodge.com",
+      "contact": {
+        "landline": "+1-539-500-7700",
+        "mobile": "+1-254-613-2185",
+        "email": "info@castaneda.com",
+        "whatsapp": "+1-817-859-5416"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/zhunter",
+        "twitter": "@scoffey",
+        "instagram": "@snyderrobert",
+        "other_urls": [
+          "https://clark.com"
+        ]
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

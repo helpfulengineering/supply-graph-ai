@@ -24,6 +24,7 @@ Matches requirements to capabilities using the multi-layered matching approach.
 
 #### Request Body
 
+**Basic Request (Cloud Storage Mode):**
 ```json
 {
   "okh_manifest": {
@@ -35,6 +36,53 @@ Matches requirements to capabilities using the multi-layered matching approach.
     "licensor": "Test Org",
     "documentation_language": "en",
     "function": "Precision bracket"
+  }
+}
+```
+
+**Advanced Request with Inline Capabilities (Local Development Mode):**
+```json
+{
+  "okh_manifest": {
+    "title": "CNC Bracket",
+    "manufacturing_processes": ["CNC", "Deburring"],
+    "license": {
+      "hardware": "CERN-OHL-S-2.0"
+    },
+    "licensor": "Test Org",
+    "documentation_language": "en",
+    "function": "Precision bracket"
+  },
+  "okw_facilities": [
+    {
+      "id": "facility-1",
+      "name": "Local Machine Shop",
+      "manufacturing_processes": ["CNC", "Deburring", "Assembly"],
+      "equipment": [
+        {
+          "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+          "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+          "make": "Haas",
+          "model": "VF-2",
+          "condition": "Excellent"
+        }
+      ],
+      "location": {
+        "city": "San Francisco",
+        "country": "United States"
+      },
+      "access_type": "Public",
+      "facility_status": "Active"
+    }
+  ],
+  "okw_filters": {
+    "access_type": "Public",
+    "facility_status": "Active"
+  },
+  "optimization_criteria": {
+    "cost": 0.4,
+    "quality": 0.4,
+    "time": 0.2
   }
 }
 ```
@@ -66,8 +114,29 @@ Matches requirements to capabilities using the multi-layered matching approach.
 }
 ```
 
+#### Inline Capabilities Feature
+
+**Developer Note:** The API supports two modes for providing OKW facility capabilities:
+
+1. **Cloud Storage Mode (Default)**: The API automatically loads OKW facilities from cloud storage (Azure Blob Storage). This is the production mode and requires cloud storage to be configured.
+
+2. **Local Development Mode**: You can provide OKW facilities inline in the request using the `okw_facilities` field. This enables local development and testing without requiring cloud storage setup.
+
+**When to Use Inline Capabilities:**
+- Local development and testing
+- Demonstrations and prototypes
+- Offline development environments
+- Custom facility data that isn't in cloud storage
+- Rapid prototyping with specific facility configurations
+
+**Priority Logic:**
+- If `okw_facilities` is provided, the API uses those facilities and skips cloud storage lookup
+- If `okw_facilities` is not provided, the API loads facilities from cloud storage (existing behavior)
+- Filters (`okw_filters`) apply to both inline and cloud-loaded facilities
+
 #### Example Usage
 
+**Basic Request (Cloud Storage Mode):**
 ```bash
 curl -X POST http://localhost:8001/v1/match \
   -H "Content-Type: application/json" \
@@ -81,6 +150,50 @@ curl -X POST http://localhost:8001/v1/match \
       "licensor": "Test Org",
       "documentation_language": "en",
       "function": "Precision bracket"
+    }
+  }'
+```
+
+**Advanced Request (Local Development Mode):**
+```bash
+curl -X POST http://localhost:8001/v1/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "okh_manifest": {
+      "title": "CNC Bracket",
+      "manufacturing_processes": ["CNC", "Deburring"],
+      "license": {
+        "hardware": "CERN-OHL-S-2.0"
+      },
+      "licensor": "Test Org",
+      "documentation_language": "en",
+      "function": "Precision bracket"
+    },
+    "okw_facilities": [
+      {
+        "id": "local-shop-1",
+        "name": "Local Machine Shop",
+        "manufacturing_processes": ["CNC", "Deburring", "Assembly"],
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Haas",
+            "model": "VF-2",
+            "condition": "Excellent"
+          }
+        ],
+        "location": {
+          "city": "San Francisco",
+          "country": "United States"
+        },
+        "access_type": "Public",
+        "facility_status": "Active"
+      }
+    ],
+    "okw_filters": {
+      "access_type": "Public",
+      "facility_status": "Active"
     }
   }'
 ```

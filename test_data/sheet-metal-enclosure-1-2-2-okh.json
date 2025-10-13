@@ -1,0 +1,393 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "991bf2ed-a44e-4f18-9e89-8481a0e87218",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/hubbardjohnny/sheet-metal-enclosure",
+  "version": "1.2.2",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Cindy Michael",
+    "email": "malonerichard@example.org",
+    "affiliation": "Yang-Haynes",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "garciamichael"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Spring organization fish former.",
+  "intended_use": "Smile purpose big practice choose detail.",
+  "keywords": [
+    "shaft",
+    "prototype",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Jennifer Preston",
+    "email": "edwardsjennifer@example.com",
+    "affiliation": "Mcneil, Edwards and Hall",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "lamleslie"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Chad Lee",
+      "email": "smithstuart@example.com",
+      "affiliation": "Mendoza, Leonard and Graham",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "ucarter"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Hoffman, Brown and Jackson",
+    "url": "https://pugh.net",
+    "email": "contact@murray.net"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/kellyhunter/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/wardnancy/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/susantaylor/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/nschmidt/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/howellbrian/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/jason30/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/bryanharris/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/dcampbell/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/jrobles/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.5"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/monicahart/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/kennedyjennifer/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/piercejoshua/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.4"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [
+    "Shear",
+    "Punch press",
+    "Cable ties",
+    "Wrench set",
+    "Sheet metal brake",
+    "Crimping tool"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 333.5,
+      "unit": "kg",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 966.61,
+      "unit": "kg",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 415.83,
+      "unit": "m²",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 395.31,
+      "unit": "m³",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 442,
+      "width": 295,
+      "height": 20
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Later together carry school."
+  },
+  "bom": "https://github.com/kevinpugh/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "5d7e7a19-0041-4ac8-8334-bb542c03ef91",
+      "source": [
+        "https://github.com/daniel97/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/gabriela66/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/robertsheather/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/robert05/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 33,
+        "width": 171,
+        "height": 10
+      },
+      "mass": 55.52,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "f4ecc851-e285-409d-9c2f-e2f2c97ac484",
+      "source": [
+        "https://github.com/gonzalezgarrett/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/rebecca05/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/ashley39/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/baileybenjamin/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 58,
+        "width": 70,
+        "height": 72
+      },
+      "mass": 299.78,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "a1a0f785-4d9f-4405-a24d-ada8c1b045db",
+      "source": [
+        "https://github.com/jessica84/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/eric67/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/alexanderbanks/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/younglawrence/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 13,
+        "width": 158,
+        "height": 33
+      },
+      "mass": 610.13,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "753bb10d-2c33-419f-bd8e-c48714668a0f",
+      "source": [
+        "https://github.com/adkinsbarbara/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/nstafford/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/gsantiago/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/landerson/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 64,
+        "width": 28,
+        "height": 52
+      },
+      "mass": 761.76,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "b05ae94e-f03d-492b-b9d7-57e7588bc88c",
+      "source": [
+        "https://github.com/gonzalezjasmine/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/vcooper/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/briansmith/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/whuffman/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": {
+        "length": 136,
+        "width": 102,
+        "height": 50
+      },
+      "mass": 481.73,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -28,6 +28,10 @@ class MatchRequest(BaseModel):
         default_factory=dict,
         description="Optional filters for OKW facilities (e.g., location, capabilities)"
     )
+    okw_facilities: Optional[List[Dict[str, Any]]] = Field(
+        None,
+        description="Optional list of OKW facilities (as dicts) to use instead of loading from storage"
+    )
 
     @model_validator(mode='after')
     def validate_okh_input(self):

@@ -1,0 +1,437 @@
+{
+  "id": "e396621d-156a-41ac-8a5f-dfaee719b2f9",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "7223",
+      "street": "Rodriguez Lane",
+      "city": "South Melissachester",
+      "region": "Oklahoma",
+      "country": "Reunion",
+      "postcode": "47601"
+    },
+    "gps_coordinates": "34.580552, -116.445078",
+    "directions": "Located near Branch, Johnson and Wiley",
+    "city": "South Melissachester",
+    "country": "Reunion"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Carter-Aguilar",
+    "location": {
+      "address": {
+        "number": "3435",
+        "street": "Smith Green",
+        "city": "Lake Jaclynland",
+        "region": "Hawaii",
+        "country": "Kiribati",
+        "postcode": "17535"
+      },
+      "gps_coordinates": "60.732938, -108.758533",
+      "directions": "Located near Russo-Castaneda",
+      "city": "Lake Jaclynland",
+      "country": "Kiribati"
+    },
+    "contact_person": "Stephanie Moyer",
+    "bio": "Established in 2006, we specialize in Fully-configurable eco-centric extranet",
+    "website": "https://richards-smith.net",
+    "languages": [
+      "es",
+      "en"
+    ],
+    "mailing_list": "qcampbell@lists.jackson-le.com",
+    "images": [
+      "images/opportunity.jpg",
+      "images/cover.jpg",
+      "images/realize.jpg"
+    ],
+    "contact": {
+      "landline": "+1-453-822-3750",
+      "mobile": "+1-991-635-2638",
+      "email": "info@cain.com",
+      "whatsapp": "+1-952-605-7167"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/ijohnson",
+      "twitter": "@rickpitts",
+      "instagram": "@jessica37",
+      "other_urls": [
+        "https://garrett.info",
+        "https://nelson-mitchell.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Arnold LLC",
+    "location": {
+      "address": {
+        "number": "6123",
+        "street": "Lee Station",
+        "city": "Davidport",
+        "region": "Arizona",
+        "country": "Bahrain",
+        "postcode": "20893"
+      },
+      "gps_coordinates": "38.823778, -114.11525",
+      "directions": "Located across from Ward-Sweeney",
+      "city": "Davidport",
+      "country": "Bahrain"
+    },
+    "contact_person": "Bradley Phillips",
+    "bio": "Established in 2013, we specialize in Grass-roots 5thgeneration throughput",
+    "website": "https://moore.com",
+    "languages": [
+      "es"
+    ],
+    "mailing_list": "rachel24@lists.burns-smith.net",
+    "contact": {
+      "landline": "+1-600-697-4150",
+      "mobile": "+1-512-707-3249",
+      "email": "info@smith.info",
+      "whatsapp": "+1-459-600-4867"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/aaron11",
+      "twitter": "@hineskelli",
+      "other_urls": [
+        "https://thomas.com",
+        "https://moreno.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-22:00",
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "1999-11-02",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "i3 MK3S+",
+      "serial_number": "SN389897",
+      "condition": "Fair",
+      "notes": "Equipment notes: Economy fear family ball.",
+      "quantity": 2,
+      "throughput": "27 parts/hour",
+      "power_rating": 2205,
+      "maintenance_schedule": "Every 11 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4229",
+              "street": "Justin Port",
+              "city": "Port Tommyport",
+              "region": "New Hampshire",
+              "country": "Bangladesh",
+              "postcode": "07495"
+            },
+            "gps_coordinates": "37.214935, -57.606692",
+            "directions": "Located across from Long-Young",
+            "city": "Port Tommyport",
+            "country": "Bangladesh"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9655",
+              "street": "Hall Gateway",
+              "city": "Lake Susantown",
+              "region": "Maryland",
+              "country": "Palestinian Territory",
+              "postcode": "43461"
+            },
+            "gps_coordinates": "33.766062, -107.778991",
+            "directions": "Located across from Cruz-Wise",
+            "city": "Lake Susantown",
+            "country": "Palestinian Territory"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2710",
+              "street": "Kaylee Corners",
+              "city": "East Tracybury",
+              "region": "Nevada",
+              "country": "Namibia",
+              "postcode": "62323"
+            },
+            "gps_coordinates": "60.621744, -105.798914",
+            "directions": "Located behind Stafford, Mcguire and Moore",
+            "city": "East Tracybury",
+            "country": "Namibia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8059",
+              "street": "Cynthia River",
+              "city": "Luismouth",
+              "region": "New Hampshire",
+              "country": "Albania",
+              "postcode": "69099"
+            },
+            "gps_coordinates": "42.62768, -120.102605",
+            "directions": "Located near Gonzalez, Delacruz and Cooper",
+            "city": "Luismouth",
+            "country": "Albania"
+          }
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.8,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "ABS",
+          "TPU",
+          "PETG"
+        ],
+        "process_parameters": {
+          "setup_time": "70 minutes",
+          "cycle_time": "37 minutes",
+          "changeover_time": "26 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 488",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "VF-2",
+      "serial_number": "SN591762",
+      "condition": "Good",
+      "notes": "Equipment notes: Building serve wear tonight leg court.",
+      "quantity": 1,
+      "throughput": "13 parts/hour",
+      "power_rating": 3575,
+      "maintenance_schedule": "Every 4 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1648",
+              "street": "Tammy Gateway",
+              "city": "Taylorstad",
+              "region": "New York",
+              "country": "Greenland",
+              "postcode": "83405"
+            },
+            "gps_coordinates": "56.481575, -62.376968",
+            "directions": "Located near Scott, Wilkerson and Rodriguez",
+            "city": "Taylorstad",
+            "country": "Greenland"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1045",
+              "street": "Alexander Hollow",
+              "city": "Toddton",
+              "region": "Pennsylvania",
+              "country": "French Guiana",
+              "postcode": "11085"
+            },
+            "gps_coordinates": "36.895049, 17.367135",
+            "directions": "Located near Cole-Cain",
+            "city": "Toddton",
+            "country": "French Guiana"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "6553",
+              "street": "Clark Plains",
+              "city": "New Yvonne",
+              "region": "New Jersey",
+              "country": "Anguilla",
+              "postcode": "42853"
+            },
+            "gps_coordinates": "59.200727, -54.384811",
+            "directions": "Located across from Dudley-Mack",
+            "city": "New Yvonne",
+            "country": "Anguilla"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9588",
+              "street": "Danny Neck",
+              "city": "North Christian",
+              "region": "Utah",
+              "country": "Anguilla",
+              "postcode": "40146"
+            },
+            "gps_coordinates": "34.96448, -26.587819",
+            "directions": "Located behind Nelson-Ross",
+            "city": "North Christian",
+            "country": "Anguilla"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Aluminum",
+          "Wood",
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "53 minutes",
+          "cycle_time": "24 minutes",
+          "changeover_time": "27 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 394,
+  "storage_capacity": "832 cubic meters",
+  "certifications": [
+    "Research Grade"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Operative neutral process improvement"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Including certainly focus deal model.",
+    "by_products": [
+      "scientist"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 42
+  },
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Re-engineered contextually-based function",
+      "Synergistic cohesive Local Area Network"
+    ],
+    "services": [
+      "Open-source foreground architecture",
+      "Devolved solution-oriented service-desk"
+    ],
+    "footfall": 8,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-10-12T22:56:38.763292",
+    "created_by": {
+      "name": "Martin-Morgan",
+      "location": {
+        "address": {
+          "number": "5208",
+          "street": "Sierra Courts",
+          "city": "Burtonberg",
+          "region": "Colorado",
+          "country": "Lao People's Democratic Republic",
+          "postcode": "39231"
+        },
+        "gps_coordinates": "65.681989, 5.816933",
+        "directions": "Located behind Boyle, Morrison and Schmidt",
+        "city": "Burtonberg",
+        "country": "Lao People's Democratic Republic"
+      },
+      "contact_person": "Matthew Ball",
+      "bio": "Established in 2007, we specialize in Robust system-worthy orchestration",
+      "website": "https://garcia.com",
+      "languages": [
+        "fr",
+        "es"
+      ],
+      "mailing_list": "robinsonpeggy@lists.thomas-chapman.com",
+      "images": [
+        "images/condition.jpg",
+        "images/write.jpg"
+      ],
+      "contact": {
+        "landline": "+1-591-497-7452",
+        "mobile": "+1-224-642-4518",
+        "email": "info@davis.info",
+        "whatsapp": "+1-859-919-6964"
+      },
+      "social_media": {
+        "twitter": "@thompsonchristopher",
+        "other_urls": [
+          "https://hines.com",
+          "https://anderson.info"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

@@ -225,7 +225,27 @@ pytest tests/test_domain_management_integration.py -v
 POST /v1/match
 ```
 
-**Request Body:**
+**Developer Note: Inline Capabilities Support**
+
+The matching endpoint supports two modes for providing OKW facility capabilities:
+
+1. **Cloud Storage Mode (Default)**: The API automatically loads OKW facilities from cloud storage. This is the production mode.
+
+2. **Local Development Mode**: You can provide OKW facilities inline using the `okw_facilities` field. This enables local development without cloud storage setup.
+
+**When to Use Inline Capabilities:**
+- Local development and testing
+- Demonstrations and prototypes  
+- Offline development environments
+- Custom facility data not in cloud storage
+- Rapid prototyping with specific configurations
+
+**Priority Logic:**
+- If `okw_facilities` is provided → uses inline facilities (skips cloud storage)
+- If `okw_facilities` is not provided → loads from cloud storage (existing behavior)
+- Filters apply to both inline and cloud-loaded facilities
+
+**Request Body (Cloud Storage Mode):**
 ```json
 {
   "okh_manifest": {
@@ -235,6 +255,43 @@ POST /v1/match
   },
   "okw_filters": {
     "access_type": "Restricted",
+    "facility_status": "Active"
+  }
+}
+```
+
+**Request Body (Local Development Mode):**
+```json
+{
+  "okh_manifest": {
+    "title": "Hardware Project",
+    "manufacturing_processes": ["CNC", "3D Printing"],
+    // ... other OKH fields
+  },
+  "okw_facilities": [
+    {
+      "id": "local-facility-1",
+      "name": "Local Machine Shop",
+      "manufacturing_processes": ["CNC", "3D Printing", "Assembly"],
+      "equipment": [
+        {
+          "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+          "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+          "make": "Haas",
+          "model": "VF-2",
+          "condition": "Excellent"
+        }
+      ],
+      "location": {
+        "city": "San Francisco",
+        "country": "United States"
+      },
+      "access_type": "Public",
+      "facility_status": "Active"
+    }
+  ],
+  "okw_filters": {
+    "access_type": "Public",
     "facility_status": "Active"
   }
 }

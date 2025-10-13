@@ -779,7 +779,11 @@ POST /v1/match
   "okh_id": "uuid-here",          // Reference to stored OKH manifest
   "okh_url": "https://example.com/manifest.yaml",  // Remote OKH manifest URL
   
-  // Optional OKW Filtering
+  // OKW Capabilities (choose ONE of the following):
+  "okw_facilities": [...],         // Inline OKW facilities (Local Development Mode)
+  // OR omit this field to use cloud storage (Cloud Storage Mode - Default)
+  
+  // Optional OKW Filtering (applies to both inline and cloud-loaded facilities)
   "okw_filters": {
     "location": {
       "country": "United States",
@@ -840,7 +844,9 @@ POST /v1/match
 
 **Key Features:**
 - **Multiple OKH Input Methods**: Accept inline manifests, storage references, or remote URLs
-- **Automatic OKW Loading**: Loads all OKW facilities from Azure Blob Storage automatically
+- **Flexible OKW Input Methods**: 
+  - **Cloud Storage Mode**: Automatically loads OKW facilities from Azure Blob Storage (default)
+  - **Local Development Mode**: Accept inline OKW facilities for local development and testing
 - **Advanced Filtering**: Filter facilities by location, capabilities, access type, and status
 - **Real-time Processing**: Processes YAML/JSON files from storage in real-time
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
@@ -849,9 +855,11 @@ POST /v1/match
 
 **Enhanced Matching Workflow:**
 1. **OKH Input Processing**: Validates and processes OKH manifest from one of three input methods
-2. **Storage Integration**: Automatically loads all OKW facilities from Azure Blob Storage
+2. **OKW Capabilities Processing**: 
+   - **If `okw_facilities` provided**: Uses inline OKW facilities (Local Development Mode)
+   - **If `okw_facilities` not provided**: Loads OKW facilities from Azure Blob Storage (Cloud Storage Mode)
 3. **File Processing**: Parses YAML/JSON files and converts to `ManufacturingFacility` objects
-4. **Filtering**: Applies optional filters to narrow down relevant facilities
+4. **Filtering**: Applies optional filters to narrow down relevant facilities (works with both inline and cloud-loaded facilities)
 5. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
 6. **Multi-Layered Matching Logic**: 
    - **Layer 1**: Enhanced Direct Matching with metadata tracking and confidence scoring

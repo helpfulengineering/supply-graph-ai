@@ -55,7 +55,9 @@ The OME API is currently in **Phase 2: Enhanced Matching** with the following im
 
 #### Core Matching Engine
 - **Enhanced OKH Input Support**: Accept OKH manifests via inline JSON, storage ID reference, or remote URL
-- **Real-time OKW Loading**: Automatically loads and processes OKW facilities from Azure Blob Storage
+- **Flexible OKW Input Support**: 
+  - **Cloud Storage Mode**: Automatically loads OKW facilities from Azure Blob Storage (production)
+  - **Local Development Mode**: Accept inline OKW facilities for local development and testing
 - **Advanced Filtering**: Filter OKW facilities by location, capabilities, access type, and facility status
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
 - **Supply Tree Generation**: Creates complete manufacturing solutions with confidence scoring
