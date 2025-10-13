@@ -34,6 +34,12 @@
     * [Authentication](api/auth.md)
     * [Matching API](api/matching-api.md)
 
+### CLI Documentation
+* [CLI Documentation](CLI/index.md)
+    * [Quick Start Guide](CLI/quick-start.md)
+    * [Examples](CLI/examples.md)
+    * [Architecture](CLI/architecture.md)
+
 ### Matching System
 * [Matching Layers Architecture](architecture/matching-layers.md)
     * [Direct Matching Layer](matching/direct-matching.md)
@@ -72,11 +78,20 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 - Feedback system integration
 - API-driven data access
 
+### Command Line Interface
+- Comprehensive CLI with 39 commands across 7 command groups
+- HTTP API integration with automatic fallback to direct service calls
+- Package management (build, push, pull, verify)
+- System administration and monitoring
+- Multiple output formats (text, JSON, table)
+- Robust error handling and user-friendly messages
+
 ## Getting Started
 
 ### For Users
 If you're looking to use OME:
 
-1. Start with our [Developer Guide](development/developer-guide.md)
+1. Start with our [CLI Quick Start Guide](CLI/quick-start.md)
 2. Check out the [Project Overview](overview.md)
-3. Explore our [API Documentation](api/index.md)
+3. Explore our [CLI Documentation](CLI/index.md)
+4. Review our [API Documentation](api/index.md)

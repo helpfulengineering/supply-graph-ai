@@ -30,3 +30,6 @@ faker>=19.0.0
 # config
 dotenv
 
+#cli tools
+click
+tqdm
