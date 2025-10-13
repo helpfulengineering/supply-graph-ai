@@ -64,6 +64,11 @@ nav:
     - Authentication: api/auth.md
     - Matching API: api/matching-api.md
     - Routes & Models: api/routes.md
+  - Matching:
+    - Overview: matching/index.md
+    - Direct Matching: matching/direct-matching.md
+    - Capability-Centric Rules: matching/capability-centric-rules.md
+    - Heuristic Rules System: matching/heuristic-rules-system.md
   - Development:
     - Developer Guide: development/developer-guide.md
   - Data Models:

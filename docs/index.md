@@ -14,9 +14,7 @@
     * [Workflow Generation](architecture/workflow-generation.md)
 
 ### Development Plans
-* [Getting Started](development/getting-started.md)
-* [OME MVP Plan](development/ome-mvp-plan.md)
-* [Domain Management](development/domain-management.md)
+* [Developer Guide](development/developer-guide.md)
 
 ### Data Models
 * [Data Models](models/index.md)
@@ -79,24 +77,6 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 ### For Users
 If you're looking to use OME:
 
-1. Start with our [Installation Guide](development/getting-started.md)
-2. Explore our [API Documentation](api/index.md)
-
-
-## Project Status
-
-OME is currently in active development with a focus on:
-
-1. Core framework implementation
-2. Supply Tree validation system
-3. Context-aware matching
-4. Domain-specific implementations
-
-## Future Development
-
-Planned enhancements include:
-
-1. Advanced routing optimization
-2. Extended validation contexts
-3. Machine learning integration
-4. Additional domain support
+1. Start with our [Developer Guide](development/developer-guide.md)
+2. Check out the [Project Overview](overview.md)
+3. Explore our [API Documentation](api/index.md)
