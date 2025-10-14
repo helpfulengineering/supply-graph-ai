@@ -195,7 +195,7 @@ class ManifestGeneration:
             "software": fields_dict.get("software", []),
             "metadata": {
                 "generated_at": datetime.utcnow().isoformat() + "Z",
-                "generation_confidence": self.quality_report.overall_quality,
+                "generation_confidence": round(self.quality_report.overall_quality, 2),
                 "missing_required_fields": self.missing_fields,
                 "generation_method": "automated_extraction"
             }

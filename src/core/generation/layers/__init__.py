@@ -1,14 +1,16 @@
 """
-Generation layers for OKH manifest generation.
+Generation layers for OKH manifest extraction.
 
-This module provides different layers of intelligence for generating manifest fields:
-1. Direct matching - exact field mappings from platform metadata
-2. Heuristic matching - rule-based pattern recognition (future)
-3. NLP matching - semantic understanding of content (future)
-4. LLM matching - AI-powered content understanding (future)
+This module provides different layers of intelligence for extracting
+information from project repositories and generating OKH manifests.
 """
 
-from .base import GenerationLayer
-from .direct import DirectMatcher
+from .base import LayerResult
+from .heuristic import HeuristicMatcher
+from ..models import GenerationLayer
 
-__all__ = ['GenerationLayer', 'DirectMatcher']
+__all__ = [
+    'GenerationLayer',
+    'LayerResult', 
+    'HeuristicMatcher'
+]

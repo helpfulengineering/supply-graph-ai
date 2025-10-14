@@ -10,14 +10,40 @@ import re
 from typing import Dict, Any, Optional
 
 from ..models import ProjectData, FieldGeneration, GenerationLayer, PlatformType
-from .base import BaseLayerMatcher
+from .base import BaseGenerationLayer, LayerResult
 
 
-class DirectMatcher(BaseLayerMatcher):
+class DirectMatcher(BaseGenerationLayer):
     """Direct field mapping matcher for Layer 1 generation"""
     
     def __init__(self):
+        super().__init__(GenerationLayer.DIRECT)
         self._confidence_threshold = 0.8
+    
+    async def process(self, project_data: ProjectData) -> LayerResult:
+        """Process project data using direct matching"""
+        result = LayerResult(self.layer_type)
+        
+        try:
+            # Generate fields using existing logic
+            fields = self.generate_fields(project_data)
+            
+            # Convert to LayerResult format
+            for field_name, field_gen in fields.items():
+                result.add_field(
+                    field_name,
+                    field_gen.value,
+                    field_gen.confidence,
+                    field_gen.generation_method,
+                    field_gen.raw_source
+                )
+            
+            result.add_log(f"Direct layer processed {len(fields)} fields")
+            
+        except Exception as e:
+            result.add_error(f"Direct processing failed: {str(e)}")
+        
+        return result
     
     def generate_fields(self, project_data: ProjectData) -> Dict[str, FieldGeneration]:
         """
@@ -186,10 +212,3 @@ class DirectMatcher(BaseLayerMatcher):
         
         return None
     
-    def get_layer_type(self) -> GenerationLayer:
-        """Get the type of this generation layer"""
-        return GenerationLayer.DIRECT
-    
-    def get_confidence_threshold(self) -> float:
-        """Get the minimum confidence threshold for this layer"""
-        return self._confidence_threshold

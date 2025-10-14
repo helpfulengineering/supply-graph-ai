@@ -13,6 +13,7 @@ from .models import (
     QualityReport, GenerationLayer, GenerationQuality
 )
 from .layers.direct import DirectMatcher
+from .layers.heuristic import HeuristicMatcher
 from .quality import QualityAssessor
 
 
@@ -61,9 +62,10 @@ class GenerationEngine:
         if self.config.use_direct:
             self._matchers[GenerationLayer.DIRECT] = DirectMatcher()
         
+        if self.config.use_heuristic:
+            self._matchers[GenerationLayer.HEURISTIC] = HeuristicMatcher()
+        
         # Future layers will be added here
-        # if self.config.use_heuristic:
-        #     self._matchers[GenerationLayer.HEURISTIC] = HeuristicMatcher()
         # if self.config.use_nlp:
         #     self._matchers[GenerationLayer.NLP] = NLPMatcher()
         # if self.config.use_llm:
@@ -126,11 +128,36 @@ class GenerationEngine:
         Returns:
             ManifestGeneration containing generated fields and metadata
         """
-        # For now, just call the sync version
-        # Future async operations (like LLM calls) will be implemented here
-        return self.generate_manifest(project_data)
+        # Initialize result containers
+        generated_fields: Dict[str, FieldGeneration] = {}
+        confidence_scores: Dict[str, float] = {}
+        missing_fields: List[str] = []
+        
+        # Apply layers based on configuration
+        if self.config.progressive_enhancement:
+            generated_fields, confidence_scores, missing_fields = await self._progressive_enhancement(
+                project_data, generated_fields, confidence_scores, missing_fields
+            )
+        else:
+            generated_fields, confidence_scores, missing_fields = await self._apply_all_layers(
+                project_data, generated_fields, confidence_scores, missing_fields
+            )
+        
+        # Generate quality report
+        quality_report = self._quality_assessor.generate_quality_report(
+            generated_fields, confidence_scores, missing_fields, self._required_fields
+        )
+        
+        # Create result
+        return ManifestGeneration(
+            project_data=project_data,
+            generated_fields=generated_fields,
+            confidence_scores=confidence_scores,
+            quality_report=quality_report,
+            missing_fields=missing_fields
+        )
     
-    def _progressive_enhancement(self, project_data: ProjectData, 
+    async def _progressive_enhancement(self, project_data: ProjectData, 
                                 generated_fields: Dict[str, FieldGeneration],
                                 confidence_scores: Dict[str, float],
                                 missing_fields: List[str]) -> tuple:
@@ -159,10 +186,10 @@ class GenerationEngine:
                 continue
             
             # Apply layer
-            layer_fields = self._matchers[layer].generate_fields(project_data)
+            layer_result = await self._matchers[layer].process(project_data)
             
             # Merge results
-            for field_name, field_gen in layer_fields.items():
+            for field_name, field_gen in layer_result.fields.items():
                 if field_name not in generated_fields:
                     # New field
                     generated_fields[field_name] = field_gen
@@ -181,7 +208,7 @@ class GenerationEngine:
         
         return generated_fields, confidence_scores, missing_fields
     
-    def _apply_all_layers(self, project_data: ProjectData,
+    async def _apply_all_layers(self, project_data: ProjectData,
                          generated_fields: Dict[str, FieldGeneration],
                          confidence_scores: Dict[str, float],
                          missing_fields: List[str]) -> tuple:
@@ -199,10 +226,10 @@ class GenerationEngine:
         """
         # Apply all enabled layers
         for layer, matcher in self._matchers.items():
-            layer_fields = matcher.generate_fields(project_data)
+            layer_result = await matcher.process(project_data)
             
             # Merge results (keep highest confidence)
-            for field_name, field_gen in layer_fields.items():
+            for field_name, field_gen in layer_result.fields.items():
                 if field_name not in generated_fields:
                     generated_fields[field_name] = field_gen
                     confidence_scores[field_name] = field_gen.confidence
