@@ -1,0 +1,10 @@
+{
+  "id": "1a50fa5b-96b6-40a8-8e5b-04b05812bb81",
+  "name": "openflexure_microscope BOM",
+  "components": [],
+  "metadata": {
+    "generated_at": "2025-10-14T16:00:22.645771Z",
+    "generation_method": "bom_normalization",
+    "source_count": 12
+  }
+}

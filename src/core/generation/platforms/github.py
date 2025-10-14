@@ -71,6 +71,26 @@ class GitHubExtractor(ProjectExtractor):
                         license_content = base64.b64decode(license_data["content"]).decode("utf-8")
                 except:
                     pass
+
+                # Get BOM content (try common BOM file locations)
+                bom_content = ""
+                bom_paths = [
+                    "docs/0_bill_of_materials.md",
+                    "docs/bom.md", 
+                    "bom.md",
+                    "bill_of_materials.md"
+                ]
+                
+                for bom_path in bom_paths:
+                    try:
+                        bom_response = await client.get(f"{self.base_url}/repos/{owner}/{repo}/contents/{bom_path}")
+                        if bom_response.status_code == 200:
+                            import base64
+                            bom_data = bom_response.json()
+                            bom_content = base64.b64decode(bom_data["content"]).decode("utf-8")
+                            break
+                    except:
+                        continue
                 
                 # Build metadata
                 metadata = {
@@ -106,6 +126,14 @@ class GitHubExtractor(ProjectExtractor):
                         size=len(license_content),
                         content=license_content,
                         file_type="text"
+                    ))
+
+                if bom_content:
+                    files.append(FileInfo(
+                        path="docs/0_bill_of_materials.md",
+                        size=len(bom_content),
+                        content=bom_content,
+                        file_type="markdown"
                     ))
                 
                 # Add other files from contents

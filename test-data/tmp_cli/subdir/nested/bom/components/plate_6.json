@@ -1,0 +1,12 @@
+{
+  "id": "plate_6",
+  "name": "Plate",
+  "quantity": 1.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "bom_file",
+    "file_path": "docs/0_bill_of_materials.md",
+    "confidence": 0.9
+  }
+}

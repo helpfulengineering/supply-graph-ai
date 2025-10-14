@@ -143,6 +143,25 @@ class GenerationEngine:
                 project_data, generated_fields, confidence_scores, missing_fields
             )
         
+        # Add BOM normalization if enabled
+        full_bom_object = None
+        if self.config.use_bom_normalization:
+            try:
+                bom = await self._generate_normalized_bom(project_data)
+                full_bom_object = bom  # Store full BOM object for export
+                # Add BOM to generated fields
+                generated_fields["bom"] = FieldGeneration(
+                    value=bom.to_dict(),
+                    confidence=bom.metadata.get("overall_confidence", 0.8),
+                    source_layer=GenerationLayer.BOM_NORMALIZATION,
+                    generation_method="bom_normalization",
+                    raw_source=f"Extracted from {len(bom.components)} sources"
+                )
+                confidence_scores["bom"] = bom.metadata.get("overall_confidence", 0.8)
+            except Exception as e:
+                # Log error but don't fail the entire generation
+                print(f"Warning: BOM normalization failed: {e}")
+        
         # Generate quality report
         quality_report = self._quality_assessor.generate_quality_report(
             generated_fields, confidence_scores, missing_fields, self._required_fields
@@ -154,7 +173,8 @@ class GenerationEngine:
             generated_fields=generated_fields,
             confidence_scores=confidence_scores,
             quality_report=quality_report,
-            missing_fields=missing_fields
+            missing_fields=missing_fields,
+            full_bom=full_bom_object
         )
     
     async def _progressive_enhancement(self, project_data: ProjectData, 
@@ -277,3 +297,30 @@ class GenerationEngine:
                 missing.append(field)
         
         return missing
+    
+    async def _generate_normalized_bom(self, project_data: ProjectData):
+        """
+        Generate normalized BOM from project data.
+        
+        Args:
+            project_data: Raw project data from platform
+            
+        Returns:
+            BillOfMaterials object with normalized components
+        """
+        from .bom_models import BOMCollector, BOMProcessor, BOMBuilder
+        
+        # Collect BOM data from multiple sources
+        collector = BOMCollector()
+        sources = collector.collect_bom_data(project_data)
+        
+        # Process BOM data into components
+        processor = BOMProcessor()
+        components = processor.process_bom_sources(sources)
+        
+        # Build final BOM
+        builder = BOMBuilder()
+        project_name = project_data.metadata.get('name', 'Project')
+        bom = builder.build_bom(components, f"{project_name} BOM")
+        
+        return bom

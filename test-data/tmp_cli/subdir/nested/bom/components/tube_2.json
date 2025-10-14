@@ -1,0 +1,13 @@
+{
+  "id": "tube_2",
+  "name": "tube",
+  "quantity": 2.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_materials",
+    "file_path": "README.md",
+    "confidence": 0.9,
+    "file_reference": "tube.stl"
+  }
+}

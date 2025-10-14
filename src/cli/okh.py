@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Optional
 from uuid import UUID
 from ..core.models.okh import OKHManifest
-from ..core.services.okh_service import OKHService
 
 from .base import (
     SmartCommand, echo_success, echo_error, 
@@ -389,11 +388,12 @@ def upload(ctx, file_path: str, quality_level: str, strict_mode: bool):
 
 @okh_group.command()
 @click.argument('url', type=str)
-@click.option('--output', '-o', type=click.Path(), help='Output file path for generated manifest')
+@click.option('--output', '-o', type=click.Path(), help='Output directory for built files (enables BOM export)')
 @click.option('--format', '-f', type=click.Choice(['json', 'yaml', 'okh', 'api']), default='okh', help='Output format: okh (OKH manifest), api (API wrapper), json/yaml (legacy)')
+@click.option('--bom-formats', multiple=True, type=click.Choice(['json', 'md', 'csv', 'components']), default=['json', 'md'], help='BOM export formats (only when --output is specified)')
 @click.option('--no-review', is_flag=True, help='Skip interactive review and generate manifest directly')
 @click.pass_context
-def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
+def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tuple, no_review: bool):
     """Generate OKH manifest from repository URL"""
     cli_ctx = ctx.obj
     
@@ -439,7 +439,10 @@ def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
         project_data = await generator.extract_project(url)
         
         # Generate manifest from project data
-        engine = GenerationEngine()
+        from ..core.generation.models import LayerConfig
+        config = LayerConfig()
+        config.use_bom_normalization = True  # Enable BOM normalization
+        engine = GenerationEngine(config=config)
         echo_info("⚙️  Generating manifest fields...")
         
         result = await engine.generate_manifest_async(project_data)
@@ -449,45 +452,70 @@ def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
             review_interface = ReviewInterface(result)
             result = await review_interface.review()
         
-        # Return appropriate format based on CLI option
-        if format == 'okh':
-            return result.to_okh_manifest()
-        elif format == 'api':
-            return {
-                "success": True,
-                "message": "Manifest generated successfully",
-                "manifest": result.to_dict(),
-                "quality_report": {
-                    "overall_quality": result.quality_report.overall_quality,
-                    "required_fields_complete": result.quality_report.required_fields_complete,
-                    "missing_required_fields": result.quality_report.missing_required_fields,
-                    "recommendations": result.quality_report.recommendations
-                }
-            }
-        else:
-            return result.to_dict()
+        # Return the ManifestGeneration object so we can access full_bom
+        return result
     
     try:
         # For OKH format, always use direct generation to get proper manifest format
+        # Store the raw result for BOM export
+        raw_result = asyncio.run(fallback_generate())
+        
+        # Convert to appropriate format
         if format == 'okh':
-            result = asyncio.run(fallback_generate())
+            result = raw_result.to_okh_manifest() if hasattr(raw_result, 'to_okh_manifest') else raw_result
+        elif format == 'api':
+            result = {
+                "success": True,
+                "message": "Manifest generated successfully",
+                "manifest": raw_result.to_dict(),
+                "quality_report": {
+                    "overall_quality": raw_result.quality_report.overall_quality,
+                    "required_fields_complete": raw_result.quality_report.required_fields_complete,
+                    "missing_required_fields": raw_result.quality_report.missing_required_fields,
+                    "recommendations": raw_result.quality_report.recommendations
+                }
+            }
         else:
-            command = SmartCommand(cli_ctx)
-            result = asyncio.run(command.execute_with_fallback(http_generate, fallback_generate))
+            result = raw_result.to_dict()
         
         # Handle output
         if output:
             output_path = Path(output)
+            
+            # Create output directory if it doesn't exist
+            output_path.mkdir(parents=True, exist_ok=True)
+            
+            # Export manifest
+            manifest_path = output_path / "manifest.okh.json"
             if format == 'yaml':
                 import yaml
-                with open(output_path, 'w') as f:
+                with open(manifest_path, 'w') as f:
                     yaml.dump(result, f, default_flow_style=False)
             else:
-                with open(output_path, 'w') as f:
+                with open(manifest_path, 'w') as f:
                     json.dump(result, f, indent=2)
-            echo_success(f"✅ Manifest saved to: {output_path}")
+            
+            # Export BOM if available and formats specified
+            if bom_formats and raw_result and hasattr(raw_result, 'full_bom') and raw_result.full_bom:
+                try:
+                    from ..core.generation.built_directory import BuiltDirectoryExporter
+                    
+                    # Use the full BOM object from the raw result
+                    bom = raw_result.full_bom
+                    
+                    # Export BOM in specified formats
+                    exporter = BuiltDirectoryExporter(output_path)
+                    asyncio.run(exporter._export_bom_formats(bom))
+                    
+                    echo_success(f"✅ Manifest and BOM exported to: {output_path}")
+                    echo_info(f"📁 BOM formats: {', '.join(bom_formats)}")
+                except Exception as e:
+                    echo_warning(f"⚠️  BOM export failed: {e}")
+                    echo_success(f"✅ Manifest saved to: {manifest_path}")
+            else:
+                echo_success(f"✅ Manifest saved to: {manifest_path}")
         else:
-            if cli_ctx.output_format == 'json' or format in ['json', 'api']:
+            if (cli_ctx and cli_ctx.output_format == 'json') or format in ['json', 'api']:
                 click.echo(format_json_output(result))
             else:
                 # Show summary for OKH format
@@ -517,6 +545,6 @@ def generate_from_url(ctx, url: str, output: str, format: str, no_review: bool):
     
     except Exception as e:
         echo_error(f"❌ Generation failed: {str(e)}")
-        if cli_ctx.verbose:
+        if cli_ctx and cli_ctx.verbose:
             import traceback
             click.echo(traceback.format_exc())

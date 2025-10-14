@@ -38,6 +38,7 @@ class GenerationLayer(Enum):
     HEURISTIC = "heuristic"  # Rule-based pattern recognition
     NLP = "nlp"           # Natural language processing
     LLM = "llm"           # Large language model
+    BOM_NORMALIZATION = "bom_normalization"  # BOM normalization and structuring
     USER_EDIT = "user_edit"  # User manual editing
 
 
@@ -117,6 +118,7 @@ class ManifestGeneration:
     confidence_scores: Dict[str, float]
     quality_report: QualityReport
     missing_fields: List[str]
+    full_bom: Optional[Any] = None  # Store full BillOfMaterials object for export
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format"""
@@ -187,7 +189,7 @@ class ManifestGeneration:
             "manufacturing_processes": fields_dict.get("manufacturing_processes", []),
             "materials": fields_dict.get("materials", []),
             "manufacturing_specs": fields_dict.get("manufacturing_specs", {}),
-            "bom": fields_dict.get("bom", ""),
+            "bom": self._get_bom_field(fields_dict),
             "standards_used": fields_dict.get("standards_used", []),
             "tsdc": fields_dict.get("tsdc", []),
             "parts": fields_dict.get("parts", []),
@@ -210,6 +212,134 @@ class ManifestGeneration:
                 manifest[field] = fields_dict[field]
         
         return manifest
+    
+    def _get_bom_field(self, fields_dict: Dict[str, Any]) -> Any:
+        """
+        Get the BOM field, creating a compressed summary for manifest inclusion.
+        
+        Args:
+            fields_dict: Dictionary of generated fields
+            
+        Returns:
+            Compressed BOM summary dict if available, otherwise URL string or empty string
+        """
+        # Check if we have a structured BOM from BOM normalization
+        if "bom" in fields_dict:
+            bom_value = fields_dict["bom"]
+            # If it's a structured BOM (dict), create a compressed summary
+            if isinstance(bom_value, dict):
+                return self._create_compressed_bom_summary(bom_value)
+            # If it's a string (URL), return it
+            elif isinstance(bom_value, str):
+                return bom_value
+        
+        # Fallback to empty string if no BOM field
+        return ""
+    
+    def _create_compressed_bom_summary(self, full_bom: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Create a compressed BOM summary for manifest inclusion.
+        
+        Args:
+            full_bom: Full BOM dictionary with all components
+            
+        Returns:
+            Compressed BOM summary with statistics and external file reference
+        """
+        try:
+            components = full_bom.get("components", [])
+            
+            # Calculate summary statistics
+            total_components = len(components)
+            total_quantity = sum(comp.get("quantity", 0) for comp in components)
+            
+            # Group components by category (based on name patterns)
+            categories = self._categorize_components(components)
+            
+            # Calculate confidence statistics
+            confidences = [comp.get("metadata", {}).get("confidence", 0) for comp in components]
+            avg_confidence = round(sum(confidences) / len(confidences), 2) if confidences else 0
+            
+            # Create compressed summary
+            compressed_bom = {
+                "id": full_bom.get("id"),
+                "name": full_bom.get("name"),
+                "summary": {
+                    "total_components": total_components,
+                    "total_quantity": total_quantity,
+                    "categories": categories,
+                    "average_confidence": avg_confidence
+                },
+                "external_file": "bom/bom.json",  # Reference to external detailed BOM
+                "metadata": {
+                    "generated_at": full_bom.get("metadata", {}).get("generated_at"),
+                    "generation_method": full_bom.get("metadata", {}).get("generation_method"),
+                    "source_count": full_bom.get("metadata", {}).get("source_count")
+                }
+            }
+            
+            return compressed_bom
+        except Exception as e:
+            # Fallback to simple summary if compression fails
+            print(f"Warning: BOM compression failed: {e}")
+            return {
+                "id": full_bom.get("id", "unknown"),
+                "name": full_bom.get("name", "Project BOM"),
+                "summary": {
+                    "total_components": 0,
+                    "total_quantity": 0,
+                    "categories": {},
+                    "average_confidence": 0
+                },
+                "external_file": "bom/bom.json",
+                "metadata": {
+                    "generated_at": full_bom.get("metadata", {}).get("generated_at"),
+                    "generation_method": "fallback",
+                    "source_count": 0
+                }
+            }
+    
+    def _categorize_components(self, components: List[Dict[str, Any]]) -> Dict[str, int]:
+        """
+        Categorize components by type and count them.
+        
+        Args:
+            components: List of component dictionaries
+            
+        Returns:
+            Dictionary with category counts
+        """
+        categories = {}
+        
+        try:
+            for comp in components:
+                if not isinstance(comp, dict):
+                    continue
+                    
+                name = comp.get("name", "").lower()
+                
+                # Categorize based on name patterns
+                if any(keyword in name for keyword in ["screw", "bolt", "nut", "washer"]):
+                    category = "fasteners"
+                elif any(keyword in name for keyword in ["resistor", "capacitor", "transistor", "ic", "chip"]):
+                    category = "electronics"
+                elif any(keyword in name for keyword in ["motor", "actuator", "servo"]):
+                    category = "mechanical"
+                elif any(keyword in name for keyword in ["cable", "wire", "connector"]):
+                    category = "electrical"
+                elif any(keyword in name for keyword in ["sensor", "switch", "button"]):
+                    category = "sensors"
+                elif any(keyword in name for keyword in ["bearing", "gear", "pulley"]):
+                    category = "mechanical_parts"
+                else:
+                    category = "other"
+                
+                categories[category] = categories.get(category, 0) + 1
+        except Exception as e:
+            print(f"Warning: Component categorization failed: {e}")
+            categories = {"other": len(components) if components else 0}
+        
+        return categories
 
 
 @dataclass
@@ -219,6 +349,7 @@ class LayerConfig:
     use_heuristic: bool = True
     use_nlp: bool = True
     use_llm: bool = False
+    use_bom_normalization: bool = False  # BOM normalization and structuring
     min_confidence: float = 0.7
     progressive_enhancement: bool = True
     save_reference: bool = False

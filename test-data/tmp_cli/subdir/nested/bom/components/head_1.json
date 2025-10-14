@@ -1,0 +1,13 @@
+{
+  "id": "head_1",
+  "name": "head",
+  "quantity": 1.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_materials",
+    "file_path": "README.md",
+    "confidence": 0.9,
+    "file_reference": "head.stl"
+  }
+}

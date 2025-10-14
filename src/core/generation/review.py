@@ -71,7 +71,7 @@ class ReviewInterface:
             except Exception as e:
                 print(f"❌ Error: {e}")
         
-        return None
+        return self.manifest_generation
     
     def edit_field(self, field_name: str, new_value: str) -> None:
         """

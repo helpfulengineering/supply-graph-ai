@@ -1,0 +1,234 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "09f32497-4870-5edc-90ec-0938fb4247aa",
+  "title": "openflexure_microscope",
+  "repo": "https://github.com/rwb27/openflexure_microscope",
+  "version": "1.0.0",
+  "license": "NOASSERTION",
+  "description": "This repository has now moved to GitLab.com/openflexure/openflexure-microscope",
+  "function": "OpenFlexure Microscope",
+  "intended_use": "Windows users, are available",
+  "keywords": [],
+  "contact": {},
+  "organization": {
+    "name": "rwb27"
+  },
+  "development_stage": "development",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "README.md",
+      "path": "README.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "detected_by": "file_analysis"
+      }
+    },
+    {
+      "title": "0_bill_of_materials.md",
+      "path": "docs/0_bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "detected_by": "file_analysis"
+      }
+    },
+    {
+      "title": "COMPILE.md",
+      "path": "COMPILE.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "detected_by": "file_analysis"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [],
+  "manufacturing_processes": [
+    "3D Printing",
+    "Assembly"
+  ],
+  "materials": "to print and how to build it.\n\nIf you've built one, let us know - add yourself to the [wiki page of builds](https://github.com/rwb27/openflexure_microscope/wiki/Assembly-Logs) or submit a [build repor",
+  "manufacturing_specs": {},
+  "bom": {
+    "id": "b47523da-a651-4c37-bcd3-9c72096701fc",
+    "name": "openflexure_microscope BOM",
+    "components": [
+      {
+        "id": "m3x25mm_hexagon_head_screws_1",
+        "name": "M3x25mm hexagon head screws",
+        "quantity": 3.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m3x25mm_hexagonhead_screw.md"
+        }
+      },
+      {
+        "id": "brass_nut_2",
+        "name": "brass nut",
+        "quantity": 3.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m3_brass_nut.md"
+        }
+      },
+      {
+        "id": "steel_nut_3",
+        "name": "steel nut",
+        "quantity": 3.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m3_steel_nut.md"
+        }
+      },
+      {
+        "id": "stainless_steel_washer_4",
+        "name": "stainless steel washer",
+        "quantity": 3.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m3_washer.md"
+        }
+      },
+      {
+        "id": "m3x8mm_cap_head_screw_5",
+        "name": "M3x8mm cap head screw",
+        "quantity": 14.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m3x8mm_caphead_screw.md"
+        }
+      },
+      {
+        "id": "m2x6mm_cap_head_screws_6",
+        "name": "M2x6mm cap head screws",
+        "quantity": 4.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m2x6mm_caphead_screw.md"
+        }
+      },
+      {
+        "id": "m4x6mm_button_head_screws_7",
+        "name": "M4x6mm button head screws",
+        "quantity": 6.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/m4x6mm_buttonhead_screw.md"
+        }
+      },
+      {
+        "id": "viton_o_ring__30x2mm_8",
+        "name": "Viton O-ring, 30x2mm",
+        "quantity": 3.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/fixings/viton_o_ring_30mm_inner_diameter_2mm_cross_section.md"
+        }
+      },
+      {
+        "id": "ohm_resistor_9",
+        "name": "Ohm resistor",
+        "quantity": 60.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/electronics/60_ohm_resistor.md"
+        }
+      },
+      {
+        "id": "works_too__10",
+        "name": "works too)",
+        "quantity": 1.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9
+        }
+      },
+      {
+        "id": "micro_stepper_motors_11",
+        "name": "micro stepper motors",
+        "quantity": 48.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9,
+          "file_reference": "./parts/electronics/micro_geared_stepper.md"
+        }
+      },
+      {
+        "id": "screws__12",
+        "name": "screws)",
+        "quantity": 2.0,
+        "unit": "pcs",
+        "requirements": {},
+        "metadata": {
+          "source": "bom_file",
+          "file_path": "docs/0_bill_of_materials.md",
+          "confidence": 0.9
+        }
+      }
+    ],
+    "metadata": {
+      "generated_at": "2025-10-14T15:08:00.992124Z",
+      "source_count": 12,
+      "final_count": 12,
+      "generation_method": "bom_normalization"
+    }
+  },
+  "standards_used": [],
+  "tsdc": [],
+  "parts": [],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {
+    "generated_at": "2025-10-14T15:08:00.992217Z",
+    "generation_confidence": 0.74,
+    "missing_required_fields": [
+      "licensor"
+    ],
+    "generation_method": "automated_extraction"
+  },
+  "documentation_language": "en"
+}
