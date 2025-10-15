@@ -1,5 +1,0 @@
-ID,Name,Quantity,Unit,Source,Confidence,File_Reference
-head_1,head,1.0,pcs,readme_materials,0.90,head.stl
-tube_2,tube,2.0,pcs,readme_materials,0.90,tube.stl
-m3_screw_5,M3 screw,3.0,pcs,bom_file,0.90,
-plate_6,Plate,1.0,pcs,bom_file,0.90,

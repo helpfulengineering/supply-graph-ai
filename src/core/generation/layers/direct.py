@@ -112,6 +112,26 @@ class DirectMatcher(BaseGenerationLayer):
                 raw_source="metadata.license"
             )
         
+        # Version from metadata
+        version_value = self._extract_version_from_metadata(metadata)
+        if version_value:
+            fields["version"] = FieldGeneration(
+                value=version_value,
+                confidence=0.9,
+                source_layer=GenerationLayer.DIRECT,
+                generation_method="direct_mapping",
+                raw_source="metadata.version"
+            )
+        else:
+            # Fallback version
+            fields["version"] = FieldGeneration(
+                value="1.0.0",
+                confidence=0.1,
+                source_layer=GenerationLayer.DIRECT,
+                generation_method="fallback",
+                raw_source="no_version_found"
+            )
+        
         return fields
     
     def _extract_file_fields(self, project_data: ProjectData) -> Dict[str, FieldGeneration]:
@@ -139,6 +159,15 @@ class DirectMatcher(BaseGenerationLayer):
                     source_layer=GenerationLayer.DIRECT,
                     generation_method="direct_mapping",
                     raw_source="LICENSE"
+                )
+            else:
+                # Fallback when no license found
+                fields["license"] = FieldGeneration(
+                    value="NOASSERTION",
+                    confidence=0.1,
+                    source_layer=GenerationLayer.DIRECT,
+                    generation_method="fallback",
+                    raw_source="no_license_found"
                 )
         
         return fields
@@ -173,6 +202,63 @@ class DirectMatcher(BaseGenerationLayer):
         
         return None
     
+    def _extract_version_from_metadata(self, metadata: Dict[str, Any]) -> Optional[str]:
+        """Extract version information from metadata"""
+        # Try different version fields
+        version_fields = ["tag_name", "latest_release", "version", "release_tag"]
+        
+        for field in version_fields:
+            version_value = metadata.get(field)
+            if version_value:
+                # Clean up version string
+                cleaned_version = self._clean_version_string(version_value)
+                if cleaned_version:
+                    return cleaned_version
+        
+        # Try to extract from releases array
+        releases = metadata.get("releases", [])
+        if releases and isinstance(releases, list):
+            # Find the latest stable release (prefer non-prerelease)
+            stable_releases = []
+            prerelease_releases = []
+            
+            for release in releases:
+                if isinstance(release, dict):
+                    tag_name = release.get("tag_name")
+                    if tag_name:
+                        cleaned_version = self._clean_version_string(tag_name)
+                        if cleaned_version:
+                            if release.get("prerelease", False):
+                                prerelease_releases.append(cleaned_version)
+                            else:
+                                stable_releases.append(cleaned_version)
+            
+            # Return the latest stable release, or fall back to latest prerelease
+            if stable_releases:
+                return stable_releases[0]  # First is latest
+            elif prerelease_releases:
+                return prerelease_releases[0]  # Fall back to prerelease
+        
+        return None
+    
+    def _clean_version_string(self, version: str) -> Optional[str]:
+        """Clean and normalize version string"""
+        if not version:
+            return None
+        
+        # Remove common prefixes
+        version = version.strip()
+        if version.startswith("v"):
+            version = version[1:]
+        elif version.startswith("release-"):
+            version = version[8:]
+        
+        # Basic validation - should contain at least one dot or be a simple number
+        if "." in version or version.isdigit():
+            return version
+        
+        return None
+    
     def _find_readme_content(self, files) -> Optional[str]:
         """Find README content from project files"""
         readme_files = ["README.md", "README.rst", "README.txt", "README"]
@@ -185,30 +271,54 @@ class DirectMatcher(BaseGenerationLayer):
     
     def _extract_license_from_files(self, files) -> Optional[str]:
         """Extract license information from LICENSE files"""
-        license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md", "COPYING"]
+        license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md", "COPYING", "License"]
         
+        # Priority order: License (capital L) > LICENSE > others
+        license_priority = {"License": 1, "LICENSE": 2, "LICENSE.txt": 3, "LICENSE.md": 4, "COPYING": 5}
+        
+        # Find all license files and sort by priority
+        found_license_files = []
         for file_info in files:
             if file_info.path in license_files:
-                content = file_info.content.upper()
-                
-                # Simple license detection
-                if "MIT" in content:
-                    return "MIT"
-                elif "APACHE" in content and "2.0" in content:
-                    return "Apache-2.0"
-                elif "GPL" in content and "3.0" in content:
-                    return "GPL-3.0"
-                elif "GPL" in content and "2.0" in content:
-                    return "GPL-2.0"
-                elif "BSD" in content and "3" in content:
-                    return "BSD-3-Clause"
-                elif "BSD" in content and "2" in content:
-                    return "BSD-2-Clause"
+                priority = license_priority.get(file_info.path, 999)
+                found_license_files.append((priority, file_info))
+        
+        # Sort by priority (lower number = higher priority)
+        found_license_files.sort(key=lambda x: x[0])
+        
+        # Process files in priority order
+        for priority, file_info in found_license_files:
+            content = file_info.content.upper()
+            
+            # CERN Open Hardware License detection (highest priority for hardware projects)
+            if "CERN" in content and "OPEN HARDWARE" in content:
+                if "V1.2" in content:
+                    return "CERN-OHL-S-2.0"
+                elif "V1.1" in content:
+                    return "CERN-OHL-S-1.1"
+                elif "V1.0" in content:
+                    return "CERN-OHL-S-1.0"
                 else:
-                    # Return the first line as license name
-                    lines = file_info.content.split('\n')
-                    if lines:
-                        return lines[0].strip()
+                    return "CERN-OHL-S-2.0"  # Default to most common version
+            
+            # Other license detection
+            elif "MIT" in content:
+                return "MIT"
+            elif "APACHE" in content and "2.0" in content:
+                return "Apache-2.0"
+            elif "GPL" in content and "3.0" in content:
+                return "GPL-3.0"
+            elif "GPL" in content and "2.0" in content:
+                return "GPL-2.0"
+            elif "BSD" in content and "3" in content:
+                return "BSD-3-Clause"
+            elif "BSD" in content and "2" in content:
+                return "BSD-2-Clause"
+            else:
+                # Return the first line as license name
+                lines = file_info.content.split('\n')
+                if lines:
+                    return lines[0].strip()
         
         return None
     
