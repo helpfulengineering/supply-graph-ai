@@ -14,6 +14,7 @@ from .models import (
 )
 from .layers.direct import DirectMatcher
 from .layers.heuristic import HeuristicMatcher
+from .layers.nlp import NLPMatcher
 from .quality import QualityAssessor
 
 
@@ -66,8 +67,8 @@ class GenerationEngine:
             self._matchers[GenerationLayer.HEURISTIC] = HeuristicMatcher()
         
         # Future layers will be added here
-        # if self.config.use_nlp:
-        #     self._matchers[GenerationLayer.NLP] = NLPMatcher()
+        if self.config.use_nlp:
+            self._matchers[GenerationLayer.NLP] = NLPMatcher()
         # if self.config.use_llm:
         #     self._matchers[GenerationLayer.LLM] = LLMMatcher()
     

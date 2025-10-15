@@ -428,12 +428,13 @@ async def extract_from_url(request: ExtractFromURLRequest):
 - ✅ End-to-end testing (11 comprehensive tests passing)
 
 ### Phase 2 Success Criteria
-- [ ] 80%+ field extraction accuracy for common GitHub projects
-- [ ] Heuristic rules for README parsing (70%+ accuracy)
-- [ ] NLP-based content analysis (60%+ accuracy)
-- [ ] Confidence scoring system (functional)
-- [ ] Proper OKH manifest format output (not API wrapper)
-- [ ] Enhanced field extraction (materials, processes, documentation)
+- [x] **Heuristic Matching Layer**: README parsing, file structure analysis, manufacturing process detection
+- [x] **BOM Normalization System**: Structured BOM extraction, processing, and export
+- [x] **Built Directory Export**: Multiple BOM formats (JSON, Markdown, CSV, components)
+- [x] **Manifest Size Optimization**: Compressed BOM summary with external file references (69% size reduction)
+- [ ] **NLP-based content analysis** (60%+ accuracy)
+- [ ] **Enhanced field extraction** (materials, processes, documentation)
+- [ ] **Progressive enhancement logic** (multi-layer generation with confidence thresholds)
 
 ### Phase 3 Success Criteria
 - [ ] 90%+ field extraction accuracy
@@ -525,12 +526,72 @@ The system will significantly lower the barrier to OKH adoption by automating th
 - ✅ **Proper OKH Manifest Format**: CLI outputs standard OKH manifest structure
 
 ### Phase 2 Next Steps
-1. **Implement Heuristic Matching Layer**: README parsing, file structure analysis
-2. **Implement NLP Matching Layer**: Content analysis using spaCy
-3. **Enhanced Field Extraction**: Materials, processes, documentation, tool lists
-4. **Progressive Enhancement Logic**: Multi-layer generation with confidence thresholds
-5. **Advanced Quality Assessment**: Field-specific confidence scoring
-6. **Enhanced User Review**: Confidence indicators and field-specific editing
+1. ✅ **Implement Heuristic Matching Layer**: README parsing, file structure analysis
+2. ✅ **BOM Normalization System**: Structured BOM extraction and export
+3. **Implement NLP Matching Layer**: Content analysis using spaCy
+4. **Enhanced Field Extraction**: Materials, processes, documentation, tool lists
+5. **Progressive Enhancement Logic**: Multi-layer generation with confidence thresholds
+6. **Advanced Quality Assessment**: Field-specific confidence scoring
+7. **Enhanced User Review**: Confidence indicators and field-specific editing
+
+## NLP Matching Layer Implementation Plan
+
+### Overview
+The NLP Matching Layer will use spaCy for semantic understanding of project content, focusing on extracting structured information from unstructured text in README files, documentation, and other project content.
+
+### Target Fields for NLP Extraction
+1. **Function & Intended Use**: Semantic understanding of project purpose
+2. **Materials**: Named Entity Recognition for material types and specifications
+3. **Manufacturing Processes**: Text classification for process identification
+4. **Tool Requirements**: Extraction of required tools and equipment
+5. **Assembly Instructions**: Structured parsing of build steps
+6. **Technical Specifications**: Parameter extraction from documentation
+
+### Implementation Strategy
+
+#### 1. spaCy Integration
+```python
+# Add to requirements.txt
+spacy>=3.7.0
+```
+
+#### 2. NLP Processing Pipeline
+```python
+class NLPMatcher(BaseGenerationLayer):
+    def __init__(self):
+        self.nlp = spacy.load("en_core_web_sm")
+        self.material_patterns = self._load_material_patterns()
+        self.process_patterns = self._load_process_patterns()
+        self.tool_patterns = self._load_tool_patterns()
+    
+    async def process(self, project_data: ProjectData) -> LayerResult:
+        # Process README and documentation content
+        # Extract entities and classify content
+        # Generate field extractions with confidence scores
+```
+
+#### 3. Named Entity Recognition (NER)
+- **Materials**: PLA, ABS, metal, wood, electronics components
+- **Processes**: 3D printing, CNC machining, soldering, assembly
+- **Tools**: 3D printer, soldering iron, multimeter, drill
+- **Measurements**: dimensions, tolerances, specifications
+
+#### 4. Text Classification
+- **Content Type**: Assembly instructions, specifications, troubleshooting
+- **Process Type**: Manufacturing, assembly, testing, calibration
+- **Complexity Level**: Beginner, intermediate, advanced
+
+#### 5. Semantic Understanding
+- **Intent Recognition**: What is this project for?
+- **Requirement Extraction**: What do you need to build this?
+- **Process Flow**: How is this assembled/manufactured?
+
+### Success Metrics
+- **60%+ accuracy** for material extraction from README content
+- **70%+ accuracy** for manufacturing process identification
+- **50%+ accuracy** for tool requirement extraction
+- **Confidence scoring** for all extracted fields
+- **Integration** with existing heuristic and direct matching layers
 
 ### Phase 3 Future Steps
 1. **LLM Integration**: AI-powered field extraction for complex cases
