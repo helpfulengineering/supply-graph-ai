@@ -1,0 +1,13 @@
+{
+  "id": "viton_o_ring__30x2mm_8",
+  "name": "Viton O-ring, 30x2mm",
+  "quantity": 3.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "bom_file",
+    "file_path": "docs/0_bill_of_materials.md",
+    "confidence": 0.9,
+    "file_reference": "./parts/fixings/viton_o_ring_30mm_inner_diameter_2mm_cross_section.md"
+  }
+}

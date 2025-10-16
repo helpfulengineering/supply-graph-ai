@@ -358,33 +358,27 @@ class HeuristicMatcher(BaseGenerationLayer):
                     f"Extracted from URL: {project_data.url}"
                 )
         
-        # Extract materials - look for Bill of Materials section
-        materials_patterns = [
-            r"(?i)bill.of.materials[^=]*\n(.*?)(?=\n\n|\n[A-Z]|\n#|\n\*\*|\Z)",
-            r"(?i)materials[^=]*\n(.*?)(?=\n\n|\n[A-Z]|\n#|\n\*\*|\Z)",
-            r"(?i)parts[^=]*\n(.*?)(?=\n\n|\n[A-Z]|\n#|\n\*\*|\Z)"
-        ]
-        
-        for pattern in materials_patterns:
-            materials_match = re.search(pattern, readme_content, re.DOTALL)
-            if materials_match:
-                materials_text = materials_match.group(1).strip()
-                # Clean up the text - remove markdown separators and empty lines
-                materials_text = re.sub(r'^=+\s*$', '', materials_text, flags=re.MULTILINE)
-                materials_text = re.sub(r'^\s*\n', '', materials_text, flags=re.MULTILINE)
-                
-                if len(materials_text) > 20 and not materials_text.startswith('='):
-                    # Try to parse as structured materials
-                    materials = self._parse_materials_text(materials_text)
-                    if materials:
-                        result.add_field(
-                            "materials",
-                            materials,
-                            0.7,
-                            "readme_materials_extraction",
-                            "Extracted from README materials section"
-                        )
-                        break
+        # Extract materials from BOM components if available
+        materials = self._extract_materials_from_bom(project_data)
+        if materials:
+            result.add_field(
+                "materials",
+                materials,
+                0.8,
+                "bom_materials_extraction",
+                "Extracted from BOM components"
+            )
+        else:
+            # Fallback: Extract materials from README text
+            materials = self._extract_materials_from_readme(readme_content)
+            if materials:
+                result.add_field(
+                    "materials",
+                    materials,
+                    0.6,
+                    "readme_materials_extraction",
+                    "Extracted from README materials section"
+                )
         
         # Extract tool list
         tools_match = re.search(r"(?i)(?:tools|equipment|requirements)[\s:]*([^\n]+)", readme_content)
@@ -680,3 +674,108 @@ class HeuristicMatcher(BaseGenerationLayer):
             return float(cleaned) if cleaned else 1.0
         except ValueError:
             return 1.0
+    
+    def _extract_materials_from_bom(self, project_data: ProjectData) -> List[str]:
+        """Extract materials from BOM components if available"""
+        materials = set()
+        
+        # Look for BOM files in the project data
+        for file_info in project_data.files:
+            if file_info.file_type == "bom" and file_info.content:
+                # Parse BOM content to extract component names
+                component_names = self._extract_component_names_from_bom(file_info.content)
+                for name in component_names:
+                    material = self._classify_component_material(name)
+                    if material:
+                        materials.add(material)
+        
+        return list(materials) if materials else []
+    
+    def _extract_component_names_from_bom(self, bom_content: str) -> List[str]:
+        """Extract component names from BOM content"""
+        component_names = []
+        
+        # Look for markdown table rows or list items
+        lines = bom_content.split('\n')
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            
+            # Check for markdown table rows (| component | quantity |)
+            if '|' in line:
+                parts = [part.strip() for part in line.split('|')]
+                # Skip header rows and separator rows
+                if len(parts) >= 3 and not any(char in parts[1].lower() for char in ['component', 'part', 'item', 'name', '---', '===']):
+                    component_names.append(parts[1])  # Second column is usually component name
+            
+            # Check for list items (- component name)
+            elif line.startswith('-') or line.startswith('*'):
+                component_name = line[1:].strip()
+                if component_name:
+                    component_names.append(component_name)
+        
+        return component_names
+    
+    def _classify_component_material(self, component_name: str) -> Optional[str]:
+        """Classify a component name into a material type"""
+        name_lower = component_name.lower()
+        
+        # Material classification patterns - ordered by specificity (most specific first)
+        material_patterns = [
+            # Specific materials first (to avoid false matches)
+            ('brass', ['brass']),
+            ('copper', ['copper', 'cu ']),
+            ('aluminum', ['aluminum', 'aluminium', 'al ', 'al-']),
+            ('steel', ['stainless steel', 'steel']),  # stainless steel before steel
+            ('PLA', ['pla', 'polylactic acid']),
+            ('ABS', ['abs', 'acrylonitrile butadiene styrene']),
+            ('PETG', ['petg', 'pet-g']),
+            ('TPU', ['tpu', 'thermoplastic polyurethane']),
+            ('wood', ['wood', 'plywood', 'mdf', 'oak', 'pine']),
+            ('acrylic', ['acrylic', 'plexiglass', 'pmma']),
+            # Component types
+            ('electronics', ['arduino', 'raspberry pi', 'sensor', 'motor', 'servo', 'led', 'resistor', 'capacitor', 'transistor', 'ic', 'microcontroller']),
+            ('fasteners', ['screw', 'bolt', 'nut', 'washer', 'rivet', 'pin']),
+            ('cables', ['cable', 'wire', 'connector', 'jack', 'plug']),
+            ('bearings', ['bearing', 'ball bearing', 'roller bearing']),
+            ('springs', ['spring', 'coil spring', 'tension spring'])
+        ]
+        
+        # Check each material pattern (first match wins)
+        for material, patterns in material_patterns:
+            for pattern in patterns:
+                if pattern in name_lower:
+                    return material
+        
+        return None
+    
+    def _extract_materials_from_readme(self, readme_content: str) -> List[str]:
+        """Extract materials from README text as fallback"""
+        materials = set()
+        
+        # Look for materials sections in README
+        materials_patterns = [
+            r"(?i)bill.of.materials[^=]*\n(.*?)(?=\n\n|\n[A-Z]|\n#|\n\*\*|\Z)",
+            r"(?i)materials[^=]*\n(.*?)(?=\n\n|\n[A-Z]|\n#|\n\*\*|\Z)",
+            r"(?i)parts[^=]*\n(.*?)(?=\n\n|\n[A-Z]|\n#|\n\*\*|\Z)"
+        ]
+        
+        for pattern in materials_patterns:
+            materials_match = re.search(pattern, readme_content, re.DOTALL)
+            if materials_match:
+                materials_text = materials_match.group(1).strip()
+                # Clean up the text
+                materials_text = re.sub(r'^=+\s*$', '', materials_text, flags=re.MULTILINE)
+                materials_text = re.sub(r'^\s*\n', '', materials_text, flags=re.MULTILINE)
+                
+                if len(materials_text) > 20 and not materials_text.startswith('='):
+                    # Extract component names from the text
+                    component_names = self._extract_component_names_from_bom(materials_text)
+                    for name in component_names:
+                        material = self._classify_component_material(name)
+                        if material:
+                            materials.add(material)
+                    break
+        
+        return list(materials) if materials else []

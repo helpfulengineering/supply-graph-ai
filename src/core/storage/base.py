@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, AsyncIterator
 from datetime import datetime
-from uuid import UUID
 
 class StorageConfig:
     """Configuration for storage provider"""

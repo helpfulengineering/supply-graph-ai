@@ -119,6 +119,7 @@ class ManifestGeneration:
     quality_report: QualityReport
     missing_fields: List[str]
     full_bom: Optional[Any] = None  # Store full BillOfMaterials object for export
+    unified_bom_mode: bool = False  # Whether to include full BOM in manifest
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format"""
@@ -195,8 +196,9 @@ class ManifestGeneration:
             "parts": fields_dict.get("parts", []),
             "sub_parts": fields_dict.get("sub_parts", []),
             "software": fields_dict.get("software", []),
+            "files": self._get_files_field(),
             "metadata": {
-                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "generated_at": datetime.now().isoformat() + "Z",
                 "generation_confidence": round(self.quality_report.overall_quality, 2),
                 "missing_required_fields": self.missing_fields,
                 "generation_method": "automated_extraction"
@@ -215,20 +217,26 @@ class ManifestGeneration:
     
     def _get_bom_field(self, fields_dict: Dict[str, Any]) -> Any:
         """
-        Get the BOM field, creating a compressed summary for manifest inclusion.
+        Get the BOM field, creating either a compressed summary or full BOM for manifest inclusion.
         
         Args:
             fields_dict: Dictionary of generated fields
             
         Returns:
-            Compressed BOM summary dict if available, otherwise URL string or empty string
+            Full BOM dict if unified_bom_mode is True, compressed summary if False, 
+            otherwise URL string or empty string
         """
         # Check if we have a structured BOM from BOM normalization
         if "bom" in fields_dict:
             bom_value = fields_dict["bom"]
-            # If it's a structured BOM (dict), create a compressed summary
+            # If it's a structured BOM (dict)
             if isinstance(bom_value, dict):
-                return self._create_compressed_bom_summary(bom_value)
+                if self.unified_bom_mode:
+                    # Return full BOM in unified mode
+                    return bom_value
+                else:
+                    # Return compressed summary in default mode
+                    return self._create_compressed_bom_summary(bom_value)
             # If it's a string (URL), return it
             elif isinstance(bom_value, str):
                 return bom_value
@@ -298,6 +306,27 @@ class ManifestGeneration:
                     "source_count": 0
                 }
             }
+    
+    def _get_files_field(self) -> List[Dict[str, Any]]:
+        """
+        Get the files field with comprehensive file inventory.
+        
+        Returns:
+            List of file information dictionaries
+        """
+        files = []
+        
+        # Convert FileInfo objects to dictionaries
+        for file_info in self.project_data.files:
+            file_dict = {
+                "path": file_info.path,
+                "size": file_info.size,
+                "type": file_info.file_type,
+                "content_length": len(file_info.content) if file_info.content else 0
+            }
+            files.append(file_dict)
+        
+        return files
     
     def _categorize_components(self, components: List[Dict[str, Any]]) -> Dict[str, int]:
         """

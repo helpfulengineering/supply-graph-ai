@@ -1,9 +1,10 @@
+import json
 from typing import Dict, List, Optional, Any, Tuple
 from uuid import UUID
-import logging
-import json
 
-from src.core.services.storage_service import StorageService
+from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
+from ..validation.context import ValidationContext
+from .storage_service import StorageService
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger
 
@@ -143,11 +144,7 @@ class OKWService:
         await self.ensure_initialized()
         logger.info(f"Validating OKW facility content")
         
-        try:
-            # Import the new validation framework
-            from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
-            from ..validation.context import ValidationContext
-            
+        try:            
             # Create validator
             validator = ManufacturingOKWValidator()
             

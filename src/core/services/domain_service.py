@@ -1,8 +1,9 @@
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, List
 from dataclasses import dataclass
 import logging
-from ..registry.domain_registry import DomainRegistry, DomainMetadata, DomainStatus
-from ..models.base.base_types import NormalizedRequirements, NormalizedCapabilities
+from ..registry.domain_registry import DomainRegistry
+from ..api.models.base import ProcessNode, Workflow, SupplyTreeResponse
+
 
 logger = logging.getLogger(__name__)
 

@@ -7,13 +7,14 @@ This module provides commands for building, managing, and deploying OKH packages
 import asyncio
 import click
 import json
+import yaml
 from pathlib import Path
 from typing import Optional
-import httpx
+from uuid import UUID
 
 from .base import (
-    CLIContext, SmartCommand, with_async_context,
-    echo_success, echo_error, echo_info, format_json_output
+    CLIContext, SmartCommand, echo_success, 
+    echo_error, echo_info, format_json_output
 )
 from ..core.models.okh import OKHManifest
 from ..core.models.package import BuildOptions
@@ -54,7 +55,6 @@ def build(ctx, manifest_file: str, output_dir: Optional[str], **kwargs):
         manifest_path = Path(manifest_file)
         with open(manifest_path, 'r') as f:
             if manifest_path.suffix.lower() == '.yaml' or manifest_path.suffix.lower() == '.yml':
-                import yaml
                 manifest_data = yaml.safe_load(f)
             else:
                 manifest_data = json.load(f)
@@ -162,7 +162,6 @@ def build_from_storage(ctx, manifest_id: str, output_dir: Optional[str], **kwarg
     
     async def fallback_build_from_storage():
         """Build from storage using direct service calls"""
-        from uuid import UUID
         package_service = await PackageService.get_instance()
         metadata = await package_service.build_package_from_storage(UUID(manifest_id), options)
         return {

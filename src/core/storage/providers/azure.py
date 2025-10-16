@@ -1,10 +1,7 @@
 import logging
 from typing import Optional, Dict, Any, List, AsyncIterator
-from datetime import datetime, timedelta
-import asyncio
-from azure.storage.blob.aio import BlobServiceClient, ContainerClient, BlobClient
-from azure.core.exceptions import ResourceNotFoundError, ServiceRequestError
-from azure.core.pipeline.policies import RetryPolicy
+from azure.storage.blob.aio import BlobServiceClient, ContainerClient
+from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobLeaseClient
 
 from ..base import StorageProvider, StorageConfig, StorageMetadata

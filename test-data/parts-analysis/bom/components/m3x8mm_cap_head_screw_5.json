@@ -1,0 +1,13 @@
+{
+  "id": "m3x8mm_cap_head_screw_5",
+  "name": "M3x8mm cap head screw",
+  "quantity": 14.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "bom_file",
+    "file_path": "docs/0_bill_of_materials.md",
+    "confidence": 0.9,
+    "file_reference": "./parts/fixings/m3x8mm_caphead_screw.md"
+  }
+}

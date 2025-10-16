@@ -1,0 +1,13 @@
+{
+  "id": "m4x6mm_button_head_screws_7",
+  "name": "M4x6mm button head screws",
+  "quantity": 6.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "bom_file",
+    "file_path": "docs/0_bill_of_materials.md",
+    "confidence": 0.9,
+    "file_reference": "./parts/fixings/m4x6mm_buttonhead_screw.md"
+  }
+}

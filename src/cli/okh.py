@@ -11,8 +11,13 @@ import json
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
-from ..core.models.okh import OKHManifest
 
+from ..core.generation.platforms.github import GitHubExtractor
+from ..core.generation.platforms.gitlab import GitLabExtractor
+from ..core.generation.models import LayerConfig
+from ..core.generation.built_directory import BuiltDirectoryExporter
+from ..core.services.okh_service import OKHService
+from ..core.models.okh import OKHManifest
 from .base import (
     SmartCommand, echo_success, echo_error, 
     echo_info, echo_warning, format_json_output
@@ -391,9 +396,11 @@ def upload(ctx, file_path: str, quality_level: str, strict_mode: bool):
 @click.option('--output', '-o', type=click.Path(), help='Output directory for built files (enables BOM export)')
 @click.option('--format', '-f', type=click.Choice(['json', 'yaml', 'okh', 'api']), default='okh', help='Output format: okh (OKH manifest), api (API wrapper), json/yaml (legacy)')
 @click.option('--bom-formats', multiple=True, type=click.Choice(['json', 'md', 'csv', 'components']), default=['json', 'md'], help='BOM export formats (only when --output is specified)')
+@click.option('--unified-bom', is_flag=True, help='Include full BOM in manifest instead of compressed summary (default: compressed summary)')
 @click.option('--no-review', is_flag=True, help='Skip interactive review and generate manifest directly')
+@click.option('--github-token', type=str, help='GitHub personal access token (increases rate limit from 60 to 5,000 requests/hour)')
 @click.pass_context
-def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tuple, no_review: bool):
+def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tuple, unified_bom: bool, no_review: bool, github_token: str):
     """Generate OKH manifest from repository URL"""
     cli_ctx = ctx.obj
     
@@ -421,17 +428,15 @@ def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tupl
         if platform is None:
             raise ValueError(f"Unsupported platform for URL: {url}")
         
-        echo_info(f"📋 Detected platform: {platform.value}")
+        echo_info(f"Detected platform: {platform.value}")
         
         # Generate project data from URL
-        echo_info("📥 Fetching project data...")
+        echo_info("Fetching project data...")
         
         # Get platform-specific generator
         if platform == PlatformType.GITHUB:
-            from ..core.generation.platforms.github import GitHubExtractor
-            generator = GitHubExtractor()
+            generator = GitHubExtractor(github_token=github_token)
         elif platform == PlatformType.GITLAB:
-            from ..core.generation.platforms.gitlab import GitLabExtractor
             generator = GitLabExtractor()
         else:
             raise ValueError(f"Unsupported platform: {platform}")
@@ -439,26 +444,26 @@ def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tupl
         project_data = await generator.extract_project(url)
         
         # Generate manifest from project data
-        from ..core.generation.models import LayerConfig
         config = LayerConfig()
         config.use_bom_normalization = True  # Enable BOM normalization
         engine = GenerationEngine(config=config)
-        echo_info("⚙️  Generating manifest fields...")
+        echo_info("Generating manifest fields...")
         
         result = await engine.generate_manifest_async(project_data)
         
         if not no_review:
-            echo_info("📝 Starting interactive review...")
+            echo_info("Starting interactive review...")
             review_interface = ReviewInterface(result)
             result = await review_interface.review()
-        
-        # Return the ManifestGeneration object so we can access full_bom
         return result
     
     try:
-        # For OKH format, always use direct generation to get proper manifest format
         # Store the raw result for BOM export
         raw_result = asyncio.run(fallback_generate())
+        
+        # Set unified BOM mode if requested
+        if unified_bom and hasattr(raw_result, 'unified_bom_mode'):
+            raw_result.unified_bom_mode = True
         
         # Convert to appropriate format
         if format == 'okh':
@@ -495,11 +500,10 @@ def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tupl
                 with open(manifest_path, 'w') as f:
                     json.dump(result, f, indent=2)
             
-            # Export BOM if available and formats specified
-            if bom_formats and raw_result and hasattr(raw_result, 'full_bom') and raw_result.full_bom:
+            # Export BOM if available, formats specified, and NOT in unified mode
+            if (bom_formats and raw_result and hasattr(raw_result, 'full_bom') and 
+                raw_result.full_bom and not getattr(raw_result, 'unified_bom_mode', False)):
                 try:
-                    from ..core.generation.built_directory import BuiltDirectoryExporter
-                    
                     # Use the full BOM object from the raw result
                     bom = raw_result.full_bom
                     
@@ -513,7 +517,10 @@ def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tupl
                     echo_warning(f"⚠️  BOM export failed: {e}")
                     echo_success(f"✅ Manifest saved to: {manifest_path}")
             else:
-                echo_success(f"✅ Manifest saved to: {manifest_path}")
+                if getattr(raw_result, 'unified_bom_mode', False):
+                    echo_success(f"✅ Unified manifest (with full BOM) saved to: {manifest_path}")
+                else:
+                    echo_success(f"✅ Manifest saved to: {manifest_path}")
         else:
             if (cli_ctx and cli_ctx.output_format == 'json') or format in ['json', 'api']:
                 click.echo(format_json_output(result))

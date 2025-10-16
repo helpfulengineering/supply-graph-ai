@@ -3,6 +3,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 import logging
 
+from ..domains.cooking.extractors import CookingExtractor
+from ..domains.cooking.matchers import CookingMatcher
+from ..domains.cooking.validators import CookingValidator
+from ..domains.manufacturing.okh_extractor import OKHExtractor
+from ..domains.manufacturing.okh_matcher import OKHMatcher
+from ..domains.manufacturing.okh_validator import OKHValidator
+from ..domains.manufacturing.okh_orchestrator import OKHOrchestrator
 from src.core.services.storage_service import StorageService
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
@@ -252,10 +259,6 @@ service_registry = ServiceRegistry()
 # Domain registration helper functions
 def register_cooking_domain():
     """Register the cooking domain"""
-    from ..domains.cooking.extractors import CookingExtractor
-    from ..domains.cooking.matchers import CookingMatcher
-    from ..domains.cooking.validators import CookingValidator
-    
     metadata = DomainMetadata(
         name="cooking",
         display_name="Cooking & Food Preparation",
@@ -279,11 +282,6 @@ def register_cooking_domain():
 
 def register_manufacturing_domain():
     """Register the manufacturing domain"""
-    from ..domains.manufacturing.okh_extractor import OKHExtractor
-    from ..domains.manufacturing.okh_matcher import OKHMatcher
-    from ..domains.manufacturing.okh_validator import OKHValidator
-    from ..domains.manufacturing.okh_orchestrator import OKHOrchestrator
-    
     metadata = DomainMetadata(
         name="manufacturing",
         display_name="Manufacturing & Hardware Production",

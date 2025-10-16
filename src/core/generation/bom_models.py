@@ -7,7 +7,7 @@ from enum import Enum
 import re
 
 # Import Component from the BOM models
-from ..models.bom import Component
+from ..models.bom import Component, BillOfMaterials
 
 
 class BOMSourceType(Enum):
@@ -39,7 +39,7 @@ class BOMSource:
 
 
 class BOMCollector:
-    """Collects BOM data from multiple sources in a project"""
+    """Collects BOM data from multiple sources in a project using NLP-enhanced detection"""
     
     def __init__(self):
         self._bom_file_patterns = [
@@ -49,16 +49,29 @@ class BOMCollector:
             r"(?i)parts(\.csv|\.txt|\.md|\.json|\.yaml|\.yml)?$"
         ]
         
+        # Legacy regex patterns (kept for fallback)
         self._materials_section_patterns = [
             r"(?i)(?:##?\s*)?materials?[:\s]*\n(.*?)(?=\n##|\n\*\*|\Z)",
             r"(?i)(?:##?\s*)?bill\s+of\s+materials?[:\s]*\n(.*?)(?=\n##|\n\*\*|\Z)",
             r"(?i)(?:##?\s*)?parts?[:\s]*\n(.*?)(?=\n##|\n\*\*|\Z)",
             r"(?i)(?:##?\s*)?components?[:\s]*\n(.*?)(?=\n##|\n\*\*|\Z)"
         ]
+        
+        # Initialize NLP for BOM detection
+        self._nlp = None
+        self._bom_keywords = {
+            'materials', 'components', 'parts', 'hardware', 'supplies', 'items',
+            'bill of materials', 'bom', 'shopping list', 'parts list', 'materials list',
+            'required', 'needed', 'purchase', 'buy', 'acquire', 'obtain'
+        }
+        self._quantity_indicators = {
+            'x', 'pcs', 'pieces', 'units', 'each', 'per', 'quantity', 'qty',
+            'count', 'number', 'amount', 'total'
+        }
     
     def collect_bom_data(self, project_data) -> List[BOMSource]:
         """
-        Collect BOM data from all available sources in the project
+        Collect BOM data from all available sources in the project using NLP-enhanced detection
         
         Args:
             project_data: ProjectData object containing files and documentation
@@ -68,14 +81,16 @@ class BOMCollector:
         """
         sources = []
         
-        # 1. Extract from README materials sections
-        sources.extend(self._extract_from_readme(project_data))
+        # 1. NLP-enhanced extraction from README and documentation
+        sources.extend(self._extract_with_nlp(project_data))
         
-        # 2. Extract from dedicated BOM files
+        # 2. Extract from dedicated BOM files (legacy method)
         sources.extend(self._extract_from_bom_files(project_data))
         
-        # 3. Extract from documentation files
-        sources.extend(self._extract_from_documentation(project_data))
+        # 3. Fallback to regex-based extraction if NLP finds nothing
+        if not sources:
+            sources.extend(self._extract_from_readme(project_data))
+            sources.extend(self._extract_from_documentation(project_data))
         
         return sources
     
@@ -258,6 +273,298 @@ class BOMCollector:
             confidence += 0.1
         
         return round(min(confidence, 0.8), 2)  # Cap at 0.8 and round to 2 decimal places
+    
+    def _extract_with_nlp(self, project_data) -> List[BOMSource]:
+        """
+        Extract BOM data using NLP-enhanced detection for flexible BOM location
+        
+        Args:
+            project_data: ProjectData object containing files and documentation
+            
+        Returns:
+            List of BOMSource objects with extracted BOM data
+        """
+        sources = []
+        
+        # Initialize spaCy if not already done
+        if self._nlp is None:
+            try:
+                import spacy
+                self._nlp = spacy.load("en_core_web_sm")
+                # Increase max length for large files
+                self._nlp.max_length = 2000000  # 2MB limit
+            except OSError:
+                # Fallback if spaCy model not available
+                print("Warning: spaCy model not available, falling back to regex patterns")
+                return sources
+        
+        # Analyze all text files for BOM content
+        for file_info in project_data.files:
+            if self._is_text_file(file_info) and file_info.content:
+                try:
+                    # Skip very large files to avoid memory issues
+                    if len(file_info.content) > 1000000:  # 1MB limit
+                        print(f"Warning: Skipping large file {file_info.path} ({len(file_info.content)} chars)")
+                        continue
+                    
+                    bom_sections = self._find_bom_sections_with_nlp(file_info.content, file_info.path)
+                    for section in bom_sections:
+                        source = BOMSource(
+                            source_type=BOMSourceType.README_BOM,
+                            raw_content=section['content'],
+                            file_path=file_info.path,
+                            confidence=section['confidence'],
+                            metadata={
+                                "nlp_detected": True,
+                                "section_title": section.get('title', ''),
+                                "detection_method": "nlp_enhanced"
+                            }
+                        )
+                        sources.append(source)
+                except Exception as e:
+                    print(f"Warning: NLP processing failed for {file_info.path}: {e}")
+                    continue
+        
+        return sources
+    
+    def _is_text_file(self, file_info) -> bool:
+        """Check if file is a text file that might contain BOM data"""
+        text_extensions = {'.md', '.txt', '.rst', '.doc', '.docx', '.pdf', '.html', '.json', '.yaml', '.yml'}
+        image_extensions = {'.svg', '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp', '.ico'}
+        excluded_files = {'license', 'copying', 'authors', 'contributors', 'changelog', 'version'}
+        path_lower = file_info.path.lower()
+        
+        # Exclude image files (including SVG)
+        if any(path_lower.endswith(ext) for ext in image_extensions):
+            return False
+        
+        # Exclude license and other non-BOM files
+        if any(excluded in path_lower for excluded in excluded_files):
+            return False
+        
+        # Check file extension
+        if any(path_lower.endswith(ext) for ext in text_extensions):
+            return True
+        
+        # Check if it's a README or documentation file
+        if any(keyword in path_lower for keyword in ['readme', 'doc', 'manual', 'guide', 'instructions']):
+            return True
+        
+        # Check file type from metadata
+        if hasattr(file_info, 'file_type'):
+            return file_info.file_type in ['markdown', 'text', 'document']
+        
+        return False
+    
+    def _find_bom_sections_with_nlp(self, content: str, file_path: str) -> List[Dict[str, Any]]:
+        """
+        Use NLP to find BOM sections in content
+        
+        Args:
+            content: Text content to analyze
+            file_path: Path of the file being analyzed
+            
+        Returns:
+            List of dictionaries with 'content', 'confidence', and 'title' keys
+        """
+        if not self._nlp:
+            return []
+        
+        sections = []
+        doc = self._nlp(content)
+        
+        # Split content into potential sections (by headers or major breaks)
+        content_sections = self._split_into_sections(content)
+        
+        for section_text in content_sections:
+            if len(section_text.strip()) < 50:  # Skip very short sections
+                continue
+            
+            # Analyze section with NLP
+            confidence = self._analyze_bom_likelihood(section_text)
+            
+            if confidence > 0.4:  # Higher threshold to reduce false positives
+                # Extract section title
+                title = self._extract_section_title(section_text)
+                
+                sections.append({
+                    'content': section_text,
+                    'confidence': confidence,
+                    'title': title
+                })
+        
+        # Merge adjacent sections with similar content
+        sections = self._merge_adjacent_bom_sections(sections)
+        
+        return sections
+    
+    def _split_into_sections(self, content: str) -> List[str]:
+        """Split content into logical sections"""
+        sections = []
+        
+        # Split by markdown headers
+        header_pattern = r'\n(#{1,6}\s+.*?)\n'
+        parts = re.split(header_pattern, content, flags=re.MULTILINE)
+        
+        current_section = ""
+        for i, part in enumerate(parts):
+            if i % 2 == 0:  # Content part
+                current_section += part
+            else:  # Header part
+                if current_section.strip():
+                    sections.append(current_section.strip())
+                current_section = part + "\n"
+        
+        # Add the last section
+        if current_section.strip():
+            sections.append(current_section.strip())
+        
+        # If no headers found, split by double newlines
+        if len(sections) <= 1:
+            sections = [s.strip() for s in content.split('\n\n') if s.strip()]
+        
+        return sections
+    
+    def _analyze_bom_likelihood(self, text: str) -> float:
+        """
+        Analyze text to determine likelihood of being BOM content
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Confidence score between 0.0 and 1.0
+        """
+        if not self._nlp:
+            return 0.0
+        
+        doc = self._nlp(text.lower())
+        confidence = 0.0
+        
+        # Check for BOM-related keywords
+        bom_keyword_count = 0
+        for token in doc:
+            if token.text in self._bom_keywords:
+                bom_keyword_count += 1
+        
+        if bom_keyword_count > 0:
+            confidence += min(bom_keyword_count * 0.1, 0.4)
+        
+        # Penalize legal/license content
+        legal_keywords = ['license', 'copyright', 'warranty', 'liability', 'terms', 'conditions', 'agreement']
+        legal_count = sum(1 for keyword in legal_keywords if keyword in text.lower())
+        if legal_count > 0:
+            confidence -= min(legal_count * 0.2, 0.5)  # Significant penalty for legal content
+        
+        # Check for quantity patterns
+        quantity_patterns = [
+            r'\d+\s*(x|pcs?|pieces?|units?|each|per)\s+',
+            r'\d+\s+\w+',  # number + word
+            r'\*\s*\d+',   # bullet with number
+            r'^\s*\d+\s+', # line starting with number
+        ]
+        
+        quantity_matches = 0
+        for pattern in quantity_patterns:
+            matches = re.findall(pattern, text, re.MULTILINE | re.IGNORECASE)
+            quantity_matches += len(matches)
+        
+        if quantity_matches > 0:
+            confidence += min(quantity_matches * 0.05, 0.3)
+        
+        # Check for list-like structures
+        if re.search(r'^\s*[\*\-\+]\s+', text, re.MULTILINE):  # Bullet points
+            confidence += 0.1
+        if re.search(r'^\s*\d+\.\s+', text, re.MULTILINE):  # Numbered lists
+            confidence += 0.1
+        
+        # Check for material/component indicators
+        material_indicators = ['silicone', 'plastic', 'metal', 'wood', 'fabric', 'rubber', 'glass']
+        for indicator in material_indicators:
+            if indicator in text.lower():
+                confidence += 0.05
+        
+        # Check for size/specification patterns
+        if re.search(r'\d+\s*(mm|cm|m|inch|in|ft|feet)', text, re.IGNORECASE):
+            confidence += 0.1
+        
+        return round(min(confidence, 0.9), 2)
+    
+    def _extract_section_title(self, text: str) -> str:
+        """Extract section title from text"""
+        lines = text.split('\n')
+        for line in lines[:3]:  # Check first 3 lines
+            line = line.strip()
+            if line.startswith('#'):
+                return line.lstrip('#').strip()
+            if line and not line.startswith(('*', '-', '+', '1.', '2.', '3.')):
+                return line[:50]  # First 50 chars as title
+        return "BOM Section"
+    
+    def _merge_adjacent_bom_sections(self, sections: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Merge adjacent sections that are likely part of the same BOM
+        
+        Args:
+            sections: List of BOM section dictionaries
+            
+        Returns:
+            List of merged sections
+        """
+        if len(sections) <= 1:
+            return sections
+        
+        merged = []
+        current_section = sections[0]
+        
+        for next_section in sections[1:]:
+            # Check if sections should be merged
+            if self._should_merge_sections(current_section, next_section):
+                # Merge sections
+                current_section = {
+                    'content': current_section['content'] + '\n\n' + next_section['content'],
+                    'confidence': max(current_section['confidence'], next_section['confidence']),
+                    'title': current_section['title']  # Keep first title
+                }
+            else:
+                # Add current section and start new one
+                merged.append(current_section)
+                current_section = next_section
+        
+        # Add the last section
+        merged.append(current_section)
+        
+        return merged
+    
+    def _should_merge_sections(self, section1: Dict[str, Any], section2: Dict[str, Any]) -> bool:
+        """
+        Determine if two sections should be merged
+        
+        Args:
+            section1: First section
+            section2: Second section
+            
+        Returns:
+            True if sections should be merged
+        """
+        # Merge if both have similar confidence levels
+        confidence_diff = abs(section1['confidence'] - section2['confidence'])
+        if confidence_diff < 0.1:
+            return True
+        
+        # Merge if both contain similar content patterns
+        content1 = section1['content'].lower()
+        content2 = section2['content'].lower()
+        
+        # Check for similar BOM indicators
+        bom_indicators = ['*', 'bullet', 'list', 'item', 'part', 'component']
+        indicators1 = sum(1 for indicator in bom_indicators if indicator in content1)
+        indicators2 = sum(1 for indicator in bom_indicators if indicator in content2)
+        
+        if indicators1 > 0 and indicators2 > 0 and abs(indicators1 - indicators2) <= 1:
+            return True
+        
+        return False
 
 
 class BOMProcessor:

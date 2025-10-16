@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from uuid import UUID
 from datetime import datetime, timedelta
 import networkx as nx
@@ -13,6 +13,7 @@ from ..utils.logging import get_logger
 from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..matching.capability_rules import CapabilityRuleManager, CapabilityMatcher
+from ..models.supply_trees import Workflow, WorkflowNode, ResourceURI, ResourceType
 
 logger = get_logger(__name__)
 
@@ -366,11 +367,6 @@ class MatchingService:
             
             # Set OKH reference
             supply_tree.okh_reference = str(manifest.id)
-            
-            # Create a primary workflow for this manufacturing solution
-            from ..models.supply_trees import Workflow, WorkflowNode, ResourceURI, ResourceType
-            from uuid import uuid4
-            
             primary_workflow = Workflow(
                 name=f"Manufacturing Workflow for {manifest.title}",
                 graph=nx.DiGraph(),

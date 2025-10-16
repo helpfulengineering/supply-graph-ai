@@ -1,0 +1,13 @@
+{
+  "id": "ohm_resistor_9",
+  "name": "Ohm resistor",
+  "quantity": 60.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "bom_file",
+    "file_path": "docs/0_bill_of_materials.md",
+    "confidence": 0.9,
+    "file_reference": "./parts/electronics/60_ohm_resistor.md"
+  }
+}

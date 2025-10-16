@@ -159,9 +159,43 @@ class GenerationEngine:
                     raw_source=f"Extracted from {len(bom.components)} sources"
                 )
                 confidence_scores["bom"] = bom.metadata.get("overall_confidence", 0.8)
+                
+                # Extract materials from BOM components - always override with structured data
+                materials = self._extract_materials_from_bom(bom)
+                if materials:
+                    generated_fields["materials"] = FieldGeneration(
+                        value=materials,
+                        confidence=0.8,
+                        source_layer=GenerationLayer.BOM_NORMALIZATION,
+                        generation_method="bom_materials_extraction",
+                        raw_source=f"Extracted from {len(bom.components)} BOM components"
+                    )
+                    confidence_scores["materials"] = 0.8
             except Exception as e:
                 # Log error but don't fail the entire generation
                 print(f"Warning: BOM normalization failed: {e}")
+        
+        # Analyze parts directory for parts and sub_parts fields
+        parts_analysis = self._analyze_parts_directory(project_data)
+        if parts_analysis["parts"]:
+            generated_fields["parts"] = FieldGeneration(
+                value=parts_analysis["parts"],
+                confidence=0.7,
+                source_layer=GenerationLayer.HEURISTIC,
+                generation_method="parts_directory_analysis",
+                raw_source=f"Analyzed {len(parts_analysis['parts'])} parts from directory structure"
+            )
+            confidence_scores["parts"] = 0.7
+        
+        if parts_analysis["sub_parts"]:
+            generated_fields["sub_parts"] = FieldGeneration(
+                value=parts_analysis["sub_parts"],
+                confidence=0.7,
+                source_layer=GenerationLayer.HEURISTIC,
+                generation_method="parts_directory_analysis",
+                raw_source=f"Analyzed {len(parts_analysis['sub_parts'])} sub-parts from directory structure"
+            )
+            confidence_scores["sub_parts"] = 0.7
         
         # Generate quality report
         quality_report = self._quality_assessor.generate_quality_report(
@@ -325,3 +359,135 @@ class GenerationEngine:
         bom = builder.build_bom(components, f"{project_name} BOM")
         
         return bom
+    
+    def _extract_materials_from_bom(self, bom) -> List[str]:
+        """Extract materials from BOM components"""
+        materials = set()
+        
+        for component in bom.components:
+            component_name = component.name
+            material = self._classify_component_material(component_name)
+            if material:
+                materials.add(material)
+        
+        return list(materials) if materials else []
+    
+    def _classify_component_material(self, component_name: str) -> Optional[str]:
+        """Classify a component name into a material type"""
+        name_lower = component_name.lower()
+        
+        # Material classification patterns - ordered by specificity (most specific first)
+        material_patterns = [
+            # Specific materials first (to avoid false matches)
+            ('brass', ['brass']),
+            ('copper', ['copper', 'cu ']),
+            ('aluminum', ['aluminum', 'aluminium', 'al ', 'al-']),
+            ('steel', ['stainless steel', 'steel']),  # stainless steel before steel
+            ('PLA', ['pla', 'polylactic acid']),
+            ('ABS', ['abs', 'acrylonitrile butadiene styrene']),
+            ('PETG', ['petg', 'pet-g']),
+            ('TPU', ['tpu', 'thermoplastic polyurethane']),
+            ('wood', ['wood', 'plywood', 'mdf', 'oak', 'pine']),
+            ('acrylic', ['acrylic', 'plexiglass', 'pmma']),
+            # Component types
+            ('electronics', ['arduino', 'raspberry pi', 'sensor', 'motor', 'servo', 'led', 'resistor', 'capacitor', 'transistor', 'ic', 'microcontroller']),
+            ('fasteners', ['screw', 'bolt', 'nut', 'washer', 'rivet', 'pin']),
+            ('cables', ['cable', 'wire', 'connector', 'jack', 'plug']),
+            ('bearings', ['bearing', 'ball bearing', 'roller bearing']),
+            ('springs', ['spring', 'coil spring', 'tension spring'])
+        ]
+        
+        # Check each material pattern (first match wins)
+        for material, patterns in material_patterns:
+            for pattern in patterns:
+                if pattern in name_lower:
+                    return material
+        
+        return None
+    
+    def _analyze_parts_directory(self, project_data) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        Analyze parts directory structure to extract parts and sub_parts information.
+        
+        Args:
+            project_data: ProjectData containing file information
+            
+        Returns:
+            Dictionary with 'parts' and 'sub_parts' lists
+        """
+        parts = []
+        sub_parts = []
+        
+        # Look for parts-related directories
+        parts_directories = []
+        for file_info in project_data.files:
+            path = file_info.path.lower()
+            if 'parts' in path and file_info.file_type == 'markdown':
+                # Extract directory structure from path
+                path_parts = file_info.path.split('/')
+                if len(path_parts) >= 3 and path_parts[1] == 'parts':  # docs/parts/category/file.md
+                    category = path_parts[2]
+                    if category not in parts_directories:
+                        parts_directories.append(category)
+        
+        # Analyze each parts category
+        for category in parts_directories:
+            category_files = []
+            for file_info in project_data.files:
+                if (file_info.path.startswith(f'docs/parts/{category}/') and 
+                    file_info.file_type == 'markdown'):
+                    category_files.append(file_info)
+            
+            if category_files:
+                # Create a part entry for this category
+                part_entry = {
+                    "name": category.replace('_', ' ').title(),
+                    "category": category,
+                    "description": f"Components in the {category} category",
+                    "files": [
+                        {
+                            "path": f.path,
+                            "name": f.path.split('/')[-1].replace('.md', '').replace('_', ' ').title(),
+                            "type": f.file_type,
+                            "size": f.size
+                        }
+                        for f in category_files
+                    ],
+                    "file_count": len(category_files)
+                }
+                
+                # Determine if this is a main part or sub-part based on category
+                if category in ['electronics', 'optics', 'printed']:
+                    parts.append(part_entry)
+                else:
+                    sub_parts.append(part_entry)
+        
+        # Also look for individual part files that might not be in categories
+        individual_parts = []
+        for file_info in project_data.files:
+            if (file_info.path.startswith('docs/parts/') and 
+                file_info.file_type == 'markdown' and
+                not any(cat in file_info.path for cat in parts_directories)):
+                
+                part_name = file_info.path.split('/')[-1].replace('.md', '').replace('_', ' ').title()
+                individual_parts.append({
+                    "name": part_name,
+                    "path": file_info.path,
+                    "type": file_info.file_type,
+                    "size": file_info.size
+                })
+        
+        # Add individual parts as sub_parts
+        if individual_parts:
+            sub_parts.append({
+                "name": "Individual Parts",
+                "category": "individual",
+                "description": "Individual part specifications",
+                "files": individual_parts,
+                "file_count": len(individual_parts)
+            })
+        
+        return {
+            "parts": parts,
+            "sub_parts": sub_parts
+        }

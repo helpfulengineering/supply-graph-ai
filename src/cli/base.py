@@ -13,8 +13,7 @@ import httpx
 import click
 import json
 import logging
-from typing import Optional, Dict, Any, Union
-from pathlib import Path
+from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 
 from ..config import settings
@@ -155,23 +154,6 @@ class CLIContext:
                 click.echo(f"✅ {message}")
             else:
                 click.echo(f"ℹ️  {message}")
-
-
-def with_cli_context(f):
-    """Decorator to inject CLI context into commands"""
-    def wrapper(*args, **kwargs):
-        config = CLIConfig.from_settings()
-        ctx = CLIContext(config)
-        return f(ctx, *args, **kwargs)
-    return wrapper
-
-
-def with_async_context(f):
-    """Decorator to handle async command execution"""
-    def wrapper(*args, **kwargs):
-        return asyncio.run(f(*args, **kwargs))
-    return wrapper
-
 
 class SmartCommand:
     """Base class for commands that can use HTTP or direct service calls"""

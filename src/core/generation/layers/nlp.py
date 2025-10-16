@@ -8,12 +8,11 @@ documentation, and other project content.
 
 import re
 import spacy
-from typing import Dict, Any, List, Optional, Set, Tuple
+from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
-from collections import defaultdict
 
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, FileInfo, DocumentInfo
+from ..models import ProjectData, GenerationLayer
 
 
 @dataclass
@@ -58,7 +57,7 @@ class NLPMatcher(BaseGenerationLayer):
         """Initialize patterns for entity recognition"""
         self.material_patterns = [
             # 3D Printing Materials
-            EntityPattern(r'\b(PLA|ABS|PETG|TPU|ASA|PC|Nylon|Wood|Metal)\b', 'material', 'materials', 0.9, '3D printing material'),
+            EntityPattern(r'\b(PLA|ABS|PETG|TPU|ASA|PC|Nylon|Resin)\b', 'material', 'materials', 0.9, '3D printing material'),
             EntityPattern(r'\b(PLA\+|ABS\+|PETG\+)\b', 'material', 'materials', 0.9, 'Enhanced 3D printing material'),
             
             # Electronics Components

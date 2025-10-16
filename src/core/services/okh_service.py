@@ -1,13 +1,21 @@
-from typing import Dict, List, Optional, Any, Tuple
-from uuid import UUID
-import logging
 import httpx
 import yaml
+import traceback
 import json
-
-from src.core.services.storage_service import StorageService
+from typing import Dict, List, Optional, Any, Tuple
+from uuid import UUID
+            
+from src.config import settings
+from ..generation.url_router import URLRouter
+from ..generation.engine import GenerationEngine
+from ..generation.models import PlatformType
+from .storage_service import StorageService
 from ..models.okh import OKHManifest, ProcessRequirement
 from ..utils.logging import get_logger
+from ..generation.platforms.github import GitHubExtractor
+from ..generation.platforms.gitlab import GitLabExtractor
+from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
+from ..validation.context import ValidationContext
 
 logger = get_logger(__name__)
 
@@ -36,7 +44,6 @@ class OKHService:
             
         self.storage = storage_service or await StorageService.get_instance()
         if self.storage:
-            from src.config import settings
             await self.storage.configure(settings.STORAGE_CONFIG)
         self._initialized = True
         logger.info("OKH service initialized")
@@ -110,7 +117,6 @@ class OKHService:
                             
                     except Exception as e:
                         logger.error(f"Failed to load OKH file {obj['key']}: {e}")
-                        import traceback
                         logger.error(f"Traceback: {traceback.format_exc()}")
                         continue
             
@@ -119,7 +125,6 @@ class OKHService:
             
         except Exception as e:
             logger.error(f"Unexpected error in get method: {e}")
-            import traceback
             logger.error(f"Traceback: {traceback.format_exc()}")
             raise
     
@@ -231,10 +236,6 @@ class OKHService:
         logger.info(f"Validating OKH manifest content")
         
         try:
-            # Import the new validation framework
-            from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
-            from ..validation.context import ValidationContext
-            
             # Create validator
             validator = ManufacturingOKHValidator()
             
@@ -282,12 +283,6 @@ class OKHService:
         try:
             await self.ensure_initialized()
             
-            # Import generation modules
-            from ..generation.url_router import URLRouter
-            from ..generation.engine import GenerationEngine
-            from ..generation.review import ReviewInterface
-            from ..generation.models import PlatformType
-            
             # Validate and route URL
             router = URLRouter()
             if not router.validate_url(url):
@@ -299,10 +294,9 @@ class OKHService:
             
             # Get platform-specific generator
             if platform == PlatformType.GITHUB:
-                from ..generation.platforms.github import GitHubExtractor
                 generator = GitHubExtractor()
             elif platform == PlatformType.GITLAB:
-                from ..generation.platforms.gitlab import GitLabExtractor
+
                 generator = GitLabExtractor()
             else:
                 raise ValueError(f"Unsupported platform: {platform}")

@@ -8,12 +8,14 @@ domain information, and server status.
 import click
 import asyncio
 import httpx
-from typing import Optional
+import socket
+import time
 
 from .base import (
-    CLIContext, SmartCommand, with_async_context, 
-    echo_success, echo_error, echo_info, format_json_output
+    CLIContext, SmartCommand, echo_success, 
+    echo_error, echo_info, format_json_output
 )
+from ..core.registry.domain_registry import DomainRegistry
 
 
 @click.group()
@@ -151,9 +153,7 @@ def status(ctx):
             raise Exception(f"HTTP request failed: {e}")
     
     async def fallback_status():
-        """Get status using direct service calls"""
-        from ..core.registry.domain_registry import DomainRegistry
-        
+        """Get status using direct service calls"""        
         domains = list(DomainRegistry.get_registered_domains())
         
         return {
@@ -207,10 +207,7 @@ def status(ctx):
 @click.option('--timeout', default=5, help='Connection timeout in seconds')
 @click.pass_context
 def ping(ctx, port: int, timeout: int):
-    """Ping the OME server"""
-    import socket
-    import time
-    
+    """Ping the OME server"""    
     cli_ctx = ctx.obj
     server_host = cli_ctx.config.server_url.replace('http://', '').replace('https://', '').split(':')[0]
     

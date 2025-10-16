@@ -9,11 +9,13 @@ import click
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional
 from uuid import UUID
 
+from ..core.models.okw import ManufacturingFacility
+from ..core.services.okw_service import OKWService
 from .base import (
-    CLIContext, SmartCommand, with_async_context,
+    CLIContext, SmartCommand, 
     echo_success, echo_error, echo_info, format_json_output
 )
 
@@ -63,10 +65,7 @@ def validate(ctx, facility_file: str, quality_level: str, strict_mode: bool):
     
     async def fallback_validate():
         """Validate using direct service calls"""
-        from ..core.models.okw import OKWFacility
-        from ..core.services.okw_service import OKWService
-        
-        facility = OKWFacility.from_dict(facility_data)
+        facility = ManufacturingFacility.from_dict(facility_data)
         okw_service = await OKWService.get_instance()
         result = await okw_service.validate(facility, quality_level, strict_mode)
         return result.to_dict()
@@ -129,11 +128,8 @@ def create(ctx, facility_file: str, output: Optional[str]):
         return response
     
     async def fallback_create():
-        """Create using direct service calls"""
-        from ..core.models.okw import OKWFacility
-        from ..core.services.okw_service import OKWService
-        
-        facility = OKWFacility.from_dict(facility_data)
+        """Create using direct service calls"""        
+        facility = ManufacturingFacility.from_dict(facility_data)
         okw_service = await OKWService.get_instance()
         result = await okw_service.create(facility)
         return result.to_dict()
@@ -173,8 +169,6 @@ def get(ctx, facility_id: str, output: Optional[str]):
     
     async def fallback_get():
         """Get using direct service calls"""
-        from ..core.services.okw_service import OKWService
-        
         okw_service = await OKWService.get_instance()
         facility = await okw_service.get_by_id(UUID(facility_id))
         if facility:
@@ -236,8 +230,6 @@ def list_facilities(ctx, limit: int, offset: int, facility_type: Optional[str],
     
     async def fallback_list():
         """List using direct service calls"""
-        from ..core.services.okw_service import OKWService
-        
         okw_service = await OKWService.get_instance()
         facilities = await okw_service.list_facilities(
             limit=limit, 
@@ -293,9 +285,7 @@ def delete(ctx, facility_id: str, force: bool):
         return response
     
     async def fallback_delete():
-        """Delete using direct service calls"""
-        from ..core.services.okw_service import OKWService
-        
+        """Delete using direct service calls"""        
         okw_service = await OKWService.get_instance()
         success = await okw_service.delete(UUID(facility_id))
         return {"success": success}
@@ -337,10 +327,7 @@ def extract_capabilities(ctx, facility_file: str):
     
     async def fallback_extract():
         """Extract using direct service calls"""
-        from ..core.models.okw import OKWFacility
-        from ..core.services.okw_service import OKWService
-        
-        facility = OKWFacility.from_dict(facility_data)
+        facility = ManufacturingFacility.from_dict(facility_data)
         okw_service = await OKWService.get_instance()
         capabilities = await okw_service.extract_capabilities(facility)
         return {"capabilities": capabilities}
@@ -389,7 +376,7 @@ def upload(ctx, file_path: str, quality_level: str, strict_mode: bool):
         with open(file_path, 'r') as f:
             content = f.read()
         
-        facility = OKWFacility.from_json(content)
+        facility = ManufacturingFacility.from_json(content)
         okw_service = await OKWService.get_instance()
         result = await okw_service.create(facility)
         return result.to_dict()

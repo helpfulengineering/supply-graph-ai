@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional, Any, Union, TYPE_CHECKING
-from uuid import UUID
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from ....models.supply_trees import SupplyTree

@@ -7,10 +7,11 @@ Commands for utility operations in the Open Matching Engine.
 import click
 import asyncio
 from typing import Optional
+from ..core.registry.domain_registry import DomainRegistry
 
 from .base import (
     CLIContext, SmartCommand, 
-    echo_success, echo_error, echo_info, format_json_output
+    echo_success, echo_info, format_json_output
 )
 
 
@@ -37,9 +38,7 @@ def domains(ctx, name: Optional[str]):
         return response
     
     async def fallback_domains():
-        """Get domains using direct service calls"""
-        from ..core.registry.domain_registry import DomainRegistry
-        
+        """Get domains using direct service calls"""        
         domains = DomainRegistry.get_registered_domains()
         
         # Apply name filter if provided
@@ -96,8 +95,6 @@ def contexts(ctx, domain: str, name: Optional[str]):
     
     async def fallback_contexts():
         """Get contexts using direct service calls"""
-        from ..core.registry.domain_registry import DomainRegistry
-        
         # Get domain-specific contexts
         if domain == "manufacturing":
             contexts = [

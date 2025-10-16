@@ -6,16 +6,14 @@ OME operations including package management, OKH/OKW operations, and matching.
 """
 
 import click
-import asyncio
 from typing import Optional
 
-from .base import CLIContext, CLIConfig, with_cli_context, with_async_context
+from .base import CLIContext, CLIConfig
 from .package import package_group
 from .okh import okh_group
 from .okw import okw_group
 from .match import match_group
 from .system import system_group
-from .supply_tree import supply_tree_group
 from .utility import utility_group
 
 
@@ -36,28 +34,6 @@ def cli(ctx, server_url: str, timeout: float, verbose: bool, output_format: Opti
     Open Matching Engine (OME) Command Line Interface
     
     A comprehensive CLI for managing OKH packages, OKW facilities, and matching operations.
-    
-    Examples:
-        # Package management
-        ome package build manifest.json
-        ome package list-packages
-        ome package push org/project 1.0.0
-        
-        # OKH operations
-        ome okh validate manifest.json
-        ome okh create manifest.json
-        
-        # OKW operations
-        ome okw list-facilities
-        ome okw create facility.json
-        
-        # Matching operations
-        ome match requirements manifest.json
-        ome match validate match-result.json
-        
-        # System operations
-        ome system health
-        ome system domains
     """
     # Ensure context object exists
     ctx.ensure_object(dict)
@@ -82,7 +58,6 @@ cli.add_command(okh_group, name='okh')
 cli.add_command(okw_group, name='okw')
 cli.add_command(match_group, name='match')
 cli.add_command(system_group, name='system')
-cli.add_command(supply_tree_group, name='supply-tree')
 cli.add_command(utility_group, name='utility')
 
 

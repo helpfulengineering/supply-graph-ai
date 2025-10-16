@@ -9,11 +9,13 @@ import click
 import asyncio
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional
 
+from ..core.models.okh import OKHManifest
+from ..core.services.matching_service import MatchingService
 from .base import (
-    CLIContext, SmartCommand, with_async_context,
-    echo_success, echo_error, echo_info, format_json_output
+    CLIContext, SmartCommand, echo_success, echo_error, 
+    echo_info, format_json_output
 )
 
 
@@ -72,10 +74,7 @@ def requirements(ctx, okh_file: str, access_type: Optional[str],
         return response
     
     async def fallback_match():
-        """Match using direct service calls"""
-        from ..core.models.okh import OKHManifest
-        from ..core.services.matching_service import MatchingService
-        
+        """Match using direct service calls"""        
         manifest = OKHManifest.from_dict(okh_data)
         matching_service = await MatchingService.get_instance()
         
@@ -159,9 +158,7 @@ def validate(ctx, match_result_file: str, quality_level: str, strict_mode: bool)
         return response
     
     async def fallback_validate():
-        """Validate using direct service calls"""
-        from ..core.services.matching_service import MatchingService
-        
+        """Validate using direct service calls"""        
         matching_service = await MatchingService.get_instance()
         result = await matching_service.validate_match(match_data, quality_level, strict_mode)
         return result.to_dict()
@@ -278,9 +275,7 @@ def list_recent(ctx, limit: int, min_confidence: float, output: Optional[str]):
         return response
     
     async def fallback_list_recent():
-        """List recent matches using direct service calls"""
-        from ..core.services.matching_service import MatchingService
-        
+        """List recent matches using direct service calls"""        
         matching_service = await MatchingService.get_instance()
         matches = await matching_service.get_recent_matches(limit=limit, min_confidence=min_confidence)
         return {

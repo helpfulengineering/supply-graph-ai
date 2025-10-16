@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any, Union
-from uuid import UUID
 
 class OKHCreateRequest(BaseModel):
     """Request model for creating a new OKH manifest"""
