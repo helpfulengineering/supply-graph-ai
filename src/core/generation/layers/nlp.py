@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer
+from ..models import ProjectData, GenerationLayer, LayerConfig
 
 
 @dataclass
@@ -37,8 +37,8 @@ class TextClassification:
 class NLPMatcher(BaseGenerationLayer):
     """NLP matching layer using spaCy for semantic understanding"""
     
-    def __init__(self):
-        super().__init__(GenerationLayer.NLP)
+    def __init__(self, layer_config: Optional[LayerConfig] = None):
+        super().__init__(GenerationLayer.NLP, layer_config)
         self.nlp = None
         self._initialize_nlp()
         self._initialize_entity_patterns()
@@ -181,16 +181,19 @@ class NLPMatcher(BaseGenerationLayer):
         return result
     
     def _extract_readme_content(self, project_data: ProjectData) -> Optional[str]:
-        """Extract README content from project data"""
-        # Look for README files
-        for file_info in project_data.files:
-            if file_info.path.lower().startswith('readme'):
-                return file_info.content
+        """Extract README content from project data using shared utilities"""
+        # Use shared utility to find README files
+        readme_files = self.find_readme_files(project_data.files)
+        if readme_files:
+            # Clean the content using shared text processing
+            content = readme_files[0].content
+            return self.clean_text(content) if content else None
         
         # Look in documentation
         for doc in project_data.documentation:
             if doc.title.lower().startswith('readme'):
-                return doc.content
+                content = doc.content
+                return self.clean_text(content) if content else None
         
         return None
     
@@ -202,10 +205,20 @@ class NLPMatcher(BaseGenerationLayer):
         doc = self.nlp(content)
         fields = {}
         
+        # Extract main description
+        description = self._extract_description(doc, content)
+        if description:
+            fields['description'] = description
+        
         # Extract function/intended use
         function = self._extract_function(doc)
         if function:
             fields['function'] = function
+        
+        # Extract intended use (similar to function but more specific)
+        intended_use = self._extract_intended_use(doc)
+        if intended_use:
+            fields['intended_use'] = intended_use
         
         # Extract materials using entity patterns
         materials = self._extract_materials(doc, content)
@@ -229,6 +242,68 @@ class NLPMatcher(BaseGenerationLayer):
         
         return fields
     
+    def _extract_description(self, doc, content: str) -> Optional[str]:
+        """Extract main project description from NLP analysis"""
+        # Split content into sentences
+        sentences = content.split('. ')
+        
+        # Look for the main project description in the first few sentences
+        for i, sentence in enumerate(sentences[:5]):  # Check first 5 sentences
+            sentence = sentence.strip()
+            if len(sentence) < 30:  # Skip very short sentences
+                continue
+            
+            # Look for sentences that describe what the project is
+            description_indicators = [
+                'is a', 'is an', 'is designed to', 'aims to', 'creates', 'builds',
+                'provides', 'enables', 'allows', 'helps', 'facilitates'
+            ]
+            
+            # Skip sentences that are clearly not descriptions
+            skip_indicators = [
+                'license', 'copyright', 'permission', 'warranty', 'disclaimer',
+                'has moved to', 'moved to', 'migrated to', 'relocated to',
+                'table of contents', 'contents', 'installation', 'setup',
+                'getting started', 'quick start', 'printing the parts', 'before we start'
+            ]
+            
+            # Check if this sentence describes the project
+            has_description_indicator = any(indicator in sentence.lower() for indicator in description_indicators)
+            has_skip_indicator = any(indicator in sentence.lower() for indicator in skip_indicators)
+            
+            # If it has description indicators and doesn't have skip indicators, use it
+            if has_description_indicator and not has_skip_indicator:
+                # Clean up the sentence
+                cleaned = sentence.replace('\n', ' ').strip()
+                # If it's too long, truncate it
+                if len(cleaned) > 300:
+                    return cleaned[:300] + '...'
+                else:
+                    return cleaned
+            
+            # Special case: if the sentence contains both "assembly instructions" and "is a",
+            # extract just the "is a" part
+            if 'assembly instructions' in sentence.lower() and 'is a' in sentence.lower():
+                # Find the part after "is a"
+                parts = sentence.split('is a')
+                if len(parts) > 1:
+                    description_part = 'is a' + parts[1]
+                    # Take first sentence of this part
+                    description_sentences = description_part.split('. ')
+                    if description_sentences:
+                        cleaned = description_sentences[0].replace('\n', ' ').strip()
+                        # Remove any remaining title text before the colon
+                        if ':' in cleaned:
+                            # Find the last colon and take everything after it
+                            last_colon = cleaned.rfind(':')
+                            cleaned = cleaned[last_colon + 1:].strip()
+                        if len(cleaned) > 300:
+                            return cleaned[:300] + '...'
+                        else:
+                            return cleaned
+        
+        return None
+
     def _extract_function(self, doc) -> Optional[str]:
         """Extract project function/intended use from NLP analysis"""
         # Look for sentences that describe what the project does
@@ -254,6 +329,34 @@ class NLPMatcher(BaseGenerationLayer):
         if function_sentences:
             # Return the first (usually most relevant) function description
             return function_sentences[0]
+        
+        return None
+    
+    def _extract_intended_use(self, doc) -> Optional[str]:
+        """Extract intended use from NLP analysis"""
+        # Look for sentences that describe the intended use/application
+        intended_use_sentences = []
+        
+        for sent in doc.sents:
+            sent_text = sent.text.strip()
+            
+            # Skip very short sentences
+            if len(sent_text) < 20:
+                continue
+            
+            # Look for intended use indicators
+            intended_use_indicators = [
+                'perfect for', 'ideal for', 'designed for', 'suitable for',
+                'intended for', 'used for', 'applications include', 'use cases',
+                'target audience', 'end users', 'purpose is', 'goal is'
+            ]
+            
+            if any(indicator in sent_text.lower() for indicator in intended_use_indicators):
+                intended_use_sentences.append(sent_text)
+        
+        if intended_use_sentences:
+            # Return the first (usually most relevant) intended use description
+            return intended_use_sentences[0]
         
         return None
     
@@ -369,37 +472,18 @@ class NLPMatcher(BaseGenerationLayer):
         return fields
     
     def _calculate_field_confidence(self, field: str, value: Any, content: str) -> float:
-        """Calculate confidence score for a field extraction"""
-        base_confidence = 0.6  # Base confidence for NLP extraction
+        """Calculate confidence score for a field extraction using shared utility"""
+        # Use shared confidence calculator with NLP-specific source
+        source = "nlp_analysis"
         
-        # Adjust based on field type
-        if field == 'function':
-            # Higher confidence for function extraction
-            base_confidence = 0.7
-        elif field in ['materials', 'manufacturing_processes', 'tool_list']:
-            # Medium confidence for entity extraction
-            base_confidence = 0.6
-        elif field == 'content_classification':
-            # Lower confidence for classification
-            base_confidence = 0.5
+        # Prepare content quality metrics for the shared calculator
+        content_quality = {
+            "length": len(content) if content else 0,
+            "completeness": 1.0 if content and len(content) > 100 else 0.5
+        }
         
-        # Adjust based on content quality
-        if len(content) > 500:
-            base_confidence += 0.1  # Longer content = more confidence
-        elif len(content) < 100:
-            base_confidence -= 0.2  # Very short content = less confidence
-        
-        # Adjust based on value quality
-        if isinstance(value, list) and len(value) > 0:
-            base_confidence += 0.1  # Found multiple items
-        elif isinstance(value, str) and len(value) > 20:
-            base_confidence += 0.1  # Substantial text extraction
-        
-        return min(0.9, max(0.1, base_confidence))
+        return self.calculate_confidence(field, value, source, content_quality)
     
     def _calculate_overall_confidence(self, confidence_scores: Dict[str, float]) -> float:
-        """Calculate overall confidence for the layer"""
-        if not confidence_scores:
-            return 0.0
-        
-        return sum(confidence_scores.values()) / len(confidence_scores)
+        """Calculate overall confidence for the layer using shared utility"""
+        return self.calculate_layer_confidence(confidence_scores)

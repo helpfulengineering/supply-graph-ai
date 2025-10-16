@@ -134,7 +134,7 @@ class OKHService:
         logger.info(f"Fetching OKH manifest from URL: {url}")
         
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.get(url)
                 response.raise_for_status()
                 

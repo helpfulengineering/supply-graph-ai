@@ -169,7 +169,7 @@ class ResolvedFile:
 class DownloadOptions:
     """Options for file downloading"""
     max_retries: int = 3
-    timeout_seconds: int = 30
+    timeout_seconds: int = 120
     verify_ssl: bool = True
     follow_redirects: bool = True
     user_agent: str = "OME-Package-Builder/1.0"

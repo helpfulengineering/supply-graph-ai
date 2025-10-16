@@ -12,7 +12,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, FileInfo, DocumentInfo
+from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo
 
 
 @dataclass
@@ -28,8 +28,8 @@ class FilePattern:
 class HeuristicMatcher(BaseGenerationLayer):
     """Heuristic matching layer using rule-based pattern recognition"""
     
-    def __init__(self):
-        super().__init__(GenerationLayer.HEURISTIC)
+    def __init__(self, layer_config: Optional[LayerConfig] = None):
+        super().__init__(GenerationLayer.HEURISTIC, layer_config)
         self.file_patterns = self._initialize_file_patterns()
         self.content_patterns = self._initialize_content_patterns()
     
@@ -280,10 +280,11 @@ class HeuristicMatcher(BaseGenerationLayer):
                 })
         
         if making_instructions:
+            confidence = self.calculate_confidence("making_instructions", making_instructions, "file_analysis")
             result.add_field(
                 "making_instructions",
                 making_instructions,
-                0.7,  # Higher confidence for file-based detection
+                confidence,
                 "file_analysis",
                 f"Detected {len(making_instructions)} documentation files"
             )
@@ -319,19 +320,22 @@ class HeuristicMatcher(BaseGenerationLayer):
         for pattern in function_patterns:
             function_match = re.search(pattern, readme_content, re.DOTALL)
             if function_match:
-                function_text = function_match.group(1).strip()
-                # Clean up the text - remove extra whitespace and newlines
-                function_text = re.sub(r'\s+', ' ', function_text)
-                function_text = re.sub(r'[^\w\s\-.,()]', '', function_text)
-                if len(function_text) > 20 and not function_text.startswith('='):
-                    result.add_field(
-                        "function",
-                        function_text,
-                        0.8,
-                        "readme_function_extraction",
-                        "Extracted from README project description"
-                    )
-                    break
+                # Handle patterns with different numbers of capturing groups
+                if function_match.groups() and len(function_match.groups()) >= 1:
+                    function_text = function_match.group(1).strip()
+                    # Clean up the text - remove extra whitespace and newlines
+                    function_text = re.sub(r'\s+', ' ', function_text)
+                    function_text = re.sub(r'[^\w\s\-.,()]', '', function_text)
+                    if len(function_text) > 20 and not function_text.startswith('='):
+                        confidence = self.calculate_confidence("function", function_text, "content_analysis")
+                        result.add_field(
+                            "function",
+                            function_text,
+                            confidence,
+                            "readme_function_extraction",
+                            "Extracted from README project description"
+                        )
+                        break
         
         # Extract intended use - look for specific use cases
         intended_use_patterns = [
@@ -346,19 +350,22 @@ class HeuristicMatcher(BaseGenerationLayer):
         for pattern in intended_use_patterns:
             intended_use_match = re.search(pattern, readme_content, re.DOTALL)
             if intended_use_match:
-                intended_use_text = intended_use_match.group(1).strip()
-                # Clean up the text - remove extra whitespace and newlines
-                intended_use_text = re.sub(r'\s+', ' ', intended_use_text)
-                intended_use_text = re.sub(r'[^\w\s\-.,()]', '', intended_use_text)
-                if len(intended_use_text) > 20 and not intended_use_text.startswith('='):
-                    result.add_field(
-                        "intended_use",
-                        intended_use_text,
-                        0.8,
-                        "readme_intended_use_extraction",
-                        "Extracted from README intended use description"
-                    )
-                    break
+                # Handle patterns with different numbers of capturing groups
+                if intended_use_match.groups() and len(intended_use_match.groups()) >= 1:
+                    intended_use_text = intended_use_match.group(1).strip()
+                    # Clean up the text - remove extra whitespace and newlines
+                    intended_use_text = re.sub(r'\s+', ' ', intended_use_text)
+                    intended_use_text = re.sub(r'[^\w\s\-.,()]', '', intended_use_text)
+                    if len(intended_use_text) > 20 and not intended_use_text.startswith('='):
+                        confidence = self.calculate_confidence("intended_use", intended_use_text, "content_analysis")
+                        result.add_field(
+                            "intended_use",
+                            intended_use_text,
+                            confidence,
+                            "readme_intended_use_extraction",
+                            "Extracted from README intended use description"
+                        )
+                        break
         
         # Skip keywords extraction in heuristic layer - leave for NLP/LLM layers
         # Keywords require semantic understanding that regex cannot provide
@@ -368,10 +375,11 @@ class HeuristicMatcher(BaseGenerationLayer):
             org_match = re.search(r'github\.com/([^/]+)/', project_data.url)
             if org_match:
                 organization = org_match.group(1)
+                confidence = self.calculate_confidence("organization", {"name": organization}, "url_organization_extraction")
                 result.add_field(
                     "organization",
                     {"name": organization},
-                    0.9,
+                    confidence,
                     "url_organization_extraction",
                     f"Extracted from URL: {project_data.url}"
                 )
@@ -379,10 +387,11 @@ class HeuristicMatcher(BaseGenerationLayer):
         # Extract materials from BOM components if available
         materials = self._extract_materials_from_bom(project_data)
         if materials:
+            confidence = self.calculate_confidence("materials", materials, "bom_materials_extraction")
             result.add_field(
                 "materials",
                 materials,
-                0.8,
+                confidence,
                 "bom_materials_extraction",
                 "Extracted from BOM components"
             )
@@ -390,10 +399,11 @@ class HeuristicMatcher(BaseGenerationLayer):
             # Fallback: Extract materials from README text
             materials = self._extract_materials_from_readme(readme_content)
             if materials:
+                confidence = self.calculate_confidence("materials", materials, "readme_materials_extraction")
                 result.add_field(
                     "materials",
                     materials,
-                    0.6,
+                    confidence,
                     "readme_materials_extraction",
                     "Extracted from README materials section"
                 )
@@ -405,10 +415,11 @@ class HeuristicMatcher(BaseGenerationLayer):
             tools = re.split(r'[,;|\n]', tools_text)
             tools = [tool.strip() for tool in tools if tool.strip()]
             if tools:
+                confidence = self.calculate_confidence("tool_list", tools, "readme_tools_extraction")
                 result.add_field(
                     "tool_list",
                     tools,
-                    0.7,
+                    confidence,
                     "readme_tools_extraction",
                     "Extracted from README tools section"
                 )
@@ -444,10 +455,11 @@ class HeuristicMatcher(BaseGenerationLayer):
                         license_content = file_info.content
                         license_type = self._extract_license_type(license_content)
                         if license_type:
+                            confidence = self.calculate_confidence("license", license_type, pattern.extraction_method)
                             result.add_field(
                                 "license",
                                 license_type,
-                                pattern.confidence,
+                                confidence,
                                 pattern.extraction_method,
                                 f"Detected from {file_name}"
                             )
@@ -456,10 +468,11 @@ class HeuristicMatcher(BaseGenerationLayer):
                         bom_content = file_info.content
                         materials = self._parse_bom_content(bom_content)
                         if materials:
+                            confidence = self.calculate_confidence("materials", materials, pattern.extraction_method)
                             result.add_field(
                                 "materials",
                                 materials,
-                                pattern.confidence,
+                                confidence,
                                 pattern.extraction_method,
                                 f"Parsed from {file_name}"
                             )
@@ -479,10 +492,11 @@ class HeuristicMatcher(BaseGenerationLayer):
                                 existing.append(file_entry)
                         else:
                             # Create new list
+                            confidence = self.calculate_confidence(pattern.field, [file_entry], pattern.extraction_method)
                             result.add_field(
                                 pattern.field,
                                 [file_entry],
-                                pattern.confidence,
+                                confidence,
                                 pattern.extraction_method,
                                 f"Detected from {file_name}"
                             )
@@ -506,19 +520,27 @@ class HeuristicMatcher(BaseGenerationLayer):
             for pattern, method, confidence in patterns:
                 match = re.search(pattern, all_content)
                 if match:
-                    value = match.group(1).strip()
+                    # Handle patterns with and without capturing groups
+                    if match.groups() and len(match.groups()) >= 1:
+                        value = match.group(1).strip()
+                    else:
+                        # For patterns without capturing groups, use the full match
+                        value = match.group(0).strip()
                     
                     # Special handling for different fields
                     if field == "keywords":
                         keywords = re.split(r'[,;|\n]', value)
                         keywords = [kw.strip() for kw in keywords if kw.strip()]
                         if keywords:
+                            confidence = self.calculate_confidence(field, keywords, "pattern_matching")
                             result.add_field(field, keywords, confidence, method, f"Pattern: {pattern}")
                     elif field == "manufacturing_processes":
                         processes = self._extract_processes_from_text(value)
                         if processes:
+                            confidence = self.calculate_confidence(field, processes, "pattern_matching")
                             result.add_field(field, processes, confidence, method, f"Pattern: {pattern}")
                     else:
+                        confidence = self.calculate_confidence(field, value, "pattern_matching")
                         result.add_field(field, value, confidence, method, f"Pattern: {pattern}")
                     break  # Use first match
     
@@ -676,10 +698,11 @@ class HeuristicMatcher(BaseGenerationLayer):
         if not result.has_field("documentation_language"):
             # For now, default to English for GitHub repositories
             # In the future, this could be enhanced with language detection
+            confidence = self.calculate_confidence("documentation_language", "en", "default_language_assignment")
             result.add_field(
                 "documentation_language",
                 "en",
-                0.7,
+                confidence,
                 "default_language_assignment",
                 "Default to English for GitHub repositories"
             )

@@ -9,15 +9,15 @@ from platform APIs and file structures.
 import re
 from typing import Dict, Any, Optional
 
-from ..models import ProjectData, FieldGeneration, GenerationLayer, PlatformType
+from ..models import ProjectData, FieldGeneration, GenerationLayer, PlatformType, LayerConfig
 from .base import BaseGenerationLayer, LayerResult
 
 
 class DirectMatcher(BaseGenerationLayer):
     """Direct field mapping matcher for Layer 1 generation"""
     
-    def __init__(self):
-        super().__init__(GenerationLayer.DIRECT)
+    def __init__(self, layer_config: Optional[LayerConfig] = None):
+        super().__init__(GenerationLayer.DIRECT, layer_config)
         self._confidence_threshold = 0.8
     
     async def process(self, project_data: ProjectData) -> LayerResult:
@@ -72,30 +72,24 @@ class DirectMatcher(BaseGenerationLayer):
         
         # Title mapping
         if "name" in metadata and metadata["name"]:
+            confidence = self.calculate_confidence("title", metadata["name"], "direct_mapping")
             fields["title"] = FieldGeneration(
                 value=metadata["name"],
-                confidence=0.95,
+                confidence=confidence,
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="direct_mapping",
                 raw_source="metadata.name"
             )
         
-        # Description mapping
-        if "description" in metadata and metadata["description"]:
-            fields["description"] = FieldGeneration(
-                value=metadata["description"],
-                confidence=0.95,
-                source_layer=GenerationLayer.DIRECT,
-                generation_method="direct_mapping",
-                raw_source="metadata.description"
-            )
+        # Note: Description extraction is handled by NLP/LLM layers for better content analysis
         
         # Repository URL mapping
         repo_url = self._get_repo_url(project_data)
         if repo_url:
+            confidence = self.calculate_confidence("repo", repo_url, "direct_mapping")
             fields["repo"] = FieldGeneration(
                 value=repo_url,
-                confidence=0.95,
+                confidence=confidence,
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="direct_mapping",
                 raw_source="metadata.html_url" if "html_url" in metadata else "url"
@@ -104,9 +98,10 @@ class DirectMatcher(BaseGenerationLayer):
         # License from metadata
         license_value = self._extract_license_from_metadata(metadata)
         if license_value:
+            confidence = self.calculate_confidence("license", license_value, "metadata_extraction")
             fields["license"] = FieldGeneration(
                 value=license_value,
-                confidence=0.9,
+                confidence=confidence,
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="direct_mapping",
                 raw_source="metadata.license"
@@ -115,18 +110,20 @@ class DirectMatcher(BaseGenerationLayer):
         # Version from metadata
         version_value = self._extract_version_from_metadata(metadata)
         if version_value:
+            confidence = self.calculate_confidence("version", version_value, "metadata_extraction")
             fields["version"] = FieldGeneration(
                 value=version_value,
-                confidence=0.9,
+                confidence=confidence,
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="direct_mapping",
                 raw_source="metadata.version"
             )
         else:
             # Fallback version
+            confidence = self.calculate_confidence("version", "1.0.0", "fallback")
             fields["version"] = FieldGeneration(
                 value="1.0.0",
-                confidence=0.1,
+                confidence=confidence,
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="fallback",
                 raw_source="no_version_found"
@@ -141,9 +138,10 @@ class DirectMatcher(BaseGenerationLayer):
         # README content
         readme_content = self._find_readme_content(project_data.files)
         if readme_content:
+            confidence = self.calculate_confidence("readme", readme_content, "readme_extraction")
             fields["readme"] = FieldGeneration(
                 value=readme_content,
-                confidence=0.9,
+                confidence=confidence,
                 source_layer=GenerationLayer.DIRECT,
                 generation_method="direct_mapping",
                 raw_source="README.md"
@@ -153,18 +151,20 @@ class DirectMatcher(BaseGenerationLayer):
         if "license" not in fields:
             license_from_file = self._extract_license_from_files(project_data.files)
             if license_from_file:
+                confidence = self.calculate_confidence("license", license_from_file, "license_file_detection")
                 fields["license"] = FieldGeneration(
                     value=license_from_file,
-                    confidence=0.8,
+                    confidence=confidence,
                     source_layer=GenerationLayer.DIRECT,
                     generation_method="direct_mapping",
                     raw_source="LICENSE"
                 )
             else:
                 # Fallback when no license found
+                confidence = self.calculate_confidence("license", "NOASSERTION", "fallback")
                 fields["license"] = FieldGeneration(
                     value="NOASSERTION",
-                    confidence=0.1,
+                    confidence=confidence,
                     source_layer=GenerationLayer.DIRECT,
                     generation_method="fallback",
                     raw_source="no_license_found"
@@ -242,83 +242,50 @@ class DirectMatcher(BaseGenerationLayer):
         return None
     
     def _clean_version_string(self, version: str) -> Optional[str]:
-        """Clean and normalize version string"""
+        """Clean and normalize version string using shared utilities"""
         if not version:
             return None
         
-        # Remove common prefixes
-        version = version.strip()
-        if version.startswith("v"):
-            version = version[1:]
-        elif version.startswith("release-"):
-            version = version[8:]
-        
-        # Basic validation - should contain at least one dot or be a simple number
-        if "." in version or version.isdigit():
-            return version
-        
-        return None
+        # Use shared utility to extract version from text
+        extracted_version = self.extract_version_from_text(version)
+        return extracted_version
     
     def _find_readme_content(self, files) -> Optional[str]:
-        """Find README content from project files"""
-        readme_files = ["README.md", "README.rst", "README.txt", "README"]
+        """Find README content from project files using shared utilities"""
+        # Use shared utility to find README files
+        readme_files = self.find_readme_files(files)
         
-        for file_info in files:
-            if file_info.path in readme_files:
+        # Return content from the first README file found
+        for file_info in readme_files:
+            if file_info.content:
                 return file_info.content
         
         return None
     
     def _extract_license_from_files(self, files) -> Optional[str]:
-        """Extract license information from LICENSE files"""
-        license_files = ["LICENSE", "LICENSE.txt", "LICENSE.md", "COPYING", "License"]
+        """Extract license information from LICENSE files using shared utilities"""
+        # Use shared utility to find license files
+        license_files = self.find_license_files(files)
         
         # Priority order: License (capital L) > LICENSE > others
         license_priority = {"License": 1, "LICENSE": 2, "LICENSE.txt": 3, "LICENSE.md": 4, "COPYING": 5}
         
         # Find all license files and sort by priority
         found_license_files = []
-        for file_info in files:
-            if file_info.path in license_files:
-                priority = license_priority.get(file_info.path, 999)
-                found_license_files.append((priority, file_info))
+        for file_info in license_files:
+            file_name = file_info.path.split('/')[-1]  # Get just the filename
+            priority = license_priority.get(file_name, 999)
+            found_license_files.append((priority, file_info))
         
         # Sort by priority (lower number = higher priority)
         found_license_files.sort(key=lambda x: x[0])
         
-        # Process files in priority order
+        # Extract license from the highest priority file using shared utility
         for priority, file_info in found_license_files:
-            content = file_info.content.upper()
-            
-            # CERN Open Hardware License detection (highest priority for hardware projects)
-            if "CERN" in content and "OPEN HARDWARE" in content:
-                if "V1.2" in content:
-                    return "CERN-OHL-S-2.0"
-                elif "V1.1" in content:
-                    return "CERN-OHL-S-1.1"
-                elif "V1.0" in content:
-                    return "CERN-OHL-S-1.0"
-                else:
-                    return "CERN-OHL-S-2.0"  # Default to most common version
-            
-            # Other license detection
-            elif "MIT" in content:
-                return "MIT"
-            elif "APACHE" in content and "2.0" in content:
-                return "Apache-2.0"
-            elif "GPL" in content and "3.0" in content:
-                return "GPL-3.0"
-            elif "GPL" in content and "2.0" in content:
-                return "GPL-2.0"
-            elif "BSD" in content and "3" in content:
-                return "BSD-3-Clause"
-            elif "BSD" in content and "2" in content:
-                return "BSD-2-Clause"
-            else:
-                # Return the first line as license name
-                lines = file_info.content.split('\n')
-                if lines:
-                    return lines[0].strip()
+            if file_info.content:
+                license_type = self.extract_license_type(file_info.content)
+                if license_type:
+                    return license_type
         
         return None
     

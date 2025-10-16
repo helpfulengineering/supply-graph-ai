@@ -31,7 +31,7 @@ class CLIConfig:
     
     def __init__(self):
         self.server_url = "http://localhost:8001"
-        self.timeout = 30.0
+        self.timeout = 120.0
         self.retry_attempts = 3
         self.verbose = False
         

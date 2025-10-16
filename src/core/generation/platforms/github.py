@@ -330,8 +330,8 @@ class GitHubExtractor(ProjectExtractor):
                 if current_path:
                     file_path = f"{current_path}/{file_path}"
                 
-                # Skip files we already have
-                if file_path in ["README.md", "LICENSE", "License"]:
+                # Skip LICENSE files we already have (README.md should be processed here)
+                if file_path in ["LICENSE", "License"]:
                     continue
                 
                 # Check file size limit

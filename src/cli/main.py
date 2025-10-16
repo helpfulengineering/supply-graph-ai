@@ -20,7 +20,7 @@ from .utility import utility_group
 @click.group()
 @click.option('--server-url', default='http://localhost:8001', 
               help='OME server URL')
-@click.option('--timeout', default=30.0, type=float,
+@click.option('--timeout', default=120.0, type=float,
               help='Request timeout in seconds')
 @click.option('--verbose', '-v', is_flag=True,
               help='Enable verbose output')

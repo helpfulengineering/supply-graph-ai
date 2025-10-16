@@ -394,15 +394,113 @@ class ManifestGeneration:
 
 @dataclass
 class LayerConfig:
-    """Configuration for generation layers"""
+    """Enhanced configuration for generation layers with validation and layer-specific settings"""
+    
+    # Core layer settings
     use_direct: bool = True
     use_heuristic: bool = True
     use_nlp: bool = True
     use_llm: bool = False
-    use_bom_normalization: bool = False  # BOM normalization and structuring
+    use_bom_normalization: bool = False
+    
+    # Quality and processing settings
     min_confidence: float = 0.7
     progressive_enhancement: bool = True
     save_reference: bool = False
+    
+    # Layer-specific configurations
+    direct_config: Dict[str, Any] = field(default_factory=dict)
+    heuristic_config: Dict[str, Any] = field(default_factory=dict)
+    nlp_config: Dict[str, Any] = field(default_factory=dict)
+    llm_config: Dict[str, Any] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        """Validate configuration after initialization"""
+        self._validate_config()
+        self._set_default_layer_configs()
+    
+    def _validate_config(self):
+        """Validate configuration values"""
+        if not 0.0 <= self.min_confidence <= 1.0:
+            raise ValueError(f"min_confidence must be between 0.0 and 1.0, got {self.min_confidence}")
+        
+        if not isinstance(self.use_direct, bool):
+            raise ValueError(f"use_direct must be a boolean, got {type(self.use_direct)}")
+        
+        if not isinstance(self.use_heuristic, bool):
+            raise ValueError(f"use_heuristic must be a boolean, got {type(self.use_heuristic)}")
+        
+        if not isinstance(self.use_nlp, bool):
+            raise ValueError(f"use_nlp must be a boolean, got {type(self.use_nlp)}")
+        
+        if not isinstance(self.use_llm, bool):
+            raise ValueError(f"use_llm must be a boolean, got {type(self.use_llm)}")
+    
+    def _set_default_layer_configs(self):
+        """Set default layer-specific configurations, merging with provided configs"""
+        # Define default configurations
+        default_direct_config = {
+            "extract_metadata": True,
+            "fallback_to_defaults": True,
+            "strict_validation": False
+        }
+        default_heuristic_config = {
+            "pattern_matching_enabled": True,
+            "file_analysis_enabled": True,
+            "content_analysis_enabled": True,
+            "confidence_threshold": 0.6
+        }
+        default_nlp_config = {
+            "spacy_model": "en_core_web_sm",
+            "max_text_length": 1000000,
+            "entity_extraction": True,
+            "semantic_analysis": True
+        }
+        default_llm_config = {
+            "model": "gpt-3.5-turbo",
+            "max_tokens": 1000,
+            "temperature": 0.1,
+            "timeout": 30
+        }
+        
+        # Merge with provided configs (provided configs take precedence)
+        self.direct_config = {**default_direct_config, **self.direct_config}
+        self.heuristic_config = {**default_heuristic_config, **self.heuristic_config}
+        self.nlp_config = {**default_nlp_config, **self.nlp_config}
+        self.llm_config = {**default_llm_config, **self.llm_config}
+    
+    def get_layer_config(self, layer_name: str) -> Dict[str, Any]:
+        """Get configuration for a specific layer"""
+        config_map = {
+            "direct": self.direct_config,
+            "heuristic": self.heuristic_config,
+            "nlp": self.nlp_config,
+            "llm": self.llm_config
+        }
+        return config_map.get(layer_name, {})
+    
+    def set_layer_config(self, layer_name: str, config: Dict[str, Any]):
+        """Set configuration for a specific layer"""
+        if layer_name == "direct":
+            self.direct_config.update(config)
+        elif layer_name == "heuristic":
+            self.heuristic_config.update(config)
+        elif layer_name == "nlp":
+            self.nlp_config.update(config)
+        elif layer_name == "llm":
+            self.llm_config.update(config)
+        else:
+            raise ValueError(f"Unknown layer: {layer_name}")
+    
+    def is_layer_enabled(self, layer_name: str) -> bool:
+        """Check if a specific layer is enabled"""
+        layer_map = {
+            "direct": self.use_direct,
+            "heuristic": self.use_heuristic,
+            "nlp": self.use_nlp,
+            "llm": self.use_llm
+        }
+        return layer_map.get(layer_name, False)
 
 
 @dataclass
