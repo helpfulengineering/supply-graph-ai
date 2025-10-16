@@ -213,6 +213,27 @@ class ManifestGeneration:
             if field in fields_dict and fields_dict[field]:
                 manifest[field] = fields_dict[field]
         
+        # Ensure required fields are present with defaults
+        if "licensor" not in manifest or not manifest["licensor"]:
+            # Try to extract licensor from organization or repo URL
+            org = fields_dict.get("organization", {})
+            if isinstance(org, dict) and org.get("name"):
+                manifest["licensor"] = org["name"]
+            elif fields_dict.get("repo"):
+                # Extract organization from repo URL (e.g., "nasa-jpl" from "https://github.com/nasa-jpl/open-source-rover")
+                repo_url = fields_dict["repo"]
+                if "github.com/" in repo_url:
+                    parts = repo_url.split("github.com/")[-1].split("/")
+                    if len(parts) >= 1:
+                        manifest["licensor"] = parts[0]
+                else:
+                    manifest["licensor"] = "Unknown"
+            else:
+                manifest["licensor"] = "Unknown"
+        
+        if "documentation_language" not in manifest or not manifest["documentation_language"]:
+            manifest["documentation_language"] = "en"  # Default to English
+        
         return manifest
     
     def _get_bom_field(self, fields_dict: Dict[str, Any]) -> Any:

@@ -8,6 +8,8 @@ using the GitHub API with caching to avoid rate limits.
 import json
 import hashlib
 import os
+import base64
+from dotenv import load_dotenv
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
@@ -46,7 +48,12 @@ class GitHubExtractor(ProjectExtractor):
     
     def _load_github_token_from_env(self) -> Optional[str]:
         """Load GitHub token from environment variables"""
-        import os
+        
+        # Load .env file if it exists
+        try:
+            load_dotenv()
+        except ImportError:
+            pass  # python-dotenv not available, continue without it
         
         # Try multiple environment variable names
         token_names = ['GITHUB_TOKEN', 'GITHUB_PAT', 'GITHUB_ACCESS_TOKEN']
@@ -109,7 +116,6 @@ class GitHubExtractor(ProjectExtractor):
                 
                 if readme_data:
                     try:
-                        import base64
                         readme_content = base64.b64decode(readme_data["content"]).decode("utf-8")
                     except:
                         pass
@@ -214,7 +220,7 @@ class GitHubExtractor(ProjectExtractor):
                 
                 # Also scan the docs directory specifically for comprehensive file discovery
                 try:
-                    docs_response = await client.get(f"{self.base_url}/repos/{owner}/{repo}/contents/docs")
+                    docs_response = await client.get(f"{self.base_url}/repos/{owner}/{repo}/contents/docs?ref=master")
                     if docs_response.status_code == 200:
                         docs_contents = docs_response.json()
                         docs_files = await self._scan_directories_recursively(
@@ -430,7 +436,7 @@ class GitHubExtractor(ProjectExtractor):
             return "config"
         elif file_path_lower.endswith(('.csv', '.tsv', '.xlsx')):
             return "data"
-        elif file_path_lower.endswith(('.sch', '.brd', '.kicad_pcb')):
+        elif file_path_lower.endswith(('.sch', '.brd', '.kicad_pcb', '.kicad_mod')):
             return "schematic"
         else:
             return "other"
@@ -514,6 +520,9 @@ class GitHubExtractor(ProjectExtractor):
                 return None
             elif response.status_code == 401:
                 print("GitHub API authentication failed - check your token")
+                return None
+            elif response.status_code == 404:
+                # 404 is expected for non-existent directories/files - don't print as error
                 return None
             else:
                 print(f"GitHub API error: {response.status_code}")

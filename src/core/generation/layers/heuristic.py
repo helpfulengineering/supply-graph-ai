@@ -187,7 +187,7 @@ class HeuristicMatcher(BaseGenerationLayer):
         
         # Also check file extensions
         manufacturing_extensions = {'.stl', '.gcode', '.3mf', '.amf'}
-        design_extensions = {'.scad', '.step', '.stp', '.iges', '.iges', '.dxf', '.dwg'}
+        design_extensions = {'.scad', '.step', '.stp', '.iges', '.iges', '.dxf', '.dwg', '.kicad_pcb', '.kicad_mod'}
         doc_extensions = {'.md', '.txt', '.pdf', '.doc', '.docx'}
         
         # Count indicators
@@ -201,7 +201,18 @@ class HeuristicMatcher(BaseGenerationLayer):
             path_lower = file_path.lower()
             file_ext = Path(file_path).suffix.lower()
             
+            # Skip GitHub-specific files and directories
+            if (path_lower.startswith('.github/') or 
+                path_lower.startswith('.git/') or
+                path_lower.startswith('.vscode/') or
+                'workflow' in path_lower):
+                continue
+            
             # Check directory structure and file extensions
+            # Exclude design files from manufacturing files
+            if (file_ext in design_extensions):
+                continue
+                
             if (any(indicator in path_lower for indicator in manufacturing_indicators) or 
                 file_ext in manufacturing_extensions):
                 manufacturing_files.append({
@@ -250,6 +261,13 @@ class HeuristicMatcher(BaseGenerationLayer):
         for file_path in file_paths:
             path_lower = file_path.lower()
             file_ext = Path(file_path).suffix.lower()
+            
+            # Skip GitHub-specific files and directories
+            if (path_lower.startswith('.github/') or 
+                path_lower.startswith('.git/') or
+                path_lower.startswith('.vscode/') or
+                'workflow' in path_lower):
+                continue
             
             # Check directory structure and file extensions
             if (any(indicator in path_lower for indicator in docs_indicators) or 
