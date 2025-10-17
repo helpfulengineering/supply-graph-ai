@@ -7,7 +7,8 @@ providing specialized direct matching for materials, components, and tools.
 
 import re
 from typing import List, Dict, Any, Set
-from ...matching.direct_matcher import DirectMatcher, DirectMatchResult, MatchMetadata, MatchQuality
+from ...matching.direct_matcher import DirectMatcher
+from ...matching.layers.base import MatchingResult
 
 
 class MfgDirectMatcher(DirectMatcher):
@@ -157,7 +158,7 @@ class MfgDirectMatcher(DirectMatcher):
         """Check if text contains specification keywords."""
         return any(keyword in text for keyword in self._specification_keywords)
     
-    def match_materials(self, required_materials: List[str], available_materials: List[str]) -> List[DirectMatchResult]:
+    def match_materials(self, required_materials: List[str], available_materials: List[str]) -> List[MatchingResult]:
         """
         Match required materials against available materials.
         
@@ -166,7 +167,7 @@ class MfgDirectMatcher(DirectMatcher):
             available_materials: List of available material strings
             
         Returns:
-            List of DirectMatchResult objects for material matches
+            List of MatchingResult objects for material matches
         """
         results = []
         for required in required_materials:
@@ -182,7 +183,7 @@ class MfgDirectMatcher(DirectMatcher):
             results.extend(material_results)
         return results
     
-    def match_components(self, required_components: List[str], available_components: List[str]) -> List[DirectMatchResult]:
+    def match_components(self, required_components: List[str], available_components: List[str]) -> List[MatchingResult]:
         """
         Match required components against available components.
         
@@ -191,7 +192,7 @@ class MfgDirectMatcher(DirectMatcher):
             available_components: List of available component strings
             
         Returns:
-            List of DirectMatchResult objects for component matches
+            List of MatchingResult objects for component matches
         """
         results = []
         for required in required_components:
@@ -207,7 +208,7 @@ class MfgDirectMatcher(DirectMatcher):
             results.extend(component_results)
         return results
     
-    def match_tools(self, required_tools: List[str], available_tools: List[str]) -> List[DirectMatchResult]:
+    def match_tools(self, required_tools: List[str], available_tools: List[str]) -> List[MatchingResult]:
         """
         Match required tools against available tools.
         
@@ -216,7 +217,7 @@ class MfgDirectMatcher(DirectMatcher):
             available_tools: List of available tool strings
             
         Returns:
-            List of DirectMatchResult objects for tool matches
+            List of MatchingResult objects for tool matches
         """
         results = []
         for required in required_tools:
@@ -232,7 +233,7 @@ class MfgDirectMatcher(DirectMatcher):
             results.extend(tool_results)
         return results
     
-    def match_processes(self, required_processes: List[str], available_processes: List[str]) -> List[DirectMatchResult]:
+    async def match_processes(self, required_processes: List[str], available_processes: List[str]) -> List[MatchingResult]:
         """
         Match required processes against available processes.
         
@@ -241,11 +242,11 @@ class MfgDirectMatcher(DirectMatcher):
             available_processes: List of available process strings
             
         Returns:
-            List of DirectMatchResult objects for process matches
+            List of MatchingResult objects for process matches
         """
         results = []
         for required in required_processes:
-            process_results = self.match(required, available_processes)
+            process_results = await self.match([required], available_processes)
             # Add process-specific metadata
             for result in process_results:
                 result.metadata.reasons.append("Process matching")
@@ -257,7 +258,7 @@ class MfgDirectMatcher(DirectMatcher):
             results.extend(process_results)
         return results
     
-    def match_okh_requirements(self, okh_data: Dict[str, Any], okw_capabilities: Dict[str, Any]) -> Dict[str, List[DirectMatchResult]]:
+    def match_okh_requirements(self, okh_data: Dict[str, Any], okw_capabilities: Dict[str, Any]) -> Dict[str, List[MatchingResult]]:
         """
         Match all OKH requirements against OKW capabilities.
         

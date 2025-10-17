@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Any
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime, timedelta
 import networkx as nx
 
@@ -31,6 +31,8 @@ class MatchingService:
         }
         self.capability_rule_manager = None
         self.capability_matcher = None
+        self.okh_service: Optional[OKHService] = None
+        self.okw_service: Optional[OKWService] = None
     
     # Heuristic rules are now managed by the HeuristicRuleManager
     # and loaded from domain-specific configuration files
@@ -46,12 +48,6 @@ class MatchingService:
             cls._instance = cls()
             await cls._instance.initialize(okh_service, okw_service)
         return cls._instance
-    
-    def __init__(self):
-        """Initialize the matching service"""
-        self.okh_service: Optional[OKHService] = None
-        self.okw_service: Optional[OKWService] = None
-        self._initialized = False
     
     async def initialize(
         self,
@@ -226,7 +222,7 @@ class MatchingService:
                         continue
                     
                     # Layer 1: Direct Matching (using new Direct Matching layer)
-                    if self._direct_match(req_process, cap_process, domain="manufacturing"):
+                    if await self._direct_match(req_process, cap_process, domain="manufacturing"):
                         logger.debug(
                             "Direct match found",
                             extra={
@@ -263,7 +259,7 @@ class MatchingService:
             )
             raise
     
-    def _direct_match(self, req_process: str, cap_process: str, domain: str = "manufacturing") -> bool:
+    async def _direct_match(self, req_process: str, cap_process: str, domain: str = "manufacturing") -> bool:
         """Layer 1: Direct Matching - Using the new Direct Matching layer with metadata tracking"""
         try:
             # Get the appropriate direct matcher for the domain
@@ -272,23 +268,31 @@ class MatchingService:
                 logger.warning(f"No direct matcher available for domain: {domain}, falling back to simple matching")
                 return req_process.lower() == cap_process.lower()
             
-            # Use the Direct Matching layer
-            results = direct_matcher.match(req_process, [cap_process], near_miss_threshold=2)
-            
-            # Check if we have any matches
-            for result in results:
-                if result.matched and result.confidence >= 0.8:  # Use 0.8 as threshold for "match"
-                    logger.debug(
-                        "Direct match found using Direct Matching layer",
-                        extra={
-                            "requirement": req_process,
-                            "capability": cap_process,
-                            "confidence": result.confidence,
-                            "quality": result.metadata.quality,
-                            "method": result.metadata.method
-                        }
-                    )
-                    return True
+            # Use the domain-specific matcher's process matching method
+            # The domain matchers have specific methods for different types of matching
+            if hasattr(direct_matcher, 'match_processes'):
+                # Use the process matching method (now async)
+                import asyncio
+                results = await direct_matcher.match_processes([req_process], [cap_process])
+                
+                # Check if we have any matches
+                for result in results:
+                    if result.matched and result.confidence >= 0.8:  # Use 0.8 as threshold for "match"
+                        logger.debug(
+                            "Direct match found using Direct Matching layer",
+                            extra={
+                                "requirement": req_process,
+                                "capability": cap_process,
+                                "confidence": result.confidence,
+                                "quality": result.metadata.quality,
+                                "method": result.metadata.method
+                            }
+                        )
+                        return True
+            else:
+                # Fallback to simple string matching if no process matcher available
+                logger.warning(f"Domain matcher {domain} does not have match_processes method, using simple matching")
+                return req_process.lower() == cap_process.lower()
             
             return False
             

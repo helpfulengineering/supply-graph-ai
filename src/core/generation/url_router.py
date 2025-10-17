@@ -10,7 +10,6 @@ from typing import Tuple
 from urllib.parse import urlparse
 
 from .models import PlatformType
-from .platforms.base import ProjectExtractor
 
 
 class URLRouter:
@@ -166,7 +165,7 @@ class URLRouter:
         
         raise ValueError("Cannot extract repo info from URL: invalid format")
     
-    def route_to_extractor(self, platform: PlatformType) -> ProjectExtractor:
+    def route_to_extractor(self, platform: PlatformType) -> "ProjectExtractor":
         """
         Route to the appropriate extractor for a platform.
         
