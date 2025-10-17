@@ -2,11 +2,21 @@
 Review Interface for OKH manifest generation.
 
 This module provides a CLI-based interface for reviewing, editing, and validating
-generated OKH manifests before final export.
+generated OKH manifests before final export. It includes enhanced support for
+tracking field sources, including LLM-generated content, and provides detailed
+information about how each field was generated.
+
+Key Features:
+- Interactive field editing and validation
+- Source tracking for all fields (Direct, Heuristic, NLP, LLM, User Edit)
+- Quality assessment and recommendations
+- LLM-specific indicators and confidence scoring
+- Export to OKH manifest format
 """
 
 import uuid
-from typing import Optional
+from typing import Optional, Dict, Any
+from dataclasses import dataclass
 
 from .models import (
     ManifestGeneration, FieldGeneration, GenerationLayer, ProjectData
@@ -14,8 +24,29 @@ from .models import (
 from ..models.okh import OKHManifest
 
 
+@dataclass
+class FieldSourceInfo:
+    """Information about how a field was generated"""
+    layer: GenerationLayer
+    method: str
+    confidence: float
+    raw_source: str
+    is_llm_generated: bool = False
+    llm_provider: Optional[str] = None
+    llm_model: Optional[str] = None
+
+
 class ReviewInterface:
-    """CLI-based interface for reviewing and editing generated manifests"""
+    """
+    Enhanced CLI-based interface for reviewing and editing generated manifests.
+    
+    This interface provides comprehensive review capabilities including:
+    - Field source tracking (Direct, Heuristic, NLP, LLM, User Edit)
+    - LLM-specific indicators and confidence scoring
+    - Quality assessment and recommendations
+    - Interactive editing and validation
+    - Export to OKH manifest format
+    """
     
     def __init__(self, manifest_generation: ManifestGeneration):
         """
@@ -30,6 +61,8 @@ class ReviewInterface:
             'a': self._add_field,
             'r': self._remove_field,
             'q': self._show_quality_report,
+            's': self._show_field_sources,
+            'l': self._show_llm_fields,
             'x': self._export_manifest,
             'h': self._show_help,
             'quit': self._quit
@@ -48,6 +81,16 @@ class ReviewInterface:
         print(f"Project: {self.manifest_generation.project_data.url}")
         print(f"Generated Fields: {len(self.manifest_generation.generated_fields)}")
         print(f"Missing Required: {len(self.manifest_generation.missing_fields)}")
+        
+        # Show field source summary
+        source_summary = self._get_field_source_summary()
+        print(f"Field Sources: {source_summary}")
+        
+        # Show LLM indicators if any LLM fields exist
+        llm_fields = self._get_llm_fields()
+        if llm_fields:
+            print(f"🤖 LLM-Generated Fields: {len(llm_fields)}")
+        
         print()
         
         self._show_help()
@@ -72,6 +115,98 @@ class ReviewInterface:
                 print(f"❌ Error: {e}")
         
         return self.manifest_generation
+    
+    def _get_field_source_summary(self) -> str:
+        """
+        Get a summary of field sources.
+        
+        Returns:
+            String summary of field sources
+        """
+        source_counts = {}
+        for field_gen in self.manifest_generation.generated_fields.values():
+            layer = field_gen.source_layer.value
+            source_counts[layer] = source_counts.get(layer, 0) + 1
+        
+        summary_parts = []
+        for layer, count in source_counts.items():
+            summary_parts.append(f"{layer}: {count}")
+        
+        return ", ".join(summary_parts)
+    
+    def _get_llm_fields(self) -> Dict[str, FieldGeneration]:
+        """
+        Get all LLM-generated fields.
+        
+        Returns:
+            Dictionary of LLM-generated fields
+        """
+        llm_fields = {}
+        for field_name, field_gen in self.manifest_generation.generated_fields.items():
+            if field_gen.source_layer == GenerationLayer.LLM:
+                llm_fields[field_name] = field_gen
+        return llm_fields
+    
+    def _show_field_sources(self) -> None:
+        """Show detailed field source information"""
+        print("\n📋 FIELD SOURCES")
+        print("=" * 40)
+        
+        for field_name, field_gen in self.manifest_generation.generated_fields.items():
+            layer_icon = self._get_layer_icon(field_gen.source_layer)
+            confidence_bar = self._get_confidence_bar(field_gen.confidence)
+            
+            print(f"{layer_icon} {field_name}: {confidence_bar} ({field_gen.confidence:.2f})")
+            print(f"   Method: {field_gen.generation_method}")
+            print(f"   Source: {field_gen.raw_source}")
+            
+            # Show LLM-specific info if applicable
+            if field_gen.source_layer == GenerationLayer.LLM:
+                print(f"   🤖 LLM-Generated Content")
+            
+            print()
+    
+    def _show_llm_fields(self) -> None:
+        """Show LLM-generated fields in detail"""
+        llm_fields = self._get_llm_fields()
+        
+        if not llm_fields:
+            print("\n🤖 No LLM-generated fields found")
+            return
+        
+        print(f"\n🤖 LLM-GENERATED FIELDS ({len(llm_fields)})")
+        print("=" * 50)
+        
+        for field_name, field_gen in llm_fields.items():
+            confidence_bar = self._get_confidence_bar(field_gen.confidence)
+            print(f"📝 {field_name}: {confidence_bar} ({field_gen.confidence:.2f})")
+            print(f"   Value: {field_gen.value}")
+            print(f"   Method: {field_gen.generation_method}")
+            print(f"   Source: {field_gen.raw_source}")
+            print()
+    
+    def _get_layer_icon(self, layer: GenerationLayer) -> str:
+        """Get icon for layer type"""
+        icons = {
+            GenerationLayer.DIRECT: "🔗",
+            GenerationLayer.HEURISTIC: "🔍",
+            GenerationLayer.NLP: "🧠",
+            GenerationLayer.LLM: "🤖",
+            GenerationLayer.BOM_NORMALIZATION: "📋",
+            GenerationLayer.USER_EDIT: "✏️"
+        }
+        return icons.get(layer, "❓")
+    
+    def _get_confidence_bar(self, confidence: float) -> str:
+        """Get visual confidence bar"""
+        if confidence >= 0.9:
+            return "🟢" + "█" * 10
+        elif confidence >= 0.7:
+            return "🟡" + "█" * int(confidence * 10) + "░" * (10 - int(confidence * 10))
+        elif confidence >= 0.5:
+            return "🟠" + "█" * int(confidence * 10) + "░" * (10 - int(confidence * 10))
+        else:
+            return "🔴" + "█" * int(confidence * 10) + "░" * (10 - int(confidence * 10))
     
     def edit_field(self, field_name: str, new_value: str) -> None:
         """

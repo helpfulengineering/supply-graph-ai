@@ -2,21 +2,50 @@
 Data models for OKH manifest generation system.
 
 This module defines the core data structures used throughout the generation pipeline,
-including enums, dataclasses, and result types.
+including enums, dataclasses, and result types. These models provide the foundation
+for the multi-layer generation system and support for LLM integration.
+
+The models are designed to be:
+- Type-safe with comprehensive type annotations
+- Extensible for new generation layers
+- Compatible with async operations
+- Well-documented for maintainability
+
+Key Components:
+- PlatformType: Supported source platforms
+- GenerationQuality: Quality assessment levels
+- GenerationLayer: Available generation layers including LLM
+- ProjectData: Raw project data from platforms
+- FieldGeneration: Individual field extraction results
+- LayerConfig: Configuration for all generation layers
+- ManifestGeneration: Complete generation results
 """
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Generic, TypeVar
+from typing import Dict, List, Optional, Any, Generic, TypeVar, Union, Callable
 
 # Generic type variables
 T = TypeVar('T')
 
 
 class PlatformType(Enum):
-    """Supported platforms for manifest generation"""
+    """
+    Supported platforms for manifest generation.
+    
+    This enum defines the platforms from which project data can be extracted
+    for OKH manifest generation. Each platform may have different metadata
+    structures and API capabilities.
+    
+    Attributes:
+        GITHUB: GitHub repositories
+        GITLAB: GitLab projects  
+        CODEBERG: Codeberg repositories
+        HACKADAY: Hackaday.io projects
+        UNKNOWN: Unknown or unsupported platforms
+    """
     GITHUB = "github"
     GITLAB = "gitlab"
     CODEBERG = "codeberg"
@@ -25,7 +54,19 @@ class PlatformType(Enum):
 
 
 class GenerationQuality(Enum):
-    """Quality levels for generation results"""
+    """
+    Quality levels for generation results.
+    
+    This enum defines the quality assessment levels for generated manifest fields.
+    Quality is determined by the completeness of required fields and confidence
+    scores of extracted information.
+    
+    Attributes:
+        COMPLETE: All critical elements generated with high confidence
+        PARTIAL: Some critical elements missing or low confidence
+        INSUFFICIENT: Majority of critical elements missing
+        REQUIRES_REVIEW: Significant ambiguities detected requiring human review
+    """
     COMPLETE = auto()      # All critical elements generated
     PARTIAL = auto()       # Some critical elements missing
     INSUFFICIENT = auto()  # Majority of critical elements missing
@@ -33,7 +74,29 @@ class GenerationQuality(Enum):
 
 
 class GenerationLayer(Enum):
-    """Available generation layers"""
+    """
+    Available generation layers in the multi-layer processing pipeline.
+    
+    This enum defines the different layers used for progressive enhancement
+    of manifest generation. Each layer applies different techniques to extract
+    and enhance field information from project data.
+    
+    Processing Order:
+    1. DIRECT: Direct field mapping from platform metadata
+    2. HEURISTIC: Rule-based pattern recognition and file analysis
+    3. NLP: Natural language processing for semantic understanding
+    4. LLM: Large language model for advanced content analysis
+    5. BOM_NORMALIZATION: Bill of Materials processing and structuring
+    6. USER_EDIT: User manual editing and validation
+    
+    Attributes:
+        DIRECT: Direct field mapping from platform APIs and metadata
+        HEURISTIC: Rule-based pattern recognition and file structure analysis
+        NLP: Natural language processing using spaCy for semantic understanding
+        LLM: Large language model for advanced content analysis and generation
+        BOM_NORMALIZATION: BOM processing, normalization, and structuring
+        USER_EDIT: User manual editing and validation of generated content
+    """
     DIRECT = "direct"      # Direct field mapping
     HEURISTIC = "heuristic"  # Rule-based pattern recognition
     NLP = "nlp"           # Natural language processing
@@ -44,7 +107,19 @@ class GenerationLayer(Enum):
 
 @dataclass
 class FileInfo:
-    """Information about a project file"""
+    """
+    Information about a project file.
+    
+    This dataclass represents metadata and content for a single file
+    within a project. It's used by generation layers to analyze
+    file structure and extract information.
+    
+    Attributes:
+        path: Relative path to the file within the project
+        size: File size in bytes
+        content: File content as string (for text files)
+        file_type: Detected file type (e.g., 'markdown', 'image', 'code')
+    """
     path: str
     size: int
     content: str
@@ -53,7 +128,18 @@ class FileInfo:
 
 @dataclass
 class DocumentInfo:
-    """Information about project documentation"""
+    """
+    Information about project documentation.
+    
+    This dataclass represents structured documentation within a project,
+    such as README files, manuals, or other documentation content.
+    
+    Attributes:
+        title: Title or name of the document
+        path: Path to the document file
+        doc_type: Type of document (e.g., 'readme', 'manual', 'guide')
+        content: Document content as string
+    """
     title: str
     path: str
     doc_type: str
@@ -62,7 +148,21 @@ class DocumentInfo:
 
 @dataclass
 class ProjectData:
-    """Raw project data extracted from a platform"""
+    """
+    Raw project data extracted from a platform.
+    
+    This dataclass contains all the raw data extracted from a source platform
+    (GitHub, GitLab, etc.) that will be processed by the generation layers
+    to create an OKH manifest.
+    
+    Attributes:
+        platform: Source platform type (GitHub, GitLab, etc.)
+        url: URL of the project/repository
+        metadata: Platform-specific metadata (API responses, etc.)
+        files: List of project files with content and metadata
+        documentation: List of structured documentation files
+        raw_content: Raw content from platform APIs (for debugging/fallback)
+    """
     platform: PlatformType
     url: str
     metadata: Dict[str, Any]
@@ -73,7 +173,20 @@ class ProjectData:
 
 @dataclass
 class FieldGeneration:
-    """Individual field generation result with metadata"""
+    """
+    Individual field generation result with metadata.
+    
+    This dataclass represents the result of extracting a single field
+    from project data, including the extracted value, confidence score,
+    and metadata about how it was generated.
+    
+    Attributes:
+        value: The extracted field value (type depends on field)
+        confidence: Confidence score between 0.0 and 1.0
+        source_layer: Which generation layer produced this result
+        generation_method: Specific method used for extraction
+        raw_source: Raw source data used for extraction (for debugging)
+    """
     value: Any
     confidence: float
     source_layer: GenerationLayer
@@ -394,7 +507,29 @@ class ManifestGeneration:
 
 @dataclass
 class LayerConfig:
-    """Enhanced configuration for generation layers with validation and layer-specific settings"""
+    """
+    Enhanced configuration for generation layers with validation and layer-specific settings.
+    
+    This dataclass provides comprehensive configuration for all generation layers,
+    including the new LLM layer. It supports both global settings and layer-specific
+    configurations for fine-tuning the generation process.
+    
+    Attributes:
+        use_direct: Enable direct field mapping layer
+        use_heuristic: Enable heuristic pattern recognition layer
+        use_nlp: Enable natural language processing layer
+        use_llm: Enable large language model layer
+        use_bom_normalization: Enable BOM normalization layer
+        
+        min_confidence: Minimum confidence threshold for field acceptance
+        progressive_enhancement: Use progressive enhancement (stop when quality threshold met)
+        save_reference: Save reference data for debugging/analysis
+        
+        direct_config: Configuration for direct layer
+        heuristic_config: Configuration for heuristic layer
+        nlp_config: Configuration for NLP layer
+        llm_config: Configuration for LLM layer (provider, model, etc.)
+    """
     
     # Core layer settings
     use_direct: bool = True
@@ -457,10 +592,27 @@ class LayerConfig:
             "semantic_analysis": True
         }
         default_llm_config = {
+            "provider": "openai",  # openai, anthropic, local, etc.
             "model": "gpt-3.5-turbo",
             "max_tokens": 1000,
             "temperature": 0.1,
-            "timeout": 30
+            "timeout": 30,
+            "api_key": None,  # Will be loaded from environment
+            "base_url": None,  # For custom endpoints
+            "max_retries": 3,
+            "retry_delay": 1.0,
+            "enable_caching": True,
+            "cache_ttl": 3600,  # 1 hour
+            "enable_streaming": False,
+            "custom_headers": {},
+            "fallback_to_nlp": True,  # Fallback to NLP if LLM fails
+            "cost_tracking": True,
+            "max_cost_per_request": 0.10,  # $0.10 max per request
+            "prompt_templates": {
+                "field_extraction": "Extract {field} from the following project information:",
+                "content_analysis": "Analyze the following content and extract key information:",
+                "quality_assessment": "Assess the quality and completeness of this manifest:"
+            }
         }
         
         # Merge with provided configs (provided configs take precedence)
@@ -501,23 +653,97 @@ class LayerConfig:
             "llm": self.use_llm
         }
         return layer_map.get(layer_name, False)
+    
+    def get_llm_provider(self) -> str:
+        """Get the configured LLM provider"""
+        return self.llm_config.get("provider", "openai")
+    
+    def get_llm_model(self) -> str:
+        """Get the configured LLM model"""
+        return self.llm_config.get("model", "gpt-3.5-turbo")
+    
+    def get_llm_api_key(self) -> Optional[str]:
+        """Get the LLM API key (from config or environment)"""
+        api_key = self.llm_config.get("api_key")
+        if api_key:
+            return api_key
+        
+        # Try to load from environment
+        import os
+        provider = self.get_llm_provider()
+        if provider == "openai":
+            return os.getenv("OPENAI_API_KEY")
+        elif provider == "anthropic":
+            return os.getenv("ANTHROPIC_API_KEY")
+        else:
+            return os.getenv(f"{provider.upper()}_API_KEY")
+    
+    def is_llm_configured(self) -> bool:
+        """Check if LLM layer is properly configured"""
+        if not self.use_llm:
+            return False
+        
+        api_key = self.get_llm_api_key()
+        return api_key is not None and len(api_key.strip()) > 0
+    
+    def get_enabled_layers(self) -> List[GenerationLayer]:
+        """Get list of enabled generation layers in processing order"""
+        layers = []
+        if self.use_direct:
+            layers.append(GenerationLayer.DIRECT)
+        if self.use_heuristic:
+            layers.append(GenerationLayer.HEURISTIC)
+        if self.use_nlp:
+            layers.append(GenerationLayer.NLP)
+        if self.use_llm and self.is_llm_configured():
+            layers.append(GenerationLayer.LLM)
+        if self.use_bom_normalization:
+            layers.append(GenerationLayer.BOM_NORMALIZATION)
+        return layers
 
 
 @dataclass
 class GenerationResult(Generic[T]):
-    """Generic generation result wrapper"""
+    """
+    Generic generation result wrapper with metadata.
+    
+    This dataclass provides a generic wrapper for generation results
+    with associated metadata, processing logs, and quality information.
+    It's used to wrap results from individual layers and the final
+    manifest generation.
+    
+    Attributes:
+        data: The actual generation result data (type T)
+        metadata: Metadata about the generation process
+    """
     data: T
     metadata: GenerationMetadata = field(default_factory=GenerationMetadata)
     
     def mark_as_reviewed(self) -> None:
-        """Mark the generation as human-reviewed"""
+        """
+        Mark the generation as human-reviewed.
+        
+        Adds a flag to indicate that this result has been reviewed
+        by a human and is ready for use.
+        """
         if "REQUIRES_HUMAN_VERIFICATION" not in self.metadata.flags:
             self.metadata.flags.append("REQUIRES_HUMAN_VERIFICATION")
     
     def update_confidence(self, field: str, score: float) -> None:
-        """Update confidence score for a specific field"""
+        """
+        Update confidence score for a specific field.
+        
+        Args:
+            field: Name of the field
+            score: Confidence score between 0.0 and 1.0
+        """
         self.metadata.update_confidence(field, score)
     
     def add_processing_log(self, message: str) -> None:
-        """Add a processing log entry"""
+        """
+        Add a processing log entry.
+        
+        Args:
+            message: Log message to add
+        """
         self.metadata.add_processing_log(message)

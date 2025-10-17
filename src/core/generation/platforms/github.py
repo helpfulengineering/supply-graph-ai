@@ -20,14 +20,39 @@ from .base import ProjectExtractor
 
 
 class GitHubExtractor(ProjectExtractor):
-    """Extractor for GitHub repositories with caching and authentication support"""
+    """
+    Extractor for GitHub repositories with caching and authentication support.
+    
+    This extractor provides comprehensive GitHub repository data extraction including:
+    - Repository metadata (name, description, license, topics, etc.)
+    - File contents (README, LICENSE, BOM files, source code)
+    - Documentation parsing
+    - Release information
+    - Rate limiting and caching
+    
+    Attributes:
+        base_url: GitHub API base URL
+        max_scan_depth: Maximum directory depth to scan
+        max_file_size: Maximum file size to fetch content for
+        github_token: GitHub API token for authentication
+        is_authenticated: Whether authentication is enabled
+        cache_dir: Directory for caching API responses
+    """
     
     def __init__(self, cache_dir: Optional[str] = None, cache_ttl_hours: int = 24, github_token: Optional[str] = None):
+        """
+        Initialize the GitHub extractor.
+        
+        Args:
+            cache_dir: Directory for caching API responses
+            cache_ttl_hours: Cache time-to-live in hours
+            github_token: GitHub API token for authentication
+        """
+        super().__init__(cache_enabled=True, cache_ttl_hours=cache_ttl_hours)
+        
         self.base_url = "https://api.github.com"
-        self.rate_limit_remaining = 60  # Default rate limit for unauthenticated
         self.max_scan_depth = 6  # Maximum directory depth to scan
         self.max_file_size = 8 * 1024 * 1024  # 8MB file size limit
-        self.rate_limit_reset = None
         
         # Authentication
         self.github_token = github_token or self._load_github_token_from_env()
@@ -43,7 +68,6 @@ class GitHubExtractor(ProjectExtractor):
         
         # Caching configuration
         self.cache_dir = Path(cache_dir) if cache_dir else Path.home() / ".cache" / "supply-graph-ai" / "github"
-        self.cache_ttl = timedelta(hours=cache_ttl_hours)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
     
     def _load_github_token_from_env(self) -> Optional[str]:
@@ -74,13 +98,24 @@ class GitHubExtractor(ProjectExtractor):
             
         Returns:
             ProjectData containing extracted information
+            
+        Raises:
+            ValueError: If URL is invalid or extraction fails
+            ConnectionError: If unable to connect to GitHub API
         """
-        # Extract owner and repo from URL
-        router = URLRouter()
-        owner, repo = router.extract_repo_info(url)
+        # Start tracking metrics
+        self.start_extraction(url)
         
-        # Fetch real data from GitHub API with caching
         try:
+            # Validate URL
+            if not self.validate_url(url):
+                raise ValueError(f"Invalid GitHub URL: {url}")
+            
+            # Extract owner and repo from URL
+            router = URLRouter()
+            owner, repo = router.extract_repo_info(url)
+            
+            # Fetch real data from GitHub API with caching
             import httpx
             
             # Set up authentication headers
@@ -249,7 +284,10 @@ class GitHubExtractor(ProjectExtractor):
                 
         except Exception as e:
             # Fallback to mock data if API fails
-            print(f"Warning: GitHub API failed ({e}), using fallback data")
+            error_msg = f"GitHub API failed ({e}), using fallback data"
+            print(f"Warning: {error_msg}")
+            self.add_error(error_msg)
+            
             metadata = {
                 "name": repo,
                 "full_name": f"{owner}/{repo}",
@@ -292,7 +330,8 @@ class GitHubExtractor(ProjectExtractor):
                 "LICENSE": "MIT License\n\nCopyright (c) 2023"
             }
         
-        return ProjectData(
+        # Create ProjectData and end metrics tracking
+        project_data = ProjectData(
             platform=PlatformType.GITHUB,
             url=url,
             metadata=metadata,
@@ -300,6 +339,11 @@ class GitHubExtractor(ProjectExtractor):
             documentation=documentation,
             raw_content=raw_content
         )
+        
+        # End metrics tracking
+        self.end_extraction(success=True, files_count=len(files))
+        
+        return project_data
     
     
     async def _scan_directories_recursively(self, client, owner: str, repo: str, 

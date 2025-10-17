@@ -3,23 +3,81 @@ Generation Engine for OKH manifest generation.
 
 This module provides the main orchestration engine that coordinates all generation
 layers and manages progressive enhancement to create OKH manifests from project data.
+The engine supports both synchronous and asynchronous processing, with comprehensive
+error handling and quality assessment.
+
+Key Features:
+- Multi-layer processing with progressive enhancement
+- Async support for concurrent layer processing
+- Comprehensive error handling and recovery
+- Quality assessment and reporting
+- LLM layer integration with fallback mechanisms
+- BOM normalization and processing
+- Extensible architecture for new layers
+
+The engine follows the incremental development principle, making small, focused
+changes while maintaining backward compatibility.
 """
 
 import asyncio
-from typing import Dict, List, Optional, Any
+import logging
+from typing import Dict, List, Optional, Any, Tuple, Union
+from dataclasses import dataclass
 
 from .models import (
     ProjectData, ManifestGeneration, FieldGeneration, LayerConfig,
-    QualityReport, GenerationLayer, GenerationQuality
+    QualityReport, GenerationLayer, GenerationQuality, GenerationResult
 )
 from .layers.direct import DirectMatcher
 from .layers.heuristic import HeuristicMatcher
 from .layers.nlp import NLPMatcher
 from .quality import QualityAssessor
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class EngineMetrics:
+    """Metrics for tracking engine performance and usage"""
+    total_requests: int = 0
+    successful_requests: int = 0
+    failed_requests: int = 0
+    average_processing_time: float = 0.0
+    layer_usage_counts: Dict[str, int] = None
+    error_counts: Dict[str, int] = None
+    
+    def __post_init__(self):
+        if self.layer_usage_counts is None:
+            self.layer_usage_counts = {}
+        if self.error_counts is None:
+            self.error_counts = {}
+
 
 class GenerationEngine:
-    """Main orchestration engine for OKH manifest generation"""
+    """
+    Main orchestration engine for OKH manifest generation.
+    
+    This class coordinates all generation layers and manages the progressive
+    enhancement process to create high-quality OKH manifests from project data.
+    It supports both synchronous and asynchronous processing with comprehensive
+    error handling and quality assessment.
+    
+    The engine follows a multi-layer approach:
+    1. Direct mapping from platform metadata
+    2. Heuristic pattern recognition
+    3. Natural language processing
+    4. Large language model analysis (when configured)
+    5. BOM normalization and processing
+    6. Quality assessment and reporting
+    
+    Attributes:
+        config: Layer configuration for the engine
+        _matchers: Dictionary of initialized layer matchers
+        _quality_assessor: Quality assessment component
+        _required_fields: List of required OKH manifest fields
+        _metrics: Performance and usage metrics
+    """
     
     def __init__(self, config: Optional[LayerConfig] = None):
         """
@@ -27,6 +85,10 @@ class GenerationEngine:
         
         Args:
             config: Layer configuration. If None, uses default configuration.
+            
+        Raises:
+            ValueError: If configuration is invalid
+            RuntimeError: If layer initialization fails
         """
         self.config = config or LayerConfig()
         self._validate_config()
@@ -43,6 +105,11 @@ class GenerationEngine:
             "title", "version", "license", "licensor", 
             "documentation_language", "function"
         ]
+        
+        # Initialize metrics
+        self._metrics = EngineMetrics()
+        
+        logger.info(f"GenerationEngine initialized with {len(self._matchers)} layers")
     
     def _validate_config(self):
         """Validate the layer configuration"""
@@ -59,22 +126,64 @@ class GenerationEngine:
             raise ValueError("At least one generation layer must be enabled")
     
     def _initialize_matchers(self):
-        """Initialize available layer matchers"""
-        if self.config.use_direct:
-            self._matchers[GenerationLayer.DIRECT] = DirectMatcher()
+        """
+        Initialize available layer matchers based on configuration.
         
-        if self.config.use_heuristic:
-            self._matchers[GenerationLayer.HEURISTIC] = HeuristicMatcher()
+        This method initializes the appropriate layer matchers based on the
+        configuration settings. It includes error handling for layer initialization
+        failures and logging for debugging purposes.
         
-        # Future layers will be added here
-        if self.config.use_nlp:
-            self._matchers[GenerationLayer.NLP] = NLPMatcher()
-        # if self.config.use_llm:
-        #     self._matchers[GenerationLayer.LLM] = LLMMatcher()
+        Raises:
+            RuntimeError: If critical layer initialization fails
+        """
+        try:
+            if self.config.use_direct:
+                self._matchers[GenerationLayer.DIRECT] = DirectMatcher(self.config)
+                logger.debug("Direct layer initialized")
+            
+            if self.config.use_heuristic:
+                self._matchers[GenerationLayer.HEURISTIC] = HeuristicMatcher(self.config)
+                logger.debug("Heuristic layer initialized")
+            
+            if self.config.use_nlp:
+                self._matchers[GenerationLayer.NLP] = NLPMatcher(self.config)
+                logger.debug("NLP layer initialized")
+            
+            # Initialize LLM layer if configured and available
+            if self.config.use_llm and self.config.is_llm_configured():
+                try:
+                    # Import LLM matcher dynamically to avoid import errors if not available
+                    from .layers.llm import LLMMatcher
+                    self._matchers[GenerationLayer.LLM] = LLMMatcher(self.config)
+                    logger.info(f"LLM layer initialized with provider: {self.config.get_llm_provider()}")
+                except ImportError as e:
+                    logger.warning(f"LLM layer not available: {e}")
+                    if not self.config.llm_config.get("fallback_to_nlp", True):
+                        raise RuntimeError("LLM layer required but not available")
+                except Exception as e:
+                    logger.error(f"Failed to initialize LLM layer: {e}")
+                    if not self.config.llm_config.get("fallback_to_nlp", True):
+                        raise RuntimeError(f"LLM layer initialization failed: {e}")
+            elif self.config.use_llm:
+                logger.warning("LLM layer enabled but not properly configured")
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize layer matchers: {e}")
+            raise RuntimeError(f"Layer initialization failed: {e}")
+        
+        # Ensure at least one layer is available
+        if not self._matchers:
+            raise RuntimeError("No generation layers available")
+        
+        logger.info(f"Initialized {len(self._matchers)} generation layers")
     
     def generate_manifest(self, project_data: ProjectData) -> ManifestGeneration:
         """
-        Generate an OKH manifest from project data.
+        Generate an OKH manifest from project data (synchronous version).
+        
+        This method provides synchronous manifest generation with comprehensive
+        error handling and metrics tracking. For better performance with multiple
+        layers, consider using the async version.
         
         Args:
             project_data: Raw project data from platform
@@ -84,133 +193,342 @@ class GenerationEngine:
             
         Raises:
             ValueError: If project data is invalid
+            RuntimeError: If generation fails due to system errors
         """
-        if project_data is None:
-            raise ValueError("Project data cannot be None")
+        import time
+        start_time = time.time()
+        self._metrics.total_requests += 1
         
-        if not isinstance(project_data, ProjectData):
-            raise ValueError("Invalid project data")
-        
-        # Initialize result
-        generated_fields = {}
-        confidence_scores = {}
-        missing_fields = []
-        
-        # Apply layers in priority order
-        if self.config.progressive_enhancement:
-            generated_fields, confidence_scores, missing_fields = self._progressive_enhancement(
-                project_data, generated_fields, confidence_scores, missing_fields
+        try:
+            # Validate input
+            if project_data is None:
+                raise ValueError("Project data cannot be None")
+            
+            if not isinstance(project_data, ProjectData):
+                raise ValueError("Invalid project data")
+            
+            logger.info(f"Starting manifest generation for project: {project_data.url}")
+            
+            # Initialize result containers
+            generated_fields: Dict[str, FieldGeneration] = {}
+            confidence_scores: Dict[str, float] = {}
+            missing_fields: List[str] = []
+            
+            # Apply layers based on configuration
+            if self.config.progressive_enhancement:
+                generated_fields, confidence_scores, missing_fields = self._progressive_enhancement(
+                    project_data, generated_fields, confidence_scores, missing_fields
+                )
+            else:
+                generated_fields, confidence_scores, missing_fields = self._apply_all_layers(
+                    project_data, generated_fields, confidence_scores, missing_fields
+                )
+            
+            # Generate quality report
+            quality_report = self._quality_assessor.generate_quality_report(
+                generated_fields, confidence_scores, missing_fields, self._required_fields
             )
+            
+            # Create result
+            result = ManifestGeneration(
+                project_data=project_data,
+                generated_fields=generated_fields,
+                confidence_scores=confidence_scores,
+                quality_report=quality_report,
+                missing_fields=missing_fields
+            )
+            
+            # Update metrics
+            processing_time = time.time() - start_time
+            self._update_metrics(processing_time, success=True)
+            
+            logger.info(f"Manifest generation completed in {processing_time:.2f}s with quality: {quality_report.overall_quality:.2f}")
+            
+            return result
+            
+        except Exception as e:
+            # Update metrics
+            processing_time = time.time() - start_time
+            self._update_metrics(processing_time, success=False, error=str(e))
+            
+            logger.error(f"Manifest generation failed after {processing_time:.2f}s: {e}")
+            raise
+    
+    def _update_metrics(self, processing_time: float, success: bool, error: Optional[str] = None):
+        """
+        Update engine metrics with processing results.
+        
+        Args:
+            processing_time: Time taken for processing in seconds
+            success: Whether the processing was successful
+            error: Error message if processing failed
+        """
+        if success:
+            self._metrics.successful_requests += 1
         else:
-            generated_fields, confidence_scores, missing_fields = self._apply_all_layers(
-                project_data, generated_fields, confidence_scores, missing_fields
-            )
+            self._metrics.failed_requests += 1
+            if error:
+                error_type = type(error).__name__ if hasattr(error, '__name__') else 'Unknown'
+                self._metrics.error_counts[error_type] = self._metrics.error_counts.get(error_type, 0) + 1
         
-        # Generate quality report
-        quality_report = self._quality_assessor.generate_quality_report(
-            generated_fields, confidence_scores, missing_fields, self._required_fields
-        )
+        # Update average processing time
+        total_requests = self._metrics.successful_requests + self._metrics.failed_requests
+        if total_requests > 0:
+            current_avg = self._metrics.average_processing_time
+            self._metrics.average_processing_time = (current_avg * (total_requests - 1) + processing_time) / total_requests
+    
+    def get_metrics(self) -> EngineMetrics:
+        """
+        Get current engine metrics.
         
-        return ManifestGeneration(
-            project_data=project_data,
-            generated_fields=generated_fields,
-            confidence_scores=confidence_scores,
-            quality_report=quality_report,
-            missing_fields=missing_fields
-        )
+        Returns:
+            EngineMetrics object with current performance data
+        """
+        return self._metrics
+    
+    def reset_metrics(self):
+        """Reset engine metrics to initial state."""
+        self._metrics = EngineMetrics()
+        logger.info("Engine metrics reset")
     
     async def generate_manifest_async(self, project_data: ProjectData) -> ManifestGeneration:
         """
-        Async version of generate_manifest for future async operations.
+        Async version of generate_manifest for concurrent layer processing.
+        
+        This method provides asynchronous manifest generation with better performance
+        for multiple layers and comprehensive error handling. It supports concurrent
+        processing of independent layers and includes BOM normalization.
         
         Args:
             project_data: Raw project data from platform
             
         Returns:
             ManifestGeneration containing generated fields and metadata
+            
+        Raises:
+            ValueError: If project data is invalid
+            RuntimeError: If generation fails due to system errors
         """
-        # Initialize result containers
-        generated_fields: Dict[str, FieldGeneration] = {}
-        confidence_scores: Dict[str, float] = {}
-        missing_fields: List[str] = []
+        import time
+        start_time = time.time()
+        self._metrics.total_requests += 1
         
-        # Apply layers based on configuration
-        if self.config.progressive_enhancement:
-            generated_fields, confidence_scores, missing_fields = await self._progressive_enhancement(
-                project_data, generated_fields, confidence_scores, missing_fields
-            )
-        else:
-            generated_fields, confidence_scores, missing_fields = await self._apply_all_layers(
-                project_data, generated_fields, confidence_scores, missing_fields
-            )
-        
-        # Add BOM normalization if enabled
-        full_bom_object = None
-        if self.config.use_bom_normalization:
-            try:
-                bom = await self._generate_normalized_bom(project_data)
-                full_bom_object = bom  # Store full BOM object for export
-                # Add BOM to generated fields
-                generated_fields["bom"] = FieldGeneration(
-                    value=bom.to_dict(),
-                    confidence=bom.metadata.get("overall_confidence", 0.8),
-                    source_layer=GenerationLayer.BOM_NORMALIZATION,
-                    generation_method="bom_normalization",
-                    raw_source=f"Extracted from {len(bom.components)} sources"
+        try:
+            # Validate input
+            if project_data is None:
+                raise ValueError("Project data cannot be None")
+            
+            if not isinstance(project_data, ProjectData):
+                raise ValueError("Invalid project data")
+            
+            logger.info(f"Starting async manifest generation for project: {project_data.url}")
+            
+            # Initialize result containers
+            generated_fields: Dict[str, FieldGeneration] = {}
+            confidence_scores: Dict[str, float] = {}
+            missing_fields: List[str] = []
+            
+            # Apply layers based on configuration
+            if self.config.progressive_enhancement:
+                generated_fields, confidence_scores, missing_fields = await self._progressive_enhancement_async(
+                    project_data, generated_fields, confidence_scores, missing_fields
                 )
-                confidence_scores["bom"] = bom.metadata.get("overall_confidence", 0.8)
-                
-                # Extract materials from BOM components - always override with structured data
-                materials = self._extract_materials_from_bom(bom)
-                if materials:
-                    generated_fields["materials"] = FieldGeneration(
-                        value=materials,
-                        confidence=0.8,
+            else:
+                generated_fields, confidence_scores, missing_fields = await self._apply_all_layers_async(
+                    project_data, generated_fields, confidence_scores, missing_fields
+                )
+            
+            # Add BOM normalization if enabled
+            full_bom_object = None
+            if self.config.use_bom_normalization:
+                try:
+                    bom = await self._generate_normalized_bom(project_data)
+                    full_bom_object = bom  # Store full BOM object for export
+                    # Add BOM to generated fields
+                    generated_fields["bom"] = FieldGeneration(
+                        value=bom.to_dict(),
+                        confidence=bom.metadata.get("overall_confidence", 0.8),
                         source_layer=GenerationLayer.BOM_NORMALIZATION,
-                        generation_method="bom_materials_extraction",
-                        raw_source=f"Extracted from {len(bom.components)} BOM components"
+                        generation_method="bom_normalization",
+                        raw_source=f"Extracted from {len(bom.components)} sources"
                     )
-                    confidence_scores["materials"] = 0.8
+                    confidence_scores["bom"] = bom.metadata.get("overall_confidence", 0.8)
+                    
+                    # Extract materials from BOM components - always override with structured data
+                    materials = self._extract_materials_from_bom(bom)
+                    if materials:
+                        generated_fields["materials"] = FieldGeneration(
+                            value=materials,
+                            confidence=0.8,
+                            source_layer=GenerationLayer.BOM_NORMALIZATION,
+                            generation_method="bom_materials_extraction",
+                            raw_source=f"Extracted from {len(bom.components)} BOM components"
+                        )
+                        confidence_scores["materials"] = 0.8
+                except Exception as e:
+                    # Log error but don't fail the entire generation
+                    logger.warning(f"BOM normalization failed: {e}")
+            
+            # Analyze parts directory for parts and sub_parts fields
+            parts_analysis = self._analyze_parts_directory(project_data)
+            if parts_analysis["parts"]:
+                generated_fields["parts"] = FieldGeneration(
+                    value=parts_analysis["parts"],
+                    confidence=0.7,
+                    source_layer=GenerationLayer.HEURISTIC,
+                    generation_method="parts_directory_analysis",
+                    raw_source=f"Analyzed {len(parts_analysis['parts'])} parts from directory structure"
+                )
+                confidence_scores["parts"] = 0.7
+            
+            if parts_analysis["sub_parts"]:
+                generated_fields["sub_parts"] = FieldGeneration(
+                    value=parts_analysis["sub_parts"],
+                    confidence=0.7,
+                    source_layer=GenerationLayer.HEURISTIC,
+                    generation_method="parts_directory_analysis",
+                    raw_source=f"Analyzed {len(parts_analysis['sub_parts'])} sub-parts from directory structure"
+                )
+                confidence_scores["sub_parts"] = 0.7
+            
+            # Generate quality report
+            quality_report = self._quality_assessor.generate_quality_report(
+                generated_fields, confidence_scores, missing_fields, self._required_fields
+            )
+            
+            # Create result
+            result = ManifestGeneration(
+                project_data=project_data,
+                generated_fields=generated_fields,
+                confidence_scores=confidence_scores,
+                quality_report=quality_report,
+                missing_fields=missing_fields,
+                full_bom=full_bom_object
+            )
+            
+            # Update metrics
+            processing_time = time.time() - start_time
+            self._update_metrics(processing_time, success=True)
+            
+            logger.info(f"Async manifest generation completed in {processing_time:.2f}s with quality: {quality_report.overall_quality:.2f}")
+            
+            return result
+            
+        except Exception as e:
+            # Update metrics
+            processing_time = time.time() - start_time
+            self._update_metrics(processing_time, success=False, error=str(e))
+            
+            logger.error(f"Async manifest generation failed after {processing_time:.2f}s: {e}")
+            raise
+    
+    async def _progressive_enhancement_async(self, project_data: ProjectData, 
+                                generated_fields: Dict[str, FieldGeneration],
+                                confidence_scores: Dict[str, float],
+                                missing_fields: List[str]) -> Tuple[Dict[str, FieldGeneration], Dict[str, float], List[str]]:
+        """
+        Apply layers progressively with async support, stopping when quality threshold is met.
+        
+        Args:
+            project_data: Raw project data
+            generated_fields: Current generated fields
+            confidence_scores: Current confidence scores
+            missing_fields: Current missing fields
+            
+        Returns:
+            Tuple of (generated_fields, confidence_scores, missing_fields)
+        """
+        # Get enabled layers in processing order
+        enabled_layers = self.config.get_enabled_layers()
+        
+        for layer in enabled_layers:
+            if layer not in self._matchers:
+                continue
+            
+            try:
+                # Apply layer
+                layer_result = await self._matchers[layer].process(project_data)
+                
+                # Merge results
+                for field_name, field_gen in layer_result.fields.items():
+                    if field_name not in generated_fields:
+                        # New field
+                        generated_fields[field_name] = field_gen
+                        confidence_scores[field_name] = field_gen.confidence
+                    elif field_gen.confidence > generated_fields[field_name].confidence:
+                        # Better confidence, replace
+                        generated_fields[field_name] = field_gen
+                        confidence_scores[field_name] = field_gen.confidence
+                
+                # Update layer usage metrics
+                self._metrics.layer_usage_counts[layer.value] = self._metrics.layer_usage_counts.get(layer.value, 0) + 1
+                
+                # Check if we should stop (all required fields have sufficient confidence)
+                if self._should_stop_progressive_enhancement(confidence_scores):
+                    logger.debug(f"Progressive enhancement stopped at layer: {layer.value}")
+                    break
+                    
             except Exception as e:
-                # Log error but don't fail the entire generation
-                print(f"Warning: BOM normalization failed: {e}")
+                logger.warning(f"Layer {layer.value} failed: {e}")
+                # Continue with other layers
+                continue
         
-        # Analyze parts directory for parts and sub_parts fields
-        parts_analysis = self._analyze_parts_directory(project_data)
-        if parts_analysis["parts"]:
-            generated_fields["parts"] = FieldGeneration(
-                value=parts_analysis["parts"],
-                confidence=0.7,
-                source_layer=GenerationLayer.HEURISTIC,
-                generation_method="parts_directory_analysis",
-                raw_source=f"Analyzed {len(parts_analysis['parts'])} parts from directory structure"
-            )
-            confidence_scores["parts"] = 0.7
+        # Update missing fields
+        missing_fields = self._calculate_missing_fields(generated_fields)
         
-        if parts_analysis["sub_parts"]:
-            generated_fields["sub_parts"] = FieldGeneration(
-                value=parts_analysis["sub_parts"],
-                confidence=0.7,
-                source_layer=GenerationLayer.HEURISTIC,
-                generation_method="parts_directory_analysis",
-                raw_source=f"Analyzed {len(parts_analysis['sub_parts'])} sub-parts from directory structure"
-            )
-            confidence_scores["sub_parts"] = 0.7
+        return generated_fields, confidence_scores, missing_fields
+    
+    async def _apply_all_layers_async(self, project_data: ProjectData,
+                         generated_fields: Dict[str, FieldGeneration],
+                         confidence_scores: Dict[str, float],
+                         missing_fields: List[str]) -> Tuple[Dict[str, FieldGeneration], Dict[str, float], List[str]]:
+        """
+        Apply all enabled layers concurrently without progressive enhancement.
         
-        # Generate quality report
-        quality_report = self._quality_assessor.generate_quality_report(
-            generated_fields, confidence_scores, missing_fields, self._required_fields
-        )
+        Args:
+            project_data: Raw project data
+            generated_fields: Current generated fields
+            confidence_scores: Current confidence scores
+            missing_fields: Current missing fields
+            
+        Returns:
+            Tuple of (generated_fields, confidence_scores, missing_fields)
+        """
+        # Get enabled layers
+        enabled_layers = self.config.get_enabled_layers()
         
-        # Create result
-        return ManifestGeneration(
-            project_data=project_data,
-            generated_fields=generated_fields,
-            confidence_scores=confidence_scores,
-            quality_report=quality_report,
-            missing_fields=missing_fields,
-            full_bom=full_bom_object
-        )
+        # Create tasks for concurrent execution
+        tasks = []
+        for layer in enabled_layers:
+            if layer in self._matchers:
+                task = self._matchers[layer].process(project_data)
+                tasks.append((layer, task))
+        
+        # Execute all layers concurrently
+        results = await asyncio.gather(*[task for _, task in tasks], return_exceptions=True)
+        
+        # Process results
+        for (layer, _), result in zip(tasks, results):
+            if isinstance(result, Exception):
+                logger.warning(f"Layer {layer.value} failed: {result}")
+                continue
+            
+            # Merge results (keep highest confidence)
+            for field_name, field_gen in result.fields.items():
+                if field_name not in generated_fields:
+                    generated_fields[field_name] = field_gen
+                    confidence_scores[field_name] = field_gen.confidence
+                elif field_gen.confidence > generated_fields[field_name].confidence:
+                    generated_fields[field_name] = field_gen
+                    confidence_scores[field_name] = field_gen.confidence
+            
+            # Update layer usage metrics
+            self._metrics.layer_usage_counts[layer.value] = self._metrics.layer_usage_counts.get(layer.value, 0) + 1
+        
+        # Update missing fields
+        missing_fields = self._calculate_missing_fields(generated_fields)
+        
+        return generated_fields, confidence_scores, missing_fields
     
     async def _progressive_enhancement(self, project_data: ProjectData, 
                                 generated_fields: Dict[str, FieldGeneration],
