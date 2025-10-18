@@ -8,13 +8,13 @@ This module provides the foundation for all CLI commands, including:
 - Configuration management
 """
 
-import asyncio
 import httpx
 import click
 import json
 import logging
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
+from datetime import datetime
 
 from ..config import settings
 from ..core.services.package_service import PackageService
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class CLIConfig:
-    """CLI configuration management"""
+    """CLI configuration management with LLM support"""
     
     def __init__(self):
         self.server_url = "http://localhost:8001"
@@ -35,12 +35,37 @@ class CLIConfig:
         self.retry_attempts = 3
         self.verbose = False
         
+        # LLM configuration
+        self.llm_config = {
+            'use_llm': False,
+            'llm_provider': 'anthropic',
+            'llm_model': None,
+            'quality_level': 'professional',
+            'strict_mode': False
+        }
+        
     @classmethod
     def from_settings(cls) -> 'CLIConfig':
         """Create config from application settings"""
         config = cls()
         # You can add settings-based configuration here
         return config
+    
+    def update_llm_config(self, **kwargs):
+        """Update LLM configuration"""
+        self.llm_config.update(kwargs)
+    
+    def get_llm_provider(self) -> str:
+        """Get current LLM provider"""
+        return self.llm_config.get('llm_provider', 'anthropic')
+    
+    def get_llm_model(self) -> Optional[str]:
+        """Get current LLM model"""
+        return self.llm_config.get('llm_model')
+    
+    def is_llm_enabled(self) -> bool:
+        """Check if LLM is enabled"""
+        return self.llm_config.get('use_llm', False)
 
 
 class APIClient:
@@ -135,13 +160,21 @@ class ServiceFallback:
 
 
 class CLIContext:
-    """Context object passed to all CLI commands"""
+    """Context object passed to all CLI commands with LLM support"""
     
     def __init__(self, config: CLIConfig):
         self.config = config
         self.api_client = APIClient(config)
         self.service_fallback = ServiceFallback()
         self.verbose = config.verbose
+        self.output_format = 'text'
+        
+        # LLM configuration
+        self.llm_config = config.llm_config.copy()
+        
+        # Performance tracking
+        self.start_time = None
+        self.command_name = None
     
     def log(self, message: str, level: str = "info"):
         """Log message with appropriate level"""
@@ -154,6 +187,44 @@ class CLIContext:
                 click.echo(f"✅ {message}")
             else:
                 click.echo(f"ℹ️  {message}")
+    
+    def update_llm_config(self, **kwargs):
+        """Update LLM configuration"""
+        self.llm_config.update(kwargs)
+        self.config.update_llm_config(**kwargs)
+    
+    def is_llm_enabled(self) -> bool:
+        """Check if LLM is enabled"""
+        return self.llm_config.get('use_llm', False)
+    
+    def get_llm_provider(self) -> str:
+        """Get current LLM provider"""
+        return self.llm_config.get('llm_provider', 'anthropic')
+    
+    def get_llm_model(self) -> Optional[str]:
+        """Get current LLM model"""
+        return self.llm_config.get('llm_model')
+    
+    def get_quality_level(self) -> str:
+        """Get current quality level"""
+        return self.llm_config.get('quality_level', 'professional')
+    
+    def is_strict_mode(self) -> bool:
+        """Check if strict mode is enabled"""
+        return self.llm_config.get('strict_mode', False)
+    
+    def start_command_tracking(self, command_name: str):
+        """Start tracking command execution"""
+        self.command_name = command_name
+        self.start_time = datetime.utcnow()
+        if self.verbose:
+            self.log(f"Starting {command_name} command", "info")
+    
+    def end_command_tracking(self):
+        """End tracking command execution"""
+        if self.start_time and self.verbose:
+            execution_time = (datetime.utcnow() - self.start_time).total_seconds()
+            self.log(f"Command {self.command_name} completed in {execution_time:.2f} seconds", "success")
 
 class SmartCommand:
     """Base class for commands that can use HTTP or direct service calls"""
@@ -231,6 +302,50 @@ def echo_warning(message: str):
 def echo_info(message: str):
     """Echo info message"""
     click.echo(f"ℹ️  {message}")
+
+
+def format_llm_output(data: Dict[str, Any], cli_ctx: CLIContext) -> str:
+    """Format output with LLM-specific information"""
+    if cli_ctx.is_llm_enabled():
+        llm_info = {
+            "llm_provider": cli_ctx.get_llm_provider(),
+            "llm_model": cli_ctx.get_llm_model(),
+            "quality_level": cli_ctx.get_quality_level(),
+            "strict_mode": cli_ctx.is_strict_mode()
+        }
+        data["llm_info"] = llm_info
+    
+    return format_json_output(data, pretty=True)
+
+
+def create_llm_request_data(cli_ctx: CLIContext, base_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Create request data with LLM configuration"""
+    request_data = base_data.copy()
+    
+    if cli_ctx.is_llm_enabled():
+        request_data.update({
+            "use_llm": True,
+            "llm_provider": cli_ctx.get_llm_provider(),
+            "llm_model": cli_ctx.get_llm_model(),
+            "quality_level": cli_ctx.get_quality_level(),
+            "strict_mode": cli_ctx.is_strict_mode()
+        })
+    
+    return request_data
+
+
+def log_llm_usage(cli_ctx: CLIContext, operation: str, cost: Optional[float] = None):
+    """Log LLM usage information"""
+    if cli_ctx.is_llm_enabled() and cli_ctx.verbose:
+        provider = cli_ctx.get_llm_provider()
+        model = cli_ctx.get_llm_model() or "default"
+        quality = cli_ctx.get_quality_level()
+        
+        log_msg = f"LLM {operation} using {provider}/{model} (quality: {quality})"
+        if cost:
+            log_msg += f" (cost: ${cost:.4f})"
+        
+        cli_ctx.log(log_msg, "info")
 
 
 # Global CLI configuration

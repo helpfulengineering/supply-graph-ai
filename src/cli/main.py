@@ -28,8 +28,24 @@ from .utility import utility_group
               help='Output in JSON format')
 @click.option('--table', 'output_format', flag_value='table',
               help='Output in table format')
+@click.option('--use-llm', is_flag=True,
+              help='Enable LLM integration for enhanced processing')
+@click.option('--llm-provider', 
+              type=click.Choice(['openai', 'anthropic', 'google', 'azure', 'local']),
+              default='anthropic',
+              help='LLM provider to use')
+@click.option('--llm-model', 
+              help='Specific LLM model to use (provider-specific)')
+@click.option('--quality-level', 
+              type=click.Choice(['hobby', 'professional', 'medical']),
+              default='professional',
+              help='Quality level for LLM processing')
+@click.option('--strict-mode', is_flag=True,
+              help='Enable strict validation mode')
 @click.pass_context
-def cli(ctx, server_url: str, timeout: float, verbose: bool, output_format: Optional[str]):
+def cli(ctx, server_url: str, timeout: float, verbose: bool, output_format: Optional[str],
+        use_llm: bool, llm_provider: str, llm_model: Optional[str], 
+        quality_level: str, strict_mode: bool):
     """
     Open Matching Engine (OME) Command Line Interface
     
@@ -43,6 +59,15 @@ def cli(ctx, server_url: str, timeout: float, verbose: bool, output_format: Opti
     config.server_url = server_url
     config.timeout = timeout
     config.verbose = verbose
+    
+    # Update LLM configuration
+    config.update_llm_config(
+        use_llm=use_llm,
+        llm_provider=llm_provider,
+        llm_model=llm_model,
+        quality_level=quality_level,
+        strict_mode=strict_mode
+    )
     
     # Create CLI context
     cli_context = CLIContext(config)
@@ -78,6 +103,13 @@ def config(ctx):
     click.echo(f"  Timeout: {config.timeout}s")
     click.echo(f"  Verbose: {config.verbose}")
     click.echo(f"  Output Format: {ctx.obj.output_format}")
+    click.echo()
+    click.echo("LLM Configuration:")
+    click.echo(f"  Use LLM: {config.llm_config['use_llm']}")
+    click.echo(f"  Provider: {config.llm_config['llm_provider']}")
+    click.echo(f"  Model: {config.llm_config['llm_model'] or 'default'}")
+    click.echo(f"  Quality Level: {config.llm_config['quality_level']}")
+    click.echo(f"  Strict Mode: {config.llm_config['strict_mode']}")
 
 
 if __name__ == '__main__':
