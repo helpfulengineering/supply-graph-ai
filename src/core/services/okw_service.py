@@ -8,6 +8,8 @@ from .base import BaseService, ServiceConfig
 from .storage_service import StorageService
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger
+from ..storage.smart_discovery import SmartFileDiscovery
+from ..validation.uuid_validator import UUIDValidator
 
 logger = get_logger(__name__)
 
@@ -31,6 +33,12 @@ class OKWService(BaseService['OKWService']):
         """Initialize service dependencies."""
         # Initialize storage service
         self.storage = await StorageService.get_instance()
+        
+        # Configure storage service if not already configured
+        if not self.storage._configured:
+            from ...config.storage_config import get_default_storage_config
+            config = get_default_storage_config()
+            await self.storage.configure(config)
         
         self.logger.info("OKW service dependencies initialized")
     
@@ -73,19 +81,28 @@ class OKWService(BaseService['OKWService']):
             self.logger.info(f"Getting manufacturing facility with ID {facility_id}")
             
             if self.storage:
-                # Search through all OKW files to find the one with matching ID
-                async for obj in self.storage.manager.list_objects():
-                    if obj["key"].endswith("-okw.json"):
-                        try:
-                            data = await self.storage.manager.get_object(obj["key"])
-                            content = data.decode('utf-8')
-                            okw_data = json.loads(content)
-                            facility = ManufacturingFacility.from_dict(okw_data)
-                            if facility.id == facility_id:
-                                return facility
-                        except Exception as e:
-                            self.logger.error(f"Failed to load OKW file {obj['key']}: {e}")
-                            continue
+                # Use smart discovery to find OKW files
+                discovery = SmartFileDiscovery(self.storage.manager)
+                file_infos = await discovery.discover_files("okw")
+                
+                self.logger.info(f"Found {len(file_infos)} OKW files using smart discovery")
+                
+                # Search through OKW files for the matching ID
+                for file_info in file_infos:
+                    try:
+                        data = await self.storage.manager.get_object(file_info.key)
+                        content = data.decode('utf-8')
+                        okw_data = json.loads(content)
+                        
+                        # Validate and fix UUID issues
+                        fixed_okw_data = UUIDValidator.validate_and_fix_okw_data(okw_data)
+                        
+                        facility = ManufacturingFacility.from_dict(fixed_okw_data)
+                        if facility.id == facility_id:
+                            return facility
+                    except Exception as e:
+                        self.logger.error(f"Failed to load OKW file {file_info.key}: {e}")
+                        continue
             
             return None
     
@@ -95,29 +112,37 @@ class OKWService(BaseService['OKWService']):
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None
     ) -> Tuple[List[ManufacturingFacility], int]:
-        """List manufacturing facilities"""
+        """List manufacturing facilities using smart discovery"""
         await self.ensure_initialized()
         logger.info(f"Listing manufacturing facilities (page={page}, page_size={page_size})")
         
         if self.storage:
-            # For now, load OKW files directly from storage root (they have -okw.json suffix)
+            # Use smart discovery to find OKW files
+            discovery = SmartFileDiscovery(self.storage.manager)
+            file_infos = await discovery.discover_files("okw")
+            
+            logger.info(f"Found {len(file_infos)} OKW files using smart discovery")
+            
+            # Process files and apply pagination
             objects = []
-            total_count = 0
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
             
-            async for obj in self.storage.manager.list_objects():
-                if obj["key"].endswith("-okw.json"):
-                    total_count += 1
-                    if len(objects) < page_size and len(objects) >= (page - 1) * page_size:
-                        try:
-                            data = await self.storage.manager.get_object(obj["key"])
-                            content = data.decode('utf-8')
-                            okw_data = json.loads(content)
-                            objects.append(ManufacturingFacility.from_dict(okw_data))
-                        except Exception as e:
-                            logger.error(f"Failed to load OKW file {obj['key']}: {e}")
-                            continue
+            for file_info in file_infos[start_idx:end_idx]:
+                try:
+                    data = await self.storage.manager.get_object(file_info.key)
+                    content = data.decode('utf-8')
+                    okw_data = json.loads(content)
+                    
+                    # Validate and fix UUID issues
+                    fixed_okw_data = UUIDValidator.validate_and_fix_okw_data(okw_data)
+                    
+                    objects.append(ManufacturingFacility.from_dict(fixed_okw_data))
+                except Exception as e:
+                    logger.error(f"Failed to load OKW file {file_info.key}: {e}")
+                    continue
             
-            return objects, total_count
+            return objects, len(file_infos)
         
         return [], 0
     

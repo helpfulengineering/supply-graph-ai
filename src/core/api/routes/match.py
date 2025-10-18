@@ -41,6 +41,7 @@ from ...services.matching_service import MatchingService
 from ...services.storage_service import StorageService
 from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
+from ...models.okw import ManufacturingFacility
 from ...services.domain_service import DomainDetector
 from ...registry.domain_registry import DomainRegistry
 from ...models.okh import OKHManifest
@@ -924,6 +925,10 @@ async def _extract_okh_manifest(
     """Extract OKH manifest from request."""
     try:
         if request.okh_manifest:
+            # If it's already an OKHManifest object, return it directly
+            if isinstance(request.okh_manifest, OKHManifest):
+                return request.okh_manifest
+            # Otherwise, convert from dictionary
             return OKHManifest.from_dict(request.okh_manifest)
         elif request.okh_id:
             return await okh_service.get(str(request.okh_id))
@@ -954,7 +959,7 @@ async def _get_filtered_facilities(
     storage_service: StorageService,
     request: EnhancedMatchRequest,
     request_id: str
-) -> List[dict]:
+) -> List[ManufacturingFacility]:
     """Get facilities with applied filters."""
     try:
         # Get all facilities using OKWService
@@ -964,7 +969,7 @@ async def _get_filtered_facilities(
         # Apply filters
         filtered_facilities = []
         for facility in facilities:
-            # Convert to dict if needed
+            # Convert to dict for filtering logic
             if hasattr(facility, 'to_dict'):
                 facility_dict = facility.to_dict()
             else:
@@ -982,7 +987,7 @@ async def _get_filtered_facilities(
             if request.location and request.location.lower() not in str(facility_dict.get("location", "")).lower():
                 continue
             
-            filtered_facilities.append(facility_dict)
+            filtered_facilities.append(facility)
         
         logger.info(
             f"Filtered facilities: {len(filtered_facilities)} out of {len(facilities)}",
@@ -1080,14 +1085,14 @@ async def _process_matching_results(
 ) -> List[dict]:
     """Process and format matching results."""
     try:
-        # Filter by confidence threshold
+        # Filter by confidence threshold (use score if confidence not available)
         filtered_results = [
             result for result in results
-            if result.get("confidence", 0) >= request.min_confidence
+            if result.get("confidence", result.get("score", 0)) >= request.min_confidence
         ]
         
-        # Sort by confidence (highest first)
-        filtered_results.sort(key=lambda x: x.get("confidence", 0), reverse=True)
+        # Sort by confidence/score (highest first)
+        filtered_results.sort(key=lambda x: x.get("confidence", x.get("score", 0)), reverse=True)
         
         # Limit results
         if request.max_results:
@@ -1097,7 +1102,7 @@ async def _process_matching_results(
         for i, result in enumerate(filtered_results):
             result["rank"] = i + 1
             result["match_type"] = result.get("match_type", "unknown")
-            result["processing_timestamp"] = datetime.utcnow().isoformat()
+            result["processing_timestamp"] = datetime.now().isoformat()
         
         logger.info(
             f"Processed matching results: {len(filtered_results)} solutions",

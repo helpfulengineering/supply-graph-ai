@@ -1,0 +1,71 @@
+{
+  "id": "ffa45b28-71cd-49db-9902-12498f316cca",
+  "title": "Test 3D Printed Bracket",
+  "version": "1.0.0",
+  "license": {
+    "hardware": "MIT",
+    "documentation": "CC-BY-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Test User",
+    "email": "test@example.com"
+  },
+  "documentation_language": "en",
+  "function": "Support bracket for mounting electronic components",
+  "description": "A simple 3D printed bracket designed for mounting electronic components in enclosures",
+  "keywords": [
+    "3D printing",
+    "bracket",
+    "mounting",
+    "electronics",
+    "PLA"
+  ],
+  "manufacturing_processes": [
+    "3DP"
+  ],
+  "manufacturing_specs": {
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill_percentage": "20%",
+          "support_material": "required"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "\u00b10.1mm",
+          "surface_finish": "standard"
+        },
+        "required_tools": [
+          "3D printer",
+          "PLA filament",
+          "Calipers"
+        ],
+        "notes": "Standard FDM 3D printing process with PLA material"
+      }
+    ],
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": {
+      "length": 50,
+      "width": 30,
+      "height": 20,
+      "unit": "mm"
+    },
+    "quality_standards": [
+      "basic"
+    ],
+    "notes": "Simple bracket for prototyping and small-scale production"
+  },
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 10,
+      "unit": "g",
+      "notes": "Standard PLA filament, any color"
+    }
+  ]
+}

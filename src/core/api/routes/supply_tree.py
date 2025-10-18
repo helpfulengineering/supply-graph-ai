@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query, Path, status, Request, Depends
-from typing import Optional, Dict, Any, List
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
-from pydantic import Field
 
 # Import new standardized components
 from ..models.base import (
@@ -13,8 +12,7 @@ from ..models.base import (
     PaginatedResponse,
     LLMRequestMixin,
     LLMResponseMixin,
-    ValidationResult as BaseValidationResult,
-    ProcessingMetrics
+    ValidationResult as BaseValidationResult
 )
 from ..decorators import (
     api_endpoint,

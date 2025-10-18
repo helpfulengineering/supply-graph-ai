@@ -17,6 +17,8 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
 from ..validation.context import ValidationContext
+from ..storage.smart_discovery import SmartFileDiscovery
+from ..validation.uuid_validator import UUIDValidator
 
 logger = get_logger(__name__)
 
@@ -101,40 +103,39 @@ class OKHService(BaseService['OKHService']):
                 
                 self.logger.info("Storage service is available, searching for OKH files...")
                 
-                # Search through all OKH files (they have -okh.json suffix)
-                file_count = 0
-                okh_file_count = 0
+                # Use smart discovery to find OKH files
+                discovery = SmartFileDiscovery(self.storage.manager)
+                file_infos = await discovery.discover_files("okh")
                 
-                async for obj in self.storage.manager.list_objects():
-                    file_count += 1
-                    self.logger.debug(f"Checking file {file_count}: {obj['key']}")
-                    
-                    if obj["key"].endswith("-okh.json"):
-                        okh_file_count += 1
-                        self.logger.info(f"Found OKH file {okh_file_count}: {obj['key']}")
+                self.logger.info(f"Found {len(file_infos)} OKH files using smart discovery")
+                
+                # Search through OKH files for the matching ID
+                for file_info in file_infos:
+                    try:
+                        data = await self.storage.manager.get_object(file_info.key)
+                        content = data.decode('utf-8')
+                        okh_data = json.loads(content)
                         
-                        try:
-                            data = await self.storage.manager.get_object(obj["key"])
-                            content = data.decode('utf-8')
-                            okh_data = json.loads(content)
+                        self.logger.debug(f"Loaded OKH data from {file_info.key}, ID: {okh_data.get('id')}")
+                        
+                        # Validate and fix UUID issues
+                        fixed_okh_data = UUIDValidator.validate_and_fix_okh_data(okh_data)
+                        
+                        # Check if this is the manifest we're looking for
+                        if fixed_okh_data.get("id") == str(manifest_id):
+                            self.logger.info(f"Found matching OKH manifest in {file_info.key}")
+                            manifest = OKHManifest.from_dict(fixed_okh_data)
+                            self.logger.info(f"Successfully created OKHManifest object for {manifest.title}")
+                            return manifest
+                        else:
+                            self.logger.debug(f"ID mismatch: looking for {manifest_id}, found {fixed_okh_data.get('id')}")
                             
-                            self.logger.debug(f"Loaded OKH data from {obj['key']}, ID: {okh_data.get('id')}")
-                            
-                            # Check if this is the manifest we're looking for
-                            if okh_data.get("id") == str(manifest_id):
-                                self.logger.info(f"Found matching OKH manifest in {obj['key']}")
-                                manifest = OKHManifest.from_dict(okh_data)
-                                self.logger.info(f"Successfully created OKHManifest object for {manifest.title}")
-                                return manifest
-                            else:
-                                self.logger.debug(f"ID mismatch: looking for {manifest_id}, found {okh_data.get('id')}")
-                                
-                        except Exception as e:
-                            self.logger.error(f"Failed to load OKH file {obj['key']}: {e}")
-                            self.logger.error(f"Traceback: {traceback.format_exc()}")
-                            continue
+                    except Exception as e:
+                        self.logger.error(f"Failed to load OKH file {file_info.key}: {e}")
+                        self.logger.error(f"Traceback: {traceback.format_exc()}")
+                        continue
                 
-                self.logger.warning(f"OKH manifest with ID {manifest_id} not found. Searched {file_count} files, {okh_file_count} OKH files")
+                self.logger.warning(f"OKH manifest with ID {manifest_id} not found. Searched {len(file_infos)} OKH files")
                 return None
                 
             except Exception as e:
@@ -188,24 +189,32 @@ class OKHService(BaseService['OKHService']):
             self.logger.info(f"Listing OKH manifests (page={page}, page_size={page_size})")
             
             if self.storage:
-                # For now, load OKH files directly from storage root (they have -okh.json suffix)
+                # Use smart discovery to find OKH files
+                discovery = SmartFileDiscovery(self.storage.manager)
+                file_infos = await discovery.discover_files("okh")
+                
+                self.logger.info(f"Found {len(file_infos)} OKH files using smart discovery")
+                
+                # Process files and apply pagination
                 objects = []
-                total_count = 0
+                start_idx = (page - 1) * page_size
+                end_idx = start_idx + page_size
                 
-                async for obj in self.storage.manager.list_objects():
-                    if obj["key"].endswith("-okh.json"):
-                        total_count += 1
-                        if len(objects) < page_size and len(objects) >= (page - 1) * page_size:
-                            try:
-                                data = await self.storage.manager.get_object(obj["key"])
-                                content = data.decode('utf-8')
-                                okh_data = json.loads(content)
-                                objects.append(OKHManifest.from_dict(okh_data))
-                            except Exception as e:
-                                self.logger.error(f"Failed to load OKH file {obj['key']}: {e}")
-                                continue
+                for file_info in file_infos[start_idx:end_idx]:
+                    try:
+                        data = await self.storage.manager.get_object(file_info.key)
+                        content = data.decode('utf-8')
+                        okh_data = json.loads(content)
+                        
+                        # Validate and fix UUID issues
+                        fixed_okh_data = UUIDValidator.validate_and_fix_okh_data(okh_data)
+                        
+                        objects.append(OKHManifest.from_dict(fixed_okh_data))
+                    except Exception as e:
+                        self.logger.error(f"Failed to load OKH file {file_info.key}: {e}")
+                        continue
                 
-                return objects, total_count
+                return objects, len(file_infos)
         
         return [], 0
     

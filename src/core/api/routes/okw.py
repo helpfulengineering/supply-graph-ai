@@ -12,9 +12,11 @@ from ..models.base import (
     SuccessResponse, 
     PaginationParams,
     PaginatedResponse,
+    PaginationInfo,
     LLMRequestMixin,
     LLMResponseMixin,
-    ValidationResult
+    ValidationResult,
+    APIStatus
 )
 from ..decorators import (
     api_endpoint,
@@ -23,6 +25,7 @@ from ..decorators import (
     llm_endpoint,
     paginated_response
 )
+
 from ..error_handlers import create_error_response, create_success_response
 
 from ..models.okw.request import (
@@ -482,10 +485,6 @@ async def get_okw(
     - Comprehensive validation
     """
 )
-@api_endpoint(
-    success_message="OKW facilities retrieved successfully",
-    include_metrics=True
-)
 @paginated_response(default_page_size=20, max_page_size=100)
 async def list_okw(
     pagination: PaginationParams = Depends(),
@@ -533,19 +532,22 @@ async def list_okw(
         # Create pagination info
         total_pages = (total + pagination.page_size - 1) // pagination.page_size
         
-        return create_success_response(
+        # Create proper PaginatedResponse
+        
+        pagination_info = PaginationInfo(
+            page=pagination.page,
+            page_size=pagination.page_size,
+            total_items=total,
+            total_pages=total_pages,
+            has_next=pagination.page < total_pages,
+            has_previous=pagination.page > 1
+        )
+        
+        return PaginatedResponse(
+            status=APIStatus.SUCCESS,
             message="OKW facilities listed successfully",
-            data={
-                "items": results,
-                "pagination": {
-                    "page": pagination.page,
-                    "page_size": pagination.page_size,
-                    "total_items": total,
-                    "total_pages": total_pages,
-                    "has_next": pagination.page < total_pages,
-                    "has_previous": pagination.page > 1
-                }
-            },
+            pagination=pagination_info,
+            items=results,
             request_id=request_id
         )
         

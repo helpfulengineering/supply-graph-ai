@@ -1,0 +1,324 @@
+{
+  "id": "5279217b-28f9-4a29-9167-5e41fcc5e34d",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "3668",
+      "street": "Joshua Crossing",
+      "city": "Lake Michael",
+      "region": "Washington",
+      "country": "Mauritania",
+      "postcode": "59561"
+    },
+    "gps_coordinates": "35.656521, -99.716262",
+    "directions": "Located behind Turner, Goodman and Bean",
+    "city": "Lake Michael",
+    "country": "Mauritania"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Ayala, Clark and Taylor",
+    "location": {
+      "address": {
+        "number": "9638",
+        "street": "Travis Islands",
+        "city": "New Lauramouth",
+        "region": "South Carolina",
+        "country": "Romania",
+        "postcode": "90560"
+      },
+      "gps_coordinates": "40.758769, -119.741397",
+      "directions": "Located near Bartlett-Miller",
+      "city": "New Lauramouth",
+      "country": "Romania"
+    },
+    "contact_person": "Donald Hernandez",
+    "bio": "Established in 2020, we specialize in Horizontal local service-desk",
+    "website": "https://morales.com",
+    "languages": [
+      "de",
+      "es"
+    ],
+    "mailing_list": "robertgibson@lists.singh.net",
+    "images": [
+      "images/end.jpg"
+    ],
+    "contact": {
+      "landline": "+1-535-928-9177",
+      "mobile": "+1-389-787-6086",
+      "email": "info@cook.net",
+      "whatsapp": "+1-470-401-9441"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://green.biz"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Jones-Gilmore",
+    "location": {
+      "address": {
+        "number": "3901",
+        "street": "Pearson Curve",
+        "city": "Christineview",
+        "region": "Nevada",
+        "country": "Nepal",
+        "postcode": "44115"
+      },
+      "gps_coordinates": "49.167893, -69.397657",
+      "directions": "Located near Costa, Whitney and Mercer",
+      "city": "Christineview",
+      "country": "Nepal"
+    },
+    "contact_person": "Jennifer Carr DDS",
+    "bio": "Established in 1994, we specialize in De-engineered bandwidth-monitored website",
+    "website": "https://carson.biz",
+    "languages": [
+      "fr",
+      "de",
+      "es"
+    ],
+    "mailing_list": "jonesalexander@lists.barnes.com",
+    "images": [
+      "images/song.jpg",
+      "images/head.jpg"
+    ],
+    "contact": {
+      "landline": "+1-696-951-9707",
+      "mobile": "+1-682-873-1180",
+      "email": "info@wade.com",
+      "whatsapp": "+1-965-220-7771"
+    },
+    "social_media": {
+      "twitter": "@boyermarcus",
+      "other_urls": [
+        "https://cooper.info",
+        "https://burns.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-22:00",
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "2003-11-20",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "VF-2",
+      "serial_number": "SN375377",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Social change system home parent seek range guy.",
+      "quantity": 3,
+      "throughput": "12 parts/hour",
+      "power_rating": 4110,
+      "maintenance_schedule": "Every 5 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "7437",
+              "street": "Veronica Tunnel",
+              "city": "East Courtneyburgh",
+              "region": "New Hampshire",
+              "country": "Singapore",
+              "postcode": "31719"
+            },
+            "gps_coordinates": "61.865995, -49.942628",
+            "directions": "Located across from Wallace, Alexander and Walls",
+            "city": "East Courtneyburgh",
+            "country": "Singapore"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2129",
+              "street": "Brown Islands",
+              "city": "Amberside",
+              "region": "New York",
+              "country": "Singapore",
+              "postcode": "81230"
+            },
+            "gps_coordinates": "31.328138, -121.2141",
+            "directions": "Located near Adkins Ltd",
+            "city": "Amberside",
+            "country": "Singapore"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4159",
+              "street": "Todd Fields",
+              "city": "Morganton",
+              "region": "Connecticut",
+              "country": "Dominica",
+              "postcode": "28485"
+            },
+            "gps_coordinates": "38.829203, -105.129481",
+            "directions": "Located near Johnson-Davis",
+            "city": "Morganton",
+            "country": "Dominica"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7406",
+              "street": "Ross Estates",
+              "city": "Jacobsonshire",
+              "region": "Texas",
+              "country": "Taiwan",
+              "postcode": "18004"
+            },
+            "gps_coordinates": "30.944621, 35.939142",
+            "directions": "Located across from Trujillo Ltd",
+            "city": "Jacobsonshire",
+            "country": "Taiwan"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Aluminum",
+          "Steel",
+          "Wood"
+        ],
+        "process_parameters": {
+          "setup_time": "103 minutes",
+          "cycle_time": "47 minutes",
+          "changeover_time": "19 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 201",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand A",
+      "model": "Model 878",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 280",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 317,
+  "storage_capacity": "344 cubic meters",
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Upgradable web-enabled task-force",
+    "Virtual 24hour algorithm",
+    "Virtual disintermediate initiative"
+  ],
+  "human_capacity": {
+    "headcount": 21
+  },
+  "innovation_space": {
+    "staff": 10,
+    "learning_resources": [
+      "Stand-alone optimal support",
+      "Reduced 24hour model",
+      "Diverse empowering protocol"
+    ],
+    "services": [
+      "Multi-tiered clear-thinking encryption",
+      "Cloned value-added Local Area Network"
+    ],
+    "footfall": 81,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-10-10T15:45:06.873730",
+    "created_by": {
+      "name": "Neal LLC",
+      "location": {
+        "address": {
+          "number": "3487",
+          "street": "Whitney Radial",
+          "city": "Kimberlyville",
+          "region": "Georgia",
+          "country": "Ecuador",
+          "postcode": "83955"
+        },
+        "gps_coordinates": "50.130756, -1.340006",
+        "directions": "Located across from Williams LLC",
+        "city": "Kimberlyville",
+        "country": "Ecuador"
+      },
+      "contact_person": "Thomas Johnson",
+      "bio": "Established in 2014, we specialize in Re-engineered directional info-mediaries",
+      "website": "https://smith-singh.com",
+      "languages": [
+        "de"
+      ],
+      "mailing_list": "mayscott@lists.bell.com",
+      "contact": {
+        "landline": "+1-407-451-4008",
+        "mobile": "+1-712-601-1148",
+        "email": "info@roberts-pittman.com",
+        "whatsapp": "+1-505-421-3163"
+      },
+      "social_media": {
+        "twitter": "@zsanchez",
+        "instagram": "@robinsonashley",
+        "other_urls": [
+          "https://hernandez-bartlett.com"
+        ]
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

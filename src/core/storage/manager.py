@@ -2,10 +2,6 @@ import logging
 from typing import Optional, Dict, Any, List, AsyncIterator
 
 from .base import StorageProvider, StorageConfig, StorageMetadata
-from .providers.aws import AWSS3Provider
-from .providers.azure import AzureBlobProvider
-from .providers.gcp import GCSProvider
-from .providers.local import LocalStorageProvider
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +22,21 @@ class StorageManager:
     
     def _create_provider(self) -> StorageProvider:
         """Create appropriate storage provider based on config"""
-        provider_map = {
-            "aws_s3": AWSS3Provider,
-            "azure_blob": AzureBlobProvider,
-            "gcs": GCSProvider,
-            "local": LocalStorageProvider
-        }
-        
-        provider_class = provider_map.get(self.config.provider)
-        if not provider_class:
+        # Import providers dynamically to avoid dependency issues
+        if self.config.provider == "local":
+            from .providers.local import LocalStorageProvider
+            return LocalStorageProvider(self.config)
+        elif self.config.provider == "azure_blob":
+            from .providers.azure import AzureBlobProvider
+            return AzureBlobProvider(self.config)
+        elif self.config.provider == "aws_s3":
+            from .providers.aws import AWSS3Provider
+            return AWSS3Provider(self.config)
+        elif self.config.provider == "gcs":
+            from .providers.gcp import GCSProvider
+            return GCSProvider(self.config)
+        else:
             raise ValueError(f"Unsupported storage provider: {self.config.provider}")
-        
-        return provider_class(self.config)
     
     async def connect(self) -> None:
         """Connect to the storage provider"""
