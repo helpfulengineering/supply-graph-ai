@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) employs a multi-layered matching approach to accurately and reliably match requirements (specified in formats like OKH) with capabilities (specified in formats like OKW). This document outlines the four distinct matching layers, each with increasing sophistication and computational complexity.
+The Open Matching Engine (OME) employs a sophisticated 4-layer matching architecture to accurately and reliably match requirements (specified in formats like OKH) with capabilities (specified in formats like OKW). This document outlines the four distinct matching layers, each with increasing sophistication and computational complexity, all built on a standardized base architecture.
 
 ```mermaid
 flowchart TD
@@ -16,7 +16,14 @@ flowchart TD
         L1[Layer 1: Direct Matching]
         L2[Layer 2: Heuristic Matching]
         L3[Layer 3: NLP Matching]
-        L4[Layer 4: AI/ML Matching]
+        L4[Layer 4: LLM Matching]
+    end
+
+    subgraph base[Base Architecture]
+        B1[BaseMatchingLayer]
+        B2[MatchingResult]
+        B3[MatchMetadata]
+        B4[MatchingMetrics]
     end
 
     subgraph normalizer[Result Normalization]
@@ -33,16 +40,18 @@ flowchart TD
     end
 
     input --> L1 & L2 & L3 & L4
-    L1 & L2 & L3 & L4 --> normalizer
+    L1 & L2 & L3 & L4 --> base
+    base --> normalizer
     normalizer --> output
 ```
 
-The system processes matching requests through these layers in parallel or in arbitrary sequences as needed, with each layer applying different matching strategies. Unlike traditional pipeline architectures that optimize for speed or computational efficiency, the OME prioritizes:
+The system processes matching requests through these layers with each layer inheriting from `BaseMatchingLayer` to ensure consistent interfaces, error handling, and result processing. Unlike traditional pipeline architectures that optimize for speed or computational efficiency, the OME prioritizes:
 
 1. **Accuracy** - Ensuring matches are correct and appropriate
 2. **Data Quality** - Maintaining rich metadata about matches
 3. **Reliability** - Providing consistent, reproducible results
 4. **Traceability** - Recording which function performed each operation
+5. **Standardization** - Consistent interfaces and behavior across all layers
 
 Each matching layer operates independently and produces normalized outputs with confidence scores and provenance metadata, allowing for:
 
@@ -50,6 +59,65 @@ Each matching layer operates independently and produces normalized outputs with 
 2. Comparison of results across different matching methods
 3. Combination of multiple matching strategies for optimal results
 4. Detailed audit trails for validation and improvement
+5. Consistent error handling and metrics collection
+
+## Base Architecture
+
+### BaseMatchingLayer
+
+All matching layers inherit from `BaseMatchingLayer`, which provides:
+
+- **Standardized Interface**: All layers implement the same `async match()` method
+- **Metrics Tracking**: Automatic performance and usage metrics collection
+- **Error Handling**: Consistent error handling and logging across all layers
+- **Input Validation**: Standardized validation of requirements and capabilities
+- **Result Creation**: Helper methods for creating standardized `MatchingResult` objects
+- **Process Name Normalization**: Handles Wikipedia URLs and special characters
+
+### Core Data Models
+
+#### MatchingResult
+```python
+@dataclass
+class MatchingResult:
+    requirement: str
+    capability: str
+    matched: bool
+    confidence: float
+    metadata: MatchMetadata
+    layer_type: MatchingLayer
+```
+
+#### MatchMetadata
+```python
+@dataclass
+class MatchMetadata:
+    method: str
+    confidence: float
+    reasons: List[str]
+    character_difference: int = 0
+    case_difference: bool = False
+    whitespace_difference: bool = False
+    quality: MatchQuality = MatchQuality.NO_MATCH
+    processing_time_ms: float = 0.0
+    timestamp: datetime = field(default_factory=datetime.now)
+    rule_used: Optional[str] = None
+    semantic_similarity: Optional[float] = None
+```
+
+#### MatchingMetrics
+```python
+@dataclass
+class MatchingMetrics:
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    success: bool = False
+    matches_found: int = 0
+    total_requirements: int = 0
+    total_capabilities: int = 0
+    processing_time_ms: float = 0.0
+    errors: List[str] = field(default_factory=list)
+```
 
 ## Layer 1: Direct Matching
 
@@ -62,143 +130,153 @@ The Direct Matching layer handles exact, case-insensitive string matches between
 - **Processing Speed**: Extremely fast
 - **Near-miss Detection**: Levenshtein distance ≤2 character differences
 - **Metadata Tracking**: Comprehensive match quality indicators
+- **Process Name Normalization**: Handles Wikipedia URLs and special characters
 
 ### Implementation Details
 
-The Direct Matching layer is implemented as a domain-agnostic base class with domain-specific implementations:
+The Direct Matching layer is implemented as `DirectMatcher` inheriting from `BaseMatchingLayer`:
 
 ```python
-@dataclass
-class MatchMetadata:
-    """Metadata about a match operation."""
-    method: str
-    confidence: float
-    reasons: List[str]
-    character_difference: int = 0
-    case_difference: bool = False
-    whitespace_difference: bool = False
-    quality: str = "perfect"  # perfect, case_diff, whitespace_diff, near_miss, no_match
-    processing_time_ms: float = 0.0
-    timestamp: str = ""
+class DirectMatcher(BaseMatchingLayer):
+    """
+    Direct string matching layer for requirements and capabilities.
     
-@dataclass
-class MatchResult:
-    """Result of a matching operation."""
-    requirement: str
-    capability: str
-    matched: bool
-    confidence: float
-    metadata: MatchMetadata
-
-class DirectMatcher(ABC):
-    """Abstract base class for direct string matching."""
+    This layer provides exact, case-insensitive string matching with detailed
+    metadata tracking and confidence scoring. It supports near-miss detection
+    using Levenshtein distance for close matches.
+    """
     
-    def __init__(self, max_distance: int = 2):
-        self.max_distance = max_distance
+    def __init__(self, domain: str = "general", near_miss_threshold: int = 2):
+        """
+        Initialize the direct matcher.
+        
+        Args:
+            domain: The domain this matcher operates in (e.g., 'cooking', 'manufacturing')
+            near_miss_threshold: Maximum character differences to consider as near-miss
+        """
+        super().__init__(MatchingLayer.DIRECT, domain)
+        self.near_miss_threshold = near_miss_threshold
     
-    def match(self, requirement: str, capability: str) -> MatchResult:
-        """Perform direct string matching with detailed metadata."""
+    async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
+        """
+        Match requirements to capabilities using direct string matching.
+        
+        Args:
+            requirements: List of requirement strings to match
+            capabilities: List of capability strings to match against
+            
+        Returns:
+            List of MatchingResult objects with detailed metadata
+        """
+        # Start tracking metrics
+        self.start_matching(requirements, capabilities)
+        
+        try:
+            # Validate inputs
+            if not self.validate_inputs(requirements, capabilities):
+                self.end_matching(success=False)
+                return []
+            
+            results = []
+            
+            # Match each requirement against each capability
+            for requirement in requirements:
+                for capability in capabilities:
+                    result = await self._match_single(requirement, capability)
+                    results.append(result)
+            
+            # End metrics tracking
+            matches_found = sum(1 for r in results if r.matched)
+            self.end_matching(success=True, matches_found=matches_found)
+            
+            return results
+            
+        except Exception as e:
+            return self.handle_matching_error(e, [])
+    
+    async def _match_single(self, requirement: str, capability: str) -> MatchingResult:
+        """Match a single requirement against a single capability."""
         start_time = time.time()
         
-        # Normalize strings
-        req_norm = self._normalize_string(requirement)
-        cap_norm = self._normalize_string(capability)
+        # Normalize process names (handles Wikipedia URLs, case, whitespace)
+        req_norm = self.normalize_process_name(requirement)
+        cap_norm = self.normalize_process_name(capability)
         
         # Check for exact match
         if req_norm == cap_norm:
             confidence = self._calculate_exact_match_confidence(requirement, capability)
             quality = self._determine_match_quality(requirement, capability)
             
-            return MatchResult(
+            return self.create_matching_result(
                 requirement=requirement,
                 capability=capability,
                 matched=True,
                 confidence=confidence,
-                metadata=MatchMetadata(
-                    method="direct_exact",
-                    confidence=confidence,
-                    reasons=[f"Exact match: '{requirement}' == '{capability}'"],
-                    quality=quality,
-                    processing_time_ms=(time.time() - start_time) * 1000,
-                    timestamp=datetime.now().isoformat()
-                )
+                method="direct_exact",
+                reasons=[f"Exact match: '{requirement}' == '{capability}'"],
+                quality=quality,
+                processing_time_ms=(time.time() - start_time) * 1000
             )
         
         # Check for near-miss using Levenshtein distance
-        distance = self._levenshtein_distance(req_norm, cap_norm)
-        if distance <= self.max_distance:
+        distance = self.calculate_levenshtein_distance(req_norm, cap_norm)
+        if distance <= self.near_miss_threshold:
             confidence = self._calculate_near_miss_confidence(distance)
             
-            return MatchResult(
+            return self.create_matching_result(
                 requirement=requirement,
                 capability=capability,
                 matched=True,
                 confidence=confidence,
-                metadata=MatchMetadata(
-                    method="direct_near_miss",
-                    confidence=confidence,
-                    reasons=[f"Near-miss match: distance={distance}"],
-                    character_difference=distance,
-                    quality="near_miss",
-                    processing_time_ms=(time.time() - start_time) * 1000,
-                    timestamp=datetime.now().isoformat()
-                )
+                method="direct_near_miss",
+                reasons=[f"Near-miss match: distance={distance}"],
+                quality=MatchQuality.NEAR_MISS,
+                character_difference=distance,
+                processing_time_ms=(time.time() - start_time) * 1000
             )
         
         # No match
-        return MatchResult(
+        return self.create_matching_result(
             requirement=requirement,
             capability=capability,
             matched=False,
             confidence=0.0,
-            metadata=MatchMetadata(
-                method="direct_no_match",
-                confidence=0.0,
-                reasons=[f"No match: distance={distance} > {self.max_distance}"],
-                character_difference=distance,
-                quality="no_match",
-                processing_time_ms=(time.time() - start_time) * 1000,
-                timestamp=datetime.now().isoformat()
-            )
+            method="direct_no_match",
+            reasons=[f"No match: distance={distance} > {self.near_miss_threshold}"],
+            quality=MatchQuality.NO_MATCH,
+            character_difference=distance,
+            processing_time_ms=(time.time() - start_time) * 1000
         )
 ```
 
-### Domain-Specific Implementations
+### Key Features
 
-#### Manufacturing Domain
-```python
-class MfgDirectMatcher(DirectMatcher):
-    """Direct matcher for manufacturing domain."""
-    
-    def match_materials(self, requirement: str, capability: str) -> MatchResult:
-        """Match material requirements to capabilities."""
-        return self.match(requirement, capability)
-    
-    def match_processes(self, requirement: str, capability: str) -> MatchResult:
-        """Match process requirements to capabilities."""
-        return self.match(requirement, capability)
-    
-    def match_tools(self, requirement: str, capability: str) -> MatchResult:
-        """Match tool requirements to capabilities."""
-        return self.match(requirement, capability)
-```
+#### Process Name Normalization
+The DirectMatcher includes sophisticated process name normalization that handles:
 
-#### Cooking Domain
+- **Wikipedia URLs**: Extracts process names from URLs like `https://en.wikipedia.org/wiki/PCB_assembly` → `PCB_assembly`
+- **Case Normalization**: Converts to lowercase for case-insensitive matching
+- **Whitespace Normalization**: Removes extra whitespace and normalizes spacing
+- **Special Character Handling**: Normalizes underscores, hyphens, and other special characters
+
+#### Match Quality Indicators
+The system provides detailed quality indicators:
+
+- **PERFECT**: Exact match including case and whitespace
+- **CASE_DIFFERENCE**: Case difference only
+- **WHITESPACE_DIFFERENCE**: Whitespace difference only  
+- **NEAR_MISS**: Close but not exact (≤2 character differences)
+- **NO_MATCH**: No match found
+
+#### Domain Support
+The DirectMatcher supports multiple domains through configuration:
+
 ```python
-class CookingDirectMatcher(DirectMatcher):
-    """Direct matcher for cooking domain."""
-    
-    def match_ingredients(self, requirement: str, capability: str) -> MatchResult:
-        """Match ingredient requirements to capabilities."""
-        return self.match(requirement, capability)
-    
-    def match_equipment(self, requirement: str, capability: str) -> MatchResult:
-        """Match equipment requirements to capabilities."""
-        return self.match(requirement, capability)
-    
-    def match_techniques(self, requirement: str, capability: str) -> MatchResult:
-        """Match technique requirements to capabilities."""
-        return self.match(requirement, capability)
+# Manufacturing domain
+manufacturing_matcher = DirectMatcher(domain="manufacturing", near_miss_threshold=2)
+
+# Cooking domain  
+cooking_matcher = DirectMatcher(domain="cooking", near_miss_threshold=1)
 ```
 
 ### Confidence Scoring
@@ -245,19 +323,124 @@ The Heuristic Matching layer applies capability-centric rule-based matching usin
 - **Domain Separation**: Rules organized by domain (manufacturing, cooking, etc.)
 - **Configuration-Driven**: Rules loaded from external YAML files
 - **Extensible**: Support for horizontal (new rules) and vertical (new domains) expansion
+- **BaseMatchingLayer Integration**: Inherits standardized interfaces and error handling
 
 ### Implementation Details
 
-The capability-centric heuristic matching system uses a modular architecture with the following components:
+The capability-centric heuristic matching system is implemented as `HeuristicMatcher` inheriting from `BaseMatchingLayer`:
+
+```python
+class HeuristicMatcher(BaseMatchingLayer):
+    """
+    Heuristic matching layer using capability-centric rules.
+    
+    This layer provides rule-based matching using domain knowledge stored in
+    capability rules. It matches requirements to capabilities based on predefined
+    rules that specify which capabilities can satisfy which requirements.
+    """
+    
+    def __init__(self, domain: str = "general", rule_manager: Optional[CapabilityRuleManager] = None):
+        """
+        Initialize the heuristic matcher.
+        
+        Args:
+            domain: The domain this matcher operates in (e.g., 'manufacturing', 'cooking')
+            rule_manager: Optional rule manager instance. If None, creates a new one.
+        """
+        super().__init__(MatchingLayer.HEURISTIC, domain)
+        self.rule_manager = rule_manager or CapabilityRuleManager()
+        self._initialized = False
+    
+    async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
+        """
+        Match requirements to capabilities using heuristic rules.
+        
+        Args:
+            requirements: List of requirement strings to match
+            capabilities: List of capability strings to match against
+            
+        Returns:
+            List of MatchingResult objects with detailed metadata
+        """
+        # Start tracking metrics
+        self.start_matching(requirements, capabilities)
+        
+        try:
+            # Validate inputs
+            if not self.validate_inputs(requirements, capabilities):
+                self.end_matching(success=False)
+                return []
+            
+            # Initialize rule manager if needed
+            if not self._initialized:
+                await self.rule_manager.initialize()
+                self._initialized = True
+            
+            results = []
+            
+            # Match each requirement against each capability
+            for requirement in requirements:
+                for capability in capabilities:
+                    result = await self._match_single(requirement, capability)
+                    results.append(result)
+            
+            # End metrics tracking
+            matches_found = sum(1 for r in results if r.matched)
+            self.end_matching(success=True, matches_found=matches_found)
+            
+            return results
+            
+        except Exception as e:
+            return self.handle_matching_error(e, [])
+    
+    async def _match_single(self, requirement: str, capability: str) -> MatchingResult:
+        """Match a single requirement against a single capability using rules."""
+        start_time = time.time()
+        
+        # Find matching rules
+        rules = self.rule_manager.find_rules_for_capability_requirement(
+            self.domain, capability, requirement
+        )
+        
+        if rules:
+            # Use the rule with highest confidence
+            best_rule = max(rules, key=lambda r: r.confidence)
+            
+            return self.create_matching_result(
+                requirement=requirement,
+                capability=capability,
+                matched=True,
+                confidence=best_rule.confidence,
+                method="heuristic_rule_match",
+                reasons=[f"Rule match: {best_rule.description}"],
+                quality=MatchQuality.RULE_MATCH,
+                rule_used=best_rule.id,
+                processing_time_ms=(time.time() - start_time) * 1000
+            )
+        else:
+            # No matching rule found
+            return self.create_matching_result(
+                requirement=requirement,
+                capability=capability,
+                matched=False,
+                confidence=0.0,
+                method="heuristic_no_rule",
+                reasons=["No matching rule found"],
+                quality=MatchQuality.NO_MATCH,
+                processing_time_ms=(time.time() - start_time) * 1000
+            )
+```
 
 #### Core Data Models
+
+The heuristic matching system uses several key data models:
 
 ```python
 @dataclass
 class CapabilityRule:
     """Individual capability-centric matching rule."""
     id: str                      # Unique identifier for the rule
-    type: RuleType              # Rule type (capability_match, etc.)
+    type: str                    # Rule type (capability_match, etc.)
     capability: str             # The capability being defined
     satisfies_requirements: List[str]  # List of requirements this capability can satisfy
     confidence: float           # Confidence score (0.0 to 1.0)
@@ -265,15 +448,6 @@ class CapabilityRule:
     description: str            # Human-readable description
     source: str                 # Source of the rule (standards, documentation, etc.)
     tags: Set[str]             # Categorization tags for organization
-    
-    def can_satisfy_requirement(self, requirement: str) -> bool:
-        """Check if this capability can satisfy the given requirement."""
-        return requirement.lower().strip() in [req.lower().strip() for req in self.satisfies_requirements]
-    
-    def requirement_can_be_satisfied_by(self, requirement: str, capability: str) -> bool:
-        """Check if the requirement can be satisfied by the capability."""
-        return (capability.lower().strip() == self.capability.lower().strip() and 
-                self.can_satisfy_requirement(requirement))
 
 @dataclass
 class CapabilityRuleSet:
@@ -282,14 +456,6 @@ class CapabilityRuleSet:
     version: str                # Rule set version
     description: str            # Domain description
     rules: Dict[str, CapabilityRule]  # Dictionary of rules by ID
-    
-    def find_rules_for_capability_requirement(self, capability: str, requirement: str) -> List[CapabilityRule]:
-        """Find rules where the capability can satisfy the requirement."""
-        matching_rules = []
-        for rule in self.rules.values():
-            if rule.requirement_can_be_satisfied_by(requirement, capability):
-                matching_rules.append(rule)
-        return matching_rules
 
 class CapabilityRuleManager:
     """Central manager for all capability rule sets with configuration loading."""
@@ -621,139 +787,99 @@ The NLP Matching layer leverages natural language processing techniques, includi
 - **Computational Complexity**: O(n×d) where d is feature dimensionality
 - **Confidence Level**: Medium to High (typically 0.6-0.9)
 - **Processing Speed**: Moderate
-- **Failure Mode**: Detailed metadata with similarity metrics and match quality indicators
+- **BaseMatchingLayer Integration**: Inherits standardized interfaces and error handling
+- **Placeholder Implementation**: Currently a stub for future NLP integration
+- **Semantic Understanding**: Designed for synonym and related term detection
 
 ### Implementation Details
 
-```python
-@dataclass
-class NLPMatchMetadata:
-    """Detailed metadata for NLP matching operations."""
-    method: str                    # Specific NLP technique used
-    confidence: float
-    similarity_score: float
-    embedding_type: str            # Type of embedding used
-    entity_matches: Dict[str, Any] # Matched entities if applicable
-    tokens_matched: List[str]      # Significant tokens that matched
-    distance_metric: str           # Cosine, Euclidean, etc.
-    model_info: Dict[str, str]     # Information about NLP models used
-    processing_time: float         # Time taken to perform matching
+The NLP Matching layer is implemented as `NLPMatcher` inheriting from `BaseMatchingLayer`:
 
-class NLPMatcher:
-    """Implements NLP-based matching between requirements and capabilities."""
+```python
+class NLPMatcher(BaseMatchingLayer):
+    """
+    NLP matching layer using natural language processing for semantic understanding.
     
-    def __init__(self, config=None):
-        """Initialize with configuration for NLP resources."""
-        self.config = config or {}
+    This layer provides semantic matching between requirements and capabilities
+    using natural language processing techniques. It can understand synonyms,
+    related terms, and semantic relationships that direct and heuristic matching
+    might miss.
+    
+    Note: This is a placeholder implementation. Full NLP integration will be
+    implemented in future phases with proper NLP libraries and models.
+    """
+    
+    def __init__(self, domain: str = "general", similarity_threshold: float = 0.7):
+        """
+        Initialize the NLP matcher.
         
-        # Load NLP resources based on config
-        self.nlp = spacy.load(self.config.get("spacy_model", "en_core_web_md"))
+        Args:
+            domain: The domain this matcher operates in
+            similarity_threshold: Minimum similarity score for matches (0.0 to 1.0)
+        """
+        super().__init__(MatchingLayer.NLP, domain)
+        self.similarity_threshold = similarity_threshold
         
-        # Initialize embedding models
-        self.embedding_models = {}
-        for model_name, model_config in self.config.get("embedding_models", {}).items():
-            self.embedding_models[model_name] = self._load_embedding_model(
-                model_config["type"], model_config["path"])
+    async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
+        """
+        Match requirements to capabilities using NLP techniques.
+        
+        Args:
+            requirements: List of requirement strings to match
+            capabilities: List of capability strings to match against
             
-        # Initialize default embedding model
-        self.default_embedding = self.config.get("default_embedding", "general")
-        
-        # Setup vector search index if configured
-        if "vector_index" in self.config:
-            self.vector_index = self._initialize_vector_index(self.config["vector_index"])
-        else:
-            self.vector_index = None
-        
-    def match(self, requirement: str, capabilities: List[str], 
-              context: Dict[str, Any] = None) -> List[MatchResult]:
-        """Perform NLP-based matching using multiple techniques."""
-        context = context or {}
-        results = []
-        match_techniques = context.get("nlp_techniques", ["embedding", "entity", "dependency"])
-        
-        # Select embedding model based on context
-        embedding_model = self._select_embedding_model(context)
-        
-        # Track processing time for metadata
-        start_time = time.time()
-        
-        # Generate embeddings for requirement
-        if "embedding" in match_techniques:
-            req_embedding = self._generate_embedding(requirement, embedding_model)
+        Returns:
+            List of MatchingResult objects with detailed metadata
             
-            # For smaller sets, direct comparison is efficient
-            if len(capabilities) < self.config.get("vector_index_threshold", 1000):
+        Note: This is a placeholder implementation that returns no matches.
+        Full NLP integration will be implemented in future phases.
+        """
+        # Start tracking metrics
+        self.start_matching(requirements, capabilities)
+        
+        try:
+            # Validate inputs
+            if not self.validate_inputs(requirements, capabilities):
+                self.end_matching(success=False)
+                return []
+            
+            results = []
+            
+            # Placeholder implementation - returns no matches
+            # This will be replaced with actual NLP matching in future phases
+            for requirement in requirements:
                 for capability in capabilities:
-                    # Generate capability embedding
-                    cap_embedding = self._generate_embedding(capability, embedding_model)
-                    
-                    # Calculate cosine similarity
-                    similarity = self._calculate_similarity(req_embedding, cap_embedding)
-                    
-                    if similarity >= context.get("similarity_threshold", 0.6):
-                        # Create detailed metadata
-                        metadata = NLPMatchMetadata(
-                            method="vector_embedding_similarity",
-                            confidence=similarity,
-                            similarity_score=similarity,
-                            embedding_type=embedding_model,
-                            entity_matches={},
-                            tokens_matched=self._get_significant_tokens(requirement, capability),
-                            distance_metric="cosine",
-                            model_info={"name": embedding_model},
-                            processing_time=time.time() - start_time
-                        )
-                        
-                        results.append(MatchResult(
-                            requirement=requirement,
-                            capability=capability,
-                            matched=True,
-                            confidence=similarity,
-                            metadata=metadata
-                        ))
-            # For larger sets, use vector index for efficient search
-            elif self.vector_index is not None:
-                # Search vector index for similar capabilities
-                similar_capabilities = self._search_vector_index(
-                    req_embedding, 
-                    limit=context.get("max_results", 20),
-                    threshold=context.get("similarity_threshold", 0.6)
-                )
-                
-                for cap_id, similarity in similar_capabilities:
-                    capability = self._get_capability_by_id(cap_id)
-                    
-                    metadata = NLPMatchMetadata(
-                        method="vector_index_search",
-                        confidence=similarity,
-                        similarity_score=similarity,
-                        embedding_type=embedding_model,
-                        entity_matches={},
-                        tokens_matched=self._get_significant_tokens(requirement, capability),
-                        distance_metric="cosine",
-                        model_info={"name": embedding_model, "index_type": self.vector_index.type},
-                        processing_time=time.time() - start_time
-                    )
-                    
-                    results.append(MatchResult(
+                    result = self.create_matching_result(
                         requirement=requirement,
                         capability=capability,
-                        matched=True,
-                        confidence=similarity,
-                        metadata=metadata
-                    ))
-        
-        # Entity-based matching if requested
-        if "entity" in match_techniques:
-            entity_results = self._match_by_entities(requirement, capabilities)
-            results.extend(entity_results)
+                        matched=False,
+                        confidence=0.0,
+                        method="nlp_placeholder",
+                        reasons=["NLP matching not yet implemented"],
+                        quality=MatchQuality.NO_MATCH,
+                        processing_time_ms=0.0
+                    )
+                    results.append(result)
             
-        # Dependency-based matching if requested
-        if "dependency" in match_techniques:
-            dependency_results = self._match_by_dependencies(requirement, capabilities)
-            results.extend(dependency_results)
+            # End metrics tracking
+            matches_found = sum(1 for r in results if r.matched)
+            self.end_matching(success=True, matches_found=matches_found)
             
-        return results
+            return results
+            
+        except Exception as e:
+            return self.handle_matching_error(e, [])
+```
+
+### Planned NLP Features
+
+The NLP layer is designed to support:
+
+- **Vector Embeddings**: Word and sentence embeddings for semantic similarity
+- **Named Entity Recognition**: Identifying materials, tools, processes, and measurements
+- **Semantic Similarity**: Understanding synonyms and related terms
+- **Context-Aware Matching**: Considering context and domain-specific knowledge
+- **Multi-language Support**: Processing content in multiple languages
         
     def _generate_embedding(self, text: str, model_name: str) -> np.ndarray:
         """Generate vector embedding for text using specified model."""
@@ -1026,80 +1152,110 @@ class NLPMatcher:
 - Less explainable than rule-based approaches
 - Performance depends on quality of embeddings and models
 
-## Layer 4: AI/ML Matching
+## Layer 4: LLM Matching
 
 ### Purpose
-The AI/ML Matching layer employs advanced machine learning techniques, including large language models, to handle complex pattern recognition, domain adaptation, and sophisticated reasoning about substitutions and alternatives.
+The LLM Matching layer employs Large Language Models to handle complex pattern recognition, domain adaptation, and sophisticated reasoning about substitutions and alternatives. This layer provides advanced semantic understanding and can handle novel matching scenarios.
 
 ### Characteristics
 - **Computational Complexity**: High (model-dependent)
 - **Confidence Level**: Variable (typically 0.3-0.9)
 - **Processing Speed**: Slow
-- **Failure Mode**: Model-based confidence scoring
+- **BaseMatchingLayer Integration**: Inherits standardized interfaces and error handling
+- **Optional Operation**: Requires proper LLM configuration
+- **Fallback Support**: Falls back to human review when LLM is unavailable
 
 ### Implementation Details
 
+The LLM Matching layer is implemented as `LLMMatcher` inheriting from `BaseMatchingLayer`:
+
 ```python
-class AIMLMatcher:
-    """Implements AI/ML-based matching between requirements and capabilities."""
+class LLMMatcher(BaseMatchingLayer):
+    """
+    LLM matching layer using Large Language Models for advanced semantic understanding.
     
-    def __init__(self, model_manager=None):
-        """Initialize with model manager for different AI/ML models."""
-        self.model_manager = model_manager or DefaultModelManager()
-        
-    async def match(self, requirement: str, capabilities: List[str], 
-                   context: Dict[str, Any]) -> List[MatchResult]:
-        """Perform AI/ML-based matching between requirement and capabilities."""
-        results = []
-        
-        # For each capability, apply appropriate AI/ML model
-        for capability in capabilities:
-            # Determine best model based on requirement and capability
-            model = self.model_manager.select_model(requirement, capability, context)
-            
-            # Generate match prediction using selected model
-            prediction = await model.predict(requirement, capability, context)
-            
-            if prediction.confidence >= context.get("min_confidence", 0.3):
-                results.append(MatchResult(
-                    requirement=requirement,
-                    capability=capability,
-                    confidence=prediction.confidence,
-                    method=f"ai_ml::{model.name}",
-                    explanation=prediction.explanation
-                ))
-                
-        # Add any alternative suggestions
-        alternatives = await self._generate_alternatives(requirement, context)
-        for alt in alternatives:
-            if alt.capability not in [r.capability for r in results]:
-                results.append(alt)
-                
-        return results
-        
-    async def _generate_alternatives(self, requirement: str, 
-                                   context: Dict[str, Any]) -> List[MatchResult]:
-        """Generate alternative capability suggestions using AI/ML."""
-        llm_model = self.model_manager.get_llm()
-        
-        # Prompt engineering for alternative generation
-        prompt = f"""
-        Given the requirement: "{requirement}"
-        In the context of {context.get('domain', 'manufacturing')},
-        suggest alternative capabilities that could satisfy this requirement.
-        For each alternative, provide:
-        1. The alternative capability
-        2. A confidence score (0.0-1.0)
-        3. A brief explanation of the substitution
+    This layer leverages LLMs to perform sophisticated matching between requirements
+    and capabilities using natural language understanding. It can handle complex
+    relationships, context, and nuanced matching scenarios that other layers might miss.
+    
+    The LLM layer is optional and requires proper configuration. If not configured
+    or if LLM calls fail, the system falls back to human review as the default behavior.
+    """
+    
+    def __init__(self, domain: str = "general", llm_config: Optional[Dict[str, Any]] = None):
         """
+        Initialize the LLM matcher.
         
-        response = await llm_model.generate(prompt)
+        Args:
+            domain: The domain this matcher operates in
+            llm_config: Optional LLM configuration dictionary
+        """
+        super().__init__(MatchingLayer.LLM, domain)
+        self.llm_config = llm_config or {}
+        self._initialized = False
         
-        # Parse LLM response to extract alternatives
-        alternatives = self._parse_alternatives(response, requirement)
+    async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
+        """
+        Match requirements to capabilities using LLM techniques.
         
-        return alternatives
+        Args:
+            requirements: List of requirement strings to match
+            capabilities: List of capability strings to match against
+            
+        Returns:
+            List of MatchingResult objects with detailed metadata
+            
+        Note: This is a placeholder implementation that returns no matches.
+        Full LLM integration will be implemented in future phases.
+        """
+        # Start tracking metrics
+        self.start_matching(requirements, capabilities)
+        
+        try:
+            # Validate inputs
+            if not self.validate_inputs(requirements, capabilities):
+                self.end_matching(success=False)
+                return []
+            
+            results = []
+            
+            # Placeholder implementation - returns no matches
+            # This will be replaced with actual LLM matching in future phases
+            for requirement in requirements:
+                for capability in capabilities:
+                    result = self.create_matching_result(
+                        requirement=requirement,
+                        capability=capability,
+                        matched=False,
+                        confidence=0.0,
+                        method="llm_placeholder",
+                        reasons=["LLM matching not yet implemented"],
+                        quality=MatchQuality.NO_MATCH,
+                        processing_time_ms=0.0
+                    )
+                    results.append(result)
+            
+            # End metrics tracking
+            matches_found = sum(1 for r in results if r.matched)
+            self.end_matching(success=True, matches_found=matches_found)
+            
+            return results
+            
+        except Exception as e:
+            return self.handle_matching_error(e, [])
 ```
+
+### Planned LLM Features
+
+The LLM layer is designed to support:
+
+- **Advanced Semantic Understanding**: Complex relationship detection and context awareness
+- **Multi-Provider Support**: OpenAI, Anthropic, Google, Azure OpenAI, and local models
+- **Prompt Engineering**: Sophisticated prompt design for matching tasks
+- **Alternative Generation**: Suggesting alternative capabilities for requirements
+- **Explanation Generation**: Providing detailed reasoning for matches
+- **Cost Optimization**: Efficient LLM usage with caching and optimization
+- **Fallback Mechanisms**: Graceful degradation when LLM services are unavailable
 
 ### AI/ML Techniques Employed
 1. **Large Language Models (LLMs)**: For generating alternatives and reasoning about substitutions
@@ -2304,15 +2460,74 @@ class ComputeResourceManager:
 ```
 
 
-## Conclusion
+## Current Implementation Status
 
-The four-layer matching system in the Open Matching Engine provides a sophisticated, extensible approach to matching requirements with capabilities across various domains. By progressively applying more sophisticated techniques, the system balances computational efficiency with matching accuracy, handling everything from exact matches to complex reasoning about substitutions and alternatives.
+### Implemented Layers
 
-This architecture enables the OME to:
-1. Handle various levels of specification detail
-2. Adapt to different domains with minimal reconfiguration
-3. Balance performance with accuracy based on use case
-4. Provide explainable results with confidence scores
-5. Extend to new domains through configuration rather than code changes
+#### ✅ Layer 1: Direct Matching (Complete)
+- **Status**: Fully implemented and tested
+- **Features**: Exact string matching, near-miss detection, process name normalization
+- **Domains**: Manufacturing and cooking domains supported
+- **Performance**: High performance with comprehensive metadata tracking
 
-By leveraging this progressive matching approach, the OME can efficiently solve complex matching problems while maintaining explainability and adaptability for various use cases.
+#### ✅ Layer 2: Heuristic Matching (Complete)
+- **Status**: Fully implemented with capability-centric rules
+- **Features**: Rule-based matching, YAML configuration, domain separation
+- **Domains**: Manufacturing and cooking domains with comprehensive rule sets
+- **Performance**: Fast rule-based matching with detailed provenance
+
+#### 🚧 Layer 3: NLP Matching (Placeholder)
+- **Status**: Base implementation complete, NLP integration pending
+- **Features**: Standardized interface, placeholder for future NLP integration
+- **Planned**: Vector embeddings, semantic similarity, named entity recognition
+- **Timeline**: To be implemented in future phases
+
+#### 🚧 Layer 4: LLM Matching (Placeholder)
+- **Status**: Base implementation complete, LLM integration pending
+- **Features**: Standardized interface, placeholder for future LLM integration
+- **Planned**: Multi-provider LLM support, advanced semantic understanding
+- **Timeline**: To be implemented in future phases
+
+### Base Architecture (Complete)
+
+#### ✅ BaseMatchingLayer
+- **Status**: Fully implemented and standardized
+- **Features**: Consistent interfaces, metrics tracking, error handling
+- **Benefits**: All layers inherit standardized behavior and capabilities
+
+#### ✅ Data Models
+- **Status**: Complete and comprehensive
+- **Models**: MatchingResult, MatchMetadata, MatchingMetrics, MatchQuality
+- **Features**: Rich metadata, serialization support, type safety
+
+### Integration Status
+
+#### ✅ MatchingService Integration
+- **Status**: Fully integrated with all implemented layers
+- **Features**: Layer orchestration, domain registration, API endpoints
+- **Performance**: Comprehensive testing and validation completed
+
+#### ✅ API Integration
+- **Status**: Complete with standardized error handling
+- **Features**: RESTful endpoints, comprehensive validation, detailed responses
+- **Testing**: End-to-end API testing completed
+
+## Future Development Roadmap
+
+### Phase 4: LLM Implementation (Next Priority)
+1. **LLM Provider Abstraction**: Multi-provider support (OpenAI, Anthropic, Google, Azure)
+2. **LLM Layer Implementation**: Replace placeholder with full LLM integration
+3. **Prompt Engineering**: Sophisticated prompt design for matching tasks
+4. **Cost Optimization**: Efficient LLM usage with caching and optimization
+
+### Phase 5: NLP Integration (Future)
+1. **Vector Embeddings**: Word and sentence embeddings for semantic similarity
+2. **Named Entity Recognition**: Domain-specific entity extraction
+3. **Semantic Similarity**: Advanced similarity algorithms
+4. **Multi-language Support**: Processing content in multiple languages
+
+### Phase 6: Advanced Features (Future)
+1. **Adaptive Pipeline**: Dynamic layer selection based on context
+2. **Feedback Integration**: Learning from user feedback and corrections
+3. **Performance Optimization**: Advanced caching and indexing
+4. **Domain Expansion**: Support for additional domains beyond manufacturing and cooking
