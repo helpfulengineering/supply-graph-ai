@@ -40,6 +40,7 @@ from ..models.match.response import MatchResponse
 from ...services.matching_service import MatchingService
 from ...services.storage_service import StorageService
 from ...services.okh_service import OKHService
+from ...services.okw_service import OKWService
 from ...services.domain_service import DomainDetector
 from ...registry.domain_registry import DomainRegistry
 from ...models.okh import OKHManifest
@@ -956,8 +957,9 @@ async def _get_filtered_facilities(
 ) -> List[dict]:
     """Get facilities with applied filters."""
     try:
-        # Get all facilities
-        facilities = await storage_service.list_okw_facilities()
+        # Get all facilities using OKWService
+        okw_service = await OKWService.get_instance()
+        facilities, total = await okw_service.list(page=1, page_size=1000)
         
         # Apply filters
         filtered_facilities = []

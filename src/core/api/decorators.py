@@ -6,13 +6,10 @@ error handling, and response formatting across all endpoints.
 """
 
 from functools import wraps
-from typing import Callable, Any, Optional, Dict, List
-import asyncio
+from typing import Callable, List
 import time
-import logging
 from datetime import datetime
-
-from fastapi import HTTPException, status, Request, Depends
+from fastapi import HTTPException, status, Request
 from fastapi.responses import JSONResponse
 
 from .models.base import (
@@ -22,7 +19,8 @@ from .models.base import (
     SuccessResponse,
     APIStatus,
     ErrorCode,
-    LLMResponseMixin
+    LLMResponseMixin,
+    PaginationParams
 )
 from .error_handlers import create_error_response, create_success_response
 # from ..errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
@@ -403,8 +401,13 @@ def llm_endpoint(
                     }
                 )
             
-            # Execute the function with LLM parameters
-            result = await func(*args, **kwargs, llm_params=llm_params)
+            # Execute the function with LLM parameters (only if function accepts it)
+            import inspect
+            sig = inspect.signature(func)
+            if 'llm_params' in sig.parameters:
+                result = await func(*args, **kwargs, llm_params=llm_params)
+            else:
+                result = await func(*args, **kwargs)
             
             # Add LLM information to response if LLM was used
             if llm_params["use_llm"] and isinstance(result, dict):
@@ -461,8 +464,16 @@ def paginated_response(
             if page_size > max_page_size:
                 page_size = max_page_size
             
-            # Execute the function with pagination parameters
-            result = await func(*args, **kwargs, page=page, page_size=page_size)
+            # Create PaginationParams object
+            pagination = PaginationParams(page=page, page_size=page_size)
+            
+            # Execute the function with pagination parameters (only if function doesn't already have pagination)
+            import inspect
+            sig = inspect.signature(func)
+            if 'pagination' in sig.parameters and 'pagination' not in kwargs:
+                result = await func(*args, **kwargs, pagination=pagination)
+            else:
+                result = await func(*args, **kwargs)
             
             # TODO: Implement actual pagination logic
             # This is a placeholder for future implementation
