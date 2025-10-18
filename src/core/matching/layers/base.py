@@ -23,6 +23,7 @@ from typing import Dict, Any, List, Optional, Union, Tuple
 from enum import Enum
 from datetime import datetime, timedelta
 import logging
+import re
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -393,3 +394,42 @@ class BaseMatchingLayer(ABC):
         else:
             # Strings differ in content, not just whitespace
             return False
+
+    def normalize_process_name(self, process_name: str) -> str:
+        """
+        Normalize process names for better matching.
+        
+        This method handles:
+        - Wikipedia URLs: Extracts the process name from URLs
+        - Case normalization: Converts to lowercase
+        - Whitespace normalization: Removes extra whitespace
+        - Special character handling: Normalizes underscores, hyphens, etc.
+        
+        Args:
+            process_name: The process name to normalize
+            
+        Returns:
+            Normalized process name
+        """
+        if not process_name:
+            return ""
+        
+        # Handle Wikipedia URLs
+        if "wikipedia.org/wiki/" in process_name.lower():
+            # Extract the process name from Wikipedia URL
+            # e.g., "https://en.wikipedia.org/wiki/PCB_assembly" -> "PCB_assembly"
+            parts = process_name.split("/wiki/")
+            if len(parts) > 1:
+                process_name = parts[1]
+        
+        # Normalize case and whitespace
+        normalized = process_name.strip().lower()
+        
+        # Normalize special characters
+        # Replace underscores and hyphens with spaces for better matching
+        normalized = re.sub(r'[_\-]+', ' ', normalized)
+        
+        # Normalize multiple spaces to single space
+        normalized = re.sub(r'\s+', ' ', normalized)
+        
+        return normalized.strip()

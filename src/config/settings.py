@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from src.core.storage.base import StorageConfig
 
 from .storage_config import get_default_storage_config, StorageConfigError
+from .llm_config import get_llm_config, is_llm_enabled, validate_llm_config
 
 
 # Load environment variables from .env file
@@ -44,3 +45,19 @@ except StorageConfigError as e:
         )
     else:
         raise
+
+# LLM Configuration
+LLM_CONFIG = get_llm_config()
+LLM_ENABLED = is_llm_enabled()
+
+# Validate LLM configuration on startup
+if LLM_ENABLED:
+    llm_validation = validate_llm_config()
+    if not llm_validation["valid"]:
+        logger.warning("LLM configuration has issues:")
+        for error in llm_validation["errors"]:
+            logger.warning(f"  - {error}")
+    else:
+        logger.info("LLM configuration validated successfully")
+else:
+    logger.info("LLM integration is disabled")

@@ -1,0 +1,71 @@
+{
+  "enabled": true,
+  "default_provider": "anthropic",
+  "default_model": "claude-3-sonnet",
+  "fallback_enabled": true,
+  "cost_tracking_enabled": true,
+  "usage_analytics_enabled": true,
+  "prompt_caching_enabled": true,
+  "response_caching_enabled": false,
+  "cache_ttl_seconds": 3600,
+  "max_concurrent_requests": 10,
+  "request_timeout_seconds": 60,
+  "providers": {
+    "anthropic": {
+      "provider": "anthropic",
+      "api_base_url": "https://api.anthropic.com",
+      "organization_id": null,
+      "project_id": null,
+      "region": null,
+      "version": null,
+      "timeout_seconds": 30,
+      "max_retries": 3,
+      "rate_limit_requests_per_minute": 60,
+      "rate_limit_tokens_per_minute": 150000,
+      "custom_headers": {},
+      "enabled": true,
+      "has_api_key": true
+    }
+  },
+  "models": {
+    "claude-3-opus": {
+      "name": "claude-3-opus",
+      "provider": "anthropic",
+      "max_tokens": 4096,
+      "temperature": 0.7,
+      "top_p": 1.0,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "timeout_seconds": 30,
+      "retry_attempts": 3,
+      "cost_per_token": 0.000015,
+      "description": "Claude 3 Opus - Anthropic's most capable model"
+    },
+    "claude-3-sonnet": {
+      "name": "claude-3-sonnet",
+      "provider": "anthropic",
+      "max_tokens": 4096,
+      "temperature": 0.7,
+      "top_p": 1.0,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "timeout_seconds": 30,
+      "retry_attempts": 3,
+      "cost_per_token": 0.000003,
+      "description": "Claude 3 Sonnet - Balanced performance and cost"
+    },
+    "claude-3-haiku": {
+      "name": "claude-3-haiku",
+      "provider": "anthropic",
+      "max_tokens": 4096,
+      "temperature": 0.7,
+      "top_p": 1.0,
+      "frequency_penalty": 0.0,
+      "presence_penalty": 0.0,
+      "timeout_seconds": 30,
+      "retry_attempts": 3,
+      "cost_per_token": 0.00000025,
+      "description": "Claude 3 Haiku - Fast and cost-effective for simple tasks"
+    }
+  }
+}

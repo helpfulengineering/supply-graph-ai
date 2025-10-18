@@ -221,20 +221,27 @@ class MatchingService:
                     if not cap_process:
                         continue
                     
+                    # Normalize process names for better matching
+                    # This handles Wikipedia URLs and other format differences
+                    req_normalized = self._normalize_process_name(req_process)
+                    cap_normalized = self._normalize_process_name(cap_process)
+                    
                     # Layer 1: Direct Matching (using new Direct Matching layer)
-                    if await self._direct_match(req_process, cap_process, domain="manufacturing"):
+                    if await self._direct_match(req_normalized, cap_normalized, domain="manufacturing"):
                         logger.debug(
                             "Direct match found",
                             extra={
                                 "requirement": req.get("process_name"),
                                 "capability": cap.get("process_name"),
+                                "requirement_normalized": req_normalized,
+                                "capability_normalized": cap_normalized,
                                 "layer": "direct"
                             }
                         )
                         return True
                     
                     # Layer 2: Heuristic Matching (using new HeuristicRuleManager)
-                    if await self._heuristic_match(req_process, cap_process, domain="manufacturing"):
+                    if await self._heuristic_match(req_normalized, cap_normalized, domain="manufacturing"):
                         logger.debug(
                             "Heuristic match found",
                             extra={
@@ -580,6 +587,46 @@ class MatchingService:
                 exc_info=True
             )
             raise
+    
+    def _normalize_process_name(self, process_name: str) -> str:
+        """
+        Normalize process names for better matching.
+        
+        This method handles:
+        - Wikipedia URLs: Extracts the process name from URLs
+        - Case normalization: Converts to lowercase
+        - Whitespace normalization: Removes extra whitespace
+        - Special character handling: Normalizes underscores, hyphens, etc.
+        
+        Args:
+            process_name: The process name to normalize
+            
+        Returns:
+            Normalized process name
+        """
+        if not process_name:
+            return ""
+        
+        # Handle Wikipedia URLs
+        if "wikipedia.org/wiki/" in process_name.lower():
+            # Extract the process name from Wikipedia URL
+            # e.g., "https://en.wikipedia.org/wiki/PCB_assembly" -> "PCB_assembly"
+            parts = process_name.split("/wiki/")
+            if len(parts) > 1:
+                process_name = parts[1]
+        
+        # Normalize case and whitespace
+        normalized = process_name.strip().lower()
+        
+        # Normalize special characters
+        # Replace underscores and hyphens with spaces for better matching
+        import re
+        normalized = re.sub(r'[_\-]+', ' ', normalized)
+        
+        # Normalize multiple spaces to single space
+        normalized = re.sub(r'\s+', ' ', normalized)
+        
+        return normalized.strip()
     
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""
