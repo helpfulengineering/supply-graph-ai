@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.okh import router as okh_router
@@ -10,6 +12,15 @@ from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.api.routes.package import router as package_router
+
+# Import new standardized API components
+from src.core.api.error_handlers import (
+    validation_exception_handler,
+    http_exception_handler,
+    general_exception_handler
+)
+from src.core.api.middleware import setup_api_middleware
+# from src.core.errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
 
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -72,6 +83,16 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# Set up standardized error handlers
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+# Set up API middleware
+# metrics_tracker = MetricsTracker()  # TODO: Implement MetricsTracker
+setup_api_middleware(app, None)
 
 # Add CORS middleware
 app.add_middleware(

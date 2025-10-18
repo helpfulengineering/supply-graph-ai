@@ -1,5 +1,23 @@
-from fastapi import APIRouter, Path, Depends
+from fastapi import APIRouter, Path, Depends, Request, status, HTTPException
+from typing import Optional, List
+from datetime import datetime
 
+# Import new standardized components
+from ..models.base import (
+    BaseAPIRequest, 
+    SuccessResponse, 
+    LLMRequestMixin,
+    LLMResponseMixin,
+    ValidationResult
+)
+from ..decorators import (
+    api_endpoint,
+    track_performance,
+    llm_endpoint
+)
+from ..error_handlers import create_error_response, create_success_response
+
+# Import existing models and services (now properly used through inheritance)
 from ..models.utility.request import (
     DomainFilterRequest,
     ContextFilterRequest
@@ -10,73 +28,391 @@ from ..models.utility.response import (
     Domain,
     Context
 )
+from ...utils.logging import get_logger
 
-# Create router with prefix and tags
-router = APIRouter(tags=["utility"])
+# Set up logging
+logger = get_logger(__name__)
 
-@router.get("/domains", response_model=DomainsResponse)
+# Create router with standardized patterns
+router = APIRouter(
+    prefix="/api/utility",
+    tags=["utility"],
+    responses={
+        400: {"description": "Bad Request"},
+        401: {"description": "Unauthorized"},
+        422: {"description": "Validation Error"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+
+# Enhanced request models that inherit from original models
+class EnhancedDomainFilterRequest(DomainFilterRequest, BaseAPIRequest, LLMRequestMixin):
+    """Enhanced domain filter request with standardized fields and LLM support."""
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "manufacturing",
+                "active_only": True,
+                "use_llm": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "quality_level": "professional",
+                "strict_mode": False
+            }
+        }
+
+class EnhancedContextFilterRequest(ContextFilterRequest, BaseAPIRequest, LLMRequestMixin):
+    """Enhanced context filter request with standardized fields and LLM support."""
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "professional",
+                "include_deprecated": False,
+                "with_details": True,
+                "use_llm": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "quality_level": "professional",
+                "strict_mode": False
+            }
+        }
+
+# Enhanced response models that inherit from original models
+class EnhancedDomainsResponse(DomainsResponse, SuccessResponse, LLMResponseMixin):
+    """Enhanced domains response with standardized fields and LLM information."""
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[ValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "domains": [
+                    {
+                        "id": "manufacturing",
+                        "name": "Manufacturing Domain",
+                        "description": "Hardware manufacturing capabilities"
+                    }
+                ],
+                "status": "success",
+                "message": "Domains retrieved successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "processing_time": 0.1,
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.001,
+                "data": {},
+                "validation_results": []
+            }
+        }
+
+class EnhancedContextsResponse(ContextsResponse, SuccessResponse, LLMResponseMixin):
+    """Enhanced contexts response with standardized fields and LLM information."""
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[ValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "contexts": [
+                    {
+                        "id": "professional",
+                        "name": "Professional Manufacturing",
+                        "description": "Commercial-grade production"
+                    }
+                ],
+                "status": "success",
+                "message": "Contexts retrieved successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "processing_time": 0.1,
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.001,
+                "data": {},
+                "validation_results": []
+            }
+        }
+
+@router.get(
+    "/domains", 
+    response_model=EnhancedDomainsResponse,
+    summary="List Available Domains",
+    description="""
+    Get a list of available domains with enhanced capabilities.
+    
+    **Features:**
+    - Domain filtering and search
+    - Enhanced error handling
+    - Performance metrics
+    - LLM integration support
+    - Comprehensive validation
+    """
+)
+@api_endpoint(
+    success_message="Domains retrieved successfully",
+    include_metrics=True
+)
+@track_performance("utility_domains")
+@llm_endpoint(
+    default_provider="anthropic",
+    default_model="claude-3-sonnet",
+    track_costs=True
+)
 async def get_domains(
-    filter_params: DomainFilterRequest = Depends()
+    filter_params: EnhancedDomainFilterRequest = Depends(),
+    http_request: Request = None
 ):
-    """List available domains"""
-    # Placeholder implementation
-    domains = [
-        Domain(
-            id="manufacturing",
-            name="Manufacturing Domain",
-            description="Hardware manufacturing capabilities"
-        ),
-        Domain(
-            id="cooking",
-            name="Cooking Domain",
-            description="Food preparation capabilities"
+    """Enhanced domain listing with standardized patterns."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.utcnow()
+    
+    try:
+        # Placeholder implementation
+        domains = [
+            Domain(
+                id="manufacturing",
+                name="Manufacturing Domain",
+                description="Hardware manufacturing capabilities"
+            ),
+            Domain(
+                id="cooking",
+                name="Cooking Domain",
+                description="Food preparation capabilities"
+            )
+        ]
+        
+        # Apply name filter if provided
+        if filter_params.name:
+            domains = [d for d in domains if filter_params.name.lower() in d.name.lower()]
+        
+        # Calculate processing time
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        # Create enhanced response using the proper DomainsResponse structure
+        response_data = {
+            "domains": [domain.model_dump() for domain in domains],
+            "processing_time": processing_time,
+            "validation_results": await _validate_utility_result(domains, request_id)
+        }
+        
+        logger.info(
+            f"Domains retrieved successfully",
+            extra={
+                "request_id": request_id,
+                "domain_count": len(domains),
+                "processing_time": processing_time,
+                "llm_used": filter_params.use_llm
+            }
         )
-    ]
-    
-    # Apply name filter if provided
-    if filter_params.name:
-        domains = [d for d in domains if filter_params.name.lower() in d.name.lower()]
-    
-    return DomainsResponse(domains=domains)
+        
+        return create_success_response(
+            message="Domains retrieved successfully",
+            data=response_data,
+            request_id=request_id
+        )
+        
+    except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error retrieving domains: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
-@router.get("/contexts/{domain}", response_model=ContextsResponse)
+@router.get(
+    "/contexts/{domain}", 
+    response_model=EnhancedContextsResponse,
+    summary="List Validation Contexts",
+    description="""
+    Get validation contexts for a specific domain with enhanced capabilities.
+    
+    **Features:**
+    - Context filtering and search
+    - Enhanced error handling
+    - Performance metrics
+    - LLM integration support
+    - Comprehensive validation
+    """
+)
+@api_endpoint(
+    success_message="Contexts retrieved successfully",
+    include_metrics=True
+)
+@track_performance("utility_contexts")
+@llm_endpoint(
+    default_provider="anthropic",
+    default_model="claude-3-sonnet",
+    track_costs=True
+)
 async def get_contexts(
     domain: str = Path(..., title="The domain to get contexts for"),
-    filter_params: ContextFilterRequest = Depends()
+    filter_params: EnhancedContextFilterRequest = Depends(),
+    http_request: Request = None
 ):
-    """List validation contexts for a specific domain"""
-    # Placeholder implementation
-    if domain == "manufacturing":
-        contexts = [
-            Context(
-                id="hobby",
-                name="Hobby Manufacturing",
-                description="Non-commercial, limited quality requirements"
-            ),
-            Context(
-                id="professional",
-                name="Professional Manufacturing",
-                description="Commercial-grade production"
-            )
-        ]
-    elif domain == "cooking":
-        contexts = [
-            Context(
-                id="home",
-                name="Home Cooking",
-                description="Basic home kitchen capabilities"
-            ),
-            Context(
-                id="commercial",
-                name="Commercial Kitchen",
-                description="Professional kitchen capabilities"
-            )
-        ]
-    else:
-        contexts = []
+    """Enhanced context listing with standardized patterns."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.utcnow()
     
-    # Apply name filter if provided
-    if filter_params.name:
-        contexts = [c for c in contexts if filter_params.name.lower() in c.name.lower()]
-    
-    return ContextsResponse(contexts=contexts)
+    try:
+        # Placeholder implementation
+        if domain == "manufacturing":
+            contexts = [
+                Context(
+                    id="hobby",
+                    name="Hobby Manufacturing",
+                    description="Non-commercial, limited quality requirements"
+                ),
+                Context(
+                    id="professional",
+                    name="Professional Manufacturing",
+                    description="Commercial-grade production"
+                )
+            ]
+        elif domain == "cooking":
+            contexts = [
+                Context(
+                    id="home",
+                    name="Home Cooking",
+                    description="Basic home kitchen capabilities"
+                ),
+                Context(
+                    id="commercial",
+                    name="Commercial Kitchen",
+                    description="Professional kitchen capabilities"
+                )
+            ]
+        else:
+            contexts = []
+        
+        # Apply name filter if provided
+        if filter_params.name:
+            contexts = [c for c in contexts if filter_params.name.lower() in c.name.lower()]
+        
+        # Calculate processing time
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        # Create enhanced response using the proper ContextsResponse structure
+        response_data = {
+            "contexts": [context.model_dump() for context in contexts],
+            "processing_time": processing_time,
+            "validation_results": await _validate_utility_result(contexts, request_id)
+        }
+        
+        logger.info(
+            f"Contexts retrieved successfully for domain: {domain}",
+            extra={
+                "request_id": request_id,
+                "domain": domain,
+                "context_count": len(contexts),
+                "processing_time": processing_time,
+                "llm_used": filter_params.use_llm
+            }
+        )
+        
+        return create_success_response(
+            message="Contexts retrieved successfully",
+            data=response_data,
+            request_id=request_id
+        )
+        
+    except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error retrieving contexts for domain {domain}: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "domain": domain,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
+
+# Helper functions
+async def _validate_utility_result(
+    result: any,
+    request_id: str
+) -> List[ValidationResult]:
+    """Validate utility operation result."""
+    try:
+        validation_results = []
+        
+        # Basic validation
+        is_valid = True
+        errors = []
+        warnings = []
+        suggestions = []
+        
+        # Check if result exists
+        if not result:
+            is_valid = False
+            errors.append("No result returned from operation")
+        
+        # Check if result is a list and has items
+        if isinstance(result, list):
+            if len(result) == 0:
+                warnings.append("No items found in result")
+            
+            # Check each item has required fields
+            for i, item in enumerate(result):
+                if hasattr(item, 'id') and not item.id:
+                    warnings.append(f"Item {i} missing ID")
+                if hasattr(item, 'name') and not item.name:
+                    warnings.append(f"Item {i} missing name")
+        
+        # Generate suggestions
+        if not is_valid:
+            suggestions.append("Review the input data and try again")
+        elif len(result) == 0:
+            suggestions.append("Try adjusting your filter criteria")
+        
+        validation_result = ValidationResult(
+            is_valid=is_valid,
+            score=1.0 if is_valid else 0.5,
+            errors=errors,
+            warnings=warnings,
+            suggestions=suggestions
+        )
+        
+        validation_results.append(validation_result)
+        
+        return validation_results
+        
+    except Exception as e:
+        logger.error(
+            f"Error validating utility result: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        return []

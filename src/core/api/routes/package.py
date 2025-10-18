@@ -1,9 +1,30 @@
 from typing import Dict, Any, List, Optional
 from uuid import UUID
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.responses import FileResponse
-import logging
+from datetime import datetime
+from pydantic import Field
 
+# Import new standardized components
+from ..models.base import (
+    BaseAPIRequest, 
+    SuccessResponse, 
+    PaginationParams,
+    PaginatedResponse,
+    LLMRequestMixin,
+    LLMResponseMixin,
+    ValidationResult
+)
+from ..decorators import (
+    api_endpoint,
+    validate_request,
+    track_performance,
+    llm_endpoint,
+    paginated_response
+)
+from ..error_handlers import create_error_response, create_success_response
+
+# Import existing models and services
 from ...models.okh import OKHManifest
 from ...models.package import BuildOptions, PackageMetadata
 from ...services.package_service import PackageService
@@ -14,65 +35,225 @@ from ...utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/api/package", tags=["package"])
+# Create router with standardized patterns
+router = APIRouter(
+    prefix="/api/package",
+    tags=["package"],
+    responses={
+        400: {"description": "Bad Request"},
+        401: {"description": "Unauthorized"},
+        422: {"description": "Validation Error"},
+        500: {"description": "Internal Server Error"}
+    }
+)
+
+# Enhanced request models
+class EnhancedPackageBuildRequest(BaseAPIRequest, LLMRequestMixin):
+    """Enhanced package build request with standardized fields and LLM support."""
+    
+    # Core package fields
+    manifest_data: Dict[str, Any] = Field(..., min_items=1, description="OKH manifest data")
+    options: Optional[BuildOptions] = Field(None, description="Build options")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "manifest_data": {
+                    "title": "Test Package",
+                    "version": "1.0.0",
+                    "manufacturing_specs": {
+                        "process_requirements": [
+                            {"process_name": "3D Printing", "parameters": {}}
+                        ]
+                    }
+                },
+                "options": {
+                    "include_dependencies": True,
+                    "compress_output": True
+                },
+                "use_llm": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "quality_level": "professional",
+                "strict_mode": False
+            }
+        }
 
 
+class EnhancedPackageResponse(SuccessResponse, LLMResponseMixin):
+    """Enhanced package response with standardized fields and LLM information."""
+    
+    # Core response data
+    package: Optional[dict] = None
+    processing_time: float = 0.0
+    
+    # Enhanced metadata
+    validation_results: Optional[List[ValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "Package operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "package": {
+                    "name": "test-package",
+                    "version": "1.0.0",
+                    "status": "built"
+                },
+                "processing_time": 2.5,
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.025,
+                "data": {},
+                "metadata": {}
+            }
+        }
+
+
+# Service dependencies
 async def get_package_service() -> PackageService:
-    """Dependency to get package service instance"""
+    """Get package service instance."""
     return await PackageService.get_instance()
 
 
 async def get_okh_service() -> OKHService:
-    """Dependency to get OKH service instance"""
+    """Get OKH service instance."""
     return await OKHService.get_instance()
 
 
 async def get_remote_storage() -> PackageRemoteStorage:
-    """Dependency to get package remote storage instance"""
+    """Get package remote storage instance."""
     from ...services.storage_service import StorageService
     storage_service = await StorageService.get_instance()
     await storage_service.configure(settings.STORAGE_CONFIG)
     return PackageRemoteStorage(storage_service)
 
 
-@router.post("/build", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/build", 
+    response_model=EnhancedPackageResponse, 
+    status_code=status.HTTP_201_CREATED,
+    summary="Build Package from Manifest",
+    description="""
+    Build an OKH package from a manifest dictionary with enhanced capabilities.
+    
+    This endpoint provides:
+    - Standardized request/response formats
+    - LLM integration support
+    - Enhanced error handling
+    - Performance metrics
+    - Comprehensive validation
+    
+    **Features:**
+    - Support for LLM-enhanced package building
+    - Advanced build options
+    - Real-time performance tracking
+    - Detailed validation results
+    """
+)
+@api_endpoint(
+    success_message="Package built successfully",
+    include_metrics=True,
+    track_llm=True
+)
+@validate_request(EnhancedPackageBuildRequest)
+@track_performance("package_build")
+@llm_endpoint(
+    default_provider="anthropic",
+    default_model="claude-3-sonnet",
+    track_costs=True
+)
 async def build_package_from_manifest(
-    manifest_data: Dict[str, Any],
-    options: Optional[BuildOptions] = None,
+    request: EnhancedPackageBuildRequest,
+    http_request: Request,
     package_service: PackageService = Depends(get_package_service)
 ):
     """
-    Build an OKH package from a manifest dictionary
+    Enhanced package building with standardized patterns.
     
     Args:
-        manifest_data: OKH manifest data
-        options: Build options (optional)
+        request: Enhanced package build request with standardized fields
+        http_request: HTTP request object for tracking
+        package_service: Package service dependency
         
     Returns:
-        Package metadata and build information
+        Enhanced package response with comprehensive data
     """
+    request_id = getattr(http_request.state, 'request_id', None)
+    start_time = datetime.utcnow()
+    
     try:
         # Create manifest from data
-        manifest = OKHManifest.from_dict(manifest_data)
+        manifest = OKHManifest.from_dict(request.manifest_data)
         
         # Use default options if none provided
-        if options is None:
-            options = BuildOptions()
+        options = request.options or BuildOptions()
         
         # Build package
         metadata = await package_service.build_package_from_manifest(manifest, options)
         
-        return {
-            "status": "success",
-            "message": "Package built successfully",
-            "metadata": metadata.to_dict()
+        # Calculate processing time
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        # Create enhanced response
+        response_data = {
+            "package": metadata.to_dict(),
+            "processing_time": processing_time,
+            "validation_results": await _validate_package_result(metadata.to_dict(), request_id)
         }
         
+        logger.info(
+            f"Package built successfully",
+            extra={
+                "request_id": request_id,
+                "package_name": metadata.name if hasattr(metadata, 'name') else 'unknown',
+                "processing_time": processing_time,
+                "llm_used": request.use_llm
+            }
+        )
+        
+        return response_data
+        
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid manifest: {str(e)}")
+        # Handle validation errors using standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            request_id=request_id,
+            suggestion="Please check the manifest data format and try again"
+        )
+        logger.error(
+            f"Validation error building package: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_response.model_dump()
+        )
     except Exception as e:
-        logger.error(f"Error building package: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to build package: {str(e)}")
+        # Log unexpected errors using standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error building package: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.post("/build/{manifest_id}", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
@@ -99,41 +280,114 @@ async def build_package_from_storage(
         # Build package
         metadata = await package_service.build_package_from_storage(manifest_id, options)
         
-        return {
-            "status": "success",
-            "message": "Package built successfully",
-            "metadata": metadata.to_dict()
-        }
+        return create_success_response(
+            message="Package built successfully",
+            data={"metadata": metadata.to_dict()},
+            request_id=None
+        )
         
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=None,
+            suggestion="Please check the manifest ID and try again"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump()
+        )
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error building package from storage: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to build package: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
-@router.get("/list", response_model=Dict[str, Any])
-async def list_packages(
-    package_service: PackageService = Depends(get_package_service)
-):
-    """
-    List all built packages
+@router.get(
+    "/list", 
+    response_model=PaginatedResponse,
+    summary="List Packages",
+    description="""
+    Get a paginated list of built packages with enhanced capabilities.
     
-    Returns:
-        List of package metadata
+    **Features:**
+    - Paginated results with sorting and filtering
+    - Enhanced error handling
+    - Performance metrics
+    - Comprehensive validation
     """
+)
+@api_endpoint(
+    success_message="Packages retrieved successfully",
+    include_metrics=True
+)
+@paginated_response(default_page_size=20, max_page_size=100)
+async def list_packages(
+    pagination: PaginationParams = Depends(),
+    package_service: PackageService = Depends(get_package_service),
+    http_request: Request = None
+):
+    """Enhanced package listing with pagination and metrics."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
     try:
         packages = await package_service.list_built_packages()
         
+        # Convert to list format
+        package_list = [pkg.to_dict() for pkg in packages]
+        
+        # Apply pagination
+        total_items = len(package_list)
+        start_idx = (pagination.page - 1) * pagination.page_size
+        end_idx = start_idx + pagination.page_size
+        paginated_packages = package_list[start_idx:end_idx]
+        
+        # Create pagination info
+        total_pages = (total_items + pagination.page_size - 1) // pagination.page_size
+        
         return {
-            "status": "success",
-            "packages": [pkg.to_dict() for pkg in packages],
-            "total": len(packages)
+            "items": paginated_packages,
+            "pagination": {
+                "page": pagination.page,
+                "page_size": pagination.page_size,
+                "total_items": total_items,
+                "total_pages": total_pages,
+                "has_next": pagination.page < total_pages,
+                "has_previous": pagination.page > 1
+            }
         }
         
     except Exception as e:
-        logger.error(f"Error listing packages: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to list packages: {str(e)}")
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error listing packages: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.get("/{package_name}/{version}", response_model=Dict[str, Any])
@@ -158,16 +412,27 @@ async def get_package_metadata(
         if not metadata:
             raise HTTPException(status_code=404, detail="Package not found")
         
-        return {
-            "status": "success",
-            "metadata": metadata.to_dict()
-        }
+        return create_success_response(
+            message="Package metadata retrieved successfully",
+            data={"metadata": metadata.to_dict()},
+            request_id=None
+        )
         
     except HTTPException:
         raise
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error getting package metadata: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get package metadata: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.get("/{package_name}/{version}/verify", response_model=Dict[str, Any])
@@ -189,14 +454,25 @@ async def verify_package(
     try:
         results = await package_service.verify_package(package_name, version)
         
-        return {
-            "status": "success",
-            "verification": results
-        }
+        return create_success_response(
+            message="Package verification completed successfully",
+            data={"verification": results},
+            request_id=None
+        )
         
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error verifying package: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to verify package: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.delete("/{package_name}/{version}", response_model=Dict[str, Any])
@@ -221,16 +497,27 @@ async def delete_package(
         if not success:
             raise HTTPException(status_code=404, detail="Package not found")
         
-        return {
-            "status": "success",
-            "message": f"Package {package_name}/{version} deleted successfully"
-        }
+        return create_success_response(
+            message=f"Package {package_name}/{version} deleted successfully",
+            data={},
+            request_id=None
+        )
         
     except HTTPException:
         raise
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error deleting package: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete package: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.get("/{package_name}/{version}/download")
@@ -277,8 +564,18 @@ async def download_package(
     except HTTPException:
         raise
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error creating package tarball: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to create package tarball: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.post("/push", response_model=Dict[str, Any])
@@ -314,17 +611,37 @@ async def push_package(
         local_package_path = Path(metadata.package_path)
         result = await remote_storage.push_package(metadata, local_package_path)
         
-        return {
-            "status": "success",
-            "message": f"Package {package_name}:{version} pushed successfully",
-            "remote_path": result.get("remote_path", "unknown")
-        }
+        return create_success_response(
+            message=f"Package {package_name}:{version} pushed successfully",
+            data={"remote_path": result.get("remote_path", "unknown")},
+            request_id=None
+        )
         
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=None,
+            suggestion="Please check the package name and version and try again"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump()
+        )
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error pushing package: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to push package: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.post("/pull", response_model=Dict[str, Any])
@@ -362,17 +679,37 @@ async def pull_package(
         # Pull package
         metadata = await remote_storage.pull_package(package_name, version, output_path)
         
-        return {
-            "status": "success",
-            "message": f"Package {package_name}:{version} pulled successfully",
-            "metadata": metadata.to_dict()
-        }
+        return create_success_response(
+            message=f"Package {package_name}:{version} pulled successfully",
+            data={"metadata": metadata.to_dict()},
+            request_id=None
+        )
         
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=None,
+            suggestion="Please check the package name and version and try again"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump()
+        )
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error pulling package: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to pull package: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 
 @router.get("/remote", response_model=Dict[str, Any])
@@ -389,12 +726,78 @@ async def list_remote_packages(
         # List remote packages
         packages = await remote_storage.list_remote_packages()
         
-        return {
-            "status": "success",
-            "packages": packages,
-            "total": len(packages)
-        }
+        return create_success_response(
+            message="Remote packages listed successfully",
+            data={"packages": packages, "total": len(packages)},
+            request_id=None
+        )
         
     except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists"
+        )
         logger.error(f"Error listing remote packages: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to list remote packages: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
+
+
+# Helper functions
+async def _validate_package_result(
+    result: any,
+    request_id: str
+) -> List[ValidationResult]:
+    """Validate package operation result."""
+    try:
+        validation_results = []
+        
+        # Basic validation
+        is_valid = True
+        errors = []
+        warnings = []
+        suggestions = []
+        
+        # Check if result exists
+        if not result:
+            is_valid = False
+            errors.append("No result returned from operation")
+        
+        # Check required fields if result is a dict
+        if isinstance(result, dict):
+            if not result.get("name"):
+                warnings.append("Missing package name in result")
+            
+            if not result.get("version"):
+                warnings.append("Missing package version in result")
+            
+            if not result.get("package_path"):
+                warnings.append("Missing package path in result")
+        
+        # Generate suggestions
+        if not is_valid:
+            suggestions.append("Review the input data and try again")
+        
+        validation_result = ValidationResult(
+            is_valid=is_valid,
+            score=1.0 if is_valid else 0.5,
+            errors=errors,
+            warnings=warnings,
+            suggestions=suggestions
+        )
+        
+        validation_results.append(validation_result)
+        
+        return validation_results
+        
+    except Exception as e:
+        logger.error(
+            f"Error validating package result: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        return []

@@ -1,9 +1,29 @@
-from fastapi import APIRouter, HTTPException, Query, Path, status, Depends, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, Query, Path, status, Depends, UploadFile, File, Form, Request
 from typing import Optional, List
 from uuid import UUID
-import logging
 import json
 import yaml
+from datetime import datetime
+from pydantic import Field
+
+# Import new standardized components
+from ..models.base import (
+    BaseAPIRequest, 
+    SuccessResponse, 
+    PaginationParams,
+    PaginatedResponse,
+    LLMRequestMixin,
+    LLMResponseMixin,
+    ValidationResult
+)
+from ..decorators import (
+    api_endpoint,
+    validate_request,
+    track_performance,
+    llm_endpoint,
+    paginated_response
+)
+from ..error_handlers import create_error_response, create_success_response
 
 from ..models.okw.request import (
     OKWCreateRequest, 
@@ -13,10 +33,8 @@ from ..models.okw.request import (
 )
 from ..models.okw.response import (
     OKWResponse, 
-    OKWValidationResponse, 
     OKWExtractResponse,
     OKWListResponse,
-    SuccessResponse,
     OKWUploadResponse
 )
 from ...services.storage_service import StorageService
@@ -27,25 +45,147 @@ from ...utils.logging import get_logger
 # Set up logging
 logger = get_logger(__name__)
 
-# Create router with prefix and tags
-router = APIRouter(tags=["okw"])
+# Create router with standardized patterns
+router = APIRouter(
+    tags=["okw"],
+    responses={
+        400: {"description": "Bad Request"},
+        401: {"description": "Unauthorized"},
+        422: {"description": "Validation Error"},
+        500: {"description": "Internal Server Error"}
+    }
+)
 
+# Enhanced request models
+class EnhancedOKWCreateRequest(OKWCreateRequest, BaseAPIRequest, LLMRequestMixin):
+    """Enhanced OKW create request with standardized fields and LLM support."""
+    
+    # Fields inherited from OKWCreateRequest - no need to redefine
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "name": "TechFab Manufacturing Hub",
+                "facility_status": "active",
+                "access_type": "public",
+                "location": {
+                    "address": {
+                        "street": "123 Industrial Ave",
+                        "city": "San Francisco",
+                        "country": "USA"
+                    },
+                    "coordinates": {
+                        "latitude": 37.7749,
+                        "longitude": -122.4194
+                    }
+                },
+                "manufacturing_processes": ["PCB Assembly", "3D Printing"],
+                "equipment": [{"name": "Pick and Place Machine", "type": "PCB Assembly"}],
+                "typical_materials": ["FR4", "PLA", "ABS"],
+                "use_llm": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "quality_level": "professional",
+                "strict_mode": False
+            }
+        }
+
+
+class EnhancedOKWResponse(OKWResponse, SuccessResponse, LLMResponseMixin):
+    """Enhanced OKW response with standardized fields and LLM information."""
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[ValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "OKW operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "facility": {
+                    "id": "facility_123",
+                    "name": "TechFab Manufacturing Hub",
+                    "facility_status": "active"
+                },
+                "processing_time": 1.25,
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.012,
+                "data": {},
+                "metadata": {}
+            }
+        }
+
+
+# Service dependencies
 async def get_storage_service() -> StorageService:
+    """Get storage service instance."""
     return await StorageService.get_instance()
 
-# Dependency to get OKW service
-async def get_okw_service():
+
+async def get_okw_service() -> OKWService:
+    """Get OKW service instance."""
     return await OKWService.get_instance()
 
-@router.post("/create", response_model=OKWResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/create", 
+    response_model=EnhancedOKWResponse, 
+    status_code=status.HTTP_201_CREATED,
+    summary="Create OKW Facility",
+    description="""
+    Create a new OpenKnowWhere facility with enhanced capabilities.
+    
+    This endpoint provides:
+    - Standardized request/response formats
+    - LLM integration support
+    - Enhanced error handling
+    - Performance metrics
+    - Comprehensive validation
+    
+    **Features:**
+    - Support for LLM-enhanced facility creation
+    - Advanced validation options
+    - Real-time performance tracking
+    - Detailed validation results
+    """
+)
+@api_endpoint(
+    success_message="OKW facility created successfully",
+    include_metrics=True,
+    track_llm=True
+)
+@validate_request(EnhancedOKWCreateRequest)
+@track_performance("okw_creation")
+@llm_endpoint(
+    default_provider="anthropic",
+    default_model="claude-3-sonnet",
+    track_costs=True
+)
 async def create_okw(
-    request: OKWCreateRequest,
+    request: EnhancedOKWCreateRequest,
+    http_request: Request,
     okw_service: OKWService = Depends(get_okw_service)
 ):
-    """Create a new OKW facility"""
+    """
+    Enhanced OKW facility creation with standardized patterns.
+    
+    Args:
+        request: Enhanced OKW create request with standardized fields
+        http_request: HTTP request object for tracking
+        okw_service: OKW service dependency
+        
+    Returns:
+        Enhanced OKW response with comprehensive data
+    """
+    request_id = getattr(http_request.state, 'request_id', None)
+    start_time = datetime.utcnow()
+    
     try:
         # Convert request to facility data
-        facility_data = request.dict()
+        facility_data = request.model_dump()
         
         # Create facility using service
         facility = await okw_service.create(facility_data)
@@ -65,7 +205,7 @@ async def create_okw(
             }
         }
         
-        return {
+        facility_dict = {
             "id": str(facility.id),
             "name": facility.name,
             "location": location_dict,
@@ -76,9 +216,66 @@ async def create_okw(
             "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
         }
         
+        # Calculate processing time
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        # Create enhanced response
+        response_data = {
+            "facility": facility_dict,
+            "processing_time": processing_time,
+            "validation_results": await _validate_okw_result(facility_dict, request_id)
+        }
+        
+        logger.info(
+            f"OKW facility created successfully",
+            extra={
+                "request_id": request_id,
+                "facility_id": str(facility.id),
+                "processing_time": processing_time,
+                "llm_used": request.use_llm
+            }
+        )
+        
+        return response_data
+        
+    except ValueError as e:
+        # Handle validation errors using standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion="Please check the input data and try again"
+        )
+        logger.error(
+            f"Validation error creating OKW facility: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump()
+        )
     except Exception as e:
-        logger.error(f"Error creating OKW facility: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error creating OKW facility: {str(e)}")
+        # Log unexpected errors using standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error creating OKW facility: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 @router.get("/search", response_model=OKWListResponse)
 async def search_okw(
@@ -250,16 +447,20 @@ async def get_okw(
             }
         }
         
-        return {
-            "id": str(facility.id),
-            "name": facility.name,
-            "location": location_dict,
-            "facility_status": facility.facility_status,
-            "access_type": facility.access_type,
-            "manufacturing_processes": facility.manufacturing_processes,
-            "equipment": [eq.to_dict() for eq in facility.equipment] if facility.equipment else [],
-            "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
-        }
+        return create_success_response(
+            message="OKW facility retrieved successfully",
+            data={
+                "id": str(facility.id),
+                "name": facility.name,
+                "location": location_dict,
+                "facility_status": facility.facility_status,
+                "access_type": facility.access_type,
+                "manufacturing_processes": facility.manufacturing_processes,
+                "equipment": [eq.to_dict() for eq in facility.equipment] if facility.equipment else [],
+                "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
+            },
+            request_id=None
+        )
         
     except HTTPException:
         raise
@@ -267,19 +468,39 @@ async def get_okw(
         logger.error(f"Error getting OKW facility {id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error getting OKW facility: {str(e)}")
 
-@router.get("", response_model=OKWListResponse)
+@router.get(
+    "", 
+    response_model=PaginatedResponse,
+    summary="List OKW Facilities",
+    description="""
+    Get a paginated list of OpenKnowWhere facilities with enhanced capabilities.
+    
+    **Features:**
+    - Paginated results with sorting and filtering
+    - Enhanced error handling
+    - Performance metrics
+    - Comprehensive validation
+    """
+)
+@api_endpoint(
+    success_message="OKW facilities retrieved successfully",
+    include_metrics=True
+)
+@paginated_response(default_page_size=20, max_page_size=100)
 async def list_okw(
-    page: int = Query(1, ge=1, description="Page number"),
-    page_size: int = Query(20, ge=1, le=100, description="Results per page"),
+    pagination: PaginationParams = Depends(),
     filter: Optional[str] = Query(None, description="Filter criteria"),
-    okw_service: OKWService = Depends(get_okw_service)
+    okw_service: OKWService = Depends(get_okw_service),
+    http_request: Request = None
 ):
-    """List OKW facilities from storage"""
+    """Enhanced OKW facility listing with pagination and metrics."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
     try:
         # Call service to list OKW facilities
-        facilities, total = await okw_service.list(page, page_size, None)
+        facilities, total = await okw_service.list(pagination.page, pagination.page_size, None)
         
-        # Convert ManufacturingFacility objects to response format
+        # Convert ManufacturingFacility objects to dict format
         results = []
         for facility in facilities:
             # Convert Location object to dict for serialization
@@ -297,7 +518,7 @@ async def list_okw(
                 }
             }
             
-            results.append({
+            facility_dict = {
                 "id": str(facility.id),
                 "name": facility.name,
                 "location": location_dict,
@@ -306,18 +527,49 @@ async def list_okw(
                 "manufacturing_processes": facility.manufacturing_processes,
                 "equipment": facility.equipment,
                 "typical_materials": facility.typical_materials
-            })
+            }
+            results.append(facility_dict)
         
-        return OKWListResponse(
-            results=results,
-            total=total,
-            page=page,
-            page_size=page_size
+        # Create pagination info
+        total_pages = (total + pagination.page_size - 1) // pagination.page_size
+        
+        return create_success_response(
+            message="OKW facilities listed successfully",
+            data={
+                "items": results,
+                "pagination": {
+                    "page": pagination.page,
+                    "page_size": pagination.page_size,
+                    "total_items": total,
+                    "total_pages": total_pages,
+                    "has_next": pagination.page < total_pages,
+                    "has_previous": pagination.page > 1
+                }
+            },
+            request_id=request_id
         )
         
     except Exception as e:
-        logger.error(f"Error listing OKW facilities: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error listing OKW facilities: {str(e)}")
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error listing OKW facilities: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump()
+        )
 
 @router.put("/{id}", response_model=OKWResponse)
 async def update_okw(
@@ -409,17 +661,14 @@ async def delete_okw(
         logger.error(f"Error deleting OKW facility {id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error deleting OKW facility: {str(e)}")
 
-@router.post("/validate", response_model=OKWValidationResponse)
-async def validate_okw(
-    request: OKWValidateRequest,
-    quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
-    strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
-    okw_service: OKWService = Depends(get_okw_service)
-):
-    """
-    Validate an OKW facility with domain-aware validation
+@router.post(
+    "/validate", 
+    response_model=ValidationResult,
+    summary="Validate OKW Facility",
+    description="""
+    Validate an OKW facility with domain-aware validation and enhanced capabilities.
     
-    Validates an OpenKnowWhere facility object against domain-specific validation rules
+    Validates an OpenKnowWhere facility against domain-specific validation rules
     based on the specified quality level. The validation framework provides:
     
     - **Hobby Level**: Relaxed validation for makerspaces and hobby facilities
@@ -429,9 +678,34 @@ async def validate_okw(
     Returns detailed validation results including errors, warnings, and
     completeness scoring.
     """
+)
+@api_endpoint(
+    success_message="OKW validation completed successfully",
+    include_metrics=True
+)
+@track_performance("okw_validation")
+async def validate_okw(
+    request: OKWValidateRequest,
+    quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
+    strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
+    okw_service: OKWService = Depends(get_okw_service),
+    http_request: Request = None
+):
+    """Enhanced OKW validation with standardized patterns."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
     try:
         # Use quality_level from query parameter, fallback to validation_context
         validation_context = quality_level or request.validation_context or "professional"
+        
+        logger.info(
+            "Validating OKW facility",
+            extra={
+                "validation_context": validation_context,
+                "strict_mode": strict_mode,
+                "request_id": request_id
+            }
+        )
         
         # Call service to validate OKW facility with enhanced parameters
         result = await okw_service.validate(
@@ -440,19 +714,62 @@ async def validate_okw(
             strict_mode
         )
         
-        return result
+        # Convert to ValidationResult format if needed
+        if hasattr(result, 'to_dict'):
+            result_dict = result.to_dict()
+        else:
+            result_dict = result
+        
+        return ValidationResult(
+            is_valid=result_dict.get("is_valid", True),
+            score=result_dict.get("score", 1.0),
+            errors=result_dict.get("errors", []),
+            warnings=result_dict.get("warnings", []),
+            suggestions=result_dict.get("suggestions", []),
+            metadata={
+                "validation_context": validation_context,
+                "strict_mode": strict_mode,
+                "request_id": request_id
+            }
+        )
+        
     except ValueError as e:
-        # Handle validation errors
+        # Handle validation errors using standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion="Please check the validation parameters and try again"
+        )
+        logger.error(
+            f"Validation error in OKW validation: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=str(e)
+            detail=error_response.model_dump()
         )
     except Exception as e:
-        # Log unexpected errors
-        logger.error(f"Error validating OKW facility: {str(e)}")
+        # Log unexpected errors using standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error validating OKW facility: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while validating the OKW facility"
+            detail=error_response.model_dump()
         )
 
 @router.post("/extract", response_model=OKWExtractResponse)
@@ -541,3 +858,59 @@ async def upload_okw_file(
             status_code=500, 
             detail=f"Internal server error: {str(e)}"
         )
+
+
+# Helper functions
+async def _validate_okw_result(
+    result: any,
+    request_id: str
+) -> List[ValidationResult]:
+    """Validate OKW operation result."""
+    try:
+        validation_results = []
+        
+        # Basic validation
+        is_valid = True
+        errors = []
+        warnings = []
+        suggestions = []
+        
+        # Check if result exists
+        if not result:
+            is_valid = False
+            errors.append("No result returned from operation")
+        
+        # Check required fields if result is a dict
+        if isinstance(result, dict):
+            if not result.get("id"):
+                warnings.append("Missing ID in result")
+            
+            if not result.get("name"):
+                warnings.append("Missing name in result")
+            
+            if not result.get("location"):
+                warnings.append("Missing location in result")
+        
+        # Generate suggestions
+        if not is_valid:
+            suggestions.append("Review the input data and try again")
+        
+        validation_result = ValidationResult(
+            is_valid=is_valid,
+            score=1.0 if is_valid else 0.5,
+            errors=errors,
+            warnings=warnings,
+            suggestions=suggestions
+        )
+        
+        validation_results.append(validation_result)
+        
+        return validation_results
+        
+    except Exception as e:
+        logger.error(
+            f"Error validating OKW result: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        return []

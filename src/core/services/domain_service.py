@@ -2,7 +2,8 @@ from typing import Dict, Any, List
 from dataclasses import dataclass
 import logging
 from ..registry.domain_registry import DomainRegistry
-from ..api.models.base import ProcessNode, Workflow, SupplyTreeResponse
+from ..models.supply_trees import Workflow
+from ..api.models.supply_tree.response import SupplyTreeResponse
 
 
 logger = logging.getLogger(__name__)
