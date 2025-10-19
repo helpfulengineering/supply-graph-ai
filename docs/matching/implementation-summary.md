@@ -255,10 +255,6 @@ The matching system now fully integrates with SupplyTree generation, providing:
 
 ## Next Steps
 
-### Immediate (Ready for Integration)
-1. ✅ **Integrate with MatchingService** - Enhanced with new matching layers and SupplyTree integration
-2. **Remove old system** - Clean up synonym-based approach
-3. **Update API endpoints** - Ensure all endpoints use new system
 
 ### Future Enhancements
 1. **Layer 3: NLP Matching** - Natural language understanding

@@ -12,6 +12,7 @@ from ..utils.logging import get_logger
 from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..matching.capability_rules import CapabilityRuleManager, CapabilityMatcher
+from ..matching.nlp_matcher import NLPMatcher
 from ..models.supply_trees import Workflow, WorkflowNode, ResourceURI, ResourceType
 
 logger = get_logger(__name__)
@@ -30,6 +31,10 @@ class MatchingService:
         }
         self.capability_rule_manager = None
         self.capability_matcher = None
+        self.nlp_matchers = {
+            "manufacturing": NLPMatcher(domain="manufacturing"),
+            "cooking": NLPMatcher(domain="cooking")
+        }
         self.okh_service: Optional[OKHService] = None
         self.okw_service: Optional[OKWService] = None
     
@@ -250,6 +255,18 @@ class MatchingService:
                             }
                         )
                         return True
+                    
+                    # Layer 3: NLP Matching (using semantic similarity)
+                    if await self._nlp_match(req_normalized, cap_normalized, domain="manufacturing"):
+                        logger.debug(
+                            "NLP match found",
+                            extra={
+                                "requirement": req.get("process_name"),
+                                "capability": cap.get("process_name"),
+                                "layer": "nlp"
+                            }
+                        )
+                        return True
             
             return False
             
@@ -347,6 +364,40 @@ class MatchingService:
             
         except Exception as e:
             logger.error(f"Error in Heuristic Matching layer: {e}", exc_info=True)
+            return False
+    
+    async def _nlp_match(self, req_process: str, cap_process: str, domain: str = "manufacturing") -> bool:
+        """Layer 3: NLP Matching - Using semantic similarity and natural language understanding"""
+        try:
+            # Use the NLP matcher for the specified domain
+            if domain not in self.nlp_matchers:
+                logger.warning(f"NLP matcher not available for domain '{domain}', skipping NLP matching")
+                return False
+            
+            nlp_matcher = self.nlp_matchers[domain]
+            
+            # Use the NLP matcher to find semantic matches
+            results = await nlp_matcher.match([req_process], [cap_process])
+            
+            # Check if we have any matches
+            for result in results:
+                if result.matched and result.confidence >= 0.7:  # Use 0.7 as threshold for NLP match
+                    logger.debug(
+                        "NLP match found using semantic similarity",
+                        extra={
+                            "requirement": req_process,
+                            "capability": cap_process,
+                            "confidence": result.confidence,
+                            "similarity": result.metadata.semantic_similarity if hasattr(result.metadata, 'semantic_similarity') else None,
+                            "domain": domain
+                        }
+                    )
+                    return True
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error in NLP Matching layer: {e}", exc_info=True)
             return False
     
     async def _generate_supply_tree(

@@ -133,7 +133,7 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
         
         # Create request data with LLM configuration
         request_data = create_llm_request_data(cli_ctx, {
-            "okh_content": okh_data,
+            "okh_manifest": okh_data,
             "filters": filters
         })
         
@@ -158,11 +158,11 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
             # Create match request
             from ..core.api.models.match.request import MatchRequest
             match_request = MatchRequest(
-                okh_content=okh_data,
+                okh_manifest=okh_data,
                 filters=filters
             )
             
-            result = await matching_service.match_requirements_to_capabilities(match_request)
+            result = await matching_service.find_matches_with_manifest(manifest)
             return result.to_dict()
         
         # Execute matching with fallback

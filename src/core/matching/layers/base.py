@@ -183,12 +183,16 @@ class BaseMatchingLayer(ABC):
             requirements: List of requirements being matched
             capabilities: List of capabilities being matched against
         """
+        # Handle None inputs gracefully
+        req_count = len(requirements) if requirements is not None else 0
+        cap_count = len(capabilities) if capabilities is not None else 0
+        
         self.metrics = MatchingMetrics(
             start_time=datetime.now(),
-            total_requirements=len(requirements),
-            total_capabilities=len(capabilities)
+            total_requirements=req_count,
+            total_capabilities=cap_count
         )
-        logger.info(f"Starting {self.layer_type.value} matching: {len(requirements)} requirements vs {len(capabilities)} capabilities")
+        logger.info(f"Starting {self.layer_type.value} matching: {req_count} requirements vs {cap_count} capabilities")
     
     def end_matching(self, success: bool, matches_found: int = 0) -> None:
         """
@@ -248,6 +252,14 @@ class BaseMatchingLayer(ABC):
         Returns:
             True if inputs are valid, False otherwise
         """
+        if requirements is None:
+            self.add_error("Requirements list cannot be None")
+            return False
+        
+        if capabilities is None:
+            self.add_error("Capabilities list cannot be None")
+            return False
+        
         if not requirements:
             self.add_error("Requirements list cannot be empty")
             return False
@@ -315,7 +327,9 @@ class BaseMatchingLayer(ABC):
     
     def log_matching_start(self, requirements: List[str], capabilities: List[str]) -> None:
         """Log the start of matching operation."""
-        logger.info(f"[{self.layer_type.value}] Starting matching: {len(requirements)} requirements vs {len(capabilities)} capabilities")
+        req_count = len(requirements) if requirements is not None else 0
+        cap_count = len(capabilities) if capabilities is not None else 0
+        logger.info(f"[{self.layer_type.value}] Starting matching: {req_count} requirements vs {cap_count} capabilities")
     
     def log_matching_end(self, results: List[MatchingResult]) -> None:
         """Log the end of matching operation."""

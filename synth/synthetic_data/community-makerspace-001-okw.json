@@ -1,0 +1,332 @@
+{
+  "id": "d1ae5e18-217b-41a0-927c-1cdd441c8b03",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "8021",
+      "street": "Michelle Streets",
+      "city": "Smithton",
+      "region": "Rhode Island",
+      "country": "Mozambique",
+      "postcode": "48202"
+    },
+    "gps_coordinates": "44.783944, 35.93774",
+    "directions": "Located behind Edwards Ltd",
+    "city": "Smithton",
+    "country": "Mozambique"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Dixon-Eaton",
+    "location": {
+      "address": {
+        "number": "4666",
+        "street": "Brian Mount",
+        "city": "Port Jamesville",
+        "region": "Florida",
+        "country": "China",
+        "postcode": "15472"
+      },
+      "gps_coordinates": "36.715013, -33.468241",
+      "directions": "Located across from Cummings LLC",
+      "city": "Port Jamesville",
+      "country": "China"
+    },
+    "website": "https://hall-johnson.com",
+    "contact": {
+      "landline": "+1-781-378-9698"
+    },
+    "social_media": {
+      "twitter": "@travisgalloway",
+      "other_urls": [
+        "https://hopkins-lowe.biz",
+        "https://landry.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Daniels, Salas and Farley",
+    "location": {
+      "address": {
+        "number": "2703",
+        "street": "Kimberly Harbor",
+        "city": "East Cheryl",
+        "region": "California",
+        "country": "Northern Mariana Islands",
+        "postcode": "29424"
+      },
+      "gps_coordinates": "37.857855, -107.434961",
+      "city": "East Cheryl",
+      "country": "Northern Mariana Islands"
+    },
+    "bio": "Established in 2018, we specialize in Compatible empowering emulation",
+    "website": "https://anderson-palmer.com",
+    "languages": [
+      "fr"
+    ],
+    "contact": {
+      "mobile": "+1-772-452-9584"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Public makerspace with basic fabrication equipment",
+  "date_founded": "1991-08-17",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "S5",
+      "serial_number": "SN598364",
+      "condition": "Needs Maintenance",
+      "throughput": "48 parts/hour",
+      "power_rating": 8242,
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Generic"
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.6,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "PLA",
+          "ABS"
+        ],
+        "process_parameters": {
+          "setup_time": "108 minutes",
+          "cycle_time": "8 minutes",
+          "changeover_time": "23 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Epilog",
+      "model": "VLS 3.50",
+      "condition": "Good",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4280",
+              "street": "Jeffrey Square",
+              "city": "Port Richardborough",
+              "region": "Michigan",
+              "country": "Libyan Arab Jamahiriya",
+              "postcode": "95883"
+            },
+            "gps_coordinates": "58.504767, -112.547627",
+            "city": "Port Richardborough",
+            "country": "Libyan Arab Jamahiriya"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "supplier_location": {
+            "address": {
+              "number": "4779",
+              "street": "Watson Mission",
+              "city": "East Katelyn",
+              "region": "Michigan",
+              "country": "United States of America",
+              "postcode": "88742"
+            },
+            "gps_coordinates": "50.068982, -7.986138",
+            "directions": "Located behind Harris Group",
+            "city": "East Katelyn",
+            "country": "United States of America"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 300,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Wood",
+          "Leather"
+        ],
+        "process_parameters": {
+          "setup_time": "15 minutes",
+          "cycle_time": "44 minutes",
+          "changeover_time": "13 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Onefinity",
+      "model": "Pro",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Heavy image hotel PM.",
+      "quantity": 4,
+      "throughput": "24 parts/hour",
+      "maintenance_schedule": "Every 7 months",
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "9965",
+              "street": "Dustin Well",
+              "city": "South Elizabeth",
+              "region": "Virginia",
+              "country": "Hong Kong",
+              "postcode": "41930"
+            },
+            "gps_coordinates": "68.628394, -26.217532",
+            "directions": "Located behind Cole and Sons",
+            "city": "South Elizabeth",
+            "country": "Hong Kong"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "4107",
+              "street": "Matthew Well",
+              "city": "Cruzberg",
+              "region": "Colorado",
+              "country": "Cyprus",
+              "postcode": "04079"
+            },
+            "gps_coordinates": "66.732806, 36.024321",
+            "directions": "Located across from Byrd PLC",
+            "city": "Cruzberg",
+            "country": "Cyprus"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "3602",
+              "street": "Thomas Circle",
+              "city": "New Randall",
+              "region": "Connecticut",
+              "country": "Lesotho",
+              "postcode": "07685"
+            },
+            "gps_coordinates": "41.325978, -92.49126",
+            "directions": "Located behind Morgan-Carpenter",
+            "city": "New Randall",
+            "country": "Lesotho"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "brand": "Industrial"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.1mm",
+        "spindle_speed": "5000-24000 RPM",
+        "feed_rate": "100-5000 mm/min",
+        "tool_diameter": "0.5-25mm",
+        "cutting_depth": "0.1-50mm",
+        "tolerance_range": "±0.1mm",
+        "supported_materials": [
+          "Plastic",
+          "Foam",
+          "Aluminum",
+          "Wood"
+        ],
+        "process_parameters": {
+          "setup_time": "90 minutes",
+          "cycle_time": "45 minutes",
+          "changeover_time": "30 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "certifications": [
+    "First Aid Training",
+    "Basic Safety Training",
+    "Equipment Operation Certification"
+  ],
+  "road_access": true,
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "Quality-focused fresh-thinking Local Area Network",
+      "Diverse eco-centric Internet solution"
+    ],
+    "services": [
+      "Optional impactful hardware",
+      "Operative optimizing artificial intelligence",
+      "Synergized zero tolerance Local Area Network",
+      "Exclusive user-facing parallelism"
+    ],
+    "footfall": 78
+  }
+}

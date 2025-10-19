@@ -7,10 +7,24 @@ between requirements and capabilities.
 
 This layer is part of the 4-layer matching architecture and inherits from
 BaseMatchingLayer to ensure consistent interfaces and error handling.
+
+The implementation uses spaCy for semantic similarity and entity recognition,
+following the same pattern as the generation system's NLP layer.
 """
 
 from typing import List, Dict, Any, Optional
 import logging
+import re
+import asyncio
+from difflib import SequenceMatcher
+
+# Import spaCy for NLP processing
+try:
+    import spacy
+    SPACY_AVAILABLE = True
+except ImportError:
+    SPACY_AVAILABLE = False
+    spacy = None
 
 from .layers.base import BaseMatchingLayer, MatchingResult, MatchQuality, MatchingLayer
 
@@ -27,19 +41,20 @@ class NLPMatcher(BaseMatchingLayer):
     might miss.
     
     Features:
-    - Semantic similarity matching
+    - Semantic similarity matching using spaCy
     - Synonym and related term detection
     - Context-aware matching
     - Configurable similarity thresholds
     - Comprehensive metadata tracking
+    - Fallback to string similarity when spaCy is not available
     
-    Note: This is a placeholder implementation. Full NLP integration will be
-    implemented in future phases with proper NLP libraries and models.
+    The implementation follows the same pattern as the generation system's NLP layer,
+    using spaCy with the en_core_web_sm model for semantic understanding.
     """
     
     def __init__(self, domain: str = "general", similarity_threshold: float = 0.7):
         """
-        Initialize the NLP matcher.
+        Initialize the NLP matcher with lazy loading for memory efficiency.
         
         Args:
             domain: The domain this matcher operates in
@@ -51,6 +66,73 @@ class NLPMatcher(BaseMatchingLayer):
         # Validate similarity threshold
         if not 0.0 <= similarity_threshold <= 1.0:
             raise ValueError(f"Similarity threshold must be between 0.0 and 1.0, got {similarity_threshold}")
+        
+        # Lazy loading - don't initialize spaCy until first use to save memory
+        self._nlp = None
+        self._nlp_initialized = False
+        self._domain_patterns = None
+        self._patterns_initialized = False
+    
+    def _ensure_nlp_initialized(self):
+        """Lazy initialization of spaCy NLP model to save memory"""
+        if self._nlp_initialized:
+            return self._nlp
+            
+        if not SPACY_AVAILABLE:
+            logger.warning("spaCy not available. NLP matching will use fallback string similarity.")
+            self._nlp_initialized = True
+            return None
+        
+        try:
+            logger.info("Loading spaCy model 'en_core_web_sm' (lazy loading)")
+            self._nlp = spacy.load("en_core_web_sm")
+            logger.info("spaCy model 'en_core_web_sm' loaded successfully")
+        except OSError:
+            logger.warning("spaCy English model 'en_core_web_sm' not found. NLP matching will use fallback string similarity.")
+            self._nlp = None
+        
+        self._nlp_initialized = True
+        return self._nlp
+    
+    def _ensure_domain_patterns_initialized(self):
+        """Lazy initialization of domain patterns to save memory"""
+        if self._patterns_initialized:
+            return self._domain_patterns
+            
+        self._domain_patterns = {
+            "manufacturing": {
+                "processes": [
+                    "machining", "cnc", "milling", "turning", "drilling", "grinding",
+                    "3d printing", "additive manufacturing", "laser cutting", "cutting",
+                    "welding", "assembly", "finishing", "surface treatment", "coating"
+                ],
+                "materials": [
+                    "steel", "aluminum", "plastic", "wood", "ceramic", "composite",
+                    "metal", "polymer", "resin", "filament", "powder"
+                ],
+                "tools": [
+                    "cnc machine", "mill", "lathe", "drill", "grinder", "3d printer",
+                    "laser cutter", "welder", "press", "mold", "die"
+                ]
+            },
+            "cooking": {
+                "techniques": [
+                    "sautéing", "roasting", "boiling", "grilling", "baking", "frying",
+                    "steaming", "braising", "poaching", "simmering", "searing"
+                ],
+                "equipment": [
+                    "pan", "pot", "oven", "stove", "grill", "microwave", "blender",
+                    "mixer", "knife", "cutting board", "whisk", "spatula"
+                ],
+                "ingredients": [
+                    "flour", "sugar", "salt", "pepper", "oil", "butter", "eggs",
+                    "milk", "cheese", "meat", "vegetables", "herbs", "spices"
+                ]
+            }
+        }
+        
+        self._patterns_initialized = True
+        return self._domain_patterns
     
     async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
         """
@@ -106,24 +188,63 @@ class NLPMatcher(BaseMatchingLayer):
         Returns:
             MatchingResult with detailed metadata
         """
-        # Placeholder implementation - simulate NLP matching
-        # In a real implementation, this would use NLP libraries like:
-        # - spaCy for text processing
-        # - sentence-transformers for semantic similarity
-        # - WordNet for synonym detection
-        
-        # For now, return a no-match result
-        # This will be implemented in future phases
-        return self.create_matching_result(
-            requirement=requirement,
-            capability=capability,
-            matched=False,
-            confidence=0.0,
-            method="nlp_semantic_match",
-            reasons=["NLP matching not yet implemented"],
-            quality=MatchQuality.NO_MATCH,
-            semantic_similarity=0.0
-        )
+        try:
+            # Calculate semantic similarity
+            similarity = await self.calculate_semantic_similarity(requirement, capability)
+            
+            # Determine if this is a match based on threshold
+            matched = similarity >= self.similarity_threshold
+            
+            # Determine match quality
+            if similarity >= 0.9:
+                quality = MatchQuality.SEMANTIC_MATCH
+            elif similarity >= 0.7:
+                quality = MatchQuality.SEMANTIC_MATCH
+            else:
+                quality = MatchQuality.NO_MATCH
+            
+            # Generate reasons for the match/no-match
+            reasons = []
+            if matched:
+                reasons.append(f"Semantic similarity {similarity:.3f} >= threshold {self.similarity_threshold}")
+                nlp = self._ensure_nlp_initialized()
+                if nlp:
+                    reasons.append("spaCy semantic analysis")
+                else:
+                    reasons.append("String similarity fallback")
+            else:
+                reasons.append(f"Semantic similarity {similarity:.3f} < threshold {self.similarity_threshold}")
+            
+            # Add domain-specific context
+            domain_patterns = self._ensure_domain_patterns_initialized()
+            if self.domain in domain_patterns:
+                domain_context = self._analyze_domain_context(requirement, capability)
+                if domain_context:
+                    reasons.append(domain_context)
+            
+            return self.create_matching_result(
+                requirement=requirement,
+                capability=capability,
+                matched=matched,
+                confidence=similarity,
+                method="nlp_semantic_match",
+                reasons=reasons,
+                quality=quality,
+                semantic_similarity=similarity
+            )
+            
+        except Exception as e:
+            logger.error(f"Error in NLP matching: {e}", exc_info=True)
+            return self.create_matching_result(
+                requirement=requirement,
+                capability=capability,
+                matched=False,
+                confidence=0.0,
+                method="nlp_semantic_match",
+                reasons=[f"Error in NLP matching: {str(e)}"],
+                quality=MatchQuality.NO_MATCH,
+                semantic_similarity=0.0
+            )
     
     async def calculate_semantic_similarity(self, text1: str, text2: str) -> float:
         """
@@ -136,13 +257,30 @@ class NLPMatcher(BaseMatchingLayer):
         Returns:
             Similarity score between 0.0 and 1.0
         """
-        # Placeholder implementation
-        # In a real implementation, this would use:
-        # - Pre-trained sentence transformers
-        # - Word embeddings and cosine similarity
-        # - Domain-specific models
+        if not text1 or not text2:
+            return 0.0
         
-        return 0.0
+        # Normalize text
+        text1 = self._normalize_text(text1)
+        text2 = self._normalize_text(text2)
+        
+        # If spaCy is available, use semantic similarity
+        nlp = self._ensure_nlp_initialized()
+        if nlp:
+            try:
+                # Process texts with spaCy
+                doc1 = nlp(text1)
+                doc2 = nlp(text2)
+                
+                # Calculate semantic similarity
+                similarity = doc1.similarity(doc2)
+                return max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
+                
+            except Exception as e:
+                logger.warning(f"spaCy similarity calculation failed: {e}, falling back to string similarity")
+        
+        # Fallback to string similarity
+        return self._calculate_string_similarity(text1, text2)
     
     async def find_synonyms(self, term: str) -> List[str]:
         """
@@ -154,13 +292,38 @@ class NLPMatcher(BaseMatchingLayer):
         Returns:
             List of synonym strings
         """
-        # Placeholder implementation
-        # In a real implementation, this would use:
-        # - WordNet for English synonyms
-        # - Domain-specific synonym databases
-        # - Context-aware synonym detection
+        synonyms = []
         
-        return []
+        # Check domain-specific patterns for synonyms
+        domain_patterns = self._ensure_domain_patterns_initialized()
+        if self.domain in domain_patterns:
+            domain_patterns = domain_patterns[self.domain]
+            normalized_term = self._normalize_text(term)
+            
+            for category, terms in domain_patterns.items():
+                for pattern_term in terms:
+                    if self._normalize_text(pattern_term) == normalized_term:
+                        # Add other terms from the same category as potential synonyms
+                        synonyms.extend([t for t in terms if t != pattern_term])
+                        break
+        
+        # If spaCy is available, use WordNet for additional synonyms
+        nlp = self._ensure_nlp_initialized()
+        if nlp:
+            try:
+                doc = nlp(term)
+                for token in doc:
+                    if token.has_vector:
+                        # Find similar words using spaCy's similarity
+                        for word in nlp.vocab:
+                            if word.has_vector and word.is_lower and word.is_alpha:
+                                similarity = token.similarity(word)
+                                if similarity > 0.7 and word.text != term.lower():
+                                    synonyms.append(word.text)
+            except Exception as e:
+                logger.warning(f"spaCy synonym detection failed: {e}")
+        
+        return list(set(synonyms))  # Remove duplicates
     
     async def extract_key_concepts(self, text: str) -> List[str]:
         """
@@ -172,10 +335,91 @@ class NLPMatcher(BaseMatchingLayer):
         Returns:
             List of key concept strings
         """
-        # Placeholder implementation
-        # In a real implementation, this would use:
-        # - Named Entity Recognition (NER)
-        # - Key phrase extraction
-        # - Domain-specific concept extraction
+        concepts = []
         
-        return []
+        if not text:
+            return concepts
+        
+        # Normalize text
+        normalized_text = self._normalize_text(text)
+        
+        # Extract domain-specific concepts
+        domain_patterns = self._ensure_domain_patterns_initialized()
+        if self.domain in domain_patterns:
+            domain_patterns = domain_patterns[self.domain]
+            for category, terms in domain_patterns.items():
+                for term in terms:
+                    if self._normalize_text(term) in normalized_text:
+                        concepts.append(term)
+        
+        # If spaCy is available, use NER for additional concepts
+        nlp = self._ensure_nlp_initialized()
+        if nlp:
+            try:
+                doc = nlp(text)
+                for ent in doc.ents:
+                    if ent.label_ in ["ORG", "PRODUCT", "TECHNOLOGY", "MONEY", "QUANTITY"]:
+                        concepts.append(ent.text)
+            except Exception as e:
+                logger.warning(f"spaCy concept extraction failed: {e}")
+        
+        return list(set(concepts))  # Remove duplicates
+    
+    def _normalize_text(self, text: str) -> str:
+        """Normalize text for comparison"""
+        if not text:
+            return ""
+        
+        # Convert to lowercase and remove extra whitespace
+        normalized = re.sub(r'\s+', ' ', text.lower().strip())
+        
+        # Remove special characters but keep alphanumeric and spaces
+        normalized = re.sub(r'[^\w\s]', ' ', normalized)
+        
+        return normalized
+    
+    def _calculate_string_similarity(self, text1: str, text2: str) -> float:
+        """Calculate string similarity as fallback when spaCy is not available"""
+        if not text1 or not text2:
+            return 0.0
+        
+        # Use SequenceMatcher for string similarity
+        matcher = SequenceMatcher(None, text1, text2)
+        return matcher.ratio()
+    
+    def _analyze_domain_context(self, requirement: str, capability: str) -> Optional[str]:
+        """Analyze domain-specific context for enhanced matching"""
+        domain_patterns = self._ensure_domain_patterns_initialized()
+        if self.domain not in domain_patterns:
+            return None
+        
+        domain_patterns = domain_patterns[self.domain]
+        req_normalized = self._normalize_text(requirement)
+        cap_normalized = self._normalize_text(capability)
+        
+        # Check for domain-specific matches
+        for category, terms in domain_patterns.items():
+            req_matches = [term for term in terms if self._normalize_text(term) in req_normalized]
+            cap_matches = [term for term in terms if self._normalize_text(term) in cap_normalized]
+            
+            if req_matches and cap_matches:
+                # Check for overlapping terms
+                overlapping = set(req_matches) & set(cap_matches)
+                if overlapping:
+                    return f"Domain match in {category}: {', '.join(overlapping)}"
+        
+        return None
+    
+    def cleanup(self):
+        """Clean up resources to prevent memory leaks"""
+        if self._nlp is not None:
+            logger.info("Cleaning up spaCy model to free memory")
+            # spaCy models don't have explicit cleanup, but we can clear the reference
+            self._nlp = None
+            self._nlp_initialized = False
+        
+        # Clear domain patterns to free memory
+        self._domain_patterns = None
+        self._patterns_initialized = False
+        
+        logger.info("NLP matcher cleanup completed")
