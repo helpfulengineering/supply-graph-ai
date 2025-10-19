@@ -145,3 +145,14 @@ class StorageManager:
         """Ensure connection to storage provider"""
         if not self._connected:
             await self.connect()
+    
+    async def cleanup(self) -> None:
+        """Clean up resources and close connections"""
+        try:
+            if self._provider and hasattr(self._provider, 'cleanup'):
+                await self._provider.cleanup()
+            self._connected = False
+            logger.info("Storage Manager cleanup completed")
+        except Exception as e:
+            logger.error(f"Error during Storage Manager cleanup: {e}")
+            raise

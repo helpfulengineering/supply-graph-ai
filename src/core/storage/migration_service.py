@@ -92,24 +92,13 @@ class StorageMigrationService:
             Organized path string
         """
         if file_type == "okh":
-            # Extract date from metadata or use current date
-            created_date = file_data.get('created_at', datetime.now())
-            if isinstance(created_date, str):
-                try:
-                    created_date = datetime.fromisoformat(created_date.replace('Z', '+00:00'))
-                except:
-                    created_date = datetime.now()
-            
-            year = created_date.year
-            month = created_date.month
-            
             # Use file ID or generate from title
             file_id = file_data.get('id', 'unknown')
             if not file_id or file_id == 'unknown':
                 title = file_data.get('title', 'untitled')
                 file_id = self.uuid_validator.generate_uuid_from_string(title)
             
-            return f"okh/manifests/{year}/{month:02d}/{file_id}.json"
+            return f"okh/manifests/{file_id}.json"
         
         elif file_type == "okw":
             # Group by facility type if available

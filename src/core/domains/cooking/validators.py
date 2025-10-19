@@ -7,7 +7,6 @@ as the original validators while the new validation framework is being integrate
 
 from typing import Dict, Any
 from ...models.supply_trees import SupplyTree
-import networkx as nx
 
 
 class CookingValidator:
@@ -22,6 +21,9 @@ class CookingValidator:
         if not supply_tree.workflows:
             is_valid = False
             issues.append("Supply tree has no workflows")
+        
+        # Lazy import NetworkX
+        import networkx as nx
         
         # For each workflow, check it's a valid DAG
         for wf_id, workflow in supply_tree.workflows.items():

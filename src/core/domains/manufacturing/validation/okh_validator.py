@@ -14,7 +14,6 @@ from ....validation.rules.manufacturing import ManufacturingValidationRules
 from ....models.okh import OKHManifest
 from ....models.base.base_types import Requirement, Capability
 from ....models.supply_trees import SupplyTree
-import networkx as nx
 
 
 class ManufacturingOKHValidator(Validator):

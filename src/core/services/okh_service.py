@@ -2,12 +2,13 @@ import httpx
 import yaml
 import traceback
 import json
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 from uuid import UUID
             
 from src.config import settings
 from ..generation.url_router import URLRouter
-from ..generation.engine import GenerationEngine
+# Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
+# from ..generation.engine import GenerationEngine
 from ..generation.models import PlatformType
 from .base import BaseService, ServiceConfig
 from .storage_service import StorageService
@@ -19,6 +20,9 @@ from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHVal
 from ..validation.context import ValidationContext
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..validation.uuid_validator import UUIDValidator
+
+if TYPE_CHECKING:
+    from ..generation.engine import GenerationEngine
 
 logger = get_logger(__name__)
 
@@ -48,7 +52,9 @@ class OKHService(BaseService['OKHService']):
         if self.storage:
             await self.storage.configure(settings.STORAGE_CONFIG)
         
-        # Initialize generation engine
+        # Initialize generation engine lazily (only when needed)
+        # Lazy import to avoid loading heavy dependencies (spacy, numpy, thinc) at module import time
+        from ..generation.engine import GenerationEngine
         self.generation_engine = GenerationEngine()
         
         # Initialize URL router
@@ -330,6 +336,8 @@ class OKHService(BaseService['OKHService']):
             project_data = await generator.extract_project(url)
             
             # Generate manifest
+            # Lazy import to avoid loading heavy dependencies at module import time
+            from ..generation.engine import GenerationEngine
             engine = GenerationEngine()
             result = await engine.generate_manifest_async(project_data)
             

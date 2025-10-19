@@ -1,7 +1,6 @@
 from typing import Dict, List, Optional, Any
 from uuid import UUID, uuid4
 from datetime import datetime, timedelta
-import networkx as nx
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
@@ -378,6 +377,9 @@ class MatchingService:
             
             # Set OKH reference
             supply_tree.okh_reference = str(manifest.id)
+            # Lazy import NetworkX
+            import networkx as nx
+            
             primary_workflow = Workflow(
                 name=f"Manufacturing Workflow for {manifest.title}",
                 graph=nx.DiGraph(),

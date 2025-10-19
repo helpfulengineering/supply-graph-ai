@@ -1,8 +1,5 @@
 import logging
 from typing import Optional, Dict, Any, List, AsyncIterator
-from azure.storage.blob.aio import BlobServiceClient, ContainerClient
-from azure.core.exceptions import ResourceNotFoundError
-from azure.storage.blob import BlobLeaseClient
 
 from ..base import StorageProvider, StorageConfig, StorageMetadata
 
@@ -28,6 +25,10 @@ class AzureBlobProvider(StorageProvider):
         """Connect to Azure Blob Storage"""
         if not self._connected:
             try:
+                # Lazy import Azure modules to avoid memory leaks
+                from azure.storage.blob.aio import BlobServiceClient, ContainerClient
+                from azure.core.exceptions import ResourceNotFoundError
+                
                 # Get credentials from config
                 account_name = self.config.credentials.get("account_name")
                 account_key = self.config.credentials.get("account_key")
@@ -362,6 +363,9 @@ class AzureBlobProvider(StorageProvider):
         await self.ensure_connected()
         
         try:
+            # Lazy import Azure modules
+            from azure.storage.blob import BlobLeaseClient
+            
             blob_client = self._container.get_blob_client(key)
             lease_client = BlobLeaseClient(blob_client)
             
@@ -382,6 +386,9 @@ class AzureBlobProvider(StorageProvider):
         await self.ensure_connected()
         
         try:
+            # Lazy import Azure modules
+            from azure.storage.blob import BlobLeaseClient
+            
             blob_client = self._container.get_blob_client(key)
             lease_client = BlobLeaseClient(blob_client)
             
@@ -425,4 +432,13 @@ class AzureBlobProvider(StorageProvider):
             return snapshots
         except Exception as e:
             logger.error(f"Failed to list snapshots of blob {key}: {e}")
+            raise
+    
+    async def cleanup(self) -> None:
+        """Clean up resources and close connections"""
+        try:
+            await self.disconnect()
+            logger.info("Azure Blob Provider cleanup completed")
+        except Exception as e:
+            logger.error(f"Error during Azure Blob Provider cleanup: {e}")
             raise

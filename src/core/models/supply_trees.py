@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set, Union, Tuple, Any
 from enum import Enum
 from uuid import UUID, uuid4
-import networkx as nx
 
 from src.core.models.okh import OKHManifest, ProcessRequirement, MaterialSpec, DocumentRef
 from src.core.models.okw import ManufacturingFacility, Equipment, Material, FacilityStatus, Agent
@@ -191,12 +190,18 @@ class Workflow:
     """Represents a discrete manufacturing workflow as a DAG"""
     name: str
     id: UUID = field(default_factory=uuid4)
-    graph: nx.DiGraph = field(default_factory=nx.DiGraph)
+    graph: Any = field(default_factory=lambda: None)  # Will be initialized as nx.DiGraph when needed
     entry_points: Set[UUID] = field(default_factory=set)  # Nodes that start the workflow
     exit_points: Set[UUID] = field(default_factory=set)   # Nodes that end the workflow
     
     class Config:
         arbitrary_types_allowed = True
+    
+    def __post_init__(self):
+        """Initialize the graph with lazy import"""
+        if self.graph is None:
+            import networkx as nx
+            self.graph = nx.DiGraph()
     
     def add_node(self, node: WorkflowNode, dependencies: Set[UUID] = None) -> None:
         """Add a node to the workflow"""
@@ -220,6 +225,8 @@ class Workflow:
     
     def validate(self) -> bool:
         """Validate workflow graph"""
+        import networkx as nx
+        
         if not nx.is_directed_acyclic_graph(self.graph):
             return False
         
@@ -474,6 +481,8 @@ class SupplyTree:
     
     def to_dict(self) -> Dict:
         """Convert supply tree to serializable dictionary"""
+        import networkx as nx
+        
         return {
             'id': str(self.id),
             'workflows': {
@@ -543,6 +552,7 @@ class SupplyTree:
                     workflow.id = UUID(wf_data['id'])
                 
                 # Reconstruct graph
+                import networkx as nx
                 workflow.graph = nx.node_link_graph(wf_data['graph'])
                 
                 # Convert node data to WorkflowNode objects
@@ -614,6 +624,7 @@ class SupplyTree:
         supply_tree = cls()
         
         # Create workflows from OKH process requirements
+        import networkx as nx
         primary_workflow = Workflow(
             name=f"Primary workflow for {okh_manifest.title}",
             graph=nx.DiGraph(),

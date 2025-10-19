@@ -11,7 +11,6 @@ from ....validation.result import ValidationResult, ValidationError, ValidationW
 from ....validation.rules.manufacturing import ManufacturingValidationRules
 from ....models.supply_trees import SupplyTree
 from ....models.okh import OKHManifest
-import networkx as nx
 
 
 class ManufacturingSupplyTreeValidator(Validator):
@@ -134,6 +133,9 @@ class ManufacturingSupplyTreeValidator(Validator):
         
         graph = workflow.graph
         
+        # Lazy import NetworkX
+        import networkx as nx
+        
         # Check if graph is a NetworkX graph
         if not isinstance(graph, nx.Graph):
             result.add_error(
@@ -244,6 +246,9 @@ class ManufacturingSupplyTreeValidator(Validator):
         
         total_score = 0.0
         workflow_count = 0
+        
+        # Lazy import NetworkX
+        import networkx as nx
         
         for workflow in supply_tree.workflows.values():
             workflow_score = 0.0

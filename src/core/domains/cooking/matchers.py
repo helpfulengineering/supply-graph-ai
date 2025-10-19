@@ -1,4 +1,3 @@
-import networkx as nx
 from uuid import uuid4
 from src.core.models.base.base_types import NormalizedRequirements, NormalizedCapabilities
 from src.core.models.supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI, ResourceType
@@ -13,6 +12,9 @@ class CookingMatcher:
         supply_tree = SupplyTree()
         
         # Create primary workflow
+        # Lazy import NetworkX
+        import networkx as nx
+        
         workflow = Workflow(
             id=uuid4(),
             name="Cooking Process",
