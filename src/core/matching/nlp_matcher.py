@@ -49,18 +49,30 @@ class NLPMatcher(BaseMatchingLayer):
     - Fallback to string similarity when spaCy is not available
     
     The implementation follows the same pattern as the generation system's NLP layer,
-    using spaCy with the en_core_web_sm model for semantic understanding.
+    using spaCy with preference for en_core_web_md (with word vectors) for semantic understanding.
+    Falls back to en_core_web_lg or en_core_web_sm if md is not available.
     """
     
-    def __init__(self, domain: str = "general", similarity_threshold: float = 0.7):
+    def __init__(self, domain: str = "general", similarity_threshold: float = None):
         """
         Initialize the NLP matcher with lazy loading for memory efficiency.
         
         Args:
             domain: The domain this matcher operates in
             similarity_threshold: Minimum similarity score for matches (0.0 to 1.0)
+                                 If None, uses domain-specific defaults optimized for en_core_web_md
         """
         super().__init__(MatchingLayer.NLP, domain)
+        
+        # Set domain-specific default thresholds optimized for en_core_web_md
+        if similarity_threshold is None:
+            if domain == "manufacturing":
+                similarity_threshold = 0.3  # Optimized for manufacturing domain
+            elif domain == "cooking":
+                similarity_threshold = 0.4  # Slightly higher for cooking
+            else:
+                similarity_threshold = 0.4  # General default
+        
         self.similarity_threshold = similarity_threshold
         
         # Validate similarity threshold
@@ -83,13 +95,22 @@ class NLPMatcher(BaseMatchingLayer):
             self._nlp_initialized = True
             return None
         
-        try:
-            logger.info("Loading spaCy model 'en_core_web_sm' (lazy loading)")
-            self._nlp = spacy.load("en_core_web_sm")
-            logger.info("spaCy model 'en_core_web_sm' loaded successfully")
-        except OSError:
-            logger.warning("spaCy English model 'en_core_web_sm' not found. NLP matching will use fallback string similarity.")
-            self._nlp = None
+        # Try to load models in order of preference (best to fallback)
+        model_preferences = ["en_core_web_md", "en_core_web_lg", "en_core_web_sm"]
+        
+        for model_name in model_preferences:
+            try:
+                logger.info(f"Loading spaCy model '{model_name}' (lazy loading)")
+                self._nlp = spacy.load(model_name)
+                has_vectors = self._nlp.vocab.vectors.size > 0
+                logger.info(f"spaCy model '{model_name}' loaded successfully (vectors: {has_vectors})")
+                break
+            except OSError:
+                logger.warning(f"spaCy model '{model_name}' not found, trying next...")
+                continue
+        
+        if self._nlp is None:
+            logger.warning("No spaCy models found. NLP matching will use fallback string similarity.")
         
         self._nlp_initialized = True
         return self._nlp
