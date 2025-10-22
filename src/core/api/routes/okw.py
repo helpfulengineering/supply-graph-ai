@@ -8,13 +8,10 @@ from pydantic import Field
 
 # Import new standardized components
 from ..models.base import (
-    BaseAPIRequest, 
     SuccessResponse, 
     PaginationParams,
     PaginatedResponse,
     PaginationInfo,
-    LLMRequestMixin,
-    LLMResponseMixin,
     ValidationResult,
     APIStatus
 )
@@ -59,68 +56,6 @@ router = APIRouter(
     }
 )
 
-# Enhanced request models
-class EnhancedOKWCreateRequest(OKWCreateRequest, BaseAPIRequest, LLMRequestMixin):
-    """Enhanced OKW create request with standardized fields and LLM support."""
-    
-    # Fields inherited from OKWCreateRequest - no need to redefine
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "TechFab Manufacturing Hub",
-                "facility_status": "active",
-                "access_type": "public",
-                "location": {
-                    "address": {
-                        "street": "123 Industrial Ave",
-                        "city": "San Francisco",
-                        "country": "USA"
-                    },
-                    "coordinates": {
-                        "latitude": 37.7749,
-                        "longitude": -122.4194
-                    }
-                },
-                "manufacturing_processes": ["PCB Assembly", "3D Printing"],
-                "equipment": [{"name": "Pick and Place Machine", "type": "PCB Assembly"}],
-                "typical_materials": ["FR4", "PLA", "ABS"],
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-
-class EnhancedOKWResponse(OKWResponse, SuccessResponse, LLMResponseMixin):
-    """Enhanced OKW response with standardized fields and LLM information."""
-    
-    # Additional fields for enhanced response
-    processing_time: float = 0.0
-    validation_results: Optional[List[ValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "status": "success",
-                "message": "OKW operation completed successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "facility": {
-                    "id": "facility_123",
-                    "name": "TechFab Manufacturing Hub",
-                    "facility_status": "active"
-                },
-                "processing_time": 1.25,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.012,
-                "data": {},
-                "metadata": {}
-            }
-        }
 
 
 # Service dependencies
@@ -135,7 +70,7 @@ async def get_okw_service() -> OKWService:
 
 @router.post(
     "/create", 
-    response_model=EnhancedOKWResponse, 
+    response_model=OKWResponse, 
     status_code=status.HTTP_201_CREATED,
     summary="Create OKW Facility",
     description="""
@@ -160,7 +95,7 @@ async def get_okw_service() -> OKWService:
     include_metrics=True,
     track_llm=True
 )
-@validate_request(EnhancedOKWCreateRequest)
+@validate_request(OKWCreateRequest)
 @track_performance("okw_creation")
 @llm_endpoint(
     default_provider="anthropic",
@@ -168,7 +103,7 @@ async def get_okw_service() -> OKWService:
     track_costs=True
 )
 async def create_okw(
-    request: EnhancedOKWCreateRequest,
+    request: OKWCreateRequest,
     http_request: Request,
     okw_service: OKWService = Depends(get_okw_service)
 ):
@@ -184,7 +119,7 @@ async def create_okw(
         Enhanced OKW response with comprehensive data
     """
     request_id = getattr(http_request.state, 'request_id', None)
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # Convert request to facility data
@@ -220,7 +155,7 @@ async def create_okw(
         }
         
         # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Create enhanced response
         response_data = {

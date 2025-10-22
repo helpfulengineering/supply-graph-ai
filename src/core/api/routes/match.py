@@ -8,21 +8,15 @@ request validation, and response formatting.
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Request, status
 from uuid import UUID
-from typing import Optional, List
+from typing import Optional, List, Dict
 import json
 import yaml
 from datetime import datetime
 
 # Import new standardized components
 from ..models.base import (
-    BaseAPIRequest, 
-    SuccessResponse, 
     PaginationParams,
     PaginatedResponse,
-    LLMRequestMixin,
-    LLMResponseMixin,
-    RequirementsInput,
-    CapabilitiesInput,
     ValidationResult
 )
 from ..decorators import (
@@ -61,94 +55,6 @@ router = APIRouter(
 logger = get_logger(__name__)
 
 
-# Enhanced request models
-class EnhancedMatchRequest(BaseAPIRequest, LLMRequestMixin):
-    """Enhanced match request with standardized fields and LLM support."""
-    
-    # Core matching fields
-    okh_manifest: Optional[dict] = None
-    okh_id: Optional[UUID] = None
-    okh_url: Optional[str] = None
-     
-    # Enhanced filtering options
-    access_type: Optional[str] = None
-    facility_status: Optional[str] = None
-    location: Optional[str] = None
-    capabilities: Optional[List[str]] = None
-    materials: Optional[List[str]] = None
-    
-    # Quality and validation options
-    min_confidence: Optional[float] = 0.7
-    max_results: Optional[int] = 10
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "okh_manifest": {
-                    "title": "Test OKH Manifest",
-                    "version": "1.0.0",
-                    "manufacturing_specs": {
-                        "process_requirements": [
-                            {"process_name": "PCB Assembly", "parameters": {}}
-                        ]
-                    }
-                },
-                "access_type": "public",
-                "facility_status": "active",
-                "min_confidence": 0.8,
-                "max_results": 5,
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-
-class EnhancedMatchResponse(SuccessResponse, LLMResponseMixin):
-    """Enhanced match response with standardized fields and LLM information."""
-    
-    # Core response data
-    solutions: List[dict] = []
-    total_solutions: int = 0
-    processing_time: float = 0.0
-    
-    # Enhanced metadata
-    matching_metrics: Optional[dict] = None
-    validation_results: Optional[List[ValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "status": "success",
-                "message": "Matching completed successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "solutions": [
-                    {
-                        "facility_id": "facility_123",
-                        "confidence": 0.95,
-                        "matching_processes": ["PCB Assembly"],
-                        "estimated_cost": 150.00
-                    }
-                ],
-                "total_solutions": 1,
-                "processing_time": 1.25,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.012,
-                "matching_metrics": {
-                    "direct_matches": 1,
-                    "heuristic_matches": 0,
-                    "nlp_matches": 0
-                },
-                "data": {},
-                "metadata": {}
-            }
-        }
-
-
 # Service dependencies
 async def get_matching_service() -> MatchingService:
     """Get matching service instance."""
@@ -168,7 +74,7 @@ async def get_okh_service() -> OKHService:
 # Main matching endpoint (enhanced version)
 @router.post(
     "",
-    response_model=EnhancedMatchResponse,
+    response_model=MatchResponse,
     status_code=status.HTTP_200_OK,
     summary="Enhanced Requirements Matching",
     description="""
@@ -194,7 +100,7 @@ async def get_okh_service() -> OKHService:
     include_metrics=True,
     track_llm=True
 )
-@validate_request(EnhancedMatchRequest)
+@validate_request(MatchRequest)
 @track_performance("enhanced_matching")
 @llm_endpoint(
     default_provider="anthropic",
@@ -202,7 +108,7 @@ async def get_okh_service() -> OKHService:
     track_costs=True
 )
 async def match_requirements_to_capabilities(
-    request: EnhancedMatchRequest,
+    request: MatchRequest,
     http_request: Request,
     matching_service: MatchingService = Depends(get_matching_service),
     storage_service: StorageService = Depends(get_storage_service),
@@ -410,7 +316,7 @@ async def validate_match(
 # File upload endpoint (enhanced version)
 @router.post(
     "/upload", 
-    response_model=EnhancedMatchResponse,
+    response_model=MatchResponse,
     summary="Match from File Upload",
     description="""
     Match requirements to capabilities using an uploaded OKH file.
@@ -527,76 +433,14 @@ async def match_requirements_from_file(
         solutions = await matching_service.find_matches_with_manifest(
             okh_manifest, okw_facilities
         )
+        # Convert Set to List for iteration
+        solutions = list(solutions)
         
-        # Serialize results using proper SupplyTreeResponse format
-        from ..models.supply_tree.response import SupplyTreeResponse, WorkflowResponse, WorkflowNodeResponse, ResourceSnapshotResponse, ProcessStatus
-        
+        # Serialize simplified SupplyTree results
         results = []
         for solution in solutions:
-            # Convert workflows to API response format
-            workflows = {}
-            for workflow_id, workflow in solution.tree.workflows.items():
-                # Convert nodes to WorkflowNodeResponse format
-                nodes = {}
-                for node_id in workflow.graph.nodes:
-                    node_data = workflow.graph.nodes[node_id]['data']
-                    nodes[str(node_id)] = WorkflowNodeResponse(
-                        id=node_data.id,
-                        name=node_data.name,
-                        process_status=ProcessStatus.PENDING,
-                        confidence_score=getattr(node_data, 'confidence_score', 1.0),
-                        substitution_used=getattr(node_data, 'substitution_used', False),
-                        okh_refs=[str(ref) for ref in node_data.okh_refs],
-                        okw_refs=[str(ref) for ref in node_data.okw_refs],
-                        input_requirements=node_data.input_requirements,
-                        output_specifications=node_data.output_specifications,
-                        estimated_time=str(node_data.estimated_time) if node_data.estimated_time else None,
-                        assigned_facility=node_data.assigned_facility,
-                        assigned_equipment=node_data.assigned_equipment,
-                        materials=node_data.materials,
-                        metadata=node_data.metadata
-                    )
-                
-                # Convert edges to API format
-                edges = [{"source": str(source), "target": str(target)} for source, target in workflow.graph.edges]
-                
-                workflows[str(workflow_id)] = WorkflowResponse(
-                    id=workflow_id,
-                    name=workflow.name,
-                    nodes=nodes,
-                    edges=edges,
-                    entry_points=[str(ep) for ep in workflow.entry_points],
-                    exit_points=[str(ep) for ep in workflow.exit_points]
-                )
-            
-            # Convert snapshots to API format
-            snapshots = {}
-            for uri, snapshot in solution.tree.snapshots.items():
-                snapshots[uri] = ResourceSnapshotResponse(
-                    uri=str(snapshot.uri),
-                    content=snapshot.content,
-                    timestamp=snapshot.timestamp.isoformat() if hasattr(snapshot.timestamp, 'isoformat') else str(snapshot.timestamp)
-                )
-            
-            # Create proper SupplyTreeResponse
-            supply_tree_response = SupplyTreeResponse(
-                id=solution.tree.id,
-                workflows=workflows,
-                creation_time=solution.tree.creation_time.isoformat() if hasattr(solution.tree.creation_time, 'isoformat') else str(solution.tree.creation_time),
-                confidence=solution.score,
-                required_quantity=getattr(solution.tree, 'required_quantity', 1),
-                connections=[],  # TODO: Convert connections if they exist
-                snapshots=snapshots,
-                okh_reference=solution.tree.okh_reference,
-                deadline=getattr(solution.tree, 'deadline', None),
-                metadata=solution.tree.metadata
-            )
-            
-            results.append({
-                "tree": supply_tree_response,
-                "score": solution.score,
-                "metrics": solution.metrics
-            })
+            # Use the simplified to_dict method from SupplyTreeSolution
+            results.append(solution.to_dict())
         
         return create_success_response(
             message="Matching completed successfully",
@@ -917,7 +761,7 @@ async def detect_domain_from_input(
 
 # Helper functions
 async def _extract_okh_manifest(
-    request: EnhancedMatchRequest,
+    request: MatchRequest,
     okh_service: OKHService,
     storage_service: StorageService,
     request_id: str
@@ -957,14 +801,41 @@ async def _extract_okh_manifest(
 
 async def _get_filtered_facilities(
     storage_service: StorageService,
-    request: EnhancedMatchRequest,
+    request: MatchRequest,
     request_id: str
 ) -> List[ManufacturingFacility]:
     """Get facilities with applied filters."""
     try:
-        # Get all facilities using OKWService
+        # Get all facilities using OKWService with proper pagination
         okw_service = await OKWService.get_instance()
-        facilities, total = await okw_service.list(page=1, page_size=1000)
+        
+        # Get all facilities by paginating through all pages
+        all_facilities = []
+        page = 1
+        page_size = 1000
+        
+        while True:
+            facilities_batch, _ = await okw_service.list(page=page, page_size=page_size)
+            all_facilities.extend(facilities_batch)
+            
+            # If we got fewer facilities than page_size, we've reached the end
+            if len(facilities_batch) < page_size:
+                break
+                
+            page += 1
+        
+        facilities = all_facilities
+        total = len(all_facilities)
+        
+        logger.info(
+            f"Loaded {total} facilities from {page} pages",
+            extra={
+                "request_id": request_id,
+                "total_facilities": total,
+                "pages_loaded": page,
+                "page_size": page_size
+            }
+        )
         
         # Apply filters
         filtered_facilities = []
@@ -1028,7 +899,7 @@ async def _perform_enhanced_matching(
     matching_service: MatchingService,
     okh_manifest: OKHManifest,
     facilities: List[dict],
-    request: EnhancedMatchRequest,
+    request: MatchRequest,
     request_id: str
 ) -> List[dict]:
     """Perform enhanced matching with LLM support."""
@@ -1038,6 +909,9 @@ async def _perform_enhanced_matching(
             okh_manifest=okh_manifest,
             facilities=facilities
         )
+        
+        # Convert Set to List for iteration
+        results = list(results)
         
         # Convert results to list of dicts
         matching_results = []
@@ -1080,7 +954,7 @@ async def _perform_enhanced_matching(
 
 async def _process_matching_results(
     results: List[dict],
-    request: EnhancedMatchRequest,
+    request: MatchRequest,
     request_id: str
 ) -> List[dict]:
     """Process and format matching results."""

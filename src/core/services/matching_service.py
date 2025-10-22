@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional, Any
-from uuid import UUID, uuid4
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Set
+from uuid import UUID
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
@@ -13,7 +12,6 @@ from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..matching.capability_rules import CapabilityRuleManager, CapabilityMatcher
 from ..matching.nlp_matcher import NLPMatcher
-from ..models.supply_trees import Workflow, WorkflowNode, ResourceURI, ResourceType
 
 logger = get_logger(__name__)
 
@@ -38,8 +36,6 @@ class MatchingService:
         self.okh_service: Optional[OKHService] = None
         self.okw_service: Optional[OKWService] = None
     
-    # Heuristic rules are now managed by the HeuristicRuleManager
-    # and loaded from domain-specific configuration files
     
     @classmethod
     async def get_instance(
@@ -77,7 +73,7 @@ class MatchingService:
         self,
         okh_id: UUID,
         optimization_criteria: Optional[Dict[str, float]] = None
-    ) -> List[SupplyTreeSolution]:
+    ) -> Set[SupplyTreeSolution]:
         """Find matching facilities for an OKH manifest by ID (loads manifest and facilities, then delegates)."""
         await self.ensure_initialized()
         logger.info(
@@ -117,7 +113,7 @@ class MatchingService:
         okh_manifest: OKHManifest,
         facilities: List[ManufacturingFacility],
         optimization_criteria: Optional[Dict[str, float]] = None
-    ) -> List[SupplyTreeSolution]:
+    ) -> Set[SupplyTreeSolution]:
         """Find matching facilities for an in-memory OKH manifest and provided facilities."""
         await self.ensure_initialized()
 
@@ -151,7 +147,7 @@ class MatchingService:
                 }
             )
 
-            solutions = []
+            solutions = set()
             
             for facility in facilities:
                 logger.debug(
@@ -182,7 +178,7 @@ class MatchingService:
                             "capability_count": len(capabilities)
                         }
                     )
-                    solutions.append(solution)
+                    solutions.add(solution)
                     logger.info(
                         "Found matching facility",
                         extra={
@@ -406,194 +402,60 @@ class MatchingService:
         facility: ManufacturingFacility,
         domain: str = "manufacturing"
     ) -> SupplyTree:
-        """Generate a supply tree for a manifest and facility using enhanced matching layers"""
+        """Generate a simplified supply tree for a manifest and facility"""
         try:
-            # Create a supply tree with proper metadata
-            supply_tree = SupplyTree()
-            
-            # Set comprehensive metadata with fallback for empty facility names
-            facility_name = facility.name or f"Facility {str(facility.id)[:8]}"
-            supply_tree.metadata = {
-                "name": f"{manifest.title} - {facility_name}",
-                "description": f"Manufacturing solution for {manifest.title} at {facility_name}",
-                "okh_id": str(manifest.id),
-                "facility_id": str(facility.id),
-                "okh_title": manifest.title,
-                "facility_name": facility_name,
-                "generation_method": "enhanced_multi_layered_matching",
-                "matching_layers_used": ["direct", "heuristic"],
-                "domain": domain,
-                "created_at": datetime.now().isoformat()
-            }
-            
-            # Set OKH reference
-            supply_tree.okh_reference = str(manifest.id)
-            # Lazy import NetworkX
-            import networkx as nx
-            
-            primary_workflow = Workflow(
-                name=f"Manufacturing Workflow for {manifest.title}",
-                graph=nx.DiGraph(),
-                entry_points=set(),
-                exit_points=set()
-            )
-            
-            # Extract process requirements from the manifest
+            # Calculate overall confidence based on process matching
             process_requirements = manifest.manufacturing_processes or []
+            total_confidence = 0.0
+            match_count = 0
+            match_type = "unknown"
             
-            # Create nodes for each manufacturing process using enhanced matching
-            previous_node_id = None
-            matching_results = []
-            
-            for i, process_name in enumerate(process_requirements):
-                # Find matching capabilities in the facility using our enhanced matching layers
+            # Check if facility can handle the processes
+            for process_name in process_requirements:
                 facility_capabilities = []
                 for equipment in facility.equipment:
                     if hasattr(equipment, 'manufacturing_process'):
-                        facility_capabilities.extend(equipment.manufacturing_process)
+                        if isinstance(equipment.manufacturing_process, str):
+                            facility_capabilities.append(equipment.manufacturing_process)
+                        elif isinstance(equipment.manufacturing_process, list):
+                            facility_capabilities.extend(equipment.manufacturing_process)
                     if hasattr(equipment, 'manufacturing_processes'):
-                        facility_capabilities.extend(equipment.manufacturing_processes)
+                        if isinstance(equipment.manufacturing_processes, list):
+                            facility_capabilities.extend(equipment.manufacturing_processes)
                 
-                # Use our enhanced matching layers to find the best match
-                best_match_confidence = 0.0
-                best_match_method = "no_match"
-                best_match_capability = None
-                matching_details = {}
-                
+                # Check for direct matches
                 for capability in facility_capabilities:
-                    # Layer 1: Direct Matching
                     if self._direct_match(process_name, capability, domain):
-                        direct_matcher = self.direct_matchers.get(domain)
-                        if direct_matcher:
-                            direct_results = direct_matcher.match(process_name, [capability], near_miss_threshold=2)
-                            for result in direct_results:
-                                if result.matched and result.confidence > best_match_confidence:
-                                    best_match_confidence = result.confidence
-                                    best_match_method = f"direct_{result.metadata.method}"
-                                    best_match_capability = capability
-                                    matching_details = {
-                                        "quality": result.metadata.quality,
-                                        "character_difference": result.metadata.character_difference,
-                                        "case_difference": result.metadata.case_difference,
-                                        "whitespace_difference": result.metadata.whitespace_difference
-                                    }
-                    
-                    # Layer 2: Heuristic Matching (only if direct matching didn't find a good match)
-                    if best_match_confidence < 0.8 and await self._heuristic_match(process_name, capability, domain):
-                        if self.capability_matcher:
-                            heuristic_results = await self.capability_matcher.match_requirements_to_capabilities(
-                                requirements=[{"process_name": process_name}],
-                                capabilities=[{"process_name": capability}],
-                                domain=domain,
-                                requirement_field="process_name",
-                                capability_field="process_name"
-                            )
-                            for result in heuristic_results:
-                                if result.matched and result.confidence > best_match_confidence:
-                                    best_match_confidence = result.confidence
-                                    best_match_method = f"heuristic_{result.rule_used.id if result.rule_used else 'rule'}"
-                                    best_match_capability = capability
-                                    matching_details = {
-                                        "rule_used": result.rule_used.id if result.rule_used else None,
-                                        "transformation_details": result.transformation_details
-                                    }
-                
-                # Create a workflow node for this process with enhanced matching information
-                node_id = uuid4()
-                node = WorkflowNode(
-                    id=node_id,
-                    name=f"{process_name} Process",
-                    okh_refs=[
-                        ResourceURI(
-                            resource_type=ResourceType.OKH_PROCESS,
-                            identifier=str(manifest.id),
-                            path=["manufacturing_processes", str(i)]
-                        )
-                    ],
-                    okw_refs=[
-                        ResourceURI(
-                            resource_type=ResourceType.OKW_PROCESS,
-                            identifier=str(facility.id),
-                            path=["manufacturing_processes", best_match_capability.lower().replace(" ", "_") if best_match_capability else process_name.lower().replace(" ", "_")]
-                        )
-                    ],
-                    input_requirements={
-                        "process": process_name,
-                        "material": "as_specified_in_okh"
-                    },
-                    output_specifications={
-                        "process": process_name,
-                        "quality": "meets_okh_requirements"
-                    },
-                    estimated_time=timedelta(hours=2),  # Default estimation
-                    assigned_facility=str(facility.id),
-                    confidence_score=best_match_confidence,
-                    substitution_used=best_match_method.startswith("heuristic_"),
-                    metadata={
-                        "process_index": i,
-                        "total_processes": len(process_requirements),
-                        "matching_method": best_match_method,
-                        "matched_capability": best_match_capability,
-                        "matching_details": matching_details,
-                        "facility_capability": "verified" if best_match_confidence > 0.7 else "uncertain"
-                    }
-                )
-                
-                # Store matching result for overall confidence calculation
-                matching_results.append({
-                    "process": process_name,
-                    "confidence": best_match_confidence,
-                    "method": best_match_method
-                })
-                
-                # Add node to workflow
-                primary_workflow.graph.add_node(node_id, data=node)
-                
-                # Create linear workflow (each process depends on the previous one)
-                if previous_node_id is not None:
-                    primary_workflow.graph.add_edge(previous_node_id, node_id)
-                else:
-                    # First node is an entry point
-                    primary_workflow.entry_points.add(node_id)
-                
-                # Update exit points
-                primary_workflow.exit_points.discard(previous_node_id) if previous_node_id else None
-                primary_workflow.exit_points.add(node_id)
-                
-                previous_node_id = node_id
+                        total_confidence += 1.0
+                        match_count += 1
+                        match_type = "direct"
+                        break
+                    elif await self._heuristic_match(process_name, capability, domain):
+                        total_confidence += 0.8
+                        match_count += 1
+                        match_type = "heuristic"
+                        break
             
-            # Add the workflow to the supply tree
-            supply_tree.add_workflow(primary_workflow)
+            # Calculate average confidence
+            confidence_score = total_confidence / len(process_requirements) if process_requirements else 0.0
             
-            # Add enhanced metadata about matching results
-            supply_tree.metadata.update({
-                "matching_summary": {
-                    "total_processes": len(process_requirements),
-                    "matching_results": matching_results,
-                    "average_confidence": sum(r["confidence"] for r in matching_results) / len(matching_results) if matching_results else 0.0,
-                    "direct_matches": len([r for r in matching_results if r["method"].startswith("direct_")]),
-                    "heuristic_matches": len([r for r in matching_results if r["method"].startswith("heuristic_")]),
-                    "no_matches": len([r for r in matching_results if r["method"] == "no_match"])
-                }
-            })
-            
-            # Add snapshots of source data
-            supply_tree.add_snapshot(
-                f"okh://{manifest.id}",
-                manifest.to_dict()
-            )
-            supply_tree.add_snapshot(
-                f"okw://{facility.id}",
-                facility.to_dict()
+            # Use the simplified factory method
+            supply_tree = SupplyTree.from_facility_and_manifest(
+                facility=facility,
+                manifest=manifest,
+                confidence_score=confidence_score,
+                match_type=match_type,
+                estimated_cost=None,  # Could be calculated based on facility rates
+                estimated_time=None   # Could be calculated based on process complexity
             )
             
             logger.info(
-                "Generated supply tree with workflows and nodes",
+                "Generated simplified supply tree",
                 extra={
                     "okh_id": str(manifest.id),
                     "facility_id": str(facility.id),
-                    "workflow_count": len(supply_tree.workflows),
-                    "total_nodes": sum(len(wf.graph.nodes) for wf in supply_tree.workflows.values()),
+                    "confidence_score": confidence_score,
+                    "match_type": match_type,
                     "process_count": len(process_requirements)
                 }
             )

@@ -2,7 +2,7 @@ from typing import List, Dict, Any, Optional
 from uuid import uuid4
 
 from src.core.models.base.base_types import BaseMatcher, Requirement, Capability, MatchResult, ResourceType, Substitution
-from src.core.models.supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI, WorkflowConnection
+from src.core.models.supply_trees import SupplyTree
 from src.core.models.okh import OKHManifest, ProcessRequirement
 
 class OKHRequirement(Requirement):
@@ -70,15 +70,7 @@ class OKHMatcher(BaseMatcher):
     def generate_supply_tree(self, 
                            okh_manifest: OKHManifest,
                            capabilities: List[Capability]) -> SupplyTree:
-        """Generate a SupplyTree from OKH manifest and capabilities"""
-        # Create new supply tree
-        supply_tree = SupplyTree()
-        
-        # Create primary workflow
-        primary_workflow = Workflow(
-            name=f"Primary workflow for {okh_manifest.title}"
-        )
-        
+        """Generate a simplified SupplyTree from OKH manifest and capabilities"""
         # Extract process requirements and convert to OKHRequirements
         process_reqs = okh_manifest.extract_requirements()
         requirements = [OKHRequirement(req) for req in process_reqs]
@@ -86,161 +78,55 @@ class OKHMatcher(BaseMatcher):
         # Match requirements to capabilities
         match_result = self.match(requirements, capabilities)
         
-        # Create workflow nodes from matched requirements
-        previous_node = None
-        for i, req in enumerate(requirements):
-            # Skip if requirement is missing and has no substitutions
-            if req in match_result.missing_requirements and not any(
-                sub.original == req for sub in match_result.substitutions
-            ):
-                continue
-                
-            # Get matching capability or substitution
-            capability = None
-            substitution = None
-            
+        # Calculate overall confidence based on matching results
+        total_confidence = 0.0
+        match_count = 0
+        materials_required = []
+        capabilities_used = []
+        
+        for req in requirements:
             if req in match_result.matched_capabilities:
                 capability = match_result.matched_capabilities[req]
-            else:
-                # Find substitution if available
+                total_confidence += 1.0
+                match_count += 1
+                capabilities_used.append(capability.name)
+            elif any(sub.original == req for sub in match_result.substitutions):
+                # Find substitution
                 for sub in match_result.substitutions:
                     if sub.original == req:
-                        substitution = sub
-                        capability = sub.substitute
+                        total_confidence += sub.confidence
+                        match_count += 1
+                        capabilities_used.append(sub.substitute.name)
                         break
-            
-            if not capability:
-                continue
-                
-            # Create node for this requirement
-            node = WorkflowNode(
-                name=f"Step {i+1}: {req.name}",
-                okh_refs=[ResourceURI(
-                    resource_type=ResourceType.OKH,
-                    identifier=str(okh_manifest.id),
-                    path=["process_requirements", str(i)]
-                )],
-                okw_refs=[ResourceURI(
-                    resource_type=ResourceType.OKW,
-                    identifier=str(getattr(capability, 'id', uuid4())),
-                    path=["capabilities", capability.type]
-                )] if capability else [],
-                input_requirements=req.parameters,
-                output_specifications=req.constraints
-            )
-            
-            # Add substitution information if applicable
-            if substitution:
-                node.metadata["substitution"] = {
-                    "original": req.name,
-                    "substitute": capability.name,
-                    "confidence": substitution.confidence,
-                    "notes": substitution.notes
-                }
-            
-            # Add node to workflow
-            primary_workflow.add_node(node)
-            if previous_node:
-                primary_workflow.graph.add_edge(previous_node.id, node.id)
-                
-            previous_node = node
         
-        # Add workflow to supply tree
-        if primary_workflow.graph.number_of_nodes() > 0:
-            supply_tree.add_workflow(primary_workflow)
+        # Calculate average confidence
+        confidence_score = total_confidence / len(requirements) if requirements else 0.0
         
-        # Add part-specific workflows if needed
-        self._add_part_workflows(supply_tree, okh_manifest, capabilities, primary_workflow)
+        # Extract materials from manifest
+        if hasattr(okh_manifest, 'materials') and okh_manifest.materials:
+            materials_required = [str(material) for material in okh_manifest.materials]
         
-        # Add snapshots of relevant data
-        supply_tree.add_snapshot(f"okh://{okh_manifest.id}", okh_manifest.to_dict())
+        # Create simplified supply tree
+        supply_tree = SupplyTree(
+            facility_id=uuid4(),  # Generate a temporary facility ID
+            facility_name="Manufacturing Facility",
+            okh_reference=str(okh_manifest.id),
+            confidence_score=confidence_score,
+            materials_required=materials_required,
+            capabilities_used=capabilities_used,
+            match_type="okh_matcher",
+            metadata={
+                "okh_title": okh_manifest.title,
+                "total_requirements": len(requirements),
+                "matched_requirements": match_count,
+                "substitution_count": len(match_result.substitutions),
+                "generation_method": "simplified_okh_matcher"
+            }
+        )
         
         return supply_tree
     
-    def _add_part_workflows(self, 
-                         supply_tree: SupplyTree, 
-                         okh_manifest: OKHManifest,
-                         capabilities: List[Capability],
-                         primary_workflow: Workflow) -> None:
-        """Add part-specific workflows to the supply tree"""
-        # Only add if primary workflow exists
-        if primary_workflow.id not in supply_tree.workflows:
-            return
-            
-        # Create workflows for each part
-        for part in okh_manifest.parts:
-            if not part.tsdc:
-                continue
-                
-            part_workflow = Workflow(
-                name=f"Workflow for {part.name}"
-            )
-            
-            # Create nodes for each TSDC
-            previous_node = None
-            for i, tsdc in enumerate(part.tsdc):
-                # Create process requirement for this TSDC
-                params = {}
-                if hasattr(part, 'manufacturing_params'):
-                    params = part.manufacturing_params.copy()
-                params['material'] = part.material
-                
-                proc_req = ProcessRequirement(
-                    process_name=tsdc,
-                    parameters=params,
-                    validation_criteria={},
-                    required_tools=[]
-                )
-                
-                # Create requirement and find capability
-                requirement = OKHRequirement(proc_req)
-                capability = self._find_capability(requirement, capabilities)
-                
-                if not capability:
-                    continue
-                    
-                # Create node for this TSDC
-                node = WorkflowNode(
-                    name=f"{part.name} - {tsdc}",
-                    okh_refs=[ResourceURI(
-                        resource_type=ResourceType.OKH,
-                        identifier=str(okh_manifest.id),
-                        path=["parts", str(part.id), "tsdc", str(i)]
-                    )],
-                    okw_refs=[ResourceURI(
-                        resource_type=ResourceType.OKW,
-                        identifier=str(getattr(capability, 'id', uuid4())),
-                        path=["capabilities", capability.type]
-                    )],
-                    input_requirements=requirement.parameters,
-                    output_specifications=requirement.constraints
-                )
-                
-                # Add node to workflow
-                part_workflow.add_node(node)
-                if previous_node:
-                    part_workflow.graph.add_edge(previous_node.id, node.id)
-                    
-                previous_node = node
-            
-            # Only add workflow if it has nodes
-            if part_workflow.graph.number_of_nodes() > 0:
-                supply_tree.add_workflow(part_workflow)
-                
-                # Connect to primary workflow
-                if primary_workflow and primary_workflow.exit_points:
-                    last_node = next(iter(primary_workflow.exit_points))
-                    first_node = next(iter(part_workflow.entry_points)) if part_workflow.entry_points else None
-                    
-                    if last_node and first_node:
-                        connection = WorkflowConnection(
-                            source_workflow=primary_workflow.id,
-                            source_node=last_node,
-                            target_workflow=part_workflow.id,
-                            target_node=first_node,
-                            connection_type="component"
-                        )
-                        supply_tree.connect_workflows(connection)
+    # Note: _add_part_workflows method removed as it used workflow classes that are no longer available
     
     def _find_capability(self, 
                       requirement: OKHRequirement, 

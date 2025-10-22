@@ -14,6 +14,16 @@ The API is structured around the three core domain models:
 
 Each domain has its own set of routes for creation, validation, retrieval, and specialized operations. The API follows RESTful principles with **standardized response formats**, **comprehensive error handling**, **LLM integration support**, and appropriate status codes.
 
+### API Model Architecture
+
+The API uses a **consolidated model architecture** with:
+
+- **Unified Request/Response Models**: All endpoints use standardized base classes (`BaseAPIRequest`, `SuccessResponse`) with proper inheritance
+- **LLM Integration Ready**: All models inherit from `LLMRequestMixin` and `LLMResponseMixin` for seamless AI integration
+- **Proper Separation of Concerns**: Request models in `request.py` files, response models in `response.py` files
+- **No Model Duplication**: Single source of truth for each model, eliminating "Enhanced" prefixes and redundant definitions
+- **Type Safety**: Full Pydantic validation and serialization across all endpoints
+
 ## API Versioning
 
 All routes are prefixed with `/v1` to enable future versioning. This approach allows for introducing breaking changes in future versions without disrupting existing clients.
@@ -241,7 +251,7 @@ Deletes an OKH manifest.
 POST /v1/okh/validate
 ```
 
-**Enhanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
+**Advanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
 
 **Query Parameters:**
 - `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
@@ -283,7 +293,7 @@ POST /v1/okh/validate
 - **Professional Level**: Standard validation for commercial use - requires manufacturing specifications
 - **Medical Level**: Strict validation for medical device manufacturing - requires quality standards and certifications
 
-**Status:** ✅ **Fully Implemented** - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+**Status:** ✅ **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 #### Requirements Extraction
 
@@ -523,7 +533,7 @@ Searches for facilities by criteria with **Azure Blob Storage integration**.
 POST /v1/okw/validate
 ```
 
-**Enhanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
+**Advanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
 
 **Query Parameters:**
 - `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
@@ -564,7 +574,7 @@ POST /v1/okw/validate
 - **Professional Level**: Standard validation for commercial manufacturing facilities - requires equipment and manufacturing processes
 - **Medical Level**: Strict validation for medical device manufacturing facilities - requires certifications and quality standards
 
-**Status:** ✅ **Fully Implemented** - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+**Status:** ✅ **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 #### Capabilities Extraction
 
@@ -809,7 +819,7 @@ The supply tree in the requested format.
 POST /v1/match
 ```
 
-**Enhanced matching endpoint** that matches OKH requirements with OKW capabilities to generate valid supply trees. Supports multiple input methods and advanced filtering.
+**Advanced matching endpoint** that matches OKH requirements with OKW capabilities to generate valid supply trees. Supports multiple input methods and advanced filtering.
 
 **Request:**
 ```json
@@ -890,10 +900,10 @@ POST /v1/match
 - **Advanced Filtering**: Filter facilities by location, capabilities, access type, and status
 - **Real-time Processing**: Processes YAML/JSON files from storage in real-time
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
-- **Multi-layered Matching**: Enhanced Direct Matching with heuristic rules
+- **Multi-layered Matching**: Advanced Direct Matching with heuristic rules
 - **Supply Tree Generation**: Creates complete supply tree solutions with workflows and metadata
 
-**Enhanced Matching Workflow:**
+**Advanced Matching Workflow:**
 1. **OKH Input Processing**: Validates and processes OKH manifest from one of three input methods
 2. **OKW Capabilities Processing**: 
    - **If `okw_facilities` provided**: Uses inline OKW facilities (Local Development Mode)
@@ -902,7 +912,7 @@ POST /v1/match
 4. **Filtering**: Applies optional filters to narrow down relevant facilities (works with both inline and cloud-loaded facilities)
 5. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
 6. **Multi-Layered Matching Logic**: 
-   - **Layer 1**: Enhanced Direct Matching with metadata tracking and confidence scoring
+   - **Layer 1**: Direct Matching with metadata tracking and confidence scoring
    - **Layer 2**: Heuristic Matching with rule-based synonyms and abbreviations
    - **Layer 3**: NLP Matching (planned)
    - **Layer 4**: AI/ML Matching (planned)
@@ -945,7 +955,7 @@ Match requirements to capabilities using an uploaded OKH file.
 POST /v1/match/validate
 ```
 
-**Enhanced validation endpoint** for supply tree validation with domain-aware quality levels and comprehensive validation criteria.
+**Advanced validation endpoint** for supply tree validation with domain-aware quality levels and comprehensive validation criteria.
 
 **Query Parameters:**
 - `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
@@ -985,7 +995,7 @@ POST /v1/match/validate
 - **Professional Level**: Standard validation for commercial use - comprehensive workflow and resource validation
 - **Medical Level**: Strict validation for medical device manufacturing - regulatory compliance and quality standards
 
-**Status:** ✅ **Enhanced Implementation** - **Domain-aware validation with quality levels and comprehensive validation criteria (placeholder implementation with enhanced parameters)**
+**Status:** ✅ **Advanced Implementation** - **Domain-aware validation with quality levels and comprehensive validation criteria (placeholder implementation with advanced parameters)**
 
 ### Domain Management Routes
 
@@ -1289,13 +1299,15 @@ Paginated responses include consistent metadata:
 - **Standardized Error Handling**: All routes use `create_error_response` and `create_success_response`
 - **LLM Integration Ready**: All routes support LLM request/response mixins
 - **Performance Tracking**: Built-in metrics and request monitoring
-- **Model Inheritance**: Enhanced models with proper inheritance patterns
+- **Consolidated Model Architecture**: All models use unified base classes with proper inheritance patterns
+- **No Model Duplication**: Eliminated all "Enhanced" prefixes and redundant model definitions
+- **Proper File Organization**: Request models in `request.py`, response models in `response.py`
 - **Comprehensive Testing**: All routes tested and validated
 
 #### **Match Routes (7) - Fully Standardized**
 - `POST /v1/match` - **Complete matching engine with Azure Blob Storage integration, multi-layered matching, and supply tree generation**
 - `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON) with comprehensive filtering**
-- `POST /v1/match/validate` - **Enhanced validation with domain-aware quality levels and comprehensive validation criteria**
+- `POST /v1/match/validate` - **Advanced validation with domain-aware quality levels and comprehensive validation criteria**
 - `GET /v1/match/domains` - **Complete domain listing with registry integration**
 - `GET /v1/match/domains/{domain_name}` - **Complete domain information retrieval with error handling**
 - `GET /v1/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
@@ -1307,7 +1319,7 @@ Paginated responses include consistent metadata:
 - `GET /v1/okh` - **Paginated listing with filter support**
 - `PUT /v1/okh/{id}` - **Complete update functionality with validation**
 - `DELETE /v1/okh/{id}` - **Complete delete functionality with existence checking**
-- `POST /v1/okh/validate` - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+- `POST /v1/okh/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 - `POST /v1/okh/extract` - **Complete requirements extraction with service integration**
 - `POST /v1/okh/upload` - **File upload with validation, parsing, and storage integration**
 - `POST /v1/okh/from-storage` - **Create OKH from stored manifest**
@@ -1319,7 +1331,7 @@ Paginated responses include consistent metadata:
 - `PUT /v1/okw/{id}` - **Complete update functionality with validation**
 - `DELETE /v1/okw/{id}` - **Complete delete functionality with existence checking**
 - `GET /v1/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
-- `POST /v1/okw/validate` - **Enhanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+- `POST /v1/okw/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 - `POST /v1/okw/extract-capabilities` - **Capabilities extraction with service integration**
 - `POST /v1/okw/upload` - **File upload with validation, parsing, and storage integration**
 
@@ -1355,6 +1367,7 @@ Paginated responses include consistent metadata:
 
 **The API system is now fully prepared for actual LLM integration:**
 - **Complete Infrastructure**: All 43 routes standardized and tested
+- **Consolidated Model Architecture**: Clean, unified model structure with no duplication
 - **LLM Integration Ready**: Full LLM support infrastructure in place
 - **Error Handling**: Comprehensive error handling with helpful messages
 - **Performance Monitoring**: Built-in performance tracking and metrics
@@ -1521,7 +1534,7 @@ async def search_facilities():
 
 The matching system uses a sophisticated multi-layered approach with detailed metadata tracking and confidence scoring:
 
-#### **Layer 1: Direct Matching (Enhanced)**
+#### **Layer 1: Direct Matching (Advanced)**
 - **Case-insensitive exact string matching** with defensive confidence scoring
 - **Near-miss detection** using Levenshtein distance (≤2 character differences)
 - **Comprehensive metadata tracking** including match quality indicators
@@ -1611,7 +1624,7 @@ typical_materials: []
 - `404`: Not Found
 - `500`: Internal Server Error
 
-## Enhanced Validation Framework
+## Advanced Validation Framework
 
 The OME API includes a comprehensive validation framework that provides domain-aware validation with quality levels and comprehensive error reporting.
 

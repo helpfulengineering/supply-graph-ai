@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Any
 from uuid import UUID
 
 from ....models.okh import OKHManifest
+from ..base import BaseAPIRequest, LLMRequestMixin
 
 class OptimizationCriteria(BaseModel):
     """Model for optimization criteria"""
@@ -12,14 +13,35 @@ class OptimizationCriteria(BaseModel):
     # Optional fields after
     weights: Dict[str, float] = Field(default_factory=dict)
 
-class MatchRequest(BaseModel):
-    """Request model for matching requirements to capabilities"""
-    # Optional fields - either okh_id, okh_manifest, or okh_url must be provided
+class MatchRequest(BaseAPIRequest, LLMRequestMixin):
+    """Consolidated match request with standardized fields and LLM support"""
+    # Core matching fields - either okh_id, okh_manifest, or okh_url must be provided
     okh_id: Optional[UUID] = None
-    okh_manifest: Optional[OKHManifest] = None
+    okh_manifest: Optional[dict] = None  # Changed from OKHManifest to dict for API compatibility
     okh_url: Optional[str] = Field(None, description="URL to fetch OKH manifest from")
     
-    # Optional fields after
+    # Enhanced filtering options
+    access_type: Optional[str] = None
+    facility_status: Optional[str] = None
+    location: Optional[str] = None
+    capabilities: Optional[List[str]] = None
+    materials: Optional[List[str]] = None
+    
+    # Advanced filtering parameters
+    max_distance_km: Optional[float] = None  # Distance filter
+    deadline: Optional[str] = None           # Timeline filter (ISO datetime string)
+    max_cost: Optional[float] = None         # Budget filter
+    min_capacity: Optional[int] = None       # Capacity filter
+    location_coords: Optional[Dict[str, float]] = None  # {"lat": 0.0, "lng": 0.0}
+    
+    # Quality and validation options
+    min_confidence: Optional[float] = 0.7
+    max_results: Optional[int] = 10
+    
+    # Backward compatibility
+    include_workflows: Optional[bool] = False  # Feature flag for workflow inclusion
+    
+    # Legacy fields for backward compatibility
     optimization_criteria: Optional[Dict[str, float]] = Field(
         default_factory=dict,
         description="Optional weights for different optimization criteria"
@@ -32,6 +54,36 @@ class MatchRequest(BaseModel):
         None,
         description="Optional list of OKW facilities (as dicts) to use instead of loading from storage"
     )
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "okh_manifest": {
+                    "title": "Test OKH Manifest",
+                    "version": "1.0.0",
+                    "manufacturing_specs": {
+                        "process_requirements": [
+                            {"process_name": "PCB Assembly", "parameters": {}}
+                        ]
+                    }
+                },
+                "access_type": "public",
+                "facility_status": "active",
+                "min_confidence": 0.8,
+                "max_results": 5,
+                "max_distance_km": 50.0,
+                "deadline": "2024-12-31T23:59:59Z",
+                "max_cost": 10000.0,
+                "min_capacity": 100,
+                "location_coords": {"lat": 37.7749, "lng": -122.4194},
+                "include_workflows": False,
+                "use_llm": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "quality_level": "professional",
+                "strict_mode": False
+            }
+        }
 
     @model_validator(mode='after')
     def validate_okh_input(self):

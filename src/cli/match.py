@@ -155,6 +155,11 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
             manifest = OKHManifest.from_dict(okh_data)
             matching_service = await MatchingService.get_instance()
             
+            # Get facilities for matching
+            from ..core.services.okw_service import OKWService
+            okw_service = await OKWService.get_instance()
+            facilities, _ = await okw_service.list()
+            
             # Create match request
             from ..core.api.models.match.request import MatchRequest
             match_request = MatchRequest(
@@ -162,8 +167,13 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
                 filters=filters
             )
             
-            result = await matching_service.find_matches_with_manifest(manifest)
-            return result.to_dict()
+            results = await matching_service.find_matches_with_manifest(manifest, facilities)
+            # Convert Set to List and return first result for CLI compatibility
+            results_list = list(results)
+            if results_list:
+                return results_list[0].to_dict()
+            else:
+                return {"message": "No matching facilities found"}
         
         # Execute matching with fallback
         command = SmartCommand(cli_ctx)
