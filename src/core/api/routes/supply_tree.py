@@ -3,7 +3,6 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
-# Import new standardized components
 from ..models.base import (
     BaseAPIRequest, 
     SuccessResponse, 
@@ -22,8 +21,6 @@ from ..decorators import (
     paginated_response
 )
 from ..error_handlers import create_error_response, create_success_response
-
-# Import existing models (now properly used through inheritance)
 from ..models.supply_tree.request import (
     SupplyTreeCreateRequest,
     SupplyTreeValidateRequest
@@ -33,6 +30,12 @@ from ..models.supply_tree.response import (
     ValidationResult
 )
 from ...utils.logging import get_logger
+from ...services.storage_service import StorageService
+from ...services.okh_service import OKHService
+from ...services.okw_service import OKWService
+from ...models.supply_trees import SupplyTree
+from ...models.okh import OKHManifest
+from ...models.okw import ManufacturingFacility
 
 logger = get_logger(__name__)
 
@@ -48,85 +51,11 @@ router = APIRouter(
     }
 )
 
-# Enhanced request models that inherit from original models
-class EnhancedSupplyTreeCreateRequest(SupplyTreeCreateRequest, BaseAPIRequest, LLMRequestMixin):
-    """Enhanced supply tree creation request with standardized fields and LLM support."""
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "workflows": {
-                    "pcb_assembly": {
-                        "name": "PCB Assembly Workflow",
-                        "nodes": {
-                            "component_placement": {
-                                "name": "Component Placement",
-                                "okh_refs": ["electronics-manufacturing"],
-                                "input_requirements": {"components": "list"},
-                                "output_specifications": {"placed_components": "boolean"}
-                            }
-                        }
-                    }
-                },
-                "connections": [],
-                "okh_reference": "electronics-manufacturing",
-                "required_quantity": 100,
-                "deadline": "2024-12-31T23:59:59Z",
-                "metadata": {"project": "IoT Sensor Node"},
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-
-class EnhancedSupplyTreeResponse(SupplyTreeResponse, SuccessResponse, LLMResponseMixin):
-    """Enhanced supply tree response with standardized fields and LLM information."""
-    
-    # Additional fields for enhanced response
-    processing_time: float = 0.0
-    validation_results: Optional[List[BaseValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "00000000-0000-0000-0000-000000000000",
-                "workflows": {
-                    "pcb_assembly": {
-                        "id": "11111111-1111-1111-1111-111111111111",
-                        "name": "PCB Assembly Workflow",
-                        "nodes": {},
-                        "edges": [],
-                        "entry_points": ["start"],
-                        "exit_points": ["end"]
-                    }
-                },
-                "creation_time": "2024-01-01T12:00:00Z",
-                "confidence": 0.8,
-                "required_quantity": 100,
-                "connections": [],
-                "snapshots": {},
-                "okh_reference": "electronics-manufacturing",
-                "deadline": "2024-12-31T23:59:59Z",
-                "metadata": {"project": "IoT Sensor Node"},
-                "status": "success",
-                "message": "Supply tree operation completed successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "processing_time": 2.5,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.025,
-                "data": {},
-                "validation_results": []
-            }
-        }
+# Note: Enhanced models have been consolidated into the base models in request.py and response.py
 
 @router.post(
     "/create", 
-    response_model=EnhancedSupplyTreeResponse, 
+    response_model=SupplyTreeResponse, 
     status_code=status.HTTP_201_CREATED,
     summary="Create Supply Tree",
     description="""
@@ -151,7 +80,7 @@ class EnhancedSupplyTreeResponse(SupplyTreeResponse, SuccessResponse, LLMRespons
     include_metrics=True,
     track_llm=True
 )
-@validate_request(EnhancedSupplyTreeCreateRequest)
+@validate_request(SupplyTreeCreateRequest)
 @track_performance("supply_tree_create")
 @llm_endpoint(
     default_provider="anthropic",
@@ -159,8 +88,11 @@ class EnhancedSupplyTreeResponse(SupplyTreeResponse, SuccessResponse, LLMRespons
     track_costs=True
 )
 async def create_supply_tree(
-    request: EnhancedSupplyTreeCreateRequest,
-    http_request: Request
+    request: SupplyTreeCreateRequest,
+    http_request: Request,
+    storage_service: StorageService = Depends(),
+    okh_service: OKHService = Depends(),
+    okw_service: OKWService = Depends()
 ):
     """
     Enhanced supply tree creation with standardized patterns.
@@ -176,35 +108,72 @@ async def create_supply_tree(
     start_time = datetime.utcnow()
     
     try:
-        # Create supply tree (placeholder implementation)
-        supply_tree_id = UUID("00000000-0000-0000-0000-000000000000")
+        # Get the facility and OKH manifest for creating the supply tree
+        facility = await okw_service.get(request.facility_id)
+        if not facility:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Facility with ID {request.facility_id} not found"
+            )
+        
+        # Try to get OKH manifest if okh_reference is a UUID, otherwise use as reference
+        okh_manifest = None
+        try:
+            okh_manifest = await okh_service.get(UUID(request.okh_reference))
+        except (ValueError, TypeError):
+            # If okh_reference is not a valid UUID, treat it as a reference string
+            pass
+        
+        # Create the supply tree using the factory method
+        supply_tree = SupplyTree.from_facility_and_manifest(
+            facility=facility,
+            manifest=okh_manifest,
+            confidence_score=request.confidence_score,
+            match_type=request.match_type,
+            estimated_cost=request.estimated_cost,
+            estimated_time=request.estimated_time
+        )
+        
+        # Override with request-specific data
+        supply_tree.materials_required = request.materials_required
+        supply_tree.capabilities_used = request.capabilities_used
+        supply_tree.metadata.update(request.metadata)
+        
+        # Save the supply tree to storage
+        if storage_service:
+            await storage_service.save_supply_tree(supply_tree)
         
         # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
-        # Create enhanced response using the proper SupplyTreeResponse structure
+        # Create response data using the consolidated model structure
         response_data = {
-            "id": supply_tree_id,
-            "workflows": request.workflows,
-            "creation_time": "2023-01-01T00:00:00Z",
-            "confidence": 0.8,
-            "required_quantity": request.required_quantity,
-            "connections": request.connections,
-            "snapshots": {},
-            "okh_reference": request.okh_reference,
-            "deadline": request.deadline,
-            "metadata": request.metadata,
+            "id": supply_tree.id,
+            "facility_id": supply_tree.facility_id,
+            "facility_name": supply_tree.facility_name,
+            "okh_reference": supply_tree.okh_reference,
+            "confidence_score": supply_tree.confidence_score,
+            "creation_time": supply_tree.creation_time.isoformat(),
+            "estimated_cost": supply_tree.estimated_cost,
+            "estimated_time": supply_tree.estimated_time,
+            "materials_required": supply_tree.materials_required,
+            "capabilities_used": supply_tree.capabilities_used,
+            "match_type": supply_tree.match_type,
+            "metadata": supply_tree.metadata,
             "processing_time": processing_time,
-            "validation_results": await _validate_supply_tree_result({"id": str(supply_tree_id), "workflows": request.workflows}, request_id)
+            "validation_results": await _validate_supply_tree_result(supply_tree.to_dict(), request_id)
         }
         
         logger.info(
             f"Supply tree created successfully",
             extra={
                 "request_id": request_id,
-                "supply_tree_id": str(supply_tree_id),
+                "supply_tree_id": str(supply_tree.id),
+                "facility_id": str(supply_tree.facility_id),
+                "okh_reference": supply_tree.okh_reference,
+                "confidence_score": supply_tree.confidence_score,
                 "processing_time": processing_time,
-                "llm_used": request.use_llm
+                "llm_used": getattr(request, 'use_llm', False)
             }
         )
         
@@ -234,7 +203,7 @@ async def create_supply_tree(
 
 @router.get(
     "/{id}", 
-    response_model=EnhancedSupplyTreeResponse,
+    response_model=SupplyTreeResponse,
     summary="Get Supply Tree",
     description="Get a specific supply tree by ID with enhanced capabilities."
 )
@@ -368,7 +337,7 @@ async def list_supply_trees(
 
 @router.put(
     "/{id}", 
-    response_model=EnhancedSupplyTreeResponse,
+    response_model=SupplyTreeResponse,
     summary="Update Supply Tree",
     description="Update an existing supply tree with enhanced capabilities."
 )
@@ -379,7 +348,7 @@ async def list_supply_trees(
 @track_performance("supply_tree_update")
 async def update_supply_tree(
     id: UUID = Path(..., title="The ID of the supply tree"),
-    request: EnhancedSupplyTreeCreateRequest = None,
+    request: SupplyTreeCreateRequest = None,
     http_request: Request = None
 ):
     """Enhanced supply tree update with standardized patterns."""
@@ -553,11 +522,19 @@ async def _validate_supply_tree_result(
             if not result.get("id"):
                 warnings.append("Missing supply tree ID in result")
             
-            if not result.get("name"):
-                warnings.append("Missing supply tree name in result")
+            if not result.get("facility_id"):
+                warnings.append("Missing facility ID in result")
             
-            if not result.get("workflows"):
-                warnings.append("Missing workflows in result")
+            if not result.get("facility_name"):
+                warnings.append("Missing facility name in result")
+            
+            if not result.get("okh_reference"):
+                warnings.append("Missing OKH reference in result")
+            
+            if result.get("confidence_score") is None:
+                warnings.append("Missing confidence score in result")
+            elif not isinstance(result.get("confidence_score"), (int, float)):
+                warnings.append("Invalid confidence score type in result")
         
         # Generate suggestions
         if not is_valid:

@@ -7,12 +7,9 @@ from pydantic import Field
 
 # Import new standardized components
 from ..models.base import (
-    BaseAPIRequest, 
     SuccessResponse, 
     PaginationParams,
     PaginatedResponse,
-    LLMRequestMixin,
-    LLMResponseMixin,
     ValidationResult
 )
 from ..decorators import (
@@ -33,6 +30,10 @@ from ...packaging.remote_storage import PackageRemoteStorage
 from src.config import settings
 from ...utils.logging import get_logger
 
+# Import consolidated package models
+from ..models.package.request import PackageBuildRequest, PackagePushRequest, PackagePullRequest
+from ..models.package.response import PackageResponse, PackageMetadataResponse, PackageListResponse, PackageVerificationResponse, PackagePushResponse, PackagePullResponse
+
 logger = get_logger(__name__)
 
 # Create router with standardized patterns
@@ -47,69 +48,6 @@ router = APIRouter(
     }
 )
 
-# Enhanced request models
-class EnhancedPackageBuildRequest(BaseAPIRequest, LLMRequestMixin):
-    """Enhanced package build request with standardized fields and LLM support."""
-    
-    # Core package fields
-    manifest_data: Dict[str, Any] = Field(..., min_items=1, description="OKH manifest data")
-    options: Optional[BuildOptions] = Field(None, description="Build options")
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "manifest_data": {
-                    "title": "Test Package",
-                    "version": "1.0.0",
-                    "manufacturing_specs": {
-                        "process_requirements": [
-                            {"process_name": "3D Printing", "parameters": {}}
-                        ]
-                    }
-                },
-                "options": {
-                    "include_dependencies": True,
-                    "compress_output": True
-                },
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-
-class EnhancedPackageResponse(SuccessResponse, LLMResponseMixin):
-    """Enhanced package response with standardized fields and LLM information."""
-    
-    # Core response data
-    package: Optional[dict] = None
-    processing_time: float = 0.0
-    
-    # Enhanced metadata
-    validation_results: Optional[List[ValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "status": "success",
-                "message": "Package operation completed successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "package": {
-                    "name": "test-package",
-                    "version": "1.0.0",
-                    "status": "built"
-                },
-                "processing_time": 2.5,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.025,
-                "data": {},
-                "metadata": {}
-            }
-        }
 
 
 # Service dependencies
@@ -133,7 +71,7 @@ async def get_remote_storage() -> PackageRemoteStorage:
 
 @router.post(
     "/build", 
-    response_model=EnhancedPackageResponse, 
+    response_model=PackageResponse, 
     status_code=status.HTTP_201_CREATED,
     summary="Build Package from Manifest",
     description="""
@@ -158,7 +96,7 @@ async def get_remote_storage() -> PackageRemoteStorage:
     include_metrics=True,
     track_llm=True
 )
-@validate_request(EnhancedPackageBuildRequest)
+@validate_request(PackageBuildRequest)
 @track_performance("package_build")
 @llm_endpoint(
     default_provider="anthropic",
@@ -166,7 +104,7 @@ async def get_remote_storage() -> PackageRemoteStorage:
     track_costs=True
 )
 async def build_package_from_manifest(
-    request: EnhancedPackageBuildRequest,
+    request: PackageBuildRequest,
     http_request: Request,
     package_service: PackageService = Depends(get_package_service)
 ):
@@ -189,7 +127,10 @@ async def build_package_from_manifest(
         manifest = OKHManifest.from_dict(request.manifest_data)
         
         # Use default options if none provided
-        options = request.options or BuildOptions()
+        if request.options:
+            options = BuildOptions(**request.options)
+        else:
+            options = BuildOptions()
         
         # Build package
         metadata = await package_service.build_package_from_manifest(manifest, options)
@@ -578,26 +519,23 @@ async def download_package(
         )
 
 
-@router.post("/push", response_model=Dict[str, Any])
+@router.post("/push", response_model=PackagePushResponse)
 async def push_package(
-    request_data: Dict[str, str],
+    request: PackagePushRequest,
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage)
 ):
     """
     Push a local package to remote storage
     
     Args:
-        request_data: JSON data containing package_name and version
+        request: Package push request containing package_name and version
         
     Returns:
         Push result
     """
     try:
-        package_name = request_data.get("package_name")
-        version = request_data.get("version")
-        
-        if not package_name or not version:
-            raise HTTPException(status_code=400, detail="package_name and version are required")
+        package_name = request.package_name
+        version = request.version
         
         # Get package metadata first
         package_service = await get_package_service()
@@ -611,10 +549,10 @@ async def push_package(
         local_package_path = Path(metadata.package_path)
         result = await remote_storage.push_package(metadata, local_package_path)
         
-        return create_success_response(
+        return PackagePushResponse(
+            success=True,
             message=f"Package {package_name}:{version} pushed successfully",
-            data={"remote_path": result.get("remote_path", "unknown")},
-            request_id=None
+            remote_path=result.get("remote_path", "unknown")
         )
         
     except ValueError as e:
@@ -644,27 +582,24 @@ async def push_package(
         )
 
 
-@router.post("/pull", response_model=Dict[str, Any])
+@router.post("/pull", response_model=PackagePullResponse)
 async def pull_package(
-    request_data: Dict[str, Any],
+    request: PackagePullRequest,
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage)
 ):
     """
     Pull a remote package to local storage
     
     Args:
-        request_data: JSON data containing package_name, version, and optional output_dir
+        request: Package pull request containing package_name, version, and optional output_dir
         
     Returns:
         Pull result
     """
     try:
-        package_name = request_data.get("package_name")
-        version = request_data.get("version")
-        output_dir = request_data.get("output_dir")
-        
-        if not package_name or not version:
-            raise HTTPException(status_code=400, detail="package_name and version are required")
+        package_name = request.package_name
+        version = request.version
+        output_dir = request.output_dir
         
         # Determine output directory
         if output_dir:
@@ -679,10 +614,19 @@ async def pull_package(
         # Pull package
         metadata = await remote_storage.pull_package(package_name, version, output_path)
         
-        return create_success_response(
+        return PackagePullResponse(
+            success=True,
             message=f"Package {package_name}:{version} pulled successfully",
-            data={"metadata": metadata.to_dict()},
-            request_id=None
+            local_path=str(output_path),
+            metadata=PackageMetadataResponse(
+                name=metadata.name,
+                version=metadata.version,
+                package_path=metadata.package_path,
+                created_at=getattr(metadata, 'created_at', None),
+                size=getattr(metadata, 'size', None),
+                checksum=getattr(metadata, 'checksum', None),
+                metadata=getattr(metadata, 'metadata', {})
+            )
         )
         
     except ValueError as e:

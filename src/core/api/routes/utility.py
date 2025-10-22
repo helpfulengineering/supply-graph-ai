@@ -4,10 +4,6 @@ from datetime import datetime
 
 # Import new standardized components
 from ..models.base import (
-    BaseAPIRequest, 
-    SuccessResponse, 
-    LLMRequestMixin,
-    LLMResponseMixin,
     ValidationResult
 )
 from ..decorators import (
@@ -17,7 +13,7 @@ from ..decorators import (
 )
 from ..error_handlers import create_error_response, create_success_response
 
-# Import existing models and services (now properly used through inheritance)
+# Import consolidated utility models
 from ..models.utility.request import (
     DomainFilterRequest,
     ContextFilterRequest
@@ -45,104 +41,10 @@ router = APIRouter(
     }
 )
 
-# Enhanced request models that inherit from original models
-class EnhancedDomainFilterRequest(DomainFilterRequest, BaseAPIRequest, LLMRequestMixin):
-    """Enhanced domain filter request with standardized fields and LLM support."""
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "manufacturing",
-                "active_only": True,
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-class EnhancedContextFilterRequest(ContextFilterRequest, BaseAPIRequest, LLMRequestMixin):
-    """Enhanced context filter request with standardized fields and LLM support."""
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "name": "professional",
-                "include_deprecated": False,
-                "with_details": True,
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-# Enhanced response models that inherit from original models
-class EnhancedDomainsResponse(DomainsResponse, SuccessResponse, LLMResponseMixin):
-    """Enhanced domains response with standardized fields and LLM information."""
-    
-    # Additional fields for enhanced response
-    processing_time: float = 0.0
-    validation_results: Optional[List[ValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "domains": [
-                    {
-                        "id": "manufacturing",
-                        "name": "Manufacturing Domain",
-                        "description": "Hardware manufacturing capabilities"
-                    }
-                ],
-                "status": "success",
-                "message": "Domains retrieved successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "processing_time": 0.1,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.001,
-                "data": {},
-                "validation_results": []
-            }
-        }
-
-class EnhancedContextsResponse(ContextsResponse, SuccessResponse, LLMResponseMixin):
-    """Enhanced contexts response with standardized fields and LLM information."""
-    
-    # Additional fields for enhanced response
-    processing_time: float = 0.0
-    validation_results: Optional[List[ValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "contexts": [
-                    {
-                        "id": "professional",
-                        "name": "Professional Manufacturing",
-                        "description": "Commercial-grade production"
-                    }
-                ],
-                "status": "success",
-                "message": "Contexts retrieved successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "processing_time": 0.1,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.001,
-                "data": {},
-                "validation_results": []
-            }
-        }
 
 @router.get(
     "/domains", 
-    response_model=EnhancedDomainsResponse,
+    response_model=DomainsResponse,
     summary="List Available Domains",
     description="""
     Get a list of available domains with enhanced capabilities.
@@ -166,12 +68,12 @@ class EnhancedContextsResponse(ContextsResponse, SuccessResponse, LLMResponseMix
     track_costs=True
 )
 async def get_domains(
-    filter_params: EnhancedDomainFilterRequest = Depends(),
+    filter_params: DomainFilterRequest = Depends(),
     http_request: Request = None
 ):
     """Enhanced domain listing with standardized patterns."""
     request_id = getattr(http_request.state, 'request_id', None) if http_request else None
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # Placeholder implementation
@@ -193,7 +95,7 @@ async def get_domains(
             domains = [d for d in domains if filter_params.name.lower() in d.name.lower()]
         
         # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Create enhanced response using the proper DomainsResponse structure
         response_data = {
@@ -212,10 +114,10 @@ async def get_domains(
             }
         )
         
-        return create_success_response(
-            message="Domains retrieved successfully",
-            data=response_data,
-            request_id=request_id
+        return DomainsResponse(
+            domains=domains,
+            processing_time=processing_time,
+            validation_results=await _validate_utility_result(domains, request_id)
         )
         
     except Exception as e:
@@ -242,7 +144,7 @@ async def get_domains(
 
 @router.get(
     "/contexts/{domain}", 
-    response_model=EnhancedContextsResponse,
+    response_model=ContextsResponse,
     summary="List Validation Contexts",
     description="""
     Get validation contexts for a specific domain with enhanced capabilities.
@@ -267,12 +169,12 @@ async def get_domains(
 )
 async def get_contexts(
     domain: str = Path(..., title="The domain to get contexts for"),
-    filter_params: EnhancedContextFilterRequest = Depends(),
+    filter_params: ContextFilterRequest = Depends(),
     http_request: Request = None
 ):
     """Enhanced context listing with standardized patterns."""
     request_id = getattr(http_request.state, 'request_id', None) if http_request else None
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # Placeholder implementation
@@ -310,7 +212,7 @@ async def get_contexts(
             contexts = [c for c in contexts if filter_params.name.lower() in c.name.lower()]
         
         # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Create enhanced response using the proper ContextsResponse structure
         response_data = {
@@ -330,10 +232,10 @@ async def get_contexts(
             }
         )
         
-        return create_success_response(
-            message="Contexts retrieved successfully",
-            data=response_data,
-            request_id=request_id
+        return ContextsResponse(
+            contexts=contexts,
+            processing_time=processing_time,
+            validation_results=await _validate_utility_result(contexts, request_id)
         )
         
     except Exception as e:

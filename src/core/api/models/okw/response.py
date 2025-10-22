@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
+from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
+
 class ValidationIssue(BaseModel):
     """Model for validation issues"""
     # Required fields first
@@ -20,8 +22,8 @@ class Capability(BaseModel):
     parameters: Dict[str, Any] = {}
     limitations: Dict[str, Any] = {}
 
-class OKWResponse(BaseModel):
-    """Response model for OKW facilities"""
+class OKWResponse(SuccessResponse, LLMResponseMixin):
+    """Response model for OKW facilities with standardized fields and LLM information"""
     # Required fields first
     id: UUID
     name: str
@@ -45,6 +47,31 @@ class OKWResponse(BaseModel):
     typical_materials: List[Dict[str, Any]] = []
     certifications: List[str] = []
     metadata: Dict[str, Any] = {}
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[BaseValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "OKW operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "facility": {
+                    "id": "facility_123",
+                    "name": "TechFab Manufacturing Hub",
+                    "facility_status": "active"
+                },
+                "processing_time": 1.25,
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.012,
+                "data": {},
+                "metadata": {}
+            }
+        }
 
 class OKWValidationResponse(BaseModel):
     """Response model for OKW validation"""
@@ -77,9 +104,3 @@ class OKWUploadResponse(BaseModel):
     
     # Optional fields after
     validation_issues: Optional[List[ValidationIssue]] = None
-
-class SuccessResponse(BaseModel):
-    """Response model for successful operations"""
-    # Required fields only
-    success: bool
-    message: str

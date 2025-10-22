@@ -1,6 +1,5 @@
-from typing import Dict, List, Optional, Any
-from uuid import UUID, uuid4
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Set
+from uuid import UUID
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
@@ -13,7 +12,6 @@ from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..matching.capability_rules import CapabilityRuleManager, CapabilityMatcher
 from ..matching.nlp_matcher import NLPMatcher
-from ..models.supply_trees import Workflow, WorkflowNode, ResourceURI, ResourceType
 
 logger = get_logger(__name__)
 
@@ -38,8 +36,6 @@ class MatchingService:
         self.okh_service: Optional[OKHService] = None
         self.okw_service: Optional[OKWService] = None
     
-    # Heuristic rules are now managed by the HeuristicRuleManager
-    # and loaded from domain-specific configuration files
     
     @classmethod
     async def get_instance(
@@ -70,14 +66,24 @@ class MatchingService:
         await self.capability_rule_manager.initialize()
         self.capability_matcher = CapabilityMatcher(self.capability_rule_manager)
         
+        # Pre-initialize NLP matchers to avoid lazy loading delays during matching
+        logger.info("Pre-initializing NLP matchers...")
+        for domain, nlp_matcher in self.nlp_matchers.items():
+            try:
+                # Force initialization of spaCy models
+                nlp_matcher._ensure_nlp_initialized()
+                logger.info(f"NLP matcher for domain '{domain}' initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize NLP matcher for domain '{domain}': {e}")
+        
         self._initialized = True
-        logger.info("MatchingService initialized with Direct Matching and Capability-Centric Heuristic Matching")
+        logger.info("MatchingService initialized with Direct Matching, Capability-Centric Heuristic Matching, and NLP Matching")
     
     async def find_matches(
         self,
         okh_id: UUID,
         optimization_criteria: Optional[Dict[str, float]] = None
-    ) -> List[SupplyTreeSolution]:
+    ) -> Set[SupplyTreeSolution]:
         """Find matching facilities for an OKH manifest by ID (loads manifest and facilities, then delegates)."""
         await self.ensure_initialized()
         logger.info(
@@ -117,7 +123,7 @@ class MatchingService:
         okh_manifest: OKHManifest,
         facilities: List[ManufacturingFacility],
         optimization_criteria: Optional[Dict[str, float]] = None
-    ) -> List[SupplyTreeSolution]:
+    ) -> Set[SupplyTreeSolution]:
         """Find matching facilities for an in-memory OKH manifest and provided facilities."""
         await self.ensure_initialized()
 
@@ -151,7 +157,7 @@ class MatchingService:
                 }
             )
 
-            solutions = []
+            solutions = set()
             
             for facility in facilities:
                 logger.debug(
@@ -166,28 +172,24 @@ class MatchingService:
                 extraction_result = extractor.extract_capabilities(facility_data)
                 capabilities = extraction_result.data.content.get('capabilities', []) if extraction_result.data else []
                 
-                if await self._can_satisfy_requirements(requirements, capabilities):
+                if await self._can_satisfy_requirements(requirements, capabilities, domain):
                     tree = await self._generate_supply_tree(okh_manifest, facility, domain)
-                    score = self._calculate_confidence_score(
-                        requirements,
-                        capabilities,
-                        optimization_criteria
-                    )
+                    # Use the same confidence score from the tree to avoid duplication
                     solution = SupplyTreeSolution(
                         tree=tree,
-                        score=score,
+                        score=tree.confidence_score,  # Use tree's confidence score
                         metrics={
                             "facility_count": 1,
                             "requirement_count": len(requirements),
                             "capability_count": len(capabilities)
                         }
                     )
-                    solutions.append(solution)
+                    solutions.add(solution)
                     logger.info(
                         "Found matching facility",
                         extra={
                             "facility_id": str(facility.id),
-                            "confidence_score": score
+                            "confidence_score": tree.confidence_score
                         }
                     )
             logger.info(
@@ -211,7 +213,8 @@ class MatchingService:
     async def _can_satisfy_requirements(
         self,
         requirements: List[Dict[str, Any]],
-        capabilities: List[Dict[str, Any]]
+        capabilities: List[Dict[str, Any]],
+        domain: str = "manufacturing"
     ) -> bool:
         """Check if capabilities can satisfy requirements using multi-layered matching"""
         try:
@@ -225,27 +228,20 @@ class MatchingService:
                     if not cap_process:
                         continue
                     
-                    # Normalize process names for better matching
-                    # This handles Wikipedia URLs and other format differences
-                    req_normalized = self._normalize_process_name(req_process)
-                    cap_normalized = self._normalize_process_name(cap_process)
-                    
-                    # Layer 1: Direct Matching (using new Direct Matching layer)
-                    if await self._direct_match(req_normalized, cap_normalized, domain="manufacturing"):
+                    # Try Layer 1: Direct Matching first
+                    if await self._direct_match(req_process, cap_process, domain):
                         logger.debug(
                             "Direct match found",
                             extra={
                                 "requirement": req.get("process_name"),
                                 "capability": cap.get("process_name"),
-                                "requirement_normalized": req_normalized,
-                                "capability_normalized": cap_normalized,
                                 "layer": "direct"
                             }
                         )
                         return True
                     
-                    # Layer 2: Heuristic Matching (using new HeuristicRuleManager)
-                    if await self._heuristic_match(req_normalized, cap_normalized, domain="manufacturing"):
+                    # Try Layer 2: Heuristic Matching
+                    if await self._heuristic_match(req_process, cap_process, domain):
                         logger.debug(
                             "Heuristic match found",
                             extra={
@@ -256,8 +252,8 @@ class MatchingService:
                         )
                         return True
                     
-                    # Layer 3: NLP Matching (using semantic similarity)
-                    if await self._nlp_match(req_normalized, cap_normalized, domain="manufacturing"):
+                    # Try Layer 3: NLP Matching
+                    if await self._nlp_match(req_process, cap_process, domain):
                         logger.debug(
                             "NLP match found",
                             extra={
@@ -276,6 +272,7 @@ class MatchingService:
                 extra={
                     "requirement_count": len(requirements),
                     "capability_count": len(capabilities),
+                    "domain": domain,
                     "error": str(e)
                 },
                 exc_info=True
@@ -283,39 +280,67 @@ class MatchingService:
             raise
     
     async def _direct_match(self, req_process: str, cap_process: str, domain: str = "manufacturing") -> bool:
-        """Layer 1: Direct Matching - Using the new Direct Matching layer with metadata tracking"""
+        """Layer 1: Direct Matching - Exact and near-exact string matching with normalization"""
         try:
-            # Get the appropriate direct matcher for the domain
-            direct_matcher = self.direct_matchers.get(domain)
-            if not direct_matcher:
-                logger.warning(f"No direct matcher available for domain: {domain}, falling back to simple matching")
-                return req_process.lower() == cap_process.lower()
+            # Normalize both process names for better matching
+            req_normalized = self._normalize_process_name(req_process)
+            cap_normalized = self._normalize_process_name(cap_process)
             
-            # Use the domain-specific matcher's process matching method
-            # The domain matchers have specific methods for different types of matching
-            if hasattr(direct_matcher, 'match_processes'):
-                # Use the process matching method (now async)
-                import asyncio
-                results = await direct_matcher.match_processes([req_process], [cap_process])
-                
-                # Check if we have any matches
-                for result in results:
-                    if result.matched and result.confidence >= 0.8:  # Use 0.8 as threshold for "match"
-                        logger.debug(
-                            "Direct match found using Direct Matching layer",
-                            extra={
-                                "requirement": req_process,
-                                "capability": cap_process,
-                                "confidence": result.confidence,
-                                "quality": result.metadata.quality,
-                                "method": result.metadata.method
-                            }
-                        )
-                        return True
-            else:
-                # Fallback to simple string matching if no process matcher available
-                logger.warning(f"Domain matcher {domain} does not have match_processes method, using simple matching")
-                return req_process.lower() == cap_process.lower()
+            # Check for exact match after normalization
+            if req_normalized == cap_normalized:
+                logger.debug(
+                    "Direct exact match found",
+                    extra={
+                        "requirement": req_process,
+                        "capability": cap_process,
+                        "requirement_normalized": req_normalized,
+                        "capability_normalized": cap_normalized,
+                        "layer": "direct"
+                    }
+                )
+                return True
+            
+            # Check for case-insensitive exact match
+            if req_process.lower().strip() == cap_process.lower().strip():
+                logger.debug(
+                    "Direct case-insensitive match found",
+                    extra={
+                        "requirement": req_process,
+                        "capability": cap_process,
+                        "layer": "direct"
+                    }
+                )
+                return True
+            
+            # Check for substring matches (one contains the other)
+            if req_normalized in cap_normalized or cap_normalized in req_normalized:
+                logger.debug(
+                    "Direct substring match found",
+                    extra={
+                        "requirement": req_process,
+                        "capability": cap_process,
+                        "requirement_normalized": req_normalized,
+                        "capability_normalized": cap_normalized,
+                        "layer": "direct"
+                    }
+                )
+                return True
+            
+            # Check for high similarity matches (threshold 0.3 for direct matching)
+            similarity = self._calculate_process_similarity(req_process, cap_process)
+            if similarity >= 0.3:
+                logger.debug(
+                    "Direct similarity match found",
+                    extra={
+                        "requirement": req_process,
+                        "capability": cap_process,
+                        "requirement_normalized": req_normalized,
+                        "capability_normalized": cap_normalized,
+                        "similarity": similarity,
+                        "layer": "direct"
+                    }
+                )
+                return True
             
             return False
             
@@ -376,8 +401,16 @@ class MatchingService:
             
             nlp_matcher = self.nlp_matchers[domain]
             
-            # Use the NLP matcher to find semantic matches
-            results = await nlp_matcher.match([req_process], [cap_process])
+            # Add timeout to prevent slow NLP operations from blocking the API
+            import asyncio
+            try:
+                results = await asyncio.wait_for(
+                    nlp_matcher.match([req_process], [cap_process]),
+                    timeout=0.5  # 500ms timeout
+                )
+            except asyncio.TimeoutError:
+                logger.warning(f"NLP matching timed out for '{req_process}' vs '{cap_process}'")
+                return False
             
             # Check if we have any matches
             for result in results:
@@ -406,194 +439,89 @@ class MatchingService:
         facility: ManufacturingFacility,
         domain: str = "manufacturing"
     ) -> SupplyTree:
-        """Generate a supply tree for a manifest and facility using enhanced matching layers"""
+        """Generate a simplified supply tree for a manifest and facility"""
         try:
-            # Create a supply tree with proper metadata
-            supply_tree = SupplyTree()
-            
-            # Set comprehensive metadata with fallback for empty facility names
-            facility_name = facility.name or f"Facility {str(facility.id)[:8]}"
-            supply_tree.metadata = {
-                "name": f"{manifest.title} - {facility_name}",
-                "description": f"Manufacturing solution for {manifest.title} at {facility_name}",
-                "okh_id": str(manifest.id),
-                "facility_id": str(facility.id),
-                "okh_title": manifest.title,
-                "facility_name": facility_name,
-                "generation_method": "enhanced_multi_layered_matching",
-                "matching_layers_used": ["direct", "heuristic"],
-                "domain": domain,
-                "created_at": datetime.now().isoformat()
-            }
-            
-            # Set OKH reference
-            supply_tree.okh_reference = str(manifest.id)
-            # Lazy import NetworkX
-            import networkx as nx
-            
-            primary_workflow = Workflow(
-                name=f"Manufacturing Workflow for {manifest.title}",
-                graph=nx.DiGraph(),
-                entry_points=set(),
-                exit_points=set()
-            )
-            
-            # Extract process requirements from the manifest
+            # Calculate overall confidence based on process matching
             process_requirements = manifest.manufacturing_processes or []
+            total_confidence = 0.0
+            match_count = 0
+            best_overall_match_type = "unknown"
             
-            # Create nodes for each manufacturing process using enhanced matching
-            previous_node_id = None
-            matching_results = []
-            
-            for i, process_name in enumerate(process_requirements):
-                # Find matching capabilities in the facility using our enhanced matching layers
+            # Check if facility can handle the processes using multi-layer matching
+            for process_name in process_requirements:
                 facility_capabilities = []
                 for equipment in facility.equipment:
                     if hasattr(equipment, 'manufacturing_process'):
-                        facility_capabilities.extend(equipment.manufacturing_process)
+                        if isinstance(equipment.manufacturing_process, str):
+                            facility_capabilities.append(equipment.manufacturing_process)
+                        elif isinstance(equipment.manufacturing_process, list):
+                            facility_capabilities.extend(equipment.manufacturing_process)
                     if hasattr(equipment, 'manufacturing_processes'):
-                        facility_capabilities.extend(equipment.manufacturing_processes)
+                        if isinstance(equipment.manufacturing_processes, list):
+                            facility_capabilities.extend(equipment.manufacturing_processes)
                 
-                # Use our enhanced matching layers to find the best match
-                best_match_confidence = 0.0
-                best_match_method = "no_match"
-                best_match_capability = None
-                matching_details = {}
+                # Use multi-layer matching for confidence calculation
+                best_confidence = 0.0
+                best_match_type = "unknown"
                 
                 for capability in facility_capabilities:
-                    # Layer 1: Direct Matching
-                    if self._direct_match(process_name, capability, domain):
-                        direct_matcher = self.direct_matchers.get(domain)
-                        if direct_matcher:
-                            direct_results = direct_matcher.match(process_name, [capability], near_miss_threshold=2)
-                            for result in direct_results:
-                                if result.matched and result.confidence > best_match_confidence:
-                                    best_match_confidence = result.confidence
-                                    best_match_method = f"direct_{result.metadata.method}"
-                                    best_match_capability = capability
-                                    matching_details = {
-                                        "quality": result.metadata.quality,
-                                        "character_difference": result.metadata.character_difference,
-                                        "case_difference": result.metadata.case_difference,
-                                        "whitespace_difference": result.metadata.whitespace_difference
-                                    }
+                    # Try each layer and get the best confidence
+                    if await self._direct_match(process_name, capability, domain):
+                        confidence = 1.0
+                        match_type = "direct"
+                    elif await self._heuristic_match(process_name, capability, domain):
+                        confidence = 0.8
+                        match_type = "heuristic"
+                    elif await self._nlp_match(process_name, capability, domain):
+                        confidence = 0.7
+                        match_type = "nlp"
+                    else:
+                        # Fallback to similarity-based scoring
+                        similarity = self._calculate_process_similarity(process_name, capability)
+                        if similarity >= 0.3:
+                            confidence = similarity * 0.6  # Partial credit
+                            match_type = "partial"
+                        else:
+                            confidence = 0.0
+                            match_type = "no_match"
                     
-                    # Layer 2: Heuristic Matching (only if direct matching didn't find a good match)
-                    if best_match_confidence < 0.8 and await self._heuristic_match(process_name, capability, domain):
-                        if self.capability_matcher:
-                            heuristic_results = await self.capability_matcher.match_requirements_to_capabilities(
-                                requirements=[{"process_name": process_name}],
-                                capabilities=[{"process_name": capability}],
-                                domain=domain,
-                                requirement_field="process_name",
-                                capability_field="process_name"
-                            )
-                            for result in heuristic_results:
-                                if result.matched and result.confidence > best_match_confidence:
-                                    best_match_confidence = result.confidence
-                                    best_match_method = f"heuristic_{result.rule_used.id if result.rule_used else 'rule'}"
-                                    best_match_capability = capability
-                                    matching_details = {
-                                        "rule_used": result.rule_used.id if result.rule_used else None,
-                                        "transformation_details": result.transformation_details
-                                    }
+                    if confidence > best_confidence:
+                        best_confidence = confidence
+                        best_match_type = match_type
                 
-                # Create a workflow node for this process with enhanced matching information
-                node_id = uuid4()
-                node = WorkflowNode(
-                    id=node_id,
-                    name=f"{process_name} Process",
-                    okh_refs=[
-                        ResourceURI(
-                            resource_type=ResourceType.OKH_PROCESS,
-                            identifier=str(manifest.id),
-                            path=["manufacturing_processes", str(i)]
-                        )
-                    ],
-                    okw_refs=[
-                        ResourceURI(
-                            resource_type=ResourceType.OKW_PROCESS,
-                            identifier=str(facility.id),
-                            path=["manufacturing_processes", best_match_capability.lower().replace(" ", "_") if best_match_capability else process_name.lower().replace(" ", "_")]
-                        )
-                    ],
-                    input_requirements={
-                        "process": process_name,
-                        "material": "as_specified_in_okh"
-                    },
-                    output_specifications={
-                        "process": process_name,
-                        "quality": "meets_okh_requirements"
-                    },
-                    estimated_time=timedelta(hours=2),  # Default estimation
-                    assigned_facility=str(facility.id),
-                    confidence_score=best_match_confidence,
-                    substitution_used=best_match_method.startswith("heuristic_"),
-                    metadata={
-                        "process_index": i,
-                        "total_processes": len(process_requirements),
-                        "matching_method": best_match_method,
-                        "matched_capability": best_match_capability,
-                        "matching_details": matching_details,
-                        "facility_capability": "verified" if best_match_confidence > 0.7 else "uncertain"
-                    }
-                )
-                
-                # Store matching result for overall confidence calculation
-                matching_results.append({
-                    "process": process_name,
-                    "confidence": best_match_confidence,
-                    "method": best_match_method
-                })
-                
-                # Add node to workflow
-                primary_workflow.graph.add_node(node_id, data=node)
-                
-                # Create linear workflow (each process depends on the previous one)
-                if previous_node_id is not None:
-                    primary_workflow.graph.add_edge(previous_node_id, node_id)
-                else:
-                    # First node is an entry point
-                    primary_workflow.entry_points.add(node_id)
-                
-                # Update exit points
-                primary_workflow.exit_points.discard(previous_node_id) if previous_node_id else None
-                primary_workflow.exit_points.add(node_id)
-                
-                previous_node_id = node_id
+                # Add the best confidence found for this process
+                if best_confidence > 0.0:
+                    total_confidence += best_confidence
+                    match_count += 1
+                    # Update overall match type to the best one found so far
+                    if best_overall_match_type == "unknown" or best_match_type in ["direct", "heuristic", "nlp"]:
+                        best_overall_match_type = best_match_type
             
-            # Add the workflow to the supply tree
-            supply_tree.add_workflow(primary_workflow)
+            # Calculate average confidence with better granularity
+            if process_requirements:
+                confidence_score = total_confidence / len(process_requirements)
+                # Ensure confidence is between 0 and 1
+                confidence_score = max(0.0, min(1.0, confidence_score))
+            else:
+                confidence_score = 0.0
             
-            # Add enhanced metadata about matching results
-            supply_tree.metadata.update({
-                "matching_summary": {
-                    "total_processes": len(process_requirements),
-                    "matching_results": matching_results,
-                    "average_confidence": sum(r["confidence"] for r in matching_results) / len(matching_results) if matching_results else 0.0,
-                    "direct_matches": len([r for r in matching_results if r["method"].startswith("direct_")]),
-                    "heuristic_matches": len([r for r in matching_results if r["method"].startswith("heuristic_")]),
-                    "no_matches": len([r for r in matching_results if r["method"] == "no_match"])
-                }
-            })
-            
-            # Add snapshots of source data
-            supply_tree.add_snapshot(
-                f"okh://{manifest.id}",
-                manifest.to_dict()
-            )
-            supply_tree.add_snapshot(
-                f"okw://{facility.id}",
-                facility.to_dict()
+            # Use the simplified factory method
+            supply_tree = SupplyTree.from_facility_and_manifest(
+                facility=facility,
+                manifest=manifest,
+                confidence_score=confidence_score,
+                match_type=best_overall_match_type,
+                estimated_cost=None,  # Could be calculated based on facility rates
+                estimated_time=None   # Could be calculated based on process complexity
             )
             
             logger.info(
-                "Generated supply tree with workflows and nodes",
+                "Generated simplified supply tree",
                 extra={
                     "okh_id": str(manifest.id),
                     "facility_id": str(facility.id),
-                    "workflow_count": len(supply_tree.workflows),
-                    "total_nodes": sum(len(wf.graph.nodes) for wf in supply_tree.workflows.values()),
+                    "confidence_score": confidence_score,
+                    "match_type": best_overall_match_type,
                     "process_count": len(process_requirements)
                 }
             )
@@ -680,6 +608,73 @@ class MatchingService:
         normalized = re.sub(r'\s+', ' ', normalized)
         
         return normalized.strip()
+    
+    def _calculate_process_similarity(self, process1: str, process2: str) -> float:
+        """
+        Calculate similarity between two process names.
+        
+        Returns a score between 0.0 and 1.0 indicating how similar the processes are.
+        """
+        if not process1 or not process2:
+            return 0.0
+        
+        # Normalize both process names
+        norm1 = self._normalize_process_name(process1)
+        norm2 = self._normalize_process_name(process2)
+        
+        # Exact match
+        if norm1 == norm2:
+            return 1.0
+        
+        # Check for substring matches
+        if norm1 in norm2 or norm2 in norm1:
+            return 0.8
+        
+        # Check for common keywords
+        words1 = set(norm1.split())
+        words2 = set(norm2.split())
+        
+        if not words1 or not words2:
+            return 0.0
+        
+        # Calculate Jaccard similarity
+        intersection = len(words1.intersection(words2))
+        union = len(words1.union(words2))
+        
+        if union == 0:
+            return 0.0
+        
+        jaccard_similarity = intersection / union
+        
+        # Boost similarity for manufacturing-related keywords
+        manufacturing_keywords = {
+            'machining', 'cnc', 'mill', 'lathe', 'drill', 'cut', 'grind',
+            '3d', 'print', 'printer', 'assembly', 'pcb', 'electronics',
+            'welding', 'weld', 'brake', 'bend', 'form', 'stamp'
+        }
+        
+        common_manufacturing = words1.intersection(words2).intersection(manufacturing_keywords)
+        if common_manufacturing:
+            jaccard_similarity += 0.2  # Boost for manufacturing keywords
+        
+        # Handle common manufacturing abbreviations and synonyms
+        abbreviation_map = {
+            '3dp': ['3d', 'print', 'printer', 'fused', 'filament', 'fabrication'],
+            'pcb': ['printed', 'circuit', 'board', 'electronics', 'assembly'],
+            'cnc': ['computer', 'numerical', 'control', 'machining'],
+            'assembly': ['assembling', 'putting', 'together', 'joining']
+        }
+        
+        # Check for abbreviation matches
+        for abbr, synonyms in abbreviation_map.items():
+            if abbr in words1:
+                if any(syn in words2 for syn in synonyms):
+                    jaccard_similarity += 0.3  # Strong boost for abbreviation matches
+            elif abbr in words2:
+                if any(syn in words1 for syn in synonyms):
+                    jaccard_similarity += 0.3  # Strong boost for abbreviation matches
+        
+        return min(1.0, jaccard_similarity)
     
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""

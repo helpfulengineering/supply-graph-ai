@@ -8,12 +8,9 @@ from pydantic import Field
 
 # Import new standardized components
 from ..models.base import (
-    BaseAPIRequest, 
     SuccessResponse, 
     PaginationParams,
     PaginatedResponse,
-    LLMRequestMixin,
-    LLMResponseMixin,
     ValidationResult
 )
 from ..decorators import (
@@ -58,107 +55,6 @@ router = APIRouter(
     }
 )
 
-# Enhanced request models that inherit from original models
-class EnhancedOKHCreateRequest(OKHCreateRequest, BaseAPIRequest, LLMRequestMixin):
-    """Enhanced OKH create request with standardized fields and LLM support."""
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "title": "Arduino-based IoT Sensor Node",
-                "repo": "https://github.com/example/iot-sensor",
-                "version": "1.0.0",
-                "license": {"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
-                "licensor": "John Doe",
-                "documentation_language": "en",
-                "function": "IoT sensor node for environmental monitoring",
-                "description": "A simple IoT sensor node based on Arduino",
-                "intended_use": "Environmental monitoring and data collection",
-                "keywords": ["iot", "sensor", "arduino", "environmental"],
-                "project_link": "https://github.com/example/iot-sensor",
-                "manufacturing_files": [
-                    {"name": "pcb_design.kicad", "type": "design", "url": "https://github.com/example/iot-sensor/pcb.kicad"}
-                ],
-                "design_files": [
-                    {"name": "enclosure.stl", "type": "3d_model", "url": "https://github.com/example/iot-sensor/enclosure.stl"}
-                ],
-                "tool_list": ["3D Printer", "Soldering Iron", "Multimeter"],
-                "manufacturing_processes": ["3D Printing", "PCB Assembly", "Soldering"],
-                "materials": [
-                    {"name": "Arduino Nano", "quantity": 1, "specifications": "ATmega328P microcontroller"}
-                ],
-                "manufacturing_specs": {
-                    "process_requirements": [
-                        {"process_name": "PCB Assembly", "parameters": {}}
-                    ]
-                },
-                "parts": [
-                    {"name": "Arduino Nano", "quantity": 1, "specifications": "ATmega328P"}
-                ],
-                "metadata": {"category": "electronics", "difficulty": "beginner"},
-                "use_llm": True,
-                "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
-                "quality_level": "professional",
-                "strict_mode": False
-            }
-        }
-
-
-class EnhancedOKHResponse(OKHResponse, SuccessResponse, LLMResponseMixin):
-    """Enhanced OKH response with standardized fields and LLM information."""
-    
-    # Additional fields for enhanced response
-    processing_time: float = 0.0
-    validation_results: Optional[List[ValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "id": "00000000-0000-0000-0000-000000000000",
-                "title": "Arduino-based IoT Sensor Node",
-                "version": "1.0.0",
-                "license": {"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
-                "licensor": "John Doe",
-                "documentation_language": "en",
-                "function": "IoT sensor node for environmental monitoring",
-                "repo": "https://github.com/example/iot-sensor",
-                "description": "A simple IoT sensor node based on Arduino",
-                "intended_use": "Environmental monitoring and data collection",
-                "keywords": ["iot", "sensor", "arduino", "environmental"],
-                "project_link": "https://github.com/example/iot-sensor",
-                "manufacturing_files": [
-                    {"name": "pcb_design.kicad", "type": "design", "url": "https://github.com/example/iot-sensor/pcb.kicad"}
-                ],
-                "design_files": [
-                    {"name": "enclosure.stl", "type": "3d_model", "url": "https://github.com/example/iot-sensor/enclosure.stl"}
-                ],
-                "tool_list": ["3D Printer", "Soldering Iron", "Multimeter"],
-                "manufacturing_processes": ["3D Printing", "PCB Assembly", "Soldering"],
-                "materials": [
-                    {"name": "Arduino Nano", "quantity": 1, "specifications": "ATmega328P microcontroller"}
-                ],
-                "manufacturing_specs": {
-                    "process_requirements": [
-                        {"process_name": "PCB Assembly", "parameters": {}}
-                    ]
-                },
-                "parts": [
-                    {"name": "Arduino Nano", "quantity": 1, "specifications": "ATmega328P"}
-                ],
-                "metadata": {"category": "electronics", "difficulty": "beginner"},
-                "status": "success",
-                "message": "OKH operation completed successfully",
-                "timestamp": "2024-01-01T12:00:00Z",
-                "request_id": "req_123456789",
-                "processing_time": 1.25,
-                "llm_used": True,
-                "llm_provider": "anthropic",
-                "llm_cost": 0.012,
-                "data": {},
-                "validation_results": []
-            }
-        }
 
 
 # Service dependencies
@@ -173,7 +69,7 @@ async def get_storage_service() -> StorageService:
 
 @router.post(
     "/create", 
-    response_model=EnhancedOKHResponse, 
+    response_model=OKHResponse, 
     status_code=status.HTTP_201_CREATED,
     summary="Create OKH Manifest",
     description="""
@@ -198,7 +94,7 @@ async def get_storage_service() -> StorageService:
     include_metrics=True,
     track_llm=True
 )
-@validate_request(EnhancedOKHCreateRequest)
+@validate_request(OKHCreateRequest)
 @track_performance("okh_creation")
 @llm_endpoint(
     default_provider="anthropic",
@@ -206,7 +102,7 @@ async def get_storage_service() -> StorageService:
     track_costs=True
 )
 async def create_okh(
-    request: EnhancedOKHCreateRequest,
+    request: OKHCreateRequest,
     http_request: Request,
     okh_service: OKHService = Depends(get_okh_service)
 ):
@@ -222,14 +118,14 @@ async def create_okh(
         Enhanced OKH response with comprehensive data
     """
     request_id = getattr(http_request.state, 'request_id', None)
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # Call service to create OKH manifest
         result = await okh_service.create(request.model_dump())
         
         # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Create enhanced response using the proper OKHResponse structure
         result_dict = result.to_dict() if hasattr(result, 'to_dict') else result
