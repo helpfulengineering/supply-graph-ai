@@ -23,10 +23,10 @@ This matching problem is complex due to several factors:
 
 #### **Complex Dependencies**
    - Multi-stage manufacturing processes
-   - Parallel workflows
    - Material sourcing dependencies
    - Time-based constraints
    - Resource availability
+   - Facility capability matching
 
 #### **Scale Considerations**
    - Large number of potential facilities
@@ -45,7 +45,7 @@ OME is built as four independent but interoperable components:
 - **OME.extraction**: Converts unstructured input into normalized formats
 - **OME.analysis**: Identifies requirements and capabilities
 - **OME.matching**: Generates and validates manufacturing solutions
-- **OME.routing**: Optimizes material and workflow routing
+- **OME.routing**: Optimizes material and facility routing
 
 Each component can be used independently or as part of an integrated pipeline.
 
@@ -54,10 +54,10 @@ Each component can be used independently or as part of an integrated pipeline.
 At the core of OME is the Supply Tree data structure, which:
 
 - Represents complete manufacturing solutions
-- Handles multiple parallel workflows
+- Maps requirements to facility capabilities
 - Supports different validation contexts
-- Manages dependencies and constraints
-- Enables solution optimization
+- Manages material and process requirements
+- Enables solution optimization and matching
 
 ### 3. Progressive Processing
 

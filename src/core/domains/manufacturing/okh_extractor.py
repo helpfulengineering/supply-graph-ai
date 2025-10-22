@@ -129,8 +129,24 @@ class OKHExtractor(BaseExtractor):
     
     def _detailed_extract_capabilities(self, parsed_data: Dict) -> NormalizedCapabilities:
         """Extract detailed capabilities from facility data"""
-        # Extract manufacturing processes as capabilities
-        processes = parsed_data.get('manufacturing_processes', [])
+        # Extract manufacturing processes from equipment
+        processes = []
+        equipment = parsed_data.get('equipment', [])
+        
+        for eq in equipment:
+            if isinstance(eq, dict):
+                # Extract from manufacturing_process field
+                if 'manufacturing_process' in eq and eq['manufacturing_process']:
+                    processes.append(eq['manufacturing_process'])
+                # Extract from manufacturing_processes field (if it exists)
+                if 'manufacturing_processes' in eq and eq['manufacturing_processes']:
+                    if isinstance(eq['manufacturing_processes'], list):
+                        processes.extend(eq['manufacturing_processes'])
+                    else:
+                        processes.append(eq['manufacturing_processes'])
+        
+        # Remove duplicates while preserving order
+        processes = list(dict.fromkeys(processes))
         
         # Convert processes to capability format
         capabilities = []

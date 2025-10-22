@@ -145,7 +145,7 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
             """Match via HTTP API"""
             cli_ctx.log("Attempting HTTP API matching...", "info")
             response = await cli_ctx.api_client.request(
-                "POST", "/match/requirements", json_data=request_data
+                "POST", "/match", json_data=request_data
             )
             return response
         

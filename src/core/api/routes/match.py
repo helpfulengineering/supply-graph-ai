@@ -74,7 +74,6 @@ async def get_okh_service() -> OKHService:
 # Main matching endpoint (enhanced version)
 @router.post(
     "",
-    response_model=MatchResponse,
     status_code=status.HTTP_200_OK,
     summary="Enhanced Requirements Matching",
     description="""
@@ -177,12 +176,11 @@ async def match_requirements_to_capabilities(
         response_data = {
             "solutions": solutions,
             "total_solutions": len(solutions),
-            "processing_time": processing_time,
             "matching_metrics": {
-                "direct_matches": len([s for s in solutions if s.get("match_type") == "direct"]),
-                "heuristic_matches": len([s for s in solutions if s.get("match_type") == "heuristic"]),
-                "nlp_matches": len([s for s in solutions if s.get("match_type") == "nlp"]),
-                "llm_matches": len([s for s in solutions if s.get("match_type") == "llm"])
+                "direct_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "direct"]),
+                "heuristic_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "heuristic"]),
+                "nlp_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "nlp"]),
+                "llm_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "llm"])
             },
             "validation_results": await _validate_results(solutions, request_id)
         }
@@ -316,7 +314,6 @@ async def validate_match(
 # File upload endpoint (enhanced version)
 @router.post(
     "/upload", 
-    response_model=MatchResponse,
     summary="Match from File Upload",
     description="""
     Match requirements to capabilities using an uploaded OKH file.

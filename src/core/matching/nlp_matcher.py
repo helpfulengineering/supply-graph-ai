@@ -269,7 +269,7 @@ class NLPMatcher(BaseMatchingLayer):
     
     async def calculate_semantic_similarity(self, text1: str, text2: str) -> float:
         """
-        Calculate semantic similarity between two text strings.
+        Calculate semantic similarity between two text strings with domain context awareness.
         
         Args:
             text1: First text string
@@ -285,23 +285,32 @@ class NLPMatcher(BaseMatchingLayer):
         text1 = self._normalize_text(text1)
         text2 = self._normalize_text(text2)
         
-        # If spaCy is available, use semantic similarity
+        # Enhance texts with domain context for better semantic understanding
+        context_enhanced_text1 = self._enhance_with_domain_context(text1)
+        context_enhanced_text2 = self._enhance_with_domain_context(text2)
+        
+        # If spaCy is available, use semantic similarity with context
         nlp = self._ensure_nlp_initialized()
         if nlp:
             try:
-                # Process texts with spaCy
-                doc1 = nlp(text1)
-                doc2 = nlp(text2)
+                # Process context-enhanced texts with spaCy
+                doc1 = nlp(context_enhanced_text1)
+                doc2 = nlp(context_enhanced_text2)
                 
                 # Calculate semantic similarity
                 similarity = doc1.similarity(doc2)
-                return max(0.0, min(1.0, similarity))  # Clamp to [0, 1]
+                
+                # Apply domain-specific boosting for known manufacturing terms
+                domain_boost = self._calculate_domain_boost(text1, text2)
+                boosted_similarity = min(1.0, similarity + domain_boost)
+                
+                return max(0.0, min(1.0, boosted_similarity))  # Clamp to [0, 1]
                 
             except Exception as e:
                 logger.warning(f"spaCy similarity calculation failed: {e}, falling back to string similarity")
         
-        # Fallback to string similarity
-        return self._calculate_string_similarity(text1, text2)
+        # Fallback to string similarity with domain context
+        return self._calculate_string_similarity_with_context(text1, text2)
     
     async def find_synonyms(self, term: str) -> List[str]:
         """
@@ -430,6 +439,132 @@ class NLPMatcher(BaseMatchingLayer):
                     return f"Domain match in {category}: {', '.join(overlapping)}"
         
         return None
+    
+    def _enhance_with_domain_context(self, text: str) -> str:
+        """
+        Enhance text with domain-specific context to improve semantic understanding.
+        
+        Args:
+            text: Original text to enhance
+            
+        Returns:
+            Context-enhanced text for better spaCy processing
+        """
+        if not text:
+            return text
+            
+        # Get domain patterns
+        domain_patterns = self._ensure_domain_patterns_initialized()
+        if self.domain not in domain_patterns:
+            return text
+            
+        domain_patterns = domain_patterns[self.domain]
+        enhanced_text = text
+        
+        # Add domain context for manufacturing
+        if self.domain == "manufacturing":
+            # Add manufacturing context terms
+            context_terms = []
+            
+            # Check for common manufacturing abbreviations and add full terms
+            abbreviation_map = {
+                "pcb": "printed circuit board electronics manufacturing",
+                "3dp": "3d printing additive manufacturing",
+                "cnc": "computer numerical control machining",
+                "cad": "computer aided design engineering",
+                "cam": "computer aided manufacturing",
+                "sla": "stereolithography 3d printing",
+                "fdm": "fused deposition modeling 3d printing",
+                "sls": "selective laser sintering 3d printing",
+                "dmls": "direct metal laser sintering additive manufacturing"
+            }
+            
+            text_lower = text.lower()
+            for abbrev, full_term in abbreviation_map.items():
+                if abbrev in text_lower:
+                    context_terms.append(full_term)
+            
+            # Only add general manufacturing context if we found specific abbreviations
+            if context_terms:  # Only if we already found specific abbreviations
+                context_terms.extend([
+                    "manufacturing process",
+                    "production capability"
+                ])
+            
+            # Combine original text with context
+            if context_terms:
+                enhanced_text = f"{text} {' '.join(context_terms)}"
+        
+        return enhanced_text
+    
+    def _calculate_domain_boost(self, text1: str, text2: str) -> float:
+        """
+        Calculate domain-specific similarity boost for known manufacturing terms.
+        
+        Args:
+            text1: First text string
+            text2: Second text string
+            
+        Returns:
+            Boost value between 0.0 and 0.3
+        """
+        domain_patterns = self._ensure_domain_patterns_initialized()
+        if self.domain not in domain_patterns:
+            return 0.0
+            
+        domain_patterns = domain_patterns[self.domain]
+        boost = 0.0
+        
+        # Check for exact matches in domain patterns
+        text1_lower = text1.lower()
+        text2_lower = text2.lower()
+        
+        for category, terms in domain_patterns.items():
+            text1_matches = [term for term in terms if term in text1_lower]
+            text2_matches = [term for term in terms if term in text2_lower]
+            
+            # If both texts have terms from the same category, boost similarity
+            if text1_matches and text2_matches:
+                overlapping = set(text1_matches) & set(text2_matches)
+                if overlapping:
+                    boost += 0.2  # Strong boost for exact category matches
+                else:
+                    boost += 0.1  # Moderate boost for same category
+        
+        # Check for abbreviation matches
+        abbreviation_map = {
+            "pcb": ["printed circuit board", "circuit board"],
+            "3dp": ["3d printing", "additive manufacturing"],
+            "cnc": ["computer numerical control", "machining"],
+            "sla": ["stereolithography", "3d printing"],
+            "fdm": ["fused deposition modeling", "3d printing"]
+        }
+        
+        for abbrev, full_terms in abbreviation_map.items():
+            if (abbrev in text1_lower and any(term in text2_lower for term in full_terms)) or \
+               (abbrev in text2_lower and any(term in text1_lower for term in full_terms)):
+                boost += 0.15  # Boost for abbreviation matches
+        
+        return min(0.3, boost)  # Cap boost at 0.3
+    
+    def _calculate_string_similarity_with_context(self, text1: str, text2: str) -> float:
+        """
+        Calculate string similarity with domain context awareness as fallback.
+        
+        Args:
+            text1: First text string
+            text2: Second text string
+            
+        Returns:
+            Similarity score between 0.0 and 1.0
+        """
+        # Use the original string similarity method
+        base_similarity = self._calculate_string_similarity(text1, text2)
+        
+        # Apply domain boost
+        domain_boost = self._calculate_domain_boost(text1, text2)
+        
+        return min(1.0, base_similarity + domain_boost)
     
     def cleanup(self):
         """Clean up resources to prevent memory leaks"""

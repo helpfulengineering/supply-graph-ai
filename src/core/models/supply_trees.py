@@ -179,6 +179,11 @@ class SupplyTree:
     metadata: Dict[str, Any] = field(default_factory=dict)
     creation_time: datetime = field(default_factory=datetime.now)
     
+    def __post_init__(self):
+        """Post-initialization processing"""
+        # Truncate confidence_score to 2 decimal places
+        self.confidence_score = round(self.confidence_score, 2)
+    
     def __hash__(self):
         """Enable Set operations by hashing on facility_id"""
         return hash(self.facility_id)
@@ -293,6 +298,11 @@ class SupplyTreeSolution:
     tree: SupplyTree
     score: float
     metrics: Dict[str, Any] = field(default_factory=dict)
+    
+    def __post_init__(self):
+        """Post-initialization processing"""
+        # Truncate score to 2 decimal places
+        self.score = round(self.score, 2)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to serializable dictionary"""
