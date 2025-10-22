@@ -69,7 +69,7 @@ class EnhancedMatchRequest(BaseAPIRequest, LLMRequestMixin):
     okh_manifest: Optional[dict] = None
     okh_id: Optional[UUID] = None
     okh_url: Optional[str] = None
-    
+     
     # Enhanced filtering options
     access_type: Optional[str] = None
     facility_status: Optional[str] = None
@@ -222,7 +222,7 @@ async def match_requirements_to_capabilities(
         Enhanced match response with comprehensive data
     """
     request_id = getattr(http_request.state, 'request_id', None)
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # 1. Validate and extract OKH manifest
@@ -265,7 +265,7 @@ async def match_requirements_to_capabilities(
         )
         
         # 5. Calculate processing metrics
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # 6. Create enhanced response
         response_data = {
