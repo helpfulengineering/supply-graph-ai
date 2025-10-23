@@ -220,7 +220,7 @@ async def match_requirements_to_capabilities(
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -307,7 +307,7 @@ async def validate_match(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -469,7 +469,7 @@ async def match_requirements_from_file(
         logger.error(f"Error in file upload matching: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -565,7 +565,7 @@ async def list_domains(
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -621,7 +621,7 @@ async def get_domain_info(
         logger.error(f"Error getting domain info for {domain_name}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -688,7 +688,7 @@ async def get_domain_health(
         logger.error(f"Error getting domain health for {domain_name}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -752,7 +752,7 @@ async def detect_domain_from_input(
         logger.error(f"Error detecting domain: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -792,7 +792,7 @@ async def _extract_okh_manifest(
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -888,7 +888,7 @@ async def _get_filtered_facilities(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -945,7 +945,7 @@ async def _perform_enhanced_matching(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -1003,7 +1003,7 @@ async def _process_matching_results(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 

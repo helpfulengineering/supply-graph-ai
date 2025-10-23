@@ -79,11 +79,11 @@ async def _display_domains_results(cli_ctx: CLIContext, result: dict, output_for
             cli_ctx.log(f"Found {len(domains)} domains", "success")
             for domain in domains:
                 status_icon = "✅" if domain.get("status", "active") == "active" else "❌"
-                cli_ctx.log(f"{status_icon} {domain['id']}: {domain.get('name', 'Unknown')}", "info")
+                click.echo(f"{status_icon} {domain['id']}: {domain.get('name', 'Unknown')}")
                 if domain.get('description'):
-                    cli_ctx.log(f"   {domain['description']}", "info")
+                    click.echo(f"   {domain['description']}")
         else:
-            cli_ctx.log("No domains found", "info")
+            cli_ctx.log("No domains found", "success")
 
 
 async def _display_status_results(cli_ctx: CLIContext, result: dict, output_format: str):
@@ -92,23 +92,23 @@ async def _display_status_results(cli_ctx: CLIContext, result: dict, output_form
         output_data = format_llm_output(result, cli_ctx)
         click.echo(output_data)
     else:
-        cli_ctx.log("=== OME System Status ===", "info")
-        cli_ctx.log(f"Server URL: {result['server_url']}", "info")
-        cli_ctx.log(f"Mode: {result['mode']}", "info")
-        cli_ctx.log("", "info")  # Empty line for spacing
+        click.echo("=== OME System Status ===")
+        click.echo(f"Server URL: {result['server_url']}")
+        click.echo(f"Mode: {result['mode']}")
+        click.echo("")  # Empty line for spacing
         
         health = result.get("health", {})
-        cli_ctx.log(f"Health Status: {health.get('status', 'unknown')}", "info")
-        cli_ctx.log(f"Version: {health.get('version', 'unknown')}", "info")
-        cli_ctx.log("", "info")  # Empty line for spacing
+        click.echo(f"Health Status: {health.get('status', 'unknown')}")
+        click.echo(f"Version: {health.get('version', 'unknown')}")
+        click.echo("")  # Empty line for spacing
         
         domains = result.get("domains", {}).get("domains", [])
-        cli_ctx.log(f"Registered Domains ({len(domains)}):", "info")
+        click.echo(f"Registered Domains ({len(domains)}):")
         for domain in domains:
             # Default to active if no status field is present
             status = domain.get("status", "active")
             status_icon = "✅" if status == "active" else "❌"
-            cli_ctx.log(f"  {status_icon} {domain['id']}", "info")
+            click.echo(f"  {status_icon} {domain['id']}")
 
 
 # Commands
@@ -154,7 +154,10 @@ async def health(ctx, verbose: bool, output_format: str, use_llm: bool,
                 quality_level: str, strict_mode: bool):
     """Check system health and status with enhanced LLM support."""
     cli_ctx = ctx.obj
-    cli_ctx.verbose = verbose  # Set verbose mode
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
     cli_ctx.start_command_tracking("system-health")
     
     # Update CLI context with parameters from decorator
@@ -248,6 +251,11 @@ async def domains(ctx, verbose: bool, output_format: str, use_llm: bool,
                  quality_level: str, strict_mode: bool):
     """List available domains and their status with enhanced LLM support."""
     cli_ctx = ctx.obj
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
     cli_ctx.start_command_tracking("system-domains")
     
     # Update CLI context with parameters from decorator
@@ -268,7 +276,7 @@ async def domains(ctx, verbose: bool, output_format: str, use_llm: bool,
             """Get domains via HTTP API"""
             cli_ctx.log("Getting domains via HTTP API...", "info")
             # Use the utility domains endpoint
-            response = await cli_ctx.api_client.request("GET", "/domains")
+            response = await cli_ctx.api_client.request("GET", "/api/utility/domains")
             return response
         
         async def fallback_domains():
@@ -342,6 +350,11 @@ async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
                 quality_level: str, strict_mode: bool):
     """Show detailed system status with enhanced LLM support."""
     cli_ctx = ctx.obj
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
     cli_ctx.start_command_tracking("system-status")
     
     # Update CLI context with parameters from decorator
@@ -463,6 +476,11 @@ def ping(ctx, port: int, timeout: int,
          quality_level: str, strict_mode: bool):
     """Ping the OME server with enhanced LLM support."""
     cli_ctx = ctx.obj
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
     cli_ctx.start_command_tracking("system-ping")
     
     # Update CLI context with parameters from decorator
@@ -557,7 +575,10 @@ def info(ctx, verbose: bool, output_format: str, use_llm: bool,
          quality_level: str, strict_mode: bool):
     """Show OME system information with enhanced LLM support."""
     cli_ctx = ctx.obj
-    cli_ctx.verbose = verbose  # Set verbose mode
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
     cli_ctx.start_command_tracking("system-info")
     
     # Update CLI context with parameters from decorator
@@ -596,26 +617,26 @@ def info(ctx, verbose: bool, output_format: str, use_llm: bool,
             output_data = format_llm_output(info_data, cli_ctx)
             click.echo(output_data)
         else:
-            cli_ctx.log("=== Open Matching Engine (OME) ===", "info")
-            cli_ctx.log(f"CLI Version: {version}", "info")
-            cli_ctx.log(f"Server URL: {cli_ctx.config.server_url}", "info")
-            cli_ctx.log(f"Timeout: {cli_ctx.config.timeout}s", "info")
-            cli_ctx.log(f"Verbose Mode: {cli_ctx.config.verbose}", "info")
+            click.echo("=== Open Matching Engine (OME) ===")
+            click.echo(f"CLI Version: {version}")
+            click.echo(f"Server URL: {cli_ctx.config.server_url}")
+            click.echo(f"Timeout: {cli_ctx.config.timeout}s")
+            click.echo(f"Verbose Mode: {cli_ctx.config.verbose}")
             
             if cli_ctx.is_llm_enabled():
-                cli_ctx.log(f"LLM Provider: {cli_ctx.llm_config.get('llm_provider', 'Unknown')}", "info")
-                cli_ctx.log(f"LLM Model: {cli_ctx.llm_config.get('llm_model', 'Default')}", "info")
-                cli_ctx.log(f"Quality Level: {cli_ctx.llm_config.get('quality_level', 'Unknown')}", "info")
-                cli_ctx.log(f"Strict Mode: {cli_ctx.llm_config.get('strict_mode', False)}", "info")
+                click.echo(f"LLM Provider: {cli_ctx.llm_config.get('llm_provider', 'Unknown')}")
+                click.echo(f"LLM Model: {cli_ctx.llm_config.get('llm_model', 'Default')}")
+                click.echo(f"Quality Level: {cli_ctx.llm_config.get('quality_level', 'Unknown')}")
+                click.echo(f"Strict Mode: {cli_ctx.llm_config.get('strict_mode', False)}")
             
-            cli_ctx.log("", "info")  # Empty line for spacing
-            cli_ctx.log("Available Commands:", "info")
-            cli_ctx.log("  package  - Package management (build, push, pull, list)", "info")
-            cli_ctx.log("  okh      - OKH manifest operations", "info")
-            cli_ctx.log("  okw      - OKW facility operations", "info")
-            cli_ctx.log("  match    - Matching operations", "info")
-            cli_ctx.log("  system   - System management", "info")
-            cli_ctx.log("", "info")  # Empty line for spacing
+            click.echo("")  # Empty line for spacing
+            click.echo("Available Commands:")
+            click.echo("  package  - Package management (build, push, pull, list)")
+            click.echo("  okh      - OKH manifest operations")
+            click.echo("  okw      - OKW facility operations")
+            click.echo("  match    - Matching operations")
+            click.echo("  system   - System management")
+            click.echo("")  # Empty line for spacing
             cli_ctx.log("For more information, use: ome <command> --help", "info")
         
         cli_ctx.end_command_tracking()

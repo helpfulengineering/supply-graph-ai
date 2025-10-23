@@ -61,8 +61,8 @@ class BaseAPIRequest(BaseModel):
     strict_mode: Optional[bool] = Field(False, description="Enable strict validation mode")
     
     class Config:
-        # Allow extra fields for extensibility
-        extra = "allow"
+        # Forbid extra fields for proper validation
+        extra = "forbid"
         # Use enum values in JSON
         use_enum_values = True
         # Generate JSON schema

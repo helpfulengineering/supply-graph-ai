@@ -178,7 +178,7 @@ async def build_package_from_manifest(
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Log unexpected errors using standardized error handler
@@ -199,7 +199,7 @@ async def build_package_from_manifest(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -243,7 +243,7 @@ async def build_package_from_storage(
         )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Use standardized error handler
@@ -256,7 +256,7 @@ async def build_package_from_storage(
         logger.error(f"Error building package from storage: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -273,10 +273,6 @@ async def build_package_from_storage(
     - Performance metrics
     - Comprehensive validation
     """
-)
-@api_endpoint(
-    success_message="Packages retrieved successfully",
-    include_metrics=True
 )
 @paginated_response(default_page_size=20, max_page_size=100)
 async def list_packages(
@@ -333,7 +329,7 @@ async def list_packages(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -378,7 +374,7 @@ async def get_package_metadata(
         logger.error(f"Error getting package metadata: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -418,7 +414,7 @@ async def verify_package(
         logger.error(f"Error verifying package: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -463,7 +459,7 @@ async def delete_package(
         logger.error(f"Error deleting package: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -521,7 +517,7 @@ async def download_package(
         logger.error(f"Error creating package tarball: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -571,7 +567,7 @@ async def push_package(
         )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Use standardized error handler
@@ -584,7 +580,7 @@ async def push_package(
         logger.error(f"Error pushing package: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -645,7 +641,7 @@ async def pull_package(
         )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Use standardized error handler
@@ -658,7 +654,7 @@ async def pull_package(
         logger.error(f"Error pulling package: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 
@@ -681,7 +677,7 @@ async def list_remote_packages(
             data={"packages": packages, "total": len(packages)},
             request_id=None
         )
-        return response.model_dump()
+        return response.model_dump(mode='json')
         
     except Exception as e:
         # Use standardized error handler
@@ -694,7 +690,7 @@ async def list_remote_packages(
         logger.error(f"Error listing remote packages: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 

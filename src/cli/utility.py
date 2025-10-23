@@ -142,7 +142,7 @@ async def domains(ctx, name: Optional[str],
             if name:
                 params["name"] = name
             
-            response = await cli_ctx.api_client.request("GET", "/domains", params=params)
+            response = await cli_ctx.api_client.request("GET", "/api/utility/domains", params=params)
             return response
         
         async def fallback_domains():
@@ -245,7 +245,7 @@ async def contexts(ctx, domain: str, name: Optional[str],
             if name:
                 params["name"] = name
             
-            response = await cli_ctx.api_client.request("GET", f"/contexts/{domain}", params=params)
+            response = await cli_ctx.api_client.request("GET", f"/api/utility/contexts/{domain}", params=params)
             return response
         
         async def fallback_contexts():

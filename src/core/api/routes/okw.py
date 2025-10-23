@@ -123,7 +123,7 @@ async def create_okw(
     
     try:
         # Convert request to facility data
-        facility_data = request.model_dump()
+        facility_data = request.model_dump(mode='json')
         
         # Create facility using service
         facility = await okw_service.create(facility_data)
@@ -191,7 +191,7 @@ async def create_okw(
         )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Log unexpected errors using standardized error handler
@@ -212,7 +212,7 @@ async def create_okw(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.get("/search", response_model=OKWListResponse)
@@ -505,7 +505,7 @@ async def list_okw(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.put("/{id}", response_model=OKWResponse)
@@ -685,7 +685,7 @@ async def validate_okw(
         )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Log unexpected errors using standardized error handler
@@ -706,7 +706,7 @@ async def validate_okw(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.post("/extract", response_model=OKWExtractResponse)

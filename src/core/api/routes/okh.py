@@ -122,7 +122,7 @@ async def create_okh(
     
     try:
         # Call service to create OKH manifest
-        result = await okh_service.create(request.model_dump())
+        result = await okh_service.create(request.model_dump(mode='json'))
         
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -161,7 +161,7 @@ async def create_okh(
         )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Log unexpected errors using standardized error handler
@@ -182,7 +182,7 @@ async def create_okh(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.get("/{id}", response_model=OKHResponse)
@@ -328,7 +328,7 @@ async def list_okh(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.put("/{id}", response_model=OKHResponse)
@@ -352,7 +352,7 @@ async def update_okh(
             )
         
         # Call service to update OKH manifest
-        result = await okh_service.update(id, request.model_dump())
+        result = await okh_service.update(id, request.model_dump(mode='json'))
         return result
     except ValueError as e:
         # Handle validation errors
@@ -489,7 +489,7 @@ async def validate_okh(
         )
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
     except Exception as e:
         # Log unexpected errors using standardized error handler
@@ -510,7 +510,7 @@ async def validate_okh(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.post("/extract", response_model=OKHExtractResponse)

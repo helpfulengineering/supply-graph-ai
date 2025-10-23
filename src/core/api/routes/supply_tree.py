@@ -198,7 +198,7 @@ async def create_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.get(
@@ -229,7 +229,7 @@ async def get_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
         
     except HTTPException:
@@ -254,7 +254,7 @@ async def get_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.get(
@@ -332,7 +332,7 @@ async def list_supply_trees(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.put(
@@ -364,7 +364,7 @@ async def update_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
         
     except HTTPException:
@@ -389,7 +389,7 @@ async def update_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.delete(
@@ -438,7 +438,7 @@ async def delete_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.post(
@@ -470,7 +470,7 @@ async def validate_supply_tree(
         
         return create_success_response(
             message="Supply tree validation completed successfully",
-            data={"validation_result": validation_result.model_dump()},
+            data={"validation_result": validation_result.model_dump(mode='json')},
             request_id=request_id
         )
         
@@ -494,7 +494,7 @@ async def validate_supply_tree(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 # Helper functions

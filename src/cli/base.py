@@ -178,7 +178,7 @@ class CLIContext:
     
     def log(self, message: str, level: str = "info"):
         """Log message with appropriate level"""
-        if self.verbose or level in ["error", "warning"]:
+        if self.verbose or level in ["error", "warning", "success"]:
             if level == "error":
                 click.echo(f"❌ {message}", err=True)
             elif level == "warning":

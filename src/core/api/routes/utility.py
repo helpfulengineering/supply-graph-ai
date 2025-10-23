@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Path, Depends, Request, status, HTTPException
-from typing import Optional, List
+from typing import Optional, List, Any
 from datetime import datetime
 
 # Import new standardized components
 from ..models.base import (
-    ValidationResult
+    ValidationResult, ErrorDetail, ErrorCode
 )
 from ..decorators import (
     api_endpoint,
@@ -57,10 +57,6 @@ router = APIRouter(
     - Comprehensive validation
     """
 )
-@api_endpoint(
-    success_message="Domains retrieved successfully",
-    include_metrics=True
-)
 @track_performance("utility_domains")
 @llm_endpoint(
     default_provider="anthropic",
@@ -99,7 +95,7 @@ async def get_domains(
         
         # Create enhanced response using the proper DomainsResponse structure
         response_data = {
-            "domains": [domain.model_dump() for domain in domains],
+            "domains": [domain.model_dump(mode='json') for domain in domains],
             "processing_time": processing_time,
             "validation_results": await _validate_utility_result(domains, request_id)
         }
@@ -116,6 +112,7 @@ async def get_domains(
         
         return DomainsResponse(
             domains=domains,
+            message="Domains retrieved successfully",
             processing_time=processing_time,
             validation_results=await _validate_utility_result(domains, request_id)
         )
@@ -139,7 +136,7 @@ async def get_domains(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.get(
@@ -156,10 +153,6 @@ async def get_domains(
     - LLM integration support
     - Comprehensive validation
     """
-)
-@api_endpoint(
-    success_message="Contexts retrieved successfully",
-    include_metrics=True
 )
 @track_performance("utility_contexts")
 @llm_endpoint(
@@ -216,7 +209,7 @@ async def get_contexts(
         
         # Create enhanced response using the proper ContextsResponse structure
         response_data = {
-            "contexts": [context.model_dump() for context in contexts],
+            "contexts": [context.model_dump(mode='json') for context in contexts],
             "processing_time": processing_time,
             "validation_results": await _validate_utility_result(contexts, request_id)
         }
@@ -234,6 +227,7 @@ async def get_contexts(
         
         return ContextsResponse(
             contexts=contexts,
+            message="Contexts retrieved successfully",
             processing_time=processing_time,
             validation_results=await _validate_utility_result(contexts, request_id)
         )
@@ -258,12 +252,12 @@ async def get_contexts(
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump()
+            detail=error_response.model_dump(mode='json')
         )
 
 # Helper functions
 async def _validate_utility_result(
-    result: any,
+    result: Any,
     request_id: str
 ) -> List[ValidationResult]:
     """Validate utility operation result."""
@@ -279,7 +273,10 @@ async def _validate_utility_result(
         # Check if result exists
         if not result:
             is_valid = False
-            errors.append("No result returned from operation")
+            errors.append(ErrorDetail(
+                code=ErrorCode.VALIDATION_ERROR,
+                message="No result returned from operation"
+            ))
         
         # Check if result is a list and has items
         if isinstance(result, list):
