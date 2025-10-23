@@ -164,7 +164,13 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
             from ..core.api.models.match.request import MatchRequest
             match_request = MatchRequest(
                 okh_manifest=okh_data,
-                filters=filters
+                access_type=filters.get("access_type"),
+                facility_status=filters.get("facility_status"),
+                location=filters.get("location"),
+                capabilities=filters.get("capabilities"),
+                materials=filters.get("materials"),
+                min_confidence=filters.get("min_confidence"),
+                max_results=filters.get("max_results")
             )
             
             results = await matching_service.find_matches_with_manifest(manifest, facilities)
@@ -353,7 +359,7 @@ async def domains(ctx, domain: Optional[str], active_only: bool,
             domains = await matching_service.get_available_domains()
             
             return {
-                "domains": [domain.to_dict() for domain in domains],
+                "domains": domains,  # domains are already dictionaries
                 "total_count": len(domains)
             }
         

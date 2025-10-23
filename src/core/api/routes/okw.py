@@ -90,18 +90,13 @@ async def get_okw_service() -> OKWService:
     - Detailed validation results
     """
 )
-@api_endpoint(
-    success_message="OKW facility created successfully",
-    include_metrics=True,
-    track_llm=True
-)
 @validate_request(OKWCreateRequest)
 @track_performance("okw_creation")
-@llm_endpoint(
-    default_provider="anthropic",
-    default_model="claude-3-sonnet",
-    track_costs=True
-)
+# @llm_endpoint(
+#     default_provider="anthropic",
+#     default_model="claude-3-sonnet",
+#     track_costs=True
+# )
 async def create_okw(
     request: OKWCreateRequest,
     http_request: Request,
@@ -615,10 +610,6 @@ async def delete_okw(
     Returns detailed validation results including errors, warnings, and
     completeness scoring.
     """
-)
-@api_endpoint(
-    success_message="OKW validation completed successfully",
-    include_metrics=True
 )
 @track_performance("okw_validation")
 async def validate_okw(

@@ -146,11 +146,6 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
 
 @okh_group.command()
 @click.argument('manifest_file', type=click.Path(exists=True))
-@click.option('--quality-level', default='professional',
-              type=click.Choice(['hobby', 'professional', 'medical']),
-              help='Quality level for validation')
-@click.option('--strict-mode', is_flag=True,
-              help='Enable strict validation mode')
 @standard_cli_command(
     help_text="""
     Validate an OKH manifest for compliance and completeness.
@@ -192,19 +187,22 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
 @click.pass_context
 async def validate(ctx, manifest_file: str, quality_level: str, strict_mode: bool,
                   verbose: bool, output_format: str, use_llm: bool,
-                  llm_provider: str, llm_model: Optional[str],
-                  llm_quality_level: str, llm_strict_mode: bool):
+                  llm_provider: str, llm_model: Optional[str]):
     """Validate an OKH manifest with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-validate")
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
     
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
-        quality_level=llm_quality_level,
-        strict_mode=llm_strict_mode
+        quality_level=quality_level,
+        strict_mode=strict_mode
     )
     
     try:
@@ -213,11 +211,13 @@ async def validate(ctx, manifest_file: str, quality_level: str, strict_mode: boo
         manifest_data = await _read_manifest_file(manifest_file)
     
         # Create request data with LLM configuration
+        # The API expects manifest data wrapped in a 'content' field
         request_data = create_llm_request_data(cli_ctx, {
-            "content": manifest_data,
             "validation_context": quality_level,
             "strict_mode": strict_mode
         })
+        # Wrap manifest data in 'content' field as expected by API
+        request_data["content"] = manifest_data
         
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
@@ -227,7 +227,7 @@ async def validate(ctx, manifest_file: str, quality_level: str, strict_mode: boo
             """Validate via HTTP API"""
             cli_ctx.log("Validating via HTTP API...", "info")
             response = await cli_ctx.api_client.request(
-                "POST", "/okh/validate", json_data=request_data
+                "POST", "/api/okh/validate", json_data=request_data
             )
             return response
         
@@ -313,9 +313,10 @@ async def create(ctx, manifest_file: str, output: Optional[str],
         manifest_data = await _read_manifest_file(manifest_file)
     
         # Create request data with LLM configuration
-        request_data = create_llm_request_data(cli_ctx, {
-            "content": manifest_data
-        })
+        # Merge manifest data with LLM config (manifest fields go directly, not wrapped in 'content')
+        request_data = create_llm_request_data(cli_ctx, {})
+        # Add manifest fields directly to the request
+        request_data.update(manifest_data)
         
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
@@ -324,7 +325,7 @@ async def create(ctx, manifest_file: str, output: Optional[str],
         async def http_create():
             """Create via HTTP API"""
             cli_ctx.log("Creating via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("POST", "/okh/create", json_data=request_data)
+            response = await cli_ctx.api_client.request("POST", "/api/okh/create", json_data=request_data)
             return response
         
         async def fallback_create():
@@ -408,7 +409,7 @@ async def get(ctx, manifest_id: str, output: Optional[str],
         async def http_get():
             """Get via HTTP API"""
             cli_ctx.log("Retrieving via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("GET", f"/okh/{manifest_id}")
+            response = await cli_ctx.api_client.request("GET", f"/api/okh/{manifest_id}")
             return response
         
         async def fallback_get():
@@ -500,7 +501,7 @@ async def extract(ctx, manifest_file: str,
         async def http_extract():
             """Extract via HTTP API"""
             cli_ctx.log("Extracting via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("POST", "/okh/extract", json_data=request_data)
+            response = await cli_ctx.api_client.request("POST", "/api/okh/extract", json_data=request_data)
             return response
         
         async def fallback_extract():
@@ -597,7 +598,7 @@ async def list_manifests(ctx, limit: int, offset: int,
             """List via HTTP API"""
             cli_ctx.log("Listing via HTTP API...", "info")
             params = {"limit": limit, "offset": offset}
-            response = await cli_ctx.api_client.request("GET", "/okh/list", params=params)
+            response = await cli_ctx.api_client.request("GET", "/api/okh/", params=params)
             return response
         
         async def fallback_list():
@@ -705,7 +706,7 @@ async def delete(ctx, manifest_id: str, force: bool,
         async def http_delete():
             """Delete via HTTP API"""
             cli_ctx.log("Deleting via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("DELETE", f"/okh/{manifest_id}")
+            response = await cli_ctx.api_client.request("DELETE", f"/api/okh/{manifest_id}")
             return response
         
         async def fallback_delete():
@@ -734,8 +735,6 @@ async def delete(ctx, manifest_id: str, force: bool,
 
 @okh_group.command()
 @click.argument('file_path', type=click.Path(exists=True))
-@click.option('--quality-level', default='basic', type=click.Choice(['basic', 'standard', 'premium']), help='Validation quality level')
-@click.option('--strict-mode', is_flag=True, help='Enable strict validation mode')
 @standard_cli_command(
     help_text="""
     Upload and validate an OKH manifest file.
@@ -767,10 +766,9 @@ async def delete(ctx, manifest_id: str, force: bool,
     add_llm_config=True
 )
 @click.pass_context
-async def upload(ctx, file_path: str, quality_level: str, strict_mode: bool,
-                verbose: bool, output_format: str, use_llm: bool,
+async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm: bool,
                 llm_provider: str, llm_model: Optional[str],
-                llm_quality_level: str, llm_strict_mode: bool):
+                quality_level: str, strict_mode: bool):
     """Upload and validate an OKH manifest file with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-upload")
@@ -780,8 +778,8 @@ async def upload(ctx, file_path: str, quality_level: str, strict_mode: bool,
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
-        quality_level=llm_quality_level,
-        strict_mode=llm_strict_mode
+        quality_level=quality_level,
+        strict_mode=strict_mode
     )
     
     try:
@@ -792,15 +790,20 @@ async def upload(ctx, file_path: str, quality_level: str, strict_mode: bool,
         async def http_upload():
             """Upload manifest via HTTP API"""
             cli_ctx.log("Uploading via HTTP API...", "info")
-            with open(file_path, 'r') as f:
-                content = f.read()
             
-            payload = {
-                "content": content,
-                "quality_level": quality_level,
-                "strict_mode": strict_mode
+            # Prepare form data for file upload
+            form_data = {
+                "validation_context": quality_level,
+                "description": f"Uploaded OKH manifest with {quality_level} validation"
             }
-            response = await cli_ctx.api_client.request("POST", "/okh/upload", json_data=payload)
+            
+            response = await cli_ctx.api_client.upload_file(
+                "POST", 
+                "/api/okh/upload", 
+                file_path,
+                file_field_name="okh_file",
+                form_data=form_data
+            )
             return response
         
         async def fallback_upload():
@@ -809,7 +812,10 @@ async def upload(ctx, file_path: str, quality_level: str, strict_mode: bool,
             with open(file_path, 'r') as f:
                 content = f.read()
             
-            manifest = OKHManifest.from_json(content)
+            # Parse JSON content to dict, then create manifest
+            import json
+            manifest_data = json.loads(content)
+            manifest = OKHManifest.from_dict(manifest_data)
             okh_service = await OKHService.get_instance()
             result = await okh_service.create(manifest)
             return result.to_dict()
@@ -902,7 +908,7 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
             """Generate via HTTP API"""
             cli_ctx.log("Generating via HTTP API...", "info")
             payload = {"url": url, "skip_review": no_review}
-            response = await cli_ctx.api_client.request("POST", "/okh/generate-from-url", json_data=payload)
+            response = await cli_ctx.api_client.request("POST", "/api/okh/generate-from-url", json_data=payload)
             return response
         
         async def fallback_generate():

@@ -46,6 +46,9 @@ class OKWService(BaseService['OKWService']):
         """Initialize the OKW service with service-specific setup."""
         await self.ensure_initialized()
         
+        # Ensure domains are registered (for fallback mode when server startup doesn't run)
+        await self._ensure_domains_registered()
+        
         # Add dependencies to base service
         self.add_dependency("storage", self.storage)
         
@@ -57,8 +60,11 @@ class OKWService(BaseService['OKWService']):
             await self.ensure_initialized()
             self.logger.info("Creating new manufacturing facility")
             
-            # Create facility object
-            facility = ManufacturingFacility.from_dict(facility_data)
+            # Create facility object - handle both dict and ManufacturingFacility inputs
+            if isinstance(facility_data, ManufacturingFacility):
+                facility = facility_data
+            else:
+                facility = ManufacturingFacility.from_dict(facility_data)
             
             # Store in storage with proper naming convention
             if self.storage:
@@ -106,6 +112,10 @@ class OKWService(BaseService['OKWService']):
             
             return None
     
+    async def get_by_id(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
+        """Get a manufacturing facility by ID (CLI compatibility method)"""
+        return await self.get(facility_id)
+    
     async def list(
         self, 
         page: int = 1, 
@@ -145,6 +155,31 @@ class OKWService(BaseService['OKWService']):
             return objects, len(file_infos)
         
         return [], 0
+    
+    async def list_facilities(
+        self, 
+        limit: int = 100, 
+        offset: int = 0,
+        facility_type: Optional[str] = None,
+        status: Optional[str] = None,
+        location: Optional[str] = None
+    ) -> List[ManufacturingFacility]:
+        """List manufacturing facilities with limit/offset parameters (CLI compatibility)"""
+        # Convert limit/offset to page/page_size
+        page_size = limit
+        page = (offset // page_size) + 1
+        
+        # Build filter parameters
+        filter_params = {}
+        if facility_type:
+            filter_params['facility_type'] = facility_type
+        if status:
+            filter_params['status'] = status
+        if location:
+            filter_params['location'] = location
+        
+        facilities, total = await self.list(page=page, page_size=page_size, filter_params=filter_params)
+        return facilities
     
     async def update(self, facility_id: UUID, facility_data: Dict[str, Any]) -> ManufacturingFacility:
         """Update a manufacturing facility"""
@@ -250,3 +285,71 @@ class OKWService(BaseService['OKWService']):
             return {"status": "llm_recommendation_not_implemented"}
         else:
             return {"error": f"Unknown LLM request type: {request_type}"}
+    
+    async def _ensure_domains_registered(self) -> None:
+        """Ensure domains are registered (for fallback mode when server startup doesn't run)"""
+        from ..registry.domain_registry import DomainRegistry, DomainMetadata, DomainStatus
+        
+        # Check if domains are already registered
+        if DomainRegistry.list_domains():
+            logger.info("Domains already registered")
+            return
+        
+        logger.info("Registering domains for fallback mode...")
+        
+        try:
+            # Import domain components
+            from ..domains.cooking.extractors import CookingExtractor
+            from ..domains.cooking.matchers import CookingMatcher
+            from ..domains.cooking.validation.compatibility import CookingValidatorCompat
+            from ..domains.manufacturing.okh_extractor import OKHExtractor
+            from ..domains.manufacturing.okh_matcher import OKHMatcher
+            from ..domains.manufacturing.validation.compatibility import ManufacturingOKHValidatorCompat
+            
+            # Register Cooking domain
+            cooking_metadata = DomainMetadata(
+                name="cooking",
+                display_name="Cooking & Food Preparation",
+                description="Domain for recipe and kitchen capability matching",
+                version="1.0.0",
+                status=DomainStatus.ACTIVE,
+                supported_input_types={"recipe", "kitchen"},
+                supported_output_types={"cooking_workflow", "meal_plan"},
+                documentation_url="https://docs.ome.org/domains/cooking",
+                maintainer="OME Cooking Team"
+            )
+            
+            DomainRegistry.register_domain(
+                domain_name="cooking",
+                extractor=CookingExtractor(),
+                matcher=CookingMatcher(),
+                validator=CookingValidatorCompat(),
+                metadata=cooking_metadata
+            )
+            
+            # Register Manufacturing domain
+            manufacturing_metadata = DomainMetadata(
+                name="manufacturing",
+                display_name="Manufacturing & Hardware Production",
+                description="Domain for OKH/OKW manufacturing capability matching",
+                version="1.0.0",
+                status=DomainStatus.ACTIVE,
+                supported_input_types={"okh", "okw"},
+                supported_output_types={"supply_tree", "manufacturing_plan"},
+                documentation_url="https://docs.ome.org/domains/manufacturing",
+                maintainer="OME Manufacturing Team"
+            )
+            
+            DomainRegistry.register_domain(
+                domain_name="manufacturing",
+                extractor=OKHExtractor(),
+                matcher=OKHMatcher(),
+                validator=ManufacturingOKHValidatorCompat(),
+                metadata=manufacturing_metadata
+            )
+            
+            logger.info("Successfully registered domains for fallback mode")
+            
+        except Exception as e:
+            logger.error(f"Failed to register domains for fallback mode: {e}")
+            # Don't raise the exception - let the service continue without domains

@@ -89,18 +89,13 @@ async def get_storage_service() -> StorageService:
     - Detailed validation results
     """
 )
-@api_endpoint(
-    success_message="OKH manifest created successfully",
-    include_metrics=True,
-    track_llm=True
-)
 @validate_request(OKHCreateRequest)
 @track_performance("okh_creation")
-@llm_endpoint(
-    default_provider="anthropic",
-    default_model="claude-3-sonnet",
-    track_costs=True
-)
+# @llm_endpoint(
+#     default_provider="anthropic",
+#     default_model="claude-3-sonnet",
+#     track_costs=True
+# )
 async def create_okh(
     request: OKHCreateRequest,
     http_request: Request,
@@ -237,16 +232,12 @@ async def get_okh(
     - Comprehensive validation
     """
 )
-@api_endpoint(
-    success_message="OKH manifests retrieved successfully",
-    include_metrics=True
-)
 @paginated_response(default_page_size=20, max_page_size=100)
 async def list_okh(
+    http_request: Request,
     pagination: PaginationParams = Depends(),
     filter: Optional[str] = Query(None, description="Filter criteria (e.g., 'title=contains:Hardware')"),
-    okh_service: OKHService = Depends(get_okh_service),
-    http_request: Request = None
+    okh_service: OKHService = Depends(get_okh_service)
 ):
     """Enhanced OKH manifest listing with pagination and metrics."""
     request_id = getattr(http_request.state, 'request_id', None) if http_request else None
@@ -419,10 +410,6 @@ async def delete_okh(
     Returns detailed validation results including errors, warnings, and
     completeness scoring.
     """
-)
-@api_endpoint(
-    success_message="OKH validation completed successfully",
-    include_metrics=True
 )
 @track_performance("okh_validation")
 async def validate_okh(

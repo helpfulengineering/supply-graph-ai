@@ -298,17 +298,24 @@ async def list_packages(
         # Create pagination info
         total_pages = (total_items + pagination.page_size - 1) // pagination.page_size
         
-        return {
-            "items": paginated_packages,
-            "pagination": {
-                "page": pagination.page,
-                "page_size": pagination.page_size,
-                "total_items": total_items,
-                "total_pages": total_pages,
-                "has_next": pagination.page < total_pages,
-                "has_previous": pagination.page > 1
-            }
-        }
+        # Create proper PaginatedResponse object
+        from ..models.base import PaginationInfo
+        
+        pagination_info = PaginationInfo(
+            page=pagination.page,
+            page_size=pagination.page_size,
+            total_items=total_items,
+            total_pages=total_pages,
+            has_next=pagination.page < total_pages,
+            has_previous=pagination.page > 1
+        )
+        
+        return PaginatedResponse(
+            items=paginated_packages,
+            pagination=pagination_info,
+            message="Packages retrieved successfully",
+            request_id=request_id
+        )
         
     except Exception as e:
         # Use standardized error handler

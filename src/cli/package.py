@@ -68,14 +68,25 @@ async def _read_manifest_file(file_path: str) -> dict:
 async def _display_build_results(cli_ctx: CLIContext, result: dict, output_format: str):
     """Display build results."""
     if result.get("status") == "success":
-        metadata = result.get("metadata", {})
-        cli_ctx.log(f"Package built successfully: {metadata.get('package_name', 'Unknown')}", "success")
+        # Fix: Handle API response format (data.package) and fallback format (metadata)
+        metadata = result.get("data", {}).get("package") or result.get("package") or result.get("metadata", {})
+        
+        # Fix: Extract package name from available fields
+        package_name = (
+            metadata.get('package_name') or 
+            metadata.get('name') or 
+            metadata.get('title') or 
+            metadata.get('id') or 
+            'Unknown'
+        )
+        
+        cli_ctx.log(f"Package built successfully: {package_name}", "success")
         
         if output_format == "json":
             output_data = format_llm_output(result, cli_ctx)
             click.echo(output_data)
         else:
-            cli_ctx.log(f"📦 Package: {metadata.get('package_name', 'Unknown')}", "info")
+            cli_ctx.log(f"📦 Package: {package_name}", "info")
             cli_ctx.log(f"📁 Location: {metadata.get('package_path', 'Unknown')}", "info")
             cli_ctx.log(f"📄 Files: {metadata.get('total_files', 0)}", "info")
             cli_ctx.log(f"💾 Size: {metadata.get('total_size_bytes', 0):,} bytes", "info")
@@ -173,6 +184,10 @@ async def build(ctx, manifest_file: str, output_dir: Optional[str],
     """Build an OKH package from a manifest file with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-build")
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
     
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
@@ -300,6 +315,10 @@ async def build_from_storage(ctx, manifest_id: str, output_dir: Optional[str],
     """Build an OKH package from a stored manifest with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-build-from-storage")
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
     
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
@@ -440,8 +459,13 @@ async def list_packages(ctx, verbose: bool, output_format: str, use_llm: bool,
         result = await command.execute_with_fallback(http_list, fallback_list)
         
         # Display listing results
-        packages = result.get("packages", [])
-        total = result.get("total", len(packages))
+        # Fix: Handle both API response format (items) and fallback format (packages)
+        if "items" in result:
+            packages = result.get("items", [])
+            total = result.get("pagination", {}).get("total_items", len(packages))
+        else:
+            packages = result.get("packages", [])
+            total = result.get("total", len(packages))
         
         if packages:
             cli_ctx.log(f"Found {total} built packages", "success")
@@ -451,8 +475,8 @@ async def list_packages(ctx, verbose: bool, output_format: str, use_llm: bool,
                 click.echo(output_data)
             else:
                 for pkg in packages:
-                    cli_ctx.log(f"📦 {pkg.get('package_name', 'Unknown')}/{pkg.get('version', 'Unknown')}", "info")
-                    cli_ctx.log(f"   📁 {pkg.get('package_path', 'Unknown')}", "info")
+                    click.echo(f"📦 {pkg.get('package_name', 'Unknown')}/{pkg.get('version', 'Unknown')}")
+                    click.echo(f"   📁 {pkg.get('package_path', 'Unknown')}")
                     cli_ctx.log(f"   📄 {pkg.get('total_files', 0)} files, {pkg.get('total_size_bytes', 0):,} bytes", "info")
                     cli_ctx.log(f"   🕒 Built: {pkg.get('build_timestamp', 'Unknown')}", "info")
                     cli_ctx.log("", "info")  # Empty line for spacing
@@ -505,6 +529,10 @@ async def verify(ctx, package_name: str, version: str,
     """Verify a package's integrity with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-verify")
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
     
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
@@ -592,6 +620,10 @@ async def delete(ctx, package_name: str, version: str, force: bool,
     """Delete a package with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-delete")
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
     
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
@@ -988,10 +1020,10 @@ async def list_remote(ctx, verbose: bool, output_format: str, use_llm: bool,
                 
                 # Display packages
                 for package_name, versions in packages_by_name.items():
-                    cli_ctx.log(f"\n📦 {package_name}", "info")
+                    click.echo(f"\n📦 {package_name}")
                     for pkg in sorted(versions, key=lambda x: x['version']):
                         size_mb = pkg['size'] / (1024 * 1024) if pkg['size'] else 0
-                        cli_ctx.log(f"  📄 {pkg['version']} ({size_mb:.1f} MB)", "info")
+                        click.echo(f"  📄 {pkg['version']} ({size_mb:.1f} MB)")
                         
                         if cli_ctx.verbose and pkg.get('last_modified'):
                             cli_ctx.log(f"    🕒 Modified: {pkg['last_modified']}", "info")

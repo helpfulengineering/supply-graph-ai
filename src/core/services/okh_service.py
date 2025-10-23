@@ -79,8 +79,11 @@ class OKHService(BaseService['OKHService']):
             await self.ensure_initialized()
             self.logger.info("Creating new OKH manifest")
             
-            # Create manifest object
-            manifest = OKHManifest.from_dict(manifest_data)
+            # Create manifest object - handle both dict and OKHManifest inputs
+            if isinstance(manifest_data, OKHManifest):
+                manifest = manifest_data
+            else:
+                manifest = OKHManifest.from_dict(manifest_data)
             
             # Store in storage with -okh.json suffix pattern (consistent with synthetic data)
             if self.storage:
@@ -148,6 +151,10 @@ class OKHService(BaseService['OKHService']):
                 self.logger.error(f"Unexpected error in get method: {e}")
                 self.logger.error(f"Traceback: {traceback.format_exc()}")
                 raise
+    
+    async def get_by_id(self, manifest_id: UUID) -> Optional[OKHManifest]:
+        """Get an OKH manifest by ID (CLI compatibility method)"""
+        return await self.get(manifest_id)
     
     async def fetch_from_url(self, url: str) -> OKHManifest:
         """Fetch an OKH manifest from a remote URL"""
@@ -223,6 +230,15 @@ class OKHService(BaseService['OKHService']):
                 return objects, len(file_infos)
         
         return [], 0
+    
+    async def list_manifests(self, limit: int = 100, offset: int = 0) -> List[OKHManifest]:
+        """List OKH manifests with limit/offset parameters (CLI compatibility)"""
+        # Convert limit/offset to page/page_size
+        page_size = limit
+        page = (offset // page_size) + 1
+        
+        manifests, total = await self.list(page=page, page_size=page_size)
+        return manifests
     
     async def update(self, manifest_id: UUID, manifest_data: Dict[str, Any]) -> OKHManifest:
         """Update an OKH manifest"""

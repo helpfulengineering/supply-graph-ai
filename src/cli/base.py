@@ -119,6 +119,50 @@ class APIClient:
             except Exception as e:
                 raise click.ClickException(f"Unexpected error: {str(e)}")
 
+    async def upload_file(
+        self, 
+        method: str, 
+        endpoint: str, 
+        file_path: str,
+        file_field_name: str = "file",
+        form_data: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Make HTTP request with file upload"""
+        async with self.get_client() as client:
+            try:
+                # Prepare form data
+                files = {file_field_name: open(file_path, 'rb')}
+                data = form_data or {}
+                
+                response = await client.request(
+                    method=method,
+                    url=endpoint,
+                    files=files,
+                    data=data
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                try:
+                    error_data = e.response.json()
+                    error_detail = error_data.get("detail", str(e))
+                except:
+                    error_detail = e.response.text or str(e)
+                
+                raise click.ClickException(f"API Error ({e.response.status_code}): {error_detail}")
+            except httpx.ConnectError:
+                raise click.ClickException(f"Could not connect to server at {self.config.server_url}")
+            except httpx.TimeoutException:
+                raise click.ClickException(f"Request timed out after {self.config.timeout}s")
+            except Exception as e:
+                raise click.ClickException(f"Unexpected error: {str(e)}")
+            finally:
+                # Ensure file is closed
+                if 'files' in locals():
+                    for file_obj in files.values():
+                        if hasattr(file_obj, 'close'):
+                            file_obj.close()
+
 
 class ServiceFallback:
     """Fallback to direct service calls when server is unavailable"""

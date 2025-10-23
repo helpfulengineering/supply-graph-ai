@@ -9,9 +9,9 @@ class OKHCreateRequest(BaseAPIRequest, LLMRequestMixin):
     title: str
     repo: str
     version: str
-    license: Dict[str, Any]
-    licensor: Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]
-    documentation_language: Union[str, List[str]]
+    license: Union[str, Dict[str, Any]]  # Allow both string and dict
+    licensor: Optional[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]] = None  # Make optional
+    documentation_language: Optional[Union[str, List[str]]] = None  # Make optional
     function: str
     
     # Optional fields after
@@ -32,10 +32,23 @@ class OKHCreateRequest(BaseAPIRequest, LLMRequestMixin):
     making_instructions: List[Dict[str, Any]] = Field(default_factory=list)
     tool_list: List[str] = Field(default_factory=list)
     manufacturing_processes: List[str] = Field(default_factory=list)
-    materials: List[Dict[str, Any]] = Field(default_factory=list)
+    materials: List[Union[str, Dict[str, Any]]] = Field(default_factory=list)  # Allow both strings and dicts
     manufacturing_specs: Optional[Dict[str, Any]] = None
     parts: List[Dict[str, Any]] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Additional fields from OKH-LOSH format
+    okhv: Optional[str] = None
+    id: Optional[str] = None
+    development_stage: Optional[str] = None
+    technology_readiness_level: Optional[str] = None
+    operating_instructions: Optional[List[Dict[str, Any]]] = None
+    bom: Optional[Dict[str, Any]] = None
+    standards_used: Optional[List[Dict[str, Any]]] = None
+    tsdc: Optional[List[Dict[str, Any]]] = None
+    sub_parts: Optional[List[Dict[str, Any]]] = None
+    software: Optional[List[Dict[str, Any]]] = None
+    files: Optional[List[Dict[str, Any]]] = None
     
     class Config:
         json_schema_extra = {
@@ -109,10 +122,23 @@ class OKHUpdateRequest(BaseModel):
     making_instructions: List[Dict[str, Any]] = Field(default_factory=list)
     tool_list: List[str] = Field(default_factory=list)
     manufacturing_processes: List[str] = Field(default_factory=list)
-    materials: List[Dict[str, Any]] = Field(default_factory=list)
+    materials: List[Union[str, Dict[str, Any]]] = Field(default_factory=list)  # Allow both strings and dicts
     manufacturing_specs: Optional[Dict[str, Any]] = None
     parts: List[Dict[str, Any]] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Additional fields from OKH-LOSH format
+    okhv: Optional[str] = None
+    id: Optional[str] = None
+    development_stage: Optional[str] = None
+    technology_readiness_level: Optional[str] = None
+    operating_instructions: Optional[List[Dict[str, Any]]] = None
+    bom: Optional[Dict[str, Any]] = None
+    standards_used: Optional[List[Dict[str, Any]]] = None
+    tsdc: Optional[List[Dict[str, Any]]] = None
+    sub_parts: Optional[List[Dict[str, Any]]] = None
+    software: Optional[List[Dict[str, Any]]] = None
+    files: Optional[List[Dict[str, Any]]] = None
 
 class OKHValidateRequest(BaseModel):
     """Request model for validating an OKH object"""

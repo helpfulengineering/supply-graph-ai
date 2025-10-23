@@ -61,6 +61,9 @@ class MatchingService:
         self.okh_service = okh_service
         self.okw_service = okw_service
         
+        # Ensure domains are registered (for fallback mode)
+        await self._ensure_domains_registered()
+        
         # Initialize capability-centric heuristic matching
         self.capability_rule_manager = CapabilityRuleManager()
         await self.capability_rule_manager.initialize()
@@ -676,6 +679,120 @@ class MatchingService:
         
         return min(1.0, jaccard_similarity)
     
+    async def get_available_domains(self) -> List[Dict[str, Any]]:
+        """Get list of available matching domains"""
+        await self.ensure_initialized()
+        
+        # Get domains from the domain registry
+        from ..registry.domain_registry import DomainRegistry
+        domains = []
+        
+        # Get all registered domains
+        for domain_id in DomainRegistry.list_domains():
+            try:
+                domain_services = DomainRegistry.get_domain_services(domain_id)
+                # Get matcher count - handle both single matcher and list of matchers
+                matcher = self.direct_matchers.get(domain_id)
+                if matcher is None:
+                    matchers_available = 0
+                elif isinstance(matcher, list):
+                    matchers_available = len(matcher)
+                else:
+                    matchers_available = 1  # Single matcher object
+                
+                domain_info = {
+                    "id": domain_id,
+                    "name": domain_id.title(),
+                    "description": f"{domain_id.title()} domain matching capabilities",
+                    "status": "active",
+                    "matchers_available": matchers_available,
+                    "nlp_enabled": domain_id in self.nlp_matchers
+                }
+                domains.append(domain_info)
+            except Exception as e:
+                logger.warning(f"Failed to get domain info for {domain_id}: {e}")
+                # Add basic domain info even if services fail
+                domain_info = {
+                    "id": domain_id,
+                    "name": domain_id.title(),
+                    "description": f"{domain_id.title()} domain matching capabilities",
+                    "status": "error",
+                    "matchers_available": 0,
+                    "nlp_enabled": False
+                }
+                domains.append(domain_info)
+        
+        logger.info(f"Retrieved {len(domains)} available domains")
+        return domains
+
+    async def _ensure_domains_registered(self) -> None:
+        """Ensure domains are registered (for fallback mode when server startup doesn't run)"""
+        from ..registry.domain_registry import DomainRegistry, DomainMetadata, DomainStatus
+        
+        # Check if domains are already registered
+        if DomainRegistry.list_domains():
+            logger.info("Domains already registered")
+            return
+        
+        logger.info("Registering domains for fallback mode...")
+        
+        try:
+            # Import domain components
+            from ..domains.cooking.extractors import CookingExtractor
+            from ..domains.cooking.matchers import CookingMatcher
+            from ..domains.cooking.validation.compatibility import CookingValidatorCompat
+            from ..domains.manufacturing.okh_extractor import OKHExtractor
+            from ..domains.manufacturing.okh_matcher import OKHMatcher
+            from ..domains.manufacturing.validation.compatibility import ManufacturingOKHValidatorCompat
+            
+            # Register Cooking domain
+            cooking_metadata = DomainMetadata(
+                name="cooking",
+                display_name="Cooking & Food Preparation",
+                description="Domain for recipe and kitchen capability matching",
+                version="1.0.0",
+                status=DomainStatus.ACTIVE,
+                supported_input_types={"recipe", "kitchen"},
+                supported_output_types={"cooking_workflow", "meal_plan"},
+                documentation_url="https://docs.ome.org/domains/cooking",
+                maintainer="OME Cooking Team"
+            )
+            
+            DomainRegistry.register_domain(
+                domain_name="cooking",
+                extractor=CookingExtractor(),
+                matcher=CookingMatcher(),
+                validator=CookingValidatorCompat(),
+                metadata=cooking_metadata
+            )
+            
+            # Register Manufacturing domain
+            manufacturing_metadata = DomainMetadata(
+                name="manufacturing",
+                display_name="Manufacturing & Hardware Production",
+                description="Domain for OKH/OKW manufacturing capability matching",
+                version="1.0.0",
+                status=DomainStatus.ACTIVE,
+                supported_input_types={"okh", "okw"},
+                supported_output_types={"supply_tree", "manufacturing_plan"},
+                documentation_url="https://docs.ome.org/domains/manufacturing",
+                maintainer="OME Manufacturing Team"
+            )
+            
+            DomainRegistry.register_domain(
+                domain_name="manufacturing",
+                extractor=OKHExtractor(),
+                matcher=OKHMatcher(),
+                validator=ManufacturingOKHValidatorCompat(),
+                metadata=manufacturing_metadata
+            )
+            
+            logger.info("Successfully registered domains for fallback mode")
+            
+        except Exception as e:
+            logger.error(f"Failed to register domains for fallback mode: {e}")
+            # Don't raise the exception - let the service continue without domains
+
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""
         if not self._initialized:
