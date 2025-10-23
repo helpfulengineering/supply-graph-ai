@@ -51,7 +51,7 @@ class MetricSeries:
     def add_point(self, value: Union[int, float], labels: Optional[Dict[str, str]] = None):
         """Add a new metric point"""
         point = MetricPoint(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
             value=value,
             labels=labels or {}
         )
@@ -70,7 +70,7 @@ class MetricSeries:
         if not self.points:
             return None
         
-        cutoff_time = datetime.utcnow() - duration if duration else None
+        cutoff_time = datetime.now() - duration if duration else None
         relevant_points = [
             p for p in self.points
             if cutoff_time is None or p.timestamp >= cutoff_time
@@ -124,7 +124,7 @@ class ErrorMetrics:
             
             # Record in timeline
             error_event = {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now().isoformat(),
                 "error_type": error_type,
                 "component": component,
                 "severity": severity.value,
@@ -134,7 +134,7 @@ class ErrorMetrics:
             self.error_timeline.append(error_event)
             
             # Update error rates (errors per minute)
-            current_time = datetime.utcnow()
+            current_time = datetime.now()
             minute_key = current_time.strftime("%Y-%m-%d %H:%M")
             
             # Clean old rate data (keep last 24 hours)
@@ -183,7 +183,7 @@ class ErrorMetrics:
             if error_type not in self.error_rates:
                 return 0.0
             
-            cutoff_time = datetime.utcnow() - duration
+            cutoff_time = datetime.now() - duration
             recent_errors = [
                 point for point in self.error_rates[error_type]
                 if point.timestamp >= cutoff_time
@@ -228,7 +228,7 @@ class PerformanceMetrics:
             
             # Record in timeline
             perf_event = {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now().isoformat(),
                 "operation": operation,
                 "component": component,
                 "duration_ms": duration_ms,
@@ -238,7 +238,7 @@ class PerformanceMetrics:
             self.performance_timeline.append(perf_event)
             
             # Update throughput metrics (operations per minute)
-            current_time = datetime.utcnow()
+            current_time = datetime.now()
             minute_key = current_time.strftime("%Y-%m-%d %H:%M")
             
             # Clean old throughput data
@@ -268,7 +268,7 @@ class PerformanceMetrics:
         with self._lock:
             self.resource_usage[resource_type].append(
                 MetricPoint(
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(),
                     value=usage_value,
                     labels={"component": component, "unit": unit}
                 )
@@ -305,7 +305,7 @@ class PerformanceMetrics:
                 if points:
                     recent_points = [
                         p for p in points
-                        if p.timestamp >= datetime.utcnow() - timedelta(minutes=5)
+                        if p.timestamp >= datetime.now() - timedelta(minutes=5)
                     ]
                     summary["throughput_stats"][operation] = {
                         "operations_per_minute": len(recent_points) / 5,
@@ -317,7 +317,7 @@ class PerformanceMetrics:
                 if points:
                     recent_points = [
                         p for p in points
-                        if p.timestamp >= datetime.utcnow() - timedelta(minutes=5)
+                        if p.timestamp >= datetime.now() - timedelta(minutes=5)
                     ]
                     if recent_points:
                         values = [p.value for p in recent_points]
@@ -379,7 +379,7 @@ class LLMMetrics:
             self.provider_stats[provider]["tokens_output"] += tokens_output
             self.provider_stats[provider]["total_cost"] += cost
             self.provider_stats[provider]["response_times"].append(duration_ms)
-            self.provider_stats[provider]["last_request"] = datetime.utcnow().isoformat()
+            self.provider_stats[provider]["last_request"] = datetime.now().isoformat()
             
             if not success:
                 self.provider_stats[provider]["errors"] += 1
@@ -406,7 +406,7 @@ class LLMMetrics:
                     self.model_stats[model_key]["response_times"][-1000:]
             
             # Record in timelines
-            current_time = datetime.utcnow()
+            current_time = datetime.now()
             
             cost_event = {
                 "timestamp": current_time.isoformat(),
@@ -453,7 +453,7 @@ class LLMMetrics:
     def get_cost_breakdown(self, duration: timedelta = timedelta(days=1)) -> Dict[str, Any]:
         """Get cost breakdown over time period"""
         with self._lock:
-            cutoff_time = datetime.utcnow() - duration
+            cutoff_time = datetime.now() - duration
             
             recent_costs = [
                 event for event in self.cost_timeline

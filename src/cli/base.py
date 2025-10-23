@@ -73,7 +73,7 @@ class APIClient:
     
     def __init__(self, config: CLIConfig):
         self.config = config
-        self.base_url = f"{config.server_url}/v1"
+        self.base_url = f"{config.server_url}/v1"  # Use /v1 API prefix
         
     @asynccontextmanager
     async def get_client(self):
@@ -216,15 +216,64 @@ class CLIContext:
     def start_command_tracking(self, command_name: str):
         """Start tracking command execution"""
         self.command_name = command_name
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now()
         if self.verbose:
             self.log(f"Starting {command_name} command", "info")
     
     def end_command_tracking(self):
         """End tracking command execution"""
         if self.start_time and self.verbose:
-            execution_time = (datetime.utcnow() - self.start_time).total_seconds()
+            execution_time = (datetime.now() - self.start_time).total_seconds()
             self.log(f"Command {self.command_name} completed in {execution_time:.2f} seconds", "success")
+    
+    async def cleanup(self):
+        """Clean up resources"""
+        try:
+            if self.verbose:
+                self.log("Starting cleanup...", "info")
+            
+            # Clean up package service if it exists
+            if hasattr(self.service_fallback, '_services') and 'package_service' in self.service_fallback._services:
+                package_service = self.service_fallback._services['package_service']
+                if hasattr(package_service, 'cleanup'):
+                    if self.verbose:
+                        self.log("Cleaning up package service...", "info")
+                    await package_service.cleanup()
+            
+            # Clean up storage service - handle singleton properly
+            storage_service = None
+            if hasattr(self.service_fallback, '_services') and 'storage_service' in self.service_fallback._services:
+                storage_service = self.service_fallback._services['storage_service']
+            else:
+                # Clean up singleton instance if it exists
+                try:
+                    storage_service = await StorageService.get_instance()
+                except:
+                    pass  # No instance exists
+            
+            if storage_service and hasattr(storage_service, 'cleanup'):
+                if self.verbose:
+                    self.log("Cleaning up storage service...", "info")
+                await storage_service.cleanup()
+                
+                # Give a small delay to allow any pending operations to complete
+                import asyncio
+                await asyncio.sleep(0.1)
+                
+                # Force cleanup of any remaining aiohttp sessions
+                try:
+                    import aiohttp
+                    # Close all aiohttp sessions that might be lingering
+                    if hasattr(aiohttp, '_connector_cleanup'):
+                        aiohttp._connector_cleanup()
+                except:
+                    pass  # Ignore any errors in aiohttp cleanup
+            
+            if self.verbose:
+                self.log("Cleanup completed", "info")
+        except Exception as e:
+            if self.verbose:
+                self.log(f"Warning: Error during cleanup: {e}", "warning")
 
 class SmartCommand:
     """Base class for commands that can use HTTP or direct service calls"""

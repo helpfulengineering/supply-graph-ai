@@ -118,9 +118,18 @@ def async_command(func: Callable) -> Callable:
         
         # Run async function
         try:
-            return asyncio.run(func(*args, **kwargs))
-        except Exception as e:
+            result = asyncio.run(func(*args, **kwargs))
+            # Clean up resources after successful execution
             if ctx and hasattr(ctx, 'obj'):
+                asyncio.run(ctx.obj.cleanup())
+            return result
+        except Exception as e:
+            # Clean up resources even on error
+            if ctx and hasattr(ctx, 'obj'):
+                try:
+                    asyncio.run(ctx.obj.cleanup())
+                except:
+                    pass  # Don't let cleanup errors mask the original error
                 echo_error(f"Command failed: {str(e)}")
             else:
                 click.echo(f"❌ Command failed: {str(e)}", err=True)
@@ -203,13 +212,13 @@ def with_performance_tracking(func: Callable) -> Callable:
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        start_time = datetime.utcnow()
+        start_time = datetime.now()
         
         try:
             result = func(*args, **kwargs)
             
             # Calculate execution time
-            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            execution_time = (datetime.now() - start_time).total_seconds()
             
             # Extract context for logging
             ctx = None
@@ -227,7 +236,7 @@ def with_performance_tracking(func: Callable) -> Callable:
             
         except Exception as e:
             # Calculate execution time even for errors
-            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            execution_time = (datetime.now() - start_time).total_seconds()
             
             # Extract context for logging
             ctx = None

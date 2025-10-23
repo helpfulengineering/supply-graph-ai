@@ -56,7 +56,7 @@ class ErrorHandler:
             "error_message": str(error),
             "severity": severity.value,
             "component": self.component_name,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "context": context or {}
         }
         
@@ -94,7 +94,7 @@ class ErrorHandler:
         """Update error metrics and tracking"""
         error_type = type(error).__name__
         self.error_counts[error_type] = self.error_counts.get(error_type, 0) + 1
-        self.last_error_times[error_type] = datetime.utcnow()
+        self.last_error_times[error_type] = datetime.now()
     
     def get_error_stats(self) -> Dict[str, Any]:
         """Get error statistics for this handler"""
@@ -166,7 +166,7 @@ class LLMErrorHandler(ErrorHandler):
     ) -> Dict[str, Any]:
         """Handle LLM rate limit errors with backoff strategy"""
         retry_after = error.details.get('retry_after', 60)
-        backoff_until = datetime.utcnow() + timedelta(seconds=retry_after)
+        backoff_until = datetime.now() + timedelta(seconds=retry_after)
         self.rate_limit_backoffs[provider] = backoff_until
         
         self.logger.warning(
@@ -250,7 +250,7 @@ class LLMErrorHandler(ErrorHandler):
         
         # Check rate limit backoff
         if provider in self.rate_limit_backoffs:
-            if datetime.utcnow() < self.rate_limit_backoffs[provider]:
+            if datetime.now() < self.rate_limit_backoffs[provider]:
                 return False
         
         # Limit retries
@@ -308,7 +308,7 @@ class APIErrorHandler(ErrorHandler):
             "method": method,
             "message": str(error),
             "details": getattr(error, 'details', {}),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
         
         # Log the error
@@ -377,7 +377,7 @@ class ServiceErrorHandler(ErrorHandler):
             "operation": operation,
             "message": str(error),
             "details": getattr(error, 'details', {}),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now().isoformat()
         }
         
         # Log the error

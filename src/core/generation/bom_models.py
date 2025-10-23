@@ -821,7 +821,7 @@ class BOMBuilder:
             name=project_name,
             components=validated_components,
             metadata={
-                'generated_at': datetime.utcnow().isoformat() + 'Z',
+                'generated_at': datetime.now().isoformat() + 'Z',
                 'source_count': len(components),
                 'final_count': len(validated_components),
                 'generation_method': 'bom_normalization'

@@ -916,6 +916,11 @@ async def list_remote(ctx, verbose: bool, output_format: str, use_llm: bool,
                      quality_level: str, strict_mode: bool):
     """List packages available in remote storage with enhanced LLM support."""
     cli_ctx = ctx.obj
+    
+    # Fix: Update verbose from the command parameter
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
     cli_ctx.start_command_tracking("package-list-remote")
     
     # Update CLI context with parameters from decorator
@@ -958,8 +963,13 @@ async def list_remote(ctx, verbose: bool, output_format: str, use_llm: bool,
         result = await command.execute_with_fallback(http_list_remote, fallback_list_remote)
         
         # Display listing results
-        packages = result.get("packages", [])
-        total = result.get("total", len(packages))
+        # Handle both API response format (data.packages) and fallback format (packages)
+        if "data" in result:
+            packages = result.get("data", {}).get("packages", [])
+            total = result.get("data", {}).get("total", len(packages))
+        else:
+            packages = result.get("packages", [])
+            total = result.get("total", len(packages))
         
         if packages:
             cli_ctx.log(f"Found {total} remote packages", "success")

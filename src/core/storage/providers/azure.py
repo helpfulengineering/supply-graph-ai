@@ -3,6 +3,13 @@ from typing import Optional, Dict, Any, List, AsyncIterator
 
 from ..base import StorageProvider, StorageConfig, StorageMetadata
 
+# Import Azure exceptions at module level
+try:
+    from azure.core.exceptions import ResourceNotFoundError
+except ImportError:
+    # Fallback for when Azure SDK is not available
+    ResourceNotFoundError = Exception
+
 logger = logging.getLogger(__name__)
 
 class AzureBlobProvider(StorageProvider):
@@ -27,7 +34,6 @@ class AzureBlobProvider(StorageProvider):
             try:
                 # Lazy import Azure modules to avoid memory leaks
                 from azure.storage.blob.aio import BlobServiceClient, ContainerClient
-                from azure.core.exceptions import ResourceNotFoundError
                 
                 # Get credentials from config
                 account_name = self.config.credentials.get("account_name")

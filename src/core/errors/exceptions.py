@@ -51,7 +51,7 @@ class ErrorContext:
     
     def __post_init__(self):
         if self.timestamp is None:
-            self.timestamp = datetime.utcnow()
+            self.timestamp = datetime.now()
         if self.metadata is None:
             self.metadata = {}
 
@@ -83,7 +83,7 @@ class OMEError(Exception):
         self.cause = cause
         self.error_code = error_code or f"{category.value}_{severity.value}"
         self.details = details or {}
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now()
         self.traceback = traceback.format_exc()
     
     def to_dict(self) -> Dict[str, Any]:

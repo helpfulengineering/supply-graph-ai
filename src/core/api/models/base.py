@@ -85,7 +85,7 @@ class BaseAPIResponse(BaseModel):
     # Required fields
     status: APIStatus = Field(..., description="Response status")
     message: str = Field(..., description="Human-readable response message")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="Response timestamp")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Response timestamp")
     
     # Optional fields
     request_id: Optional[str] = Field(None, description="Request identifier if provided")

@@ -65,7 +65,13 @@ async def get_remote_storage() -> PackageRemoteStorage:
     """Get package remote storage instance."""
     from ...services.storage_service import StorageService
     storage_service = await StorageService.get_instance()
-    await storage_service.configure(settings.STORAGE_CONFIG)
+    
+    # Configure storage service if not already configured
+    if not storage_service._configured:
+        from ....config.storage_config import get_default_storage_config
+        config = get_default_storage_config()
+        await storage_service.configure(config)
+    
     return PackageRemoteStorage(storage_service)
 
 
@@ -120,7 +126,7 @@ async def build_package_from_manifest(
         Enhanced package response with comprehensive data
     """
     request_id = getattr(http_request.state, 'request_id', None)
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # Create manifest from data
@@ -136,7 +142,7 @@ async def build_package_from_manifest(
         metadata = await package_service.build_package_from_manifest(manifest, options)
         
         # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Create enhanced response
         response_data = {
@@ -670,11 +676,12 @@ async def list_remote_packages(
         # List remote packages
         packages = await remote_storage.list_remote_packages()
         
-        return create_success_response(
+        response = create_success_response(
             message="Remote packages listed successfully",
             data={"packages": packages, "total": len(packages)},
             request_id=None
         )
+        return response.model_dump()
         
     except Exception as e:
         # Use standardized error handler

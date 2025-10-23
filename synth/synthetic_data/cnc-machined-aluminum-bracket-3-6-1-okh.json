@@ -1,0 +1,433 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b6f801c7-cae1-41fa-8f11-067ecbcb3d86",
+  "title": "CNC Machined Aluminum Bracket",
+  "repo": "https://github.com/marcus66/cnc-machined-aluminum-bracket",
+  "version": "3.6.1",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Shelby Merritt",
+    "email": "dlee@example.org",
+    "affiliation": "Martin, Walker and Oneal",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jamesrogers"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Precision mounting bracket for industrial equipment",
+  "description": "A cnc machined aluminum bracket designed for Tough right then only lay attorney.",
+  "intended_use": "Animal brother memory will order less again.",
+  "keywords": [
+    "customizable",
+    "fastener",
+    "prototype",
+    "shaft"
+  ],
+  "contact": {
+    "name": "Stephen Hinton",
+    "email": "cassiegross@example.org",
+    "affiliation": "White, Jones and Kerr",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "briggsjessica"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Robert Yates",
+      "email": "edwardsdavid@example.net",
+      "affiliation": "Meadows Inc",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "ashley22"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Carpenter Group",
+    "url": "https://harris-watkins.net",
+    "email": "contact@figueroa.biz"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/hkemp/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/vancesara/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/salazaramy/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Dimensional Inspection Procedures",
+      "path": "https://github.com/zevans/project/raw/main/docs/dimensional_inspection_procedures.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/tvalenzuela/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "CNC Safety Procedures",
+      "path": "https://github.com/tinacraig/project/raw/main/docs/cnc_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/patrick66/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/meyerszachary/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/yorkdaniel/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/lhall/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for CNC Machined Aluminum Bracket",
+      "path": "https://github.com/vlee/project/raw/main/docs/assembly_guide_for_cnc_machined_aluminum_bracket.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "CNC Machining Instructions",
+      "path": "https://github.com/mackenzieandrews/project/raw/main/docs/cnc_machining_instructions.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/sandramunoz/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/howardkatherine/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [
+    "Wrench set",
+    "Surface plate",
+    "Cutting tools",
+    "CNC mill",
+    "Crimping tool",
+    "Dial indicator"
+  ],
+  "manufacturing_processes": [
+    "CNC",
+    "Deburring",
+    "Anodizing"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 193.52,
+      "unit": "m²",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 378.08,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 159.58,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 454.03,
+      "unit": "kg",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit"
+    ],
+    "outer_dimensions": {
+      "length": 54,
+      "width": 152,
+      "height": 45
+    },
+    "process_requirements": [
+      {
+        "process_name": "CNC",
+        "parameters": {
+          "tolerance": "±0.02mm",
+          "surface_finish": "Ra 1.6μm",
+          "cutting_speed": "148 m/min"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.01mm",
+          "surface_roughness": "Ra 1.6μm max"
+        },
+        "required_tools": [
+          "CNC mill",
+          "Cutting tools",
+          "CMM"
+        ],
+        "notes": "Process notes: Man especially space the already."
+      }
+    ],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Past special more perhaps create that despite space."
+  },
+  "bom": "https://github.com/farmerjeffery/project/raw/main/docs/bom_cnc_machined_aluminum_bracket.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "CNC"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "533eef86-a881-4a37-a0fe-b56e78d8346e",
+      "source": [
+        "https://github.com/daniel29/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/woodwardchristian/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/douglaskeller/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/bhill/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 80,
+        "width": 115,
+        "height": 92
+      },
+      "mass": 171.61,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "6b405c71-9ce9-4d6f-b087-5cf22c418284",
+      "source": [
+        "https://github.com/morrowlauren/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/campbelltina/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/jessica28/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/dustin44/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 173,
+        "width": 200,
+        "height": 100
+      },
+      "mass": 929.88,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "6e08d30b-e618-4f39-8dea-20ff17f9c8ba",
+      "source": [
+        "https://github.com/mary28/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/vmontgomery/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/daniel11/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/lreese/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 191,
+        "width": 32,
+        "height": 8
+      },
+      "mass": 128.34,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "1693ce68-ab95-4326-9d4a-dcc81875cc21",
+      "source": [
+        "https://github.com/andrewjones/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/ianderson/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/wwilliams/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/vwise/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 80,
+        "width": 32,
+        "height": 14
+      },
+      "mass": 632.4,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "40b9e219-73af-464e-9c2f-bb6e2a606de5",
+      "source": [
+        "https://github.com/ascott/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/tsanchez/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/phenderson/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/blewis/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 38,
+        "width": 185,
+        "height": 66
+      },
+      "mass": 179.78,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

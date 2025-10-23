@@ -79,7 +79,7 @@ class APIErrorHandler:
         return ErrorResponse(
             status=APIStatus.ERROR,
             message=f"Request failed: {error_message}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
             request_id=request_id,
             errors=[error_detail],
             error_count=1,
@@ -127,7 +127,7 @@ class APIErrorHandler:
         return ErrorResponse(
             status=APIStatus.ERROR,
             message=f"Request validation failed: {len(errors)} error(s)",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
             request_id=request_id,
             errors=errors,
             error_count=len(errors),
@@ -174,7 +174,7 @@ class APIErrorHandler:
         return ErrorResponse(
             status=APIStatus.ERROR,
             message=f"HTTP {error.status_code}: {error.detail}",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(),
             request_id=request_id,
             errors=[error_detail],
             error_count=1,
@@ -295,7 +295,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.dict()
+        content=error_response.model_dump(by_alias=True, exclude_none=True)
     )
 
 
@@ -352,7 +352,7 @@ def create_success_response(
     return SuccessResponse(
         status=APIStatus.SUCCESS,
         message=message,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(),
         request_id=request_id,
         data=data or {},
         metadata=metadata or {}

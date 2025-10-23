@@ -84,7 +84,7 @@ class StructuredFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format log record as structured JSON"""
         log_data = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "level": record.levelname.lower(),
             "message": record.getMessage(),
             "module": record.module,
@@ -396,7 +396,7 @@ class AuditLogger:
         
         # Store in audit trail
         audit_event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "event_type": "user_action",
             "data": log_data
         }
@@ -432,7 +432,7 @@ class AuditLogger:
         
         # Store in audit trail
         audit_event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "event_type": "security_event",
             "data": log_data
         }
@@ -466,7 +466,7 @@ class AuditLogger:
         
         # Store in audit trail
         audit_event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "event_type": "system_change",
             "data": log_data
         }

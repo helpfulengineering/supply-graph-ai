@@ -70,7 +70,7 @@ def api_endpoint(
                 response_data = {
                     "status": APIStatus.SUCCESS,
                     "message": success_message,
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now().isoformat(),
                     "request_id": request_id,
                     "data": result if isinstance(result, dict) else {"result": result},
                     "metadata": {}
@@ -79,7 +79,7 @@ def api_endpoint(
                 # Add processing metrics if requested
                 if include_metrics:
                     response_data["metadata"]["processing_time"] = processing_time
-                    response_data["metadata"]["timestamp"] = datetime.utcnow().isoformat()
+                    response_data["metadata"]["timestamp"] = datetime.now().isoformat()
                 
                 # Add LLM tracking if requested
                 if track_llm and hasattr(result, 'llm_used') and result.llm_used:

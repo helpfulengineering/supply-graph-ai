@@ -105,7 +105,7 @@ async def create_supply_tree(
         Enhanced supply tree response with comprehensive data
     """
     request_id = getattr(http_request.state, 'request_id', None)
-    start_time = datetime.utcnow()
+    start_time = datetime.now()
     
     try:
         # Get the facility and OKH manifest for creating the supply tree

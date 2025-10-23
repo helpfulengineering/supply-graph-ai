@@ -369,8 +369,8 @@ async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
                     health_response.raise_for_status()
                     health_data = health_response.json()
                     
-                    # Domains endpoint is under /v1
-                    domains_response = await cli_ctx.api_client.request("GET", "/domains")
+                    # Domains endpoint is under /v1/api/utility
+                    domains_response = await cli_ctx.api_client.request("GET", "/api/utility/domains")
                 
                 return {
                     "health": health_data,

@@ -46,6 +46,13 @@ class PackageService:
         self._initialized = True
         logger.info("Package service initialized")
     
+    async def cleanup(self) -> None:
+        """Clean up resources"""
+        if self.package_builder and self.package_builder.file_resolver:
+            await self.package_builder.file_resolver.cleanup()
+        self._initialized = False
+        logger.info("Package service cleaned up")
+    
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""
         if not self._initialized:

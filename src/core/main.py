@@ -154,13 +154,13 @@ api_v1 = FastAPI(
     version="1.0.0"
 )
 
-# Include routers with appropriate prefixes
-api_v1.include_router(match_router, prefix="/match", tags=["match"])
-api_v1.include_router(okh_router, prefix="/okh", tags=["okh"])
-api_v1.include_router(okw_router, prefix="/okw", tags=["okw"])
-api_v1.include_router(supply_tree_router, prefix="/supply-tree", tags=["supply-tree"])
-api_v1.include_router(utility_router, tags=["utility"])
-api_v1.include_router(package_router, tags=["package"])
+# Include routers - those with prefixes don't need additional prefixes
+api_v1.include_router(match_router, prefix="/api/match", tags=["match"])
+api_v1.include_router(okh_router, prefix="/api/okh", tags=["okh"])
+api_v1.include_router(okw_router, prefix="/api/okw", tags=["okw"])
+api_v1.include_router(supply_tree_router, tags=["supply-tree"])  # Already has /api/supply-tree prefix
+api_v1.include_router(utility_router, tags=["utility"])  # Already has /api/utility prefix
+api_v1.include_router(package_router, tags=["package"])  # Already has /api/package prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)
