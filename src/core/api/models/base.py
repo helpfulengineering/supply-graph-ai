@@ -1,310 +1,375 @@
-from pydantic import BaseModel, Field
-from typing import Dict, Any, Optional, List
-from uuid import UUID, uuid4
-from enum import Enum
-import networkx as nx
+"""
+Base models for API requests and responses.
 
-from src.core.registry.domain_registry import DomainRegistry
-from src.core.models.supply_trees import SupplyTree, Workflow, WorkflowNode, ResourceURI, ResourceType
+This module provides standardized base classes and common models for all API endpoints
+to ensure consistency across the Open Matching Engine API.
+"""
+
+from pydantic import BaseModel, Field, validator
+from typing import Dict, Any, Optional, List, Union
+from datetime import datetime
+from uuid import UUID
+from enum import Enum
+
+
+class APIStatus(str, Enum):
+    """Standard API status values."""
+    SUCCESS = "success"
+    ERROR = "error"
+    WARNING = "warning"
+    INFO = "info"
+
+
+class ErrorCode(str, Enum):
+    """Standard error codes for API responses."""
+    # Validation errors
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    INVALID_INPUT = "INVALID_INPUT"
+    MISSING_REQUIRED_FIELD = "MISSING_REQUIRED_FIELD"
+    INVALID_FORMAT = "INVALID_FORMAT"
+    
+    # Authentication/Authorization errors
+    UNAUTHORIZED = "UNAUTHORIZED"
+    FORBIDDEN = "FORBIDDEN"
+    INVALID_TOKEN = "INVALID_TOKEN"
+    
+    # Resource errors
+    NOT_FOUND = "NOT_FOUND"
+    ALREADY_EXISTS = "ALREADY_EXISTS"
+    RESOURCE_CONFLICT = "RESOURCE_CONFLICT"
+    
+    # Service errors
+    SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+    TIMEOUT = "TIMEOUT"
+    RATE_LIMITED = "RATE_LIMITED"
+    
+    # LLM-specific errors
+    LLM_UNAVAILABLE = "LLM_UNAVAILABLE"
+    LLM_RATE_LIMITED = "LLM_RATE_LIMITED"
+    LLM_INVALID_RESPONSE = "LLM_INVALID_RESPONSE"
+    LLM_COST_LIMIT_EXCEEDED = "LLM_COST_LIMIT_EXCEEDED"
+
+
+class BaseAPIRequest(BaseModel):
+    """Base class for all API requests with common fields and validation."""
+    
+    # Optional metadata fields
+    request_id: Optional[str] = Field(None, description="Unique request identifier for tracking")
+    client_info: Optional[Dict[str, Any]] = Field(None, description="Client information and context")
+    quality_level: Optional[str] = Field("professional", description="Quality level: hobby, professional, or medical")
+    strict_mode: Optional[bool] = Field(False, description="Enable strict validation mode")
+    
+    class Config:
+        # Forbid extra fields for proper validation
+        extra = "forbid"
+        # Use enum values in JSON
+        use_enum_values = True
+        # Generate JSON schema
+        json_schema_extra = {
+            "example": {
+                "request_id": "req_123456789",
+                "client_info": {
+                    "user_agent": "OME-Client/1.0",
+                    "version": "1.0.0"
+                },
+                "quality_level": "professional",
+                "strict_mode": False
+            }
+        }
+
+
+class BaseAPIResponse(BaseModel):
+    """Base class for all API responses with standardized fields."""
+    
+    # Required fields
+    status: APIStatus = Field(..., description="Response status")
+    message: str = Field(..., description="Human-readable response message")
+    timestamp: datetime = Field(default_factory=datetime.now, description="Response timestamp")
+    
+    # Optional fields
+    request_id: Optional[str] = Field(None, description="Request identifier if provided")
+    data: Optional[Dict[str, Any]] = Field(None, description="Response data payload")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional response metadata")
+    
+    class Config:
+        # Use enum values in JSON
+        use_enum_values = True
+        # Generate JSON schema
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "Operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "data": {},
+                "metadata": {}
+            }
+        }
+
+
+class ErrorDetail(BaseModel):
+    """Detailed error information for API responses."""
+    
+    code: ErrorCode = Field(..., description="Error code")
+    message: str = Field(..., description="Human-readable error message")
+    field: Optional[str] = Field(None, description="Field that caused the error")
+    value: Optional[Any] = Field(None, description="Value that caused the error")
+    suggestion: Optional[str] = Field(None, description="Suggested fix for the error")
+    
+    class Config:
+        use_enum_values = True
+        json_schema_extra = {
+            "example": {
+                "code": "VALIDATION_ERROR",
+                "message": "Invalid input format",
+                "field": "email",
+                "value": "invalid-email",
+                "suggestion": "Please provide a valid email address"
+            }
+        }
+
+
+class ErrorResponse(BaseAPIResponse):
+    """Standardized error response format."""
+    
+    status: APIStatus = Field(APIStatus.ERROR, description="Error status")
+    errors: List[ErrorDetail] = Field(..., description="List of error details")
+    error_count: int = Field(..., description="Total number of errors")
+    
+    class Config:
+        use_enum_values = True
+        json_schema_extra = {
+            "example": {
+                "status": "error",
+                "message": "Request validation failed",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "errors": [
+                    {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Invalid input format",
+                        "field": "email",
+                        "value": "invalid-email",
+                        "suggestion": "Please provide a valid email address"
+                    }
+                ],
+                "error_count": 1,
+                "data": None,
+                "metadata": {}
+            }
+        }
+
+
+class SuccessResponse(BaseAPIResponse):
+    """Standardized success response format."""
+    
+    status: APIStatus = Field(APIStatus.SUCCESS, description="Success status")
+    
+    class Config:
+        use_enum_values = True
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "Operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "data": {},
+                "metadata": {}
+            }
+        }
+
+
+class PaginationParams(BaseModel):
+    """Standard pagination parameters for list endpoints."""
+    
+    page: int = Field(1, ge=1, description="Page number (1-based)")
+    page_size: int = Field(20, ge=1, le=100, description="Number of items per page")
+    sort_by: Optional[str] = Field(None, description="Field to sort by")
+    sort_order: Optional[str] = Field("asc", pattern="^(asc|desc)$", description="Sort order")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "page": 1,
+                "page_size": 20,
+                "sort_by": "created_at",
+                "sort_order": "desc"
+            }
+        }
+
+
+class PaginationInfo(BaseModel):
+    """Pagination information for list responses."""
+    
+    page: int = Field(..., description="Current page number")
+    page_size: int = Field(..., description="Items per page")
+    total_items: int = Field(..., description="Total number of items")
+    total_pages: int = Field(..., description="Total number of pages")
+    has_next: bool = Field(..., description="Whether there is a next page")
+    has_previous: bool = Field(..., description="Whether there is a previous page")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "page": 1,
+                "page_size": 20,
+                "total_items": 100,
+                "total_pages": 5,
+                "has_next": True,
+                "has_previous": False
+            }
+        }
+
+
+class PaginatedResponse(BaseAPIResponse):
+    """Standardized paginated response format."""
+    
+    status: APIStatus = Field(APIStatus.SUCCESS, description="Success status")
+    pagination: PaginationInfo = Field(..., description="Pagination information")
+    items: List[Dict[str, Any]] = Field(..., description="List of items")
+    
+    class Config:
+        use_enum_values = True
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "Items retrieved successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "pagination": {
+                    "page": 1,
+                    "page_size": 20,
+                    "total_items": 100,
+                    "total_pages": 5,
+                    "has_next": True,
+                    "has_previous": False
+                },
+                "items": [],
+                "metadata": {}
+            }
+        }
+
+
+class LLMRequestMixin(BaseModel):
+    """Mixin for requests that support LLM integration."""
+    
+    use_llm: Optional[bool] = Field(False, description="Enable LLM processing for this request")
+    llm_provider: Optional[str] = Field(None, description="Specific LLM provider to use")
+    llm_model: Optional[str] = Field(None, description="Specific LLM model to use")
+    llm_temperature: Optional[float] = Field(None, ge=0.0, le=2.0, description="LLM temperature setting")
+    llm_max_tokens: Optional[int] = Field(None, ge=1, le=4096, description="Maximum tokens for LLM response")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "use_llm": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "llm_temperature": 0.7,
+                "llm_max_tokens": 2048
+            }
+        }
+
+
+class LLMResponseMixin(BaseModel):
+    """Mixin for responses that include LLM processing information."""
+    
+    llm_used: Optional[bool] = Field(None, description="Whether LLM was used for this response")
+    llm_provider: Optional[str] = Field(None, description="LLM provider that was used")
+    llm_model: Optional[str] = Field(None, description="LLM model that was used")
+    llm_cost: Optional[float] = Field(None, description="Cost of LLM processing")
+    llm_tokens_used: Optional[int] = Field(None, description="Number of tokens used")
+    llm_processing_time: Optional[float] = Field(None, description="LLM processing time in seconds")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_model": "claude-3-sonnet",
+                "llm_cost": 0.012,
+                "llm_tokens_used": 1500,
+                "llm_processing_time": 2.5
+            }
+        }
 
 
 class RequirementsInput(BaseModel):
-    content: Dict[str, Any]
-    domain: Optional[str] = None
-    type: str  # "okh" or "recipe"
+    """Standardized input for requirements."""
+    
+    content: Union[str, Dict[str, Any]] = Field(..., description="Requirements content")
+    type: str = Field(..., description="Type of requirements (e.g., 'okh', 'recipe', 'specification')")
+    format: Optional[str] = Field(None, description="Content format (e.g., 'json', 'yaml', 'text')")
+    source: Optional[str] = Field(None, description="Source of the requirements")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "content": {"title": "Test OKH", "version": "1.0.0"},
+                "type": "okh",
+                "format": "json",
+                "source": "github.com/example/project"
+            }
+        }
+
 
 class CapabilitiesInput(BaseModel):
-    content: Dict[str, Any]
-    domain: Optional[str] = None
-    type: str  # "okw" or "kitchen"
-
-class ProcessNode(BaseModel):
-    id: UUID
-    name: str
-    inputs: List[str]
-    outputs: List[str]
-    requirements: Dict[str, Any]
-    capabilities: Dict[str, Any]
-
-class Workflow(BaseModel):
-    id: UUID
-    name: str
-    nodes: Dict[str, ProcessNode]
-    edges: List[Dict[str, UUID]]
-
-class SupplyTreeResponse(BaseModel):
-    id: UUID = Field(default_factory=uuid4)
-    domain: str
-    workflows: Dict[str, Workflow]
-    confidence: float
-    validation_status: bool
-    metadata: Dict[str, Any] = {}
-
-
-# Base classes for extractors, matchers, and validators
-class BaseExtractor:
-    def extract_requirements(self, content: Dict) -> 'NormalizedRequirements':
-        raise NotImplementedError("Subclasses must implement extract_requirements")
-        
-    def extract_capabilities(self, content: Dict) -> 'NormalizedCapabilities':
-        raise NotImplementedError("Subclasses must implement extract_capabilities")
-
-class BaseMatcher:
-    def generate_supply_tree(self, requirements: 'NormalizedRequirements', 
-                            capabilities: 'NormalizedCapabilities') -> 'SupplyTree':
-        raise NotImplementedError("Subclasses must implement generate_supply_tree")
-
-class BaseValidator:
-    def validate(self, supply_tree: 'SupplyTree') -> Dict:
-        raise NotImplementedError("Subclasses must implement validate")
-
-# Normalized data models with domain tracking
-class NormalizedData:
-    def __init__(self, content: Dict, domain: str):
-        self.content = content
-        self.domain = domain
-        
-class NormalizedRequirements(NormalizedData):
-    pass
+    """Standardized input for capabilities."""
     
-class NormalizedCapabilities(NormalizedData):
-    pass
-
-# Domain-specific implementations
-class ManufacturingExtractor(BaseExtractor):
-    def extract_requirements(self, content: Dict) -> NormalizedRequirements:
-        # Extract OKH data to normalized requirements
-        # Parse fields like materials, processes, tools, etc.
-        return NormalizedRequirements(content=self._process_okh(content), domain="manufacturing")
+    content: Union[str, Dict[str, Any]] = Field(..., description="Capabilities content")
+    type: str = Field(..., description="Type of capabilities (e.g., 'okw', 'facility', 'equipment')")
+    format: Optional[str] = Field(None, description="Content format (e.g., 'json', 'yaml', 'text')")
+    source: Optional[str] = Field(None, description="Source of the capabilities")
     
-    def extract_capabilities(self, content: Dict) -> NormalizedCapabilities:
-        # Extract OKW data to normalized capabilities
-        # Parse fields like equipment, facilities, etc.
-        return NormalizedCapabilities(content=self._process_okw(content), domain="manufacturing")
-        
-    def _process_okh(self, content: Dict) -> Dict:
-        # Process OKH data into normalized format
-        processed = {
-            "materials": content.get("materials", []),
-            "processes": content.get("manufacturing_processes", []),
-            "tools": content.get("tool_list", []),
-            # Additional processing of OKH fields
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "content": {"name": "Test Facility", "processes": ["assembly", "testing"]},
+                "type": "okw",
+                "format": "json",
+                "source": "facility-registry.org"
+            }
         }
-        return processed
-        
-    def _process_okw(self, content: Dict) -> Dict:
-        # Process OKW data into normalized format
-        processed = {
-            "equipment": content.get("equipment", []),
-            "processes": content.get("manufacturing_processes", []),
-            "materials": content.get("typical_materials", []),
-        }
-        return processed
 
-class CookingExtractor(BaseExtractor):
-    def extract_requirements(self, content: Dict) -> NormalizedRequirements:
-        # Extract recipe data to normalized requirements
-        return NormalizedRequirements(content=self._process_recipe(content), domain="cooking")
+
+class ValidationResult(BaseModel):
+    """Standardized validation result."""
     
-    def extract_capabilities(self, content: Dict) -> NormalizedCapabilities:
-        # Extract kitchen data to normalized capabilities
-        return NormalizedCapabilities(content=self._process_kitchen(content), domain="cooking")
-        
-    def _process_recipe(self, content: Dict) -> Dict:
-        # Process recipe data into normalized format
-        processed = {
-            "ingredients": content.get("ingredients", []),
-            "steps": content.get("instructions", []),
-            "tools": content.get("equipment", []),
-            # Additional processing of recipe fields
-        }
-        return processed
-        
-    def _process_kitchen(self, content: Dict) -> Dict:
-        # Process kitchen data into normalized format
-        processed = {
-            "available_ingredients": content.get("ingredients", []),
-            "available_tools": content.get("tools", []),
-            "appliances": content.get("appliances", []),
-            # Additional processing of kitchen fields
-        }
-        return processed
-
-class ManufacturingMatcher(BaseMatcher):
-    def generate_supply_tree(self, requirements: NormalizedRequirements, 
-                           capabilities: NormalizedCapabilities) -> 'SupplyTree':
-        supply_tree = SupplyTree()
-        
-        # Create primary workflow
-        workflow = Workflow(
-            id=uuid4(),
-            name="Manufacturing Workflow",
-            graph=nx.DiGraph(),
-            entry_points=set(),
-            exit_points=set()
-        )
-        
-        # Match processes to equipment
-        for process in requirements.content.get("processes", []):
-            matching_equipment = self._find_matching_equipment(
-                process, capabilities.content.get("equipment", [])
-            )
-            
-            if matching_equipment:
-                # Create node for this process
-                node = WorkflowNode(
-                    name=f"Process: {process}",
-                    okh_refs=[self._create_resource_uri("okh", process, ["processes"])],
-                    okw_refs=[self._create_resource_uri("okw", equip, ["equipment"]) 
-                             for equip in matching_equipment]
-                )
-                workflow.add_node(node)
-        
-        # Add workflow to supply tree
-        supply_tree.add_workflow(workflow)
-        
-        return supply_tree
-        
-    def _find_matching_equipment(self, process: str, equipment: List) -> List:
-        # Find equipment that can handle this process
-        # Simplified matching logic
-        return [e for e in equipment if self._can_equipment_handle_process(e, process)]
-        
-    def _can_equipment_handle_process(self, equipment: Dict, process: str) -> bool:
-        # Check if equipment can handle process
-        # Simplified check
-        return process in equipment.get("processes", [])
-        
-    def _create_resource_uri(self, type_str: str, identifier: str, path: List[str]) -> 'ResourceURI':
-        # Create a resource URI
-        return ResourceURI(
-            resource_type=ResourceType(type_str),
-            identifier=identifier,
-            path=path
-        )
-
-class CookingMatcher(BaseMatcher):
-    def generate_supply_tree(self, requirements: NormalizedRequirements, 
-                           capabilities: NormalizedCapabilities) -> 'SupplyTree':
-        
-        supply_tree = SupplyTree()
-        
-        # Create primary workflow
-        workflow = Workflow(
-            id=uuid4(),
-            name="Cooking Workflow",
-            graph=nx.DiGraph(),
-            entry_points=set(),
-            exit_points=set()
-        )
-        
-        # Process recipe steps
-        previous_node = None
-        for i, step in enumerate(requirements.content.get("steps", [])):
-            # Check if kitchen can support this step
-            required_tools = self._extract_tools_from_step(step)
-            available_tools = capabilities.content.get("available_tools", [])
-            
-            if self._can_kitchen_handle_step(required_tools, available_tools):
-                # Create node for this step
-                node = WorkflowNode(
-                    name=f"Step {i+1}: {step[:50]}...",
-                    okh_refs=[self._create_resource_uri("recipe", f"step_{i}", ["steps"])],
-                    okw_refs=[self._create_resource_uri("kitchen", tool, ["tools"]) 
-                             for tool in required_tools]
-                )
-                
-                # Add node and connect to previous if exists
-                workflow.add_node(node)
-                if previous_node:
-                    workflow.graph.add_edge(previous_node.id, node.id)
-                
-                previous_node = node
-        
-        # Add workflow to supply tree
-        supply_tree.add_workflow(workflow)
-        
-        return supply_tree
-        
-    def _extract_tools_from_step(self, step: str) -> List[str]:
-        # Extract required tools from step description
-        # Simplified extraction
-        import re
-        tools = []
-        tool_patterns = ["using a ([a-zA-Z ]+)", "with a ([a-zA-Z ]+)", "in a ([a-zA-Z ]+)"]
-        for pattern in tool_patterns:
-            matches = re.findall(pattern, step.lower())
-            tools.extend(matches)
-        return tools
-        
-    def _can_kitchen_handle_step(self, required_tools: List[str], available_tools: List[str]) -> bool:
-        # Check if kitchen has necessary tools
-        return all(any(req.lower() in avail.lower() for avail in available_tools) for req in required_tools)
-        
-    def _create_resource_uri(self, type_str: str, identifier: str, path: List[str]) -> 'ResourceURI':
-            return ResourceURI(
-            resource_type=ResourceType(type_str),
-            identifier=identifier,
-            path=path
-        )
-
-class ManufacturingValidator(BaseValidator):
-    def validate(self, supply_tree: 'SupplyTree') -> Dict:
-        # Validate manufacturing supply tree
-        is_valid = True
-        issues = []
-        
-        # Check if all processes have matching equipment
-        for workflow in supply_tree.workflows.values():
-            for node_id in workflow.graph.nodes():
-                node_data = workflow.graph.nodes[node_id]['data']
-                if not node_data.get('okw_refs'):
-                    issues.append(f"Node {node_id} has no matching equipment")
-                    is_valid = False
-        
-        # Check for disconnected nodes
-        for workflow in supply_tree.workflows.values():
-            if not nx.is_connected(workflow.graph.to_undirected()):
-                issues.append(f"Workflow {workflow.id} has disconnected nodes")
-                is_valid = False
-        
-        return {
-            "valid": is_valid,
-            "confidence": 0.8 if is_valid else 0.4,
-            "issues": issues
+    is_valid: bool = Field(..., description="Whether the content is valid")
+    score: float = Field(..., ge=0.0, le=1.0, description="Validation score (0.0 to 1.0)")
+    errors: List[ErrorDetail] = Field(default_factory=list, description="Validation errors")
+    warnings: List[str] = Field(default_factory=list, description="Validation warnings")
+    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "is_valid": True,
+                "score": 0.95,
+                "errors": [],
+                "warnings": ["Missing optional field: description"],
+                "suggestions": ["Consider adding a description for better documentation"]
+            }
         }
 
-class CookingValidator(BaseValidator):
-    def validate(self, supply_tree: 'SupplyTree') -> Dict:
-        # Validate cooking supply tree
-        is_valid = True
-        issues = []
-        
-        # Check if all steps have required tools
-        for workflow in supply_tree.workflows.values():
-            for node_id in workflow.graph.nodes():
-                node_data = workflow.graph.nodes[node_id]['data']
-                if not node_data.get('okw_refs'):
-                    issues.append(f"Step {node_id} requires unavailable tools")
-                    is_valid = False
-        
-        # Check for proper sequence (should be a path)
-        for workflow in supply_tree.workflows.values():
-            if not nx.is_directed_acyclic_graph(workflow.graph):
-                issues.append(f"Workflow {workflow.id} has cycles, which is invalid for cooking")
-                is_valid = False
-        
-        return {
-            "valid": is_valid,
-            "confidence": 0.9 if is_valid else 0.3,
-            "issues": issues
+
+class ProcessingMetrics(BaseModel):
+    """Standardized processing metrics."""
+    
+    processing_time: float = Field(..., description="Total processing time in seconds")
+    memory_used: Optional[int] = Field(None, description="Memory used in bytes")
+    cpu_usage: Optional[float] = Field(None, description="CPU usage percentage")
+    api_calls: Optional[int] = Field(None, description="Number of API calls made")
+    cache_hits: Optional[int] = Field(None, description="Number of cache hits")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "processing_time": 1.25,
+                "memory_used": 1024000,
+                "cpu_usage": 15.5,
+                "api_calls": 3,
+                "cache_hits": 1
+            }
         }
-
-# Register domain components
-DomainRegistry.register_extractor("manufacturing", ManufacturingExtractor())
-DomainRegistry.register_matcher("manufacturing", ManufacturingMatcher())
-DomainRegistry.register_validator("manufacturing", ManufacturingValidator())
-
-DomainRegistry.register_extractor("cooking", CookingExtractor())
-DomainRegistry.register_matcher("cooking", CookingMatcher())
-DomainRegistry.register_validator("cooking", CookingValidator())

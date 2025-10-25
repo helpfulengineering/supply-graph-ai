@@ -1,8 +1,9 @@
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, List
 from dataclasses import dataclass
 import logging
-from ..registry.domain_registry import DomainRegistry, DomainMetadata, DomainStatus
-from ..models.base.base_types import NormalizedRequirements, NormalizedCapabilities
+from ..registry.domain_registry import DomainRegistry
+from ..api.models.supply_tree.response import SupplyTreeResponse
+
 
 logger = logging.getLogger(__name__)
 
@@ -198,51 +199,24 @@ class DomainDetector:
         return DomainRegistry.get_orchestrator(domain)
 
     def convert_supply_tree_to_response(supply_tree, domain, validation_result):
-        """Convert internal SupplyTree to API response format"""
-        # Extract workflows from supply tree
-        workflows = {}
-        for workflow_id, workflow in supply_tree.workflows.items():
-            # Convert nodes to API format
-            nodes = {}
-            for node in workflow.graph.nodes():
-                node_data = workflow.graph.nodes[node]
-                process_node = ProcessNode(
-                    id=node,
-                    name=node_data.get('name', f"Node-{node}"),
-                    inputs=node_data.get('input_requirements', {}).keys(),
-                    outputs=node_data.get('output_specifications', {}).keys(),
-                    requirements={uri.identifier: uri.path for uri in node_data.get('okh_refs', [])},
-                    capabilities={uri.identifier: uri.path for uri in node_data.get('okw_refs', [])}
-                )
-                nodes[str(node)] = process_node
-            
-            # Convert edges to API format
-            edges = []
-            for source, target in workflow.graph.edges():
-                edges.append({"source": source, "target": target})
-            
-            # Create workflow
-            workflows[str(workflow_id)] = Workflow(
-                id=workflow_id,
-                name=workflow.name,
-                nodes=nodes,
-                edges=edges
-            )
-        
+        """Convert simplified SupplyTree to API response format"""
         # Calculate confidence score (simplified example)
-        confidence = validation_result.get('confidence', 0.0) if isinstance(validation_result, dict) else 0.8
+        confidence = validation_result.get('confidence', 0.0) if isinstance(validation_result, dict) else supply_tree.confidence_score
         
-        # Create response
+        # Create simplified response
         response = SupplyTreeResponse(
             id=supply_tree.id,
-            domain=domain,
-            workflows=workflows,
-            confidence=confidence,
-            validation_status=validation_result.get('valid', False) if isinstance(validation_result, dict) else True,
-            metadata={
-                "creation_time": supply_tree.creation_time.isoformat(),
-                "snapshot_count": len(supply_tree.snapshots)
-            }
+            facility_id=supply_tree.facility_id,
+            facility_name=supply_tree.facility_name,
+            okh_reference=supply_tree.okh_reference,
+            confidence_score=confidence,
+            estimated_cost=supply_tree.estimated_cost,
+            estimated_time=supply_tree.estimated_time,
+            materials_required=supply_tree.materials_required,
+            capabilities_used=supply_tree.capabilities_used,
+            match_type=supply_tree.match_type,
+            metadata=supply_tree.metadata,
+            creation_time=supply_tree.creation_time.isoformat()
         )
         
         return response

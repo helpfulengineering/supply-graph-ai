@@ -1,91 +1,68 @@
 from pydantic import BaseModel
 from typing import Dict, List, Optional, Any
 from uuid import UUID
-from enum import Enum
 
-class ProcessStatus(str, Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    BLOCKED = "blocked"
+# Import base classes for enhanced functionality
+from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
 
-class WorkflowNodeResponse(BaseModel):
-    """Response model for a workflow node"""
+class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
+    """Consolidated supply tree response with standardized fields and LLM information"""
     # Required fields first
     id: UUID
-    name: str
-    process_status: ProcessStatus = ProcessStatus.PENDING
-    confidence_score: float = 1.0
-    substitution_used: bool = False
-    
-    # Optional fields after
-    okh_refs: List[str] = []
-    okw_refs: List[str] = []
-    input_requirements: Dict[str, Any] = {}
-    output_specifications: Dict[str, Any] = {}
-    estimated_time: Optional[str] = None
-    start_time: Optional[str] = None
-    end_time: Optional[str] = None
-    assigned_facility: Optional[str] = None
-    assigned_equipment: Optional[str] = None
-    materials: List[str] = []
-    metadata: Dict[str, Any] = {}
-
-class WorkflowResponse(BaseModel):
-    """Response model for a workflow"""
-    # Required fields first
-    id: UUID
-    name: str
-    nodes: Dict[str, WorkflowNodeResponse]
-    edges: List[Dict[str, str]]
-    entry_points: List[str]
-    exit_points: List[str]
-
-class WorkflowConnectionResponse(BaseModel):
-    """Response model for a workflow connection"""
-    # Required fields first
-    source_workflow: str
-    source_node: str
-    target_workflow: str
-    target_node: str
-    connection_type: str
-    
-    # Optional fields after
-    metadata: Dict[str, Any] = {}
-
-class ResourceSnapshotResponse(BaseModel):
-    """Response model for a resource snapshot"""
-    # Required fields first
-    uri: str
-    content: Dict[str, Any]
-    timestamp: str
-    
-    # Optional fields after
-    version: Optional[str] = None
-
-class SupplyTreeResponse(BaseModel):
-    """Response model for a supply tree"""
-    # Required fields first
-    id: UUID
-    workflows: Dict[str, WorkflowResponse]
+    facility_id: UUID
+    facility_name: str
+    okh_reference: str
+    confidence_score: float
     creation_time: str
-    confidence: float = 0.0
-    required_quantity: int = 1
     
     # Optional fields after
-    connections: List[WorkflowConnectionResponse] = []
-    snapshots: Dict[str, ResourceSnapshotResponse] = {}
-    okh_reference: Optional[str] = None
-    deadline: Optional[str] = None
+    estimated_cost: Optional[float] = None
+    estimated_time: Optional[str] = None
+    materials_required: List[str] = []
+    capabilities_used: List[str] = []
+    match_type: str = "unknown"
     metadata: Dict[str, Any] = {}
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[BaseValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "facility_id": "12345678-1234-1234-1234-123456789012",
+                "facility_name": "Electronics Manufacturing Facility",
+                "okh_reference": "electronics-manufacturing",
+                "confidence_score": 0.8,
+                "creation_time": "2024-01-01T12:00:00Z",
+                "estimated_cost": 1000.0,
+                "estimated_time": "2 weeks",
+                "materials_required": ["copper", "plastic", "silicon"],
+                "capabilities_used": ["soldering", "assembly", "testing"],
+                "match_type": "direct",
+                "metadata": {"project": "IoT Sensor Node"},
+                "processing_time": 2.5,
+                "validation_results": [],
+                "status": "success",
+                "message": "Supply tree operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.025,
+                "data": {}
+            }
+        }
+
+# Keep the old class name for backward compatibility
+SimplifiedSupplyTreeResponse = SupplyTreeResponse
 
 class OptimizationMetrics(BaseModel):
     """Response model for optimization metrics"""
     # All optional fields
     cost: Optional[float] = None
     time: Optional[str] = None
-    quality_score: Optional[float] = None
 
 class SupplyTreeOptimizationResponse(SupplyTreeResponse):
     """Response model for optimized supply tree"""

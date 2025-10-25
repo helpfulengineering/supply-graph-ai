@@ -1,0 +1,395 @@
+{
+  "id": "arduino-manufacturing-lab-001",
+  "name": "Arduino Electronics Manufacturing Lab",
+  "location": {
+    "address": {
+      "number": "1234",
+      "street": "Tech Innovation Drive",
+      "city": "San Francisco",
+      "region": "California",
+      "country": "United States",
+      "postcode": "94105"
+    },
+    "gps_coordinates": "37.7749, -122.4194",
+    "directions": "Located in the heart of SOMA district, near the Moscone Center",
+    "city": "San Francisco",
+    "country": "United States"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "TechFab Solutions",
+    "location": {
+      "address": {
+        "number": "1234",
+        "street": "Tech Innovation Drive",
+        "city": "San Francisco",
+        "region": "California",
+        "country": "United States",
+        "postcode": "94105"
+      },
+      "gps_coordinates": "37.7749, -122.4194",
+      "directions": "Located in the heart of SOMA district",
+      "city": "San Francisco",
+      "country": "United States"
+    },
+    "contact_person": "Sarah Chen",
+    "bio": "Established in 2015, we specialize in electronics manufacturing and rapid prototyping for IoT devices and Arduino-based projects",
+    "website": "https://techfab-solutions.com",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "mailing_list": "info@techfab-solutions.com",
+    "images": [
+      "images/facility-exterior.jpg",
+      "images/electronics-lab.jpg"
+    ],
+    "contact": {
+      "landline": "+1-415-555-0123",
+      "mobile": "+1-415-555-0124",
+      "email": "info@techfab-solutions.com",
+      "whatsapp": "+1-415-555-0124"
+    }
+  },
+  "access_type": "Public",
+  "facility_type": "Electronics Manufacturing Lab",
+  "description": "A state-of-the-art electronics manufacturing facility specializing in Arduino-based IoT devices, PCB manufacturing, and 3D printing. We have extensive experience with aluminum machining and electronics assembly.",
+  "capabilities": [
+    {
+      "capability_type": "PCB Manufacturing",
+      "description": "Full-service PCB manufacturing with 4-layer capability",
+      "processes": [
+        "PCB"
+      ],
+      "materials": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Printed_circuit_board",
+          "manufacturer": "Various",
+          "brand": "FR4, Rogers",
+          "supplier_location": {
+            "address": {
+              "number": "500",
+              "street": "Electronics Supply Blvd",
+              "city": "San Jose",
+              "region": "California",
+              "country": "United States",
+              "postcode": "95110"
+            },
+            "gps_coordinates": "37.3382, -121.8863",
+            "directions": "Industrial district",
+            "city": "San Jose",
+            "country": "United States"
+          }
+        }
+      ],
+      "equipment": [
+        {
+          "name": "PCB Mill",
+          "manufacturer": "LPKF",
+          "model": "ProtoMat S104",
+          "capabilities": [
+            "4-layer PCB manufacturing",
+            "0.1mm trace width",
+            "0.2mm via diameter"
+          ],
+          "status": "Operational"
+        },
+        {
+          "name": "Soldering Station",
+          "manufacturer": "Hakko",
+          "model": "FX-888D",
+          "capabilities": [
+            "Precision soldering",
+            "Temperature control",
+            "ESD safe"
+          ],
+          "status": "Operational"
+        },
+        {
+          "name": "Reflow Oven",
+          "manufacturer": "Puhui",
+          "model": "T-962A",
+          "capabilities": [
+            "SMT component reflow",
+            "Temperature profiling",
+            "Lead-free compatible"
+          ],
+          "status": "Operational"
+        },
+        {
+          "name": "Oscilloscope",
+          "manufacturer": "Tektronix",
+          "model": "TBS1052B",
+          "capabilities": [
+            "50 MHz bandwidth",
+            "Digital storage",
+            "Waveform analysis"
+          ],
+          "status": "Operational"
+        }
+      ],
+      "quality_standards": [
+        "IPC-A-610",
+        "ISO 9001:2015"
+      ]
+    },
+    {
+      "capability_type": "3D Printing",
+      "description": "High-precision 3D printing for enclosures and mechanical parts",
+      "processes": [
+        "3DP"
+      ],
+      "materials": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Polylactic_acid",
+          "manufacturer": "Polymaker",
+          "brand": "PolyLite PLA",
+          "supplier_location": {
+            "address": {
+              "number": "300",
+              "street": "Materials Supply Ave",
+              "city": "Oakland",
+              "region": "California",
+              "country": "United States",
+              "postcode": "94607"
+            },
+            "gps_coordinates": "37.8044, -122.2712",
+            "directions": "Port area",
+            "city": "Oakland",
+            "country": "United States"
+          }
+        }
+      ],
+      "equipment": [
+        {
+          "name": "3D Printer",
+          "manufacturer": "Prusa",
+          "model": "i3 MK3S+",
+          "capabilities": [
+            "0.3mm layer height",
+            "10% infill capability",
+            "231°C printing temperature",
+            "±0.1mm dimensional accuracy"
+          ],
+          "status": "Operational"
+        }
+      ],
+      "quality_standards": [
+        "ASTM F2792"
+      ]
+    },
+    {
+      "capability_type": "Aluminum Machining",
+      "description": "CNC machining for aluminum 6061-T6 components",
+      "processes": [
+        "CNC Machining",
+        "Milling",
+        "Turning"
+      ],
+      "materials": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/6061_aluminium_alloy",
+          "manufacturer": "Alcoa",
+          "brand": "6061-T6",
+          "supplier_location": {
+            "address": {
+              "number": "800",
+              "street": "Metal Supply Rd",
+              "city": "Fremont",
+              "region": "California",
+              "country": "United States",
+              "postcode": "94538"
+            },
+            "gps_coordinates": "37.5483, -121.9886",
+            "directions": "Industrial zone",
+            "city": "Fremont",
+            "country": "United States"
+          }
+        }
+      ],
+      "equipment": [
+        {
+          "name": "CNC Mill",
+          "manufacturer": "Haas",
+          "model": "VF-2",
+          "capabilities": [
+            "3-axis machining",
+            "Aluminum 6061-T6 compatible",
+            "Precision to ±0.05mm",
+            "Work envelope: 762mm x 406mm x 508mm"
+          ],
+          "status": "Operational"
+        }
+      ],
+      "quality_standards": [
+        "AS9100D"
+      ]
+    },
+    {
+      "capability_type": "Assembly",
+      "description": "Electronics assembly and final product integration",
+      "processes": [
+        "Assembly",
+        "Press-fit",
+        "Testing"
+      ],
+      "materials": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Electronic_component",
+          "manufacturer": "Various",
+          "brand": "Arduino, Adafruit, SparkFun",
+          "supplier_location": {
+            "address": {
+              "number": "100",
+              "street": "Component Supply St",
+              "city": "San Francisco",
+              "region": "California",
+              "country": "United States",
+              "postcode": "94103"
+            },
+            "gps_coordinates": "37.7749, -122.4194",
+            "directions": "Downtown",
+            "city": "San Francisco",
+            "country": "United States"
+          }
+        }
+      ],
+      "equipment": [
+        {
+          "name": "Assembly Station",
+          "manufacturer": "Custom",
+          "model": "AS-001",
+          "capabilities": [
+            "ESD-safe work environment",
+            "Press-fit tooling",
+            "Component placement",
+            "Quality inspection"
+          ],
+          "status": "Operational"
+        },
+        {
+          "name": "Multimeter",
+          "manufacturer": "Fluke",
+          "model": "87V",
+          "capabilities": [
+            "Precision measurements",
+            "True RMS",
+            "Data logging"
+          ],
+          "status": "Operational"
+        },
+        {
+          "name": "Heat Gun",
+          "manufacturer": "Wagner",
+          "model": "HT1000",
+          "capabilities": [
+            "Temperature control",
+            "Heat shrink tubing",
+            "Component removal"
+          ],
+          "status": "Operational"
+        },
+        {
+          "name": "Crimping Tool",
+          "manufacturer": "Ideal",
+          "model": "30-429",
+          "capabilities": [
+            "Wire crimping",
+            "Connector assembly",
+            "Strain relief"
+          ],
+          "status": "Operational"
+        }
+      ],
+      "quality_standards": [
+        "IPC-A-610",
+        "J-STD-001"
+      ]
+    }
+  ],
+  "innovation_space": {
+    "has_innovation_space": true,
+    "description": "Dedicated innovation space for Arduino and IoT development projects",
+    "footfall": 50,
+    "residencies": true
+  },
+  "safety": {
+    "safety_guidelines": [
+      "ESD protection required for all electronics work",
+      "Safety glasses mandatory in machining areas",
+      "Proper ventilation for soldering operations",
+      "Lockout/tagout procedures for equipment maintenance"
+    ],
+    "emergency_procedures": [
+      "Emergency exits clearly marked",
+      "First aid station available",
+      "Fire extinguishers in all work areas",
+      "Emergency contact: 911"
+    ],
+    "insurance": {
+      "provider": "TechFab Insurance Co",
+      "policy_number": "TF-2024-001",
+      "coverage_amount": "$2,000,000"
+    }
+  },
+  "pricing": {
+    "pricing_model": "Per project",
+    "rates": [
+      {
+        "service": "PCB Manufacturing",
+        "rate": "$50 per square inch",
+        "minimum_order": "$100"
+      },
+      {
+        "service": "3D Printing",
+        "rate": "$0.25 per gram",
+        "minimum_order": "$25"
+      },
+      {
+        "service": "CNC Machining",
+        "rate": "$75 per hour",
+        "minimum_order": "$150"
+      },
+      {
+        "service": "Assembly",
+        "rate": "$45 per hour",
+        "minimum_order": "$90"
+      }
+    ],
+    "payment_methods": [
+      "Credit card",
+      "Bank transfer",
+      "PayPal",
+      "Cryptocurrency"
+    ]
+  },
+  "availability": {
+    "operating_hours": {
+      "monday": "8:00 AM - 6:00 PM",
+      "tuesday": "8:00 AM - 6:00 PM",
+      "wednesday": "8:00 AM - 6:00 PM",
+      "thursday": "8:00 AM - 6:00 PM",
+      "friday": "8:00 AM - 6:00 PM",
+      "saturday": "9:00 AM - 4:00 PM",
+      "sunday": "Closed"
+    },
+    "booking_required": true,
+    "advance_booking_days": 7,
+    "maximum_booking_duration": "8 hours"
+  },
+  "metadata": {
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z",
+    "version": "1.0",
+    "source": "manual_creation",
+    "tags": [
+      "arduino",
+      "iot",
+      "electronics",
+      "pcb",
+      "3d-printing",
+      "cnc-machining",
+      "assembly"
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
-from typing import Dict, List, Optional, Any, Union, TYPE_CHECKING
-from uuid import UUID
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
+
+from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
 
 if TYPE_CHECKING:
     from ....models.supply_trees import SupplyTree
@@ -38,18 +39,52 @@ class SupplyTreeSummary(BaseModel):
             facilities=[str(facility_id) for facility_id in getattr(tree, 'facilities', [])]
         )
 
-class MatchResponse(BaseModel):
-    """Response model for matching requirements to capabilities"""
-    # Required fields first
-    solutions: List[Dict[str, Any]] = Field(
-        description="List of matching solutions with supply trees and scores"
-    )
+class MatchResponse(SuccessResponse, LLMResponseMixin):
+    """Consolidated match response with standardized fields and LLM information"""
+    # Core response data
+    solutions: List[dict] = []
+    total_solutions: int = 0
+    processing_time: float = 0.0
     
-    # Optional fields after
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional metadata about the matching process"
-    )
+    # Enhanced metadata
+    matching_metrics: Optional[dict] = None
+    validation_results: Optional[List[BaseValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "solutions": [
+                    {
+                        "id": "00000000-0000-0000-0000-000000000000",
+                        "facility_id": "12345678-1234-1234-1234-123456789012",
+                        "facility_name": "Electronics Manufacturing Facility",
+                        "okh_reference": "electronics-manufacturing",
+                        "confidence_score": 0.8,
+                        "estimated_cost": 1000.0,
+                        "estimated_time": "2 weeks",
+                        "materials_required": ["copper", "plastic", "silicon"],
+                        "capabilities_used": ["soldering", "assembly", "testing"],
+                        "match_type": "direct"
+                    }
+                ],
+                "total_solutions": 1,
+                "processing_time": 2.5,
+                "matching_metrics": {
+                    "direct_matches": 1,
+                    "heuristic_matches": 0,
+                    "nlp_matches": 0
+                },
+                "validation_results": [],
+                "status": "success",
+                "message": "Matching completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.025,
+                "data": {}
+            }
+        }
 
 class ValidationResult(BaseModel):
     """Response model for validation results"""

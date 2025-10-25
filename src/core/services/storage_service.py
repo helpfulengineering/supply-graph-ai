@@ -8,7 +8,6 @@ from ..storage.base import StorageConfig
 from ..storage.manager import StorageManager
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
-from ..models.supply_trees import SupplyTree
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +58,22 @@ class StorageService:
             logger.error(f"Failed to configure storage service: {e}")
             raise
     
+    async def cleanup(self) -> None:
+        """Clean up resources and close connections"""
+        try:
+            if self.manager and hasattr(self.manager, 'cleanup'):
+                await self.manager.cleanup()
+            self._configured = False
+            logger.info("Storage Service cleanup completed")
+        except Exception as e:
+            logger.error(f"Error during Storage Service cleanup: {e}")
+            raise
+    
     async def get_domain_handler(self, domain: str) -> 'DomainStorageHandler':
         """Get or create the storage handler for a specific domain"""
         if domain not in self._domain_handlers:
+            # Register handlers lazily if not already registered
+            _register_handlers()
             handler_class = StorageRegistry.get_handler(domain)
             self._domain_handlers[domain] = handler_class(self)
             logger.info(f"Created storage handler for domain: {domain}")
@@ -113,7 +125,7 @@ class StorageService:
             "domain_stats": domain_stats
         }
     
-    async def save_supply_tree(self, tree: SupplyTree) -> str:
+    async def save_supply_tree(self, tree) -> str:
         """Save a supply tree to storage"""
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
@@ -139,7 +151,7 @@ class StorageService:
         
         return metadata.etag
     
-    async def load_supply_tree(self, tree_id: UUID) -> SupplyTree:
+    async def load_supply_tree(self, tree_id: UUID):
         """Load a supply tree from storage"""
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
@@ -148,6 +160,7 @@ class StorageService:
         
         try:
             data = await self.manager.get_object(key)
+            from ..models.supply_trees import SupplyTree
             tree_dict = json.loads(data.decode('utf-8'))
             return SupplyTree.from_dict(tree_dict)
         except Exception as e:
@@ -402,30 +415,41 @@ class DomainStorageHandler(Generic[T]):
         """Get object type"""
         raise NotImplementedError
 
-class OKHStorageHandler(DomainStorageHandler[OKHManifest]):
-    def _serialize(self, obj: OKHManifest) -> dict:
-        return obj.to_dict()
-    def _deserialize(self, data: dict) -> OKHManifest:
-        return OKHManifest.from_dict(data)
-    def _get_object_id(self, obj: OKHManifest) -> UUID:
-        return obj.id
-    def _get_object_id_from_dict(self, data: dict) -> UUID:
-        return UUID(data["id"])
-    def _get_object_type(self, obj: OKHManifest) -> str:
-        return "okh_manifest"
+# Handler classes are now defined lazily in _register_handlers() to avoid import-time object creation
 
-class OKWStorageHandler(DomainStorageHandler[ManufacturingFacility]):
-    def _serialize(self, obj: ManufacturingFacility) -> dict:
-        return obj.to_dict()
-    def _deserialize(self, data: dict) -> ManufacturingFacility:
-        return ManufacturingFacility.from_dict(data)
-    def _get_object_id(self, obj: ManufacturingFacility) -> UUID:
-        return obj.id
-    def _get_object_id_from_dict(self, data: dict) -> UUID:
-        return UUID(data["id"])
-    def _get_object_type(self, obj: ManufacturingFacility) -> str:
-        return "okw_facility"
+# Register handlers lazily to avoid import-time object creation
+def _register_handlers():
+    """Register handlers lazily to avoid import-time object creation"""
+    if "okh" not in StorageRegistry._handlers:
+        # Define OKH handler lazily to avoid object creation on module import
+        class OKHStorageHandler(DomainStorageHandler[OKHManifest]):
+            def _serialize(self, obj: OKHManifest) -> dict:
+                return obj.to_dict()
+            def _deserialize(self, data: dict) -> OKHManifest:
+                return OKHManifest.from_dict(data)
+            def _get_object_id(self, obj: OKHManifest) -> UUID:
+                return obj.id
+            def _get_object_id_from_dict(self, data: dict) -> UUID:
+                return UUID(data["id"])
+            def _get_object_type(self, obj: OKHManifest) -> str:
+                return "okh_manifest"
+        
+        StorageRegistry.register_handler("okh", OKHStorageHandler)
+    
+    if "okw" not in StorageRegistry._handlers:
+        # Define OKW handler lazily to avoid object creation on module import
+        class OKWStorageHandler(DomainStorageHandler[ManufacturingFacility]):
+            def _serialize(self, obj: ManufacturingFacility) -> dict:
+                return obj.to_dict()
+            def _deserialize(self, data: dict) -> ManufacturingFacility:
+                return ManufacturingFacility.from_dict(data)
+            def _get_object_id(self, obj: ManufacturingFacility) -> UUID:
+                return obj.id
+            def _get_object_id_from_dict(self, data: dict) -> UUID:
+                return UUID(data["id"])
+            def _get_object_type(self, obj: ManufacturingFacility) -> str:
+                return "okw_facility"
+        
+        StorageRegistry.register_handler("okw", OKWStorageHandler)
 
-# Register handlers
-StorageRegistry.register_handler("okh", OKHStorageHandler)
-StorageRegistry.register_handler("okw", OKWStorageHandler)
+# Register handlers when first needed - done lazily in get_domain_handler method

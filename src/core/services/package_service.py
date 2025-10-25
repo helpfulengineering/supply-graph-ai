@@ -1,13 +1,17 @@
+import json
+import shutil
+import aiofiles
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from uuid import UUID
-import logging
 
 from ..models.okh import OKHManifest
 from ..models.package import BuildOptions, PackageMetadata
 from ..packaging.builder import PackageBuilder
 from ..packaging.file_resolver import FileResolver
 from ..utils.logging import get_logger
+from .okh_service import OKHService
+from ..models.package import calculate_file_checksum
 
 logger = get_logger(__name__)
 
@@ -41,6 +45,13 @@ class PackageService:
         
         self._initialized = True
         logger.info("Package service initialized")
+    
+    async def cleanup(self) -> None:
+        """Clean up resources"""
+        if self.package_builder and self.package_builder.file_resolver:
+            await self.package_builder.file_resolver.cleanup()
+        self._initialized = False
+        logger.info("Package service cleaned up")
     
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""
@@ -125,11 +136,7 @@ class PackageService:
         Returns:
             PackageMetadata with build information
         """
-        await self.ensure_initialized()
-        
-        # Import here to avoid circular imports
-        from .okh_service import OKHService
-        
+        await self.ensure_initialized()        
         # Get the manifest from storage
         okh_service = await OKHService.get_instance()
         manifest = await okh_service.get(manifest_id)
@@ -176,10 +183,7 @@ class PackageService:
             logger.debug(f"Metadata file does not exist: {metadata_path}")
             return None
         
-        try:
-            import json
-            import aiofiles
-            
+        try:            
             async with aiofiles.open(metadata_path, 'r') as f:
                 metadata_data = json.loads(await f.read())
             
@@ -275,7 +279,6 @@ class PackageService:
             return False
         
         try:
-            import shutil
             shutil.rmtree(package_path)
             logger.info(f"Deleted package: {package_name}/{version}")
             return True
@@ -350,8 +353,6 @@ class PackageService:
                 verification_results["extra_files"].append(str(rel_path))
         
         # Verify file checksums (if requested)
-        from ..models.package import calculate_file_checksum
-        
         for file_info in metadata.file_inventory:
             file_path = Path(file_info.local_path)
             if file_path.exists():

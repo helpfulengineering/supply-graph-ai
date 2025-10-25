@@ -7,7 +7,8 @@ providing specialized direct matching for ingredients, equipment, and techniques
 
 import re
 from typing import List, Dict, Any, Set
-from ...matching.direct_matcher import DirectMatcher, DirectMatchResult, MatchMetadata, MatchQuality
+from ...matching.direct_matcher import DirectMatcher
+from ...matching.layers.base import MatchingResult, MatchMetadata, MatchQuality
 
 
 class CookingDirectMatcher(DirectMatcher):
@@ -133,7 +134,7 @@ class CookingDirectMatcher(DirectMatcher):
         """Check if text contains measurement unit keywords."""
         return any(keyword in text for keyword in self._measurement_units)
     
-    def match_ingredients(self, required_ingredients: List[str], available_ingredients: List[str]) -> List[DirectMatchResult]:
+    def match_ingredients(self, required_ingredients: List[str], available_ingredients: List[str]) -> List[MatchingResult]:
         """
         Match required ingredients against available ingredients.
         
@@ -142,7 +143,7 @@ class CookingDirectMatcher(DirectMatcher):
             available_ingredients: List of available ingredient strings
             
         Returns:
-            List of DirectMatchResult objects for ingredient matches
+            List of MatchingResult objects for ingredient matches
         """
         results = []
         for required in required_ingredients:
@@ -158,7 +159,7 @@ class CookingDirectMatcher(DirectMatcher):
             results.extend(ingredient_results)
         return results
     
-    def match_equipment(self, required_equipment: List[str], available_equipment: List[str]) -> List[DirectMatchResult]:
+    def match_equipment(self, required_equipment: List[str], available_equipment: List[str]) -> List[MatchingResult]:
         """
         Match required equipment against available equipment.
         
@@ -167,7 +168,7 @@ class CookingDirectMatcher(DirectMatcher):
             available_equipment: List of available equipment strings
             
         Returns:
-            List of DirectMatchResult objects for equipment matches
+            List of MatchingResult objects for equipment matches
         """
         results = []
         for required in required_equipment:
@@ -183,7 +184,7 @@ class CookingDirectMatcher(DirectMatcher):
             results.extend(equipment_results)
         return results
     
-    def match_techniques(self, required_techniques: List[str], available_techniques: List[str]) -> List[DirectMatchResult]:
+    def match_techniques(self, required_techniques: List[str], available_techniques: List[str]) -> List[MatchingResult]:
         """
         Match required techniques against available techniques.
         
@@ -192,7 +193,7 @@ class CookingDirectMatcher(DirectMatcher):
             available_techniques: List of available technique strings
             
         Returns:
-            List of DirectMatchResult objects for technique matches
+            List of MatchingResult objects for technique matches
         """
         results = []
         for required in required_techniques:
@@ -208,7 +209,7 @@ class CookingDirectMatcher(DirectMatcher):
             results.extend(technique_results)
         return results
     
-    def match_recipe_requirements(self, recipe_data: Dict[str, Any], kitchen_capabilities: Dict[str, Any]) -> Dict[str, List[DirectMatchResult]]:
+    def match_recipe_requirements(self, recipe_data: Dict[str, Any], kitchen_capabilities: Dict[str, Any]) -> Dict[str, List[MatchingResult]]:
         """
         Match all recipe requirements against kitchen capabilities.
         

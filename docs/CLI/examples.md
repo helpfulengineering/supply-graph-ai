@@ -2,16 +2,53 @@
 
 This document provides practical examples of using the OME CLI for common workflows.
 
+## LLM-Enhanced Workflows
+
+### LLM-Powered Validation
+
+```bash
+# Enhanced validation with LLM analysis
+ome okh validate manifest.json --use-llm --llm-provider anthropic --quality-level professional
+
+# Strict validation for production use
+ome okh validate manifest.json --use-llm --strict-mode --quality-level medical
+
+# LLM-enhanced facility validation
+ome okw validate facility.json --use-llm --llm-provider openai --quality-level professional
+```
+
+### Intelligent Matching with LLM
+
+```bash
+# Enhanced matching with LLM analysis
+ome match requirements manifest.json --use-llm --llm-provider anthropic --quality-level professional
+
+# Domain-specific matching with LLM
+ome match requirements manifest.json --domain manufacturing --use-llm --strict-mode
+
+# LLM-powered capability extraction
+ome okw extract-capabilities facility.json --use-llm --quality-level professional
+```
+
+### Global LLM Configuration
+
+```bash
+# Set global LLM options for all commands
+ome --use-llm --llm-provider anthropic --quality-level professional system health
+ome --use-llm --llm-provider anthropic --quality-level professional package build manifest.json
+ome --use-llm --llm-provider anthropic --quality-level professional okh validate manifest.json
+```
+
 ## Package Management Workflows
 
 ### Complete Package Lifecycle
 
 ```bash
-# 1. Validate a manifest before building
-ome okh validate openflexure-microscope.okh.json
+# 1. Validate a manifest before building (with LLM enhancement)
+ome okh validate openflexure-microscope.okh.json --use-llm --quality-level professional
 
-# 2. Build the package
-ome package build openflexure-microscope.okh.json
+# 2. Build the package (with LLM-powered analysis)
+ome package build openflexure-microscope.okh.json --use-llm --llm-provider anthropic
 
 # 3. Verify the built package
 ome package verify university-of-bath/openflexure-microscope 5.20
@@ -30,21 +67,21 @@ ome package pull university-of-bath/openflexure-microscope 5.20
 ### Batch Package Operations
 
 ```bash
-# Build multiple packages from manifests
+# Build multiple packages from manifests with LLM enhancement
 for manifest in *.okh.json; do
-    echo "Building package from $manifest"
-    ome package build "$manifest"
+    echo "Building package from $manifest with LLM analysis"
+    ome package build "$manifest" --use-llm --quality-level professional
 done
 
 # List all packages in JSON format for scripting
 ome --json package list-packages > packages.json
 
-# Verify all packages
+# Verify all packages with enhanced validation
 ome package list-packages | grep "📦" | while read line; do
     package_name=$(echo "$line" | cut -d' ' -f2)
     version=$(echo "$line" | cut -d' ' -f3)
-    echo "Verifying $package_name:$version"
-    ome package verify "$package_name" "$version"
+    echo "Verifying $package_name:$version with LLM analysis"
+    ome package verify "$package_name" "$version" --use-llm --quality-level professional
 done
 ```
 
@@ -71,6 +108,12 @@ ome package build manifest.json --timeout 120
 ```bash
 # Basic health check
 ome system health
+
+# Detailed health check with verbose output
+ome system health --verbose
+
+# Health check with LLM analysis
+ome system health --use-llm --llm-provider anthropic --quality-level professional
 
 # Detailed system status
 ome system status
@@ -104,11 +147,14 @@ ome utility contexts cooking
 # Basic validation
 ome okh validate manifest.json
 
-# Strict validation for production
-ome okh validate manifest.json --quality-level premium --strict-mode
+# Enhanced validation with LLM analysis
+ome okh validate manifest.json --use-llm --llm-provider anthropic --quality-level professional
 
-# Upload and validate
-ome okh upload manifest.json --quality-level standard
+# Strict validation for production
+ome okh validate manifest.json --use-llm --quality-level medical --strict-mode
+
+# Upload and validate with LLM enhancement
+ome okh upload manifest.json --use-llm --quality-level professional
 ```
 
 ### OKW Facility Validation
@@ -117,8 +163,11 @@ ome okh upload manifest.json --quality-level standard
 # Validate facility capabilities
 ome okw validate facility.json
 
-# Extract capabilities
-ome okw extract-capabilities facility.json
+# Enhanced validation with LLM analysis
+ome okw validate facility.json --use-llm --llm-provider anthropic --quality-level professional
+
+# Extract capabilities with LLM enhancement
+ome okw extract-capabilities facility.json --use-llm --quality-level professional
 
 # Search for specific capabilities
 ome okw search --capability "3d-printing"
@@ -133,21 +182,24 @@ ome okw search --location "San Francisco"
 # Match requirements to capabilities
 ome match requirements manifest.json
 
-# Match with specific domain
-ome match requirements manifest.json --domain manufacturing
+# Enhanced matching with LLM analysis
+ome match requirements manifest.json --use-llm --llm-provider anthropic --quality-level professional
 
-# Match with specific context
-ome match requirements manifest.json --context professional
+# Match with specific domain and LLM enhancement
+ome match requirements manifest.json --domain manufacturing --use-llm --quality-level professional
+
+# Match with specific context and LLM analysis
+ome match requirements manifest.json --context professional --use-llm --strict-mode
 ```
 
 ### Advanced Matching
 
 ```bash
-# Match against specific facility
-ome match requirements manifest.json --facility-id 123e4567-e89b-12d3-a456-426614174000
+# Match against specific facility with LLM analysis
+ome match requirements manifest.json --facility-id 123e4567-e89b-12d3-a456-426614174000 --use-llm --quality-level professional
 
-# Match with quality level
-ome match requirements manifest.json --quality-level premium
+# Match with quality level and LLM enhancement
+ome match requirements manifest.json --use-llm --quality-level medical --strict-mode
 
 # List recent matches
 ome match list-recent --limit 10
@@ -196,24 +248,37 @@ ome utility domains --name manufacturing
 ```bash
 # Server unavailable - CLI falls back to direct mode
 ome system health
-# Output: ℹ️  Server unavailable, using direct mode
+# Output: ⚠️  Server unavailable, using direct service calls...
 #         ✅ System is healthy
 
-# File not found
+# File not found with helpful suggestion
 ome package verify nonexistent/package 1.0.0
-# Output: Error: Package nonexistent/package:1.0.0 not found
+# Output: ❌ Error: Package nonexistent/package:1.0.0 not found
+#            Suggestion: Use 'ome package list-packages' to see available packages
+
+# Invalid domain with specific guidance
+ome utility contexts nonexistent-domain
+# Output: ❌ Error: Invalid domain 'nonexistent-domain'. Valid domains are: manufacturing, cooking
+#            Suggestion: Use 'ome utility domains' to see available domains
 ```
 
 ### Validation Errors
 
 ```bash
-# Invalid manifest
-ome okh validate invalid-manifest.json
-# Output: Error: Invalid manifest: Missing required field 'title'
+# Invalid manifest with LLM analysis
+ome okh validate invalid-manifest.json --use-llm
+# Output: ❌ Error: Invalid manifest: Missing required field 'title'
+#            Suggestion: Add required 'title' field to manifest
 
-# Invalid facility
-ome okw validate invalid-facility.json
-# Output: Error: Invalid facility: Missing required field 'name'
+# Invalid facility with enhanced validation
+ome okw validate invalid-facility.json --use-llm --quality-level professional
+# Output: ❌ Error: Invalid facility: Missing required field 'name'
+#            Suggestion: Add required 'name' field to facility specification
+
+# LLM configuration error
+ome okh validate manifest.json --use-llm --llm-provider invalid-provider
+# Output: ❌ Error: LLM provider 'invalid-provider' not supported
+#            Suggestion: Use one of: openai, anthropic, google, azure, local
 ```
 
 ## Scripting Examples
@@ -227,20 +292,28 @@ ome okw validate invalid-facility.json
 PACKAGE_NAME="$1"
 VERSION="$2"
 MANIFEST_FILE="$3"
+USE_LLM="${4:-false}"
 
 if [ -z "$PACKAGE_NAME" ] || [ -z "$VERSION" ] || [ -z "$MANIFEST_FILE" ]; then
-    echo "Usage: $0 <package-name> <version> <manifest-file>"
+    echo "Usage: $0 <package-name> <version> <manifest-file> [use-llm]"
     exit 1
 fi
 
 echo "Managing package: $PACKAGE_NAME:$VERSION"
 
+# Set LLM options if enabled
+LLM_OPTS=""
+if [ "$USE_LLM" = "true" ]; then
+    LLM_OPTS="--use-llm --llm-provider anthropic --quality-level professional"
+    echo "Using LLM enhancement for package management"
+fi
+
 # Check if package already exists
-if ome package verify "$PACKAGE_NAME" "$VERSION" 2>/dev/null; then
+if ome package verify "$PACKAGE_NAME" "$VERSION" $LLM_OPTS 2>/dev/null; then
     echo "Package already exists, skipping build"
 else
-    echo "Building package..."
-    ome package build "$MANIFEST_FILE"
+    echo "Building package with enhanced validation..."
+    ome package build "$MANIFEST_FILE" $LLM_OPTS
 fi
 
 # Push to remote storage
@@ -279,19 +352,21 @@ def list_packages():
         return json.loads(output)
     return None
 
-def verify_all_packages():
-    """Verify all built packages"""
+def verify_all_packages(use_llm=False):
+    """Verify all built packages with optional LLM enhancement"""
     packages = list_packages()
     if not packages:
         print("No packages found")
         return
     
+    llm_args = ['--use-llm', '--llm-provider', 'anthropic', '--quality-level', 'professional'] if use_llm else []
+    
     for package in packages.get('packages', []):
         name = package['name']
         version = package['version']
-        print(f"Verifying {name}:{version}")
+        print(f"Verifying {name}:{version}" + (" with LLM analysis" if use_llm else ""))
         
-        result = run_ome_command(['package', 'verify', name, version])
+        result = run_ome_command(['package', 'verify', name, version] + llm_args)
         if result and "✅" in result:
             print(f"  ✅ {name}:{version} verified")
         else:
@@ -332,15 +407,15 @@ jobs:
       - name: Validate OKH manifests
         run: |
           for manifest in *.okh.json; do
-            echo "Validating $manifest"
-            python ome okh validate "$manifest" --quality-level premium
+            echo "Validating $manifest with LLM enhancement"
+            python ome okh validate "$manifest" --use-llm --quality-level medical --strict-mode
           done
       
       - name: Build packages
         run: |
           for manifest in *.okh.json; do
-            echo "Building package from $manifest"
-            python ome package build "$manifest"
+            echo "Building package from $manifest with LLM analysis"
+            python ome package build "$manifest" --use-llm --quality-level professional
           done
       
       - name: Verify packages
@@ -400,14 +475,20 @@ ome --json --table system domains
 ### Verbose Debugging
 
 ```bash
-# Debug package building
+# Debug package building with detailed output
 ome --verbose package build manifest.json
 
-# Debug system health
+# Debug system health with execution tracking
 ome --verbose system health
 
-# Debug remote operations
+# Debug remote operations with connection details
 ome --verbose package push org/project 1.0.0
+
+# Debug LLM operations with detailed analysis
+ome --verbose okh validate manifest.json --use-llm --quality-level professional
+
+# Debug utility operations with domain validation
+ome --verbose utility contexts manufacturing
 ```
 
 ### Output Processing
@@ -422,5 +503,3 @@ ome --json package list-packages | jq -r '.packages[].name' | cut -d'/' -f1 | so
 # Get package sizes
 ome --json package list-packages | jq -r '.packages[] | "\(.name):\(.version) - \(.size) bytes"'
 ```
-
-These examples demonstrate the flexibility and power of the OME CLI for various use cases and workflows.

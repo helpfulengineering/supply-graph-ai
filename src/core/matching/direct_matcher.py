@@ -4,77 +4,38 @@ Direct Matching Layer Implementation
 This module implements the Direct Matching layer for the Open Matching Engine (OME).
 It provides exact, case-insensitive string matching with detailed metadata tracking
 and confidence scoring for both cooking and manufacturing domains.
+
+This layer is part of the 4-layer matching architecture and inherits from
+BaseMatchingLayer to ensure consistent interfaces and error handling.
 """
 
 import re
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Tuple
-from enum import Enum
+from typing import List, Dict, Any, Optional
+
+from .layers.base import BaseMatchingLayer, MatchingResult, MatchQuality, MatchingLayer
 
 
-class MatchQuality(Enum):
-    """Quality indicators for matches"""
-    PERFECT = "perfect"           # Exact match including case and whitespace
-    CASE_DIFFERENCE = "case_diff" # Case difference only
-    WHITESPACE_DIFFERENCE = "whitespace_diff"  # Whitespace difference only
-    NEAR_MISS = "near_miss"       # Close but not exact (≤2 character differences)
-    NO_MATCH = "no_match"         # No match found
-
-
-@dataclass
-class MatchMetadata:
-    """Detailed metadata about a match operation."""
-    method: str
-    confidence: float
-    reasons: List[str]
-    character_difference: int = 0
-    case_difference: bool = False
-    whitespace_difference: bool = False
-    quality: MatchQuality = MatchQuality.NO_MATCH
-    processing_time_ms: float = 0.0
-    timestamp: datetime = field(default_factory=datetime.now)
+class DirectMatcher(BaseMatchingLayer):
+    """
+    Direct string matching layer for requirements and capabilities.
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert metadata to dictionary for serialization."""
-        return {
-            "method": self.method,
-            "confidence": self.confidence,
-            "reasons": self.reasons,
-            "character_difference": self.character_difference,
-            "case_difference": self.case_difference,
-            "whitespace_difference": self.whitespace_difference,
-            "quality": self.quality.value,
-            "processing_time_ms": self.processing_time_ms,
-            "timestamp": self.timestamp.isoformat()
-        }
-
-
-@dataclass
-class DirectMatchResult:
-    """Result of a direct matching operation."""
-    requirement: str
-    capability: str
-    matched: bool
-    confidence: float
-    metadata: MatchMetadata
+    This layer provides exact, case-insensitive string matching with detailed
+    metadata tracking and confidence scoring. It supports near-miss detection
+    using Levenshtein distance for close matches.
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert result to dictionary for serialization."""
-        return {
-            "requirement": self.requirement,
-            "capability": self.capability,
-            "matched": self.matched,
-            "confidence": self.confidence,
-            "metadata": self.metadata.to_dict()
-        }
-
-
-class DirectMatcher(ABC):
-    """Abstract base class for direct string matching between requirements and capabilities."""
+    Features:
+    - Exact string matching (case-insensitive)
+    - Near-miss detection with configurable threshold
+    - Detailed match quality indicators
+    - Comprehensive metadata tracking
+    - Performance metrics and error handling
     
-    def __init__(self, domain: str, near_miss_threshold: int = 2):
+    Attributes:
+        near_miss_threshold: Maximum character differences for near-miss detection
+    """
+    
+    def __init__(self, domain: str = "general", near_miss_threshold: int = 2):
         """
         Initialize the direct matcher.
         
@@ -82,56 +43,71 @@ class DirectMatcher(ABC):
             domain: The domain this matcher operates in (e.g., 'cooking', 'manufacturing')
             near_miss_threshold: Maximum character differences to consider as near-miss
         """
-        self.domain = domain
+        super().__init__(MatchingLayer.DIRECT, domain)
         self.near_miss_threshold = near_miss_threshold
     
-    def match(self, requirement: str, capabilities: List[str]) -> List[DirectMatchResult]:
+    async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
         """
-        Perform direct string matching with detailed metadata.
+        Match requirements to capabilities using direct string matching.
         
         Args:
-            requirement: The requirement string to match
+            requirements: List of requirement strings to match
             capabilities: List of capability strings to match against
             
         Returns:
-            List of DirectMatchResult objects with detailed metadata
+            List of MatchingResult objects with detailed metadata
+            
+        Raises:
+            ValueError: If requirements or capabilities are invalid
+            RuntimeError: If matching fails due to configuration issues
         """
-        results = []
-        requirement_lower = requirement.lower()
+        # Start tracking metrics
+        self.start_matching(requirements, capabilities)
+        self.log_matching_start(requirements, capabilities)
         
-        for capability in capabilities:
-            start_time = datetime.now()
+        try:
+            # Validate inputs
+            if not self.validate_inputs(requirements, capabilities):
+                self.end_matching(success=False)
+                return []
             
-            # Perform the matching
-            result = self._match_single(requirement, requirement_lower, capability)
+            results = []
             
-            # Calculate processing time
-            processing_time = (datetime.now() - start_time).total_seconds() * 1000
-            result.metadata.processing_time_ms = processing_time
+            # Match each requirement against each capability
+            for requirement in requirements:
+                for capability in capabilities:
+                    result = await self._match_single(requirement, capability)
+                    results.append(result)
             
-            results.append(result)
-        
-        return results
+            # End metrics tracking
+            matches_found = sum(1 for r in results if r.matched)
+            self.end_matching(success=True, matches_found=matches_found)
+            self.log_matching_end(results)
+            
+            return results
+            
+        except Exception as e:
+            return self.handle_matching_error(e, [])
     
-    def _match_single(self, requirement: str, requirement_lower: str, capability: str) -> DirectMatchResult:
+    async def _match_single(self, requirement: str, capability: str) -> MatchingResult:
         """
         Match a single requirement against a single capability.
         
         Args:
             requirement: Original requirement string
-            requirement_lower: Lowercase version of requirement
             capability: Capability string to match against
             
         Returns:
-            DirectMatchResult with detailed metadata
+            MatchingResult with detailed metadata
         """
+        requirement_lower = requirement.lower()
         capability_lower = capability.lower()
         
         # Check for exact match (case-insensitive)
         if requirement_lower == capability_lower:
             # Calculate additional match quality indicators
             case_difference = requirement != capability
-            whitespace_difference = self._has_whitespace_difference(requirement, capability)
+            whitespace_difference = self.has_whitespace_difference(requirement, capability)
             
             # Determine quality and confidence
             if not case_difference and not whitespace_difference:
@@ -151,121 +127,52 @@ class DirectMatcher(ABC):
                 confidence = 0.9
                 reasons = ["Exact string match (case and whitespace differences)"]
             
-            # Create detailed metadata
-            metadata = MatchMetadata(
-                method=f"direct_match_{self.domain}",
-                confidence=confidence,
-                reasons=reasons,
-                case_difference=case_difference,
-                whitespace_difference=whitespace_difference,
-                quality=quality
-            )
-            
-            return DirectMatchResult(
+            return self.create_matching_result(
                 requirement=requirement,
                 capability=capability,
                 matched=True,
                 confidence=confidence,
-                metadata=metadata
+                method="direct_match",
+                reasons=reasons,
+                quality=quality,
+                case_difference=case_difference,
+                whitespace_difference=whitespace_difference
             )
         else:
             # Check for near-miss using Levenshtein distance
-            char_diff = self._levenshtein_distance(requirement_lower, capability_lower)
+            char_diff = self.calculate_levenshtein_distance(requirement_lower, capability_lower)
             
             if char_diff <= self.near_miss_threshold:
                 # Near miss detected
-                metadata = MatchMetadata(
-                    method=f"direct_match_{self.domain}",
-                    confidence=0.8,  # High but below threshold
-                    reasons=[f"Near match with {char_diff} character differences"],
-                    character_difference=char_diff,
-                    quality=MatchQuality.NEAR_MISS
-                )
-                
-                return DirectMatchResult(
+                return self.create_matching_result(
                     requirement=requirement,
                     capability=capability,
                     matched=False,  # Not considered a match by direct matcher
                     confidence=0.8,
-                    metadata=metadata
+                    method="direct_match",
+                    reasons=[f"Near match with {char_diff} character differences"],
+                    quality=MatchQuality.NEAR_MISS,
+                    character_difference=char_diff
                 )
             else:
                 # No match
-                metadata = MatchMetadata(
-                    method=f"direct_match_{self.domain}",
-                    confidence=0.0,
-                    reasons=[f"No match (Levenshtein distance: {char_diff})"],
-                    character_difference=char_diff,
-                    quality=MatchQuality.NO_MATCH
-                )
-                
-                return DirectMatchResult(
+                return self.create_matching_result(
                     requirement=requirement,
                     capability=capability,
                     matched=False,
                     confidence=0.0,
-                    metadata=metadata
+                    method="direct_match",
+                    reasons=[f"No match (Levenshtein distance: {char_diff})"],
+                    quality=MatchQuality.NO_MATCH,
+                    character_difference=char_diff
                 )
     
-    def _has_whitespace_difference(self, str1: str, str2: str) -> bool:
-        """
-        Check if strings differ only in whitespace.
-        
-        Args:
-            str1: First string
-            str2: Second string
-            
-        Returns:
-            True if strings differ only in whitespace
-        """
-        # Check if strings are identical when normalized
-        norm1 = re.sub(r'\s+', ' ', str1.strip())
-        norm2 = re.sub(r'\s+', ' ', str2.strip())
-        
-        # If normalized strings are the same, check if original strings differ
-        if norm1 == norm2:
-            # Check if original strings differ in whitespace
-            # Remove all whitespace and compare
-            no_ws1 = re.sub(r'\s', '', str1)
-            no_ws2 = re.sub(r'\s', '', str2)
-            return no_ws1 == no_ws2 and str1 != str2
-        else:
-            # Strings differ in content, not just whitespace
-            return False
-    
-    def _levenshtein_distance(self, str1: str, str2: str) -> int:
-        """
-        Calculate the Levenshtein distance between two strings.
-        
-        Args:
-            str1: First string
-            str2: Second string
-            
-        Returns:
-            Number of single-character edits needed to change str1 into str2
-        """
-        if len(str1) < len(str2):
-            return self._levenshtein_distance(str2, str1)
-        
-        if len(str2) == 0:
-            return len(str1)
-        
-        previous_row = list(range(len(str2) + 1))
-        for i, c1 in enumerate(str1):
-            current_row = [i + 1]
-            for j, c2 in enumerate(str2):
-                insertions = previous_row[j + 1] + 1
-                deletions = current_row[j] + 1
-                substitutions = previous_row[j] + (c1 != c2)
-                current_row.append(min(insertions, deletions, substitutions))
-            previous_row = current_row
-        
-        return previous_row[-1]
-    
-    @abstractmethod
     def get_domain_specific_confidence_adjustments(self, requirement: str, capability: str) -> float:
         """
-        Get domain-specific confidence adjustments.
+        Get domain-specific confidence adjustments for direct matching.
+        
+        This method can be overridden by subclasses to provide domain-specific
+        confidence adjustments based on the requirement and capability strings.
         
         Args:
             requirement: The requirement string
@@ -274,4 +181,6 @@ class DirectMatcher(ABC):
         Returns:
             Confidence adjustment factor (0.0 to 1.0)
         """
-        pass
+        # Default implementation - no domain-specific adjustments
+        # Subclasses can override this for domain-specific logic
+        return 1.0

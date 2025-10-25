@@ -32,8 +32,8 @@ Components have a unified structure with:
 ### Supply Tree Generation
 
 The Supply Tree reflects this dynamic complexity:
-- Components matched directly become simple workflow nodes
-- Components that required decomposition generate connected sub-workflows
+- Components matched directly become simple supply tree entries
+- Components that required decomposition generate connected supply tree solutions
 - The resulting structure captures both the logical and physical dependencies
 
 ## Example Scenario
@@ -51,9 +51,9 @@ The matching process would:
    - If "Mounting hardware" isn't directly available, match its sub-components
 
 The resulting Supply Tree would show:
-- The chair as the root workflow
-- Connected workflows for any components that required decomposition
-- Direct nodes for components that were matched without decomposition
+- The chair as the root supply tree solution
+- Connected supply tree solutions for any components that required decomposition
+- Direct entries for components that were matched without decomposition
 
 # Code Scaffolding
 
@@ -367,145 +367,39 @@ class SupplyTreeGenerator:
         Generate a Supply Tree from BOM match results
         
         The Supply Tree structure will reflect the dynamic complexity:
-        - Components with direct matches become simple workflow nodes
-        - Components matched through decomposition generate connected sub-workflows
+        - Components with direct matches become simple supply tree entries
+        - Components matched through decomposition generate connected supply tree solutions
         """
-        from src.core.models.supply_trees import SupplyTree, Workflow, WorkflowNode, WorkflowConnection
+        from src.core.models.supply_trees import SupplyTree
         
-        # Create supply tree
-        supply_tree = SupplyTree()
-        
-        # Create primary workflow
-        primary_workflow = Workflow(
-            name=f"Primary workflow for {bom.name}",
+        # Create supply tree with simplified structure
+        supply_tree = SupplyTree(
+            facility_id=uuid4(),  # This would come from the matching process
+            facility_name="Matched Facility",  # This would come from the matching process
+            okh_reference=bom.name,
+            confidence_score=0.8  # This would be calculated from match results
         )
         
-        # Process match results
+        # Process match results to populate supply tree metadata
         for result in match_results:
             if result.result == MatchResult.DIRECT_MATCH:
-                # Create single node for direct match
-                node = self._create_node_for_direct_match(result)
-                primary_workflow.add_node(node)
+                # Add direct match information to supply tree
+                supply_tree.materials_required.extend(
+                    result.component.requirements.get('materials', [])
+                )
+                supply_tree.capabilities_used.extend(
+                    result.component.requirements.get('capabilities', [])
+                )
                 
             elif result.result == MatchResult.DECOMPOSED_MATCH:
-                # Create connected workflows for decomposed match
-                node, sub_workflows, connections = self._create_structure_for_decomposed_match(result)
-                
-                # Add node to primary workflow
-                primary_workflow.add_node(node)
-                
-                # Add sub-workflows and connections to supply tree
-                for workflow in sub_workflows:
-                    supply_tree.add_workflow(workflow)
-                
-                for connection in connections:
-                    supply_tree.connect_workflows(connection)
-        
-        # Add primary workflow to supply tree
-        supply_tree.add_workflow(primary_workflow)
+                # Add decomposed match information to supply tree
+                for sub_result in result.sub_results:
+                    supply_tree.materials_required.extend(
+                        sub_result.component.requirements.get('materials', [])
+                    )
+                    supply_tree.capabilities_used.extend(
+                        sub_result.component.requirements.get('capabilities', [])
+                    )
         
         return supply_tree
-    
-    def _create_node_for_direct_match(self, result: ComponentMatchResult) -> 'WorkflowNode':
-        """Create a workflow node for a direct component match"""
-        from src.core.models.supply_trees import WorkflowNode
-        
-        component = result.component
-        capability = result.matched_capability
-        
-        node = WorkflowNode(
-            name=component.name,
-            input_requirements={
-                "quantity": component.quantity,
-                "unit": component.unit,
-                **component.requirements
-            },
-            output_specifications={},
-            # Add references to the matched capability
-            # ...
-        )
-        
-        return node
-    
-    def _create_structure_for_decomposed_match(self, 
-                                            result: ComponentMatchResult) -> tuple:
-        """
-        Create connected workflows for a decomposed match
-        
-        Returns:
-            tuple of (primary_node, sub_workflows, connections)
-        """
-        from src.core.models.supply_trees import Workflow, WorkflowNode, WorkflowConnection
-        
-        component = result.component
-        
-        # Create node for the decomposed component
-        node = WorkflowNode(
-            name=component.name,
-            input_requirements={
-                "quantity": component.quantity,
-                "unit": component.unit,
-                **component.requirements
-            },
-            output_specifications={}
-        )
-        
-        # Create sub-workflows and connections
-        sub_workflows = []
-        connections = []
-        
-        # Process each sub-result recursively
-        for sub_result in result.sub_results:
-            if sub_result.result == MatchResult.DIRECT_MATCH:
-                # Create workflow with single node
-                workflow = Workflow(
-                    name=f"Workflow for {sub_result.component.name}"
-                )
-                
-                sub_node = self._create_node_for_direct_match(sub_result)
-                workflow.add_node(sub_node)
-                
-                sub_workflows.append(workflow)
-                
-                # Create connection
-                connection = WorkflowConnection(
-                    source_node=node.id,
-                    source_workflow=None,  # Will be set later
-                    target_node=sub_node.id,
-                    target_workflow=workflow.id,
-                    connection_type="decomposition"
-                )
-                
-                connections.append(connection)
-                
-            elif sub_result.result == MatchResult.DECOMPOSED_MATCH:
-                # Recursively create structure for sub-result
-                sub_node, more_workflows, more_connections = (
-                    self._create_structure_for_decomposed_match(sub_result)
-                )
-                
-                # Create workflow for this level
-                workflow = Workflow(
-                    name=f"Workflow for {sub_result.component.name}"
-                )
-                
-                workflow.add_node(sub_node)
-                sub_workflows.append(workflow)
-                
-                # Add connection to the sub-workflow
-                connection = WorkflowConnection(
-                    source_node=node.id,
-                    source_workflow=None,  # Will be set later
-                    target_node=sub_node.id,
-                    target_workflow=workflow.id,
-                    connection_type="decomposition"
-                )
-                
-                connections.append(connection)
-                
-                # Add more sub-workflows and connections
-                sub_workflows.extend(more_workflows)
-                connections.extend(more_connections)
-        
-        return node, sub_workflows, connections
 ```

@@ -8,10 +8,10 @@ The Open Matching Engine uses several interconnected data models to represent re
 
 ### 1. [Supply Trees](supply-tree.md)
 The central data structure representing complete manufacturing solutions.
-- Multiple connected DAGs representing workflows
-- Context-aware validation
-- Process requirements and capabilities
-- Workflow dependencies and connections
+- Direct facility mapping for manufacturing solutions
+- Context-aware validation and confidence scoring
+- Process requirements and capabilities matching
+- Material and process requirement tracking
 
 ### 2. [OpenKnowHow (OKH)](okh-docs.md)
 Standard format for documenting open hardware designs.
@@ -107,7 +107,7 @@ class MatchingSolution:
 ```
 
 ### OME.routing Models
-Models for material and workflow routing:
+Models for material and facility routing:
 ```python
 @dataclass
 class RoutingSolution:

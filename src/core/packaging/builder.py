@@ -48,32 +48,33 @@ class PackageBuilder:
         manifest_path = package_path / "okh-manifest.json"
         await self._save_manifest(manifest, manifest_path)
         
-        # Download and organize files
+        # Download and organize files with deduplication
         file_inventory = []
+        downloaded_files = {}  # Track downloaded files by URL to avoid duplicates
         
         async with self.file_resolver:
             # Download document files
             if options.include_design_files:
                 files = await self._download_document_files(
-                    manifest.design_files, package_path / "design-files", "design-files"
+                    manifest.design_files, package_path / "design-files", "design-files", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
             if options.include_manufacturing_files:
                 files = await self._download_document_files(
-                    manifest.manufacturing_files, package_path / "manufacturing-files", "manufacturing-files"
+                    manifest.manufacturing_files, package_path / "manufacturing-files", "manufacturing-files", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
             if options.include_making_instructions:
                 files = await self._download_document_files(
-                    manifest.making_instructions, package_path / "making-instructions", "making-instructions"
+                    manifest.making_instructions, package_path / "making-instructions", "making-instructions", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
             if options.include_operating_instructions:
                 files = await self._download_document_files(
-                    manifest.operating_instructions, package_path / "operating-instructions", "operating-instructions"
+                    manifest.operating_instructions, package_path / "operating-instructions", "operating-instructions", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
@@ -84,7 +85,7 @@ class PackageBuilder:
                 files = await self._download_document_files(
                     files_by_type["quality-instructions"], 
                     package_path / "quality-instructions", 
-                    "quality-instructions"
+                    "quality-instructions", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
@@ -92,7 +93,7 @@ class PackageBuilder:
                 files = await self._download_document_files(
                     files_by_type["risk-assessment"], 
                     package_path / "risk-assessment", 
-                    "risk-assessment"
+                    "risk-assessment", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
@@ -100,7 +101,7 @@ class PackageBuilder:
                 files = await self._download_document_files(
                     files_by_type["schematics"], 
                     package_path / "schematics", 
-                    "schematics"
+                    "schematics", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
@@ -108,44 +109,76 @@ class PackageBuilder:
                 files = await self._download_document_files(
                     files_by_type["tool-settings"], 
                     package_path / "tool-settings", 
-                    "tool-settings"
+                    "tool-settings", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
             # Download BOM if present
             if manifest.bom:
-                bom_files = await self._download_single_file(
-                    manifest.bom, package_path / "manufacturing-files", "bom", "manufacturing-files"
-                )
-                file_inventory.extend(bom_files)
+                # Handle BOM as a dictionary with external_file reference
+                if isinstance(manifest.bom, dict) and 'external_file' in manifest.bom:
+                    # BOM is a structured object with external file reference
+                    bom_path = manifest.bom['external_file']
+                    bom_files = await self._download_single_file(
+                        bom_path, package_path / "manufacturing-files", "bom", "manufacturing-files", manifest.repo
+                    )
+                    file_inventory.extend(bom_files)
+                elif isinstance(manifest.bom, str):
+                    # BOM is a simple URL/path string
+                    bom_files = await self._download_single_file(
+                        manifest.bom, package_path / "manufacturing-files", "bom", "manufacturing-files", manifest.repo
+                    )
+                    file_inventory.extend(bom_files)
             
             # Download archive if present
             if manifest.archive_download:
                 archive_files = await self._download_single_file(
-                    manifest.archive_download, package_path / "software", "archive", "software"
+                    manifest.archive_download, package_path / "software", "archive", "software", manifest.repo
                 )
                 file_inventory.extend(archive_files)
             
             # Download project image if present
             if manifest.image:
                 image_files = await self._download_single_file(
-                    manifest.image, package_path / "metadata", "project-image", "metadata"
+                    manifest.image, package_path / "metadata", "project-image", "metadata", manifest.repo
                 )
                 file_inventory.extend(image_files)
             
             # Download software
             if options.include_software and manifest.software:
-                files = await self._download_software_files(manifest.software, package_path)
+                files = await self._download_software_files(manifest.software, package_path, manifest.repo)
                 file_inventory.extend(files)
             
             # Download parts
             if options.include_parts and manifest.parts:
-                files = await self._download_parts_files(manifest.parts, package_path)
+                files = await self._download_parts_files(manifest.parts, package_path, manifest.repo)
                 file_inventory.extend(files)
+        
+        # Fix file paths to be relative to package directory
+        fixed_file_inventory = []
+        for file_info in file_inventory:
+            # Convert absolute path to relative path from package directory
+            if file_info.local_path.startswith(str(package_path)):
+                relative_path = Path(file_info.local_path).relative_to(package_path)
+                # Create new FileInfo with relative path (preserving subdirectory structure)
+                fixed_file_info = FileInfo(
+                    original_url=file_info.original_url,
+                    local_path=str(relative_path),
+                    content_type=file_info.content_type,
+                    size_bytes=file_info.size_bytes,
+                    checksum_sha256=file_info.checksum_sha256,
+                    downloaded_at=file_info.downloaded_at,
+                    file_type=file_info.file_type,
+                    part_name=file_info.part_name
+                )
+                fixed_file_inventory.append(fixed_file_info)
+            else:
+                # Keep original if path is already relative
+                fixed_file_inventory.append(file_info)
         
         # Generate package metadata
         metadata = await self._generate_package_metadata(
-            manifest, package_path, package_name, file_inventory, options
+            manifest, package_path, package_name, fixed_file_inventory, options
         )
         
         # Save metadata
@@ -207,23 +240,99 @@ class PackageBuilder:
         self, 
         documents: List[DocumentRef], 
         target_dir: Path, 
-        file_type: str
+        file_type: str,
+        repo_url: str = None,
+        downloaded_files: dict = None
     ) -> List[FileInfo]:
         """Download a list of document files"""
         if not documents:
             return []
         
-        results = await self.file_resolver.download_multiple_files(
-            documents, target_dir, file_type
-        )
+        # Convert repository file paths to GitHub raw URLs if needed
+        processed_documents = []
+        for doc in documents:
+            if not doc.path.startswith(('http://', 'https://')) and repo_url and 'github.com' in repo_url:
+                # This is a repository file path, construct GitHub raw URL
+                if repo_url.endswith('/'):
+                    repo_url = repo_url[:-1]
+                
+                # Extract user/repo from GitHub URL
+                if '/github.com/' in repo_url:
+                    repo_part = repo_url.split('/github.com/')[-1]
+                    github_raw_url = f"https://raw.githubusercontent.com/{repo_part}/master/{doc.path}"
+                else:
+                    # Fallback: assume it's already a GitHub URL
+                    github_raw_url = f"{repo_url}/raw/master/{doc.path}"
+                
+                # Create new DocumentRef with GitHub raw URL
+                processed_doc = DocumentRef(
+                    title=doc.title,
+                    path=github_raw_url,
+                    type=doc.type,
+                    metadata=doc.metadata
+                )
+                processed_documents.append(processed_doc)
+            else:
+                # Keep original document
+                processed_documents.append(doc)
         
-        # Extract successful file info
+        # Filter out already downloaded files (deduplication)
+        if downloaded_files is None:
+            downloaded_files = {}
+        
+        unique_documents = []
+        duplicate_documents = []
+        
+        for doc in processed_documents:
+            if doc.path not in downloaded_files:
+                unique_documents.append(doc)
+            else:
+                duplicate_documents.append(doc)
+                logger.debug(f"Found duplicate file: {doc.path}")
+        
+        # Download unique files
+        results = []
+        if unique_documents:
+            results = await self.file_resolver.download_multiple_files(
+                unique_documents, target_dir, file_type
+            )
+        
+        # Extract successful file info and track downloaded files
         file_infos = []
-        for result in results:
+        for i, result in enumerate(results):
             if result.success and result.file_info:
                 file_infos.append(result.file_info)
+                # Track this file as downloaded
+                downloaded_files[unique_documents[i].path] = result.file_info
             else:
                 logger.warning(f"Failed to download file: {result.error_message}")
+        
+        # Handle duplicate files by creating symbolic links
+        for doc in duplicate_documents:
+            original_file_info = downloaded_files[doc.path]
+            # Create a new FileInfo for this duplicate with the correct target path
+            duplicate_file_info = FileInfo(
+                original_url=original_file_info.original_url,
+                local_path=str(target_dir / Path(original_file_info.local_path).name),
+                content_type=original_file_info.content_type,
+                size_bytes=original_file_info.size_bytes,
+                checksum_sha256=original_file_info.checksum_sha256,
+                downloaded_at=original_file_info.downloaded_at,
+                file_type=file_type,
+                part_name=original_file_info.part_name
+            )
+            file_infos.append(duplicate_file_info)
+            
+            # Create symbolic link to the original file
+            original_path = Path(original_file_info.local_path)
+            link_path = target_dir / original_path.name
+            
+            try:
+                if not link_path.exists():
+                    link_path.symlink_to(original_path.absolute())
+                    logger.debug(f"Created symbolic link: {link_path} -> {original_path}")
+            except Exception as e:
+                logger.warning(f"Failed to create symbolic link for {doc.path}: {e}")
         
         return file_infos
     
@@ -232,26 +341,43 @@ class PackageBuilder:
         url: str, 
         target_dir: Path, 
         filename: str, 
-        file_type: str
+        file_type: str,
+        repo_url: str = None
     ) -> List[FileInfo]:
-        """Download a single file from URL"""
+        """Download a single file from URL or GitHub repository"""
+        # Determine if this is a GitHub repository file path
+        actual_url = url
+        if not url.startswith(('http://', 'https://')) and repo_url and 'github.com' in repo_url:
+            # This is a repository file path, construct GitHub raw URL
+            # Convert https://github.com/user/repo to https://raw.githubusercontent.com/user/repo/master
+            if repo_url.endswith('/'):
+                repo_url = repo_url[:-1]
+            
+            # Extract user/repo from GitHub URL
+            if '/github.com/' in repo_url:
+                repo_part = repo_url.split('/github.com/')[-1]
+                actual_url = f"https://raw.githubusercontent.com/{repo_part}/master/{url}"
+            else:
+                # Fallback: assume it's already a GitHub URL
+                actual_url = f"{repo_url}/raw/master/{url}"
+        
         # Create a DocumentRef for the URL
         doc_ref = DocumentRef(
             title=filename,
-            path=url,
+            path=actual_url,
             type=DocumentationType.MANUFACTURING_FILES  # Default type
         )
         
         # Determine target filename
-        if url.startswith(('http://', 'https://')):
+        if actual_url.startswith(('http://', 'https://')):
             from urllib.parse import urlparse
-            parsed_url = urlparse(url)
+            parsed_url = urlparse(actual_url)
             original_filename = Path(parsed_url.path).name
             if original_filename and '.' in original_filename:
                 target_filename = original_filename
             else:
                 # Guess extension from URL or use default
-                ext = self._guess_extension_from_url(url)
+                ext = self._guess_extension_from_url(actual_url)
                 target_filename = f"{filename}{ext}"
         else:
             target_filename = Path(url).name
@@ -268,7 +394,7 @@ class PackageBuilder:
             logger.warning(f"Failed to download {url}: {result.error_message}")
             return []
     
-    async def _download_software_files(self, software_list: List[Software], package_path: Path) -> List[FileInfo]:
+    async def _download_software_files(self, software_list: List[Software], package_path: Path, repo_url: str = None) -> List[FileInfo]:
         """Download software files"""
         file_infos = []
         software_dir = package_path / "software"
@@ -277,7 +403,7 @@ class PackageBuilder:
             # Download software release
             if software.release:
                 release_files = await self._download_single_file(
-                    software.release, software_dir, "release", "software"
+                    software.release, software_dir, "release", "software", repo_url
                 )
                 file_infos.extend(release_files)
             
@@ -286,13 +412,13 @@ class PackageBuilder:
                 install_dir = software_dir / "installation"
                 install_dir.mkdir(exist_ok=True)
                 install_files = await self._download_single_file(
-                    software.installation_guide, install_dir, "installation-guide", "software"
+                    software.installation_guide, install_dir, "installation-guide", "software", repo_url
                 )
                 file_infos.extend(install_files)
         
         return file_infos
     
-    async def _download_parts_files(self, parts: List[PartSpec], package_path: Path) -> List[FileInfo]:
+    async def _download_parts_files(self, parts: List[PartSpec], package_path: Path, repo_url: str = None) -> List[FileInfo]:
         """Download part-specific files"""
         file_infos = []
         parts_dir = package_path / "parts"
@@ -343,7 +469,7 @@ class PackageBuilder:
             # Download part image
             if part.image:
                 image_files = await self._download_single_file(
-                    part.image, part_dir / "images", "part-image", "parts"
+                    part.image, part_dir / "images", "part-image", "parts", repo_url
                 )
                 for file_info in image_files:
                     file_info.part_name = part.name

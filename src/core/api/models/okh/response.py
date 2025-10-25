@@ -2,6 +2,8 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
+from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
+
 class ValidationIssue(BaseModel):
     """Model for validation issues"""
     # Required fields first
@@ -22,8 +24,8 @@ class ProcessRequirement(BaseModel):
     required_tools: List[str] = []
     notes: str = ""
 
-class OKHResponse(BaseModel):
-    """Response model for OKH manifests"""
+class OKHResponse(SuccessResponse, LLMResponseMixin):
+    """Response model for OKH manifests with standardized fields and LLM information"""
     # Required fields first
     id: UUID
     title: str
@@ -56,6 +58,58 @@ class OKHResponse(BaseModel):
     manufacturing_specs: Optional[Dict[str, Any]] = None
     parts: List[Dict[str, Any]] = []
     metadata: Dict[str, Any] = {}
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[BaseValidationResult]] = None
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "id": "00000000-0000-0000-0000-000000000000",
+                "title": "Arduino-based IoT Sensor Node",
+                "version": "1.0.0",
+                "license": {"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
+                "licensor": "John Doe",
+                "documentation_language": "en",
+                "function": "IoT sensor node for environmental monitoring",
+                "repo": "https://github.com/example/iot-sensor",
+                "description": "A simple IoT sensor node based on Arduino",
+                "intended_use": "Environmental monitoring and data collection",
+                "keywords": ["iot", "sensor", "arduino", "environmental"],
+                "project_link": "https://github.com/example/iot-sensor",
+                "manufacturing_files": [
+                    {"name": "pcb_design.kicad", "type": "design", "url": "https://github.com/example/iot-sensor/pcb.kicad"}
+                ],
+                "design_files": [
+                    {"name": "enclosure.stl", "type": "3d_model", "url": "https://github.com/example/iot-sensor/enclosure.stl"}
+                ],
+                "tool_list": ["3D Printer", "Soldering Iron", "Multimeter"],
+                "manufacturing_processes": ["3D Printing", "PCB Assembly", "Soldering"],
+                "materials": [
+                    {"name": "Arduino Nano", "quantity": 1, "specifications": "ATmega328P microcontroller"}
+                ],
+                "manufacturing_specs": {
+                    "process_requirements": [
+                        {"process_name": "PCB Assembly", "parameters": {}}
+                    ]
+                },
+                "parts": [
+                    {"name": "Arduino Nano", "quantity": 1, "specifications": "ATmega328P"}
+                ],
+                "metadata": {"category": "electronics", "difficulty": "beginner"},
+                "status": "success",
+                "message": "OKH operation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "request_id": "req_123456789",
+                "processing_time": 1.25,
+                "llm_used": True,
+                "llm_provider": "anthropic",
+                "llm_cost": 0.012,
+                "data": {},
+                "validation_results": []
+            }
+        }
 
 class OKHValidationResponse(BaseModel):
     """Response model for OKH validation"""
@@ -80,11 +134,6 @@ class OKHListResponse(BaseModel):
     page: int
     page_size: int
 
-class SuccessResponse(BaseModel):
-    """Response model for successful operations"""
-    # Required fields only
-    success: bool
-    message: str
 
 class OKHUploadResponse(BaseModel):
     """Response model for OKH file upload"""
@@ -96,3 +145,13 @@ class OKHUploadResponse(BaseModel):
     # Optional fields after
     validation_issues: Optional[List[ValidationIssue]] = None
     completeness_score: Optional[float] = None
+
+class OKHGenerateResponse(BaseModel):
+    """Response model for OKH manifest generation from URL"""
+    # Required fields first
+    success: bool
+    message: str
+    manifest: Dict[str, Any]
+    
+    # Optional fields after
+    quality_report: Optional[Dict[str, Any]] = None

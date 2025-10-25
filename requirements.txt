@@ -5,7 +5,7 @@ mkdocs-material
 
 # core systems
 networkx
-fastapi
+fastapi>=0.100.0,<0.120.0
 uvicorn
 python-multipart
 
@@ -16,7 +16,7 @@ boto3>=1.26.0
 azure-storage-blob>=12.14.0
 google-cloud-storage>=2.7.0
 PyYAML>=6.0
-pydantic[email]>=1.10.0
+pydantic[email]>=2.0.0,<3.0.0
 python-dotenv>=1.0.0
 
 # testing
@@ -33,3 +33,16 @@ dotenv
 #cli tools
 click
 tqdm
+
+# NLP processing
+spacy>=3.7.0
+# spaCy dependencies
+catalogue>=2.0.4,<2.1.0
+confection>=0.0.1,<1.0.0
+cymem>=2.0.2,<2.1.0
+murmurhash>=1.0.2,<1.1.0
+numpy>=1.19.0
+packaging>=20.0
+preshed>=3.0.2,<3.1.0
+srsly>=2.4.0,<3.0.0
+wasabi>=0.8.1,<1.2.0

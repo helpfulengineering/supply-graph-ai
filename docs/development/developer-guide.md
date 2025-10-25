@@ -348,7 +348,7 @@ curl -X POST http://localhost:8001/v1/match/upload \
 
 # Upload OKH file without filters
 curl -X POST http://localhost:8001/v1/match/upload \
-  -F "okh_file=@path/to/okh_manifest.yaml"
+  -F "okh_file=@path/to/okh_manifest.yaml" | jq .
 ```
 
 **Python Example:**

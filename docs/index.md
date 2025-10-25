@@ -11,10 +11,11 @@
     * [Storage](architecture/storage.md)
     * [Data Flow Diagram](architecture/data-flow-diagram.md)
     * [System Diagram](architecture/system-diagram.md)
-    * [Workflow Generation](architecture/workflow-generation.md)
+    * [Matching Architecture](architecture/matching.md)
 
 ### Development Plans
 * [Developer Guide](development/developer-guide.md)
+* [Migration Guide](migration-guide.md)
 
 ### Data Models
 * [Data Models](models/index.md)

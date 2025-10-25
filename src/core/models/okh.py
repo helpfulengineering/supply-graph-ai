@@ -3,6 +3,7 @@ from typing import List, Dict, Optional, Union
 from datetime import date
 from enum import Enum
 from uuid import UUID, uuid4
+from pathlib import Path
 import re
 import os
 
@@ -89,10 +90,69 @@ class DocumentRef:
     
     def validate(self) -> bool:
         """Validate the document reference"""
-        # Check if path exists (if it's a relative path)
-        if not (self.path.startswith('http://') or self.path.startswith('https://')):
-            return os.path.exists(self.path)
-        return True
+        # Allow HTTP/HTTPS URLs
+        if self.path.startswith('http://') or self.path.startswith('https://'):
+            return True
+        
+        # Allow absolute paths that exist
+        if os.path.isabs(self.path) and os.path.exists(self.path):
+            return True
+        
+        # For relative paths, be more lenient:
+        # 1. If file exists locally, that's great
+        if os.path.exists(self.path):
+            return True
+        
+        # 2. If it's a relative path that looks like a repository file path,
+        #    consider it valid (it will be resolved during package build)
+        if not os.path.isabs(self.path) and '/' in self.path:
+            # This looks like a repository file path (e.g., "docs/README.md")
+            return True
+        
+        # 3. For simple filenames, check if they exist in common locations
+        if not os.path.isabs(self.path) and '/' not in self.path:
+            # Check common locations
+            common_paths = [
+                self.path,
+                f"docs/{self.path}",
+                f"documentation/{self.path}",
+                f"manual/{self.path}"
+            ]
+            if any(os.path.exists(p) for p in common_paths):
+                return True
+        
+        # 4. For generated manifests, be more permissive:
+        #    If the path looks like a reasonable file reference, allow it
+        #    This handles cases where files exist in remote repositories
+        if not os.path.isabs(self.path):
+            # Check if it looks like a reasonable file reference
+            path_lower = self.path.lower()
+            
+            # Allow common file extensions
+            valid_extensions = {
+                '.txt', '.md', '.pdf', '.doc', '.docx', '.rst',
+                '.stl', '.obj', '.3mf', '.scad', '.step', '.stp',
+                '.kicad_pcb', '.kicad_mod', '.sch', '.brd',
+                '.py', '.js', '.cpp', '.c', '.h',
+                '.json', '.yaml', '.yml', '.csv', '.tsv',
+                '.jpg', '.jpeg', '.png', '.gif', '.svg'
+            }
+            
+            if any(path_lower.endswith(ext) for ext in valid_extensions):
+                return True
+            
+            # Allow common filenames
+            common_filenames = {
+                'readme', 'license', 'copying', 'authors', 'contributors',
+                'changelog', 'version', 'install', 'build', 'makefile'
+            }
+            
+            filename = Path(self.path).stem.lower()
+            if filename in common_filenames:
+                return True
+        
+        # If we get here, the file doesn't exist and doesn't look like a valid reference
+        return False
 
 @dataclass
 class MaterialSpec:
@@ -416,11 +476,29 @@ class OKHManifest:
         """Create an OKHManifest instance from a dictionary"""
         # Handle required fields
         license_data = data.get('license', {})
-        license_obj = License(
-            hardware=license_data.get('hardware'),
-            documentation=license_data.get('documentation'),
-            software=license_data.get('software')
-        )
+        
+        # Handle both string and dictionary license formats
+        if isinstance(license_data, str):
+            # If license is a string, use it for all license types
+            license_obj = License(
+                hardware=license_data,
+                documentation=license_data,
+                software=license_data
+            )
+        elif isinstance(license_data, dict):
+            # If license is a dictionary, extract individual fields
+            license_obj = License(
+                hardware=license_data.get('hardware'),
+                documentation=license_data.get('documentation'),
+                software=license_data.get('software')
+            )
+        else:
+            # Fallback to empty license
+            license_obj = License(
+                hardware=None,
+                documentation=None,
+                software=None
+            )
         
         # Initialize basic instance
         instance = cls(
@@ -482,13 +560,27 @@ class OKHManifest:
         if 'materials' in data:
             instance.materials = []
             for mat_data in data['materials']:
-                mat = MaterialSpec(
-                    material_id=mat_data.get('material_id', ''),
-                    name=mat_data.get('name', ''),
-                    quantity=mat_data.get('quantity'),
-                    unit=mat_data.get('unit'),
-                    notes=mat_data.get('notes')
-                )
+                if isinstance(mat_data, str):
+                    # Handle simple string materials (from our generated manifests)
+                    mat = MaterialSpec(
+                        material_id='',
+                        name=mat_data,
+                        quantity=None,
+                        unit=None,
+                        notes=None
+                    )
+                elif isinstance(mat_data, dict):
+                    # Handle structured material dictionaries
+                    mat = MaterialSpec(
+                        material_id=mat_data.get('material_id', ''),
+                        name=mat_data.get('name', ''),
+                        quantity=mat_data.get('quantity'),
+                        unit=mat_data.get('unit'),
+                        notes=mat_data.get('notes')
+                    )
+                else:
+                    # Skip invalid material data
+                    continue
                 instance.materials.append(mat)
         
         # Handle manufacturing specs

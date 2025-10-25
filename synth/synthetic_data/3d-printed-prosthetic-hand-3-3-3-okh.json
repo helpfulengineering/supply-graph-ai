@@ -1,0 +1,408 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "95c706c5-1c9d-4226-b740-365643bfa72b",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/ebishop/3d-printed-prosthetic-hand",
+  "version": "3.3.3",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Holly Marshall",
+    "email": "cervantesamy@example.com",
+    "affiliation": "Murphy Group",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "zcrawford"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Office another sister walk represent.",
+  "intended_use": "Leader glass your food note listen song.",
+  "keywords": [
+    "open-source",
+    "shaft",
+    "bracket",
+    "documented",
+    "gear"
+  ],
+  "contact": {
+    "name": "Linda Griffith",
+    "email": "hjohnson@example.com",
+    "affiliation": "Briggs, Gallagher and Matthews",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "cookjulia"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "George Roberts",
+      "email": "khill@example.org",
+      "affiliation": "Parrish-Jacobson",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "ddixon"
+        }
+      ]
+    },
+    {
+      "name": "Robert Villanueva",
+      "email": "marissa48@example.com",
+      "affiliation": "Vazquez-Cox",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "bstone"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Rowland-Mcconnell",
+    "url": "https://price.net",
+    "email": "contact@richardson.com"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/wkelly/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/ianhenderson/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/qphillips/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/blairkimberly/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.2"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/lindapeterson/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/abigail08/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/katherine71/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/rickeyalexander/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/sherrimiller/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/pschmitt/project/raw/main/docs/3d_printing_setup_and_parameters.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/johnroberson/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "quality-instructions",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/kimberlycollins/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.0"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "tool_list": [
+    "Pliers",
+    "Deburring tool",
+    "Heat shrink",
+    "Wrench set",
+    "Nozzle",
+    "Crimping tool",
+    "Filament",
+    "Heat gun",
+    "Screwdriver set"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 379.74,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 106.99,
+      "unit": "m³",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 23.05,
+      "unit": "m³",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 723.39,
+      "unit": "m²",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 242,
+      "width": 350,
+      "height": 189
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "10%",
+          "temperature": "243°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Common include collection evidence score will theory."
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Through all evening early help health."
+  },
+  "bom": "https://github.com/caitlyn66/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "d475ac66-3fa4-4da7-aaaa-9139b61a0140",
+      "source": [
+        "https://github.com/mcintyremelissa/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/anthonydunlap/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/joneshector/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/catherine23/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 79,
+        "width": 138,
+        "height": 17
+      },
+      "mass": 82.05,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "d49de012-0596-4d13-9ca5-b11e4718f8f9",
+      "source": [
+        "https://github.com/jacksonkevin/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/petersondavid/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/dhill/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/derekjoseph/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 122,
+        "width": 116,
+        "height": 62
+      },
+      "mass": 402.01,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "80dbe481-e834-49ae-ae4d-28bbbc51b54c",
+      "source": [
+        "https://github.com/barronjoshua/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/dcarlson/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/brittanycampbell/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/tonycooper/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 87,
+        "width": 50,
+        "height": 91
+      },
+      "mass": 697.04,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "a6fe5ff4-cb72-4d77-a5f5-0ef101cee403",
+      "source": [
+        "https://github.com/michael58/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/oneillcheryl/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/tchavez/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/msmith/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 93,
+        "width": 28,
+        "height": 89
+      },
+      "mass": 115.16,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

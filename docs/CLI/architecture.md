@@ -2,7 +2,7 @@
 
 ## Overview
 
-The OME CLI is built using a modular architecture that provides both HTTP API integration and direct service access. This design ensures reliability and flexibility across different deployment scenarios.
+The OME CLI is built using a modern, standardized architecture that provides both HTTP API integration and direct service access. The system has been completely refactored with LLM integration support, standardized command patterns, and enterprise-grade error handling. This design ensures reliability, flexibility, and consistency across all 36 CLI commands.
 
 ## Architecture Components
 
@@ -10,64 +10,132 @@ The OME CLI is built using a modular architecture that provides both HTTP API in
 
 The foundation of the CLI system providing:
 
-- **CLIConfig**: Configuration management for server URLs, timeouts, and output formats
-- **CLIContext**: Runtime context holding configuration and API client instances
+- **CLIConfig**: Advanced configuration management with LLM support, server URLs, timeouts, and output formats
+- **CLIContext**: Runtime context with LLM configuration, performance tracking, and API client instances
 - **APIClient**: HTTP client for communicating with the FastAPI server
-- **SmartCommand**: Intelligent command execution with HTTP/fallback logic
-- **Output Utilities**: Consistent formatting and error handling
+- **SmartCommand**: Intelligent command execution with HTTP/fallback logic and performance tracking
+- **Output Utilities**: Consistent formatting, error handling, and LLM-specific output formatting
+- **LLM Integration**: Built-in support for LLM providers, quality levels, and strict mode validation
 
 ```python
-# Example usage
-config = CLIConfig(server_url="http://localhost:8001", verbose=True)
+# Example usage with LLM support
+config = CLIConfig(
+    server_url="http://localhost:8001", 
+    verbose=True,
+    llm_config={
+        'use_llm': True,
+        'llm_provider': 'anthropic',
+        'quality_level': 'professional',
+        'strict_mode': False
+    }
+)
 context = CLIContext(config=config, api_client=APIClient(config))
 command = SmartCommand(context)
 ```
 
-### 2. Command Groups
+### 2. Standardized Command Decorators (`src/cli/decorators.py`)
 
-The CLI is organized into 7 command groups, each handling a specific domain:
+The CLI uses a decorator system for consistent command patterns:
 
-#### Package Commands (`src/cli/package.py`)
-- Package building, verification, and management
+- **@standard_cli_command**: Main decorator providing LLM options, error handling, performance tracking, and output formatting
+- **@with_llm_config**: Adds LLM configuration options to commands
+- **@with_error_handling**: Standardized error handling across all commands
+- **@with_performance_tracking**: Built-in performance monitoring and command timing
+- **@with_output_formatting**: Consistent JSON and table output formatting
+
+```python
+@standard_cli_command(
+    help_text="Command description with examples",
+    epilog="Additional examples and usage",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True
+)
+async def my_command(ctx, verbose: bool, output_format: str, use_llm: bool,
+                    llm_provider: str, llm_model: Optional[str],
+                    quality_level: str, strict_mode: bool):
+    # Command implementation with automatic LLM support
+```
+
+### 3. Command Groups
+
+The CLI is organized into 6 command groups with 36 total commands, each fully standardized:
+
+#### Match Commands (`src/cli/match.py`) - 3 commands
+- Requirements-to-capabilities matching with LLM enhancement
+- Match validation and result management
+- Domain-specific matching operations
+
+#### OKH Commands (`src/cli/okh.py`) - 8 commands
+- OpenKnowHow manifest validation and management with LLM support
+- Manifest creation, retrieval, and deletion
+- Requirement extraction from manifests with enhanced analysis
+
+#### OKW Commands (`src/cli/okw.py`) - 9 commands
+- OpenKnowWhere facility validation and management with LLM support
+- Facility creation, retrieval, and deletion
+- Capability extraction and searching with intelligent analysis
+
+#### Package Commands (`src/cli/package.py`) - 9 commands
+- Package building, verification, and management with LLM enhancement
 - Remote storage operations (push/pull)
 - Local package listing and deletion
 
-#### OKH Commands (`src/cli/okh.py`)
-- OpenKnowHow manifest validation and management
-- Manifest creation, retrieval, and deletion
-- Requirement extraction from manifests
+#### System Commands (`src/cli/system.py`) - 5 commands
+- System health monitoring with diagnostics
+- Domain and status information with LLM analysis
+- Server connectivity testing and performance monitoring
 
-#### OKW Commands (`src/cli/okw.py`)
-- OpenKnowWhere facility validation and management
-- Facility creation, retrieval, and deletion
-- Capability extraction and searching
-
-#### Match Commands (`src/cli/match.py`)
-- Requirements-to-capabilities matching
-- Match validation and result management
-- Recent match listing
-
-#### System Commands (`src/cli/system.py`)
-- System health monitoring
-- Domain and status information
-- Server connectivity testing
-
-#### Supply Tree Commands (`src/cli/supply_tree.py`)
-- Supply tree creation and management
-- Tree validation and retrieval
-- Tree listing and deletion
-
-#### Utility Commands (`src/cli/utility.py`)
-- Domain and context listing
+#### Utility Commands (`src/cli/utility.py`) - 2 commands
+- Domain and context listing with enhanced analysis
 - Utility operations for system introspection
 
-### 3. Main Entry Point (`src/cli/main.py`)
+### 4. Main Entry Point (`src/cli/main.py`)
 
 The main CLI entry point that:
-- Registers all command groups
-- Handles global options
+- Registers all 6 command groups with 36 total commands
+- Handles global options including LLM configuration
 - Provides version and configuration commands
-- Sets up the Click framework
+- Sets up the Click framework with comprehensive help system
+- Manages LLM provider options and quality levels
+
+## LLM Integration
+
+### LLM Configuration
+
+The CLI supports comprehensive LLM integration across all commands:
+
+```bash
+# Global LLM options
+ome --use-llm --llm-provider anthropic --quality-level professional [COMMAND]
+
+# Command-specific LLM options
+ome okh validate manifest.json --use-llm --llm-provider openai --strict-mode
+```
+
+### Supported LLM Providers
+
+- **OpenAI**: GPT-3.5, GPT-4, and other OpenAI models
+- **Anthropic**: Claude models with advanced reasoning
+- **Google**: PaLM and other Google AI models
+- **Azure OpenAI**: Azure-hosted OpenAI models
+- **Local**: Local model support for offline operations
+
+### Quality Levels
+
+- **hobby**: Basic quality for personal projects
+- **professional**: Standard quality for commercial use
+- **medical**: High quality for medical device applications
+
+### LLM Features
+
+- **Enhanced Analysis**: LLM-powered validation and extraction
+- **Intelligent Matching**: Advanced requirement-to-capability matching
+- **Quality Assessment**: Automated quality evaluation and recommendations
+- **Error Detection**: Intelligent error detection and suggestions
+- **Performance Optimization**: LLM-assisted performance improvements
 
 ## Execution Modes
 
@@ -144,46 +212,86 @@ ome --server-url https://api.ome.org --timeout 60 --verbose package build manife
 | `--verbose` | `OME_VERBOSE` | `False` | Enable verbose output |
 | `--json` | `OME_JSON` | `False` | JSON output format |
 | `--table` | `OME_TABLE` | `False` | Table output format |
+| `--use-llm` | `OME_USE_LLM` | `False` | Enable LLM integration |
+| `--llm-provider` | `OME_LLM_PROVIDER` | `anthropic` | LLM provider (openai, anthropic, google, azure, local) |
+| `--llm-model` | `OME_LLM_MODEL` | `None` | Specific LLM model to use |
+| `--quality-level` | `OME_QUALITY_LEVEL` | `professional` | Quality level (hobby, professional, medical) |
+| `--strict-mode` | `OME_STRICT_MODE` | `False` | Enable strict validation mode |
 
 ## Error Handling
 
+### Standardized Error Handling
+
+The CLI uses an error handling system with:
+
+- **Standardized Error Types**: Consistent error categorization across all commands
+- **Helpful Error Messages**: Clear, actionable error messages with suggestions
+- **Graceful Degradation**: Automatic fallback when server is unavailable
+- **LLM-Enhanced Error Analysis**: Intelligent error detection and recommendations
+- **Performance Tracking**: Error tracking and performance monitoring
+
 ### Error Types
 
-1. **Connection Errors**: Server unavailable, network issues
-2. **Validation Errors**: Invalid input files, missing parameters
-3. **File System Errors**: File not found, permission issues
-4. **API Errors**: Server-side errors, invalid responses
+1. **Connection Errors**: Server unavailable, network issues (with automatic fallback)
+2. **Validation Errors**: Invalid input files, missing parameters (with specific suggestions)
+3. **File System Errors**: File not found, permission issues (with helpful guidance)
+4. **API Errors**: Server-side errors, invalid responses (with retry suggestions)
+5. **LLM Errors**: LLM provider issues, model errors (with fallback options)
 
 ### Error Handling Strategy
 
 ```python
 try:
+    # Commands automatically handle errors with standardized patterns
     result = await command.execute_with_fallback(http_operation, fallback_operation)
+    
+    # Standardized success/error handling
     if result.get("status") == "error":
-        echo_error(f"Operation failed: {result.get('message')}")
+        cli_ctx.log(f"Operation failed: {result.get('message')}", "error")
         return 1
     else:
-        echo_success("Operation completed successfully")
+        cli_ctx.log("Operation completed successfully", "success")
         return 0
+        
+except ValueError as e:
+    # Domain validation errors with helpful messages
+    cli_ctx.log(f"Validation error: {e}", "error")
+    return 1
 except Exception as e:
-    echo_error(f"Unexpected error: {e}")
+    # Unexpected errors with debugging information
+    cli_ctx.log(f"Unexpected error: {e}", "error")
+    if cli_ctx.verbose:
+        cli_ctx.log(f"Debug info: {traceback.format_exc()}", "info")
     return 1
 ```
 
 ### User-Friendly Error Messages
 
-The CLI provides clear, actionable error messages:
+The CLI provides clear, actionable error messages with helpful suggestions:
 
 ```bash
 # File not found
-Error: Package community/nonexistent:1.0.0 not found
+❌ Error: Package community/nonexistent:1.0.0 not found
+   Suggestion: Use 'ome package list-packages' to see available packages
 
-# Server connection failed
-ℹ️  Server unavailable, using direct mode
+# Server connection failed (with automatic fallback)
+⚠️  Server unavailable, using direct service calls...
 ✅ Operation completed successfully
 
-# Validation error
-Error: Invalid manifest: Missing required field 'title'
+# Validation error with specific guidance
+❌ Error: Invalid domain 'nonexistent-domain'. Valid domains are: manufacturing, cooking
+   Suggestion: Use 'ome utility domains' to see available domains
+
+# LLM configuration error
+❌ Error: LLM provider 'invalid-provider' not supported
+   Suggestion: Use one of: openai, anthropic, google, azure, local
+
+# Verbose mode with detailed information
+ℹ️  Starting system-health command
+ℹ️  Attempting to connect to server...
+ℹ️  Checking health via HTTP API...
+✅ Connected to server successfully
+✅ Command system-health completed in 0.08 seconds
 ```
 
 ## Output Formatting
@@ -319,26 +427,6 @@ async def build_package(manifest_file):
     return await create_package(manifest, files)
 ```
 
-## Testing Strategy
-
-### Unit Tests
-
-- Individual command testing
-- Service integration testing
-- Error handling testing
-
-### Integration Tests
-
-- End-to-end workflow testing
-- HTTP vs fallback mode testing
-- Cross-platform compatibility testing
-
-### Performance Tests
-
-- Load testing with multiple concurrent operations
-- Memory usage testing
-- Response time benchmarking
-
 ## Deployment Considerations
 
 ### Standalone Deployment
@@ -397,5 +485,3 @@ The CLI integrates well with CI/CD pipelines:
 2. **Enhanced Error Recovery**: Better error recovery and retry logic
 3. **Performance Monitoring**: Built-in performance monitoring
 4. **Logging Integration**: Better logging and debugging support
-
-This architecture provides a solid foundation for the OME CLI while maintaining flexibility for future enhancements and improvements.

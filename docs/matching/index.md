@@ -30,17 +30,16 @@ An intelligent rule-based system that understands what capabilities can satisfy 
 - **Domain-Specific Rules**: Tailored rules for manufacturing, cooking, and other domains
 - **Configuration-Driven**: Rules loaded from external YAML files for easy customization
 
-### 3. Heuristic Matching Layer
-Advanced matching using domain knowledge and heuristics:
+### 3. NLP Matching Layer
+Natural language processing-based semantic matching:
 
-- **Intelligent Algorithms**: Uses domain expertise to find non-obvious matches
-- **Context-Aware**: Considers the broader context of requirements and capabilities
-- **Flexible Matching**: Can handle variations in terminology and specifications
-- **Extensible Framework**: Easy to add new heuristics and matching strategies
+- **Semantic Understanding**: Uses spaCy for semantic similarity calculation
+- **Memory Efficient**: Lazy loading and cleanup to prevent memory leaks
+- **Domain Patterns**: Manufacturing and cooking domain-specific patterns
+- **Fallback Robustness**: String similarity when spaCy unavailable
+- **Quality Assessment**: Multi-tier confidence scoring (PERFECT, HIGH, MEDIUM, LOW, NO_MATCH)
 
-### 4. NLP Matching Layer (Future Development)
-
-### 5. LLM Matching Layer (Future Development)
+### 4. LLM Matching Layer (Future Development)
 
 ## How It Works
 
@@ -49,8 +48,9 @@ The matching system uses a layered approach where each layer builds upon the pre
 
 1. **Direct Matching**: Finds exact and near-exact matches first
 2. **Capability Rules**: Applies domain-specific rules to find logical matches
-3. **Heuristic Matching**: Uses advanced algorithms for complex matching scenarios
-4. **Validation & Scoring**: Ensures match quality and provides confidence scores
+3. **NLP Matching**: Uses semantic similarity for meaning-based matching
+4. **LLM Matching**: Advanced AI-powered matching (future development)
+5. **Validation & Scoring**: Ensures match quality and provides confidence scores
 
 ### Domain Awareness
 The system is fully domain-aware, meaning:
@@ -112,6 +112,8 @@ To understand the matching system in detail, explore these documentation section
 - **[Direct Matching](direct-matching.md)**: Learn about exact and near-miss matching algorithms
 - **[Capability-Centric Rules](capability-centric-rules.md)**: Understand the rule-based matching system
 - **[Heuristic Rules System](heuristic-rules-system.md)**: Explore advanced matching algorithms and heuristics
+- **[NLP Matching](nlp-matching.md)**: Discover semantic similarity and natural language processing
+- **[Implementation Summary](implementation-summary.md)**: Comprehensive overview of current implementation status
 
 ## Architecture Integration
 

@@ -7,27 +7,36 @@ as the original validators while the new validation framework is being integrate
 
 from typing import Dict, Any
 from ...models.supply_trees import SupplyTree
-import networkx as nx
 
 
 class CookingValidator:
     """Temporary validator for cooking domain - maintains original interface"""
     
     def validate(self, supply_tree: SupplyTree) -> Dict[str, Any]:
-        """Validate cooking supply tree"""
+        """Validate simplified cooking supply tree"""
         is_valid = True
         issues = []
         
-        # Basic validation - check we have at least one workflow
-        if not supply_tree.workflows:
+        # Basic validation - check required fields
+        if not supply_tree.facility_id:
             is_valid = False
-            issues.append("Supply tree has no workflows")
+            issues.append("Supply tree missing facility_id")
         
-        # For each workflow, check it's a valid DAG
-        for wf_id, workflow in supply_tree.workflows.items():
-            if not nx.is_directed_acyclic_graph(workflow.graph):
-                is_valid = False
-                issues.append(f"Workflow {wf_id} has cycles, which is invalid for cooking")
+        if not supply_tree.facility_name:
+            is_valid = False
+            issues.append("Supply tree missing facility_name")
+        
+        if not supply_tree.okh_reference:
+            is_valid = False
+            issues.append("Supply tree missing okh_reference")
+        
+        if supply_tree.confidence_score < 0.0 or supply_tree.confidence_score > 1.0:
+            is_valid = False
+            issues.append("Confidence score must be between 0.0 and 1.0")
+        
+        # Check if it's a cooking domain supply tree
+        if supply_tree.match_type != "cooking" and "cooking" not in supply_tree.metadata.get("domain", ""):
+            issues.append("Warning: Supply tree may not be for cooking domain")
         
         return {
             "valid": is_valid,

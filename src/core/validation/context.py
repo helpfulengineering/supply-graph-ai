@@ -6,8 +6,8 @@ with the existing domain management system.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
-
+from typing import Dict, Any
+from src.core.registry.domain_registry import DomainRegistry
 
 @dataclass
 class ValidationContext:
@@ -20,13 +20,11 @@ class ValidationContext:
     
     def __post_init__(self):
         """Validate that domain exists in registry"""
-        from src.core.registry.domain_registry import DomainRegistry
         if self.domain not in DomainRegistry.list_domains():
             raise ValueError(f"Domain '{self.domain}' is not registered. Available domains: {DomainRegistry.list_domains()}")
     
     def get_domain_services(self):
         """Get domain services for this context"""
-        from src.core.registry.domain_registry import DomainRegistry
         return DomainRegistry.get_domain_services(self.domain)
     
     def get_domain_validator(self):

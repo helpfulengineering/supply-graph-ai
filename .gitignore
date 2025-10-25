@@ -177,6 +177,7 @@ cython_debug/
 logs/
 notes/
 packages/
+test-data/
 
 #cursor files
 .cursorrules
