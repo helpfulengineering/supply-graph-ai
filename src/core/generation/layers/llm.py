@@ -244,7 +244,7 @@ The OKH manifest is designed to maximize interoperability and discoverability in
         except Exception as e:
             self.handle_processing_error(e, result)
             return result
-            
+    
         finally:
             # Clean up context file
             await self._cleanup_context_file(context_file)
@@ -396,14 +396,44 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
 2. Extract technical specifications and requirements
 3. Identify manufacturing processes and materials
 4. Map dependencies and components
-5. Update context file with extracted information
+5. **CRITICAL: BOM Detection and Construction**
+   - Look for explicit BOM files (bom.csv, bill_of_materials.txt, etc.)
+   - If no explicit BOM found, construct BOM from parts lists, materials, and components mentioned in documentation
+   - Extract part names, quantities, materials, and specifications
+   - Map hardware components to OKH parts structure
+6. **CRITICAL: Parts and Sub-parts Logic**
+   - Identify main components (chassis, electronics, mechanical parts)
+   - Distinguish between main parts and sub-components
+   - Use file structure and documentation to determine part hierarchy
+   - Map 3D models, PCBs, and assemblies to appropriate part categories
+7. **CRITICAL: Software Repository Detection**
+   - Look for software repository references in README
+   - Detect patterns like "code can be found in [repository]" or "software repository"
+   - Handle GitHub-specific patterns (separate repos for hardware/software)
+   - Be context-aware: GitHub projects often separate hardware/software repos
+8. Update context file with extracted information
 
 ### Phase 3: Schema Mapping
 1. Reference the OKH schema for field requirements
 2. Map extracted data to OKH fields
 3. Ensure all required fields are populated
-4. Validate field formats and content
-5. Document mapping decisions in context file
+4. **CRITICAL: BOM Field Mapping**
+   - If explicit BOM file found, reference it in bom field
+   - If no explicit BOM, construct comprehensive BOM from parts/materials analysis
+   - Include all hardware components, quantities, and specifications
+   - Format as URL to BOM file or comprehensive parts list
+5. **CRITICAL: Parts Field Population**
+   - Map main hardware components to parts array
+   - Include part names, IDs, source files (STL, CAD), materials, dimensions
+   - Distinguish between main parts and sub-components
+   - Use file structure to identify part relationships
+6. **CRITICAL: Software Field Population**
+   - Detect software repository references in README/documentation
+   - Handle GitHub-specific patterns (separate hardware/software repos)
+   - Include software repository URLs and descriptions
+   - Be context-aware of platform differences (GitHub vs Thingiverse)
+7. Validate field formats and content
+8. Document mapping decisions in context file
 
 ### Phase 4: Quality Assurance
 1. Verify completeness of all required fields
@@ -422,20 +452,75 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
 ## Repository Data:
 {json.dumps(project_info, indent=2)}
 
+## ENHANCED ANALYSIS DATA - USE THIS DATA TO POPULATE FIELDS:
+BOM Files Found: {len(project_info.get('bom_files', []))}
+Part Files Found: {len(project_info.get('part_files', []))}
+Software Indicators: {project_info.get('software_indicators', {})}
+
+SPECIFIC BOM FILES TO USE:
+{chr(10).join(project_info.get('bom_files', [])[:10])}
+
+SPECIFIC PART FILES TO USE:
+{chr(10).join(project_info.get('part_files', [])[:10])}
+
+SPECIFIC SOFTWARE REFERENCES TO USE:
+{chr(10).join(project_info.get('software_indicators', {}).get('software_references', [])[:5])}
+
+MANDATORY REQUIREMENTS:
+- You MUST use the BOM files listed above to populate the 'bom' field
+- You MUST use the part files listed above to populate the 'parts' field  
+- You MUST use the software references listed above to populate the 'software' field
+- These fields CANNOT be empty or 'NOT_FOUND'
+- If you cannot find specific data, construct reasonable entries based on the file names and project context
+
 ## OKH Schema Reference:
 {self.okh_schema_prompt}
+
+## Critical Field Examples:
+
+### BOM Construction Examples:
+- **Explicit BOM**: "bom.csv", "bill_of_materials.txt" → Reference in bom field
+- **Implicit BOM**: Parts list in README → Construct comprehensive BOM from documentation
+- **Example**: "The rover requires: 6 wheels, 1 chassis, 2 motors, 1 Arduino" → Extract all components
+
+### Parts Detection Examples:
+- **Main Parts**: Chassis, wheels, motors, control board, mast
+- **Sub-parts**: Screws, brackets, connectors, mounting hardware
+- **File Mapping**: "chassis.stl" → chassis part, "wheel_assembly.step" → wheel assembly
+- **Material Detection**: "3D printed PLA", "aluminum bracket", "steel screws"
+
+### Software Repository Detection Examples:
+- **GitHub Pattern**: "All code can be found in the osr-rover-code repository"
+- **Direct Reference**: "Software repository: https://github.com/nasa-jpl/osr-rover-code"
+- **Context Clues**: "Raspberry Pi", "ROS", "Python code", "Arduino sketches"
+- **Platform Awareness**: GitHub projects often separate hardware/software repos
 
 ## Context File:
 Use {context_file} as your scratchpad for analysis.
 
 ## Instructions:
-1. Create and populate the context file with your analysis
-2. Follow the OKH schema precisely
-3. Focus on interoperability and discoverability
-4. Generate a complete, accurate OKH manifest
-5. Return the manifest as valid JSON
+1. **CRITICAL: Use the enhanced analysis data provided above**
+2. **CRITICAL: BOM Field - DO NOT leave empty**
+   - If bom_files array has items, reference the main BOM file
+   - If no explicit BOM, construct from parts/materials in documentation
+   - NEVER leave bom field empty - always provide a BOM reference or constructed BOM
+3. **CRITICAL: Parts Field - DO NOT leave empty**
+   - Use part_files array to identify main hardware components
+   - Map 3D models (.stl, .step) to parts with materials and dimensions
+   - Distinguish between main parts and sub-components
+   - NEVER leave parts field empty - always populate with detected parts
+4. **CRITICAL: Software Field - DO NOT leave empty**
+   - Use software_indicators to find software repository references
+   - Look for patterns like "code can be found in [repository]"
+   - Handle GitHub-specific patterns (separate hardware/software repos)
+   - NEVER leave software field empty - always populate with detected software
+5. Create and populate the context file with your analysis
+6. Follow the OKH schema precisely
+7. Focus on interoperability and discoverability
+8. Generate a complete, accurate OKH manifest
+9. Return the manifest as valid JSON
 
-Begin analysis now.
+**REMEMBER: The enhanced analysis has already detected BOM files, part files, and software references. Use this data!**
 """
     
     def _extract_project_info(self, project_data: ProjectData) -> Dict[str, Any]:
@@ -449,16 +534,24 @@ Begin analysis now.
         # Get documentation
         documentation = [doc.title for doc in project_data.documentation]
         
+        # Analyze files for BOM, parts, and software detection
+        bom_files = self._find_bom_files(project_data)
+        part_files = self._find_part_files(project_data)
+        software_indicators = self._find_software_indicators(project_data)
+        
         return {
             "name": project_data.metadata.get("name", "Unknown Project"),
             "url": project_data.url,
             "platform": project_data.platform.value if project_data.platform else "unknown",
             "description": project_data.metadata.get("description", ""),
-            "readme_content": readme_content[:2000] if readme_content else None,  # Truncate for prompt
+            "readme_content": readme_content[:3000] if readme_content else None,  # Increased for better analysis
             "file_structure": file_structure,
             "documentation": documentation,
             "files_count": len(project_data.files),
-            "documentation_count": len(project_data.documentation)
+            "documentation_count": len(project_data.documentation),
+            "bom_files": bom_files,
+            "part_files": part_files,
+            "software_indicators": software_indicators
         }
     
     def _get_readme_content(self, project_data: ProjectData) -> Optional[str]:
@@ -481,6 +574,92 @@ Begin analysis now.
         for file_info in project_data.files[:50]:  # Limit to first 50 files
             structure.append(file_info.path)
         return structure
+    
+    def _find_bom_files(self, project_data: ProjectData) -> List[str]:
+        """Find BOM-related files in the project"""
+        bom_patterns = [
+            'bom', 'bill_of_materials', 'parts_list', 'components',
+            'materials', 'inventory', 'shopping_list'
+        ]
+        
+        bom_files = []
+        for file_info in project_data.files:
+            file_path_lower = file_info.path.lower()
+            for pattern in bom_patterns:
+                if pattern in file_path_lower:
+                    bom_files.append(file_info.path)
+                    break
+        
+        return bom_files
+    
+    def _find_part_files(self, project_data: ProjectData) -> List[str]:
+        """Find part-related files (3D models, CAD files, etc.)"""
+        part_extensions = ['.stl', '.step', '.stp', '.obj', '.ply', '.3mf', '.cad', '.dxf']
+        part_keywords = ['part', 'component', 'assembly', 'model', 'design']
+        
+        part_files = []
+        for file_info in project_data.files:
+            file_path_lower = file_info.path.lower()
+            
+            # Check for part file extensions
+            if any(file_path_lower.endswith(ext) for ext in part_extensions):
+                part_files.append(file_info.path)
+                continue
+            
+            # Check for part-related keywords in path
+            if any(keyword in file_path_lower for keyword in part_keywords):
+                part_files.append(file_info.path)
+        
+        return part_files[:20]  # Limit to first 20 part files
+    
+    def _find_software_indicators(self, project_data: ProjectData) -> Dict[str, Any]:
+        """Find software-related indicators in the project"""
+        software_keywords = [
+            'code', 'software', 'firmware', 'arduino', 'raspberry', 'pi',
+            'python', 'cpp', 'c++', 'javascript', 'ros', 'linux', 'git'
+        ]
+        
+        software_files = []
+        software_references = []
+        
+        # Check file extensions
+        software_extensions = ['.py', '.cpp', '.c', '.js', '.java', '.ino', '.sh', '.bash']
+        
+        for file_info in project_data.files:
+            file_path_lower = file_info.path.lower()
+            
+            # Check for software file extensions
+            if any(file_path_lower.endswith(ext) for ext in software_extensions):
+                software_files.append(file_info.path)
+            
+            # Check for software keywords in path
+            if any(keyword in file_path_lower for keyword in software_keywords):
+                software_files.append(file_info.path)
+        
+        # Check README content for software repository references
+        readme_content = self._get_readme_content(project_data)
+        if readme_content:
+            readme_lower = readme_content.lower()
+            
+            # Look for repository references
+            import re
+            repo_patterns = [
+                r'code can be found in.*?repository',
+                r'software.*?repository',
+                r'github\.com/[^/\s]+/[^/\s]+',
+                r'git\.com/[^/\s]+/[^/\s]+'
+            ]
+            
+            for pattern in repo_patterns:
+                matches = re.findall(pattern, readme_lower)
+                software_references.extend(matches)
+        
+        return {
+            "software_files": software_files[:10],  # Limit to first 10
+            "software_references": software_references,
+            "has_software_files": len(software_files) > 0,
+            "has_software_references": len(software_references) > 0
+        }
     
     async def _parse_llm_response(self, response_content: str, result: LayerResult):
         """Parse LLM response and extract manifest fields"""
@@ -524,7 +703,7 @@ Begin analysis now.
                 )
         
         # Optional fields
-        optional_fields = ["description", "keywords", "manufacturing_processes", "materials", "intended_use"]
+        optional_fields = ["description", "keywords", "manufacturing_processes", "materials", "intended_use", "bom", "parts", "sub_parts", "software"]
         
         for field in optional_fields:
             if field in manifest_data:

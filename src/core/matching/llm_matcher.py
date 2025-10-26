@@ -24,10 +24,6 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 
 from .layers.base import BaseMatchingLayer, MatchingResult, MatchMetadata, MatchQuality, MatchingLayer
-from ..llm.service import LLMService, LLMServiceConfig
-from ..llm.models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
-from ..llm.models.responses import LLMResponseStatus
-from ..llm.providers.base import LLMProviderType
 from ..services.base import ServiceStatus
 
 logger = logging.getLogger(__name__)
@@ -58,7 +54,7 @@ class LLMMatcher(BaseMatchingLayer):
     - Integration with LLM service for provider management
     """
     
-    def __init__(self, domain: str = "general", llm_service: Optional[LLMService] = None, 
+    def __init__(self, domain: str = "general", llm_service: Optional[Any] = None, 
                  preserve_context: bool = False):
         """
         Initialize the LLM Matching Layer.
@@ -86,9 +82,13 @@ class LLMMatcher(BaseMatchingLayer):
         
         logger.info(f"Initialized LLM matching layer for domain: {domain}")
     
-    def _create_llm_service(self) -> LLMService:
+    def _create_llm_service(self):
         """Create and configure LLM service for matching operations."""
         try:
+            # Lazy import to avoid circular dependencies
+            from ..llm.service import LLMService, LLMServiceConfig
+            from ..llm.providers.base import LLMProviderType
+            
             config = LLMServiceConfig(
                 name="LLMMatchingService",
                 default_provider=LLMProviderType.ANTHROPIC,
@@ -401,6 +401,10 @@ Provide your analysis in the specified JSON format.
     async def _run_llm_analysis(self, prompt: str, context_file: Path) -> str:
         """Run LLM analysis and return the response."""
         try:
+            # Lazy import to avoid circular dependencies
+            from ..llm.models.requests import LLMRequestConfig, LLMRequestType
+            from ..llm.models.responses import LLMResponseStatus
+            
             # Create LLM request
             request_config = LLMRequestConfig(
                 temperature=0.2,  # Low temperature for consistent results
