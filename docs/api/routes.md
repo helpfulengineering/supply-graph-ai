@@ -29,9 +29,9 @@ The API uses a **consolidated model architecture** with:
 All routes are prefixed with `/v1` to enable future versioning. This approach allows for introducing breaking changes in future versions without disrupting existing clients.
 
 ```
-/v1/okh/...
-/v1/okw/...
-/v1/match/...
+/v1/api/okh/...
+/v1/api/okw/...
+/v1/api/match/...
 ```
 
 Future versions would be accessible via `/v2`, `/v3`, etc., with the previous versions maintained for backward compatibility as needed.
@@ -41,7 +41,7 @@ Future versions would be accessible via `/v2`, `/v3`, etc., with the previous ve
 The OME API includes comprehensive storage integration with Azure Blob Storage:
 
 ### Azure Blob Storage Features
-- **Automatic OKW Loading**: The `/v1/match` endpoint automatically loads all OKW facilities from the configured Azure container
+- **Automatic OKW Loading**: The `/v1/api/match` endpoint automatically loads all OKW facilities from the configured Azure container
 - **File Format Support**: Supports both YAML and JSON file formats for OKW facilities
 - **Real-time Processing**: Processes files from storage in real-time during matching operations
 - **Domain Handlers**: Specialized storage handlers for different data types (OKH, OKW, supply trees)
@@ -117,7 +117,7 @@ Authorization is role-based with the following permission levels:
 #### Create
 
 ```
-POST /v1/okh/create
+POST /v1/api/okh/create
 ```
 
 Creates a new OKH manifest.
@@ -145,7 +145,7 @@ Creates a new OKH manifest.
 #### Read (Get)
 
 ```
-GET /v1/okh/{id}
+GET /v1/api/okh/{id}
 ```
 
 Retrieves an OKH manifest by ID.
@@ -170,7 +170,7 @@ Retrieves an OKH manifest by ID.
 #### List (Multiple Read)
 
 ```
-GET /v1/okh
+GET /v1/api/okh
 ```
 
 Retrieves a list of OKH objects.
@@ -202,7 +202,7 @@ Retrieves a list of OKH objects.
 #### Update
 
 ```
-PUT /v1/okh/{id}
+PUT /v1/api/okh/{id}
 ```
 
 Updates an existing OKH manifest.
@@ -230,7 +230,7 @@ Updates an existing OKH manifest.
 #### Delete
 
 ```
-DELETE /v1/okh/{id}
+DELETE /v1/api/okh/{id}
 ```
 
 Deletes an OKH manifest.
@@ -248,7 +248,7 @@ Deletes an OKH manifest.
 #### Validation and Normalization
 
 ```
-POST /v1/okh/validate
+POST /v1/api/okh/validate
 ```
 
 **Advanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
@@ -298,7 +298,7 @@ POST /v1/okh/validate
 #### Requirements Extraction
 
 ```
-POST /v1/okh/extract
+POST /v1/api/okh/extract
 ```
 
 Extracts requirements from an OKH object for matching.
@@ -329,7 +329,7 @@ Extracts requirements from an OKH object for matching.
 #### File Upload
 
 ```
-POST /v1/okh/upload
+POST /v1/api/okh/upload
 ```
 
 Upload an OKH file for storage and use in matching operations.
@@ -361,7 +361,7 @@ Upload an OKH file for storage and use in matching operations.
 #### Create
 
 ```
-POST /v1/okw/create
+POST /v1/api/okw/create
 ```
 
 Creates a new OKW facility.
@@ -389,7 +389,7 @@ Creates a new OKW facility.
 #### Read (Get)
 
 ```
-GET /v1/okw/{id}
+GET /v1/api/okw/{id}
 ```
 
 Retrieves an OKW facility by ID.
@@ -409,7 +409,7 @@ Retrieves an OKW facility by ID.
 #### List (Multiple Read)
 
 ```
-GET /v1/okw
+GET /v1/api/okw
 ```
 
 Retrieves a list of OKW facilities.
@@ -441,7 +441,7 @@ Retrieves a list of OKW facilities.
 #### Update
 
 ```
-PUT /v1/okw/{id}
+PUT /v1/api/okw/{id}
 ```
 
 Updates an existing OKW facility.
@@ -469,7 +469,7 @@ Updates an existing OKW facility.
 #### Delete
 
 ```
-DELETE /v1/okw/{id}
+DELETE /v1/api/okw/{id}
 ```
 
 Deletes an OKW facility.
@@ -487,7 +487,7 @@ Deletes an OKW facility.
 #### Search
 
 ```
-GET /v1/okw/search
+GET /v1/api/okw/search
 ```
 
 Searches for facilities by criteria with **Azure Blob Storage integration**.
@@ -530,7 +530,7 @@ Searches for facilities by criteria with **Azure Blob Storage integration**.
 #### Validation
 
 ```
-POST /v1/okw/validate
+POST /v1/api/okw/validate
 ```
 
 **Advanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
@@ -579,7 +579,7 @@ POST /v1/okw/validate
 #### Capabilities Extraction
 
 ```
-POST /v1/okw/extract
+POST /v1/api/okw/extract
 ```
 
 Extracts capabilities from an OKW object for matching.
@@ -612,7 +612,7 @@ Extracts capabilities from an OKW object for matching.
 #### Create
 
 ```
-POST /v1/supply-tree/create
+POST /v1/api/supply-tree/create
 ```
 
 Creates a supply tree manually.
@@ -640,7 +640,7 @@ Creates a supply tree manually.
 #### Read (Get)
 
 ```
-GET /v1/supply-tree/{id}
+GET /v1/api/supply-tree/{id}
 ```
 
 Retrieves a specific supply tree.
@@ -659,7 +659,7 @@ Retrieves a specific supply tree.
 #### List (Multiple Read)
 
 ```
-GET /v1/supply-tree
+GET /v1/api/supply-tree
 ```
 
 Retrieves a list of supply trees.
@@ -691,7 +691,7 @@ Retrieves a list of supply trees.
 #### Update
 
 ```
-PUT /v1/supply-tree/{id}
+PUT /v1/api/supply-tree/{id}
 ```
 
 Updates an existing supply tree.
@@ -719,7 +719,7 @@ Updates an existing supply tree.
 #### Delete
 
 ```
-DELETE /v1/supply-tree/{id}
+DELETE /v1/api/supply-tree/{id}
 ```
 
 Deletes a supply tree.
@@ -737,7 +737,7 @@ Deletes a supply tree.
 #### Optimization
 
 ```
-POST /v1/supply-tree/{id}/optimize
+POST /v1/api/supply-tree/{id}/optimize
 ```
 
 Optimizes a supply tree based on specific criteria.
@@ -771,7 +771,7 @@ Optimizes a supply tree based on specific criteria.
 #### Validation
 
 ```
-POST /v1/supply-tree/{id}/validate
+POST /v1/api/supply-tree/{id}/validate
 ```
 
 Validates a supply tree against specified requirements and capabilities.
@@ -798,7 +798,7 @@ Validates a supply tree against specified requirements and capabilities.
 #### Export
 
 ```
-GET /v1/supply-tree/{id}/export
+GET /v1/api/supply-tree/{id}/export
 ```
 
 Exports a supply tree to a specific format.
@@ -816,7 +816,7 @@ The supply tree in the requested format.
 #### Match Requirements to Capabilities
 
 ```
-POST /v1/match
+POST /v1/api/match
 ```
 
 **Advanced matching endpoint** that matches OKH requirements with OKW capabilities to generate valid supply trees. Supports multiple input methods and advanced filtering.
@@ -922,7 +922,7 @@ POST /v1/match
 #### File Upload Matching
 
 ```
-POST /v1/match/upload
+POST /v1/api/match/upload
 ```
 
 Match requirements to capabilities using an uploaded OKH file.
@@ -952,7 +952,7 @@ Match requirements to capabilities using an uploaded OKH file.
 #### Validate Supply Tree
 
 ```
-POST /v1/match/validate
+POST /v1/api/match/validate
 ```
 
 **Advanced validation endpoint** for supply tree validation with domain-aware quality levels and comprehensive validation criteria.
@@ -1002,7 +1002,7 @@ POST /v1/match/validate
 #### List All Domains
 
 ```
-GET /v1/match/domains
+GET /v1/api/match/domains
 ```
 
 Lists all available domains with their metadata and status.
@@ -1043,7 +1043,7 @@ Lists all available domains with their metadata and status.
 #### Get Domain Information
 
 ```
-GET /v1/match/domains/{domain_name}
+GET /v1/api/match/domains/{domain_name}
 ```
 
 Retrieves detailed information about a specific domain.
@@ -1072,7 +1072,7 @@ Retrieves detailed information about a specific domain.
 #### Domain Health Check
 
 ```
-GET /v1/match/domains/{domain_name}/health
+GET /v1/api/match/domains/{domain_name}/health
 ```
 
 Performs a health check on a specific domain and its components.
@@ -1111,7 +1111,7 @@ Performs a health check on a specific domain and its components.
 #### Detect Domain from Input
 
 ```
-POST /v1/match/detect-domain
+POST /v1/api/match/detect-domain
 ```
 
 Detects the appropriate domain from input data using multi-layered detection.
@@ -1156,10 +1156,10 @@ Detects the appropriate domain from input data using multi-layered detection.
 #### Available Domains (Legacy)
 
 ```
-GET /v1/domains
+GET /v1/api/domains
 ```
 
-Lists available domains (manufacturing, cooking, etc.). **Note: This endpoint is deprecated in favor of `/v1/match/domains`.**
+Lists available domains (manufacturing, cooking, etc.). **Note: This endpoint is deprecated in favor of `/v1/api/match/domains`.**
 
 **Response:**
 ```json
@@ -1184,7 +1184,7 @@ Lists available domains (manufacturing, cooking, etc.). **Note: This endpoint is
 #### Validation Contexts
 
 ```
-GET /v1/contexts/{domain}
+GET /v1/api/contexts/{domain}
 ```
 
 Lists validation contexts for a specific domain.
@@ -1217,7 +1217,7 @@ Lists validation contexts for a specific domain.
 #### Simulation
 
 ```
-POST /v1/match/simulate
+POST /v1/api/match/simulate
 ```
 
 Simulates the execution of a supply tree.
@@ -1305,59 +1305,59 @@ Paginated responses include consistent metadata:
 - **Comprehensive Testing**: All routes tested and validated
 
 #### **Match Routes (7) - Fully Standardized**
-- `POST /v1/match` - **Complete matching engine with Azure Blob Storage integration, multi-layered matching, and supply tree generation**
-- `POST /v1/match/upload` - **File upload matching for local OKH files (YAML/JSON) with comprehensive filtering**
-- `POST /v1/match/validate` - **Advanced validation with domain-aware quality levels and comprehensive validation criteria**
-- `GET /v1/match/domains` - **Complete domain listing with registry integration**
-- `GET /v1/match/domains/{domain_name}` - **Complete domain information retrieval with error handling**
-- `GET /v1/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
-- `POST /v1/match/detect-domain` - **Complete domain detection with confidence scoring**
+- `POST /v1/api/match` - **Complete matching engine with Azure Blob Storage integration, multi-layered matching, and supply tree generation**
+- `POST /v1/api/match/upload` - **File upload matching for local OKH files (YAML/JSON) with comprehensive filtering**
+- `POST /v1/api/match/validate` - **Advanced validation with domain-aware quality levels and comprehensive validation criteria**
+- `GET /v1/api/match/domains` - **Complete domain listing with registry integration**
+- `GET /v1/api/match/domains/{domain_name}` - **Complete domain information retrieval with error handling**
+- `GET /v1/api/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
+- `POST /v1/api/match/detect-domain` - **Complete domain detection with confidence scoring**
 
 #### **OKH Routes (9) - Fully Standardized**
-- `POST /v1/okh/create` - **Complete CRUD operations with service integration**
-- `GET /v1/okh/{id}` - **Retrieves OKH manifests from storage with proper model conversion and validation**
-- `GET /v1/okh` - **Paginated listing with filter support**
-- `PUT /v1/okh/{id}` - **Complete update functionality with validation**
-- `DELETE /v1/okh/{id}` - **Complete delete functionality with existence checking**
-- `POST /v1/okh/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
-- `POST /v1/okh/extract` - **Complete requirements extraction with service integration**
-- `POST /v1/okh/upload` - **File upload with validation, parsing, and storage integration**
-- `POST /v1/okh/from-storage` - **Create OKH from stored manifest**
+- `POST /v1/api/okh/create` - **Complete CRUD operations with service integration**
+- `GET /v1/api/okh/{id}` - **Retrieves OKH manifests from storage with proper model conversion and validation**
+- `GET /v1/api/okh` - **Paginated listing with filter support**
+- `PUT /v1/api/okh/{id}` - **Complete update functionality with validation**
+- `DELETE /v1/api/okh/{id}` - **Complete delete functionality with existence checking**
+- `POST /v1/api/okh/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+- `POST /v1/api/okh/extract` - **Complete requirements extraction with service integration**
+- `POST /v1/api/okh/upload` - **File upload with validation, parsing, and storage integration**
+- `POST /v1/api/okh/from-storage` - **Create OKH from stored manifest**
 
 #### **OKW Routes (9) - Fully Standardized**
-- `POST /v1/okw/create` - **Complete CRUD operations with service integration**
-- `GET /v1/okw/{id}` - **Retrieves OKW facilities from storage with proper serialization**
-- `GET /v1/okw` - **Paginated listing with service integration**
-- `PUT /v1/okw/{id}` - **Complete update functionality with validation**
-- `DELETE /v1/okw/{id}` - **Complete delete functionality with existence checking**
-- `GET /v1/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
-- `POST /v1/okw/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
-- `POST /v1/okw/extract-capabilities` - **Capabilities extraction with service integration**
-- `POST /v1/okw/upload` - **File upload with validation, parsing, and storage integration**
+- `POST /v1/api/okw/create` - **Complete CRUD operations with service integration**
+- `GET /v1/api/okw/{id}` - **Retrieves OKW facilities from storage with proper serialization**
+- `GET /v1/api/okw` - **Paginated listing with service integration**
+- `PUT /v1/api/okw/{id}` - **Complete update functionality with validation**
+- `DELETE /v1/api/okw/{id}` - **Complete delete functionality with existence checking**
+- `GET /v1/api/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
+- `POST /v1/api/okw/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+- `POST /v1/api/okw/extract-capabilities` - **Capabilities extraction with service integration**
+- `POST /v1/api/okw/upload` - **File upload with validation, parsing, and storage integration**
 
 #### **Package Routes (10) - Fully Standardized**
-- `POST /v1/package/build` - **Package building with LLM support**
-- `POST /v1/package/build-from-storage` - **Build package from stored manifest**
-- `GET /v1/package/list-packages` - **List all built packages**
-- `GET /v1/package/verify` - **Verify package integrity**
-- `DELETE /v1/package/delete` - **Delete a package**
-- `POST /v1/package/push` - **Push package to remote storage**
-- `POST /v1/package/pull` - **Pull package from remote storage**
-- `GET /v1/package/list-remote` - **List remote packages**
-- `GET /v1/package/remote` - **Get remote package information**
-- `POST /v1/package/remote` - **Create remote package**
+- `POST /v1/api/package/build` - **Package building with LLM support**
+- `POST /v1/api/package/build-from-storage` - **Build package from stored manifest**
+- `GET /v1/api/package/list-packages` - **List all built packages**
+- `GET /v1/api/package/verify` - **Verify package integrity**
+- `DELETE /v1/api/package/delete` - **Delete a package**
+- `POST /v1/api/package/push` - **Push package to remote storage**
+- `POST /v1/api/package/pull` - **Pull package from remote storage**
+- `GET /v1/api/package/list-remote` - **List remote packages**
+- `GET /v1/api/package/remote` - **Get remote package information**
+- `POST /v1/api/package/remote` - **Create remote package**
 
 #### **Supply Tree Routes (6) - Fully Standardized**
-- `POST /v1/supply-tree/create` - **Supply tree creation with validation**
-- `GET /v1/supply-tree/{id}` - **Get supply tree by ID**
-- `GET /v1/supply-tree` - **List all supply trees**
-- `PUT /v1/supply-tree/{id}` - **Update supply tree**
-- `DELETE /v1/supply-tree/{id}` - **Delete supply tree**
-- `POST /v1/supply-tree/validate` - **Validate supply tree**
+- `POST /v1/api/supply-tree/create` - **Supply tree creation with validation**
+- `GET /v1/api/supply-tree/{id}` - **Get supply tree by ID**
+- `GET /v1/api/supply-tree` - **List all supply trees**
+- `PUT /v1/api/supply-tree/{id}` - **Update supply tree**
+- `DELETE /v1/api/supply-tree/{id}` - **Delete supply tree**
+- `POST /v1/api/supply-tree/validate` - **Validate supply tree**
 
 #### **Utility Routes (2) - Fully Standardized**
-- `GET /v1/utility/domains` - **Domain listing with LLM analysis**
-- `GET /v1/utility/contexts` - **Context listing with domain-specific filtering**
+- `GET /v1/api/utility/domains` - **Domain listing with LLM analysis**
+- `GET /v1/api/utility/contexts` - **Context listing with domain-specific filtering**
 
 #### **System Routes (2) - Fully Standardized**
 - `GET /health` - **Health check endpoint with comprehensive diagnostics**
@@ -1376,11 +1376,11 @@ Paginated responses include consistent metadata:
 ### 📋 **Future Enhancements (Post-Phase 4)**
 
 **Advanced Supply Tree Operations:**
-- `POST /v1/supply-tree/{id}/optimize` - Optimize supply trees
-- `GET /v1/supply-tree/{id}/export` - Export supply trees
+- `POST /v1/api/supply-tree/{id}/optimize` - Optimize supply trees
+- `GET /v1/api/supply-tree/{id}/export` - Export supply trees
 
 **Advanced Features:**
-- `POST /v1/match/simulate` - Simulate supply tree execution
+- `POST /v1/api/match/simulate` - Simulate supply tree execution
 - Real-time validation updates
 - Collaborative editing of Supply Trees
 - Advanced matching optimization algorithms
@@ -1456,7 +1456,7 @@ import httpx
 async def match_requirements():
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:8001/v1/match",
+            "http://localhost:8001/v1/api/match",
             json={
                 "okh_manifest": {
                     "title": "CNC Machined Bracket",
@@ -1473,7 +1473,7 @@ async def match_requirements():
 async def match_with_filters():
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:8001/v1/match",
+            "http://localhost:8001/v1/api/match",
             json={
                 "okh_manifest": okh_data,
                 "okw_filters": {
@@ -1490,7 +1490,7 @@ async def match_with_filters():
 async def match_from_url():
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:8001/v1/match",
+            "http://localhost:8001/v1/api/match",
             json={
                 "okh_url": "https://raw.githubusercontent.com/example/okh.yaml"
             }
@@ -1504,7 +1504,7 @@ async def match_from_url():
 ```python
 async def list_facilities():
     async with httpx.AsyncClient() as client:
-        response = await client.get("http://localhost:8001/v1/okw")
+        response = await client.get("http://localhost:8001/v1/api/okw")
         return response.json()
 ```
 
@@ -1514,13 +1514,13 @@ async def search_facilities():
     async with httpx.AsyncClient() as client:
         # Search by access type
         response = await client.get(
-            "http://localhost:8001/v1/okw/search",
+            "http://localhost:8001/v1/api/okw/search",
             params={"access_type": "Membership"}
         )
         
         # Search by multiple criteria
         response = await client.get(
-            "http://localhost:8001/v1/okw/search",
+            "http://localhost:8001/v1/api/okw/search",
             params={
                 "access_type": "Restricted",
                 "facility_status": "Active",
@@ -1663,19 +1663,19 @@ Validation responses include:
 
 ### Validation Endpoints
 
-#### **OKH Validation** (`POST /v1/okh/validate`)
+#### **OKH Validation** (`POST /v1/api/okh/validate`)
 - Domain: Manufacturing
 - Quality Levels: `hobby`, `professional`, `medical`
 - Validates OKH manifest structure and completeness
 - Returns detailed validation results with field-specific errors
 
-#### **OKW Validation** (`POST /v1/okw/validate`)
+#### **OKW Validation** (`POST /v1/api/okw/validate`)
 - Domain: Manufacturing
 - Quality Levels: `hobby`, `professional`, `medical`
 - Validates OKW facility structure and capabilities
 - Validates equipment specifications and manufacturing processes
 
-#### **Supply Tree Validation** (`POST /v1/match/validate`)
+#### **Supply Tree Validation** (`POST /v1/api/match/validate`)
 - Domain: Manufacturing
 - Quality Levels: `hobby`, `professional`, `medical`
 - Validates supply tree workflows and resource requirements
@@ -1690,7 +1690,7 @@ async def validate_okh():
     async with httpx.AsyncClient() as client:
         # Professional level validation
         response = await client.post(
-            "http://localhost:8001/v1/okh/validate?quality_level=professional",
+            "http://localhost:8001/v1/api/okh/validate?quality_level=professional",
             json={
                 "content": {
                     "title": "CNC Bracket",
@@ -1714,7 +1714,7 @@ async def validate_okh():
 async def validate_strict():
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "http://localhost:8001/v1/okh/validate?quality_level=medical&strict_mode=true",
+            "http://localhost:8001/v1/api/okh/validate?quality_level=medical&strict_mode=true",
             json={"content": okh_data}
         )
         return response.json()
@@ -1726,8 +1726,8 @@ async def validate_strict():
 The OME API provides comprehensive interactive documentation:
 
 - **Main API Docs**: `http://localhost:8001/docs` - System endpoints and overview
-- **Full API Docs**: `http://localhost:8001/v1/docs` - Complete API documentation with all 19 endpoints
-- **OpenAPI Schema**: `http://localhost:8001/v1/openapi.json` - Machine-readable API specification
+- **Full API Docs**: `http://localhost:8001/v1/api/docs` - Complete API documentation with all 19 endpoints
+- **OpenAPI Schema**: `http://localhost:8001/v1/api/openapi.json` - Machine-readable API specification
 
 ### Developer Features
 - **Request Validation**: Comprehensive input validation with detailed error messages
