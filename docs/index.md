@@ -41,6 +41,16 @@
     * [Examples](CLI/examples.md)
     * [Architecture](CLI/architecture.md)
 
+### LLM Service Documentation
+* [LLM Service Documentation](llm-service.md)
+    * Complete API and CLI reference
+    * Configuration and setup guide
+    * Integration examples and best practices
+* [LLM Quick Start Guide](llm-quick-start.md)
+    * Get started in 5 minutes
+    * Common commands and troubleshooting
+    * Developer tips and monitoring
+
 ### Matching System
 * [Matching Layers Architecture](architecture/matching-layers.md)
     * [Direct Matching Layer](matching/direct-matching.md)
@@ -68,10 +78,10 @@ The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed
 ### Multi-Stage Processing
 OME uses sophisticated multi-stage pipelines for both extraction and matching:
 
-1. **Exact** - Direct, precise matches based on explicit criteria
+1. **Direct** - Exact string matching with near-miss detection
 2. **Heuristic** - Rule-based matching using domain knowledge
 3. **NLP** - Natural language processing for semantic understanding
-4. **AI/ML** - Machine learning and LLM-enhanced analysis for complex patterns
+4. **LLM** - Large Language Model integration for advanced reasoning and analysis
 
 ### Storage and Caching
 - Permanent storage for validated data
@@ -81,6 +91,7 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 
 ### Command Line Interface
 - Comprehensive CLI with 39 commands across 7 command groups
+- **LLM Integration**: AI-powered generation and matching commands
 - HTTP API integration with automatic fallback to direct service calls
 - Package management (build, push, pull, verify)
 - System administration and monitoring
@@ -93,6 +104,15 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 If you're looking to use OME:
 
 1. Start with our [CLI Quick Start Guide](CLI/quick-start.md)
-2. Check out the [Project Overview](overview.md)
-3. Explore our [CLI Documentation](CLI/index.md)
-4. Review our [API Documentation](api/index.md)
+2. Try the [LLM Quick Start Guide](llm-quick-start.md) for AI-powered features
+3. Check out the [Project Overview](overview.md)
+4. Explore our [CLI Documentation](CLI/index.md)
+5. Review our [API Documentation](api/index.md)
+
+### For Developers
+If you're developing with OME:
+
+1. Read the [Developer Guide](development/developer-guide.md)
+2. Check the [LLM Service Documentation](llm-service.md) for AI integration
+3. Review the [Architecture Documentation](architecture/index.md)
+4. Explore the [Data Models](models/index.md)

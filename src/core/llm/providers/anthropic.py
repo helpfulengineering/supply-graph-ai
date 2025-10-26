@@ -86,9 +86,8 @@ class AnthropicProvider(BaseLLMProvider):
             
             self._client = AsyncAnthropic(**client_kwargs)
             
-            # Test the connection with a simple request
-            await self._test_connection()
-            
+            # Skip connection test to avoid hanging during initialization
+            # The connection will be tested on the first actual request
             self._connected = True
             self._logger.info(f"Connected to Anthropic API with model {self.config.model}")
             

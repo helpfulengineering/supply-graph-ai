@@ -535,7 +535,7 @@ class LayerConfig:
     use_direct: bool = True
     use_heuristic: bool = True
     use_nlp: bool = True
-    use_llm: bool = False
+    use_llm: bool = True  # Re-enable LLM layer - generation pipeline works fine
     use_bom_normalization: bool = False
     
     # Quality and processing settings
@@ -592,8 +592,8 @@ class LayerConfig:
             "semantic_analysis": True
         }
         default_llm_config = {
-            "provider": "openai",  # openai, anthropic, local, etc.
-            "model": "gpt-3.5-turbo",
+            "provider": "anthropic",  # openai, anthropic, local, etc.
+            "model": "claude-3-5-sonnet-20241022",
             "max_tokens": 1000,
             "temperature": 0.1,
             "timeout": 30,

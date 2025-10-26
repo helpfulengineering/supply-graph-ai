@@ -153,8 +153,8 @@ class GenerationEngine:
             if self.config.use_llm and self.config.is_llm_configured():
                 try:
                     # Import LLM matcher dynamically to avoid import errors if not available
-                    from .layers.llm import LLMMatcher
-                    self._matchers[GenerationLayer.LLM] = LLMMatcher(self.config)
+                    from .layers.llm import LLMGenerationLayer
+                    self._matchers[GenerationLayer.LLM] = LLMGenerationLayer(self.config)
                     logger.info(f"LLM layer initialized with provider: {self.config.get_llm_provider()}")
                 except ImportError as e:
                     logger.warning(f"LLM layer not available: {e}")
