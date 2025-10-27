@@ -30,6 +30,11 @@ faker>=19.0.0
 # config
 dotenv
 
+#llm providers
+anthropic
+openai
+ollama
+
 #cli tools
 click
 tqdm

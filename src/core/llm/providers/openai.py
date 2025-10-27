@@ -1,15 +1,15 @@
 """
-Anthropic LLM Provider for the Open Matching Engine.
+OpenAI LLM Provider for the Open Matching Engine.
 
 This module provides an implementation of the BaseLLMProvider interface
-for Anthropic's Claude models, including Claude-3, Claude-3.5, and other variants.
+for OpenAI's models, including GPT-3.5, GPT-4, GPT-4-turbo, and other variants.
 """
 
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
-import anthropic
-from anthropic import AsyncAnthropic
+import openai
+from openai import AsyncOpenAI
 
 from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 from ..models.requests import LLMRequest, LLMRequestConfig
@@ -18,39 +18,41 @@ from ..models.responses import LLMResponse, LLMResponseStatus, LLMResponseMetada
 logger = logging.getLogger(__name__)
 
 
-class AnthropicProvider(BaseLLMProvider):
+class OpenAIProvider(BaseLLMProvider):
     """
-    Anthropic LLM provider implementation for Claude models.
+    OpenAI LLM provider implementation for GPT models.
     
-    This provider supports all Anthropic Claude models including:
-    - Claude-3 Haiku
-    - Claude-3 Sonnet  
-    - Claude-3 Opus
-    - Claude-3.5 Sonnet
-    - Claude-3.5 Haiku
+    This provider supports all OpenAI models including:
+    - GPT-3.5-turbo
+    - GPT-4
+    - GPT-4-turbo
+    - GPT-4o
+    - GPT-4o-mini
     """
     
-    # Anthropic model pricing (per 1M tokens, as of 2024)
+    # OpenAI model pricing (per 1M tokens, as of 2024)
     MODEL_PRICING = {
-        "claude-3-5-sonnet-20241022": {"input": 3.0, "output": 15.0},  # $3/$15 per 1M tokens
-        "claude-3-5-haiku-20241022": {"input": 1.0, "output": 5.0},   # $1/$5 per 1M tokens
-        "claude-3-opus-20240229": {"input": 15.0, "output": 75.0},    # $15/$75 per 1M tokens
-        "claude-3-sonnet-20240229": {"input": 3.0, "output": 15.0},   # $3/$15 per 1M tokens
-        "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},   # $0.25/$1.25 per 1M tokens
+        "gpt-4o": {"input": 5.0, "output": 15.0},                    # $5/$15 per 1M tokens
+        "gpt-4o-mini": {"input": 0.15, "output": 0.6},              # $0.15/$0.6 per 1M tokens
+        "gpt-4-turbo": {"input": 10.0, "output": 30.0},             # $10/$30 per 1M tokens
+        "gpt-4": {"input": 30.0, "output": 60.0},                   # $30/$60 per 1M tokens
+        "gpt-3.5-turbo": {"input": 0.5, "output": 1.5},             # $0.5/$1.5 per 1M tokens
+        "gpt-3.5-turbo-16k": {"input": 3.0, "output": 4.0},         # $3/$4 per 1M tokens
     }
     
     # Available models
     AVAILABLE_MODELS = [
-        "claude-3-5-sonnet-20241022",
-        "claude-3-5-haiku-20241022", 
-        "claude-3-opus-20240229",
-        "claude-3-sonnet-20240229",
-        "claude-3-haiku-20240307",
+        "gpt-4o",
+        "gpt-4o-mini",
+        "gpt-4-turbo",
+        "gpt-4",
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-16k",
     ]
     
     def __init__(self, config: LLMProviderConfig):
         """
-        Initialize the Anthropic provider.
+        Initialize the OpenAI provider.
         
         Args:
             config: Configuration for the provider
@@ -59,22 +61,22 @@ class AnthropicProvider(BaseLLMProvider):
             ValueError: If configuration is invalid
         """
         super().__init__(config)
-        self._client: Optional[AsyncAnthropic] = None
+        self._client: Optional[AsyncOpenAI] = None
         
-        # Validate that this is an Anthropic provider
-        if config.provider_type != LLMProviderType.ANTHROPIC:
-            raise ValueError(f"Provider type must be ANTHROPIC, got {config.provider_type}")
+        # Validate that this is an OpenAI provider
+        if config.provider_type != LLMProviderType.OPENAI:
+            raise ValueError(f"Provider type must be OPENAI, got {config.provider_type}")
     
     async def connect(self) -> None:
         """
-        Connect to the Anthropic API.
+        Connect to the OpenAI API.
         
         Raises:
             ConnectionError: If connection fails
             AuthenticationError: If API key is invalid
         """
         try:
-            # Only pass parameters that AsyncAnthropic actually accepts
+            # Only pass parameters that AsyncOpenAI actually accepts
             client_kwargs = {
                 "api_key": self.config.api_key,
             }
@@ -83,30 +85,30 @@ class AnthropicProvider(BaseLLMProvider):
             if self.config.base_url:
                 client_kwargs["base_url"] = self.config.base_url
             
-            self._client = AsyncAnthropic(**client_kwargs)
+            self._client = AsyncOpenAI(**client_kwargs)
             
             # Skip connection test to avoid hanging during initialization
             # The connection will be tested on the first actual request
             self._connected = True
-            self._logger.info(f"Connected to Anthropic API with model {self.config.model}")
+            self._logger.info(f"Connected to OpenAI API with model {self.config.model}")
             
         except Exception as e:
             self._connected = False
-            self._logger.error(f"Failed to connect to Anthropic API: {e}")
-            raise ConnectionError(f"Failed to connect to Anthropic API: {e}")
+            self._logger.error(f"Failed to connect to OpenAI API: {e}")
+            raise ConnectionError(f"Failed to connect to OpenAI API: {e}")
     
     async def disconnect(self) -> None:
-        """Disconnect from the Anthropic API."""
+        """Disconnect from the OpenAI API."""
         if self._client:
-            # Anthropic client doesn't have explicit disconnect, just clear the reference
+            # OpenAI client doesn't have explicit disconnect, just clear the reference
             self._client = None
         
         self._connected = False
-        self._logger.info("Disconnected from Anthropic API")
+        self._logger.info("Disconnected from OpenAI API")
     
     async def generate(self, request: LLMRequest) -> LLMResponse:
         """
-        Generate a response using Anthropic's Claude model.
+        Generate a response using OpenAI's GPT model.
         
         Args:
             request: The LLM request to process
@@ -125,31 +127,31 @@ class AnthropicProvider(BaseLLMProvider):
         start_time = datetime.utcnow()
         
         try:
-            # Prepare the request for Anthropic
-            anthropic_request = self._prepare_anthropic_request(request)
+            # Prepare the request for OpenAI
+            openai_request = self._prepare_openai_request(request)
             
             # Make the API call
-            response = await self._client.messages.create(**anthropic_request)
+            response = await self._client.chat.completions.create(**openai_request)
             
             # Process the response
-            llm_response = self._process_anthropic_response(response, request, start_time)
+            llm_response = self._process_openai_response(response, request, start_time)
             
             # Update metrics
             self._update_metrics(llm_response, start_time)
             
             return llm_response
             
-        except anthropic.RateLimitError as e:
+        except openai.RateLimitError as e:
             self._logger.warning(f"Rate limit exceeded: {e}")
             raise RateLimitError(f"Rate limit exceeded: {e}")
             
-        except anthropic.APITimeoutError as e:
+        except openai.APITimeoutError as e:
             self._logger.warning(f"Request timeout: {e}")
             raise TimeoutError(f"Request timeout: {e}")
             
-        except anthropic.APIError as e:
-            self._logger.error(f"Anthropic API error: {e}")
-            raise LLMError(f"Anthropic API error: {e}")
+        except openai.APIError as e:
+            self._logger.error(f"OpenAI API error: {e}")
+            raise LLMError(f"OpenAI API error: {e}")
             
         except Exception as e:
             self._logger.error(f"Unexpected error: {e}")
@@ -157,7 +159,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     async def health_check(self) -> bool:
         """
-        Check if the Anthropic provider is healthy.
+        Check if the OpenAI provider is healthy.
         
         Returns:
             bool: True if healthy, False otherwise
@@ -176,7 +178,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     def get_available_models(self) -> List[str]:
         """
-        Get list of available Anthropic models.
+        Get list of available OpenAI models.
         
         Returns:
             List[str]: List of available model names
@@ -209,8 +211,8 @@ class AnthropicProvider(BaseLLMProvider):
         
         return input_cost + output_cost
     
-    def _prepare_anthropic_request(self, request: LLMRequest) -> Dict[str, Any]:
-        """Prepare the request for Anthropic API."""
+    def _prepare_openai_request(self, request: LLMRequest) -> Dict[str, Any]:
+        """Prepare the request for OpenAI API."""
         return {
             "model": self.config.model,
             "max_tokens": request.config.max_tokens,
@@ -223,18 +225,18 @@ class AnthropicProvider(BaseLLMProvider):
             ]
         }
     
-    def _process_anthropic_response(self, response: Any, request: LLMRequest, start_time: datetime) -> LLMResponse:
-        """Process the Anthropic API response."""
+    def _process_openai_response(self, response: Any, request: LLMRequest, start_time: datetime) -> LLMResponse:
+        """Process the OpenAI API response."""
         processing_time = (datetime.utcnow() - start_time).total_seconds()
         
         # Extract content from response
         content = ""
-        if response.content and len(response.content) > 0:
-            content = response.content[0].text
+        if response.choices and len(response.choices) > 0:
+            content = response.choices[0].message.content or ""
         
         # Calculate tokens used
-        input_tokens = response.usage.input_tokens if response.usage else 0
-        output_tokens = response.usage.output_tokens if response.usage else 0
+        input_tokens = response.usage.prompt_tokens if response.usage else 0
+        output_tokens = response.usage.completion_tokens if response.usage else 0
         total_tokens = input_tokens + output_tokens
         
         # Calculate cost
@@ -242,7 +244,7 @@ class AnthropicProvider(BaseLLMProvider):
         
         # Create metadata
         metadata = LLMResponseMetadata(
-            provider="anthropic",
+            provider="openai",
             model=self.config.model,
             tokens_used=total_tokens,
             cost=cost,
@@ -252,7 +254,7 @@ class AnthropicProvider(BaseLLMProvider):
             metadata={
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "stop_reason": response.stop_reason if hasattr(response, 'stop_reason') else None
+                "finish_reason": response.choices[0].finish_reason if response.choices else None
             }
         )
         
@@ -264,10 +266,11 @@ class AnthropicProvider(BaseLLMProvider):
                 "id": response.id if hasattr(response, 'id') else None,
                 "model": response.model if hasattr(response, 'model') else None,
                 "usage": {
-                    "input_tokens": input_tokens,
-                    "output_tokens": output_tokens
+                    "prompt_tokens": input_tokens,
+                    "completion_tokens": output_tokens,
+                    "total_tokens": total_tokens
                 } if response.usage else None,
-                "stop_reason": response.stop_reason if hasattr(response, 'stop_reason') else None
+                "finish_reason": response.choices[0].finish_reason if response.choices else None
             }
         )
     
@@ -289,7 +292,7 @@ class AnthropicProvider(BaseLLMProvider):
             raise ConnectionError("Client not initialized")
         
         # Make a minimal test request
-        test_response = await self._client.messages.create(
+        test_response = await self._client.chat.completions.create(
             model=self.config.model,
             max_tokens=10,
             messages=[{"role": "user", "content": "Hello"}]
@@ -307,7 +310,7 @@ class AnthropicProvider(BaseLLMProvider):
             tokens=response.tokens_used,
             cost=response.cost,
             response_time=processing_time,
-            provider="anthropic",
+            provider="openai",
             model=self.config.model,
             error_type=None if response.is_success else "api_error"
         )
@@ -321,4 +324,14 @@ class LLMError(Exception):
 
 class RateLimitError(LLMError):
     """Exception raised when rate limit is exceeded."""
+    pass
+
+
+class TimeoutError(LLMError):
+    """Exception raised when request times out."""
+    pass
+
+
+class ConnectionError(LLMError):
+    """Exception raised when connection fails."""
     pass

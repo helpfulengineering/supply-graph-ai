@@ -22,6 +22,8 @@ from ..services.base import BaseService, ServiceConfig, ServiceStatus
 from ..utils.logging import get_logger
 from .providers.base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 from .providers.anthropic import AnthropicProvider
+from .providers.openai import OpenAIProvider
+from .providers.ollama import OllamaProvider
 from .models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
 from .models.responses import LLMResponse, LLMResponseStatus
 
@@ -114,10 +116,11 @@ class LLMService(BaseService['LLMService']):
         # Provider registry
         self._provider_classes: Dict[LLMProviderType, Type[BaseLLMProvider]] = {
             LLMProviderType.ANTHROPIC: AnthropicProvider,
+            LLMProviderType.OPENAI: OpenAIProvider,
+            LLMProviderType.LOCAL: OllamaProvider,
             # TODO: Add other providers as they're implemented
-            # LLMProviderType.OPENAI: OpenAIProvider,
             # LLMProviderType.GOOGLE: GoogleProvider,
-            # LLMProviderType.LOCAL: LocalProvider,
+            # LLMProviderType.AZURE_OPENAI: AzureOpenAIProvider,
         }
     
     async def initialize(self) -> None:
