@@ -1,0 +1,63 @@
+services:
+  # Open Matching Engine API Server
+  ome-api:
+    build: .
+    container_name: ome-api
+    ports:
+      - "8001:8001"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=*
+      - API_KEYS=dev-api-key-123,test-key-456
+      - STORAGE_PROVIDER=local
+      - STORAGE_BUCKET_NAME=ome-storage
+      - LLM_ENABLED=false
+    volumes:
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+      - ./test-data:/app/test-data
+    networks:
+      - ome-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Open Matching Engine CLI (for testing CLI commands)
+  ome-cli:
+    build: .
+    container_name: ome-cli
+    environment:
+      - SERVER_URL=http://ome-api:8001
+      - LOG_LEVEL=INFO
+      - STORAGE_PROVIDER=local
+      - STORAGE_BUCKET_NAME=ome-storage
+      - LLM_ENABLED=false
+    volumes:
+      - ./storage:/app/storage
+      - ./logs:/app/logs
+      - ./test-data:/app/test-data
+    networks:
+      - ome-network
+    depends_on:
+      - ome-api
+    profiles:
+      - cli
+    # This service is only started when explicitly requested
+    # Use: docker-compose --profile cli up ome-cli
+
+networks:
+  ome-network:
+    driver: bridge
+
+volumes:
+  ome-storage:
+    driver: local
+  ome-logs:
+    driver: local

@@ -13,9 +13,16 @@ from .package import package_group
 from .okh import okh_group
 from .okw import okw_group
 from .match import match_group
-from .llm import llm_group
 from .system import system_group
 from .utility import utility_group
+
+# Conditional LLM import - only load if LLM is enabled
+try:
+    from .llm import llm_group
+    LLM_AVAILABLE = True
+except ImportError:
+    LLM_AVAILABLE = False
+    llm_group = None
 
 
 @click.group()
@@ -83,7 +90,8 @@ cli.add_command(package_group, name='package')
 cli.add_command(okh_group, name='okh')
 cli.add_command(okw_group, name='okw')
 cli.add_command(match_group, name='match')
-cli.add_command(llm_group, name='llm')
+if LLM_AVAILABLE and llm_group:
+    cli.add_command(llm_group, name='llm')
 cli.add_command(system_group, name='system')
 cli.add_command(utility_group, name='utility')
 

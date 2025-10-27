@@ -13,7 +13,7 @@ from ..core.storage.organizer import StorageOrganizer
 from ..core.storage.smart_discovery import SmartFileDiscovery
 from ..core.services.storage_service import StorageService
 
-from core.utils.logging import get_logger
+from src.core.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
