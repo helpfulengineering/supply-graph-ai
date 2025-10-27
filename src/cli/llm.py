@@ -11,15 +11,11 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
-from ..core.llm.service import LLMService, LLMServiceConfig
-from ..core.llm.providers.base import LLMProviderType
+from ..core.llm.service import LLMService
+from ..core.llm.provider_selection import create_llm_service_with_selection, get_provider_selector
 from ..core.llm.models.requests import LLMRequestConfig, LLMRequestType
 from ..core.generation.engine import GenerationEngine
-from ..core.generation.models import LayerConfig, ProjectData, PlatformType, FileInfo, DocumentInfo
-from .base import (
-    CLIContext, SmartCommand, format_llm_output,
-    create_llm_request_data, log_llm_usage
-)
+from ..core.generation.models import LayerConfig, ProjectData, PlatformType
 from .decorators import standard_cli_command
 
 
@@ -49,25 +45,13 @@ def llm_group():
 
 # Helper functions
 
-async def _create_llm_service(provider: str, model: Optional[str] = None) -> LLMService:
-    """Create and initialize LLM service."""
-    provider_type = LLMProviderType(provider)
-    
-    config = LLMServiceConfig(
-        name="CLIService",
-        default_provider=provider_type,
-        default_model=model or _get_default_model(provider),
-        max_retries=3,
-        retry_delay=1.0,
-        timeout=60,
-        enable_fallback=True,
-        max_cost_per_request=2.0,
-        enable_cost_tracking=True
+async def _create_llm_service(provider: Optional[str] = None, model: Optional[str] = None) -> LLMService:
+    """Create LLM service with automatic provider selection."""
+    return await create_llm_service_with_selection(
+        cli_provider=provider,
+        cli_model=model,
+        verbose=True
     )
-    
-    service = LLMService("CLIService", config)
-    await service.initialize()
-    return service
 
 
 def _get_default_model(provider: str) -> str:
@@ -82,7 +66,7 @@ def _get_default_model(provider: str) -> str:
     return defaults.get(provider, "claude-3-5-sonnet-20241022")
 
 
-async def _generate_content(prompt: str, provider: str, model: Optional[str], 
+async def _generate_content(prompt: str, provider: Optional[str], model: Optional[str], 
                           max_tokens: int, temperature: float, timeout: int) -> dict:
     """Generate content using LLM service."""
     service = await _create_llm_service(provider, model)
@@ -115,7 +99,7 @@ async def _generate_content(prompt: str, provider: str, model: Optional[str],
         await service.shutdown()
 
 
-async def _generate_okh_manifest(project_url: str, provider: str, model: Optional[str],
+async def _generate_okh_manifest(project_url: str, provider: Optional[str], model: Optional[str],
                                 max_tokens: int, temperature: float, timeout: int,
                                 preserve_context: bool = False) -> dict:
     """Generate OKH manifest using LLM."""
@@ -170,7 +154,7 @@ async def _generate_okh_manifest(project_url: str, provider: str, model: Optiona
 @llm_group.command()
 @click.argument('prompt', type=str)
 @click.option('--provider', type=click.Choice(['anthropic', 'openai', 'google', 'azure', 'local']), 
-              default='anthropic', help='LLM provider to use')
+              help='LLM provider to use (overrides LLM_PROVIDER env var)')
 @click.option('--model', type=str, help='Specific model to use')
 @click.option('--max-tokens', type=int, default=4000, help='Maximum tokens to generate')
 @click.option('--temperature', type=float, default=0.1, help='Sampling temperature')
@@ -202,7 +186,7 @@ async def _generate_okh_manifest(project_url: str, provider: str, model: Optiona
     format_output=True
 )
 @click.pass_context
-async def generate(ctx, prompt: str, provider: str, model: Optional[str],
+async def generate(ctx, prompt: str, provider: Optional[str], model: Optional[str],
                   max_tokens: int, temperature: float, timeout: int,
                   output: Optional[str], format: str, verbose: bool, output_format: str,
                   use_llm: bool, llm_provider: str, llm_model: Optional[str],
@@ -251,7 +235,7 @@ async def generate(ctx, prompt: str, provider: str, model: Optional[str],
 @llm_group.command()
 @click.argument('project_url', type=str)
 @click.option('--provider', type=click.Choice(['anthropic', 'openai', 'google', 'azure', 'local']), 
-              default='anthropic', help='LLM provider to use')
+              help='LLM provider to use (overrides LLM_PROVIDER env var)')
 @click.option('--model', type=str, help='Specific model to use')
 @click.option('--max-tokens', type=int, default=4000, help='Maximum tokens to generate')
 @click.option('--temperature', type=float, default=0.1, help='Sampling temperature')
@@ -285,7 +269,7 @@ async def generate(ctx, prompt: str, provider: str, model: Optional[str],
     format_output=True
 )
 @click.pass_context
-async def generate_okh(ctx, project_url: str, provider: str, model: Optional[str],
+async def generate_okh(ctx, project_url: str, provider: Optional[str], model: Optional[str],
                       max_tokens: int, temperature: float, timeout: int,
                       output: Optional[str], format: str, preserve_context: bool,
                       clone: bool, verbose: bool, output_format: str,
@@ -335,7 +319,7 @@ async def generate_okh(ctx, project_url: str, provider: str, model: Optional[str
 @click.argument('requirements_file', type=click.Path(exists=True))
 @click.argument('facilities_file', type=click.Path(exists=True))
 @click.option('--provider', type=click.Choice(['anthropic', 'openai', 'google', 'azure', 'local']), 
-              default='anthropic', help='LLM provider to use')
+              help='LLM provider to use (overrides LLM_PROVIDER env var)')
 @click.option('--model', type=str, help='Specific model to use')
 @click.option('--max-tokens', type=int, default=2000, help='Maximum tokens to generate')
 @click.option('--temperature', type=float, default=0.1, help='Sampling temperature')
@@ -368,7 +352,7 @@ async def generate_okh(ctx, project_url: str, provider: str, model: Optional[str
     format_output=True
 )
 @click.pass_context
-async def match(ctx, requirements_file: str, facilities_file: str, provider: str, 
+async def match(ctx, requirements_file: str, facilities_file: str, provider: Optional[str], 
                 model: Optional[str], max_tokens: int, temperature: float, timeout: int,
                 output: Optional[str], format: str, min_confidence: float,
                 verbose: bool, output_format: str, use_llm: bool, llm_provider: str, 
@@ -470,7 +454,7 @@ async def match(ctx, requirements_file: str, facilities_file: str, provider: str
 @llm_group.command()
 @click.argument('project_url', type=str)
 @click.option('--provider', type=click.Choice(['anthropic', 'openai', 'google', 'azure', 'local']), 
-              default='anthropic', help='LLM provider to use')
+              help='LLM provider to use (overrides LLM_PROVIDER env var)')
 @click.option('--model', type=str, help='Specific model to use')
 @click.option('--max-tokens', type=int, default=4000, help='Maximum tokens to generate')
 @click.option('--temperature', type=float, default=0.1, help='Sampling temperature')
@@ -504,7 +488,7 @@ async def match(ctx, requirements_file: str, facilities_file: str, provider: str
     format_output=True
 )
 @click.pass_context
-async def analyze(ctx, project_url: str, provider: str, model: Optional[str],
+async def analyze(ctx, project_url: str, provider: Optional[str], model: Optional[str],
                  max_tokens: int, temperature: float, timeout: int,
                  output: Optional[str], format: str, include_code: bool,
                  include_docs: bool, verbose: bool, output_format: str,
@@ -598,6 +582,49 @@ async def analyze(ctx, project_url: str, provider: str, model: Optional[str],
 def providers():
     """Manage LLM providers and configuration."""
     pass
+
+
+@providers.command('info')
+@click.pass_context
+def info_providers(ctx):
+    """Show detailed provider information and availability."""
+    selector = get_provider_selector()
+    info = selector.get_provider_info()
+    
+    click.echo("🔍 LLM Provider Information")
+    click.echo("=" * 50)
+    
+    # Show available providers
+    if info["available_providers"]:
+        click.echo(f"✅ Available Providers ({len(info['available_providers'])}):")
+        for provider in info["available_providers"]:
+            details = info["provider_details"][provider]
+            click.echo(f"   • {provider}")
+            click.echo(f"     Model: {details['default_model']}")
+            click.echo(f"     API Key: {'✅ Set' if details['has_api_key'] else '❌ Not set'}")
+            if details["env_var"]:
+                click.echo(f"     Env Var: {details['env_var']}")
+            click.echo()
+    else:
+        click.echo("❌ No providers are currently available")
+    
+    # Show unavailable providers
+    if info["unavailable_providers"]:
+        click.echo(f"❌ Unavailable Providers ({len(info['unavailable_providers'])}):")
+        for provider in info["unavailable_providers"]:
+            details = info["provider_details"][provider]
+            click.echo(f"   • {provider}")
+            if details["env_var"]:
+                click.echo(f"     Env Var: {details['env_var']} (not set)")
+            click.echo()
+    
+    # Show environment variable help
+    click.echo("💡 Environment Variables:")
+    click.echo("   LLM_PROVIDER=anthropic|openai|local")
+    click.echo("   LLM_MODEL=claude-3-5-sonnet-20241022")
+    click.echo("   ANTHROPIC_API_KEY=your_key_here")
+    click.echo("   OPENAI_API_KEY=your_key_here")
+    click.echo("   OLLAMA_BASE_URL=http://localhost:11434 (optional)")
 
 
 @providers.command('list')

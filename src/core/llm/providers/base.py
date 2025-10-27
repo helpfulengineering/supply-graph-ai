@@ -12,7 +12,7 @@ from datetime import datetime
 from enum import Enum
 import logging
 
-from ..models.requests import LLMRequest, LLMRequestConfig
+from ..models.requests import LLMRequest
 from ..models.responses import LLMResponse, LLMResponseStatus
 from ..models.metrics import LLMMetrics
 
@@ -177,8 +177,52 @@ class BaseLLMProvider(ABC):
     
     def _validate_config(self) -> None:
         """Validate the provider configuration."""
-        if not self.config.api_key and self.config.provider_type != LLMProviderType.LOCAL:
+        if not self.config.api_key and self.config.provider_type not in [LLMProviderType.LOCAL, LLMProviderType.CUSTOM]:
             raise ValueError(f"API key required for {self.config.provider_type.value} provider")
+        
+        # Validate model-specific requirements
+        if self.config.provider_type == LLMProviderType.LOCAL:
+            # For local providers, base_url should point to local service
+            if not self.config.base_url:
+                self.config.base_url = "http://localhost:11434"  # Default Ollama URL
+    
+    def get_provider_info(self) -> Dict[str, Any]:
+        """
+        Get information about the provider.
+        
+        Returns:
+            Dict[str, Any]: Provider information including type, model, and status
+        """
+        return {
+            "provider_type": self.config.provider_type.value,
+            "model": self.config.model,
+            "is_connected": self._connected,
+            "base_url": self.config.base_url,
+            "max_tokens": self.config.max_tokens,
+            "temperature": self.config.temperature,
+            "timeout": self.config.timeout,
+            "retry_attempts": self.config.retry_attempts,
+            "retry_delay": self.config.retry_delay,
+        }
+    
+    def get_metrics_summary(self) -> Dict[str, Any]:
+        """
+        Get a summary of provider metrics.
+        
+        Returns:
+            Dict[str, Any]: Summary of metrics including total requests, success rate, etc.
+        """
+        return {
+            "total_requests": self.metrics.total_requests,
+            "successful_requests": self.metrics.successful_requests,
+            "failed_requests": self.metrics.failed_requests,
+            "success_rate": self.metrics.success_rate,
+            "total_tokens": self.metrics.total_tokens,
+            "total_cost": self.metrics.total_cost,
+            "average_response_time": self.metrics.average_response_time,
+            "provider": self.config.provider_type.value,
+            "model": self.config.model,
+        }
     
     async def __aenter__(self) -> "BaseLLMProvider":
         """Async context manager entry."""

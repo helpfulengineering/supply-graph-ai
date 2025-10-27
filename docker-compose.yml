@@ -37,7 +37,7 @@ services:
       - SERVER_URL=http://ome-api:8001
       - LOG_LEVEL=INFO
       - STORAGE_PROVIDER=local
-      - STORAGE_BUCKET_NAME=ome-storage
+      - STORAGE_BUCKET_NAME=ome
       - LLM_ENABLED=false
     volumes:
       - ./storage:/app/storage
