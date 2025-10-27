@@ -14,7 +14,6 @@ from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
-from ..url_router import URLRouter
 from ..models import ProjectData, PlatformType, FileInfo, DocumentInfo
 from .base import ProjectExtractor
 
@@ -112,6 +111,7 @@ class GitHubExtractor(ProjectExtractor):
                 raise ValueError(f"Invalid GitHub URL: {url}")
             
             # Extract owner and repo from URL
+            from ..url_router import URLRouter
             router = URLRouter()
             owner, repo = router.extract_repo_info(url)
             

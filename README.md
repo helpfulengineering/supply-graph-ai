@@ -9,6 +9,26 @@ The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed
 
 ### Installation
 
+#### Option 1: Docker (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/helpfulengineering/supply-graph-ai.git
+cd supply-graph-ai
+
+# Copy environment template
+cp env.template .env
+# Edit .env with your configuration
+
+# Start the API server
+docker-compose up ome-api
+
+# Access the API documentation at:
+# http://localhost:8001/docs
+```
+
+#### Option 2: Local Development
+
 ```bash
 # Clone the repository
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
@@ -98,15 +118,34 @@ open-matching-engine/
 └── run.py                  # FastAPI server on uvicorn
 ```
 
-## Running the Application Locally
+## Running the Application
 
-Note: You may have add a directory called "logs" locally if the command below indicates it can't open the log file!
+### Using Docker (Recommended)
+
+```bash
+# Start the API server
+docker-compose up ome-api
+
+# Or run CLI commands
+docker run --rm \
+  -v $(pwd)/test-data:/app/test-data \
+  open-matching-engine cli okh validate /app/test-data/manifest.okh.json
+
+# Access the API documentation at:
+# http://localhost:8001/docs
+```
+
+### Local Development
+
+Note: You may need to add a directory called "logs" locally if the command below indicates it can't open the log file!
 
 ```bash
 # Start the FastAPI server
 python run.py
 
 # Visit the API documentation at:
-http://127.0.0.1:8001/v1/docs
+# http://127.0.0.1:8001/v1/docs
 ```
+
+For comprehensive container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
 

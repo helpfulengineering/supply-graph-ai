@@ -6,12 +6,12 @@ extractors for different platforms.
 """
 
 import re
-from typing import Tuple
+from typing import Tuple, TYPE_CHECKING
 from urllib.parse import urlparse
-from core.generation.platforms.base import ProjectExtractor
-from core.generation.models import PlatformType
-
 from .models import PlatformType
+
+if TYPE_CHECKING:
+    from src.core.generation.platforms.base import ProjectExtractor
 
 
 class URLRouter:

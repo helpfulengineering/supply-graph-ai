@@ -83,6 +83,7 @@ nav:
     - Heuristic Rules System: matching/heuristic-rules-system.md
   - Development:
     - Developer Guide: development/developer-guide.md
+    - Container Guide: development/container-guide.md
   - Data Models:
     - Overview: models/index.md
     - Bill Of Materials: models/bom.md

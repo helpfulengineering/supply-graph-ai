@@ -5,8 +5,8 @@ mkdocs-material
 
 # core systems
 networkx
-fastapi>=0.100.0,<0.120.0
-uvicorn
+fastapi>=0.104.0,<0.120.0
+uvicorn[standard]
 python-multipart
 
 # storage
@@ -46,3 +46,7 @@ packaging>=20.0
 preshed>=3.0.2,<3.1.0
 srsly>=2.4.0,<3.0.0
 wasabi>=0.8.1,<1.2.0
+
+# Container and deployment utilities
+gunicorn>=21.0.0
+psutil>=5.9.0
