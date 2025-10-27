@@ -847,6 +847,7 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
 @click.option('--unified-bom', is_flag=True, help='Include full BOM in manifest instead of compressed summary (default: compressed summary)')
 @click.option('--no-review', is_flag=True, help='Skip interactive review and generate manifest directly')
 @click.option('--github-token', type=str, help='GitHub personal access token (increases rate limit from 60 to 5,000 requests/hour)')
+@click.option('--clone', is_flag=True, help='Clone repository locally for extraction (faster, more reliable, eliminates API limits)')
 @standard_cli_command(
     help_text="""
     Generate OKH manifest from repository URL.
@@ -866,6 +867,9 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
       # Generate from GitHub repository
       ome okh generate-from-url https://github.com/user/project
       
+      # Generate with local cloning (faster, more reliable)
+      ome okh generate-from-url https://github.com/user/project --clone
+      
       # Generate with BOM export
       ome okh generate-from-url https://github.com/user/project --output ./output
       
@@ -880,7 +884,7 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
 )
 @click.pass_context
 async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tuple, 
-                           unified_bom: bool, no_review: bool, github_token: str,
+                           unified_bom: bool, no_review: bool, github_token: str, clone: bool,
                            verbose: bool, output_format: str, use_llm: bool,
                            llm_provider: str, llm_model: Optional[str],
                            quality_level: str, strict_mode: bool):
@@ -917,7 +921,9 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
             from ..core.generation.url_router import URLRouter
             from ..core.generation.engine import GenerationEngine
             from ..core.generation.review import ReviewInterface
-            from ..core.generation.models import GenerationResult, PlatformType
+            from ..core.generation.models import GenerationResult, PlatformType, LayerConfig
+            from ..core.generation.platforms.github import GitHubExtractor
+            from ..core.generation.platforms.gitlab import GitLabExtractor
             
             # Validate and route URL
             router = URLRouter()
@@ -933,15 +939,27 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
             # Generate project data from URL
             cli_ctx.log("Fetching project data...", "info")
             
-            # Get platform-specific generator
-            if platform == PlatformType.GITHUB:
-                generator = GitHubExtractor(github_token=github_token)
-            elif platform == PlatformType.GITLAB:
-                generator = GitLabExtractor()
-            else:
-                raise ValueError(f"Unsupported platform: {platform}")
+            # Choose extraction method based on clone flag
+            use_clone = clone
+            if use_clone:
+                cli_ctx.log("Using local Git cloning for extraction...", "info")
+                if not router.supports_local_cloning(url):
+                    cli_ctx.log("Warning: URL doesn't support local cloning, falling back to API extraction", "warning")
+                    use_clone = False
+                else:
+                    generator = router.route_to_local_git_extractor()
+                    project_data = await generator.extract_project(url)
             
-            project_data = await generator.extract_project(url)
+            if not use_clone:
+                # Get platform-specific generator for API-based extraction
+                if platform == PlatformType.GITHUB:
+                    generator = GitHubExtractor(github_token=github_token)
+                elif platform == PlatformType.GITLAB:
+                    generator = GitLabExtractor()
+                else:
+                    raise ValueError(f"Unsupported platform: {platform}")
+                
+                project_data = await generator.extract_project(url)
             
             # Generate manifest from project data
             config = LayerConfig()

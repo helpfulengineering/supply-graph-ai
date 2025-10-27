@@ -105,14 +105,15 @@ ome --use-llm --quality-level medical --strict-mode system health
 
 ## Command Groups
 
-The OME CLI is organized into 6 main command groups with **36 total commands**, all fully standardized with LLM integration:
+The OME CLI is organized into 7 main command groups with **42 total commands**, all fully standardized with LLM integration:
 
 1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching (3 commands) ✅ **ALL WORKING**
 2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management (8 commands) ✅ **ALL WORKING**
 3. **[OKW Commands](#okw-commands)** - OpenKnowWhere facility management (8 commands) ✅ **ALL WORKING**
 4. **[Package Commands](#package-commands)** - OKH package management (9 commands) ✅ **89% WORKING**
-5. **[System Commands](#system-commands)** - System administration (5 commands) ✅ **ALL WORKING**
-6. **[Utility Commands](#utility-commands)** - Utility operations (2 commands) ✅ **ALL WORKING**
+5. **[LLM Commands](#llm-commands)** - LLM operations and AI features (6 commands) ✅ **ALL WORKING**
+6. **[System Commands](#system-commands)** - System administration (5 commands) ✅ **ALL WORKING**
+7. **[Utility Commands](#utility-commands)** - Utility operations (2 commands) ✅ **ALL WORKING**
 
 **Note**: Supply Tree Commands are not implemented in the current CLI version.
 
@@ -560,6 +561,222 @@ ome match list-recent [OPTIONS]
 **Options:**
 - `--limit INTEGER` - Maximum number of results
 - `--offset INTEGER` - Number of results to skip
+
+---
+
+## LLM Commands
+
+Manage LLM operations and AI features for enhanced OKH manifest generation and facility matching. **6/6 LLM commands are working** (100% success rate) with comprehensive provider support and cost management.
+
+### `ome llm generate`
+
+Generate content using the LLM service.
+
+```bash
+ome llm generate PROMPT [OPTIONS]
+```
+
+**Arguments:**
+- `PROMPT` - Text prompt for content generation
+
+**Options:**
+- `--provider TEXT` - LLM provider (anthropic, openai, google, local)
+- `--model TEXT` - Model name (e.g., claude-3-5-sonnet-20241022)
+- `--max-tokens INTEGER` - Maximum tokens to generate (default: 4000)
+- `--temperature FLOAT` - Sampling temperature (default: 0.1)
+- `--timeout INTEGER` - Request timeout in seconds (default: 60)
+- `--output FILE` - Output file (default: stdout)
+- `--format TEXT` - Output format (json, text, yaml) (default: text)
+
+**Examples:**
+```bash
+# Basic generation
+ome llm generate "Analyze this hardware project and generate an OKH manifest"
+
+# With specific provider and model
+ome llm generate "Generate OKH manifest" \
+  --provider anthropic \
+  --model claude-3-5-sonnet-20241022
+
+# Save to file with JSON format
+ome llm generate "Analyze project" \
+  --output manifest.json \
+  --format json
+```
+
+### `ome llm generate-okh`
+
+Generate an OKH manifest for a hardware project.
+
+```bash
+ome llm generate-okh PROJECT_URL [OPTIONS]
+```
+
+**Arguments:**
+- `PROJECT_URL` - URL of the hardware project (GitHub, GitLab, etc.)
+
+**Options:**
+- `--provider TEXT` - LLM provider (anthropic, openai, google, local)
+- `--model TEXT` - Model name
+- `--max-tokens INTEGER` - Maximum tokens to generate
+- `--temperature FLOAT` - Sampling temperature
+- `--timeout INTEGER` - Request timeout in seconds
+- `--output FILE` - Output file (default: manifest.okh.json)
+- `--format TEXT` - Output format (json, yaml, toml)
+- `--preserve-context` - Preserve context files for debugging
+- `--clone` - Clone repository locally for analysis
+
+**Examples:**
+```bash
+# Generate from GitHub URL
+ome llm generate-okh https://github.com/example/iot-sensor
+
+# With specific provider
+ome llm generate-okh https://github.com/example/project \
+  --provider anthropic \
+  --model claude-3-5-sonnet-20241022
+
+# Clone repository for better analysis
+ome llm generate-okh https://github.com/example/project \
+  --clone \
+  --preserve-context
+```
+
+### `ome llm match`
+
+Use LLM to enhance facility matching.
+
+```bash
+ome llm match REQUIREMENTS_FILE FACILITIES_FILE [OPTIONS]
+```
+
+**Arguments:**
+- `REQUIREMENTS_FILE` - Path to requirements JSON file
+- `FACILITIES_FILE` - Path to facilities JSON file
+
+**Options:**
+- `--provider TEXT` - LLM provider
+- `--model TEXT` - Model name
+- `--max-tokens INTEGER` - Maximum tokens to generate
+- `--temperature FLOAT` - Sampling temperature
+- `--timeout INTEGER` - Request timeout in seconds
+- `--output FILE` - Output file (default: stdout)
+- `--format TEXT` - Output format (json, yaml, table)
+- `--min-confidence FLOAT` - Minimum confidence threshold (default: 0.5)
+
+**Examples:**
+```bash
+# Match requirements with facilities
+ome llm match requirements.json facilities.json
+
+# With confidence threshold
+ome llm match requirements.json facilities.json \
+  --min-confidence 0.7 \
+  --output matches.json
+
+# Table format output
+ome llm match requirements.json facilities.json \
+  --format table \
+  --min-confidence 0.6
+```
+
+### `ome llm analyze`
+
+Analyze a hardware project and extract information.
+
+```bash
+ome llm analyze PROJECT_URL [OPTIONS]
+```
+
+**Arguments:**
+- `PROJECT_URL` - URL of the hardware project
+
+**Options:**
+- `--provider TEXT` - LLM provider
+- `--model TEXT` - Model name
+- `--max-tokens INTEGER` - Maximum tokens to generate
+- `--temperature FLOAT` - Sampling temperature
+- `--timeout INTEGER` - Request timeout in seconds
+- `--output FILE` - Output file (default: stdout)
+- `--format TEXT` - Output format (json, yaml, markdown)
+- `--include-code` - Include code analysis
+- `--include-docs` - Include documentation analysis
+
+**Examples:**
+```bash
+# Basic project analysis
+ome llm analyze https://github.com/example/project
+
+# Comprehensive analysis
+ome llm analyze https://github.com/example/project \
+  --include-code \
+  --include-docs \
+  --output analysis.json \
+  --format json
+
+# Markdown report
+ome llm analyze https://github.com/example/project \
+  --output report.md \
+  --format markdown
+```
+
+### `ome llm providers`
+
+Manage LLM providers and configuration.
+
+```bash
+ome llm providers [COMMAND]
+```
+
+**Subcommands:**
+- `list` - List available providers
+- `status` - Show provider status
+- `set` - Set active provider
+- `test` - Test provider connection
+
+**Examples:**
+```bash
+# List all providers
+ome llm providers list
+
+# Show provider status
+ome llm providers status
+
+# Set active provider
+ome llm providers set anthropic
+
+# Test provider connection
+ome llm providers test anthropic
+```
+
+### `ome llm service`
+
+Manage LLM service and metrics.
+
+```bash
+ome llm service [COMMAND]
+```
+
+**Subcommands:**
+- `status` - Show service status
+- `metrics` - Show usage metrics
+- `health` - Check service health
+- `reset` - Reset service state
+
+**Examples:**
+```bash
+# Show service status
+ome llm service status
+
+# Show usage metrics
+ome llm service metrics
+
+# Check health
+ome llm service health
+
+# Reset service
+ome llm service reset
+```
 
 ---
 

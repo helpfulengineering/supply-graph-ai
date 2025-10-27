@@ -8,6 +8,8 @@ extractors for different platforms.
 import re
 from typing import Tuple
 from urllib.parse import urlparse
+from core.generation.platforms.base import ProjectExtractor
+from core.generation.models import PlatformType
 
 from .models import PlatformType
 
@@ -53,6 +55,12 @@ class URLRouter:
             self._extractors[PlatformType.GITLAB] = GitLabExtractor()
         except ImportError:
             pass  # Will be implemented later
+        
+        try:
+            from .platforms.local_git import LocalGitExtractor
+            self._local_git_extractor = LocalGitExtractor()
+        except ImportError:
+            self._local_git_extractor = None
     
     def detect_platform(self, url: str) -> PlatformType:
         """
@@ -182,3 +190,33 @@ class URLRouter:
             raise ValueError(f"No extractor available for platform: {platform.value}")
         
         return self._extractors[platform]
+    
+    def route_to_local_git_extractor(self) -> "ProjectExtractor":
+        """
+        Route to the local Git extractor for cloning-based extraction.
+        
+        Returns:
+            LocalGitExtractor instance
+            
+        Raises:
+            ValueError: If local Git extractor is not available
+        """
+        if not self._local_git_extractor:
+            raise ValueError("Local Git extractor is not available")
+        
+        return self._local_git_extractor
+    
+    def supports_local_cloning(self, url: str) -> bool:
+        """
+        Check if a URL supports local Git cloning.
+        
+        Args:
+            url: Repository URL to check
+            
+        Returns:
+            True if URL can be cloned locally
+        """
+        if not self._local_git_extractor:
+            return False
+        
+        return self._local_git_extractor.validate_url(url)
