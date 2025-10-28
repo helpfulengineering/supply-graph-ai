@@ -26,7 +26,9 @@ class URLRouter:
             ],
             PlatformType.GITLAB: [
                 r'gitlab\.com/([^/]+)/([^/]+)',
-                r'gitlab\.com/([^/]+)/([^/]+)\.git'
+                r'gitlab\.com/([^/]+)/([^/]+)\.git',
+                r'gitlab\.com/([^/]+)/([^/]+)/([^/]+)',
+                r'gitlab\.com/([^/]+)/([^/]+)/([^/]+)\.git'
             ],
             PlatformType.CODEBERG: [
                 r'codeberg\.org/([^/]+)/([^/]+)',
@@ -158,11 +160,34 @@ class URLRouter:
         normalized_url = self.normalize_url(url)
         
         # Extract using platform-specific patterns
-        if platform in [PlatformType.GITHUB, PlatformType.GITLAB, PlatformType.CODEBERG]:
+        if platform in [PlatformType.GITHUB, PlatformType.CODEBERG]:
             pattern = self._platform_patterns[platform][0]  # Use first pattern
             match = re.search(pattern, normalized_url)
             if match:
                 return match.group(1), match.group(2)
+        
+        elif platform == PlatformType.GITLAB:
+            # Try patterns in order of specificity (most specific first)
+            # We need to try the 3-group patterns first, then fall back to 2-group patterns
+            patterns_to_try = [
+                r'gitlab\.com/([^/]+)/([^/]+)/([^/]+)\.git',
+                r'gitlab\.com/([^/]+)/([^/]+)/([^/]+)',
+                r'gitlab\.com/([^/]+)/([^/]+)\.git',
+                r'gitlab\.com/([^/]+)/([^/]+)'
+            ]
+            
+            for pattern in patterns_to_try:
+                match = re.search(pattern, normalized_url)
+                if match:
+                    if len(match.groups()) == 2:
+                        # Simple owner/repo structure
+                        return match.group(1), match.group(2)
+                    elif len(match.groups()) == 3:
+                        # Nested group structure: group/subgroup/project
+                        # For GitLab API, we need to URL-encode the full path
+                        group_path = f"{match.group(1)}/{match.group(2)}"
+                        project_name = match.group(3)
+                        return group_path, project_name
         
         elif platform == PlatformType.HACKADAY:
             pattern = self._platform_patterns[platform][0]
