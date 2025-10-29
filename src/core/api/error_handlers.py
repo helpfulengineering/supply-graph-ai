@@ -245,7 +245,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content=error_response.dict()
+        content=error_response.model_dump(mode='json')
     )
 
 
@@ -265,7 +265,7 @@ async def http_exception_handler(request: Request, exc: Union[HTTPException, Sta
     
     return JSONResponse(
         status_code=exc.status_code,
-        content=error_response.dict()
+        content=error_response.model_dump(mode='json')
     )
 
 

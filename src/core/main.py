@@ -24,10 +24,8 @@ from src.core.api.middleware import setup_api_middleware
 
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
-from src.core.domains.cooking.validators import CookingValidator
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
-from src.core.domains.manufacturing.okh_validator import OKHValidator
 
 # Import new enhanced validators with compatibility layers
 from src.core.domains.manufacturing.validation.compatibility import ManufacturingOKHValidatorCompat

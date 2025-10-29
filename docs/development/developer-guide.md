@@ -72,6 +72,40 @@ curl -X POST http://localhost:8001/v1/match \
   }'
 ```
 
+### Project Scaffolding
+
+Generate OKH-compliant project structures with the scaffolding system:
+
+```bash
+# Generate a new project scaffold
+curl -X POST "http://localhost:8001/v1/api/okh/scaffold" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_name": "my-hardware-project",
+    "template_level": "standard",
+    "output_format": "json"
+  }'
+
+# Generate with filesystem output
+curl -X POST "http://localhost:8001/v1/api/okh/scaffold" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_name": "arduino-sensor",
+    "template_level": "detailed",
+    "output_format": "filesystem",
+    "output_path": "/home/user/projects"
+  }'
+```
+
+The scaffolding system generates:
+- OKH-compliant directory structure
+- MkDocs documentation setup
+- OKH manifest template with guidance
+- BOM templates and assembly guides
+- Comprehensive documentation stubs
+
+For detailed scaffolding documentation, see the [Scaffolding Guide](../scaffolding/index.md).
+
 ## System Architecture
 
 ### Core Components

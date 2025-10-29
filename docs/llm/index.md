@@ -116,7 +116,7 @@ This shows:
 - [API Reference](api.md) - REST API endpoints for LLM operations
 - [CLI Commands](cli.md) - Command-line interface for LLM features
 - [Generation Layer](generation.md) - OKH manifest generation with LLM
-- [Matching Layer](matching.md) - Facility matching with LLM enhancement
+- [Matching Layer](TBD) - Facility matching with LLM enhancement
 - [Examples](examples.md) - Usage examples and best practices
 
 ## Architecture

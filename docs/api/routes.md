@@ -60,7 +60,7 @@ The system uses environment variables for Azure storage configuration:
 
 ## Standardized Error Handling
 
-All API routes use a comprehensive error handling system with:
+All API routes use an error handling system with:
 
 ### Error Response Format
 ```json
@@ -141,7 +141,7 @@ Creates a new OKH manifest.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete CRUD operations with service integration
+**Status:**  **Fully Implemented** - Complete CRUD operations with service integration
 
 #### Read (Get)
 
@@ -166,7 +166,7 @@ Retrieves an OKH manifest by ID.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Retrieves OKH manifests from storage with proper model conversion and validation
+**Status:**  **Fully Implemented** - Retrieves OKH manifests from storage with proper model conversion and validation
 
 #### List (Multiple Read)
 
@@ -198,7 +198,7 @@ Retrieves a list of OKH objects.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Paginated listing with filter support
+**Status:**  **Fully Implemented** - Paginated listing with filter support
 
 #### Update
 
@@ -226,7 +226,7 @@ Updates an existing OKH manifest.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete update functionality with validation
+**Status:**  **Fully Implemented** - Complete update functionality with validation
 
 #### Delete
 
@@ -244,7 +244,7 @@ Deletes an OKH manifest.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete delete functionality with existence checking
+**Status:**  **Fully Implemented** - Complete delete functionality with existence checking
 
 #### Validation and Normalization
 
@@ -294,7 +294,7 @@ POST /v1/api/okh/validate
 - **Professional Level**: Standard validation for commercial use - requires manufacturing specifications
 - **Medical Level**: Strict validation for medical device manufacturing - requires quality standards and certifications
 
-**Status:** ✅ **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+**Status:**  **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 #### Requirements Extraction
 
@@ -325,7 +325,7 @@ Extracts requirements from an OKH object for matching.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete requirements extraction with service integration
+**Status:**  **Fully Implemented** - Complete requirements extraction with service integration
 
 #### File Upload
 
@@ -355,7 +355,101 @@ Upload an OKH file for storage and use in matching operations.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - File upload with validation, parsing, and storage integration
+**Status:**  **Fully Implemented** - File upload with validation, parsing, and storage integration
+
+#### Scaffold
+
+```
+POST /v1/api/okh/scaffold
+```
+
+Generate an OKH-compliant project structure with documentation stubs and manifest template.
+
+**Request:**
+```json
+{
+  "project_name": "my-awesome-project",
+  "version": "0.1.0",
+  "organization": "My Organization",
+  "template_level": "standard",
+  "output_format": "json",
+  "output_path": "/path/to/output",
+  "include_examples": true,
+  "okh_version": "OKH-LOSHv1.0"
+}
+```
+
+**Request Parameters:**
+- `project_name` (string, required): Human-friendly project name; used for directory name
+- `version` (string, optional): Initial project version string (semantic recommended). Default: "0.1.0"
+- `organization` (string, optional): Optional organization name for future packaging alignment
+- `template_level` (string, optional): Amount of guidance placed in stub docs. Options: "minimal", "standard", "detailed". Default: "standard"
+- `output_format` (string, optional): Output format. Options: "json", "zip", "filesystem". Default: "json"
+- `output_path` (string, optional): Required for filesystem writes; ignored for others
+- `include_examples` (boolean, optional): Whether to include sample files/content. Default: true
+- `okh_version` (string, optional): OKH schema version tag written into manifest stub. Default: "OKH-LOSHv1.0"
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Scaffold generated successfully",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "request_id": "req_123456789",
+  "project_name": "my-awesome-project",
+  "structure": {
+    "my-awesome-project": {
+      "okh-manifest.json": "...",
+      "README.md": "...",
+      "mkdocs.yml": "...",
+      "design-files": {
+        "index.md": "..."
+      },
+      "manufacturing-files": {
+        "index.md": "..."
+      },
+      "bom": {
+        "index.md": "...",
+        "bom.csv": "...",
+        "bom.md": "..."
+      },
+      "making-instructions": {
+        "index.md": "...",
+        "assembly-guide.md": "..."
+      },
+      "docs": {
+        "index.md": "...",
+        "getting-started.md": "...",
+        "development.md": "...",
+        "manufacturing.md": "...",
+        "assembly.md": "...",
+        "maintenance.md": "..."
+      }
+    }
+  },
+  "manifest_template": {
+    "title": "my-awesome-project",
+    "version": "0.1.0",
+    "okhv": "OKH-LOSHv1.0",
+    "license": "[REQUIRED] License identifier (e.g., MIT, Apache-2.0)",
+    "licensor": "[REQUIRED] Name of the person or organization granting the license",
+    "documentation_language": "[REQUIRED] Primary language of documentation (e.g., en, es, fr)",
+    "function": "[REQUIRED] Brief description of what the hardware does"
+  },
+  "download_url": "file:///tmp/scaffold_my-awesome-project.zip",
+  "filesystem_path": "/path/to/output/my-awesome-project"
+}
+```
+
+**Features:**
+- **MkDocs Integration**: Generates interlinked documentation structure with `mkdocs.yml` configuration
+- **OKH Schema Compliance**: Manifest template generated by introspecting the `OKHManifest` dataclass
+- **Template Levels**: Three levels of documentation detail (minimal, standard, detailed)
+- **Multiple Output Formats**: JSON blueprint, ZIP archive, or direct filesystem write
+- **Dedicated BOM Directory**: Separate `bom/` directory with CSV and Markdown templates
+- **Comprehensive Structure**: All OKH-compliant directories with appropriate documentation stubs
+
+**Status:**  **Fully Implemented** - Complete scaffolding system with MkDocs integration and OKH schema compliance
 
 ### OKW Routes
 
@@ -385,7 +479,7 @@ Creates a new OKW facility.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete CRUD operations with service integration
+**Status:**  **Fully Implemented** - Complete CRUD operations with service integration
 
 #### Read (Get)
 
@@ -405,7 +499,7 @@ Retrieves an OKW facility by ID.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Retrieves OKW facilities from storage with proper serialization
+**Status:**  **Fully Implemented** - Retrieves OKW facilities from storage with proper serialization
 
 #### List (Multiple Read)
 
@@ -437,7 +531,7 @@ Retrieves a list of OKW facilities.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Paginated listing with service integration
+**Status:**  **Fully Implemented** - Paginated listing with service integration
 
 #### Update
 
@@ -465,7 +559,7 @@ Updates an existing OKW facility.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete update functionality with validation
+**Status:**  **Fully Implemented** - Complete update functionality with validation
 
 #### Delete
 
@@ -483,7 +577,7 @@ Deletes an OKW facility.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - Complete delete functionality with existence checking
+**Status:**  **Fully Implemented** - Complete delete functionality with existence checking
 
 #### Search
 
@@ -520,7 +614,7 @@ Searches for facilities by criteria with **Azure Blob Storage integration**.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
+**Status:**  **Fully Implemented** - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
 
 **Key Features:**
 - **Real-time Storage Loading**: Automatically loads OKW facilities from Azure Blob Storage
@@ -575,7 +669,7 @@ POST /v1/api/okw/validate
 - **Professional Level**: Standard validation for commercial manufacturing facilities - requires equipment and manufacturing processes
 - **Medical Level**: Strict validation for medical device manufacturing facilities - requires certifications and quality standards
 
-**Status:** ✅ **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+**Status:**  **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
 
 #### Capabilities Extraction
 
@@ -891,7 +985,7 @@ POST /v1/api/match
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
+**Status:**  **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
 
 **Key Features:**
 - **Multiple OKH Input Methods**: Accept inline manifests, storage references, or remote URLs
@@ -948,7 +1042,7 @@ Match requirements to capabilities using an uploaded OKH file.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **File upload matching with comprehensive filtering**
+**Status:**  **Fully Implemented** - **File upload matching with comprehensive filtering**
 
 #### Validate Supply Tree
 
@@ -996,7 +1090,7 @@ POST /v1/api/match/validate
 - **Professional Level**: Standard validation for commercial use - comprehensive workflow and resource validation
 - **Medical Level**: Strict validation for medical device manufacturing - regulatory compliance and quality standards
 
-**Status:** ✅ **Advanced Implementation** - **Domain-aware validation with quality levels and comprehensive validation criteria (placeholder implementation with advanced parameters)**
+**Status:**  **Advanced Implementation** - **Domain-aware validation with quality levels and comprehensive validation criteria (placeholder implementation with advanced parameters)**
 
 ### Domain Management Routes
 
@@ -1039,7 +1133,7 @@ Lists all available domains with their metadata and status.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Complete domain listing with registry integration**
+**Status:**  **Fully Implemented** - **Complete domain listing with registry integration**
 
 #### Get Domain Information
 
@@ -1068,7 +1162,7 @@ Retrieves detailed information about a specific domain.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Complete domain information retrieval with error handling**
+**Status:**  **Fully Implemented** - **Complete domain information retrieval with error handling**
 
 #### Domain Health Check
 
@@ -1107,7 +1201,7 @@ Performs a health check on a specific domain and its components.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Complete domain health checking with component status**
+**Status:**  **Fully Implemented** - **Complete domain health checking with component status**
 
 #### Detect Domain from Input
 
@@ -1150,7 +1244,7 @@ Detects the appropriate domain from input data using multi-layered detection.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Complete domain detection with confidence scoring**
+**Status:**  **Fully Implemented** - **Complete domain detection with confidence scoring**
 
 ### Additional Utility Routes
 
@@ -1180,7 +1274,7 @@ Lists available domains (manufacturing, cooking, etc.). **Note: This endpoint is
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Legacy domain listing with filtering support**
+**Status:**  **Fully Implemented** - **Legacy domain listing with filtering support**
 
 #### Validation Contexts
 
@@ -1213,7 +1307,7 @@ Lists validation contexts for a specific domain.
 }
 ```
 
-**Status:** ✅ **Fully Implemented** - **Context listing with domain-specific filtering**
+**Status:**  **Fully Implemented** - **Context listing with domain-specific filtering**
 
 #### Simulation
 
@@ -1294,7 +1388,7 @@ Paginated responses include consistent metadata:
 
 ## Implementation Status
 
-### ✅ **Fully Standardized Routes (43 total)**
+###  **Fully Standardized Routes (43 total)**
 
 **All API routes have been completely standardized with:**
 - **Standardized Error Handling**: All routes use `create_error_response` and `create_success_response`
@@ -1314,7 +1408,7 @@ Paginated responses include consistent metadata:
 - `GET /v1/api/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
 - `POST /v1/api/match/detect-domain` - **Complete domain detection with confidence scoring**
 
-#### **OKH Routes (9) - Fully Standardized**
+#### **OKH Routes (10) - Fully Standardized**
 - `POST /v1/api/okh/create` - **Complete CRUD operations with service integration**
 - `GET /v1/api/okh/{id}` - **Retrieves OKH manifests from storage with proper model conversion and validation**
 - `GET /v1/api/okh` - **Paginated listing with filter support**
@@ -1324,6 +1418,7 @@ Paginated responses include consistent metadata:
 - `POST /v1/api/okh/extract` - **Complete requirements extraction with service integration**
 - `POST /v1/api/okh/upload` - **File upload with validation, parsing, and storage integration**
 - `POST /v1/api/okh/from-storage` - **Create OKH from stored manifest**
+- `POST /v1/api/okh/scaffold` - **Generate OKH project scaffold with documentation stubs and MkDocs integration**
 
 #### **OKW Routes (9) - Fully Standardized**
 - `POST /v1/api/okw/create` - **Complete CRUD operations with service integration**

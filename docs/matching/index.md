@@ -110,10 +110,8 @@ Every match includes a confidence score that indicates:
 To understand the matching system in detail, explore these documentation sections:
 
 - **[Direct Matching](direct-matching.md)**: Learn about exact and near-miss matching algorithms
-- **[Capability-Centric Rules](capability-centric-rules.md)**: Understand the rule-based matching system
-- **[Heuristic Rules System](heuristic-rules-system.md)**: Explore advanced matching algorithms and heuristics
+- **[Heuristic Matching](heuristic-matching.md)**: Understand the rule-based matching system
 - **[NLP Matching](nlp-matching.md)**: Discover semantic similarity and natural language processing
-- **[Implementation Summary](implementation-summary.md)**: Comprehensive overview of current implementation status
 
 ## Architecture Integration
 

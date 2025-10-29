@@ -122,7 +122,7 @@ class AnthropicProvider(BaseLLMProvider):
         if not self._connected or not self._client:
             raise ConnectionError("Provider not connected")
         
-        start_time = datetime.utcnow()
+        start_time = datetime.now()
         
         try:
             # Prepare the request for Anthropic
@@ -225,7 +225,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     def _process_anthropic_response(self, response: Any, request: LLMRequest, start_time: datetime) -> LLMResponse:
         """Process the Anthropic API response."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Extract content from response
         content = ""
@@ -300,7 +300,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     def _update_metrics(self, response: LLMResponse, start_time: datetime) -> None:
         """Update provider metrics."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         self.metrics.add_request(
             success=response.is_success,

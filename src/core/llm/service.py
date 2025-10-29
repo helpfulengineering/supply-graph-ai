@@ -307,7 +307,7 @@ class LLMService(BaseService['LLMService']):
         
         # Add to request history
         self._request_history.append({
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "provider": provider_type.value,
             "model": response.metadata.model,
             "tokens_used": response.tokens_used,

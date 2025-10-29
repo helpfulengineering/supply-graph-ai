@@ -12,10 +12,11 @@
     * [Data Flow Diagram](architecture/data-flow-diagram.md)
     * [System Diagram](architecture/system-diagram.md)
     * [Matching Architecture](architecture/matching.md)
+    * [Generation](architecture/generation.md)
+    * [Services](architecture/services.md)
 
 ### Development Plans
 * [Developer Guide](development/developer-guide.md)
-* [Migration Guide](migration-guide.md)
 
 ### Data Models
 * [Data Models](models/index.md)
@@ -33,7 +34,12 @@
 * [API Documentation](api/index.md)
     * [Routes & Endpoints](api/routes.md)
     * [Authentication](api/auth.md)
-    * [Matching API](api/matching-api.md)
+
+### Project Scaffolding
+* [Scaffolding Guide](scaffolding/index.md)
+    * [Quick Start](scaffolding/quick-start.md)
+    * Generate OKH-compliant project structures
+    * MkDocs integration and documentation templates
 
 ### CLI Documentation
 * [CLI Documentation](CLI/index.md)
@@ -52,9 +58,9 @@
     * Developer tips and monitoring
 
 ### Matching System
-* [Matching Layers Architecture](architecture/matching-layers.md)
+* [Matching Layers Architecture](architecture/matching.md)
     * [Direct Matching Layer](matching/direct-matching.md)
-    * [Capability-Centric Heuristic Rules](matching/capability-centric-rules.md)
+    * [Capability-Centric Heuristic Rules](matching/heuristic-matching.md)
     * [Matching Demonstration Guide](api/matching-demonstration-guide.md) - Practical curl examples for testing Direct and Heuristic matching
 
 # Overview
