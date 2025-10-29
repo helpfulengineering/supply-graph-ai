@@ -2,14 +2,14 @@
 
 ## Overview
 
-The Open Matching Engine (OME) implements a comprehensive service architecture built around the `BaseService` pattern, providing standardized service management, lifecycle handling, performance tracking, and LLM integration support. This architecture ensures consistency, maintainability, and enterprise-grade capabilities across all services.
+The Open Matching Engine (OME) implements a service architecture built around the `BaseService` pattern, providing standardized service management, lifecycle handling, performance tracking, and LLM integration support. This architecture ensures consistency, maintainability, and enterprise-grade capabilities across all services.
 
 ## Architecture Principles
 
 ### Core Design Principles
 
 1. **Standardization**: All services inherit from `BaseService` for consistent patterns
-2. **Lifecycle Management**: Comprehensive service initialization, health monitoring, and shutdown
+2. **Lifecycle Management**: service initialization, health monitoring, and shutdown
 3. **Performance Tracking**: Built-in metrics collection and request monitoring
 4. **Error Handling**: Standardized error handling with context and recovery strategies
 5. **LLM Integration Ready**: Prepared interfaces for LLM service integration
@@ -74,7 +74,7 @@ class ServiceConfig:
 
 #### ServiceMetrics Class
 
-Comprehensive metrics collection:
+metrics collection:
 
 ```python
 @dataclass
@@ -202,7 +202,7 @@ Standardized health check patterns:
 
 ```python
 async def health_check(self) -> Dict[str, Any]:
-    """Comprehensive health check."""
+    """health check."""
     health_status = {
         "service": self.config.name,
         "status": self.status.value,
@@ -236,7 +236,7 @@ async def health_check(self) -> Dict[str, Any]:
 
 **Key Features:**
 - **Manifest Management**: Create, read, update, delete OKH manifests
-- **Validation**: Comprehensive manifest validation with quality levels
+- **Validation**: manifest validation with quality levels
 - **Extraction**: Requirements extraction from manifests
 - **Storage Integration**: Azure Blob Storage integration
 - **LLM Integration**: LLM-enhanced validation and extraction
@@ -268,7 +268,7 @@ config = ServiceConfig(
 **Key Features:**
 - **Facility Management**: Create, read, update, delete OKW facilities
 - **Search**: Advanced facility search with filtering
-- **Validation**: Comprehensive facility validation
+- **Validation**: facility validation
 - **Capability Extraction**: Manufacturing capability extraction
 - **Storage Integration**: Azure Blob Storage integration
 
@@ -382,7 +382,7 @@ async with self.track_request("operation_name") as tracker:
 
 ### Performance Analysis
 
-Services provide comprehensive performance analysis:
+Services provide performance analysis:
 
 ```python
 # Get service performance summary
@@ -406,7 +406,7 @@ performance = await service.get_performance_summary()
 
 ### Standardized Error Types
 
-Services use a comprehensive error hierarchy:
+Services use a error hierarchy:
 
 ```python
 class ServiceError(OMEError):
@@ -462,7 +462,7 @@ except ServiceError as e:
 
 ### LLM Configuration
 
-Services support comprehensive LLM configuration:
+Services support LLM configuration:
 
 ```python
 llm_config = LLMConfig(
@@ -506,7 +506,7 @@ async def llm_enhanced_operation(self, data: Dict[str, Any]) -> Dict[str, Any]:
 
 ### LLM Metrics
 
-Services collect comprehensive LLM metrics:
+Services collect LLM metrics:
 
 - **Request Count**: Total LLM requests made
 - **Token Usage**: Tokens consumed per provider
@@ -566,7 +566,7 @@ config = ServiceConfig.from_env(
 
 ### Service Testing Patterns
 
-Services include comprehensive testing support:
+Services include testing support:
 
 ```python
 class TestOKHService:
@@ -604,7 +604,7 @@ class TestOKHService:
 
 ### Integration Testing
 
-Services support comprehensive integration testing:
+Services support integration testing:
 
 ```python
 async def test_service_integration(self):
@@ -632,7 +632,7 @@ async def test_service_integration(self):
 1. **Single Responsibility**: Each service should have a single, well-defined responsibility
 2. **Dependency Injection**: Use dependency injection for service dependencies
 3. **Configuration Management**: Use ServiceConfig for all configuration
-4. **Health Monitoring**: Implement comprehensive health checks
+4. **Health Monitoring**: Implement health checks
 5. **Error Handling**: Use standardized error types and recovery strategies
 
 ### Performance Optimization
@@ -645,7 +645,7 @@ async def test_service_integration(self):
 
 ### Monitoring and Observability
 
-1. **Health Checks**: Implement comprehensive health check functions
+1. **Health Checks**: Implement health check functions
 2. **Metrics**: Use built-in metrics for performance monitoring
 3. **Logging**: Use structured logging with appropriate levels
 4. **Error Tracking**: Track and report errors with context
@@ -671,15 +671,15 @@ async def test_service_integration(self):
 
 ## Conclusion
 
-The OME service architecture provides a robust, standardized foundation for building scalable, maintainable services. The BaseService pattern ensures consistency across all services while providing comprehensive features for monitoring, error handling, and LLM integration.
+The OME service architecture provides a robust, standardized foundation for building scalable, maintainable services. The BaseService pattern ensures consistency across all services while providing features for monitoring, error handling, and LLM integration.
 
 Key benefits of this architecture:
 
 - **Consistency**: Standardized patterns across all services
 - **Maintainability**: Clear separation of concerns and standardized interfaces
-- **Observability**: Comprehensive monitoring and metrics collection
+- **Observability**: monitoring and metrics collection
 - **Reliability**: Built-in error handling and recovery strategies
 - **Scalability**: Designed for horizontal scaling and load distribution
-- **LLM Ready**: Prepared for comprehensive LLM integration
+- **LLM Ready**: Prepared for LLM integration
 
 This architecture forms the foundation for the OME system's service layer and provides a solid base for future enhancements and LLM integration.

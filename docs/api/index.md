@@ -1,6 +1,6 @@
 # API Documentation
 
-The Open Matching Engine (OME) provides a comprehensive REST API built on FastAPI with complete standardization, enterprise-grade error handling, and LLM integration support. This section documents the fully standardized API system with 43 routes across 6 command groups, all with comprehensive testing and production readiness.
+The Open Matching Engine (OME) provides a REST API built on FastAPI with complete standardization, enterprise-grade error handling, and LLM integration support. This section documents the fully standardized API system with 43 routes across 6 command groups, all with testing and production readiness.
 
 ## API Architecture Overview
 
@@ -72,11 +72,11 @@ For production deployments, [authentication](auth.md) can be enabled to secure A
 - **Consistent Error Responses**: All routes use `create_error_response` and `create_success_response`
 - **Helpful Error Messages**: Clear, actionable error messages with suggestions
 - **Request Tracking**: All responses include request IDs for debugging
-- **Validation Errors**: Comprehensive validation with field-specific error reporting
+- **Validation Errors**: validation with field-specific error reporting
 
 #### Documentation & Developer Experience
 - **Interactive API Docs**: Full OpenAPI documentation at `/v1/docs`
-- **Request Validation**: Comprehensive input validation with detailed error messages
+- **Request Validation**: input validation with detailed error messages
 - **Type Safety**: Full Pydantic model validation and serialization
 - **LLM Integration**: All routes support LLM request/response mixins
 - **Performance Tracking**: Built-in metrics and request monitoring

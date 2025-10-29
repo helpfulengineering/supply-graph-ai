@@ -44,7 +44,7 @@ pip install -r requirements.txt
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. For comprehensive documentation, please build the documentation locally.
+This README provides a quick start guide and basic project information. For documentation, please build the documentation locally.
 
 ### Building Documentation Locally
 
@@ -147,5 +147,5 @@ python run.py
 # http://127.0.0.1:8001/v1/docs
 ```
 
-For comprehensive container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
+For container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
 

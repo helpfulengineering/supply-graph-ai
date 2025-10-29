@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Open Matching Engine (OME) API provides programmatic access to match requirements (specified in OKH format) with capabilities (specified in OKW format) and generate valid manufacturing solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 43 routes across 6 command groups, featuring comprehensive error handling, LLM integration support, and production readiness.
+The Open Matching Engine (OME) API provides programmatic access to match requirements (specified in OKH format) with capabilities (specified in OKW format) and generate valid manufacturing solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 43 routes across 6 command groups, featuring  error handling, LLM integration support, and production readiness.
 
 ## Architecture Overview
 
@@ -12,7 +12,7 @@ The API is structured around the three core domain models:
 2. **OpenKnowWhere (OKW)** - Represents manufacturing capabilities and facilities
 3. **Supply Trees** - Represents valid solutions matching OKH requirements with OKW capabilities
 
-Each domain has its own set of routes for creation, validation, retrieval, and specialized operations. The API follows RESTful principles with **standardized response formats**, **comprehensive error handling**, **LLM integration support**, and appropriate status codes.
+Each domain has its own set of routes for creation, validation, retrieval, and specialized operations. The API follows RESTful principles with **standardized response formats**, **error handling**, **LLM integration support**, and appropriate status codes.
 
 ### API Model Architecture
 
@@ -39,7 +39,7 @@ Future versions would be accessible via `/v2`, `/v3`, etc., with the previous ve
 
 ## Storage Integration
 
-The OME API includes comprehensive storage integration with Azure Blob Storage:
+The OME API includes  storage integration with Azure Blob Storage:
 
 ### Azure Blob Storage Features
 - **Automatic OKW Loading**: The `/v1/api/match` endpoint automatically loads all OKW facilities from the configured Azure container
@@ -252,7 +252,7 @@ Deletes an OKH manifest.
 POST /v1/api/okh/validate
 ```
 
-**Advanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
+**Advanced validation endpoint** with domain-aware validation, quality levels, and  error reporting.
 
 **Query Parameters:**
 - `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
@@ -294,7 +294,7 @@ POST /v1/api/okh/validate
 - **Professional Level**: Standard validation for commercial use - requires manufacturing specifications
 - **Medical Level**: Strict validation for medical device manufacturing - requires quality standards and certifications
 
-**Status:**  **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+**Status:**  **Fully Implemented** - **Advanced validation with domain-aware quality levels,  error reporting, and strict mode support**
 
 #### Requirements Extraction
 
@@ -447,7 +447,7 @@ Generate an OKH-compliant project structure with documentation stubs and manifes
 - **Template Levels**: Three levels of documentation detail (minimal, standard, detailed)
 - **Multiple Output Formats**: JSON blueprint, ZIP archive, or direct filesystem write
 - **Dedicated BOM Directory**: Separate `bom/` directory with CSV and Markdown templates
-- **Comprehensive Structure**: All OKH-compliant directories with appropriate documentation stubs
+- ** Structure**: All OKH-compliant directories with appropriate documentation stubs
 
 **Status:**  **Fully Implemented** - Complete scaffolding system with MkDocs integration and OKH schema compliance
 
@@ -614,7 +614,7 @@ Searches for facilities by criteria with **Azure Blob Storage integration**.
 }
 ```
 
-**Status:**  **Fully Implemented** - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
+**Status:**  **Fully Implemented** - **Advanced search with Azure Blob Storage integration, real-time file processing, and  filtering**
 
 **Key Features:**
 - **Real-time Storage Loading**: Automatically loads OKW facilities from Azure Blob Storage
@@ -628,7 +628,7 @@ Searches for facilities by criteria with **Azure Blob Storage integration**.
 POST /v1/api/okw/validate
 ```
 
-**Advanced validation endpoint** with domain-aware validation, quality levels, and comprehensive error reporting.
+**Advanced validation endpoint** with domain-aware validation, quality levels, and  error reporting.
 
 **Query Parameters:**
 - `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
@@ -669,7 +669,7 @@ POST /v1/api/okw/validate
 - **Professional Level**: Standard validation for commercial manufacturing facilities - requires equipment and manufacturing processes
 - **Medical Level**: Strict validation for medical device manufacturing facilities - requires certifications and quality standards
 
-**Status:**  **Fully Implemented** - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+**Status:**  **Fully Implemented** - **Advanced validation with domain-aware quality levels,  error reporting, and strict mode support**
 
 #### Capabilities Extraction
 
@@ -1012,7 +1012,7 @@ POST /v1/api/match
    - **Layer 3**: NLP Matching (planned)
    - **Layer 4**: AI/ML Matching (planned)
 7. **Solution Generation**: Creates supply tree solutions with confidence scoring and detailed metadata
-8. **Response Formatting**: Returns serialized solutions with comprehensive matching metadata
+8. **Response Formatting**: Returns serialized solutions with  matching metadata
 
 #### File Upload Matching
 
@@ -1042,7 +1042,7 @@ Match requirements to capabilities using an uploaded OKH file.
 }
 ```
 
-**Status:**  **Fully Implemented** - **File upload matching with comprehensive filtering**
+**Status:**  **Fully Implemented** - **File upload matching with  filtering**
 
 #### Validate Supply Tree
 
@@ -1050,7 +1050,7 @@ Match requirements to capabilities using an uploaded OKH file.
 POST /v1/api/match/validate
 ```
 
-**Advanced validation endpoint** for supply tree validation with domain-aware quality levels and comprehensive validation criteria.
+**Advanced validation endpoint** for supply tree validation with domain-aware quality levels and  validation criteria.
 
 **Query Parameters:**
 - `quality_level` (optional): Quality level for validation (`hobby`, `professional`, `medical`) - Default: `professional`
@@ -1087,10 +1087,10 @@ POST /v1/api/match/validate
 
 **Quality Levels:**
 - **Hobby Level**: Relaxed validation for personal projects - basic workflow validation
-- **Professional Level**: Standard validation for commercial use - comprehensive workflow and resource validation
+- **Professional Level**: Standard validation for commercial use -  workflow and resource validation
 - **Medical Level**: Strict validation for medical device manufacturing - regulatory compliance and quality standards
 
-**Status:**  **Advanced Implementation** - **Domain-aware validation with quality levels and comprehensive validation criteria (placeholder implementation with advanced parameters)**
+**Status:**  **Advanced Implementation** - **Domain-aware validation with quality levels and  validation criteria (placeholder implementation with advanced parameters)**
 
 ### Domain Management Routes
 
@@ -1397,12 +1397,12 @@ Paginated responses include consistent metadata:
 - **Consolidated Model Architecture**: All models use unified base classes with proper inheritance patterns
 - **No Model Duplication**: Eliminated all "Enhanced" prefixes and redundant model definitions
 - **Proper File Organization**: Request models in `request.py`, response models in `response.py`
-- **Comprehensive Testing**: All routes tested and validated
+- ** Testing**: All routes tested and validated
 
 #### **Match Routes (7) - Fully Standardized**
 - `POST /v1/api/match` - **Complete matching engine with Azure Blob Storage integration, multi-layered matching, and supply tree generation**
-- `POST /v1/api/match/upload` - **File upload matching for local OKH files (YAML/JSON) with comprehensive filtering**
-- `POST /v1/api/match/validate` - **Advanced validation with domain-aware quality levels and comprehensive validation criteria**
+- `POST /v1/api/match/upload` - **File upload matching for local OKH files (YAML/JSON) with  filtering**
+- `POST /v1/api/match/validate` - **Advanced validation with domain-aware quality levels and  validation criteria**
 - `GET /v1/api/match/domains` - **Complete domain listing with registry integration**
 - `GET /v1/api/match/domains/{domain_name}` - **Complete domain information retrieval with error handling**
 - `GET /v1/api/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
@@ -1414,7 +1414,7 @@ Paginated responses include consistent metadata:
 - `GET /v1/api/okh` - **Paginated listing with filter support**
 - `PUT /v1/api/okh/{id}` - **Complete update functionality with validation**
 - `DELETE /v1/api/okh/{id}` - **Complete delete functionality with existence checking**
-- `POST /v1/api/okh/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+- `POST /v1/api/okh/validate` - **Advanced validation with domain-aware quality levels,  error reporting, and strict mode support**
 - `POST /v1/api/okh/extract` - **Complete requirements extraction with service integration**
 - `POST /v1/api/okh/upload` - **File upload with validation, parsing, and storage integration**
 - `POST /v1/api/okh/from-storage` - **Create OKH from stored manifest**
@@ -1426,8 +1426,8 @@ Paginated responses include consistent metadata:
 - `GET /v1/api/okw` - **Paginated listing with service integration**
 - `PUT /v1/api/okw/{id}` - **Complete update functionality with validation**
 - `DELETE /v1/api/okw/{id}` - **Complete delete functionality with existence checking**
-- `GET /v1/api/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and comprehensive filtering**
-- `POST /v1/api/okw/validate` - **Advanced validation with domain-aware quality levels, comprehensive error reporting, and strict mode support**
+- `GET /v1/api/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and  filtering**
+- `POST /v1/api/okw/validate` - **Advanced validation with domain-aware quality levels,  error reporting, and strict mode support**
 - `POST /v1/api/okw/extract-capabilities` - **Capabilities extraction with service integration**
 - `POST /v1/api/okw/upload` - **File upload with validation, parsing, and storage integration**
 
@@ -1456,7 +1456,7 @@ Paginated responses include consistent metadata:
 - `GET /v1/api/utility/contexts` - **Context listing with domain-specific filtering**
 
 #### **System Routes (2) - Fully Standardized**
-- `GET /health` - **Health check endpoint with comprehensive diagnostics**
+- `GET /health` - **Health check endpoint with  diagnostics**
 - `GET /` - **API information and documentation links**
 
 ### 🚀 **Ready for Phase 4 - LLM Implementation**
@@ -1465,9 +1465,9 @@ Paginated responses include consistent metadata:
 - **Complete Infrastructure**: All 43 routes standardized and tested
 - **Consolidated Model Architecture**: Clean, unified model structure with no duplication
 - **LLM Integration Ready**: Full LLM support infrastructure in place
-- **Error Handling**: Comprehensive error handling with helpful messages
+- **Error Handling**:  error handling with helpful messages
 - **Performance Monitoring**: Built-in performance tracking and metrics
-- **Production Ready**: Enterprise-grade API with comprehensive testing
+- **Production Ready**: Enterprise-grade API with  testing
 
 ### 📋 **Future Enhancements (Post-Phase 4)**
 
@@ -1633,7 +1633,7 @@ The matching system uses a sophisticated multi-layered approach with detailed me
 #### **Layer 1: Direct Matching (Advanced)**
 - **Case-insensitive exact string matching** with defensive confidence scoring
 - **Near-miss detection** using Levenshtein distance (≤2 character differences)
-- **Comprehensive metadata tracking** including match quality indicators
+- ** metadata tracking** including match quality indicators
 - **Confidence penalties** for case/whitespace differences
 - **Domain-agnostic base class** with domain-specific implementations
 
@@ -1722,7 +1722,7 @@ typical_materials: []
 
 ## Advanced Validation Framework
 
-The OME API includes a comprehensive validation framework that provides domain-aware validation with quality levels and comprehensive error reporting.
+The OME API includes a  validation framework that provides domain-aware validation with quality levels and  error reporting.
 
 ### Validation Features
 
@@ -1736,7 +1736,7 @@ All validation endpoints support three quality levels:
 
 - **Professional Level**: Standard validation for commercial use
   - Additional required fields for production readiness
-  - Comprehensive validation rules
+  -  validation rules
   - Suitable for commercial manufacturing
 
 - **Medical Level**: Strict validation for medical device manufacturing
@@ -1750,7 +1750,7 @@ Optional strict validation mode that:
 - Enforces additional validation rules
 - Provides maximum validation coverage
 
-#### **Comprehensive Error Reporting**
+#### ** Error Reporting**
 Validation responses include:
 - **Severity Levels**: `error`, `warning`, `info`
 - **Field Paths**: Exact location of validation issues
@@ -1818,7 +1818,7 @@ async def validate_strict():
 
 ## LLM API Endpoints
 
-The OME API includes comprehensive LLM (Large Language Model) integration for enhanced OKH manifest generation and facility matching.
+The OME API includes  LLM (Large Language Model) integration for enhanced OKH manifest generation and facility matching.
 
 ### LLM Health Check
 
@@ -2143,14 +2143,14 @@ All LLM endpoints may return error responses in the following format:
 ## API Documentation & Developer Experience
 
 ### Interactive Documentation
-The OME API provides comprehensive interactive documentation:
+The OME API provides  interactive documentation:
 
 - **Main API Docs**: `http://localhost:8001/docs` - System endpoints and overview
 - **Full API Docs**: `http://localhost:8001/v1/api/docs` - Complete API documentation with all 19 endpoints
 - **OpenAPI Schema**: `http://localhost:8001/v1/api/openapi.json` - Machine-readable API specification
 
 ### Developer Features
-- **Request Validation**: Comprehensive input validation with detailed error messages
+- **Request Validation**:  input validation with detailed error messages
 - **Type Safety**: Full Pydantic model validation and serialization
 - **Error Handling**: Consistent error response format with helpful error messages
 - **Async Support**: Full async/await support for high-performance operations

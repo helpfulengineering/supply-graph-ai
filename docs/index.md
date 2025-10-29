@@ -79,7 +79,7 @@ The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed
 - Multiple validation contexts per requirement
 - Context-specific acceptance criteria
 - Detailed validation procedures
-- Comprehensive failure handling
+- Failure handling
 
 ### Multi-Stage Processing
 OME uses sophisticated multi-stage pipelines for both extraction and matching:
@@ -96,7 +96,7 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 - API-driven data access
 
 ### Command Line Interface
-- Comprehensive CLI with 39 commands across 7 command groups
+- CLI with 39 commands across 7 command groups
 - **LLM Integration**: AI-powered generation and matching commands
 - HTTP API integration with automatic fallback to direct service calls
 - Package management (build, push, pull, verify)
