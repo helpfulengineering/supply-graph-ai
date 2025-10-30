@@ -43,10 +43,10 @@ class SupplyTreeCreateRequest(BaseAPIRequest, LLMRequestMixin):
         }
 
 
-class SupplyTreeOptimizeRequest(BaseModel):
-    """Request model for optimizing a supply tree"""
-    # Required fields only
-    criteria: Dict[str, Any]
+# class SupplyTreeOptimizeRequest(BaseModel):
+#     """Request model for optimizing a supply tree"""
+#     # Required fields only
+#     criteria: Dict[str, Any]
 
 class SupplyTreeValidateRequest(BaseModel):
     """Request model for validating a supply tree"""

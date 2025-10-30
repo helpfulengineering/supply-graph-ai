@@ -41,8 +41,15 @@ from ..models.scaffold.request import (
 from ..models.scaffold.response import (
     ScaffoldResponse
 )
+from ..models.cleanup.request import (
+    CleanupRequest
+)
+from ..models.cleanup.response import (
+    CleanupResponse
+)
 from ...services.okh_service import OKHService
 from ...services.scaffold_service import ScaffoldService
+from ...services.cleanup_service import CleanupService, CleanupOptions
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
 from src.config import settings
@@ -745,6 +752,54 @@ async def scaffold_project(
         )
 
 
+@router.post(
+    "/scaffold/cleanup",
+    summary="Clean and optimize an OKH project directory",
+    response_model=CleanupResponse,
+    description="Remove unmodified documentation stubs and empty directories from a scaffolded project."
+)
+async def cleanup_project(
+    request: CleanupRequest,
+    http_request: Request,
+    cleanup_service: 'CleanupService' = Depends(lambda: __import__('src.core.services.cleanup_service', fromlist=['CleanupService']).CleanupService())
+):
+    request_id = getattr(http_request.state, 'request_id', None)
+
+    try:
+        options = CleanupOptions(
+            project_path=request.project_path,
+            remove_unmodified_stubs=request.remove_unmodified_stubs,
+            remove_empty_directories=request.remove_empty_directories,
+            dry_run=request.dry_run,
+        )
+
+        result = await cleanup_service.clean(options)
+
+        return {
+            'status': 'success',
+            'message': 'Cleanup completed' if not request.dry_run else 'Dry run completed',
+            'request_id': request_id,
+            'removed_files': result.removed_files,
+            'removed_directories': result.removed_directories,
+            'bytes_saved': result.bytes_saved,
+            'warnings': result.warnings,
+        }
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please verify the project_path and try again"
+        )
+        logger.error(
+            f"Error during scaffold cleanup: {str(e)}",
+            extra={"request_id": request_id, "error": str(e), "error_type": type(e).__name__},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
 # Helper functions
 async def _validate_okh_result(
     result: any,

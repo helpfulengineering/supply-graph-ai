@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Optional, Any
 
 from ..base import BaseAPIRequest, LLMRequestMixin
@@ -6,11 +6,11 @@ from ..base import BaseAPIRequest, LLMRequestMixin
 class PackageBuildRequest(BaseAPIRequest, LLMRequestMixin):
     """Request model for building a package from manifest data"""
     # Core package fields
-    manifest_data: Dict[str, Any] = Field(..., min_items=1, description="OKH manifest data")
+    manifest_data: Dict[str, Any] = Field(..., min_length=1, description="OKH manifest data")
     options: Optional[Dict[str, Any]] = Field(None, description="Build options")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "manifest_data": {
                     "title": "Test Package",
@@ -32,6 +32,7 @@ class PackageBuildRequest(BaseAPIRequest, LLMRequestMixin):
                 "strict_mode": False
             }
         }
+    )
 
 class PackagePushRequest(BaseModel):
     """Request model for pushing a package to remote storage"""
@@ -39,13 +40,14 @@ class PackagePushRequest(BaseModel):
     package_name: str = Field(..., description="Package name (e.g., 'org/project')")
     version: str = Field(..., description="Package version")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "package_name": "example/test-package",
                 "version": "1.0.0"
             }
         }
+    )
 
 class PackagePullRequest(BaseModel):
     """Request model for pulling a package from remote storage"""
@@ -56,11 +58,12 @@ class PackagePullRequest(BaseModel):
     # Optional fields
     output_dir: Optional[str] = Field(None, description="Output directory for the pulled package")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "package_name": "example/test-package",
                 "version": "1.0.0",
                 "output_dir": "/path/to/output"
             }
         }
+    )
