@@ -30,7 +30,7 @@ class OKHService(BaseService['OKHService']):
     """
     Service for managing OKH manifests.
     
-    This service provides comprehensive functionality for:
+    This service provides functionality for:
     - Creating, reading, updating, and deleting OKH manifests
     - Validating OKH manifest data
     - Generating OKH manifests from project URLs

@@ -2,7 +2,6 @@
 
 ## Getting Started in 5 Minutes
 
-This guide will get you up and running with the OME CLI quickly. The CLI now features **36 standardized commands** with comprehensive LLM integration, enterprise-grade error handling, and 100% test success rate.
 
 ### 1. Prerequisites
 
@@ -45,7 +44,33 @@ ome --help
 ome package --help
 ```
 
-### 4. Build Your First Package
+### 4. Generate Your First Project Scaffold
+
+```bash
+# Generate a new OKH-compliant project structure
+ome okh scaffold my-awesome-project
+
+# Generate with detailed templates and ZIP output
+ome okh scaffold arduino-sensor --template-level detailed --output-format zip
+
+# Generate to filesystem with custom organization
+ome okh scaffold microscope-stage --organization "My Lab" --output-format filesystem --output-path ./projects
+
+# Generate minimal scaffold for quick prototyping
+ome okh scaffold quick-prototype --template-level minimal --output-format json
+```
+
+**Output Formats:**
+- `json`: Returns structured JSON (default, great for scripting)
+- `zip`: Creates downloadable ZIP archive
+- `filesystem`: Writes directly to specified directory
+
+**Template Levels:**
+- `minimal`: Basic placeholders for experienced developers
+- `standard`: Detailed guidance with examples (default)
+- `detailed`: Comprehensive help with best practices
+
+### 5. Build Your First Package
 
 ```bash
 # Validate a manifest (if you have one)
@@ -64,7 +89,7 @@ ome package build your-manifest.okh.json --use-llm --llm-provider anthropic
 ome package list-packages
 ```
 
-### 5. Test LLM Integration
+### 6. Test LLM Integration
 
 ```bash
 # Test LLM-enhanced validation
@@ -80,7 +105,7 @@ ome system health --use-llm --llm-provider anthropic
 ome utility contexts manufacturing --use-llm --quality-level professional
 ```
 
-### 6. Test Remote Operations
+### 7. Test Remote Operations
 
 ```bash
 # List remote packages

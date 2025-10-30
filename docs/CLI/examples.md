@@ -2,6 +2,85 @@
 
 This document provides practical examples of using the OME CLI for common workflows.
 
+## Project Scaffolding Workflows
+
+### Generate New Projects
+
+```bash
+# Generate a basic project scaffold (standard template, JSON output)
+ome okh scaffold my-awesome-project
+
+# Generate with detailed templates and ZIP output
+ome okh scaffold arduino-sensor --template-level detailed --output-format zip
+
+# Generate to filesystem with organization info
+ome okh scaffold microscope-stage \
+  --organization "University Lab" \
+  --output-format filesystem \
+  --output-path ./projects \
+  --template-level standard
+
+# Generate minimal scaffold for quick prototyping
+ome okh scaffold quick-prototype \
+  --template-level minimal \
+  --output-format json \
+  --version 0.0.1
+
+# Generate scaffold and immediately validate
+ome okh scaffold test-project --output-format filesystem --output-path ./test
+cd ./test/test-project
+ome okh validate okh-manifest.json
+```
+
+### Complete Project Lifecycle with Scaffolding
+
+```bash
+# 1. Generate a new project
+ome okh scaffold my-hardware-project \
+  --template-level detailed \
+  --output-format filesystem \
+  --output-path ./projects
+
+# 2. Navigate to the project
+cd ./projects/my-hardware-project
+
+# 3. Edit the manifest template
+# (Edit okh-manifest.json with your project details)
+
+# 4. Validate the customized manifest
+ome okh validate okh-manifest.json
+
+# 5. Build documentation with MkDocs
+mkdocs serve  # Or mkdocs build
+
+# 6. Use in matching operations
+ome match requirements okh-manifest.json
+
+# 7. Build package when ready
+ome package build okh-manifest.json
+```
+
+### Batch Project Generation
+
+```bash
+# Generate multiple projects with different configurations
+for project in arduino-sensor microscope-stage prosthetic-hand; do
+  ome okh scaffold $project \
+    --template-level standard \
+    --output-format filesystem \
+    --output-path ./generated-projects \
+    --organization "My Organization"
+done
+
+# Validate all generated manifests
+for project in ./generated-projects/*; do
+  if [ -f "$project/okh-manifest.json" ]; then
+    echo "Validating $(basename $project)..."
+    ome okh validate "$project/okh-manifest.json"
+  fi
+done
+```
+
 ## LLM-Enhanced Workflows
 
 ### LLM-Powered Validation
@@ -44,6 +123,18 @@ ome --use-llm --llm-provider anthropic --quality-level professional okh validate
 ### Complete Package Lifecycle
 
 ```bash
+# Option 1: Start from scratch with scaffolding
+# 1. Generate a new project scaffold
+ome okh scaffold my-new-project --output-format filesystem --output-path ./projects
+cd ./projects/my-new-project
+
+# 1a. Customize the manifest template
+# (Edit okh-manifest.json with your project details)
+
+# 1b. Validate the manifest (with LLM enhancement)
+ome okh validate okh-manifest.json --use-llm --quality-level professional
+
+# Option 2: Work with existing manifest
 # 1. Validate a manifest before building (with LLM enhancement)
 ome okh validate openflexure-microscope.okh.json --use-llm --quality-level professional
 

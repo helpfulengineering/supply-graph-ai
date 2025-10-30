@@ -1,7 +1,7 @@
 """
 LLM Configuration for the Open Matching Engine
 
-This module provides comprehensive configuration management for LLM providers,
+This module provides configuration management for LLM providers,
 including authentication, model selection, and provider-specific settings.
 """
 

@@ -2,23 +2,21 @@
 Enhanced logging system for the Open Matching Engine
 
 This module provides specialized logging components for LLM operations,
-performance tracking, and audit logging with structured output and
-comprehensive monitoring capabilities.
+performance tracking, and audit logging with structured output and monitoring capabilities.
 """
 
 import logging
 import json
 import time
-from typing import Dict, Any, Optional, List, Union
-from datetime import datetime, timedelta
+from typing import Dict, Any, Optional, List
+from datetime import datetime
 from dataclasses import dataclass, asdict
 from enum import Enum
 import asyncio
 from contextlib import asynccontextmanager
-import threading
 from collections import defaultdict, deque
 
-from .exceptions import LLMError, ErrorSeverity, ErrorCategory
+from .exceptions import LLMError, ErrorSeverity
 
 
 class LogLevel(Enum):

@@ -1,7 +1,7 @@
 """
 Configuration validation for the Open Matching Engine
 
-This module provides comprehensive validation for all configuration components,
+This module provides validation for all configuration components,
 ensuring that the system is properly configured before startup.
 """
 
@@ -58,7 +58,7 @@ class ValidationResult:
 
 
 class ConfigurationValidator:
-    """Comprehensive configuration validator"""
+    """ Configuration validator"""
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)

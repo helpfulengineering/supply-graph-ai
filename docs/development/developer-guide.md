@@ -72,6 +72,40 @@ curl -X POST http://localhost:8001/v1/match \
   }'
 ```
 
+### Project Scaffolding
+
+Generate OKH-compliant project structures with the scaffolding system:
+
+```bash
+# Generate a new project scaffold
+curl -X POST "http://localhost:8001/v1/api/okh/scaffold" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_name": "my-hardware-project",
+    "template_level": "standard",
+    "output_format": "json"
+  }'
+
+# Generate with filesystem output
+curl -X POST "http://localhost:8001/v1/api/okh/scaffold" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_name": "arduino-sensor",
+    "template_level": "detailed",
+    "output_format": "filesystem",
+    "output_path": "/home/user/projects"
+  }'
+```
+
+The scaffolding system generates:
+- OKH-compliant directory structure
+- MkDocs documentation setup
+- OKH manifest template with guidance
+- BOM templates and assembly guides
+- Socumentation stubs
+
+For detailed scaffolding documentation, see the [Scaffolding Guide](../scaffolding/index.md).
+
 ## System Architecture
 
 ### Core Components
@@ -79,7 +113,7 @@ curl -X POST http://localhost:8001/v1/match \
 1. **Matching Service**: Multi-layered matching engine with direct and heuristic matching
 2. **Storage Service**: Azure Blob Storage integration for OKW facilities
 3. **Domain Registry**: Extensible domain system (manufacturing, cooking)
-4. **API Layer**: FastAPI-based REST API with comprehensive documentation
+4. **API Layer**: FastAPI-based REST API with documentation
 
 ### Data Flow
 
@@ -527,7 +561,7 @@ src/
 
 - Follow PEP 8
 - Use type hints
-- Write comprehensive docstrings
+- Write docstrings
 - Include error handling
 
 ### Testing
@@ -688,6 +722,6 @@ async def test_matching():
 - Use `asyncio.run()` for testing
 
 #### Error Handling
-- All endpoints include comprehensive error handling
+- All endpoints include error handling
 - Check logs for detailed error information
 - Use appropriate HTTP status codes

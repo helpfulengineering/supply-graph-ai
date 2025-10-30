@@ -364,7 +364,7 @@ class BaseService(ABC, Generic[T]):
         return self.status == ServiceStatus.ACTIVE
 
     def get_health_info(self) -> Dict[str, Any]:
-        """Get comprehensive health information."""
+        """Get health information."""
         return {
             "service_name": self.service_name,
             "status": self.status.value,

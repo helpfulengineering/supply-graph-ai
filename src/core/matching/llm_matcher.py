@@ -8,7 +8,7 @@ between requirements and capabilities, particularly designed for crisis response
 This layer is part of the 4-layer matching architecture and inherits from
 BaseMatchingLayer to ensure consistent interfaces and error handling.
 
-The LLM layer uses a comprehensive prompt engineering strategy for:
+The LLM layer uses a prompt engineering strategy for:
 - Capability assessment across multiple dimensions
 - Crisis response context awareness
 - Non-standardized terminology handling
@@ -92,7 +92,7 @@ class LLMMatcher(BaseMatchingLayer):
             config = LLMServiceConfig(
                 name="LLMMatchingService",
                 default_provider=LLMProviderType.ANTHROPIC,
-                default_model="claude-3-5-sonnet-20241022",
+                default_model="claude-3-5-sonnet-latest",
                 max_retries=3,
                 retry_delay=1.0,
                 timeout=30.0
@@ -171,7 +171,7 @@ Provide your analysis in the following JSON format:
       "scaling_options": ["List of scaling possibilities"]
     }
   },
-  "overall_analysis": "Comprehensive analysis of the match",
+  "overall_analysis": "Analysis of the match",
   "key_factors": ["List of 3-5 most important factors in this match"],
   "recommendations": ["List of recommendations for making this match work"],
   "risks": ["List of potential risks or challenges"],

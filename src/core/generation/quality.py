@@ -105,7 +105,7 @@ class QualityAssessor:
                                missing_fields: List[str],
                                required_fields: List[str]) -> QualityReport:
         """
-        Generate a comprehensive quality report.
+        Generate a quality report.
         
         Args:
             generated_fields: Dictionary of generated fields

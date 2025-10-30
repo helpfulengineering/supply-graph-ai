@@ -32,7 +32,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     # Anthropic model pricing (per 1M tokens, as of 2024)
     MODEL_PRICING = {
-        "claude-3-5-sonnet-20241022": {"input": 3.0, "output": 15.0},  # $3/$15 per 1M tokens
+        "claude-3-5-sonnet-latest": {"input": 3.0, "output": 15.0},  # $3/$15 per 1M tokens
         "claude-3-5-haiku-20241022": {"input": 1.0, "output": 5.0},   # $1/$5 per 1M tokens
         "claude-3-opus-20240229": {"input": 15.0, "output": 75.0},    # $15/$75 per 1M tokens
         "claude-3-sonnet-20240229": {"input": 3.0, "output": 15.0},   # $3/$15 per 1M tokens
@@ -41,7 +41,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     # Available models
     AVAILABLE_MODELS = [
-        "claude-3-5-sonnet-20241022",
+        "claude-3-5-sonnet-latest",
         "claude-3-5-haiku-20241022", 
         "claude-3-opus-20240229",
         "claude-3-sonnet-20240229",
@@ -122,7 +122,7 @@ class AnthropicProvider(BaseLLMProvider):
         if not self._connected or not self._client:
             raise ConnectionError("Provider not connected")
         
-        start_time = datetime.utcnow()
+        start_time = datetime.now()
         
         try:
             # Prepare the request for Anthropic
@@ -225,7 +225,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     def _process_anthropic_response(self, response: Any, request: LLMRequest, start_time: datetime) -> LLMResponse:
         """Process the Anthropic API response."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Extract content from response
         content = ""
@@ -300,7 +300,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     def _update_metrics(self, response: LLMResponse, start_time: datetime) -> None:
         """Update provider metrics."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         self.metrics.add_request(
             success=response.is_success,

@@ -2,7 +2,7 @@
 Storage Migration Service
 
 This module provides functionality for migrating files to organized directory structures
-with comprehensive data quality checks and safety features.
+with data quality checks and safety features.
 """
 
 import json

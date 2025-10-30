@@ -23,13 +23,13 @@ class TestAnthropicProvider:
         config = LLMProviderConfig(
             provider_type=LLMProviderType.ANTHROPIC,
             api_key="test-key",
-            model="claude-3-5-sonnet-20241022"
+            model="claude-3-5-sonnet-latest"
         )
         
         provider = AnthropicProvider(config)
         
         assert provider.provider_type == LLMProviderType.ANTHROPIC
-        assert provider.model == "claude-3-5-sonnet-20241022"
+        assert provider.model == "claude-3-5-sonnet-latest"
         assert provider.is_connected is False
     
     def test_wrong_provider_type(self):
@@ -53,7 +53,7 @@ class TestAnthropicProvider:
         models = provider.get_available_models()
         
         expected_models = [
-            "claude-3-5-sonnet-20241022",
+            "claude-3-5-sonnet-latest",
             "claude-3-5-haiku-20241022", 
             "claude-3-opus-20240229",
             "claude-3-sonnet-20240229",
@@ -67,7 +67,7 @@ class TestAnthropicProvider:
         config = LLMProviderConfig(
             provider_type=LLMProviderType.ANTHROPIC,
             api_key="test-key",
-            model="claude-3-5-sonnet-20241022"
+            model="claude-3-5-sonnet-latest"
         )
         
         provider = AnthropicProvider(config)
@@ -171,7 +171,7 @@ class TestAnthropicProvider:
         config = LLMProviderConfig(
             provider_type=LLMProviderType.ANTHROPIC,
             api_key="test-key",
-            model="claude-3-5-sonnet-20241022"
+            model="claude-3-5-sonnet-latest"
         )
         
         provider = AnthropicProvider(config)
@@ -205,7 +205,7 @@ class TestAnthropicProvider:
         assert response.tokens_used == 30  # 20 + 10
         assert response.cost > 0
         assert response.metadata.provider == "anthropic"
-        assert response.metadata.model == "claude-3-5-sonnet-20241022"
+        assert response.metadata.model == "claude-3-5-sonnet-latest"
     
     @pytest.mark.asyncio
     async def test_generate_not_connected(self):

@@ -371,56 +371,7 @@ Ensure response models match the data structures being returned:
 - All field types must match exactly between models
 - Default values must be consistent
 
-### **Testing Requirements**
 
-#### **Integration Testing is Critical**
-Unit tests alone are insufficient for catching integration issues. Required testing approach:
-
-1. **Unit Tests** - Test individual components in isolation
-2. **Integration Tests** - Test component interactions (async/await, return types, model conversions)
-3. **End-to-End Tests** - Test complete API workflows with real HTTP calls
-4. **Data Structure Validation** - Verify object conversion and serialization
-
-#### **Data Flow Validation**
-Test the complete data flow:
-```
-Stored JSON → OKHManifest.from_dict() → OKHService → OKHManifest.to_dict() → OKHResponse → JSON Response
-```
-
-Each step must preserve data integrity and handle type conversions correctly.
-
-## Best Practices
-
-### 1. Documentation References
-- Use relative paths when possible
-- Include complete metadata
-- Maintain file hierarchy information
-- Support multiple formats
-
-### 2. Process Requirements
-- Be explicit about physical actions
-- Define clear success criteria
-- Include measurement methods
-- Specify required tools/equipment
-
-### 3. Material Specifications
-- Use standard identifiers
-- Include complete properties
-- Specify alternatives where appropriate
-- Document constraints
-
-### 4. Validation
-- Validate manifests before use
-- Check required fields
-- Verify document references
-- Validate license specifications
-
-### 5. **Serialization Safety (CRITICAL)**
-- **Always preserve unique identifiers** in `from_dict()` methods
-- **Test model conversion chains** end-to-end
-- **Validate response models** match expected schemas
-- **Use integration tests** to catch serialization issues
-- **Monitor server logs** for validation errors
 
 ## OKH Framework Components
 

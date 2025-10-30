@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides comprehensive guidance for integrating the Supply Graph AI FastAPI server with the Vue.js frontend in the project-data-platform-ts application.
+This document provides guidance for integrating the Supply Graph AI FastAPI server with the Vue.js frontend in the project-data-platform-ts application.
 
 ## Current Integration Status
 

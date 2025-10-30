@@ -81,7 +81,7 @@ async def get_okw_service() -> OKWService:
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     
     **Features:**
     - Support for LLM-enhanced facility creation
@@ -111,7 +111,7 @@ async def create_okw(
         okw_service: OKW service dependency
         
     Returns:
-        Enhanced OKW response with comprehensive data
+        Enhanced OKW response with data
     """
     request_id = getattr(http_request.state, 'request_id', None)
     start_time = datetime.now()
@@ -412,7 +412,7 @@ async def get_okw(
     - Paginated results with sorting and filtering
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - validation
     """
 )
 @paginated_response(default_page_size=20, max_page_size=100)

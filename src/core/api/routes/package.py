@@ -88,7 +88,7 @@ async def get_remote_storage() -> PackageRemoteStorage:
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     
     **Features:**
     - Support for LLM-enhanced package building
@@ -123,7 +123,7 @@ async def build_package_from_manifest(
         package_service: Package service dependency
         
     Returns:
-        Enhanced package response with comprehensive data
+        Enhanced package response with data
     """
     request_id = getattr(http_request.state, 'request_id', None)
     start_time = datetime.now()

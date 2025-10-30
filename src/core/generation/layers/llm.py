@@ -9,7 +9,7 @@ The layer implements the Enhanced LLM Agent Prompt Engineering Strategy with:
 - Context file management for transparent analysis
 - Schema-aware prompting for accurate field mapping
 - Integration with the LLM service for provider management
-- Comprehensive validation and quality assurance
+- validation and quality assurance
 """
 
 import logging
@@ -39,7 +39,7 @@ class LLMGenerationLayer(BaseGenerationLayer):
     - Context file management for transparent analysis
     - Schema-aware prompting for accurate field mapping
     - Integration with the LLM service for provider management
-    - Comprehensive validation and quality assurance
+    - validation and quality assurance
     
     The layer analyzes project repositories using LLM agents that can:
     - Understand repository structure and content
@@ -82,7 +82,7 @@ class LLMGenerationLayer(BaseGenerationLayer):
             service_config = LLMServiceConfig(
                 name="LLMGenerationLayer",
                 default_provider=LLMProviderType.ANTHROPIC,
-                default_model="claude-3-5-sonnet-20241022",
+                default_model="claude-3-5-sonnet-latest",
                 max_retries=3,
                 retry_delay=1.0,
                 timeout=60,  # Longer timeout for complex analysis
@@ -152,7 +152,7 @@ The OKH manifest is designed to maximize interoperability and discoverability in
 
 ### description (string, optional)
 - **Purpose**: Detailed project description
-- **Format**: Comprehensive description of what the project does
+- **Format**: description of what the project does
 - **Example**: "A low-power IoT sensor node based on Arduino with environmental monitoring capabilities"
 - **Mapping Strategy**: Combine README content, project documentation, and code analysis
 
@@ -381,7 +381,7 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
 1. **Interoperability**: Create manifests that enable seamless integration with other hardware projects
 2. **Discoverability**: Ensure projects can be easily found and understood by the community
 3. **Standardization**: Follow OKH schema precisely for consistent data exchange
-4. **Completeness**: Provide comprehensive information for manufacturing and assembly
+4. **Completeness**: Provide information for manufacturing and assembly
 
 ## Analysis Workflow:
 
@@ -419,9 +419,9 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
 3. Ensure all required fields are populated
 4. **CRITICAL: BOM Field Mapping**
    - If explicit BOM file found, reference it in bom field
-   - If no explicit BOM, construct comprehensive BOM from parts/materials analysis
+   - If no explicit BOM, construct BOM from parts/materials analysis
    - Include all hardware components, quantities, and specifications
-   - Format as URL to BOM file or comprehensive parts list
+   - Format as URL to BOM file or parts list
 5. **CRITICAL: Parts Field Population**
    - Map main hardware components to parts array
    - Include part names, IDs, source files (STL, CAD), materials, dimensions
@@ -480,7 +480,7 @@ MANDATORY REQUIREMENTS:
 
 ### BOM Construction Examples:
 - **Explicit BOM**: "bom.csv", "bill_of_materials.txt" → Reference in bom field
-- **Implicit BOM**: Parts list in README → Construct comprehensive BOM from documentation
+- **Implicit BOM**: Parts list in README → Construct BOM from documentation
 - **Example**: "The rover requires: 6 wheels, 1 chassis, 2 motors, 1 Arduino" → Extract all components
 
 ### Parts Detection Examples:

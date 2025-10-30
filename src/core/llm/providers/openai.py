@@ -124,7 +124,7 @@ class OpenAIProvider(BaseLLMProvider):
         if not self._connected or not self._client:
             raise ConnectionError("Provider not connected")
         
-        start_time = datetime.utcnow()
+        start_time = datetime.now()
         
         try:
             # Prepare the request for OpenAI
@@ -227,7 +227,7 @@ class OpenAIProvider(BaseLLMProvider):
     
     def _process_openai_response(self, response: Any, request: LLMRequest, start_time: datetime) -> LLMResponse:
         """Process the OpenAI API response."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         # Extract content from response
         content = ""
@@ -303,7 +303,7 @@ class OpenAIProvider(BaseLLMProvider):
     
     def _update_metrics(self, response: LLMResponse, start_time: datetime) -> None:
         """Update provider metrics."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         self.metrics.add_request(
             success=response.is_success,

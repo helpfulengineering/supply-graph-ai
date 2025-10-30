@@ -214,7 +214,7 @@ The LLM layer can generate all OKH manifest fields:
 
 ## Quality Metrics
 
-The LLM layer provides comprehensive quality metrics:
+The LLM layer provides quality metrics:
 
 ### Confidence Scores
 - **Field-Level**: Individual confidence scores for each field

@@ -54,7 +54,7 @@ class LLMProviderSelector:
     
     # Default models for each provider
     DEFAULT_MODELS = {
-        LLMProviderType.ANTHROPIC: "claude-3-5-sonnet-20241022",
+        LLMProviderType.ANTHROPIC: "claude-sonnet-4-5-20250929",
         LLMProviderType.OPENAI: "gpt-3.5-turbo",
         LLMProviderType.LOCAL: "llama3.1:8b",
     }
@@ -345,6 +345,20 @@ def get_provider_selector() -> LLMProviderSelector:
     if _provider_selector is None:
         _provider_selector = LLMProviderSelector()
     return _provider_selector
+
+
+def default_model_for(provider_name: Optional[str]) -> Optional[str]:
+    """Return the default model for a provider name string.
+    Centralized helper to avoid scattered hard-coding.
+    """
+    if not provider_name:
+        return None
+    try:
+        provider_type = LLMProviderType(provider_name)
+    except ValueError:
+        return None
+    selector = get_provider_selector()
+    return selector.DEFAULT_MODELS.get(provider_type)
 
 
 def select_llm_provider(

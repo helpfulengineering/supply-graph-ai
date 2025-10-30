@@ -118,7 +118,7 @@ async def _display_status_results(cli_ctx: CLIContext, result: dict, output_form
     help_text="""
     Check system health and status.
     
-    This command performs a comprehensive health check of the OME system,
+    This command performs a health check of the OME system,
     including server connectivity, service availability, and domain
     registration status.
     
@@ -314,7 +314,7 @@ async def domains(ctx, verbose: bool, output_format: str, use_llm: bool,
     help_text="""
     Show detailed system status and diagnostics.
     
-    This command provides comprehensive system status information,
+    This command provides system status information,
     including health status, domain information, server configuration,
     and system diagnostics.
     
@@ -375,7 +375,7 @@ async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
             """Get status via HTTP API"""
             cli_ctx.log("Getting status via HTTP API...", "info")
             try:
-                # Get multiple endpoints for comprehensive status
+                # Get multiple endpoints for status
                 # Health endpoint is at root level, not under /v1
                 async with httpx.AsyncClient(timeout=cli_ctx.config.timeout) as client:
                     health_response = await client.get(f"{cli_ctx.config.server_url}/health")
@@ -545,7 +545,7 @@ def ping(ctx, port: int, timeout: int,
     help_text="""
     Show OME system information and configuration.
     
-    This command displays comprehensive system information including
+    This command displays system information including
     CLI version, server configuration, available commands, and
     system capabilities.
     

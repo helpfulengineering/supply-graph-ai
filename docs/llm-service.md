@@ -290,7 +290,7 @@ Different quality levels affect the depth of analysis:
 
 - `low`: Basic analysis, faster processing
 - `medium`: Standard analysis (default)
-- `high`: Comprehensive analysis, slower processing
+- `high`: Complete analysis, slower processing
 
 ```bash
 ome llm generate-okh https://github.com/example/project --quality-level high

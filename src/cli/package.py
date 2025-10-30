@@ -497,7 +497,7 @@ async def list_packages(ctx, verbose: bool, output_format: str, use_llm: bool,
     help_text="""
     Verify a package's integrity and completeness.
     
-    This command performs comprehensive verification of a built package,
+    This command performs verification of a built package,
     checking file integrity, completeness, and compliance with the
     OKH specification.
     

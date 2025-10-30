@@ -30,7 +30,7 @@ class LLMCostMetrics:
     currency: str = "USD"
     provider: str = ""
     model: str = ""
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=datetime.now)
     
     def add_request_cost(self, input_tokens: int, output_tokens: int, cost_per_token: float):
         """Add cost for a single request."""
@@ -55,7 +55,7 @@ class LLMMetrics:
     total_tokens: int = 0
     total_cost: float = 0.0
     average_response_time: float = 0.0
-    start_time: datetime = field(default_factory=datetime.utcnow)
+    start_time: datetime = field(default_factory=datetime.now)
     last_request_time: Optional[datetime] = None
     cost_metrics: Dict[str, LLMCostMetrics] = field(default_factory=dict)
     error_counts: Dict[str, int] = field(default_factory=dict)
@@ -66,7 +66,7 @@ class LLMMetrics:
         self.total_requests += 1
         self.total_tokens += tokens
         self.total_cost += cost
-        self.last_request_time = datetime.utcnow()
+        self.last_request_time = datetime.now()
         
         if success:
             self.successful_requests += 1
@@ -109,4 +109,4 @@ class LLMMetrics:
     @property
     def uptime(self) -> timedelta:
         """Calculate uptime since start."""
-        return datetime.utcnow() - self.start_time
+        return datetime.now() - self.start_time

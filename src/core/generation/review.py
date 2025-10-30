@@ -40,7 +40,7 @@ class ReviewInterface:
     """
     Enhanced CLI-based interface for reviewing and editing generated manifests.
     
-    This interface provides comprehensive review capabilities including:
+    This interface provides review capabilities including:
     - Field source tracking (Direct, Heuristic, NLP, LLM, User Edit)
     - LLM-specific indicators and confidence scoring
     - Quality assessment and recommendations

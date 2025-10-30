@@ -440,7 +440,7 @@ The framework provides consistent error response formats:
 
 ### Real Integration Testing
 
-The framework includes comprehensive integration tests with real domain services:
+The framework includes integration tests with real domain services:
 
 ```python
 # Test manufacturing OKH validation with real data
@@ -604,7 +604,7 @@ src/core/validation/staging/
 - **Manufacturing Domain Validation**: OKH and OKW validation with quality levels
 - **Cooking Domain Validation**: Recipe and kitchen validation with quality levels
 - **API Integration**: Enhanced validation endpoints with domain awareness
-- **Real Integration Testing**: Comprehensive tests with actual domain services
+- **Real Integration Testing**: Tests with actual domain services
 - **Error Handling**: Standardized error responses and HTTP status codes
 - **Performance**: Async operations and caching support
 

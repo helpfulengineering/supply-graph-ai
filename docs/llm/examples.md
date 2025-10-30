@@ -15,7 +15,7 @@ ome okh generate-from-url https://github.com/example/iot-sensor --use-llm
 # With specific provider
 ome okh generate-from-url https://github.com/example/project \
   --llm-provider anthropic \
-  --llm-model claude-3-5-sonnet-20241022
+  --llm-model claude-sonnet-4-5-20250929
 
 # Save to specific file
 ome okh generate-from-url https://github.com/example/project \
@@ -29,16 +29,14 @@ Use LLM to enhance facility matching:
 
 ```bash
 # Match requirements with facilities
-ome match requirements requirements.json facilities.json --use-llm
+ome llm match requirements.json facilities.json
 
 # With confidence threshold
-ome match requirements requirements.json facilities.json \
-  --use-llm \
+ome llm match requirements.json facilities.json \
   --min-confidence 0.7
 
 # Save results
-ome match requirements requirements.json facilities.json \
-  --use-llm \
+ome llm match requirements.json facilities.json \
   --output matches.json
 ```
 
@@ -50,7 +48,7 @@ Analyze a hardware project:
 # Basic analysis
 ome llm analyze https://github.com/example/project
 
-# Comprehensive analysis with code review
+#  Analysis with code review
 ome llm analyze https://github.com/example/project \
   --include-code \
   --include-docs \
@@ -295,169 +293,7 @@ asyncio.run(custom_llm_layer_example())
 
 ## API Examples
 
-### 1. Generate Content
-
-```python
-import requests
-import json
-
-def generate_content_example():
-    """Generate content using LLM API"""
-    
-    url = "https://your-domain.com/v1/api/llm/generate"
-    headers = {
-        "Authorization": "Bearer your_api_key",
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "prompt": "Analyze this hardware project and generate an OKH manifest...",
-        "request_type": "generation",
-        "config": {
-            "max_tokens": 4000,
-            "temperature": 0.1,
-            "timeout": 60
-        },
-        "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022"
-    }
-    
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code == 200:
-        result = response.json()
-        print(f"Generated content: {result['content']}")
-        print(f"Cost: ${result['metadata']['cost']:.4f}")
-        print(f"Tokens used: {result['metadata']['tokens_used']}")
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-
-# Run the example
-generate_content_example()
-```
-
-### 2. Generate OKH Manifest
-
-```python
-import requests
-import json
-
-def generate_okh_manifest_example():
-    """Generate OKH manifest using API"""
-    
-    url = "https://your-domain.com/v1/api/llm/generate-okh"
-    headers = {
-        "Authorization": "Bearer your_api_key",
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "project_data": {
-            "name": "IoT Sensor Node",
-            "description": "A low-power IoT sensor node for environmental monitoring",
-            "url": "https://github.com/example/iot-sensor",
-            "files": [
-                {
-                    "path": "README.md",
-                    "content": "# IoT Sensor Node\n\nA low-power...",
-                    "file_type": "text"
-                }
-            ],
-            "metadata": {
-                "language": "C++",
-                "topics": ["iot", "sensor", "arduino"]
-            }
-        },
-        "config": {
-            "max_tokens": 4000,
-            "temperature": 0.1,
-            "timeout": 60
-        }
-    }
-    
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code == 200:
-        result = response.json()
-        manifest = result['manifest']
-        confidence_scores = result['confidence_scores']
-        
-        print("Generated OKH Manifest:")
-        print(f"Title: {manifest['title']}")
-        print(f"Version: {manifest['version']}")
-        print(f"Function: {manifest['function']}")
-        print(f"Description: {manifest['description']}")
-        
-        print("\nConfidence Scores:")
-        for field, score in confidence_scores.items():
-            print(f"{field}: {score:.2f}")
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-
-# Run the example
-generate_okh_manifest_example()
-```
-
-### 3. Match Facilities
-
-```python
-import requests
-import json
-
-def match_facilities_example():
-    """Match facilities using LLM API"""
-    
-    url = "https://your-domain.com/v1/api/llm/match-facilities"
-    headers = {
-        "Authorization": "Bearer your_api_key",
-        "Content-Type": "application/json"
-    }
-    
-    data = {
-        "requirements": {
-            "processes": ["3D printing", "laser cutting"],
-            "materials": ["PLA", "acrylic"],
-            "capabilities": ["rapid prototyping", "small batch production"]
-        },
-        "facilities": [
-            {
-                "name": "TechShop",
-                "capabilities": ["3D printing", "laser cutting", "CNC machining"],
-                "materials": ["PLA", "ABS", "acrylic", "wood"],
-                "description": "Community makerspace with full fabrication capabilities"
-            },
-            {
-                "name": "FabLab",
-                "capabilities": ["3D printing", "laser cutting", "electronics"],
-                "materials": ["PLA", "PETG", "acrylic", "PCB"],
-                "description": "Digital fabrication laboratory"
-            }
-        ],
-        "config": {
-            "max_tokens": 2000,
-            "temperature": 0.1,
-            "timeout": 30
-        }
-    }
-    
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code == 200:
-        result = response.json()
-        matches = result['matches']
-        
-        print("Facility Matches:")
-        for match in matches:
-            print(f"\nFacility: {match['facility']}")
-            print(f"Confidence: {match['confidence']:.2f}")
-            print(f"Reasoning: {match['reasoning']}")
-            print(f"Capabilities Used: {', '.join(match['capabilities_used'])}")
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-
-# Run the example
-match_facilities_example()
-```
+<!-- Temporarily removed: prior examples referenced non-existent /v1/api/llm endpoints. -->
 
 ## Advanced Examples
 

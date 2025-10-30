@@ -53,7 +53,7 @@ nav:
     - Project Overview: overview.md
   - Architecture:
     - Overview: architecture/index.md
-    - Matching Layers:  architecture/matching-layers.md
+    - Matching Layers:  architecture/matching.md
     - Storage: architecture/storage.md
     - Diagrams: 
       - System Diagram: architecture/system-diagram.md
@@ -62,7 +62,6 @@ nav:
   - API:
     - Overview: api/index.md
     - Authentication: api/auth.md
-    - Matching API: api/matching-api.md
     - Routes & Models: api/routes.md
   - LLM:
     - Overview: llm/index.md
@@ -79,8 +78,8 @@ nav:
   - Matching:
     - Overview: matching/index.md
     - Direct Matching: matching/direct-matching.md
-    - Capability-Centric Rules: matching/capability-centric-rules.md
-    - Heuristic Rules System: matching/heuristic-rules-system.md
+    - Heuristic Matching: matching/heuristic-matching.md
+    - NLP Matching: matching/nlp-matching.md
   - Development:
     - Developer Guide: development/developer-guide.md
     - Container Guide: development/container-guide.md

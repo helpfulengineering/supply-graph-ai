@@ -159,7 +159,7 @@ ome llm analyze [OPTIONS] PROJECT_URL
 # Basic project analysis
 ome llm analyze https://github.com/example/project
 
-# Comprehensive analysis
+# Analysis
 ome llm analyze https://github.com/example/project \
   --include-code \
   --include-docs \

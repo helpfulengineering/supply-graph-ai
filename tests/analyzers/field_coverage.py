@@ -313,7 +313,7 @@ class FieldCoverageAnalyzer:
         return recommendations
     
     def generate_coverage_report(self, test_results: List[Dict]) -> Dict:
-        """Generate a comprehensive field coverage report"""
+        """Generate a field coverage report"""
         coverage_data = self.analyze_test_results(test_results)
         
         report = {

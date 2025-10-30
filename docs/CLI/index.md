@@ -2,30 +2,12 @@
 
 ## Overview
 
-The Open Matching Engine (OME) Command Line Interface provides a comprehensive set of tools for managing OKH packages, OKW facilities, matching operations, and system administration. The CLI has been completely standardized with **36 commands across 6 command groups**, featuring comprehensive LLM integration, enterprise-grade error handling, and **97% test success rate (35/36 commands working)**. The CLI supports both HTTP API mode (when connected to a server) and fallback mode (direct service calls).
+The Open Matching Engine (OME) Command Line Interface provides a set of tools for managing OKH packages, OKW facilities, matching operations, and system administration. The CLI supports both HTTP API mode (when connected to a server) and fallback mode (direct service calls).
 
-## Recent Improvements & Fixes
-
-The OME CLI has undergone comprehensive testing and debugging, resulting in significant improvements:
-
-### ✅ **Major Fixes Applied**
-- **Domain Registration**: Fixed domain initialization for OKH/OKW services in fallback mode
-- **API Format Issues**: Resolved request/response format mismatches between CLI and API
-- **Service Methods**: Added missing service methods (`get_by_id`, `list_manifests`, `list_facilities`)
-- **File Upload Support**: Implemented proper file upload functionality for OKH/OKW commands
-- **Parameter Handling**: Fixed duplicate parameter warnings and validation issues
-- **Output Display**: Improved command output visibility and formatting
-- **Error Handling**: Enhanced error messages and fallback mechanisms
-
-### 📊 **Current Status**
-- **97% Success Rate**: 35/36 commands working correctly
-- **7/8 Command Groups**: Fully functional (Supply Tree not implemented)
-- **Both Modes**: HTTP API and fallback modes working properly
-- **Production Ready**: All critical functionality operational
 
 ## Documentation Structure
 
-This directory contains comprehensive documentation for the OME CLI:
+This directory contains documentation for the OME CLI:
 
 - **📖 [Main Documentation](index.md)** - Complete CLI reference with all commands, options, and examples
 - **🚀 [Quick Start Guide](quick-start.md)** - Get up and running with the OME CLI in 5 minutes
@@ -54,7 +36,7 @@ This directory contains comprehensive documentation for the OME CLI:
 conda activate supply-graph-ai
 
 # Navigate to the project directory
-cd /path/to/supply-graph-ai
+cd supply-graph-ai
 
 # Run the CLI
 python ome [COMMAND] [OPTIONS]
@@ -105,15 +87,15 @@ ome --use-llm --quality-level medical --strict-mode system health
 
 ## Command Groups
 
-The OME CLI is organized into 7 main command groups with **42 total commands**, all fully standardized with LLM integration:
+The OME CLI is organized into 7 main command groups with 43 total commands:
 
-1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching (3 commands) ✅ **ALL WORKING**
-2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management (8 commands) ✅ **ALL WORKING**
-3. **[OKW Commands](#okw-commands)** - OpenKnowWhere facility management (8 commands) ✅ **ALL WORKING**
-4. **[Package Commands](#package-commands)** - OKH package management (9 commands) ✅ **89% WORKING**
-5. **[LLM Commands](#llm-commands)** - LLM operations and AI features (6 commands) ✅ **ALL WORKING**
-6. **[System Commands](#system-commands)** - System administration (5 commands) ✅ **ALL WORKING**
-7. **[Utility Commands](#utility-commands)** - Utility operations (2 commands) ✅ **ALL WORKING**
+1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching
+2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management
+3. **[OKW Commands](#okw-commands)** - OpenKnowWhere facility management
+4. **[Package Commands](#package-commands)** - OKH package management
+5. **[LLM Commands](#llm-commands)** - LLM operations and AI features
+6. **[System Commands](#system-commands)** - System administration
+7. **[Utility Commands](#utility-commands)** - Utility operations
 
 **Note**: Supply Tree Commands are not implemented in the current CLI version.
 
@@ -121,7 +103,7 @@ The OME CLI is organized into 7 main command groups with **42 total commands**, 
 
 ## Package Commands
 
-Manage OKH packages including building, pushing, pulling, and verification. **8/9 package commands are working** (89% success rate) with one minor API endpoint issue remaining.
+Manage OKH packages including building, pushing, pulling, and verification. 
 
 ### `ome package build`
 
@@ -272,7 +254,7 @@ ome package list-remote
 
 ## OKH Commands
 
-Manage OpenKnowHow (OKH) manifests for hardware designs. **All 8 OKH commands are now fully functional** with both HTTP API and fallback mode support.
+Manage OpenKnowHow (OKH) manifests for hardware designs.
 
 ### `ome okh validate`
 
@@ -371,11 +353,54 @@ ome okh upload MANIFEST_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
+### `ome okh scaffold`
+
+Generate an OKH-compliant project scaffold with documentation stubs and manifest template.
+
+```bash
+ome okh scaffold PROJECT_NAME [OPTIONS]
+```
+
+**Arguments:**
+- `PROJECT_NAME` - Human-friendly project name; used for directory name
+
+**Options:**
+- `--version TEXT` - Initial project version (semantic recommended). Default: "0.1.0"
+- `--organization TEXT` - Optional organization name for future packaging alignment
+- `--template-level [minimal|standard|detailed]` - Amount of guidance in stub docs. Default: "standard"
+- `--output-format [json|zip|filesystem]` - Output format. Default: "json"
+- `--output-path PATH` - Output path (required for filesystem format)
+- `--include-examples/--no-examples` - Include sample files/content. Default: true
+- `--okh-version TEXT` - OKH schema version tag. Default: "OKH-LOSHv1.0"
+
+**Features:**
+- **MkDocs Integration**: Generates interlinked documentation structure with `mkdocs.yml` configuration
+- **OKH Schema Compliance**: Manifest template generated by introspecting the `OKHManifest` dataclass
+- **Template Levels**: Three levels of documentation detail (minimal, standard, detailed)
+- **Multiple Output Formats**: JSON blueprint, ZIP archive, or direct filesystem write
+- **Dedicated BOM Directory**: Separate `bom/` directory with CSV and Markdown templates
+- **Directory Structure**: All OKH-compliant directories with appropriate documentation stubs
+
+**Examples:**
+```bash
+# Generate basic project scaffold
+ome okh scaffold my-awesome-project
+
+# Generate with detailed templates and ZIP output
+ome okh scaffold arduino-sensor --template-level detailed --output-format zip
+
+# Generate to filesystem with custom organization
+ome okh scaffold microscope-stage --organization "University Lab" --output-format filesystem --output-path ./projects
+
+# Generate minimal scaffold for experienced developers
+ome okh scaffold quick-prototype --template-level minimal --output-format json
+```
+
 ---
 
 ## OKW Commands
 
-Manage OpenKnowWhere (OKW) facilities for manufacturing capabilities. **All 8 OKW commands are now fully functional** with both HTTP API and fallback mode support.
+Manage OpenKnowWhere (OKW) facilities for manufacturing capabilities.
 
 ### `ome okw validate`
 
@@ -499,7 +524,7 @@ ome okw search --location "San Francisco"
 
 ## Match Commands
 
-Perform matching operations between OKH requirements and OKW capabilities. **All 3 match commands are fully functional** with comprehensive domain support and LLM integration.
+Perform matching operations between OKH requirements and OKW capabilities.
 
 ### `ome match requirements`
 
@@ -566,7 +591,7 @@ ome match list-recent [OPTIONS]
 
 ## LLM Commands
 
-Manage LLM operations and AI features for enhanced OKH manifest generation and facility matching. **6/6 LLM commands are working** (100% success rate) with comprehensive provider support and cost management.
+Manage LLM operations and AI features for enhanced OKH manifest generation and facility matching.
 
 ### `ome llm generate`
 
@@ -782,7 +807,7 @@ ome llm service reset
 
 ## System Commands
 
-System administration and monitoring commands. **All 5 system commands are fully functional** with comprehensive health monitoring and domain management.
+System administration and monitoring commands. 
 
 ### `ome system health`
 
@@ -820,7 +845,7 @@ ome system status
 ```
 
 **Output:**
-- Comprehensive system information
+- System information
 - Health status
 - Domain information
 - Version details
@@ -928,7 +953,7 @@ ome supply-tree validate SUPPLY_TREE_ID [OPTIONS]
 
 ## Utility Commands
 
-Utility operations for domains and contexts. **All 2 utility commands are fully functional** with comprehensive domain and context management.
+Utility operations for domains and contexts.
 
 ### `ome utility domains`
 
@@ -1066,33 +1091,6 @@ ome okh validate manifest.json --quality-level medical --strict-mode
 # With LLM enhancement
 ome okh validate manifest.json --use-llm --quality-level professional --strict-mode
 ```
-
----
-
-## Testing & Quality Assurance
-
-The OME CLI has undergone comprehensive testing and debugging using a systematic Test-Driven Development (TDD) approach:
-
-### **Testing Methodology**
-- **Systematic Testing**: Each command group tested methodically with incremental fixes
-- **Issue Identification**: Comprehensive error documentation and root cause analysis
-- **Incremental Fixes**: Step-by-step resolution of problems with continuous verification
-- **Both Modes**: Testing in both HTTP API mode and fallback mode
-- **Error Scenarios**: Validation of error handling and edge cases
-
-### **Quality Metrics**
-- **97% Success Rate**: 35/36 commands working correctly
-- **7/8 Command Groups**: Fully functional
-- **30+ Critical Bugs**: Resolved through systematic debugging
-- **Production Ready**: All critical functionality operational
-
-### **Recent Improvements**
-- **Domain Registration**: Fixed domain initialization for OKH/OKW services
-- **API Integration**: Resolved request/response format mismatches
-- **Service Methods**: Added missing service methods for CLI compatibility
-- **File Upload**: Implemented proper file upload functionality
-- **Error Handling**: Enhanced error messages and fallback mechanisms
-- **Output Display**: Improved command output visibility and formatting
 
 ---
 
@@ -1262,23 +1260,3 @@ For additional help and support:
 The OME CLI is designed to be intuitive and provide clear feedback for all operations.
 
 ---
-
-## Documentation Status
-
-✅ **Complete**: All 36 CLI commands documented with LLM integration  
-✅ **Tested**: All examples verified working with 97% test success rate (35/36 commands)  
-✅ **Current**: Documentation matches standardized implementation with recent fixes  
-✅ **LLM Ready**: Complete LLM integration documentation  
-✅ **Production Ready**: Enterprise-grade CLI with comprehensive testing and debugging  
-✅ **Recent Updates**: Documentation updated to reflect all recent improvements and fixes  
-
-The OME CLI documentation is comprehensive, fully tested, and ready for production use with complete LLM integration support. Recent comprehensive testing and debugging has resolved all critical issues, resulting in a highly stable and functional CLI system.
-
-## Contributing
-
-To contribute to the CLI documentation:
-
-1. Follow the existing documentation structure
-2. Include practical examples
-3. Test all code examples
-4. Update the table of contents when adding new sections

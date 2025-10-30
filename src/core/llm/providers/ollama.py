@@ -125,7 +125,7 @@ class OllamaProvider(BaseLLMProvider):
         if not self._connected or not self._client:
             raise ConnectionError("Provider not connected")
         
-        start_time = datetime.utcnow()
+        start_time = datetime.now()
         
         try:
             # Prepare the request for Ollama
@@ -236,7 +236,7 @@ class OllamaProvider(BaseLLMProvider):
     
     async def _process_ollama_response(self, response: httpx.Response, request: LLMRequest, start_time: datetime) -> LLMResponse:
         """Process the Ollama API response."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         try:
             # Parse the response
@@ -346,7 +346,7 @@ class OllamaProvider(BaseLLMProvider):
     
     def _update_metrics(self, response: LLMResponse, start_time: datetime) -> None:
         """Update provider metrics."""
-        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        processing_time = (datetime.now() - start_time).total_seconds()
         
         self.metrics.add_request(
             success=response.is_success,

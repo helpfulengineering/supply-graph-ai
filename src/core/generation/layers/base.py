@@ -13,7 +13,7 @@ The base layer architecture provides:
 - Result processing and validation
 
 All generation layers inherit from BaseGenerationLayer and must implement
-the async process() method. The base class provides comprehensive utilities
+the async process() method. The base class provides utilities
 for file processing, text analysis, and confidence calculation.
 """
 
@@ -176,7 +176,7 @@ class BaseGenerationLayer(ABC):
     Enhanced abstract base class for all generation layers with shared utilities.
     
     This abstract base class provides a standardized interface and shared utilities
-    for all generation layers. It includes comprehensive error handling, logging,
+    for all generation layers. It includes error handling, logging,
     configuration management, and common processing utilities.
     
     All generation layers must inherit from this class and implement the async

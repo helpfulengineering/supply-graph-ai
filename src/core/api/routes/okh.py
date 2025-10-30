@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Query, Path, Depends, status, UploadFile, File, Form, Request
+from fastapi.encoders import jsonable_encoder
 from typing import Optional, List
 from uuid import UUID
 import json
@@ -14,10 +15,8 @@ from ..models.base import (
     ValidationResult
 )
 from ..decorators import (
-    api_endpoint,
     validate_request,
     track_performance,
-    llm_endpoint,
     paginated_response
 )
 from ..error_handlers import create_error_response, create_success_response
@@ -36,7 +35,21 @@ from ..models.okh.response import (
     OKHUploadResponse,
     OKHGenerateResponse
 )
+from ..models.scaffold.request import (
+    ScaffoldRequest
+)
+from ..models.scaffold.response import (
+    ScaffoldResponse
+)
+from ..models.cleanup.request import (
+    CleanupRequest
+)
+from ..models.cleanup.response import (
+    CleanupResponse
+)
 from ...services.okh_service import OKHService
+from ...services.scaffold_service import ScaffoldService
+from ...services.cleanup_service import CleanupService, CleanupOptions
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
 from src.config import settings
@@ -80,7 +93,7 @@ async def get_storage_service() -> StorageService:
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     
     **Features:**
     - Support for LLM-enhanced manifest creation
@@ -110,7 +123,7 @@ async def create_okh(
         okh_service: OKH service dependency
         
     Returns:
-        Enhanced OKH response with comprehensive data
+        Enhanced OKH response with data
     """
     request_id = getattr(http_request.state, 'request_id', None)
     start_time = datetime.now()
@@ -229,7 +242,7 @@ async def get_okh(
     - Paginated results with sorting and filtering
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     """
 )
 @paginated_response(default_page_size=20, max_page_size=100)
@@ -660,7 +673,133 @@ async def generate_from_url(
             detail="An unexpected error occurred while generating the manifest"
         )
 
+@router.post(
+    "/scaffold",
+    summary="Generate OKH project scaffold",
+    description="Create an OKH-compliant project structure with documentation stubs and manifest template."
+)
+async def scaffold_project(
+    request: ScaffoldRequest,
+    http_request: Request,
+    okh_service: OKHService = Depends(get_okh_service),  # kept for parity; not used directly here
+    scaffold_service: 'ScaffoldService' = Depends(lambda: __import__('src.core.services.scaffold_service', fromlist=['ScaffoldService']).ScaffoldService())
+):
+    """Generate a scaffold using ScaffoldService and return structured response."""
+    from src.core.services.scaffold_service import ScaffoldOptions
+    request_id = getattr(http_request.state, 'request_id', None)
 
+    try:
+        options = ScaffoldOptions(
+            project_name=request.project_name,
+            version=request.version,
+            organization=request.organization,
+            template_level=request.template_level,  # type: ignore
+            output_format=request.output_format,    # type: ignore
+            output_path=request.output_path,
+            include_examples=request.include_examples,
+            okh_version=request.okh_version,
+        )
+
+        result = await scaffold_service.generate_scaffold(options)
+
+        # Return response as dict with timestamp explicitly converted to ISO string
+        # (Manually construct dict to avoid any serializer recursion issues)
+        try:
+            response_dict = {
+                'status': 'success',
+                'message': 'Scaffold generated successfully',
+                'timestamp': datetime.now().isoformat(),
+                'request_id': request_id,
+                'project_name': result.project_name,
+                'structure': result.structure,
+                'manifest_template': result.manifest_template,
+                'download_url': result.download_url,
+                'filesystem_path': result.filesystem_path,
+            }
+            # Use jsonable_encoder to ensure all nested datetime objects are converted
+            encoded_response = jsonable_encoder(response_dict)
+            return encoded_response
+        except Exception as e:
+            # Log the exact error for debugging
+            logger.error(f"Error serializing scaffold response: {e}", exc_info=True)
+            raise
+    except ValueError as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion="Please check the scaffold request parameters and try again"
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump(mode='json')
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error generating scaffold: {str(e)}",
+            extra={"request_id": request_id, "error": str(e), "error_type": type(e).__name__},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
+
+
+@router.post(
+    "/scaffold/cleanup",
+    summary="Clean and optimize an OKH project directory",
+    response_model=CleanupResponse,
+    description="Remove unmodified documentation stubs and empty directories from a scaffolded project."
+)
+async def cleanup_project(
+    request: CleanupRequest,
+    http_request: Request,
+    cleanup_service: 'CleanupService' = Depends(lambda: __import__('src.core.services.cleanup_service', fromlist=['CleanupService']).CleanupService())
+):
+    request_id = getattr(http_request.state, 'request_id', None)
+
+    try:
+        options = CleanupOptions(
+            project_path=request.project_path,
+            remove_unmodified_stubs=request.remove_unmodified_stubs,
+            remove_empty_directories=request.remove_empty_directories,
+            dry_run=request.dry_run,
+        )
+
+        result = await cleanup_service.clean(options)
+
+        return {
+            'status': 'success',
+            'message': 'Cleanup completed' if not request.dry_run else 'Dry run completed',
+            'request_id': request_id,
+            'removed_files': result.removed_files,
+            'removed_directories': result.removed_directories,
+            'bytes_saved': result.bytes_saved,
+            'warnings': result.warnings,
+        }
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please verify the project_path and try again"
+        )
+        logger.error(
+            f"Error during scaffold cleanup: {str(e)}",
+            extra={"request_id": request_id, "error": str(e), "error_type": type(e).__name__},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
 # Helper functions
 async def _validate_okh_result(
     result: any,

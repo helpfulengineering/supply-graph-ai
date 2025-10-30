@@ -6,6 +6,7 @@ to ensure consistency across the Open Matching Engine API.
 """
 
 from pydantic import BaseModel, Field, validator
+from pydantic import ConfigDict
 from typing import Dict, Any, Optional, List, Union
 from datetime import datetime
 from uuid import UUID
@@ -60,13 +61,10 @@ class BaseAPIRequest(BaseModel):
     quality_level: Optional[str] = Field("professional", description="Quality level: hobby, professional, or medical")
     strict_mode: Optional[bool] = Field(False, description="Enable strict validation mode")
     
-    class Config:
-        # Forbid extra fields for proper validation
-        extra = "forbid"
-        # Use enum values in JSON
-        use_enum_values = True
-        # Generate JSON schema
-        json_schema_extra = {
+    model_config = ConfigDict(
+        extra="forbid",
+        use_enum_values=True,
+        json_schema_extra={
             "example": {
                 "request_id": "req_123456789",
                 "client_info": {
@@ -76,7 +74,8 @@ class BaseAPIRequest(BaseModel):
                 "quality_level": "professional",
                 "strict_mode": False
             }
-        }
+        },
+    )
 
 
 class BaseAPIResponse(BaseModel):
@@ -92,11 +91,9 @@ class BaseAPIResponse(BaseModel):
     data: Optional[Dict[str, Any]] = Field(None, description="Response data payload")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Additional response metadata")
     
-    class Config:
-        # Use enum values in JSON
-        use_enum_values = True
-        # Generate JSON schema
-        json_schema_extra = {
+    model_config = ConfigDict(
+        use_enum_values=True,
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Operation completed successfully",
@@ -105,7 +102,8 @@ class BaseAPIResponse(BaseModel):
                 "data": {},
                 "metadata": {}
             }
-        }
+        },
+    )
 
 
 class ErrorDetail(BaseModel):
@@ -117,9 +115,9 @@ class ErrorDetail(BaseModel):
     value: Optional[Any] = Field(None, description="Value that caused the error")
     suggestion: Optional[str] = Field(None, description="Suggested fix for the error")
     
-    class Config:
-        use_enum_values = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        use_enum_values=True,
+        json_schema_extra={
             "example": {
                 "code": "VALIDATION_ERROR",
                 "message": "Invalid input format",
@@ -127,7 +125,8 @@ class ErrorDetail(BaseModel):
                 "value": "invalid-email",
                 "suggestion": "Please provide a valid email address"
             }
-        }
+        },
+    )
 
 
 class ErrorResponse(BaseAPIResponse):
@@ -137,9 +136,9 @@ class ErrorResponse(BaseAPIResponse):
     errors: List[ErrorDetail] = Field(..., description="List of error details")
     error_count: int = Field(..., description="Total number of errors")
     
-    class Config:
-        use_enum_values = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        use_enum_values=True,
+        json_schema_extra={
             "example": {
                 "status": "error",
                 "message": "Request validation failed",
@@ -158,7 +157,8 @@ class ErrorResponse(BaseAPIResponse):
                 "data": None,
                 "metadata": {}
             }
-        }
+        },
+    )
 
 
 class SuccessResponse(BaseAPIResponse):
@@ -166,9 +166,9 @@ class SuccessResponse(BaseAPIResponse):
     
     status: APIStatus = Field(APIStatus.SUCCESS, description="Success status")
     
-    class Config:
-        use_enum_values = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        use_enum_values=True,
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Operation completed successfully",
@@ -177,7 +177,8 @@ class SuccessResponse(BaseAPIResponse):
                 "data": {},
                 "metadata": {}
             }
-        }
+        },
+    )
 
 
 class PaginationParams(BaseModel):
@@ -188,15 +189,16 @@ class PaginationParams(BaseModel):
     sort_by: Optional[str] = Field(None, description="Field to sort by")
     sort_order: Optional[str] = Field("asc", pattern="^(asc|desc)$", description="Sort order")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "page": 1,
                 "page_size": 20,
                 "sort_by": "created_at",
                 "sort_order": "desc"
             }
-        }
+        },
+    )
 
 
 class PaginationInfo(BaseModel):
@@ -209,8 +211,8 @@ class PaginationInfo(BaseModel):
     has_next: bool = Field(..., description="Whether there is a next page")
     has_previous: bool = Field(..., description="Whether there is a previous page")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "page": 1,
                 "page_size": 20,
@@ -219,7 +221,8 @@ class PaginationInfo(BaseModel):
                 "has_next": True,
                 "has_previous": False
             }
-        }
+        },
+    )
 
 
 class PaginatedResponse(BaseAPIResponse):
@@ -229,9 +232,9 @@ class PaginatedResponse(BaseAPIResponse):
     pagination: PaginationInfo = Field(..., description="Pagination information")
     items: List[Dict[str, Any]] = Field(..., description="List of items")
     
-    class Config:
-        use_enum_values = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        use_enum_values=True,
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Items retrieved successfully",
@@ -248,7 +251,8 @@ class PaginatedResponse(BaseAPIResponse):
                 "items": [],
                 "metadata": {}
             }
-        }
+        },
+    )
 
 
 class LLMRequestMixin(BaseModel):
@@ -260,8 +264,8 @@ class LLMRequestMixin(BaseModel):
     llm_temperature: Optional[float] = Field(None, ge=0.0, le=2.0, description="LLM temperature setting")
     llm_max_tokens: Optional[int] = Field(None, ge=1, le=4096, description="Maximum tokens for LLM response")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "use_llm": True,
                 "llm_provider": "anthropic",
@@ -269,7 +273,8 @@ class LLMRequestMixin(BaseModel):
                 "llm_temperature": 0.7,
                 "llm_max_tokens": 2048
             }
-        }
+        },
+    )
 
 
 class LLMResponseMixin(BaseModel):
@@ -282,8 +287,8 @@ class LLMResponseMixin(BaseModel):
     llm_tokens_used: Optional[int] = Field(None, description="Number of tokens used")
     llm_processing_time: Optional[float] = Field(None, description="LLM processing time in seconds")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "llm_used": True,
                 "llm_provider": "anthropic",
@@ -292,7 +297,8 @@ class LLMResponseMixin(BaseModel):
                 "llm_tokens_used": 1500,
                 "llm_processing_time": 2.5
             }
-        }
+        },
+    )
 
 
 class RequirementsInput(BaseModel):
@@ -303,15 +309,16 @@ class RequirementsInput(BaseModel):
     format: Optional[str] = Field(None, description="Content format (e.g., 'json', 'yaml', 'text')")
     source: Optional[str] = Field(None, description="Source of the requirements")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "content": {"title": "Test OKH", "version": "1.0.0"},
                 "type": "okh",
                 "format": "json",
                 "source": "github.com/example/project"
             }
-        }
+        },
+    )
 
 
 class CapabilitiesInput(BaseModel):
@@ -322,15 +329,16 @@ class CapabilitiesInput(BaseModel):
     format: Optional[str] = Field(None, description="Content format (e.g., 'json', 'yaml', 'text')")
     source: Optional[str] = Field(None, description="Source of the capabilities")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "content": {"name": "Test Facility", "processes": ["assembly", "testing"]},
                 "type": "okw",
                 "format": "json",
                 "source": "facility-registry.org"
             }
-        }
+        },
+    )
 
 
 class ValidationResult(BaseModel):
@@ -342,8 +350,8 @@ class ValidationResult(BaseModel):
     warnings: List[str] = Field(default_factory=list, description="Validation warnings")
     suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "is_valid": True,
                 "score": 0.95,
@@ -351,7 +359,8 @@ class ValidationResult(BaseModel):
                 "warnings": ["Missing optional field: description"],
                 "suggestions": ["Consider adding a description for better documentation"]
             }
-        }
+        },
+    )
 
 
 class ProcessingMetrics(BaseModel):
@@ -363,8 +372,8 @@ class ProcessingMetrics(BaseModel):
     api_calls: Optional[int] = Field(None, description="Number of API calls made")
     cache_hits: Optional[int] = Field(None, description="Number of cache hits")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "processing_time": 1.25,
                 "memory_used": 1024000,
@@ -372,4 +381,5 @@ class ProcessingMetrics(BaseModel):
                 "api_calls": 3,
                 "cache_hits": 1
             }
-        }
+        },
+    )

@@ -157,7 +157,7 @@ To add a new domain to the system:
 
 ## Testing
 
-The domain management system includes comprehensive tests:
+The domain management system includes tests:
 
 ```bash
 # Run simple integration test

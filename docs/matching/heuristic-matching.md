@@ -1,4 +1,4 @@
-# Capability-Centric Heuristic Rules System
+# Heuristic Rules System
 
 ## Overview
 

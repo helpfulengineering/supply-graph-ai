@@ -42,7 +42,7 @@ class LLMRequest:
     user_id: Optional[str] = None
     session_id: Optional[str] = None
     request_id: Optional[str] = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=datetime.now)
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
