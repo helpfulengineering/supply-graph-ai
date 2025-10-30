@@ -70,6 +70,24 @@ ome okh scaffold quick-prototype --template-level minimal --output-format json
 - `standard`: Detailed guidance with examples (default)
 - `detailed`: Comprehensive help with best practices
 
+### 4.5. Clean Up a Scaffolded Project
+
+```bash
+# Preview cleanup (dry-run)
+ome okh scaffold-cleanup ./projects/my-awesome-project
+
+# Apply cleanup (remove unmodified stubs and empty directories)
+ome okh scaffold-cleanup ./projects/my-awesome-project --apply
+
+# Keep empty directories during cleanup
+ome okh scaffold-cleanup ./projects/my-awesome-project --apply --keep-empty-directories
+```
+
+Flags:
+- `--apply`: perform changes (default is dry-run)
+- `--remove-unmodified-stubs/--keep-unmodified-stubs` (default: remove)
+- `--remove-empty-directories/--keep-empty-directories` (default: remove)
+
 ### 5. Build Your First Package
 
 ```bash

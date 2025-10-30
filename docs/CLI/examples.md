@@ -60,6 +60,19 @@ ome match requirements okh-manifest.json
 ome package build okh-manifest.json
 ```
 
+### Clean Up Scaffolded Projects
+
+```bash
+# 1. Preview cleanup to see what would be removed
+ome okh scaffold-cleanup ./projects/my-hardware-project
+
+# 2. Apply cleanup to remove unmodified stubs and empty directories
+ome okh scaffold-cleanup ./projects/my-hardware-project --apply
+
+# 3. Apply cleanup but keep empty directories
+ome okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-empty-directories
+```
+
 ### Batch Project Generation
 
 ```bash
