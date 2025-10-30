@@ -10,7 +10,7 @@ The Direct Matching layer provides:
 - **Exact Matching**: Case-insensitive exact string matches
 - **Near-miss Detection**: Levenshtein distance ≤2 character differences
 - **Defensive Confidence Scoring**: Confidence penalties for case/whitespace differences
-- **Comprehensive Metadata**: Detailed tracking of match quality and processing information
+- **Metadata**: Detailed tracking of match quality and processing information
 - **Domain-Agnostic Base**: Common interface for all domains
 
 ## Architecture
@@ -257,7 +257,7 @@ class MatchingService:
 
 ## Testing
 
-The Direct Matching layer includes comprehensive unit tests covering:
+The Direct Matching layer includes unit tests covering:
 
 - Exact match scenarios
 - Case difference detection

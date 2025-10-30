@@ -32,7 +32,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     # Anthropic model pricing (per 1M tokens, as of 2024)
     MODEL_PRICING = {
-        "claude-3-5-sonnet-20241022": {"input": 3.0, "output": 15.0},  # $3/$15 per 1M tokens
+        "claude-3-5-sonnet-latest": {"input": 3.0, "output": 15.0},  # $3/$15 per 1M tokens
         "claude-3-5-haiku-20241022": {"input": 1.0, "output": 5.0},   # $1/$5 per 1M tokens
         "claude-3-opus-20240229": {"input": 15.0, "output": 75.0},    # $15/$75 per 1M tokens
         "claude-3-sonnet-20240229": {"input": 3.0, "output": 15.0},   # $3/$15 per 1M tokens
@@ -41,7 +41,7 @@ class AnthropicProvider(BaseLLMProvider):
     
     # Available models
     AVAILABLE_MODELS = [
-        "claude-3-5-sonnet-20241022",
+        "claude-3-5-sonnet-latest",
         "claude-3-5-haiku-20241022", 
         "claude-3-opus-20240229",
         "claude-3-sonnet-20240229",

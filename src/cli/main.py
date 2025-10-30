@@ -57,7 +57,7 @@ def cli(ctx, server_url: str, timeout: float, verbose: bool, output_format: Opti
     """
     Open Matching Engine (OME) Command Line Interface
     
-    A comprehensive CLI for managing OKH packages, OKW facilities, and matching operations.
+    A CLI for managing OKH packages, OKW facilities, and matching operations.
     """
     # Ensure context object exists
     ctx.ensure_object(dict)

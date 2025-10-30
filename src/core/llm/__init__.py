@@ -1,7 +1,7 @@
 """
 LLM Provider System for the Open Matching Engine.
 
-This module provides a comprehensive LLM provider abstraction system that supports
+This module provides a LLM provider abstraction system that supports
 multiple LLM providers (OpenAI, Anthropic, Google, Azure, Local) with a unified
 interface for generation and matching operations.
 
@@ -11,7 +11,7 @@ The LLM system includes:
 - LLM service for provider management and request routing
 - Cost tracking and usage analytics
 - Response caching and optimization
-- Comprehensive error handling and fallback mechanisms
+- Error handling and fallback mechanisms
 
 All LLM operations are handled through the LLM service, which manages provider
 selection, request routing, and response processing.

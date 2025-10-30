@@ -39,7 +39,7 @@ class LLMServiceConfig(ServiceConfig):
         name: str = "LLMService",
         # Default provider settings
         default_provider: LLMProviderType = LLMProviderType.ANTHROPIC,
-        default_model: str = "claude-3-5-sonnet-20241022",
+        default_model: str = "claude-3-5-sonnet-latest",
         # Provider configurations
         providers: Optional[Dict[str, LLMProviderConfig]] = None,
         # Request settings
@@ -342,7 +342,7 @@ class LLMService(BaseService['LLMService']):
             return {"status": "error", "error": str(e)}
     
     async def get_service_metrics(self) -> Dict[str, Any]:
-        """Get comprehensive service metrics."""
+        """Get service metrics."""
         return {
             "total_requests": self._total_requests,
             "total_cost": self._total_cost,

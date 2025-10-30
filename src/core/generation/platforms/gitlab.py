@@ -25,13 +25,13 @@ class GitLabExtractor(ProjectExtractor):
     """
     Extractor for GitLab repositories with caching and local clone support.
     
-    This extractor provides comprehensive GitLab repository data extraction including:
+    This extractor provides GitLab repository data extraction including:
     - Repository metadata (name, description, license, tags, etc.)
     - File contents (README, LICENSE, BOM files, source code)
     - Documentation parsing
     - Release information
     - Rate limiting and caching
-    - Temporary local clone for comprehensive file analysis
+    - Temporary local clone for file analysis
     
     Attributes:
         base_url: GitLab API base URL
@@ -126,7 +126,7 @@ class GitLabExtractor(ProjectExtractor):
             router = URLRouter()
             owner, repo = router.extract_repo_info(url)
             
-            # Clone repository locally for comprehensive analysis
+            # Clone repository locally for analysis
             clone_path = self._clone_repository(url)
             if not clone_path:
                 raise Exception("Failed to clone repository locally")

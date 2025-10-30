@@ -54,7 +54,7 @@ router = APIRouter(
     - Enhanced error handling
     - Performance metrics
     - LLM integration support
-    - Comprehensive validation
+    - Validation
     """
 )
 @track_performance("utility_domains")
@@ -151,7 +151,7 @@ async def get_domains(
     - Enhanced error handling
     - Performance metrics
     - LLM integration support
-    - Comprehensive validation
+    - Validation
     """
 )
 @track_performance("utility_contexts")

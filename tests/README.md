@@ -1,16 +1,16 @@
 # OME Testing Framework
 
-This directory contains a comprehensive testing framework for the Open Matching Engine (OME). The framework provides systematic testing capabilities to identify bugs, edge cases, and areas for improvement in the OME matching system.
+This directory contains a testing framework for the Open Matching Engine (OME). The framework provides systematic testing capabilities to identify bugs, edge cases, and areas for improvement in the OME matching system.
 
 ## Overview
 
 The OME Testing Framework consists of several key components:
 
-1. **Enhanced Synthetic Data Generation** - Generates realistic OKH and OKW files with comprehensive field coverage
+1. **Enhanced Synthetic Data Generation** - Generates realistic OKH and OKW files with field coverage
 2. **Test Scenario Generation** - Creates specific test cases for different matching scenarios
 3. **Test Harness** - Executes tests and validates results
 4. **Analyzers** - Analyze field coverage, edge cases, and match quality
-5. **Reporting** - Generate comprehensive JSON reports with actionable insights
+5. **Reporting** - Generate JSON reports with actionable insights
 
 ## Quick Start
 
@@ -27,7 +27,7 @@ python tests/run_matching_tests.py --generate-scenarios --count 20 --scenario-ty
 ### 2. Run Tests
 
 ```bash
-# Run all tests and generate comprehensive report
+# Run all tests and generate report
 python tests/run_matching_tests.py --scenarios ./test_scenarios --output ./reports
 
 # Run specific scenario types only
@@ -135,7 +135,7 @@ Evaluates matching accuracy and confidence calibration:
 
 ### JSON Reporter (`reporters/json_reporter.py`)
 
-Generates comprehensive reports combining all analyses:
+Generates reports combining all analyses:
 
 **Report Sections:**
 - Executive summary with health score
@@ -254,7 +254,7 @@ Error: Failed to initialize test harness
 ```
 [1/50] exact_match_001: FAIL
 ```
-- Check the comprehensive report for detailed failure analysis
+- Check the report for detailed failure analysis
 - Look at edge case detection results
 - Review field coverage analysis
 
@@ -290,71 +290,3 @@ cat ./reports/raw_test_results.json | jq '.test_results[] | select(.scenario_id 
 1. Modify field lists in `FieldCoverageAnalyzer`
 2. Update field usage detection logic
 3. Add new field effectiveness metrics
-
-## Best Practices
-
-### Test Data Management
-
-- Use version control for test scenarios
-- Maintain separate directories for different test runs
-- Archive old test results for comparison
-
-### Continuous Integration
-
-- Run tests automatically on code changes
-- Set up alerts for health score drops
-- Track metrics over time
-
-### Performance Testing
-
-- Use large scenario counts for performance validation
-- Monitor test execution times
-- Identify slow test patterns
-
-### Quality Assurance
-
-- Review recommendations regularly
-- Prioritize critical and high-priority issues
-- Track improvement over time
-
-## File Structure
-
-```
-tests/
-├── README.md                          # This documentation
-├── test_harness_matching.py           # Core test harness
-├── run_matching_tests.py              # Main execution script
-├── analyzers/
-│   ├── field_coverage.py              # Field usage analysis
-│   ├── edge_case_detector.py          # Edge case detection
-│   └── match_quality.py               # Match quality analysis
-└── reporters/
-    └── json_reporter.py               # Comprehensive reporting
-```
-
-## Dependencies
-
-The testing framework requires:
-- Python 3.8+
-- OME API running and accessible
-- JSON processing capabilities
-- Async/await support
-- Statistical analysis libraries
-
-## Contributing
-
-When contributing to the testing framework:
-
-1. Follow the existing code structure
-2. Add comprehensive documentation
-3. Include example usage
-4. Test your changes thoroughly
-5. Update this README if needed
-
-## Support
-
-For issues with the testing framework:
-1. Check this documentation
-2. Review the generated reports for insights
-3. Examine raw test results for debugging
-4. Create issues with detailed error information

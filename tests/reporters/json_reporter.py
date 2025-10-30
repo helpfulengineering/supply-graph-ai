@@ -2,7 +2,7 @@
 """
 JSON Report Generator for OME Testing Framework
 
-This module generates comprehensive JSON reports combining test results,
+This module generates JSON reports combining test results,
 field coverage analysis, edge case detection, and match quality analysis.
 
 Usage:
@@ -26,7 +26,7 @@ from analyzers.edge_case_detector import EdgeCaseDetector
 from analyzers.match_quality import MatchQualityAnalyzer
 
 class JSONReporter:
-    """Generates comprehensive JSON reports for OME testing"""
+    """Generates JSON reports for OME testing"""
     
     def __init__(self):
         self.field_analyzer = FieldCoverageAnalyzer()
@@ -35,7 +35,7 @@ class JSONReporter:
     
     def generate_comprehensive_report(self, test_results: List[Dict], 
                                     test_run_metadata: Optional[Dict] = None) -> Dict:
-        """Generate a comprehensive report combining all analyses"""
+        """Generate a report combining all analyses"""
         
         # Run all analyses
         print("Running field coverage analysis...")
@@ -50,7 +50,7 @@ class JSONReporter:
         # Generate summary statistics
         summary_stats = self._generate_summary_statistics(test_results)
         
-        # Create comprehensive report
+        # Create report
         comprehensive_report = {
             "report_metadata": {
                 "generated_at": datetime.now().isoformat(),
@@ -395,7 +395,7 @@ def main():
     
     parser = argparse.ArgumentParser(description="Generate comprehensive JSON report from test results")
     parser.add_argument("--test-results", required=True, help="JSON file containing test results")
-    parser.add_argument("--output", default="comprehensive_report.json", help="Output file for comprehensive report")
+    parser.add_argument("--output", default="comprehensive_report.json", help="Output file for report")
     parser.add_argument("--metadata", help="JSON file containing test run metadata")
     
     args = parser.parse_args()
@@ -413,7 +413,7 @@ def main():
             additional_metadata = json.load(f)
         test_run_metadata.update(additional_metadata)
     
-    # Generate comprehensive report
+    # Generate report
     reporter = JSONReporter()
     report = reporter.generate_comprehensive_report(test_results, test_run_metadata)
     

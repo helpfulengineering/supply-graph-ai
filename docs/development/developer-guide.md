@@ -102,7 +102,7 @@ The scaffolding system generates:
 - MkDocs documentation setup
 - OKH manifest template with guidance
 - BOM templates and assembly guides
-- Comprehensive documentation stubs
+- Socumentation stubs
 
 For detailed scaffolding documentation, see the [Scaffolding Guide](../scaffolding/index.md).
 
@@ -113,7 +113,7 @@ For detailed scaffolding documentation, see the [Scaffolding Guide](../scaffoldi
 1. **Matching Service**: Multi-layered matching engine with direct and heuristic matching
 2. **Storage Service**: Azure Blob Storage integration for OKW facilities
 3. **Domain Registry**: Extensible domain system (manufacturing, cooking)
-4. **API Layer**: FastAPI-based REST API with comprehensive documentation
+4. **API Layer**: FastAPI-based REST API with documentation
 
 ### Data Flow
 
@@ -561,7 +561,7 @@ src/
 
 - Follow PEP 8
 - Use type hints
-- Write comprehensive docstrings
+- Write docstrings
 - Include error handling
 
 ### Testing
@@ -722,6 +722,6 @@ async def test_matching():
 - Use `asyncio.run()` for testing
 
 #### Error Handling
-- All endpoints include comprehensive error handling
+- All endpoints include error handling
 - Check logs for detailed error information
 - Use appropriate HTTP status codes

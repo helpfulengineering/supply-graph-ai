@@ -224,7 +224,7 @@ class ScaffoldService:
 
     # -------- Manifest Template --------
     def _create_manifest_template(self, options: ScaffoldOptions) -> Dict[str, Any]:
-        """Create a comprehensive OKH manifest template by introspecting OKHManifest dataclass.
+        """Create a OKH manifest template by introspecting OKHManifest dataclass.
 
         Uses dataclass introspection to generate templates with proper field types,
         required/optional indicators, and helpful placeholders based on template_level.

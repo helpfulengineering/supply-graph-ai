@@ -66,7 +66,7 @@ router = APIRouter(
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     
     **Features:**
     - Support for LLM-enhanced supply tree creation
@@ -102,7 +102,7 @@ async def create_supply_tree(
         http_request: HTTP request object for tracking
         
     Returns:
-        Enhanced supply tree response with comprehensive data
+        Enhanced supply tree response with data
     """
     request_id = getattr(http_request.state, 'request_id', None)
     start_time = datetime.now()
@@ -268,7 +268,7 @@ async def get_supply_tree(
     - Paginated results with sorting and filtering
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     """
 )
 @api_endpoint(

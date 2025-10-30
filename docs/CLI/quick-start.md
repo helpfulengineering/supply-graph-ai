@@ -2,7 +2,6 @@
 
 ## Getting Started in 5 Minutes
 
-This guide will get you up and running with the OME CLI quickly. The CLI now features **43 standardized commands** with comprehensive LLM integration, enterprise-grade error handling, and 100% test success rate.
 
 ### 1. Prerequisites
 

@@ -3,13 +3,13 @@ Generation Engine for OKH manifest generation.
 
 This module provides the main orchestration engine that coordinates all generation
 layers and manages progressive enhancement to create OKH manifests from project data.
-The engine supports both synchronous and asynchronous processing, with comprehensive
+The engine supports both synchronous and asynchronous processing, with
 error handling and quality assessment.
 
 Key Features:
 - Multi-layer processing with progressive enhancement
 - Async support for concurrent layer processing
-- Comprehensive error handling and recovery
+- Error handling and recovery
 - Quality assessment and reporting
 - LLM layer integration with fallback mechanisms
 - BOM normalization and processing
@@ -60,8 +60,8 @@ class GenerationEngine:
     
     This class coordinates all generation layers and manages the progressive
     enhancement process to create high-quality OKH manifests from project data.
-    It supports both synchronous and asynchronous processing with comprehensive
-    error handling and quality assessment.
+    It supports both synchronous and asynchronous processing with error handling 
+    and quality assessment.
     
     The engine follows a multi-layer approach:
     1. Direct mapping from platform metadata
@@ -181,9 +181,9 @@ class GenerationEngine:
         """
         Generate an OKH manifest from project data (synchronous version).
         
-        This method provides synchronous manifest generation with comprehensive
-        error handling and metrics tracking. For better performance with multiple
-        layers, consider using the async version.
+        This method provides synchronous manifest generation with error handling 
+        and metrics tracking. For better performance with multiple layers, 
+        consider using the async version.
         
         Args:
             project_data: Raw project data from platform
@@ -296,7 +296,7 @@ class GenerationEngine:
         Async version of generate_manifest for concurrent layer processing.
         
         This method provides asynchronous manifest generation with better performance
-        for multiple layers and comprehensive error handling. It supports concurrent
+        for multiple layers and error handling. It supports concurrent
         processing of independent layers and includes BOM normalization.
         
         Args:

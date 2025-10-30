@@ -359,7 +359,7 @@ class EdgeCaseDetector:
         return critical_issues
     
     def generate_edge_case_report(self, test_results: List[Dict]) -> Dict:
-        """Generate a comprehensive edge case detection report"""
+        """Generate a edge case detection report"""
         edge_cases = self.detect_edge_cases(test_results)
         
         report = {

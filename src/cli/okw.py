@@ -147,7 +147,7 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
     help_text="""
     Validate an OKW facility for compliance and completeness.
     
-    This command performs comprehensive validation of an OKW facility,
+    This command performs validation of an OKW facility,
     checking for required fields, proper formatting, and completeness
     according to the OKW specification.
     
@@ -755,7 +755,7 @@ async def extract_capabilities(ctx, facility_file: str,
     Upload and validate an OKW facility file.
     
     This command uploads an OKW facility file to the system and performs
-    comprehensive validation to ensure it meets the OKW specification.
+ validation to ensure it meets the OKW specification.
     
     When LLM is enabled, upload includes:
     - Enhanced validation with semantic analysis

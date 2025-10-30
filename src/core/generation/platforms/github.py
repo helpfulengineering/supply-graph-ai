@@ -22,7 +22,7 @@ class GitHubExtractor(ProjectExtractor):
     """
     Extractor for GitHub repositories with caching and authentication support.
     
-    This extractor provides comprehensive GitHub repository data extraction including:
+    This extractor provides GitHub repository data extraction including:
     - Repository metadata (name, description, license, topics, etc.)
     - File contents (README, LICENSE, BOM files, source code)
     - Documentation parsing
@@ -253,7 +253,7 @@ class GitHubExtractor(ProjectExtractor):
                 )
                 files.extend(additional_files)
                 
-                # Also scan the docs directory specifically for comprehensive file discovery
+                # Also scan the docs directory specifically for file discovery
                 try:
                     docs_response = await client.get(f"{self.base_url}/repos/{owner}/{repo}/contents/docs?ref=master")
                     if docs_response.status_code == 200:

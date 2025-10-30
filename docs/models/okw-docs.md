@@ -358,7 +358,7 @@ def from_dict(cls, data: Dict) -> 'ManufacturingFacility':
 ### 5. Accuracy and Completeness
 - Keep facility data up-to-date
 - Document equipment specifications thoroughly
-- Include comprehensive location information
+- Include location information
 - Specify all manufacturing capabilities
 
 ## Example Usage

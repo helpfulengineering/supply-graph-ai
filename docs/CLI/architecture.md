@@ -98,14 +98,14 @@ The main CLI entry point that:
 - Registers all 6 command groups with 36 total commands
 - Handles global options including LLM configuration
 - Provides version and configuration commands
-- Sets up the Click framework with comprehensive help system
+- Sets up the Click framework with help system
 - Manages LLM provider options and quality levels
 
 ## LLM Integration
 
 ### LLM Configuration
 
-The CLI supports comprehensive LLM integration across all commands:
+The CLI supports LLM integration across all commands:
 
 ```bash
 # Global LLM options

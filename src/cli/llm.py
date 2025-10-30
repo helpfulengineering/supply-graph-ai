@@ -12,7 +12,11 @@ from pathlib import Path
 from typing import Optional
 
 from ..core.llm.service import LLMService
-from ..core.llm.provider_selection import create_llm_service_with_selection, get_provider_selector
+from ..core.llm.provider_selection import (
+    create_llm_service_with_selection,
+    get_provider_selector,
+    default_model_for,
+)
 from ..core.llm.models.requests import LLMRequestConfig, LLMRequestType
 from ..core.generation.engine import GenerationEngine
 from ..core.generation.models import LayerConfig, ProjectData, PlatformType
@@ -47,29 +51,46 @@ def llm_group():
 
 async def _create_llm_service(provider: Optional[str] = None, model: Optional[str] = None) -> LLMService:
     """Create LLM service with automatic provider selection."""
+    # Apply a safe default model if provider is specified but model is not
+    effective_model = model
+    if provider and not model:
+        effective_model = _get_default_model(provider)
     return await create_llm_service_with_selection(
         cli_provider=provider,
-        cli_model=model,
+        cli_model=effective_model,
         verbose=True
     )
 
 
 def _get_default_model(provider: str) -> str:
-    """Get default model for provider."""
-    defaults = {
-        "anthropic": "claude-3-5-sonnet-20241022",
-        "openai": "gpt-4-turbo-preview",
-        "google": "gemini-pro",
-        "azure": "gpt-4-turbo-preview",
-        "local": "llama2:7b"
-    }
-    return defaults.get(provider, "claude-3-5-sonnet-20241022")
+    """Get default model for provider via centralized selector."""
+    return default_model_for(provider) or "claude-3-5-sonnet-latest"
 
 
 async def _generate_content(prompt: str, provider: Optional[str], model: Optional[str], 
                           max_tokens: int, temperature: float, timeout: int) -> dict:
     """Generate content using LLM service."""
     service = await _create_llm_service(provider, model)
+
+    # Force selected model on the active provider if explicitly specified
+    try:
+        if provider and model:
+            from ..core.llm.providers.base import LLMProviderType
+            prov_type = LLMProviderType(provider)
+            # Update service config defaults
+            service.config.default_provider = prov_type
+            service.config.default_model = model
+            # Update provider config if loaded
+            if hasattr(service, "_provider_configs") and prov_type in getattr(service, "_provider_configs", {}):
+                cfg = service._provider_configs[prov_type]
+                cfg.model = model
+            # Update live provider instance if connected
+            if hasattr(service, "_providers") and prov_type in getattr(service, "_providers", {}):
+                provider_inst = service._providers[prov_type]
+                provider_inst.config.model = model
+    except Exception:
+        # Best-effort; fall back to selection flow if override fails
+        pass
     
     try:
         config = LLMRequestConfig(
@@ -175,7 +196,7 @@ async def _generate_okh_manifest(project_url: str, provider: Optional[str], mode
       ome llm generate "Analyze this hardware project"
       
       # With specific provider and model
-      ome llm generate "Generate OKH manifest" --provider anthropic --model claude-3-5-sonnet-20241022
+      ome llm generate "Generate OKH manifest" --provider anthropic --model claude-3-5-sonnet-latest
       
       # Save to file with JSON format
       ome llm generate "Analyze project" --output result.json --format json
@@ -196,14 +217,27 @@ async def generate(ctx, prompt: str, provider: Optional[str], model: Optional[st
     cli_ctx.start_command_tracking("llm-generate")
     
     try:
-        result = await _generate_content(
-            prompt=prompt,
-            provider=provider,
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            timeout=timeout
-        )
+        # Resolve provider/model using CLI context defaults if not provided
+        selected_provider = provider or getattr(cli_ctx, 'llm_provider', None)
+        selected_model = model or getattr(cli_ctx, 'llm_model', None)
+        if selected_provider and not selected_model:
+            selected_model = _get_default_model(selected_provider)
+
+        try:
+            result = await _generate_content(
+                prompt=prompt,
+                provider=selected_provider,
+                model=selected_model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                timeout=timeout
+            )
+        except Exception as e:
+            cli_ctx.end_command_tracking()
+            raise click.ClickException(
+                f"LLM analyze failed: {e}. Provider={selected_provider or 'unknown'}, "
+                f"model={selected_model or 'unknown'}"
+            )
         
         # Format output
         if output:
@@ -249,8 +283,7 @@ async def generate(ctx, prompt: str, provider: Optional[str], model: Optional[st
     help_text="""
     Generate an OKH manifest for a hardware project using LLM.
     
-    This command analyzes a project URL and generates a comprehensive
-    OKH manifest using LLM-powered analysis and extraction.
+    This command analyzes a project URL and generates a OKH manifest using LLM-powered analysis and extraction.
     """,
     epilog="""
     Examples:
@@ -468,7 +501,7 @@ async def match(ctx, requirements_file: str, facilities_file: str, provider: Opt
     help_text="""
     Analyze a hardware project and extract information.
     
-    This command performs comprehensive analysis of a hardware project,
+    This command performs analysis of a hardware project,
     extracting key information about components, manufacturing, and specifications.
     """,
     epilog="""
@@ -476,7 +509,7 @@ async def match(ctx, requirements_file: str, facilities_file: str, provider: Opt
       # Basic project analysis
       ome llm analyze https://github.com/user/project
       
-      # Comprehensive analysis
+      # analysis
       ome llm analyze https://github.com/user/project --include-code --include-docs
       
       # JSON output
@@ -500,7 +533,7 @@ async def analyze(ctx, project_url: str, provider: Optional[str], model: Optiona
     
     try:
         # Create analysis prompt
-        analysis_parts = ["Analyze this hardware project and provide a comprehensive report."]
+        analysis_parts = ["Analyze this hardware project and provide a report."]
         
         if include_code:
             analysis_parts.append("Include detailed code analysis and technical specifications.")
@@ -531,6 +564,16 @@ async def analyze(ctx, project_url: str, provider: Optional[str], model: Optiona
             timeout=timeout
         )
         
+        # Guard: only proceed on success
+        if result.get('status') != 'success':
+            cli_ctx.end_command_tracking()
+            md = result.get('metadata', {}) or {}
+            err_provider = md.get('provider') or selected_provider or 'unknown'
+            err_model = md.get('model') or selected_model or 'unknown'
+            raise click.ClickException(
+                f"LLM analyze failed (status={result.get('status')}). Provider={err_provider}, model={err_model}"
+            )
+
         # Format output
         if output:
             output_path = Path(output)
@@ -621,7 +664,7 @@ def info_providers(ctx):
     # Show environment variable help
     click.echo("💡 Environment Variables:")
     click.echo("   LLM_PROVIDER=anthropic|openai|local")
-    click.echo("   LLM_MODEL=claude-3-5-sonnet-20241022")
+    click.echo("   LLM_MODEL=claude-sonnet-4-5-20250929")
     click.echo("   ANTHROPIC_API_KEY=your_key_here")
     click.echo("   OPENAI_API_KEY=your_key_here")
     click.echo("   OLLAMA_BASE_URL=http://localhost:11434 (optional)")
@@ -632,7 +675,7 @@ def info_providers(ctx):
 def list_providers(ctx):
     """List available LLM providers."""
     providers = [
-        {"name": "anthropic", "type": "anthropic", "status": "available", "default_model": "claude-3-5-sonnet-20241022"},
+        {"name": "anthropic", "type": "anthropic", "status": "available", "default_model": "claude-sonnet-4-5-20250929"},
         {"name": "openai", "type": "openai", "status": "available", "default_model": "gpt-4-turbo-preview"},
         {"name": "google", "type": "google", "status": "available", "default_model": "gemini-pro"},
         {"name": "azure", "type": "azure", "status": "available", "default_model": "gpt-4-turbo-preview"},

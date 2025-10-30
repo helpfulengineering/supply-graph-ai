@@ -1,7 +1,7 @@
 """
 Configuration module for the Open Matching Engine
 
-This module provides comprehensive configuration management for all aspects
+This module provides configuration management for all aspects
 of the OME system, including LLM providers, storage, domains, and validation.
 """
 

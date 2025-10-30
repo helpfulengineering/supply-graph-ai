@@ -1,7 +1,7 @@
 """
 Core error handling system for the Open Matching Engine
 
-This module provides a comprehensive error handling system with standardized
+This module provides a error handling system with standardized
 error types, exception hierarchy, and error handling patterns for all components
 of the OME system, including LLM operations.
 """

@@ -223,7 +223,7 @@ class CustomProcessRequirement(ProcessRequirement):
 2. **Validation**
    - Validate early and often
    - Use strong typing
-   - Include comprehensive metadata
+   - Include metadata
 
 3. **Extension**
    - Follow existing patterns

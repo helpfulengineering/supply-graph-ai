@@ -44,7 +44,7 @@ A complete project structure with:
 |-------|----------|---------|
 | `minimal` | Experienced developers | Basic placeholders |
 | `standard` | Most users | Detailed guidance + examples |
-| `detailed` | OKH newcomers | Comprehensive help + best practices |
+| `detailed` | OKH newcomers | Help + best practices |
 
 ## Output Formats
 

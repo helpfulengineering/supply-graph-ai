@@ -17,7 +17,7 @@ class OKWService(BaseService['OKWService']):
     """
     Service for managing OKW manufacturing facilities.
     
-    This service provides comprehensive functionality for:
+    This service provides functionality for:
     - Creating, reading, updating, and deleting OKW facilities
     - Validating OKW facility data
     - Managing OKW facility storage and retrieval

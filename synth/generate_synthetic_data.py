@@ -281,7 +281,7 @@ class OKHGenerator(SyntheticDataGenerator):
         return standards
     
     def generate_tool_list(self, template: Dict) -> List[str]:
-        """Generate comprehensive tool list based on manufacturing processes"""
+        """Generate tool list based on manufacturing processes"""
         tools = []
         
         # Add tools for each manufacturing process

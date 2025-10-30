@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) provides a powerful scaffolding system that generates opinionated, OKH-compliant project structures with comprehensive documentation stubs. This system helps developers quickly bootstrap new open hardware projects that work seamlessly with the OME ecosystem.
+The Open Matching Engine (OME) provides a powerful scaffolding system that generates opinionated, OKH-compliant project structures with documentation stubs. This system helps developers quickly bootstrap new open hardware projects that work seamlessly with the OME ecosystem.
 
 ## Quick Start
 
@@ -89,7 +89,7 @@ The scaffolding system provides three levels of documentation detail:
 
 ### Detailed
 - Full guidance with examples and best practices
-- Validation hints and comprehensive documentation
+- Validation hints and documentation
 - Ideal for newcomers to OKH
 
 ## API Reference

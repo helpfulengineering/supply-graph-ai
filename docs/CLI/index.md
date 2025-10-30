@@ -2,12 +2,12 @@
 
 ## Overview
 
-The Open Matching Engine (OME) Command Line Interface provides a comprehensive set of tools for managing OKH packages, OKW facilities, matching operations, and system administration. The CLI supports both HTTP API mode (when connected to a server) and fallback mode (direct service calls).
+The Open Matching Engine (OME) Command Line Interface provides a set of tools for managing OKH packages, OKW facilities, matching operations, and system administration. The CLI supports both HTTP API mode (when connected to a server) and fallback mode (direct service calls).
 
 
 ## Documentation Structure
 
-This directory contains comprehensive documentation for the OME CLI:
+This directory contains documentation for the OME CLI:
 
 - **📖 [Main Documentation](index.md)** - Complete CLI reference with all commands, options, and examples
 - **🚀 [Quick Start Guide](quick-start.md)** - Get up and running with the OME CLI in 5 minutes
@@ -379,7 +379,7 @@ ome okh scaffold PROJECT_NAME [OPTIONS]
 - **Template Levels**: Three levels of documentation detail (minimal, standard, detailed)
 - **Multiple Output Formats**: JSON blueprint, ZIP archive, or direct filesystem write
 - **Dedicated BOM Directory**: Separate `bom/` directory with CSV and Markdown templates
-- **Comprehensive Structure**: All OKH-compliant directories with appropriate documentation stubs
+- **Directory Structure**: All OKH-compliant directories with appropriate documentation stubs
 
 **Examples:**
 ```bash
@@ -845,7 +845,7 @@ ome system status
 ```
 
 **Output:**
-- Comprehensive system information
+- System information
 - Health status
 - Domain information
 - Version details

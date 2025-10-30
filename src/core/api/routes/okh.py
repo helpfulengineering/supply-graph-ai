@@ -86,7 +86,7 @@ async def get_storage_service() -> StorageService:
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     
     **Features:**
     - Support for LLM-enhanced manifest creation
@@ -116,7 +116,7 @@ async def create_okh(
         okh_service: OKH service dependency
         
     Returns:
-        Enhanced OKH response with comprehensive data
+        Enhanced OKH response with data
     """
     request_id = getattr(http_request.state, 'request_id', None)
     start_time = datetime.now()
@@ -235,7 +235,7 @@ async def get_okh(
     - Paginated results with sorting and filtering
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     """
 )
 @paginated_response(default_page_size=20, max_page_size=100)

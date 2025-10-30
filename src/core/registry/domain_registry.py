@@ -50,7 +50,7 @@ class DomainServices:
     orchestrator: Optional[Any] = None  # BaseOrchestrator when available
 
 class DomainRegistry:
-    """Unified registry for domain-specific components with comprehensive management"""
+    """Unified registry for domain-specific components with management"""
     _domains: Dict[str, DomainServices] = {}
     _type_mappings: Dict[str, str] = {}
     

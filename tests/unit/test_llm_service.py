@@ -30,14 +30,14 @@ class TestLLMService:
         """Create a mock Anthropic provider."""
         provider = Mock(spec=AnthropicProvider)
         provider.config = Mock()
-        provider.config.model = "claude-3-5-sonnet-20241022"
+        provider.config.model = "claude-3-5-sonnet-latest"
         provider.is_connected = True
         provider.connect = AsyncMock()
         provider.disconnect = AsyncMock()
         provider.health_check = AsyncMock(return_value=True)
         provider.generate = AsyncMock()
         provider.estimate_cost = Mock(return_value=0.001)
-        provider.get_available_models = Mock(return_value=["claude-3-5-sonnet-20241022"])
+        provider.get_available_models = Mock(return_value=["claude-3-5-sonnet-latest"])
         return provider
     
     @pytest.fixture
@@ -46,7 +46,7 @@ class TestLLMService:
         return LLMServiceConfig(
             name="test-llm-service",
             default_provider=LLMProviderType.ANTHROPIC,
-            default_model="claude-3-5-sonnet-20241022",
+            default_model="claude-3-5-sonnet-latest",
             max_retries=3,
             retry_delay=0.1,  # Fast for testing
             timeout=10,
@@ -67,7 +67,7 @@ class TestLLMService:
             service._providers[LLMProviderType.ANTHROPIC] = mock_anthropic_provider
             service._provider_configs[LLMProviderType.ANTHROPIC] = LLMProviderConfig(
                 provider_type=LLMProviderType.ANTHROPIC,
-                model="claude-3-5-sonnet-20241022"
+                model="claude-3-5-sonnet-latest"
             )
             service._active_provider = LLMProviderType.ANTHROPIC
             service.status = ServiceStatus.ACTIVE  # Mock as initialized
@@ -90,7 +90,7 @@ class TestLLMService:
         config = LLMServiceConfig()
         
         assert config.default_provider == LLMProviderType.ANTHROPIC
-        assert config.default_model == "claude-3-5-sonnet-20241022"
+        assert config.default_model == "claude-3-5-sonnet-latest"
         assert config.max_retries == 3
         assert config.retry_delay_seconds == 1.0
         assert config.timeout_seconds == 30
@@ -105,7 +105,7 @@ class TestLLMService:
         # Mock successful response
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-latest",
             tokens_used=10,
             cost=0.001,
             processing_time=1.0
@@ -139,7 +139,7 @@ class TestLLMService:
             content="Custom response",
             status=LLMResponseStatus.SUCCESS,
             provider="anthropic",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-latest",
             tokens_used=20,
             cost=0.002
         )
@@ -175,7 +175,7 @@ class TestLLMService:
             content="Provider-specific response",
             status=LLMResponseStatus.SUCCESS,
             provider="anthropic",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-latest",
             tokens_used=15,
             cost=0.0015
         )
@@ -239,9 +239,9 @@ class TestLLMService:
         status = await llm_service.get_provider_status(LLMProviderType.ANTHROPIC)
         
         assert status["status"] == "healthy"
-        assert status["model"] == "claude-3-5-sonnet-20241022"
+        assert status["model"] == "claude-3-5-sonnet-latest"
         assert status["is_connected"] is True
-        assert "claude-3-5-sonnet-20241022" in status["available_models"]
+        assert "claude-3-5-sonnet-latest" in status["available_models"]
     
     @pytest.mark.asyncio
     async def test_get_provider_status_not_available(self, llm_service):
@@ -259,7 +259,7 @@ class TestLLMService:
             content="Test response",
             status=LLMResponseStatus.SUCCESS,
             provider="anthropic",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-latest",
             tokens_used=10,
             cost=0.001
         )
@@ -339,7 +339,7 @@ class TestLLMService:
             content="Concurrent response",
             status=LLMResponseStatus.SUCCESS,
             provider="anthropic",
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-5-sonnet-latest",
             tokens_used=10,
             cost=0.001
         )

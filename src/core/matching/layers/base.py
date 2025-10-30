@@ -13,7 +13,7 @@ The base layer architecture provides:
 - Result processing and validation
 
 All matching layers inherit from BaseMatchingLayer and must implement
-the async match() method. The base class provides comprehensive utilities
+the async match() method. The base class provides utilities
 for string matching, confidence calculation, and result processing.
 """
 

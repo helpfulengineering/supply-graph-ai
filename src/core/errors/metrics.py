@@ -1,7 +1,7 @@
 """
 Metrics and monitoring system for the Open Matching Engine
 
-This module provides comprehensive metrics collection for errors,
+This module provides metrics collection for errors,
 performance, and LLM operations with real-time monitoring capabilities.
 """
 
@@ -154,7 +154,7 @@ class ErrorMetrics:
             )
     
     def get_error_summary(self) -> Dict[str, Any]:
-        """Get comprehensive error summary"""
+        """Get error summary"""
         with self._lock:
             total_errors = sum(self.error_counts.values())
             
@@ -279,7 +279,7 @@ class PerformanceMetrics:
                 self.resource_usage[resource_type] = self.resource_usage[resource_type][-1000:]
     
     def get_performance_summary(self) -> Dict[str, Any]:
-        """Get comprehensive performance summary"""
+        """Get performance summary"""
         with self._lock:
             summary = {
                 "operation_stats": {},
@@ -428,7 +428,7 @@ class LLMMetrics:
             self.usage_timeline.append(usage_event)
     
     def get_llm_summary(self) -> Dict[str, Any]:
-        """Get comprehensive LLM metrics summary"""
+        """Get LLM metrics summary"""
         with self._lock:
             total_cost = sum(stats["total_cost"] for stats in self.provider_stats.values())
             total_requests = sum(stats["requests"] for stats in self.provider_stats.values())

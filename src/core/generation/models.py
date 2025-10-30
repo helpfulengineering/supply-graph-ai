@@ -6,7 +6,7 @@ including enums, dataclasses, and result types. These models provide the foundat
 for the multi-layer generation system and support for LLM integration.
 
 The models are designed to be:
-- Type-safe with comprehensive type annotations
+- Type-safe with type annotations
 - Extensible for new generation layers
 - Compatible with async operations
 - Well-documented for maintainability
@@ -443,7 +443,7 @@ class ManifestGeneration:
     
     def _get_files_field(self) -> List[Dict[str, Any]]:
         """
-        Get the files field with comprehensive file inventory.
+        Get the files field with file inventory.
         
         Returns:
             List of file information dictionaries
@@ -510,7 +510,7 @@ class LayerConfig:
     """
     Enhanced configuration for generation layers with validation and layer-specific settings.
     
-    This dataclass provides comprehensive configuration for all generation layers,
+    This dataclass provides configuration for all generation layers,
     including the new LLM layer. It supports both global settings and layer-specific
     configurations for fine-tuning the generation process.
     
@@ -593,7 +593,7 @@ class LayerConfig:
         }
         default_llm_config = {
             "provider": "anthropic",  # openai, anthropic, local, etc.
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-3-5-sonnet-latest",
             "max_tokens": 1000,
             "temperature": 0.1,
             "timeout": 30,

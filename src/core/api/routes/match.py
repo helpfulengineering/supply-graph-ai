@@ -84,7 +84,7 @@ async def get_okh_service() -> OKHService:
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
-    - Comprehensive validation
+    - Validation
     
     **Features:**
     - Support for multiple input formats (manifest, ID, URL)
@@ -124,7 +124,7 @@ async def match_requirements_to_capabilities(
         okh_service: OKH service dependency
         
     Returns:
-        Enhanced match response with comprehensive data
+        Enhanced match response with data
     """
     request_id = getattr(http_request.state, 'request_id', None)
     start_time = datetime.now()
