@@ -40,12 +40,12 @@ The OME addresses these challenges through a modular, multi-stage approach:
 
 ### 1. Component Architecture
 
-OME is built as four independent but interoperable components:
+OME is built with independent but interoperable components:
 
-- **OME.extraction**: Converts unstructured input into normalized formats
+- **OME.generation**: Converts unstructured input into normalized formats
 - **OME.analysis**: Identifies requirements and capabilities
 - **OME.matching**: Generates and validates manufacturing solutions
-- **OME.routing**: Optimizes material and facility routing
+- **OME.packaging**: Builds and stores complete projects
 
 Each component can be used independently or as part of an integrated pipeline.
 
@@ -64,7 +64,7 @@ At the core of OME is the Supply Tree data structure, which:
 OME uses increasingly sophisticated processing stages:
 
 #### **Exact Matching**
-   - Direct requirement-to-capability mapping
+   - Direct string mapping
    - Precise specification matching
    - Unambiguous validation
 

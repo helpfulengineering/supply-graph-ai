@@ -115,6 +115,8 @@ This shows:
 - [Configuration](configuration.md) - LLM provider setup and configuration
 - [API Reference](api.md) - REST API endpoints for LLM operations
 - [CLI Commands](cli.md) - Command-line interface for LLM features
+- [Quick Start](llm-quick-start.md) - Getting started with using the LLM Service
+- [LLM Service](llm-service.md) - Complete docs on LLM Service
 - [Generation Layer](generation.md) - OKH manifest generation with LLM
 - [Matching Layer](TBD) - Facility matching with LLM enhancement
 - [Examples](examples.md) - Usage examples and best practices
