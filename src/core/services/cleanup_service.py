@@ -17,6 +17,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+import re
 
 
 @dataclass
@@ -99,6 +100,18 @@ class CleanupService:
                 except Exception as e:
                     result.warnings.append(f"Failed to inspect/remove directory {d}: {e}")
 
+        # Pass 3: detect broken links in remaining markdown files (if files were removed)
+        if result.removed_files:
+            broken_links = self._detect_broken_links(root, result.removed_files)
+            if broken_links:
+                for file_path, broken_link_targets in broken_links.items():
+                    targets_str = ", ".join(broken_link_targets[:3])  # Limit to first 3
+                    if len(broken_link_targets) > 3:
+                        targets_str += f", ... ({len(broken_link_targets)} total)"
+                    result.warnings.append(
+                        f"Broken link(s) in {file_path}: {targets_str}"
+                    )
+
         return result
 
     # -------- Helpers --------
@@ -152,5 +165,123 @@ class CleanupService:
             return strip_title(current) == strip_title(stub)
 
         return False
+
+    def _detect_broken_links(self, root: Path, removed_files: List[str]) -> Dict[str, List[str]]:
+        """Detect broken links in remaining markdown files after cleanup.
+        
+        Scans all remaining markdown files for links that point to files that
+        were removed during cleanup. Returns a dictionary mapping file paths
+        to lists of broken link targets.
+        
+        Args:
+            root: Project root directory
+            removed_files: List of file paths (strings) that were removed
+            
+        Returns:
+            Dict mapping file_path (str) to list of broken link targets (str)
+        """
+        broken_links: Dict[str, List[str]] = {}
+        
+        # Create set of removed file paths for quick lookup
+        # Normalize paths to handle both absolute and relative paths
+        removed_paths = set()
+        removed_file_names = set()
+        
+        for removed_file in removed_files:
+            removed_path = Path(removed_file)
+            
+            # Add resolved absolute path
+            try:
+                if removed_path.is_absolute():
+                    removed_paths.add(removed_path.resolve())
+                else:
+                    # Relative path - resolve relative to root
+                    resolved = (root / removed_path).resolve()
+                    removed_paths.add(resolved)
+            except (ValueError, OSError):
+                # Path resolution failed, skip
+                pass
+            
+            # Add relative path from root for matching
+            try:
+                rel_path = removed_path.relative_to(root) if removed_path.is_absolute() else removed_path
+                removed_paths.add(rel_path)
+            except ValueError:
+                # Path not relative to root, skip
+                pass
+            
+            removed_file_names.add(removed_path.name)
+        
+        # Scan all remaining markdown files
+        for md_file in root.rglob("*.md"):
+            # Skip files that were removed
+            md_resolved = md_file.resolve()
+            md_str = str(md_file)
+            md_relative = None
+            try:
+                md_relative = md_file.relative_to(root)
+            except ValueError:
+                pass
+            
+            # Check if this file was removed (multiple checks for robustness)
+            if (md_resolved in removed_paths or 
+                md_str in removed_files or 
+                str(md_resolved) in removed_files or
+                (md_relative and md_relative in removed_paths)):
+                continue
+            
+            try:
+                content = md_file.read_text(encoding="utf-8")
+            except Exception:
+                # Skip unreadable files
+                continue
+            
+            # Extract markdown links: [text](path) or [text](path "title")
+            # Pattern matches: [optional text](path with spaces or special chars)
+            link_pattern = r'\[([^\]]*)\]\(([^)]+)\)'
+            matches = re.findall(link_pattern, content)
+            
+            broken_targets = []
+            for link_text, link_path in matches:
+                # Remove title/query if present: path "title" -> path
+                link_path = link_path.split('"')[0].strip()
+                
+                # Skip anchor links, external URLs, and empty paths
+                if not link_path or link_path.startswith('#') or '://' in link_path:
+                    continue
+                
+                # Resolve the link path relative to the markdown file's location
+                try:
+                    # Handle relative paths (../foo/bar.md)
+                    if link_path.startswith('../') or link_path.startswith('./'):
+                        link_resolved = (md_file.parent / link_path).resolve()
+                    else:
+                        # Relative path from file's directory
+                        link_resolved = (md_file.parent / link_path).resolve()
+                    
+                    # Check if the resolved path points to a removed file
+                    if link_resolved in removed_paths:
+                        broken_targets.append(link_path)
+                    # Also check by filename (in case path resolution differs)
+                    elif link_resolved.name in removed_file_names and not link_resolved.exists():
+                        broken_targets.append(link_path)
+                except (ValueError, OSError):
+                    # Path resolution failed, check if filename matches removed files
+                    link_file_name = Path(link_path).name
+                    if link_file_name in removed_file_names:
+                        # Only add if file doesn't exist (to avoid false positives)
+                        test_path = md_file.parent / link_path
+                        if not test_path.exists():
+                            broken_targets.append(link_path)
+            
+            if broken_targets:
+                # Use relative path from root for cleaner output
+                try:
+                    rel_file_path = md_file.relative_to(root)
+                    broken_links[str(rel_file_path)] = broken_targets
+                except ValueError:
+                    broken_links[str(md_file)] = broken_targets
+        
+        return broken_links
 
 

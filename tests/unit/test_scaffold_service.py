@@ -12,11 +12,12 @@ import os
 from pathlib import Path
 from typing import Dict, Any
 
-# Add src to path for imports
+# Add project root to path for imports (so both 'src' and relative imports work)
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+sys.path.insert(0, project_root)
 
-from core.services.scaffold_service import ScaffoldService, ScaffoldOptions, ScaffoldResult
+from src.core.services.scaffold_service import ScaffoldService, ScaffoldOptions, ScaffoldResult
 
 
 class TestScaffoldService:
@@ -408,13 +409,18 @@ class TestScaffoldService:
         """Test field template generation for different types."""
         options = ScaffoldOptions(
             project_name="test-project",
+            version="1.0.0",
             template_level="standard",
             output_format="json"
         )
         
+        # Create a simple mock field object with type attribute (how dataclasses.Field works)
+        class MockField:
+            def __init__(self, field_type):
+                self.type = field_type
+        
         # Test string field
-        from dataclasses import Field as DataclassField
-        string_field = DataclassField(name="test_string", type=str)
+        string_field = MockField(str)
         template = scaffold_service._generate_field_template("test_string", string_field, options, True)
         assert isinstance(template, str)
         assert "[REQUIRED:" in template
@@ -574,6 +580,48 @@ class TestScaffoldService:
             assert section_name in mkdocs_yml
             # Check that bridge page path appears (relative to docs_dir)
             assert nav_path in mkdocs_yml
+
+
+    def test_cross_references_in_docs(self, scaffold_service):
+        """Test that docs pages contain cross-references to related sections."""
+        for level in ["standard", "detailed"]:
+            options = ScaffoldOptions(
+                project_name="test-project",
+                template_level=level,
+                output_format="json"
+            )
+            
+            # Test docs/assembly.md has cross-references
+            assembly_docs = scaffold_service._template_assembly_docs(options)
+            assert "making-instructions" in assembly_docs.lower()
+            assert "../making-instructions/" in assembly_docs
+            
+            # Test docs/manufacturing.md has cross-references
+            manufacturing_docs = scaffold_service._template_manufacturing_docs(options)
+            assert "bom" in manufacturing_docs.lower() or "bill of materials" in manufacturing_docs.lower()
+            assert "../bom/" in manufacturing_docs or "../manufacturing-files/" in manufacturing_docs
+            
+            # Test docs/getting-started.md has cross-references
+            getting_started = scaffold_service._template_getting_started(options)
+            assert "bom" in getting_started.lower() or "bill of materials" in getting_started.lower()
+            assert "../bom/" in getting_started or "../making-instructions/" in getting_started
+            
+            # Test docs/development.md has cross-references
+            development = scaffold_service._template_development(options)
+            assert "software" in development.lower() or "../software/" in development
+    
+    def test_assembly_guide_cross_references(self, scaffold_service):
+        """Test that assembly-guide.md links back to docs/assembly.md."""
+        for level in ["standard", "detailed"]:
+            options = ScaffoldOptions(
+                project_name="test-project",
+                template_level=level,
+                output_format="json"
+            )
+            
+            assembly_guide = scaffold_service._template_assembly_guide(options)
+            assert "assembly" in assembly_guide.lower()
+            assert "../docs/assembly.md" in assembly_guide or "docs/assembly.md" in assembly_guide
 
 
 if __name__ == "__main__":

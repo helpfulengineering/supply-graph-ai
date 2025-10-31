@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 from pathlib import Path
+import re
 
 # NOTE: Keep imports local where feasible to avoid circular deps during import
 # from src.core.models.okh import OKHManifest  # Imported lazily in methods
@@ -156,6 +157,8 @@ class ScaffoldService:
         """Create a filesystem-friendly project root directory name."""
         safe = project_name.strip().lower()
         safe = "-".join(part for part in safe.replace("_", "-").split())
+        # Collapse multiple consecutive hyphens to a single hyphen
+        safe = re.sub(r'-+', '-', safe)
         return safe
 
     def _create_directory_blueprint(self, project_root: str, options: ScaffoldOptions) -> Dict[str, Any]:
@@ -385,9 +388,9 @@ class ScaffoldService:
         setf(("docs",), "index.md", self._template_docs_home(options))
         setf(("docs",), "getting-started.md", self._template_getting_started(options))
         setf(("docs",), "development.md", self._template_development(options))
-        setf(("docs",), "manufacturing.md", self._template_index("Manufacturing", options))
-        setf(("docs",), "assembly.md", self._template_index("Assembly", options))
-        setf(("docs",), "maintenance.md", self._template_index("Maintenance", options))
+        setf(("docs",), "manufacturing.md", self._template_manufacturing_docs(options))
+        setf(("docs",), "assembly.md", self._template_assembly_docs(options))
+        setf(("docs",), "maintenance.md", self._template_maintenance_docs(options))
         
         # Section bridge pages (docs/sections/*.md) - link to actual OKH directories
         setf(("docs", "sections"), "bom.md", self._template_section_bridge("Bill of Materials", "bom", options))
@@ -664,10 +667,22 @@ class ScaffoldService:
             )
 
     def _template_assembly_guide(self, options: ScaffoldOptions) -> str:
-        return (
+        """Generate assembly guide template with cross-references."""
+        base_content = (
             "# Assembly Guide\n\n"
             "Provide step-by-step assembly instructions with images as needed."
         )
+        
+        if options.template_level in ("standard", "detailed"):
+            cross_refs = (
+                "\n## Related Documentation\n\n"
+                "See also:\n"
+                "- [Assembly Documentation](../docs/assembly.md) - Overview of assembly process\n"
+                "- [Making Instructions Index](../making-instructions/index.md) - All making instructions\n"
+            )
+            return base_content + cross_refs
+        
+        return base_content
 
     def _template_docs_home(self, options: ScaffoldOptions) -> str:
         """Generate docs/index.md template with links to all section directories."""
@@ -698,18 +713,134 @@ class ScaffoldService:
         return base_content + section_links + "\n"
 
     def _template_getting_started(self, options: ScaffoldOptions) -> str:
-        return (
+        """Generate getting-started.md template with cross-references to key sections."""
+        base_content = (
             "# Getting Started\n\n"
             "1. Install MkDocs: `pip install mkdocs`\n"
             "2. Serve docs locally: `mkdocs serve`\n"
-            "3. Edit `okh-manifest.json` to define your project per OKH."
+            "3. Edit `okh-manifest.json` to define your project per OKH.\n"
         )
+        
+        if options.template_level in ("standard", "detailed"):
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "- [Bill of Materials](../bom/index.md) - See what parts you need\n"
+                "- [Making Instructions](../making-instructions/index.md) - Learn how to build it\n"
+                "- [Operating Instructions](../operating-instructions/index.md) - Understand how to use it\n"
+            )
+            return base_content + cross_refs
+        
+        return base_content
 
     def _template_development(self, options: ScaffoldOptions) -> str:
-        return (
+        """Generate development.md template with cross-references."""
+        base_content = (
             "# Development Guide\n\n"
             "Describe development workflows, testing, and contribution practices."
         )
+        
+        if options.template_level in ("standard", "detailed"):
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "- [Software](../software/index.md) - Project software and firmware\n"
+                "- [Design Files](../design-files/index.md) - CAD files and technical drawings\n"
+                "- [Schematics](../schematics/index.md) - Electrical schematics\n"
+            )
+            return base_content + cross_refs
+        
+        return base_content
+    
+    def _template_assembly_docs(self, options: ScaffoldOptions) -> str:
+        """Generate docs/assembly.md template with cross-references to making-instructions."""
+        base_content = (
+            "# Assembly\n\n"
+            "Documentation about the assembly process for this project.\n"
+        )
+        
+        if options.template_level == "minimal":
+            return base_content + "\n[Add assembly documentation]"
+        elif options.template_level == "standard":
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "- [Making Instructions](../making-instructions/index.md) - Detailed build instructions\n"
+                "- [Assembly Guide](../making-instructions/assembly-guide.md) - Step-by-step assembly guide\n"
+                "- [Tool Settings](../tool-settings/index.md) - Required tools and configurations\n"
+            )
+            return base_content + cross_refs
+        else:  # detailed
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "### Build Instructions\n"
+                "- [Making Instructions](../making-instructions/index.md) - All making and assembly instructions\n"
+                "- [Assembly Guide](../making-instructions/assembly-guide.md) - Detailed step-by-step assembly guide\n\n"
+                "### Supporting Documentation\n"
+                "- [Tool Settings](../tool-settings/index.md) - Required tools, machines, and their configurations\n"
+                "- [Bill of Materials](../bom/index.md) - Parts and components needed for assembly\n"
+                "- [Parts](../parts/index.md) - Part-specific documentation and files\n"
+            )
+            return base_content + cross_refs
+    
+    def _template_manufacturing_docs(self, options: ScaffoldOptions) -> str:
+        """Generate docs/manufacturing.md template with cross-references to manufacturing sections."""
+        base_content = (
+            "# Manufacturing\n\n"
+            "Documentation about manufacturing processes for this project.\n"
+        )
+        
+        if options.template_level == "minimal":
+            return base_content + "\n[Add manufacturing documentation]"
+        elif options.template_level == "standard":
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "- [Bill of Materials](../bom/index.md) - Required parts and components\n"
+                "- [Manufacturing Files](../manufacturing-files/index.md) - Manufacturing documentation\n"
+                "- [Tool Settings](../tool-settings/index.md) - Manufacturing tools and configurations\n"
+                "- [Quality Instructions](../quality-instructions/index.md) - Quality control and testing\n"
+            )
+            return base_content + cross_refs
+        else:  # detailed
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "### Core Manufacturing Resources\n"
+                "- [Bill of Materials](../bom/index.md) - Complete list of parts, quantities, and suppliers\n"
+                "- [Manufacturing Files](../manufacturing-files/index.md) - Assembly guides, compliance docs, and manufacturing specifications\n"
+                "- [Tool Settings](../tool-settings/index.md) - Machine configurations, tool parameters, and setup instructions\n\n"
+                "### Quality and Safety\n"
+                "- [Quality Instructions](../quality-instructions/index.md) - QC checklists, testing protocols, and quality standards\n"
+                "- [Risk Assessment](../risk-assessment/index.md) - Safety documentation and risk analysis\n\n"
+                "### Supporting Documentation\n"
+                "- [Design Files](../design-files/index.md) - CAD models and technical drawings\n"
+                "- [Parts](../parts/index.md) - Part-specific manufacturing documentation\n"
+            )
+            return base_content + cross_refs
+    
+    def _template_maintenance_docs(self, options: ScaffoldOptions) -> str:
+        """Generate docs/maintenance.md template with cross-references to operating instructions."""
+        base_content = (
+            "# Maintenance\n\n"
+            "Documentation about maintaining and servicing this project.\n"
+        )
+        
+        if options.template_level == "minimal":
+            return base_content + "\n[Add maintenance documentation]"
+        elif options.template_level == "standard":
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "- [Operating Instructions](../operating-instructions/index.md) - User manuals and maintenance guides\n"
+                "- [Quality Instructions](../quality-instructions/index.md) - Testing and quality procedures\n"
+            )
+            return base_content + cross_refs
+        else:  # detailed
+            cross_refs = (
+                "\n## Related Sections\n\n"
+                "### User Documentation\n"
+                "- [Operating Instructions](../operating-instructions/index.md) - User manuals, operating procedures, and maintenance schedules\n\n"
+                "### Maintenance Resources\n"
+                "- [Quality Instructions](../quality-instructions/index.md) - Testing protocols and quality checks for maintenance\n"
+                "- [Parts](../parts/index.md) - Part-specific maintenance documentation\n"
+                "- [Schematics](../schematics/index.md) - Electrical schematics for troubleshooting\n"
+            )
+            return base_content + cross_refs
     
     def _template_section_bridge(self, section_name: str, section_dir: str, options: ScaffoldOptions) -> str:
         """Generate bridge page in docs/sections/ that links to actual OKH section directory.

@@ -52,6 +52,10 @@ ome okh validate okh-manifest.json
 
 # 5. Build documentation with MkDocs
 mkdocs serve  # Or mkdocs build
+# The scaffold includes interlinked documentation:
+# - Bi-directional links between docs/ and section directories
+# - Cross-references in assembly, manufacturing, and maintenance docs
+# - Bridge pages in docs/sections/ for full MkDocs navigation
 
 # 6. Use in matching operations
 ome match requirements okh-manifest.json
@@ -63,7 +67,7 @@ ome package build okh-manifest.json
 ### Clean Up Scaffolded Projects
 
 ```bash
-# 1. Preview cleanup to see what would be removed
+# 1. Preview cleanup to see what would be removed (dry-run)
 ome okh scaffold-cleanup ./projects/my-hardware-project
 
 # 2. Apply cleanup to remove unmodified stubs and empty directories
@@ -71,7 +75,23 @@ ome okh scaffold-cleanup ./projects/my-hardware-project --apply
 
 # 3. Apply cleanup but keep empty directories
 ome okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-empty-directories
+
+# 4. Preview cleanup with user-modified files (shows which files will be preserved)
+# (User-modified files are automatically preserved)
+ome okh scaffold-cleanup ./projects/my-hardware-project
+
+# 5. Check for broken links after cleanup
+ome okh scaffold-cleanup ./projects/my-hardware-project --apply
+# Output will show "Broken Link Warnings" section if any links are broken
 ```
+
+**Note on Broken Links:**
+Cleanup automatically detects broken links after removing files. If a file you're keeping has links to files that were removed, you'll see warnings like:
+```
+🔗 Broken Link Warnings:
+   ⚠️  Broken link(s) in docs/index.md: ../bom/index.md
+```
+You can then manually fix these links or restore the removed files if needed.
 
 ### Batch Project Generation
 
