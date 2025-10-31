@@ -1,0 +1,5 @@
+item,quantity,unit,notes,supplier,part_number,cost
+Example Part,1,pcs,Example entry,Supplier Name,PART-001,$5.00
+PLA Filament,250,g,3D printing material,Local Supplier,PLA-250,$15.00
+Arduino Uno,1,pcs,Microcontroller board,Arduino,ARDUINO-UNO,$25.00
+Resistor 10kΩ,5,pcs,10k ohm resistor,Electronics Store,RES-10K,$0.10

@@ -66,9 +66,15 @@ ome okh scaffold quick-prototype --template-level minimal --output-format json
 - `filesystem`: Writes directly to specified directory
 
 **Template Levels:**
-- `minimal`: Basic placeholders for experienced developers
-- `standard`: Detailed guidance with examples (default)
-- `detailed`: Comprehensive help with best practices
+- `minimal`: Basic placeholders for experienced developers (no cross-references)
+- `standard`: Detailed guidance with examples and cross-references (default)
+- `detailed`: Comprehensive help with grouped cross-references and best practices
+
+**Documentation Linking:**
+The scaffold includes comprehensive interlinking between documentation sections:
+- **Bi-directional Links**: All section directories link back to `docs/index.md`, and `docs/index.md` links to all sections
+- **Cross-References**: Documentation pages (assembly, manufacturing, maintenance, etc.) include links to related sections
+- **MkDocs Navigation**: Bridge pages in `docs/sections/` enable full MkDocs navigation while preserving OKH structure
 
 ### 4.5. Clean Up a Scaffolded Project
 
@@ -87,6 +93,8 @@ Flags:
 - `--apply`: perform changes (default is dry-run)
 - `--remove-unmodified-stubs/--keep-unmodified-stubs` (default: remove)
 - `--remove-empty-directories/--keep-empty-directories` (default: remove)
+
+**Note**: Cleanup automatically detects broken links after removing files. Broken link warnings are displayed separately for visibility.
 
 ### 5. Build Your First Package
 

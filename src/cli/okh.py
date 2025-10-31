@@ -1339,9 +1339,20 @@ async def scaffold_cleanup(ctx, project_path: str, apply: bool,
 
             warnings = data.get('warnings', [])
             if warnings:
-                click.echo("\n⚠️  Warnings:")
-                for w in warnings:
-                    click.echo(f"   - {w}")
+                # Separate broken link warnings from other warnings
+                broken_link_warnings = [w for w in warnings if "Broken link" in w or "broken link" in w.lower()]
+                other_warnings = [w for w in warnings if w not in broken_link_warnings]
+                
+                if broken_link_warnings:
+                    click.echo("\n🔗 Broken Link Warnings:")
+                    for w in broken_link_warnings:
+                        # Style broken link warnings more prominently
+                        cli_ctx.log(f"   {w}", "warning")
+                
+                if other_warnings:
+                    click.echo("\n⚠️  Other Warnings:")
+                    for w in other_warnings:
+                        click.echo(f"   - {w}")
 
         cli_ctx.end_command_tracking()
     except Exception as e:
