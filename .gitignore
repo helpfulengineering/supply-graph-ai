@@ -180,6 +180,7 @@ packages/
 test-data/
 temp_matching_context/
 temp_context/
+projects/
 
 #cursor files
 .cursorrules
