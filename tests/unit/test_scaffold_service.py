@@ -462,6 +462,118 @@ class TestScaffoldService:
         # Test detailed level
         placeholder = scaffold_service._get_placeholder("Test description", True, options_detailed)
         assert "[REQUIRED: Test description]" in placeholder
+    
+    def test_docs_home_contains_section_links(self, scaffold_service):
+        """Test that docs/index.md contains links to all section directories."""
+        for level in ["minimal", "standard", "detailed"]:
+            options = ScaffoldOptions(
+                project_name="test-project",
+                template_level=level,
+                output_format="json"
+            )
+            
+            docs_home = scaffold_service._template_docs_home(options)
+            
+            # Verify Project Sections header exists
+            assert "## Project Sections" in docs_home
+            
+            # Verify links to all section directories
+            section_links = [
+                ("Bill of Materials", "../bom/index.md"),
+                ("Making Instructions", "../making-instructions/index.md"),
+                ("Operating Instructions", "../operating-instructions/index.md"),
+                ("Design Files", "../design-files/index.md"),
+                ("Manufacturing Files", "../manufacturing-files/index.md"),
+                ("Software", "../software/index.md"),
+                ("Schematics", "../schematics/index.md"),
+                ("Parts", "../parts/index.md"),
+                ("Tool Settings", "../tool-settings/index.md"),
+                ("Quality Instructions", "../quality-instructions/index.md"),
+                ("Risk Assessment", "../risk-assessment/index.md"),
+            ]
+            
+            for section_name, link_path in section_links:
+                assert f"[{section_name}]({link_path})" in docs_home
+    
+    def test_section_index_contains_back_links(self, scaffold_service):
+        """Test that section index.md files contain back-links to docs/index.md."""
+        for level in ["minimal", "standard", "detailed"]:
+            options = ScaffoldOptions(
+                project_name="test-project",
+                template_level=level,
+                output_format="json"
+            )
+            
+            # Test generic index template
+            index = scaffold_service._template_index("Test Section", options)
+            assert "[← Back to Documentation](../docs/index.md)" in index
+            
+            # Test BOM index template
+            bom_index = scaffold_service._template_bom_index(options)
+            assert "[← Back to Documentation](../docs/index.md)" in bom_index
+    
+    def test_mkdocs_yaml_configuration(self, scaffold_service):
+        """Test that mkdocs.yml uses default docs_dir with paths relative to docs_dir."""
+        options = ScaffoldOptions(
+            project_name="test-project",
+            template_level="standard",
+            output_format="json"
+        )
+        
+        mkdocs_yml = scaffold_service._template_mkdocs_yaml("test-project")
+        
+        # Verify docs_dir is NOT set (uses default 'docs')
+        # MkDocs doesn't allow docs_dir to be '.' (parent of config file)
+        assert "docs_dir: ." not in mkdocs_yml
+        assert "docs_dir: '.'" not in mkdocs_yml
+        
+        # Verify site_name is correct
+        assert "site_name: test-project" in mkdocs_yml
+        
+        # Verify navigation paths are relative to docs_dir (docs/)
+        # Files in docs/ use simple paths
+        assert "index.md" in mkdocs_yml
+        assert "getting-started.md" in mkdocs_yml
+        assert "development.md" in mkdocs_yml
+        assert "manufacturing.md" in mkdocs_yml
+        assert "assembly.md" in mkdocs_yml
+        assert "maintenance.md" in mkdocs_yml
+        
+        # Verify paths don't include 'docs/' prefix (they're relative to docs_dir)
+        assert "docs/index.md" not in mkdocs_yml
+    
+    def test_mkdocs_yaml_includes_section_bridge_pages(self, scaffold_service):
+        """Test that mkdocs.yml navigation includes bridge pages for section directories.
+        
+        Section directories (bom/, making-instructions/, etc.) are accessible via
+        bridge pages in docs/sections/ that link to the actual OKH directories.
+        This preserves OKH structure while enabling full MkDocs navigation.
+        """
+        mkdocs_yml = scaffold_service._template_mkdocs_yaml("test-project")
+        
+        # Verify Project Sections section exists in navigation
+        assert "Project Sections" in mkdocs_yml
+        
+        # Verify bridge pages are included with paths relative to docs_dir
+        bridge_pages = [
+            ("Bill of Materials", "sections/bom.md"),
+            ("Making Instructions", "sections/making-instructions.md"),
+            ("Operating Instructions", "sections/operating-instructions.md"),
+            ("Design Files", "sections/design-files.md"),
+            ("Manufacturing Files", "sections/manufacturing-files.md"),
+            ("Software", "sections/software.md"),
+            ("Schematics", "sections/schematics.md"),
+            ("Parts", "sections/parts.md"),
+            ("Tool Settings", "sections/tool-settings.md"),
+            ("Quality Instructions", "sections/quality-instructions.md"),
+            ("Risk Assessment", "sections/risk-assessment.md"),
+        ]
+        
+        for section_name, nav_path in bridge_pages:
+            # Check that section name appears in nav
+            assert section_name in mkdocs_yml
+            # Check that bridge page path appears (relative to docs_dir)
+            assert nav_path in mkdocs_yml
 
 
 if __name__ == "__main__":

@@ -218,6 +218,19 @@ class ScaffoldService:
                     "manufacturing.md": "",
                     "assembly.md": "",
                     "maintenance.md": "",
+                    "sections": {
+                        "bom.md": "",
+                        "making-instructions.md": "",
+                        "operating-instructions.md": "",
+                        "design-files.md": "",
+                        "manufacturing-files.md": "",
+                        "software.md": "",
+                        "schematics.md": "",
+                        "parts.md": "",
+                        "tool-settings.md": "",
+                        "quality-instructions.md": "",
+                        "risk-assessment.md": "",
+                    },
                 },
             }
         }
@@ -375,6 +388,19 @@ class ScaffoldService:
         setf(("docs",), "manufacturing.md", self._template_index("Manufacturing", options))
         setf(("docs",), "assembly.md", self._template_index("Assembly", options))
         setf(("docs",), "maintenance.md", self._template_index("Maintenance", options))
+        
+        # Section bridge pages (docs/sections/*.md) - link to actual OKH directories
+        setf(("docs", "sections"), "bom.md", self._template_section_bridge("Bill of Materials", "bom", options))
+        setf(("docs", "sections"), "making-instructions.md", self._template_section_bridge("Making Instructions", "making-instructions", options))
+        setf(("docs", "sections"), "operating-instructions.md", self._template_section_bridge("Operating Instructions", "operating-instructions", options))
+        setf(("docs", "sections"), "design-files.md", self._template_section_bridge("Design Files", "design-files", options))
+        setf(("docs", "sections"), "manufacturing-files.md", self._template_section_bridge("Manufacturing Files", "manufacturing-files", options))
+        setf(("docs", "sections"), "software.md", self._template_section_bridge("Software", "software", options))
+        setf(("docs", "sections"), "schematics.md", self._template_section_bridge("Schematics", "schematics", options))
+        setf(("docs", "sections"), "parts.md", self._template_section_bridge("Parts", "parts", options))
+        setf(("docs", "sections"), "tool-settings.md", self._template_section_bridge("Tool Settings", "tool-settings", options))
+        setf(("docs", "sections"), "quality-instructions.md", self._template_section_bridge("Quality Instructions", "quality-instructions", options))
+        setf(("docs", "sections"), "risk-assessment.md", self._template_section_bridge("Risk Assessment", "risk-assessment", options))
 
     # -------- Templates (first pass, lightweight) --------
     def _template_readme(self, options: ScaffoldOptions) -> str:
@@ -448,24 +474,55 @@ class ScaffoldService:
         )
 
     def _template_mkdocs_yaml(self, project_root: str) -> str:
+        """Generate mkdocs.yml template.
+        
+        Uses default docs_dir (docs/) with navigation paths relative to docs_dir.
+        Files in docs/ use simple paths like 'index.md'.
+        
+        Section directories (bom/, making-instructions/, etc.) are accessible via
+        bridge pages in docs/sections/ that link to the actual OKH directories.
+        This preserves OKH structure while enabling full MkDocs navigation.
+        """
+        sections = [
+            ("Bill of Materials", "sections/bom.md"),
+            ("Making Instructions", "sections/making-instructions.md"),
+            ("Operating Instructions", "sections/operating-instructions.md"),
+            ("Design Files", "sections/design-files.md"),
+            ("Manufacturing Files", "sections/manufacturing-files.md"),
+            ("Software", "sections/software.md"),
+            ("Schematics", "sections/schematics.md"),
+            ("Parts", "sections/parts.md"),
+            ("Tool Settings", "sections/tool-settings.md"),
+            ("Quality Instructions", "sections/quality-instructions.md"),
+            ("Risk Assessment", "sections/risk-assessment.md"),
+        ]
+        
+        section_nav = "\n".join(
+            f"    - {name}: {path}" for name, path in sections
+        )
+        
         return (
             "site_name: " + project_root + "\n"
             "nav:\n"
-            "  - Home: docs/index.md\n"
-            "  - Getting Started: docs/getting-started.md\n"
-            "  - Development: docs/development.md\n"
-            "  - Manufacturing: docs/manufacturing.md\n"
-            "  - Assembly: docs/assembly.md\n"
-            "  - Maintenance: docs/maintenance.md\n"
+            "  - Home: index.md\n"
+            "  - Getting Started: getting-started.md\n"
+            "  - Development: development.md\n"
+            "  - Manufacturing: manufacturing.md\n"
+            "  - Assembly: assembly.md\n"
+            "  - Maintenance: maintenance.md\n"
+            "  - Project Sections:\n"
+            + section_nav + "\n"
         )
 
     def _template_index(self, title: str, options: ScaffoldOptions) -> str:
         """Generate index template based on template level."""
+        back_link = "\n[← Back to Documentation](../docs/index.md)\n"
+        
         if options.template_level == "minimal":
-            return f"# {title}\n\n[Add {title.lower()} documentation]"
+            return f"# {title}\n{back_link}[Add {title.lower()} documentation]"
         elif options.template_level == "standard":
             return (
-                f"# {title}\n\n"
+                f"# {title}\n{back_link}"
                 f"Documentation for {title.lower()}.\n\n"
                 f"## Purpose\n\n"
                 f"This directory contains {title.lower()} for the project.\n\n"
@@ -476,7 +533,7 @@ class ScaffoldService:
             )
         else:  # detailed
             return (
-                f"# {title}\n\n"
+                f"# {title}\n{back_link}"
                 f"Comprehensive documentation for {title.lower()}.\n\n"
                 f"## Purpose\n\n"
                 f"This directory contains all {title.lower()} related to the project.\n"
@@ -497,11 +554,13 @@ class ScaffoldService:
 
     def _template_bom_index(self, options: ScaffoldOptions) -> str:
         """Generate BOM index template based on template level."""
+        back_link = "\n[← Back to Documentation](../docs/index.md)\n"
+        
         if options.template_level == "minimal":
-            return "# Bill of Materials (BOM)\n\n[Add BOM documentation]"
+            return f"# Bill of Materials (BOM){back_link}[Add BOM documentation]"
         elif options.template_level == "standard":
             return (
-                "# Bill of Materials (BOM)\n\n"
+                f"# Bill of Materials (BOM){back_link}"
                 "This directory contains the Bill of Materials for the project.\n\n"
                 "## Files\n\n"
                 "- `bom.csv` - Structured tabular data\n"
@@ -512,7 +571,7 @@ class ScaffoldService:
             )
         else:  # detailed
             return (
-                "# Bill of Materials (BOM)\n\n"
+                f"# Bill of Materials (BOM){back_link}"
                 "This directory contains the complete Bill of Materials for the project,\n"
                 "organized for maximum compatibility with the Open Matching Engine.\n\n"
                 "## File Formats\n\n"
@@ -611,10 +670,32 @@ class ScaffoldService:
         )
 
     def _template_docs_home(self, options: ScaffoldOptions) -> str:
-        return (
-            "# Documentation\n\n"
-            "Welcome to the project documentation. Use the navigation to explore."
+        """Generate docs/index.md template with links to all section directories."""
+        sections = [
+            ("Bill of Materials", "bom"),
+            ("Making Instructions", "making-instructions"),
+            ("Operating Instructions", "operating-instructions"),
+            ("Design Files", "design-files"),
+            ("Manufacturing Files", "manufacturing-files"),
+            ("Software", "software"),
+            ("Schematics", "schematics"),
+            ("Parts", "parts"),
+            ("Tool Settings", "tool-settings"),
+            ("Quality Instructions", "quality-instructions"),
+            ("Risk Assessment", "risk-assessment"),
+        ]
+        
+        section_links = "\n".join(
+            f"- [{name}](../{dir_name}/index.md)" for name, dir_name in sections
         )
+        
+        base_content = (
+            "# Documentation\n\n"
+            "Welcome to the project documentation. Use the navigation to explore.\n\n"
+            "## Project Sections\n\n"
+        )
+        
+        return base_content + section_links + "\n"
 
     def _template_getting_started(self, options: ScaffoldOptions) -> str:
         return (
@@ -629,6 +710,48 @@ class ScaffoldService:
             "# Development Guide\n\n"
             "Describe development workflows, testing, and contribution practices."
         )
+    
+    def _template_section_bridge(self, section_name: str, section_dir: str, options: ScaffoldOptions) -> str:
+        """Generate bridge page in docs/sections/ that links to actual OKH section directory.
+        
+        These pages serve as entry points in MkDocs navigation while preserving
+        the OKH structure (section directories remain at project root).
+        """
+        # Path from docs/sections/*.md to project root section directory
+        link_path = f"../../{section_dir}/index.md"
+        
+        if options.template_level == "minimal":
+            return (
+                f"# {section_name}\n\n"
+                f"[View {section_name}]({link_path})\n"
+            )
+        elif options.template_level == "standard":
+            return (
+                f"# {section_name}\n\n"
+                f"This page provides access to the {section_name.lower()} section.\n\n"
+                f"## Access Section Content\n\n"
+                f"[View {section_name} →]({link_path})\n\n"
+                f"*The {section_name.lower()} files are located in the `{section_dir}/` directory at the project root.*\n"
+            )
+        else:  # detailed
+            return (
+                f"# {section_name}\n\n"
+                f"This documentation page serves as an entry point to the {section_name.lower()} "
+                f"section of the project.\n\n"
+                f"## Overview\n\n"
+                f"The {section_name.lower()} for this project follow the Open Know How (OKH) specification "
+                f"and are organized in the `{section_dir}/` directory at the project root. This structure "
+                f"ensures compatibility with OKH tooling and the Open Matching Engine.\n\n"
+                f"## Access Section Content\n\n"
+                f"[View {section_name} →]({link_path})\n\n"
+                f"## Location\n\n"
+                f"All {section_name.lower()} files are located in: `{section_dir}/`\n\n"
+                f"## OKH Compliance\n\n"
+                f"This directory structure follows the OKH package conventions, allowing for:\n"
+                f"- Direct file access outside of documentation builds\n"
+                f"- OKH manifest reference validation\n"
+                f"- Integration with OKH-compliant tooling\n"
+            )
 
     # -------- Materializers (stubs; implemented in later passes) --------
     def _write_filesystem(self, structure: Dict[str, Any], options: ScaffoldOptions, manifest_template: Dict[str, Any]) -> str:

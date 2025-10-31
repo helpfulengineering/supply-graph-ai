@@ -1,0 +1,20 @@
+site_name: test-project-04
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Development: development.md
+  - Manufacturing: manufacturing.md
+  - Assembly: assembly.md
+  - Maintenance: maintenance.md
+  - Project Sections:
+    - Bill of Materials: ../bom/index.md
+    - Making Instructions: ../making-instructions/index.md
+    - Operating Instructions: ../operating-instructions/index.md
+    - Design Files: ../design-files/index.md
+    - Manufacturing Files: ../manufacturing-files/index.md
+    - Software: ../software/index.md
+    - Schematics: ../schematics/index.md
+    - Parts: ../parts/index.md
+    - Tool Settings: ../tool-settings/index.md
+    - Quality Instructions: ../quality-instructions/index.md
+    - Risk Assessment: ../risk-assessment/index.md
