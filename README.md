@@ -149,3 +149,16 @@ python run.py
 
 For container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
 
+
+# Our current working OKH and OKW libraries
+Our current OKH and OKW libraries are implemented as publicly accessible Azure blob containers:
+
+    "Azure_Storage_ServiceName": "https://projdatablobstorage.blob.core.windows.net",
+    "Azure_Storage_OKH_ContainerName": "okh",
+    "Azure_Storage_OKW_ContainerName": "okw"
+These OKHs and OKWs are taken from our repo: https://github.com/helpfulengineering/library.
+
+Helpful created its own OKW template, and added an extenstion to OKH, both of which are defined here: https://github.com/helpfulengineering/OKF-Schema
+
+We are currently working with the Internet of Production Alliance (IoPA) to unify these extensions with their official schemas.
+
