@@ -175,6 +175,7 @@ cython_debug/
 
 # local dev files
 logs/
+tests/
 notes/
 packages/
 test-data/
