@@ -29,7 +29,7 @@ ome llm generate [OPTIONS] PROMPT
 
 **Options:**
 - `--provider TEXT`: LLM provider (anthropic, openai, google, local)
-- `--model TEXT`: Model name (e.g., claude-3-5-sonnet-20241022)
+- `--model TEXT`: Model name (e.g., claude-sonnet-4-5-20250929)
 - `--max-tokens INTEGER`: Maximum tokens to generate (default: 4000)
 - `--temperature FLOAT`: Sampling temperature (default: 0.1)
 - `--timeout INTEGER`: Request timeout in seconds (default: 60)
@@ -45,7 +45,7 @@ ome llm generate "Analyze this hardware project and generate an OKH manifest"
 # With specific provider and model
 ome llm generate "Generate OKH manifest" \
   --provider anthropic \
-  --model claude-3-5-sonnet-20241022
+  --model claude-sonnet-4-5-20250929
 
 # Save to file with JSON format
 ome llm generate "Analyze project" \
@@ -86,7 +86,7 @@ ome llm generate-okh https://github.com/example/iot-sensor
 # With specific provider
 ome llm generate-okh https://github.com/example/project \
   --provider anthropic \
-  --model claude-3-5-sonnet-20241022
+  --model claude-sonnet-4-5-20250929
 
 # Clone repository for better analysis
 ome llm generate-okh https://github.com/example/project \
@@ -246,7 +246,7 @@ export GOOGLE_API_KEY="your_google_key"
 
 # Default settings
 export OME_LLM_DEFAULT_PROVIDER="anthropic"
-export OME_LLM_DEFAULT_MODEL="claude-3-5-sonnet-20241022"
+export OME_LLM_DEFAULT_MODEL="claude-sonnet-4-5-20250929"
 export OME_LLM_MAX_COST_PER_REQUEST="2.0"
 export OME_LLM_TIMEOUT="60"
 ```
@@ -258,7 +258,7 @@ Create `~/.ome/llm_config.yaml`:
 ```yaml
 llm:
   default_provider: "anthropic"
-  default_model: "claude-3-5-sonnet-20241022"
+  default_model: "claude-sonnet-4-5-20250929"
   timeout: 60
   max_retries: 3
   retry_delay: 1.0
@@ -269,7 +269,7 @@ llm:
   providers:
     anthropic:
       api_key: "${ANTHROPIC_API_KEY}"
-      model: "claude-3-5-sonnet-20241022"
+      model: "claude-sonnet-4-5-20250929"
       timeout: 60
       max_tokens: 4000
       temperature: 0.1
@@ -296,7 +296,7 @@ ome llm generate "Analyze project" --format json
   "status": "success",
   "metadata": {
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-sonnet-4-5-20250929",
     "tokens_used": 1981,
     "cost": 0.0143,
     "processing_time": 8.12
@@ -315,7 +315,7 @@ content: "Generated content..."
 status: "success"
 metadata:
   provider: "anthropic"
-  model: "claude-3-5-sonnet-20241022"
+  model: "claude-sonnet-4-5-20250929"
   tokens_used: 1981
   cost: 0.0143
   processing_time: 8.12

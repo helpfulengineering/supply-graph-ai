@@ -160,15 +160,16 @@ class ResourceSnapshot:
 @dataclass
 class SupplyTree:
     """
-    Simplified SupplyTree focused on matching use case - NO WORKFLOW COMPONENTS
+    Simplified SupplyTree
     
     This class contains only the essential data needed for matching facilities
-    to requirements, removing the complex workflow DAGs and node structures
-    that are not needed for the core matching use case.
+    to requirements.
     """
-    facility_id: UUID
+    # facility_id: UUID
+    # replace facility_id with okw_reference: str
     facility_name: str
     okh_reference: str
+    # TODO: add okw_reference: str
     confidence_score: float
     id: UUID = field(default_factory=uuid4)
     estimated_cost: Optional[float] = None

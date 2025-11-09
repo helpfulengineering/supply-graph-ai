@@ -35,7 +35,7 @@ GET /v1/api/llm/health
   "providers": {
     "anthropic": {
       "status": "active",
-      "model": "claude-3-5-sonnet-20241022",
+      "model": "claude-sonnet-4-5-20250929",
       "last_check": "2024-12-25T10:30:00Z"
     },
     "openai": {
@@ -72,7 +72,7 @@ POST /v1/api/llm/generate
     "timeout": 60
   },
   "provider": "anthropic",
-  "model": "claude-3-5-sonnet-20241022"
+  "model": "claude-sonnet-4-5-20250929"
 }
 ```
 
@@ -83,7 +83,7 @@ POST /v1/api/llm/generate
   "status": "success",
   "metadata": {
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-sonnet-4-5-20250929",
     "tokens_used": 1981,
     "cost": 0.0143,
     "processing_time": 8.12,
@@ -165,7 +165,7 @@ POST /v1/api/llm/generate-okh
   "status": "success",
   "metadata": {
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-sonnet-4-5-20250929",
     "tokens_used": 1981,
     "cost": 0.0143,
     "processing_time": 8.12
@@ -221,7 +221,7 @@ POST /v1/api/llm/match-facilities
   "status": "success",
   "metadata": {
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-sonnet-4-5-20250929",
     "tokens_used": 1205,
     "cost": 0.0087,
     "processing_time": 4.23
@@ -245,7 +245,7 @@ GET /v1/api/llm/providers
       "name": "anthropic",
       "type": "anthropic",
       "status": "active",
-      "model": "claude-3-5-sonnet-20241022",
+      "model": "claude-sonnet-4-5-20250929",
       "capabilities": ["generation", "matching", "analysis"],
       "cost_per_1k_tokens": 0.003
     },
@@ -296,7 +296,7 @@ GET /v1/api/llm/metrics
     {
       "timestamp": "2024-12-25T10:30:00Z",
       "provider": "anthropic",
-      "model": "claude-3-5-sonnet-20241022",
+      "model": "claude-sonnet-4-5-20250929",
       "tokens_used": 1981,
       "cost": 0.0143,
       "status": "success"

@@ -76,21 +76,23 @@ class NLPMatcher(BaseGenerationLayer):
         ]
         
         self.process_patterns = [
-            # 3D Printing
-            EntityPattern(r'\b(3D print|3D printing|FDM|SLA|SLS|FFF)\b', 'process', 'manufacturing_processes', 0.9, '3D printing process'),
-            EntityPattern(r'\b(print|printing|extruder|hotend|bed|layer)\b', 'process', 'manufacturing_processes', 0.7, '3D printing related'),
+            # 3D Printing (high-confidence specific terms)
+            EntityPattern(r'\b(3D print|3D printing|3D printed|FDM|SLA|SLS|FFF|fused deposition|selective laser)\b', 'process', 'manufacturing_processes', 0.9, '3D printing process'),
             
-            # CNC Machining
-            EntityPattern(r'\b(CNC|machining|mill|lathe|router|cutting)\b', 'process', 'manufacturing_processes', 0.8, 'CNC machining'),
-            EntityPattern(r'\b(end mill|drill bit|toolpath|G-code)\b', 'process', 'manufacturing_processes', 0.7, 'CNC tooling'),
+            # CNC Machining (high-confidence specific terms)
+            EntityPattern(r'\b(CNC|machining|milling|turning|lathe)\b', 'process', 'manufacturing_processes', 0.8, 'CNC machining'),
             
-            # Electronics
-            EntityPattern(r'\b(solder|soldering|PCB|circuit|breadboard)\b', 'process', 'manufacturing_processes', 0.8, 'Electronics assembly'),
-            EntityPattern(r'\b(program|programming|flash|upload|code)\b', 'process', 'manufacturing_processes', 0.6, 'Software programming'),
+            # Electronics (high-confidence specific terms)
+            EntityPattern(r'\b(solder|soldering|soldered|PCB assembly|circuit assembly)\b', 'process', 'manufacturing_processes', 0.8, 'Electronics assembly'),
             
-            # Assembly
-            EntityPattern(r'\b(assemble|assembly|mount|install|attach)\b', 'process', 'manufacturing_processes', 0.7, 'Assembly process'),
-            EntityPattern(r'\b(calibrate|calibration|tune|adjust|test)\b', 'process', 'manufacturing_processes', 0.6, 'Calibration/testing'),
+            # Assembly (medium-confidence - requires context)
+            EntityPattern(r'\b(assemble|assembling|assembled|assembly|mount|mounting|install|installing|attach|attaching)\b', 'process', 'manufacturing_processes', 0.7, 'Assembly process'),
+            
+            # Generic verbs (low-confidence - require strong manufacturing context)
+            # These are filtered more strictly by context validation
+            EntityPattern(r'\b(print|printing|printed)\b', 'process', 'manufacturing_processes', 0.6, 'Printing (requires context)'),
+            EntityPattern(r'\b(cut|cutting)\b', 'process', 'manufacturing_processes', 0.6, 'Cutting (requires context)'),
+            EntityPattern(r'\b(drill|drilling|bore)\b', 'process', 'manufacturing_processes', 0.6, 'Drilling (requires context)'),
         ]
         
         self.tool_patterns = [
@@ -383,17 +385,113 @@ class NLPMatcher(BaseGenerationLayer):
         return list(materials)
     
     def _extract_manufacturing_processes(self, doc, content: str) -> List[str]:
-        """Extract manufacturing processes using entity patterns"""
+        """
+        Extract manufacturing processes using entity patterns with context validation.
+        
+        This method filters out false positives by checking if matched terms are
+        actually in manufacturing contexts, not just any verb in the text.
+        """
         processes = set()
         
+        # Manufacturing context keywords - terms that indicate manufacturing context
+        manufacturing_context_keywords = {
+            'manufacture', 'manufacturing', 'produce', 'production', 'fabricate', 'fabrication',
+            'build', 'building', 'make', 'making', 'create', 'creating',
+            'print', 'printing', '3d print', '3d printing', 'printable',
+            'assemble', 'assembly', 'mount', 'install',
+            'cut', 'cutting', 'machin', 'drill', 'drilling',
+            'solder', 'soldering', 'weld', 'welding',
+            'process', 'processing', 'tool', 'tools', 'equipment',
+            'part', 'parts', 'component', 'components', 'material', 'materials'
+        }
+        
+        # Extract matches from patterns
         for pattern in self.process_patterns:
-            matches = re.findall(pattern.pattern, content, re.IGNORECASE)
+            matches = re.finditer(pattern.pattern, content, re.IGNORECASE)
             for match in matches:
-                if isinstance(match, tuple):
-                    match = match[0]
-                processes.add(match.strip())
+                # Extract matched text (use first group if available, otherwise use full match)
+                if match.groups():
+                    matched_text = match.group(1)  # Use first capturing group
+                else:
+                    matched_text = match.group(0)  # Use full match
+                
+                if isinstance(matched_text, tuple):
+                    matched_text = matched_text[0]
+                matched_text = matched_text.strip()
+                
+                if not matched_text:
+                    continue
+                
+                # Validate context: check if match is in manufacturing context
+                if self._is_manufacturing_context(match, content, manufacturing_context_keywords, doc, pattern):
+                    processes.add(matched_text)
         
         return list(processes)
+    
+    def _is_manufacturing_context(self, match, content: str, context_keywords: set, doc, pattern) -> bool:
+        """
+        Check if a matched term is in a manufacturing context.
+        
+        Args:
+            match: Regex match object
+            content: Full content text
+            context_keywords: Set of manufacturing context keywords
+            doc: spaCy document
+            pattern: EntityPattern that matched
+            
+        Returns:
+            True if match is in manufacturing context, False otherwise
+        """
+        start_pos = match.start()
+        end_pos = match.end()
+        
+        # For high-confidence patterns (specific manufacturing terms like "3D printing"),
+        # trust them - they're unlikely to be false positives
+        if pattern.confidence >= 0.8:
+            return True
+        
+        # Extract surrounding context (100 chars before and after)
+        context_start = max(0, start_pos - 100)
+        context_end = min(len(content), end_pos + 100)
+        context = content[context_start:context_end].lower()
+        
+        # Check for manufacturing context keywords nearby
+        # Exclude the matched word itself from context keywords to avoid self-matching
+        matched_word = match.group(0).lower().strip()
+        context_keywords_filtered = {k for k in context_keywords if k != matched_word}
+        
+        context_words = set(context.split())
+        has_manufacturing_context = any(keyword in context_words for keyword in context_keywords_filtered)
+        
+        # Also check for multi-word patterns (e.g., "3d printer", "3d printing")
+        context_lower = context.lower()
+        for keyword in context_keywords_filtered:
+            if ' ' in keyword or keyword in context_lower:
+                has_manufacturing_context = True
+                break
+        
+        # Use spaCy to check if verb is in manufacturing-related sentence
+        if doc:
+            try:
+                # Find the sentence containing the match
+                matched_span = doc.char_span(start_pos, end_pos, alignment_mode='expand')
+                if matched_span:
+                    sentence = matched_span.sent
+                    sentence_text = sentence.text.lower()
+                    
+                    # Check for manufacturing keywords in sentence
+                    sentence_has_context = any(keyword in sentence_text for keyword in context_keywords)
+                    
+                    # Low-confidence patterns (generic verbs like "print", "test", "layer") need context
+                    # High-confidence patterns already returned True above
+                    return sentence_has_context or has_manufacturing_context
+            except Exception:
+                # If spaCy analysis fails, fall back to keyword check
+                pass
+        
+        # Fallback: use keyword-based context check
+        # For low-confidence patterns, require manufacturing context
+        return has_manufacturing_context
     
     def _extract_tools(self, doc, content: str) -> List[str]:
         """Extract required tools using entity patterns"""

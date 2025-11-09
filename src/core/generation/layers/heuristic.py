@@ -7,12 +7,17 @@ from file structures, naming conventions, and content patterns.
 
 import re
 import os
+import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .base import BaseGenerationLayer, LayerResult
 from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo
+from ...models.okh import DocumentationType, DocumentRef
+from ..utils.file_categorization import FileCategorizationRules
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -32,6 +37,7 @@ class HeuristicMatcher(BaseGenerationLayer):
         super().__init__(GenerationLayer.HEURISTIC, layer_config)
         self.file_patterns = self._initialize_file_patterns()
         self.content_patterns = self._initialize_content_patterns()
+        self.file_categorization_rules = FileCategorizationRules()
     
     def _initialize_file_patterns(self) -> List[FilePattern]:
         """Initialize file pattern matching rules"""
@@ -159,135 +165,104 @@ class HeuristicMatcher(BaseGenerationLayer):
         return result
     
     async def _analyze_file_structure(self, project_data: ProjectData, result: LayerResult):
-        """Analyze file structure for manufacturing and design files"""
-        file_paths = [f.path for f in project_data.files]
+        """
+        Analyze file structure using FileCategorizationRules.
         
-        # Check for common hardware project directories
-        directories = set()
-        for file_path in file_paths:
-            path_parts = Path(file_path).parts
-            for part in path_parts[:-1]:  # Exclude filename
-                directories.add(part.lower())
+        This method uses the new FileCategorizationRules class to categorize files
+        into appropriate DocumentationType categories with confidence scores.
+        Layer 1 provides suggestions that Layer 2 (LLM) will refine.
+        """
+        # Categorize files using FileCategorizationRules
+        categorized_files: Dict[DocumentationType, List[Dict[str, Any]]] = {}
+        excluded_count = 0
         
-        # Detect manufacturing files based on directory structure and file extensions
-        manufacturing_indicators = {
-            'stl', 'stls', '3d', 'print', 'printing', 'manufacturing', 'production',
-            'assembly', 'build', 'make', 'fabrication', 'parts', 'hardware'
-        }
-        
-        design_indicators = {
-            'cad', 'design', 'model', 'models', 'openscad', 'freecad', 'fusion',
-            'solidworks', 'inventor', 'sketchup', 'blender', 'step', 'stp', 'iges'
-        }
-        
-        docs_indicators = {
-            'docs', 'documentation', 'manual', 'guide', 'instructions', 'tutorial',
-            'readme', 'help', 'wiki'
-        }
-        
-        # Also check file extensions
-        manufacturing_extensions = {'.stl', '.gcode', '.3mf', '.amf'}
-        design_extensions = {'.scad', '.step', '.stp', '.iges', '.iges', '.dxf', '.dwg', '.kicad_pcb', '.kicad_mod'}
-        doc_extensions = {'.md', '.txt', '.pdf', '.doc', '.docx'}
-        
-        # Count indicators
-        manufacturing_score = len(manufacturing_indicators.intersection(directories))
-        design_score = len(design_indicators.intersection(directories))
-        docs_score = len(docs_indicators.intersection(directories))
-        
-        # Generate manufacturing files list
-        manufacturing_files = []
-        for file_path in file_paths:
-            path_lower = file_path.lower()
-            file_ext = Path(file_path).suffix.lower()
+        for file_info in project_data.files:
+            file_path = file_info.path
+            filename = Path(file_path).name
             
-            # Skip GitHub-specific files and directories
-            if (path_lower.startswith('.github/') or 
-                path_lower.startswith('.git/') or
-                path_lower.startswith('.vscode/') or
-                'workflow' in path_lower):
+            # Use FileCategorizationRules to categorize
+            categorization_result = self.file_categorization_rules.categorize_file(
+                filename, file_path
+            )
+            
+            # Skip excluded files
+            if categorization_result.excluded:
+                excluded_count += 1
                 continue
             
-            # Check directory structure and file extensions
-            # Exclude design files from manufacturing files
-            if (file_ext in design_extensions):
-                continue
-                
-            if (any(indicator in path_lower for indicator in manufacturing_indicators) or 
-                file_ext in manufacturing_extensions):
-                manufacturing_files.append({
-                    "title": Path(file_path).name,
-                    "path": file_path,
-                    "type": "manufacturing-files",
-                    "metadata": {"detected_by": "file_analysis"}
-                })
-        
-        if manufacturing_files:
-            result.add_field(
-                "manufacturing_files",
-                manufacturing_files,
-                0.8,  # Higher confidence for file-based detection
-                "file_analysis",
-                f"Detected {len(manufacturing_files)} manufacturing files"
-            )
-        
-        # Generate design files list
-        design_files = []
-        for file_path in file_paths:
-            path_lower = file_path.lower()
-            file_ext = Path(file_path).suffix.lower()
+            # Group files by DocumentationType
+            doc_type = categorization_result.documentation_type
+            if doc_type not in categorized_files:
+                categorized_files[doc_type] = []
             
-            # Check directory structure and file extensions
-            if (any(indicator in path_lower for indicator in design_indicators) or 
-                file_ext in design_extensions):
-                design_files.append({
-                    "title": Path(file_path).name,
-                    "path": file_path,
-                    "type": "design-files",
-                    "metadata": {"detected_by": "file_analysis"}
-                })
+            # Create DocumentRef-like structure for result
+            categorized_files[doc_type].append({
+                "title": filename,
+                "path": file_path,
+                "type": doc_type.value,
+                "metadata": {
+                    "detected_by": "file_categorization_rules",
+                    "confidence": categorization_result.confidence,
+                    "reason": categorization_result.reason
+                }
+            })
         
-        if design_files:
-            result.add_field(
-                "design_files",
-                design_files,
-                0.8,  # Higher confidence for file-based detection
-                "file_analysis",
-                f"Detected {len(design_files)} design files"
-            )
+        # Add categorized files to result with appropriate field names
+        # Map DocumentationType to OKHManifest field names
+        field_mapping = {
+            DocumentationType.MANUFACTURING_FILES: "manufacturing_files",
+            DocumentationType.DESIGN_FILES: "design_files",
+            DocumentationType.MAKING_INSTRUCTIONS: "making_instructions",
+            DocumentationType.OPERATING_INSTRUCTIONS: "operating_instructions",
+            DocumentationType.PUBLICATIONS: "publications",
+            DocumentationType.DOCUMENTATION_HOME: "documentation_home",
+            DocumentationType.TECHNICAL_SPECIFICATIONS: "technical_specifications",
+            DocumentationType.SOFTWARE: "software",
+            DocumentationType.SCHEMATICS: "schematics",
+            DocumentationType.MAINTENANCE_INSTRUCTIONS: "maintenance_instructions",
+            DocumentationType.DISPOSAL_INSTRUCTIONS: "disposal_instructions",
+            DocumentationType.RISK_ASSESSMENT: "risk_assessment",
+        }
         
-        # Generate making instructions list
-        making_instructions = []
-        for file_path in file_paths:
-            path_lower = file_path.lower()
-            file_ext = Path(file_path).suffix.lower()
-            
-            # Skip GitHub-specific files and directories
-            if (path_lower.startswith('.github/') or 
-                path_lower.startswith('.git/') or
-                path_lower.startswith('.vscode/') or
-                'workflow' in path_lower):
+        # Add each category to result
+        for doc_type, files in categorized_files.items():
+            if not files:
                 continue
             
-            # Check directory structure and file extensions
-            if (any(indicator in path_lower for indicator in docs_indicators) or 
-                file_ext in doc_extensions):
-                making_instructions.append({
-                    "title": Path(file_path).name,
-                    "path": file_path,
-                    "type": "manufacturing-files",
-                    "metadata": {"detected_by": "file_analysis"}
-                })
+            # Calculate average confidence for this category
+            avg_confidence = sum(
+                f["metadata"]["confidence"] for f in files
+            ) / len(files)
+            
+            # Get field name
+            field_name = field_mapping.get(doc_type)
+            if not field_name:
+                # Skip unmapped types (shouldn't happen, but be safe)
+                continue
+            
+            # Special handling for documentation_home (it's a string, not a list)
+            if doc_type == DocumentationType.DOCUMENTATION_HOME:
+                if files:
+                    # Use the first README file path
+                    result.add_field(
+                        "documentation_home",
+                        files[0]["path"],
+                        avg_confidence,
+                        "file_categorization_rules",
+                        f"Detected documentation home: {files[0]['title']}"
+                    )
+            else:
+                # Add list of files
+                result.add_field(
+                    field_name,
+                    files,
+                    avg_confidence,
+                    "file_categorization_rules",
+                    f"Detected {len(files)} {doc_type.value} files"
+                )
         
-        if making_instructions:
-            confidence = self.calculate_confidence("making_instructions", making_instructions, "file_analysis")
-            result.add_field(
-                "making_instructions",
-                making_instructions,
-                confidence,
-                "file_analysis",
-                f"Detected {len(making_instructions)} documentation files"
-            )
+        if excluded_count > 0:
+            logger.debug(f"Excluded {excluded_count} files (workflow, testing data, correspondence)")
     
     async def _parse_readme_content(self, project_data: ProjectData, result: LayerResult):
         """Parse README content for key information"""

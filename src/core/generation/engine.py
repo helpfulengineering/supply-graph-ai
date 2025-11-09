@@ -224,6 +224,83 @@ class GenerationEngine:
                     project_data, generated_fields, confidence_scores, missing_fields
                 )
             
+            # Normalize fields before quality assessment (manufacturing_processes, etc.)
+            generated_fields = self._normalize_generated_fields(generated_fields)
+            
+            # Ensure materials only come from BOM if BOM exists
+            # This prevents false positives from text extraction (e.g., "electronics" mentioned in docs but not in BOM)
+            # Note: The improved extraction logic (extracting from component names) is applied above in BOM normalization
+            # This section ensures that if BOM exists, we use only BOM materials and remove false positives
+            if "bom" in generated_fields:
+                # Check if materials came from BOM normalization
+                if "materials" in generated_fields:
+                    materials_field = generated_fields.get("materials")
+                    if isinstance(materials_field, FieldGeneration):
+                        # If materials didn't come from BOM, but BOM exists, re-extract to ensure accuracy
+                        if materials_field.source_layer != GenerationLayer.BOM_NORMALIZATION:
+                            bom_value = generated_fields.get("bom")
+                            if isinstance(bom_value, FieldGeneration):
+                                bom_data = bom_value.value
+                                bom_obj = None
+                                
+                                # Try to get BOM object
+                                if hasattr(bom_data, 'components'):
+                                    bom_obj = bom_data
+                                elif isinstance(bom_data, dict) and "components" in bom_data:
+                                    from ..models.bom import BillOfMaterials
+                                    try:
+                                        bom_obj = BillOfMaterials.from_dict(bom_data)
+                                    except Exception as e:
+                                        logger.debug(f"Could not reconstruct BOM object: {e}")
+                                
+                                if bom_obj and hasattr(bom_obj, 'components'):
+                                    # Re-extract using improved logic
+                                    bom_materials = self._extract_materials_from_bom(bom_obj)
+                                    if bom_materials:
+                                        generated_fields["materials"] = FieldGeneration(
+                                            value=bom_materials,
+                                            confidence=0.9,
+                                            source_layer=GenerationLayer.BOM_NORMALIZATION,
+                                            generation_method="bom_materials_extraction",
+                                            raw_source=f"Extracted from {len(bom_obj.components)} BOM components"
+                                        )
+                                        confidence_scores["materials"] = 0.9
+                                    else:
+                                        # BOM has no materials - remove false positives
+                                        logger.debug("BOM exists but no materials extracted; removing non-BOM materials")
+                                        generated_fields.pop("materials", None)
+                                        confidence_scores.pop("materials", None)
+                else:
+                    # No materials yet, but BOM exists - extract from BOM
+                    bom_value = generated_fields.get("bom")
+                    if isinstance(bom_value, FieldGeneration):
+                        bom_data = bom_value.value
+                        bom_obj = None
+                        
+                        if hasattr(bom_data, 'components'):
+                            bom_obj = bom_data
+                        elif isinstance(bom_data, dict) and "components" in bom_data:
+                            from ..models.bom import BillOfMaterials
+                            try:
+                                bom_obj = BillOfMaterials.from_dict(bom_data)
+                            except Exception as e:
+                                logger.debug(f"Could not reconstruct BOM object: {e}")
+                        
+                        if bom_obj and hasattr(bom_obj, 'components'):
+                            bom_materials = self._extract_materials_from_bom(bom_obj)
+                            if bom_materials:
+                                generated_fields["materials"] = FieldGeneration(
+                                    value=bom_materials,
+                                    confidence=0.9,
+                                    source_layer=GenerationLayer.BOM_NORMALIZATION,
+                                    generation_method="bom_materials_extraction",
+                                    raw_source=f"Extracted from {len(bom_obj.components)} BOM components"
+                                )
+                                confidence_scores["materials"] = 0.9
+            
+            # Update missing fields after normalization
+            missing_fields = self._calculate_missing_fields(generated_fields)
+            
             # Generate quality report
             quality_report = self._quality_assessor.generate_quality_report(
                 generated_fields, confidence_scores, missing_fields, self._required_fields
@@ -354,17 +431,18 @@ class GenerationEngine:
                     )
                     confidence_scores["bom"] = bom.metadata.get("overall_confidence", 0.8)
                     
-                    # Extract materials from BOM components - always override with structured data
+                    # Extract materials from BOM components using improved extraction logic
+                    # This takes priority over other material extraction sources
                     materials = self._extract_materials_from_bom(bom)
                     if materials:
                         generated_fields["materials"] = FieldGeneration(
                             value=materials,
-                            confidence=0.8,
+                            confidence=0.9,  # Higher confidence for BOM-based extraction
                             source_layer=GenerationLayer.BOM_NORMALIZATION,
                             generation_method="bom_materials_extraction",
                             raw_source=f"Extracted from {len(bom.components)} BOM components"
                         )
-                        confidence_scores["materials"] = 0.8
+                        confidence_scores["materials"] = 0.9
                 except Exception as e:
                     # Log error but don't fail the entire generation
                     logger.warning(f"BOM normalization failed: {e}")
@@ -651,6 +729,134 @@ class GenerationEngine:
         
         return missing
     
+    def _normalize_generated_fields(self, generated_fields: Dict[str, FieldGeneration]) -> Dict[str, FieldGeneration]:
+        """
+        Normalize generated fields to improve quality.
+        
+        This method normalizes list fields like manufacturing_processes to:
+        - Remove duplicates (case-insensitive)
+        - Normalize to standard forms
+        - Filter out non-contextual entries
+        
+        Args:
+            generated_fields: Dictionary of field generations
+            
+        Returns:
+            Normalized dictionary of field generations
+        """
+        normalized = generated_fields.copy()
+        
+        # Normalize manufacturing_processes
+        if "manufacturing_processes" in normalized:
+            processes_value = normalized["manufacturing_processes"].value
+            if isinstance(processes_value, list):
+                normalized_processes = self._normalize_manufacturing_processes(processes_value)
+                # Update the field generation with normalized value
+                normalized["manufacturing_processes"] = FieldGeneration(
+                    value=normalized_processes,
+                    confidence=normalized["manufacturing_processes"].confidence,
+                    source_layer=normalized["manufacturing_processes"].source_layer,
+                    generation_method=normalized["manufacturing_processes"].generation_method,
+                    raw_source=normalized["manufacturing_processes"].raw_source
+                )
+        
+        return normalized
+    
+    def _normalize_manufacturing_processes(self, processes: List[str]) -> List[str]:
+        """
+        Normalize manufacturing processes list.
+        
+        - Removes duplicates (case-insensitive)
+        - Normalizes to lowercase standard forms
+        - Maps to canonical manufacturing process names
+        - Filters out non-manufacturing verbs
+        
+        Args:
+            processes: List of process names (may include duplicates, various cases)
+            
+        Returns:
+            Normalized, deduplicated list of manufacturing processes
+        """
+        if not processes:
+            return []
+        
+        # Map of common variations to canonical names
+        canonical_map = {
+            "print": "3d printing",
+            "printing": "3d printing",
+            "3d print": "3d printing",
+            "3d printing": "3d printing",
+            "fdm": "3d printing",
+            "sla": "3d printing",
+            "sls": "3d printing",
+            "assemble": "assembly",
+            "assembling": "assembly",
+            "attach": "assembly",
+            "attaching": "assembly",
+            "install": "assembly",
+            "installing": "assembly",
+            "mount": "assembly",
+            "mounting": "assembly",
+            "test": None,  # Filter out generic "test" - not a manufacturing process
+            "layer": None,  # Filter out generic "layer" - part of 3d printing but not a process
+        }
+        
+        # Set of valid manufacturing processes (canonical names)
+        valid_processes = {
+            "3d printing", "laser cutting", "cnc machining", "soldering", "assembly",
+            "welding", "cutting", "drilling", "bending", "grinding", "painting",
+            "anodizing", "heat treatment", "injection molding", "casting", "forging",
+            "machining", "turning", "milling", "sawing", "shearing", "plasma cutting",
+            "tig welding", "mig welding", "arc welding", "polishing", "sanding",
+            "coating", "annealing", "tempering", "quenching"
+        }
+        
+        normalized = []
+        seen = set()
+        
+        for process in processes:
+            if not process or not isinstance(process, str):
+                continue
+            
+            # Normalize to lowercase for comparison
+            process_lower = process.lower().strip()
+            
+            # Skip empty strings
+            if not process_lower:
+                continue
+            
+            # Map to canonical name
+            canonical = canonical_map.get(process_lower)
+            
+            # If explicitly mapped to None, filter it out
+            if canonical is None and process_lower in canonical_map:
+                continue
+            
+            # Use canonical name if mapped, otherwise use lowercase version
+            final_name = canonical if canonical is not None else process_lower
+            
+            # Check if it's a valid manufacturing process
+            # Allow if it's in valid_processes or contains manufacturing-related keywords
+            is_valid = (
+                final_name in valid_processes or
+                any(keyword in final_name for keyword in [
+                    "print", "cut", "weld", "machin", "assemble", "solder", "drill",
+                    "bend", "grind", "paint", "cast", "forge", "mold", "treat"
+                ])
+            )
+            
+            if not is_valid:
+                continue
+            
+            # Deduplicate using lowercase comparison
+            final_lower = final_name.lower()
+            if final_lower not in seen:
+                seen.add(final_lower)
+                # Capitalize first letter for consistency
+                normalized.append(final_name.title())
+        
+        return normalized
+    
     async def _generate_normalized_bom(self, project_data: ProjectData):
         """
         Generate normalized BOM from project data.
@@ -679,19 +885,124 @@ class GenerationEngine:
         return bom
     
     def _extract_materials_from_bom(self, bom) -> List[str]:
-        """Extract materials from BOM components"""
+        """
+        Extract materials from BOM components.
+        
+        This method analyzes component names to extract:
+        1. Explicit material types (PLA, steel, aluminum, etc.)
+        2. Materials mentioned in component descriptions (silicone, plastic, etc.)
+        3. Component categories that represent materials (springs, electronics, etc.)
+        
+        Args:
+            bom: BillOfMaterials object with components
+            
+        Returns:
+            List of unique material names extracted from BOM components
+        """
         materials = set()
         
         for component in bom.components:
-            component_name = component.name
-            material = self._classify_component_material(component_name)
-            if material:
-                materials.add(material)
+            component_name = component.name.lower()
+            
+            # First, try to classify as a known component type (springs, electronics, etc.)
+            material_type = self._classify_component_material(component_name)
+            if material_type:
+                materials.add(material_type)
+            
+            # Second, extract material names directly from component description
+            # Look for material keywords in the component name
+            extracted_materials = self._extract_materials_from_component_name(component_name)
+            materials.update(extracted_materials)
         
-        return list(materials) if materials else []
+        return sorted(list(materials)) if materials else []
+    
+    def _extract_materials_from_component_name(self, component_name: str) -> List[str]:
+        """
+        Extract material types from component names.
+        
+        Examples:
+        - "Clear Translucent Silicone Hose Pipe Tubing" -> ["silicone"]
+        - "PLA Filament" -> ["PLA"]
+        - "Steel Spring" -> ["steel"]
+        
+        Args:
+            component_name: Lowercase component name
+            
+        Returns:
+            List of material names found in the component name
+        """
+        materials = set()
+        
+        # Material keywords to look for in component names (ordered by specificity)
+        material_keywords = {
+            # Plastics and polymers
+            'silicone', 'rubber', 'latex', 'plastic', 'polymer',
+            'PLA', 'ABS', 'PETG', 'TPU', 'ASA', 'PC', 'nylon', 'resin',
+            # Metals
+            'aluminum', 'aluminium', 'steel', 'stainless steel', 'brass', 'copper',
+            'iron', 'titanium', 'zinc', 'nickel', 'chrome',
+            # Composites and other materials
+            'wood', 'plywood', 'MDF', 'fiberglass', 'carbon fiber',
+            'ceramic', 'glass', 'paper', 'cardboard', 'fabric', 'leather',
+            # Materials by properties (note: hose, tube, pipe are product forms, not materials)
+            'filament', 'wire', 'cable', 'foam', 'foam rubber'
+        }
+        
+        # Check for material keywords in the component name
+        words = component_name.split()
+        for word in words:
+            word_clean = word.lower().strip('.,;:()[]{}')
+            if word_clean in material_keywords:
+                # Normalize to standard form
+                normalized = self._normalize_material_name(word_clean)
+                if normalized:
+                    materials.add(normalized)
+        
+        # Also check for multi-word materials
+        for material in material_keywords:
+            if ' ' in material and material in component_name:
+                normalized = self._normalize_material_name(material)
+                if normalized:
+                    materials.add(normalized)
+        
+        return list(materials)
+    
+    def _normalize_material_name(self, material: str) -> str:
+        """
+        Normalize material name to standard form.
+        
+        Args:
+            material: Material name (lowercase)
+            
+        Returns:
+            Normalized material name or None if should be filtered
+        """
+        # Normalization map
+        normalization_map = {
+            'aluminium': 'aluminum',
+            'pla': 'PLA',
+            'abs': 'ABS',
+            'petg': 'PETG',
+            'tpu': 'TPU',
+            'asa': 'ASA',
+            'pc': 'PC',
+            'mdf': 'MDF',
+            'nylon': 'nylon',
+            'resin': 'resin',
+        }
+        
+        # Get normalized form
+        normalized = normalization_map.get(material, material)
+        
+        # Capitalize first letter for consistency (except for acronyms)
+        if normalized.isupper() or len(normalized) <= 4:
+            return normalized
+        else:
+            return normalized.capitalize()
     
     def _classify_component_material(self, component_name: str) -> Optional[str]:
         """Classify a component name into a material type"""
+        import re
         name_lower = component_name.lower()
         
         # Material classification patterns - ordered by specificity (most specific first)
@@ -707,19 +1018,35 @@ class GenerationEngine:
             ('TPU', ['tpu', 'thermoplastic polyurethane']),
             ('wood', ['wood', 'plywood', 'mdf', 'oak', 'pine']),
             ('acrylic', ['acrylic', 'plexiglass', 'pmma']),
-            # Component types
-            ('electronics', ['arduino', 'raspberry pi', 'sensor', 'motor', 'servo', 'led', 'resistor', 'capacitor', 'transistor', 'ic', 'microcontroller']),
+            # Component types (only if they represent actual material categories in BOM)
+            # Note: Electronics should only be added if there are actual electronic components
+            # Use word boundaries for short patterns to avoid false matches (e.g., "ic" matching "translucent")
+            ('electronics', ['arduino', 'raspberry pi', 'microcontroller', r'\bic\b', 'integrated circuit', r'\bboard\b', 'pcb']),
             ('fasteners', ['screw', 'bolt', 'nut', 'washer', 'rivet', 'pin']),
             ('cables', ['cable', 'wire', 'connector', 'jack', 'plug']),
             ('bearings', ['bearing', 'ball bearing', 'roller bearing']),
-            ('springs', ['spring', 'coil spring', 'tension spring'])
+            ('springs', ['spring', 'coil spring', 'tension spring', 'compression spring'])
         ]
         
         # Check each material pattern (first match wins)
         for material, patterns in material_patterns:
             for pattern in patterns:
-                if pattern in name_lower:
-                    return material
+                # Use regex word boundaries for patterns that need them (start with \b)
+                if pattern.startswith(r'\b'):
+                    # Pattern is a regex with word boundaries
+                    if re.search(pattern, name_lower):
+                        return material
+                else:
+                    # Use simple substring match for longer patterns or multi-word patterns
+                    # But check if it's a single short word that could match falsely
+                    if len(pattern) <= 3 and pattern.isalpha():
+                        # For short single words, use word boundary matching
+                        if re.search(r'\b' + re.escape(pattern) + r'\b', name_lower):
+                            return material
+                    else:
+                        # For longer patterns or multi-word, use simple substring
+                        if pattern in name_lower:
+                            return material
         
         return None
     

@@ -65,7 +65,7 @@ config = LayerConfig(
     use_llm=True,
     llm_config={
         "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-4-5-20250929",
         "max_tokens": 4000,
         "temperature": 0.1,
         "timeout": 60
@@ -83,7 +83,7 @@ from src.core.llm.providers.base import LLMProviderType
 llm_service_config = LLMServiceConfig(
     name="GenerationLLMService",
     default_provider=LLMProviderType.ANTHROPIC,
-    default_model="claude-3-5-sonnet-20241022",
+    default_model="claude-sonnet-4-5-20250929",
     max_retries=3,
     retry_delay=1.0,
     timeout=60,
@@ -137,7 +137,7 @@ ome okh generate-from-url https://github.com/example/project --use-llm
 # With specific provider
 ome okh generate-from-url https://github.com/example/project \
   --llm-provider anthropic \
-  --llm-model claude-3-5-sonnet-20241022
+  --llm-model claude-sonnet-4-5-20250929
 
 # Preserve context files for debugging
 ome okh generate-from-url https://github.com/example/project \
@@ -157,7 +157,7 @@ curl -X POST "https://your-domain.com/v1/api/okh/generate" \
     "use_llm": true,
     "llm_config": {
       "provider": "anthropic",
-      "model": "claude-3-5-sonnet-20241022"
+      "model": "claude-sonnet-4-5-20250929"
     }
   }'
 ```
@@ -371,7 +371,7 @@ config = LayerConfig(
     use_llm=True,
     llm_config={
         "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-4-5-20250929",
         "max_tokens": 4000,
         "temperature": 0.1
     }

@@ -92,7 +92,7 @@ class LLMMatcher(BaseMatchingLayer):
             config = LLMServiceConfig(
                 name="LLMMatchingService",
                 default_provider=LLMProviderType.ANTHROPIC,
-                default_model="claude-3-5-sonnet-latest",
+                default_model=None,  # Use centralized config
                 max_retries=3,
                 retry_delay=1.0,
                 timeout=30.0

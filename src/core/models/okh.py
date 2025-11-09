@@ -11,14 +11,30 @@ class DocumentationType(Enum):
     """Types of documentation that can be associated with an OKH module"""
     DESIGN_FILES = "design-files"
     MANUFACTURING_FILES = "manufacturing-files" 
-    USER_MANUAL = "user-manual"
     MAINTENANCE_INSTRUCTIONS = "maintenance-instructions"
     DISPOSAL_INSTRUCTIONS = "disposal-instructions"
     SOFTWARE = "software"
-    QUALITY_INSTRUCTIONS = "quality-instructions"
     RISK_ASSESSMENT = "risk-assessment"
-    TOOL_SETTINGS = "tool-settings"
     SCHEMATICS = "schematics"
+    # Consolidated documentation types
+    MAKING_INSTRUCTIONS = "making-instructions"  # Consolidates TOOL_SETTINGS
+    DOCUMENTATION_HOME = "documentation-home"
+    TECHNICAL_SPECIFICATIONS = "technical-specifications"  # Consolidates QUALITY_INSTRUCTIONS
+    OPERATING_INSTRUCTIONS = "operating-instructions"  # Consolidates USER_MANUAL
+    PUBLICATIONS = "publications"
+    
+    @classmethod
+    def _missing_(cls, value):
+        """Handle backward compatibility with old type values."""
+        # Map old values to new consolidated types
+        mapping = {
+            "user-manual": cls.OPERATING_INSTRUCTIONS,
+            "tool-settings": cls.MAKING_INSTRUCTIONS,
+            "quality-instructions": cls.TECHNICAL_SPECIFICATIONS,
+        }
+        if value in mapping:
+            return mapping[value]
+        return None
 
 @dataclass
 class License:
@@ -336,6 +352,8 @@ class OKHManifest:
     design_files: List[DocumentRef] = field(default_factory=list)
     making_instructions: List[DocumentRef] = field(default_factory=list)
     operating_instructions: List[DocumentRef] = field(default_factory=list)
+    technical_specifications: List[DocumentRef] = field(default_factory=list)
+    publications: List[DocumentRef] = field(default_factory=list)
     tool_list: List[str] = field(default_factory=list)
     
     # Manufacturing specifications
@@ -392,7 +410,7 @@ class OKHManifest:
             raise ValueError("License validation failed")
             
         # Validate document references
-        for doc in self.manufacturing_files + self.design_files + self.making_instructions + self.operating_instructions:
+        for doc in self.manufacturing_files + self.design_files + self.making_instructions + self.operating_instructions + self.technical_specifications + self.publications:
             if not doc.validate():
                 raise ValueError(f"Invalid document reference: {doc.title}")
                 
@@ -439,6 +457,8 @@ class OKHManifest:
             "design_files": [doc.to_dict() for doc in self.design_files],
             "making_instructions": [doc.to_dict() for doc in self.making_instructions],
             "operating_instructions": [doc.to_dict() for doc in self.operating_instructions],
+            "technical_specifications": [doc.to_dict() for doc in self.technical_specifications],
+            "publications": [doc.to_dict() for doc in self.publications],
             "tool_list": self.tool_list,
             "manufacturing_processes": self.manufacturing_processes,
             "materials": [mat.to_dict() for mat in self.materials],
@@ -542,7 +562,7 @@ class OKHManifest:
             instance.version_date = date.fromisoformat(data['version_date']) if data['version_date'] else None
         
         # Handle document references
-        for doc_field in ['manufacturing_files', 'design_files', 'making_instructions', 'operating_instructions']:
+        for doc_field in ['manufacturing_files', 'design_files', 'making_instructions', 'operating_instructions', 'technical_specifications', 'publications']:
             if doc_field in data:
                 doc_list = []
                 for doc_data in data[doc_field]:

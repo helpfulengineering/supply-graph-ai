@@ -38,6 +38,9 @@ class GitHubExtractor(ProjectExtractor):
         cache_dir: Directory for caching API responses
     """
     
+    # Class-level flag to track if authentication message has been printed
+    _auth_message_printed = False
+    
     def __init__(self, cache_dir: Optional[str] = None, cache_ttl_hours: int = 24, github_token: Optional[str] = None):
         """
         Initialize the GitHub extractor.
@@ -60,10 +63,14 @@ class GitHubExtractor(ProjectExtractor):
         # Update rate limit expectations based on authentication
         if self.is_authenticated:
             self.rate_limit_remaining = 5000  # Authenticated rate limit
-            print("✅ GitHub authentication enabled - using 5,000 requests/hour rate limit")
+            if not GitHubExtractor._auth_message_printed:
+                print("✅ GitHub authentication enabled - using 5,000 requests/hour rate limit")
+                GitHubExtractor._auth_message_printed = True
         else:
-            print("⚠️  GitHub authentication not found - using 60 requests/hour rate limit")
-            print("   To increase rate limits, set GITHUB_TOKEN environment variable or use --github-token flag")
+            if not GitHubExtractor._auth_message_printed:
+                print("⚠️  GitHub authentication not found - using 60 requests/hour rate limit")
+                print("   To increase rate limits, set GITHUB_TOKEN environment variable or use --github-token flag")
+                GitHubExtractor._auth_message_printed = True
         
         # Caching configuration
         self.cache_dir = Path(cache_dir) if cache_dir else Path.home() / ".cache" / "supply-graph-ai" / "github"
@@ -271,7 +278,7 @@ class GitHubExtractor(ProjectExtractor):
                     documentation.append(DocumentInfo(
                         title="README",
                         path="README.md",
-                        doc_type="user-manual",
+                        doc_type="operating-instructions",
                         content=readme_content
                     ))
                 

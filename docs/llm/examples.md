@@ -77,7 +77,7 @@ async def basic_llm_example():
     config = LLMServiceConfig(
         name="ExampleService",
         default_provider=LLMProviderType.ANTHROPIC,
-        default_model="claude-3-5-sonnet-20241022",
+        default_model="claude-sonnet-4-5-20250929",
         max_retries=3,
         retry_delay=1.0,
         timeout=60,
@@ -130,7 +130,7 @@ async def generate_okh_manifest():
         use_llm=True,
         llm_config={
             "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-sonnet-4-5-20250929",
             "max_tokens": 4000,
             "temperature": 0.1
         }
@@ -214,7 +214,7 @@ async def custom_llm_layer_example():
         use_llm=True,
         llm_config={
             "provider": "anthropic",
-            "model": "claude-3-5-sonnet-20241022",
+            "model": "claude-sonnet-4-5-20250929",
             "max_tokens": 4000,
             "temperature": 0.1
         }

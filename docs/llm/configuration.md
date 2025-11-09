@@ -23,7 +23,7 @@ export ANTHROPIC_API_KEY="sk-ant-api03-..."
 
 # Optional: Set default provider and model
 export LLM_PROVIDER="anthropic"
-export LLM_MODEL="claude-3-5-sonnet-20241022"
+export LLM_MODEL="claude-sonnet-4-5-20250929"
 
 # Use LLM commands - provider will be automatically selected
 ome llm generate "Hello world"
@@ -60,7 +60,7 @@ export OLLAMA_BASE_URL="http://localhost:11434"
 export LLM_PROVIDER="anthropic"
 
 # Default model for the provider
-export LLM_MODEL="claude-3-5-sonnet-20241022"
+export LLM_MODEL="claude-sonnet-4-5-20250929"
 ```
 
 ### Optional Configuration
@@ -85,7 +85,7 @@ Create `config/llm_config.yaml`:
 ```yaml
 llm:
   default_provider: "anthropic"
-  default_model: "claude-3-5-sonnet-20241022"
+  default_model: "claude-sonnet-4-5-20250929"
   timeout: 60
   max_retries: 3
   retry_delay: 1.0
@@ -98,7 +98,7 @@ llm:
   providers:
     anthropic:
       api_key: "${ANTHROPIC_API_KEY}"
-      model: "claude-3-5-sonnet-20241022"
+      model: "claude-sonnet-4-5-20250929"
       base_url: null
       timeout: 60
       max_tokens: 4000
@@ -137,7 +137,7 @@ Create `config/llm_config.json`:
 {
   "llm": {
     "default_provider": "anthropic",
-    "default_model": "claude-3-5-sonnet-20241022",
+    "default_model": "claude-sonnet-4-5-20250929",
     "timeout": 60,
     "max_retries": 3,
     "retry_delay": 1.0,
@@ -149,7 +149,7 @@ Create `config/llm_config.json`:
     "providers": {
       "anthropic": {
         "api_key": "${ANTHROPIC_API_KEY}",
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-4-5-20250929",
         "base_url": null,
         "timeout": 60,
         "max_tokens": 4000,
@@ -179,7 +179,7 @@ from src.core.llm.providers.base import LLMProviderConfig
 config = LLMProviderConfig(
     provider_type=LLMProviderType.ANTHROPIC,
     api_key="your_anthropic_key",
-    model="claude-3-5-sonnet-20241022",
+    model="claude-sonnet-4-5-20250929",
     base_url=None,  # Use default Anthropic API
     timeout=60,
     max_tokens=4000,
@@ -190,7 +190,7 @@ provider = AnthropicProvider(config)
 ```
 
 **Available Models:**
-- `claude-3-5-sonnet-20241022` (recommended)
+- `claude-sonnet-4-5-20250929` (recommended)
 - `claude-3-5-haiku-20241022` (faster, cheaper)
 - `claude-3-opus-20240229` (most capable)
 
@@ -296,7 +296,7 @@ from src.core.llm.provider_selection import create_llm_service_with_selection
 # Specify provider via CLI-style parameters
 llm_service = await create_llm_service_with_selection(
     cli_provider="anthropic",
-    cli_model="claude-3-5-sonnet-20241022"
+    cli_model="claude-sonnet-4-5-20250929"
 )
 
 # Or use environment variables
@@ -319,7 +319,7 @@ from src.core.llm.providers.base import LLMProviderType
 service_config = LLMServiceConfig(
     name="MyLLMService",
     default_provider=LLMProviderType.ANTHROPIC,
-    default_model="claude-3-5-sonnet-20241022",
+    default_model="claude-sonnet-4-5-20250929",
     max_retries=3,
     retry_delay=1.0,
     timeout=60,
@@ -346,7 +346,7 @@ config = LayerConfig(
     use_llm=True,
     llm_config={
         "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-4-5-20250929",
         "max_tokens": 4000,
         "temperature": 0.1,
         "timeout": 60
@@ -364,7 +364,7 @@ config = MatchingConfig(
     use_llm=True,
     llm_config={
         "provider": "anthropic",
-        "model": "claude-3-5-sonnet-20241022",
+        "model": "claude-sonnet-4-5-20250929",
         "max_tokens": 2000,
         "temperature": 0.1,
         "timeout": 30
@@ -422,7 +422,7 @@ This will show:
 ```bash
 # Set default provider
 export LLM_PROVIDER=anthropic
-export LLM_MODEL=claude-3-5-sonnet-20241022
+export LLM_MODEL=claude-sonnet-4-5-20250929
 
 # Use LLM commands
 ome llm generate "Hello world"
@@ -543,7 +543,7 @@ export GOOGLE_API_KEY="your_key"        # Google Gemini
 
 # Optional Provider Selection
 export LLM_PROVIDER="anthropic"         # Default provider
-export LLM_MODEL="claude-3-5-sonnet-20241022"  # Default model
+export LLM_MODEL="claude-sonnet-4-5-20250929"  # Default model
 ```
 
 ### CLI Commands
