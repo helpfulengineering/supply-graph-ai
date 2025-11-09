@@ -1,0 +1,430 @@
+{
+  "id": "e2eb49e9-35c1-4631-9525-ed8d709c9a82",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "5785",
+      "street": "Hughes Knolls",
+      "city": "Alexanderton",
+      "region": "Florida",
+      "country": "Algeria",
+      "postcode": "30772"
+    },
+    "gps_coordinates": "48.612478, -53.344687",
+    "directions": "Located behind Jones-Smith",
+    "city": "Alexanderton",
+    "country": "Algeria"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Mullins, Faulkner and Cisneros",
+    "location": {
+      "address": {
+        "number": "2401",
+        "street": "Jenkins Locks",
+        "city": "South Ronnie",
+        "region": "West Virginia",
+        "country": "Lebanon",
+        "postcode": "61028"
+      },
+      "gps_coordinates": "52.742652, -40.173101",
+      "directions": "Located behind Williams, Watkins and Tyler",
+      "city": "South Ronnie",
+      "country": "Lebanon"
+    },
+    "contact_person": "Melissa Morgan",
+    "bio": "Established in 1997, we specialize in Expanded client-server concept",
+    "website": "https://garza.info",
+    "languages": [
+      "en",
+      "de",
+      "fr"
+    ],
+    "mailing_list": "chris84@lists.mccoy.com",
+    "images": [
+      "images/value.jpg"
+    ],
+    "contact": {
+      "landline": "+1-596-872-4219",
+      "mobile": "+1-583-940-9611",
+      "email": "info@lopez.com",
+      "whatsapp": "+1-538-598-4634"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/phillip87",
+      "twitter": "@pedwards",
+      "other_urls": [
+        "https://bullock.com",
+        "https://carter.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Smith-Webster",
+    "location": {
+      "address": {
+        "number": "6147",
+        "street": "Erika Stravenue",
+        "city": "Seanberg",
+        "region": "Alabama",
+        "country": "El Salvador",
+        "postcode": "62151"
+      },
+      "gps_coordinates": "67.587873, -110.163056",
+      "directions": "Located near Fernandez Ltd",
+      "city": "Seanberg",
+      "country": "El Salvador"
+    },
+    "contact_person": "Lucas Clark",
+    "bio": "Established in 1991, we specialize in Reverse-engineered web-enabled architecture",
+    "website": "https://morgan.org",
+    "languages": [
+      "en",
+      "fr"
+    ],
+    "mailing_list": "npham@lists.carroll-whitney.com",
+    "contact": {
+      "landline": "+1-921-435-5251",
+      "mobile": "+1-434-234-2522",
+      "email": "info@beasley.com",
+      "whatsapp": "+1-236-204-3443"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/marydillon",
+      "twitter": "@ihall",
+      "instagram": "@nelsonmichael",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-22:00",
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "1993-04-02",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "S5",
+      "serial_number": "SN347121",
+      "condition": "Good",
+      "notes": "Equipment notes: Need see everything pressure result.",
+      "quantity": 1,
+      "throughput": "75 parts/hour",
+      "power_rating": 9245,
+      "maintenance_schedule": "Every 1 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "997",
+              "street": "Brown Lodge",
+              "city": "East Daniel",
+              "region": "Georgia",
+              "country": "Norway",
+              "postcode": "04276"
+            },
+            "gps_coordinates": "67.19827, -124.770964",
+            "directions": "Located across from Davis, Hurley and Rodriguez",
+            "city": "East Daniel",
+            "country": "Norway"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5127",
+              "street": "Jacob Inlet",
+              "city": "Port Michaelport",
+              "region": "Texas",
+              "country": "Papua New Guinea",
+              "postcode": "95174"
+            },
+            "gps_coordinates": "39.501967, 11.826752",
+            "directions": "Located behind Lyons LLC",
+            "city": "Port Michaelport",
+            "country": "Papua New Guinea"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2773",
+              "street": "Rivera Club",
+              "city": "Jamesville",
+              "region": "Florida",
+              "country": "Bahrain",
+              "postcode": "81025"
+            },
+            "gps_coordinates": "35.151708, -63.828149",
+            "directions": "Located behind Haley-Clayton",
+            "city": "Jamesville",
+            "country": "Bahrain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "680",
+              "street": "Reed Via",
+              "city": "Dickersonbury",
+              "region": "Louisiana",
+              "country": "Czech Republic",
+              "postcode": "15507"
+            },
+            "gps_coordinates": "40.412911, -44.198258",
+            "directions": "Located behind Fisher LLC",
+            "city": "Dickersonbury",
+            "country": "Czech Republic"
+          }
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.8,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "ABS",
+          "PETG"
+        ],
+        "process_parameters": {
+          "setup_time": "83 minutes",
+          "cycle_time": "21 minutes",
+          "changeover_time": "29 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 175",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "VTC-20",
+      "serial_number": "SN195334",
+      "condition": "Fair",
+      "notes": "Equipment notes: Top detail attorney.",
+      "quantity": 3,
+      "throughput": "54 parts/hour",
+      "power_rating": 6724,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9815",
+              "street": "Karen Overpass",
+              "city": "Charlesview",
+              "region": "Florida",
+              "country": "Kuwait",
+              "postcode": "98053"
+            },
+            "gps_coordinates": "45.947987, -75.404666",
+            "directions": "Located near Stanley, Moreno and Williams",
+            "city": "Charlesview",
+            "country": "Kuwait"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8476",
+              "street": "Matthews Via",
+              "city": "Lake Adam",
+              "region": "Washington",
+              "country": "Vietnam",
+              "postcode": "09007"
+            },
+            "gps_coordinates": "58.744478, -90.986075",
+            "directions": "Located across from Hardin Ltd",
+            "city": "Lake Adam",
+            "country": "Vietnam"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1397",
+              "street": "Amber Crossing",
+              "city": "New Alexandraport",
+              "region": "Colorado",
+              "country": "Cote d'Ivoire",
+              "postcode": "91882"
+            },
+            "gps_coordinates": "49.018316, -4.162108",
+            "directions": "Located across from Young Group",
+            "city": "New Alexandraport",
+            "country": "Cote d'Ivoire"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2727",
+              "street": "Jennifer Burgs",
+              "city": "Suttonport",
+              "region": "North Carolina",
+              "country": "Thailand",
+              "postcode": "93720"
+            },
+            "gps_coordinates": "46.031231, 4.896565",
+            "directions": "Located across from Johnson LLC",
+            "city": "Suttonport",
+            "country": "Thailand"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Wood",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "28 minutes",
+          "cycle_time": "47 minutes",
+          "changeover_time": "45 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2095,
+  "storage_capacity": "412 cubic meters",
+  "certifications": [
+    "Research Grade"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months",
+  "typical_products": [
+    "Virtual incremental methodology",
+    "Switchable explicit circuit",
+    "Open-architected radical interface",
+    "Up-sized cohesive extranet"
+  ],
+  "human_capacity": {
+    "headcount": 29
+  },
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Visionary mobile policy",
+      "Innovative heuristic functionalities",
+      "Digitized contextually-based standardization"
+    ],
+    "services": [
+      "Profound even-keeled info-mediaries"
+    ],
+    "footfall": 90,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-09T13:16:43.236510",
+    "created_by": {
+      "name": "Hernandez, Garcia and Miller",
+      "location": {
+        "address": {
+          "number": "6493",
+          "street": "Robinson Drive",
+          "city": "West Joshuashire",
+          "region": "Minnesota",
+          "country": "Central African Republic",
+          "postcode": "25609"
+        },
+        "gps_coordinates": "46.899897, -116.122033",
+        "directions": "Located across from Thomas, Mathews and Stewart",
+        "city": "West Joshuashire",
+        "country": "Central African Republic"
+      },
+      "contact_person": "Alan Clark",
+      "bio": "Established in 2013, we specialize in Horizontal directional hierarchy",
+      "website": "https://gallagher.info",
+      "languages": [
+        "en",
+        "de"
+      ],
+      "mailing_list": "luisarroyo@lists.escobar.com",
+      "images": [
+        "images/address.jpg",
+        "images/develop.jpg"
+      ],
+      "contact": {
+        "landline": "+1-950-338-3387",
+        "mobile": "+1-367-998-5750",
+        "email": "info@marquez-collins.biz",
+        "whatsapp": "+1-745-905-8202"
+      },
+      "social_media": {
+        "twitter": "@michaelaperez",
+        "instagram": "@yjones",
+        "other_urls": [
+          "https://campbell.net"
+        ]
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

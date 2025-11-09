@@ -1,0 +1,280 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "58e2b1ca-9302-41a7-a980-377bd34ea734",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/meghangibson/sheet-metal-enclosure",
+  "version": "2.9.9",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Rhonda Richards",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "es",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "keywords": [
+    "documented",
+    "mount",
+    "customizable"
+  ],
+  "contributors": [
+    {
+      "name": "Jessica Gilbert",
+      "email": "alexwest@example.org",
+      "affiliation": "Barker-Thornton",
+      "social": []
+    },
+    {
+      "name": "Robert Bell",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "alexander29"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Harper, Johnson and Fisher",
+    "url": null,
+    "email": null
+  },
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/dudleyjohn/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/robert22/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/bgomez/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/dmiller/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/wfranklin/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/terryvictoria/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/djennings/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.5"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Grinder",
+    "Shear",
+    "Crimping tool",
+    "Drill press",
+    "Pliers",
+    "Heat shrink",
+    "Cable ties",
+    "Welder",
+    "Punch press"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 399.27,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Help skill able situation create role heart."
+  },
+  "bom": "https://github.com/daustin/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": []
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "f0a3fd92-d4dd-4dd1-ae8d-97d760f9497d",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 121,
+        "width": 140,
+        "height": 52
+      },
+      "mass": 577.25,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "e3d73ad5-4aa1-4853-8e5b-5cebcb3c32a5",
+      "source": [],
+      "export": [
+        "https://github.com/matthewwallace/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "4b3cebbc-4f93-42d7-abc7-12e6e7b5918e",
+      "source": [
+        "https://github.com/jill68/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 29,
+        "width": 42,
+        "height": 96
+      },
+      "mass": 564.97,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "1d5bf61b-0280-4069-a66e-0bf667c36ff7",
+      "source": [
+        "https://github.com/ysmith/project/raw/main/models/housing.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/curtiscaldwell/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 30,
+        "width": 81,
+        "height": 32
+      },
+      "mass": 512.58,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

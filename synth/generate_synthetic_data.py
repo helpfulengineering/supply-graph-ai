@@ -199,7 +199,7 @@ class OKHGenerator(SyntheticDataGenerator):
         extensions = {
             DocumentationType.DESIGN_FILES: [".stl", ".step", ".iges", ".dxf", ".f3d"],
             DocumentationType.MANUFACTURING_FILES: [".pdf", ".docx", ".md"],
-            DocumentationType.USER_MANUAL: [".pdf", ".html", ".md"],
+            DocumentationType.OPERATING_INSTRUCTIONS: [".pdf", ".html", ".md"],
             DocumentationType.SOFTWARE: [".zip", ".tar.gz", ".git"]
         }
         
@@ -329,7 +329,7 @@ class OKHGenerator(SyntheticDataGenerator):
         # Quality control instructions
         if self.should_include_field():
             instructions.append(self.generate_document_ref(
-                DocumentationType.QUALITY_INSTRUCTIONS,
+                DocumentationType.TECHNICAL_SPECIFICATIONS,
                 "Quality Control and Testing Procedures"
             ))
         
@@ -352,7 +352,7 @@ class OKHGenerator(SyntheticDataGenerator):
         
         # Basic quality control
         quality_docs.append(self.generate_document_ref(
-            DocumentationType.QUALITY_INSTRUCTIONS,
+            DocumentationType.TECHNICAL_SPECIFICATIONS,
             "Quality Control Checklist"
         ))
         
@@ -360,12 +360,12 @@ class OKHGenerator(SyntheticDataGenerator):
         for process in template["manufacturing_processes"]:
             if process == "CNC":
                 quality_docs.append(self.generate_document_ref(
-                    DocumentationType.QUALITY_INSTRUCTIONS,
+                    DocumentationType.TECHNICAL_SPECIFICATIONS,
                     "Dimensional Inspection Procedures"
                 ))
             elif process == "PCB":
                 quality_docs.append(self.generate_document_ref(
-                    DocumentationType.QUALITY_INSTRUCTIONS,
+                    DocumentationType.TECHNICAL_SPECIFICATIONS,
                     "Electrical Testing Protocol"
                 ))
         

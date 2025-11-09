@@ -1,0 +1,281 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "75cb823f-2840-43f1-b149-0f5d8951f7e1",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/robertfloyd/arduino-based-iot-sensor-node",
+  "version": "3.2.8",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Rita Smith",
+    "email": null,
+    "affiliation": "Torres-Martinez",
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "intended_use": "Not across customer give television you.",
+  "keywords": [
+    "mount",
+    "modular",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Jason Martin",
+    "email": "jwilson@example.org",
+    "affiliation": "Giles Group",
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Yvonne Mueller",
+      "email": "tinalynch@example.net",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "melissa84"
+        }
+      ]
+    },
+    {
+      "name": "Morgan Collins",
+      "email": null,
+      "affiliation": "Gonzalez and Sons",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "graymary"
+        }
+      ]
+    }
+  ],
+  "technology_readiness_level": "TRL-7",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/montgomerynicholas/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/brownkyle/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/michael67/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/lori50/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/tgarner/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/lewisjesse/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/stephen04/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/santiagoalicia/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/wsalazar/project/raw/main/docs/pcb_assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/zdavis/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/vferrell/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Build plate",
+    "Cable ties",
+    "Nozzle",
+    "Heat gun",
+    "Wrench set",
+    "Soldering station",
+    "PCB mill",
+    "Oscilloscope",
+    "Pick and place",
+    "Calipers",
+    "3D printer",
+    "Screwdriver set",
+    "Pliers",
+    "Multimeter",
+    "Crimping tool"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 228.56,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 593.47,
+      "unit": "kg",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: C"
+    }
+  ],
+  "bom": "https://github.com/holly09/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "IPC-A-610",
+      "publisher": "IPC",
+      "reference": "IPC-A-610",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "deb9dd3d-0743-42e1-b856-d1c208fb7857",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/xswanson/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/mwoods/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Copper",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "7c045d65-b1bb-4782-b880-4fffb7535505",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/daniellehenry/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "3be78222-48d4-42e5-ba32-c7cab6279219",
+      "source": [
+        "https://github.com/mcdanieljacob/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/dblackwell/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/sosapeter/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Copper",
+      "outer_dimensions": null,
+      "mass": 325.06,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}
