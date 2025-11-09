@@ -104,3 +104,14 @@ class OKWUploadResponse(BaseModel):
     
     # Optional fields after
     validation_issues: Optional[List[ValidationIssue]] = None
+
+class OKWExportResponse(BaseModel):
+    """Response model for OKW schema export"""
+    # Required fields first
+    success: bool
+    message: str
+    schema: Dict[str, Any]
+    
+    # Optional fields after
+    schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"
+    model_name: Optional[str] = "ManufacturingFacility"

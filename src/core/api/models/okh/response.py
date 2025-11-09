@@ -155,3 +155,14 @@ class OKHGenerateResponse(BaseModel):
     
     # Optional fields after
     quality_report: Optional[Dict[str, Any]] = None
+
+class OKHExportResponse(BaseModel):
+    """Response model for OKH schema export"""
+    # Required fields first
+    success: bool
+    message: str
+    schema: Dict[str, Any]
+    
+    # Optional fields after
+    schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"
+    model_name: Optional[str] = "OKHManifest"

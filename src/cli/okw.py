@@ -854,6 +854,107 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
 
 
 @okw_group.command()
+@click.option('--output', '-o', type=click.Path(), help='Output file path for the JSON schema')
+@standard_cli_command(
+    help_text="""
+    Export the JSON schema for the OKW (OpenKnowWhere) domain model.
+    
+    This command generates and exports the JSON schema for the ManufacturingFacility
+    dataclass in canonical JSON Schema format (draft-07). The schema represents
+    the complete structure of the OKW domain model including all fields, types,
+    and constraints.
+    
+    The exported schema can be used for:
+    - Validation of OKW facilities
+    - Documentation generation
+    - API contract specification
+    - Integration with other systems
+    """,
+    epilog="""
+    Examples:
+      # Export schema to console
+      ome okw export
+      
+      # Export schema to file
+      ome okw export --output okw-schema.json
+      
+      # Export with JSON output format
+      ome okw export --output okw-schema.json --json
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False  # Export doesn't need LLM
+)
+@click.pass_context
+async def export(ctx, output: Optional[str], verbose: bool, output_format: str,
+                 use_llm: bool = False, llm_provider: str = 'anthropic',
+                 llm_model: Optional[str] = None, quality_level: str = 'professional',
+                 strict_mode: bool = False):
+    """Export OKW domain model as JSON schema."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-export")
+    
+    try:
+        cli_ctx.log("Exporting OKW JSON schema...", "info")
+        
+        async def http_export():
+            """Export via HTTP API"""
+            cli_ctx.log("Exporting via HTTP API...", "info")
+            response = await cli_ctx.api_client.request("GET", "/api/okw/export")
+            return response
+        
+        async def fallback_export():
+            """Export using direct schema generation"""
+            cli_ctx.log("Using direct schema generation...", "info")
+            from ..core.models.okw import ManufacturingFacility
+            from ..core.utils.schema_generator import generate_json_schema
+            
+            schema = generate_json_schema(ManufacturingFacility, title="ManufacturingFacility")
+            return {
+                "success": True,
+                "message": "OKW schema exported successfully",
+                "schema": schema,
+                "schema_version": schema.get("$schema", "http://json-schema.org/draft-07/schema#"),
+                "model_name": "ManufacturingFacility"
+            }
+        
+        # Execute export with fallback
+        command = SmartCommand(cli_ctx)
+        result = await command.execute_with_fallback(http_export, fallback_export)
+        
+        # Extract schema from result
+        schema = result.get("schema", result)
+        
+        # Save to file if output specified
+        if output:
+            output_path = Path(output)
+            with open(output_path, 'w') as f:
+                json.dump(schema, f, indent=2)
+            cli_ctx.log(f"✅ Schema exported to: {output_path}", "success")
+        else:
+            # Display schema
+            if output_format == "json":
+                output_data = format_llm_output(result, cli_ctx)
+                click.echo(output_data)
+            else:
+                cli_ctx.log("✅ OKW JSON Schema exported successfully", "success")
+                cli_ctx.log(f"   Schema Version: {result.get('schema_version', 'N/A')}", "info")
+                cli_ctx.log(f"   Model Name: {result.get('model_name', 'ManufacturingFacility')}", "info")
+                cli_ctx.log(f"   Use --output to save to file", "info")
+        
+        cli_ctx.end_command_tracking()
+        
+    except Exception as e:
+        cli_ctx.log(f"❌ Export failed: {str(e)}", "error")
+        if cli_ctx.verbose:
+            import traceback
+            click.echo(traceback.format_exc())
+        raise
+
+
+@okw_group.command()
 @click.option('--query', '-q', help='Search query')
 @click.option('--domain', help='Filter by domain')
 @click.option('--capability', help='Filter by capability type')
