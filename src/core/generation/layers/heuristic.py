@@ -13,9 +13,9 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo
+from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo, AnalysisDepth
 from ...models.okh import DocumentationType, DocumentRef
-from ..utils.file_categorization import FileCategorizationRules
+from ..utils.file_categorization import FileCategorizationRules, FileCategorizationResult
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,48 @@ class HeuristicMatcher(BaseGenerationLayer):
         self.file_patterns = self._initialize_file_patterns()
         self.content_patterns = self._initialize_content_patterns()
         self.file_categorization_rules = FileCategorizationRules()
+        
+        # Initialize FileCategorizationService if LLM categorization is enabled
+        self.file_categorization_service = None
+        if self.layer_config and self.layer_config.file_categorization_config.get("enable_llm_categorization", True):
+            try:
+                from ..services.file_categorization_service import FileCategorizationService
+                from ...llm.service import LLMService, LLMServiceConfig
+                from ...llm.providers.base import LLMProviderType
+                
+                # Create LLM service if LLM is configured
+                llm_service = None
+                if self.layer_config.use_llm and self.layer_config.is_llm_configured():
+                    try:
+                        service_config = LLMServiceConfig(
+                            name="HeuristicMatcher",
+                            default_provider=LLMProviderType.ANTHROPIC,
+                            default_model=None,  # Use centralized config
+                            max_retries=3,
+                            retry_delay=1.0,
+                            timeout=60,
+                            enable_fallback=True,
+                            max_cost_per_request=1.0,
+                            enable_cost_tracking=True,
+                            max_concurrent_requests=5
+                        )
+                        llm_service = LLMService("HeuristicMatcher", service_config)
+                    except Exception as e:
+                        logger.warning(f"Failed to create LLM service for file categorization: {e}")
+                
+                # Create FileCategorizationService
+                enable_caching = self.layer_config.file_categorization_config.get("enable_caching", True)
+                min_confidence_for_llm = self.layer_config.file_categorization_config.get("min_confidence_for_llm", 0.8)
+                self.file_categorization_service = FileCategorizationService(
+                    llm_service=llm_service,
+                    enable_caching=enable_caching,
+                    min_confidence_for_llm=min_confidence_for_llm
+                )
+                logger.debug("FileCategorizationService initialized with LLM support")
+            except ImportError as e:
+                logger.warning(f"FileCategorizationService not available: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize FileCategorizationService: {e}")
     
     def _initialize_file_patterns(self) -> List[FilePattern]:
         """Initialize file pattern matching rules"""
@@ -166,13 +208,53 @@ class HeuristicMatcher(BaseGenerationLayer):
     
     async def _analyze_file_structure(self, project_data: ProjectData, result: LayerResult):
         """
-        Analyze file structure using FileCategorizationRules.
+        Analyze file structure using two-layer file categorization.
         
-        This method uses the new FileCategorizationRules class to categorize files
-        into appropriate DocumentationType categories with confidence scores.
-        Layer 1 provides suggestions that Layer 2 (LLM) will refine.
+        This method uses:
+        - Layer 1: FileCategorizationRules for fast heuristic categorization
+        - Layer 2: FileCategorizationService with LLM content analysis (if enabled and available)
+        
+        Layer 1 provides suggestions that Layer 2 (LLM) will refine when available.
+        Falls back to Layer 1 if LLM is unavailable or disabled.
         """
-        # Categorize files using FileCategorizationRules
+        # Step 1: Generate Layer 1 suggestions for all files
+        layer1_suggestions: Dict[str, FileCategorizationResult] = {}
+        for file_info in project_data.files:
+            file_path = file_info.path
+            filename = Path(file_path).name
+            
+            # Use FileCategorizationRules to get Layer 1 suggestion
+            categorization_result = self.file_categorization_rules.categorize_file(
+                filename, file_path
+            )
+            layer1_suggestions[file_path] = categorization_result
+        
+        # Step 2: Use FileCategorizationService if available (Layer 1 + Layer 2 LLM)
+        final_categorizations: Dict[str, FileCategorizationResult] = {}
+        
+        if self.file_categorization_service:
+            try:
+                # Get analysis depth from config
+                analysis_depth_str = self.layer_config.file_categorization_config.get("analysis_depth", "shallow")
+                analysis_depth = AnalysisDepth(analysis_depth_str.lower())
+                
+                # Use FileCategorizationService to get final categorizations
+                # This will use LLM if available, otherwise fall back to Layer 1
+                final_categorizations = await self.file_categorization_service.categorize_files(
+                    files=project_data.files,
+                    layer1_suggestions=layer1_suggestions,
+                    analysis_depth=analysis_depth
+                )
+                logger.debug(f"FileCategorizationService categorized {len(final_categorizations)} files")
+            except Exception as e:
+                logger.warning(f"FileCategorizationService failed, falling back to Layer 1: {e}")
+                # Fall back to Layer 1 suggestions
+                final_categorizations = layer1_suggestions
+        else:
+            # No FileCategorizationService available, use Layer 1 directly
+            final_categorizations = layer1_suggestions
+        
+        # Step 3: Group files by DocumentationType
         categorized_files: Dict[DocumentationType, List[Dict[str, Any]]] = {}
         excluded_count = 0
         
@@ -180,10 +262,14 @@ class HeuristicMatcher(BaseGenerationLayer):
             file_path = file_info.path
             filename = Path(file_path).name
             
-            # Use FileCategorizationRules to categorize
-            categorization_result = self.file_categorization_rules.categorize_file(
-                filename, file_path
-            )
+            # Get final categorization result
+            categorization_result = final_categorizations.get(file_path)
+            if not categorization_result:
+                # If no result, use Layer 1 suggestion
+                categorization_result = layer1_suggestions.get(file_path)
+                if not categorization_result:
+                    # Skip if no categorization available
+                    continue
             
             # Skip excluded files
             if categorization_result.excluded:
@@ -195,13 +281,16 @@ class HeuristicMatcher(BaseGenerationLayer):
             if doc_type not in categorized_files:
                 categorized_files[doc_type] = []
             
+            # Determine detection method for metadata
+            detected_by = "file_categorization_service" if self.file_categorization_service else "file_categorization_rules"
+            
             # Create DocumentRef-like structure for result
             categorized_files[doc_type].append({
                 "title": filename,
                 "path": file_path,
                 "type": doc_type.value,
                 "metadata": {
-                    "detected_by": "file_categorization_rules",
+                    "detected_by": detected_by,
                     "confidence": categorization_result.confidence,
                     "reason": categorization_result.reason
                 }

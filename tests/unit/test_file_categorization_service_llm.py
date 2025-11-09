@@ -23,6 +23,9 @@ class TestFileCategorizationServiceLLM:
         """Test successful LLM categorization."""
         # Create mock LLM service
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -81,6 +84,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_overrides_layer1(self):
         """Test that LLM can override Layer 1 suggestion."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -134,6 +140,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_excludes_file(self):
         """Test that LLM can exclude files."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -229,6 +238,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_malformed_json_recovery(self):
         """Test recovery from malformed JSON (trailing comma, etc.)."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -280,6 +292,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_llm_service_error(self):
         """Test handling of LLM service errors."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -324,6 +339,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_uses_content_parser(self):
         """Test that content parser is used to extract content preview."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -382,6 +400,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_different_depths(self):
         """Test that different analysis depths produce different content previews."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",
@@ -428,6 +449,8 @@ class TestFileCategorizationServiceLLM:
         
         # Test Deep
         mock_llm_service.reset_mock()
+        mock_llm_service.initialize = AsyncMock()
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_llm_service.generate = AsyncMock(return_value=mock_response)
         service_deep = FileCategorizationService(llm_service=mock_llm_service)
         await service_deep._categorize_with_llm(
@@ -444,6 +467,9 @@ class TestFileCategorizationServiceLLM:
     async def test_categorize_with_llm_no_layer1_suggestion(self):
         """Test LLM categorization when Layer 1 suggestion is None."""
         mock_llm_service = Mock()
+        mock_llm_service.initialize = AsyncMock()
+        from src.core.services.base import ServiceStatus
+        mock_llm_service.status = ServiceStatus.ACTIVE
         mock_metadata = LLMResponseMetadata(
             provider="anthropic",
             model="claude-sonnet-4-5-20250929",

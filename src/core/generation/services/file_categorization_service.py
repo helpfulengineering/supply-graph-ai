@@ -41,7 +41,8 @@ class FileCategorizationService:
         self,
         llm_service: Optional[Any] = None,  # LLMService type
         repository_mapping_service: Optional[Any] = None,  # RepositoryMappingService type
-        enable_caching: bool = True
+        enable_caching: bool = True,
+        min_confidence_for_llm: float = 0.5  # Only use LLM if Layer 1 confidence < this
     ):
         """
         Initialize file categorization service.
@@ -50,10 +51,12 @@ class FileCategorizationService:
             llm_service: Optional LLM service for Layer 2 analysis
             repository_mapping_service: Optional repository mapping service for large repos
             enable_caching: Enable caching by file content hash
+            min_confidence_for_llm: Minimum Layer 1 confidence threshold to skip LLM (use Layer 1 directly)
         """
         self.llm_service = llm_service
         self.repository_mapping_service = repository_mapping_service
         self.enable_caching = enable_caching
+        self.min_confidence_for_llm = min_confidence_for_llm  # If Layer 1 confidence >= this, skip LLM
         
         # Initialize components
         self.file_categorization_rules = FileCategorizationRules()
@@ -104,6 +107,17 @@ class FileCategorizationService:
                     results[file_path] = self._cache[cache_key]
                     continue
             
+            # Get Layer 1 suggestion
+            layer1_suggestion = layer1_suggestions.get(file_path)
+            
+            # Skip LLM if Layer 1 has high confidence (trust Layer 1 for clear patterns)
+            if layer1_suggestion and layer1_suggestion.confidence >= self.min_confidence_for_llm:
+                self.logger.debug(
+                    f"Skipping LLM for {file_path}: Layer 1 confidence {layer1_suggestion.confidence:.2f} >= {self.min_confidence_for_llm}"
+                )
+                results[file_path] = layer1_suggestion
+                continue
+            
             # Determine analysis depth for this file
             file_depth = per_file_depths.get(file_path, analysis_depth)
             
@@ -112,10 +126,22 @@ class FileCategorizationService:
                 try:
                     categorization = await self._categorize_with_llm(
                         file_info,
-                        layer1_suggestions.get(file_path),
+                        layer1_suggestion,
                         file_depth
                     )
                     if categorization:
+                        # Validate LLM response against Layer 1 for high-confidence suggestions
+                        if layer1_suggestion and layer1_suggestion.confidence >= 0.8:
+                            # If Layer 1 had high confidence, validate LLM didn't make a mistake
+                            if (categorization.documentation_type != layer1_suggestion.documentation_type and
+                                not categorization.excluded and not layer1_suggestion.excluded):
+                                # LLM overrode high-confidence Layer 1 - log warning but allow it
+                                self.logger.warning(
+                                    f"LLM overrode high-confidence Layer 1 suggestion for {file_path}: "
+                                    f"Layer 1: {layer1_suggestion.documentation_type.value} (conf: {layer1_suggestion.confidence:.2f}), "
+                                    f"LLM: {categorization.documentation_type.value} (conf: {categorization.confidence:.2f})"
+                                )
+                        
                         results[file_path] = categorization
                         # Cache result
                         if self.enable_caching:
@@ -130,7 +156,12 @@ class FileCategorizationService:
                 results[file_path] = layer1_suggestions[file_path]
             else:
                 # If no Layer 1 suggestion, use FileCategorizationRules directly
-                categorization = self.file_categorization_rules.categorize_file(file_path)
+                from pathlib import Path
+                file_path_obj = Path(file_path)
+                categorization = self.file_categorization_rules.categorize_file(
+                    filename=file_path_obj.name,
+                    file_path=file_path
+                )
                 results[file_path] = categorization
         
         return results
@@ -167,7 +198,14 @@ class FileCategorizationService:
         Returns:
             FileCategorizationResult or None if LLM categorization fails
         """
+        if not self.llm_service:
+            return None
+        
         try:
+            # Initialize LLM service if needed
+            from ...services.base import ServiceStatus
+            if self.llm_service.status != ServiceStatus.ACTIVE:
+                await self.llm_service.initialize()
             # Parse file content based on analysis depth
             content_preview = self.file_content_parser.parse_content(
                 file_info=file_info,

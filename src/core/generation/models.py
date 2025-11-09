@@ -754,7 +754,7 @@ class LayerConfig:
             "fallback_to_heuristics": True,     # Fallback to Layer 1 when LLM unavailable
             "batch_size": 10,                   # Files per LLM request
             "max_files_per_request": 50,        # Max files in single request
-            "min_confidence_for_llm": 0.5,      # Only use LLM if Layer 1 confidence < this
+            "min_confidence_for_llm": 0.8,      # Skip LLM if Layer 1 confidence >= this (trust Layer 1 for clear patterns)
             "enable_caching": True,             # Enable caching by file content hash
         }
         

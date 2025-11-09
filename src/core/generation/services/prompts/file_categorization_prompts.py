@@ -315,11 +315,18 @@ When making your categorization decision, consider:
    - Files in `testing/` → TECHNICAL_SPECIFICATIONS if documentation, EXCLUDE if raw data
 
 **Priority Order**:
-1. Content purpose (highest priority)
-2. Directory context
-3. Filename patterns
-4. File extension
-5. Layer 1 suggestion (lowest priority - can be overridden)"""
+1. **High-confidence Layer 1 suggestions (>0.8)**: These are usually correct based on clear patterns (file extensions, directory paths). Only override if content clearly contradicts the suggestion.
+2. Content purpose: What does the file content actually say?
+3. Directory context: What directory is it in? What other files are nearby?
+4. Filename patterns: What does the filename suggest?
+5. File extension: What does the extension indicate?
+6. **Low-confidence Layer 1 suggestions (<0.5)**: These are fallback defaults. Review carefully and override if needed.
+
+**Critical Rules**:
+- If Layer 1 suggests MANUFACTURING_FILES with confidence >0.8 (e.g., `.stl`, `.3mf` files), **DO NOT override** unless content clearly shows it's not a manufacturing file.
+- If Layer 1 suggests PUBLICATIONS with confidence >0.8 (e.g., files in `publication/` directory), **DO NOT override** unless it's clearly correspondence (cover letters, responses to reviewers).
+- If Layer 1 suggests DESIGN_FILES with confidence >0.8 (e.g., `.scad` files), **DO NOT override** unless content clearly shows it's not a design file.
+- If Layer 1 suggests exclusion, **DO NOT override** - excluded files should not be categorized."""
     
     @staticmethod
     def _build_output_format_section() -> str:

@@ -145,6 +145,13 @@ class FileCategorizationRules:
             r'(?i)(cover_letter|response_to_reviewers?|correspondence)',
         ]
         
+        # License files (should be excluded from documentation categorization)
+        self.excluded_license_patterns = [
+            r'^license$',
+            r'^licence$',
+            r'^copying$',
+        ]
+        
         # Workflow files
         self.excluded_workflow_dirs = {
             '.github', '.gitlab', '.git', '.vscode', '.idea', '.vs'
@@ -217,13 +224,21 @@ class FileCategorizationRules:
         if 'publication' not in path_lower:
             for pattern in self.excluded_testing_patterns:
                 if re.search(pattern, filename_lower):
-                    # Only exclude if it's clearly test data (spectrum files, etc.)
-                    if 'spectrum' in filename_lower or file_ext in {'.csv', '.tsv'}:
+                    # Exclude raw test data files (spectrum files, CSV data, audio files, etc.)
+                    if ('spectrum' in filename_lower or 
+                        file_ext in {'.csv', '.tsv', '.wav', '.m'} or
+                        'test_data' in filename_lower or
+                        'test_results' in filename_lower):
                         return True
         
         # Check correspondence patterns
         for pattern in self.excluded_correspondence_patterns:
             if re.search(pattern, filename_lower):
+                return True
+        
+        # Check license files (exclude LICENSE, LICENCE, COPYING files)
+        for pattern in self.excluded_license_patterns:
+            if re.match(pattern, filename_lower):
                 return True
         
         return False
@@ -254,9 +269,9 @@ class FileCategorizationRules:
             if any(design_dir in path_lower for design_dir in self.design_dirs):
                 return FileCategorizationResult(
                     documentation_type=DocumentationType.DESIGN_FILES,
-                    confidence=0.7,
+                    confidence=0.85,  # Higher confidence for CAD scripts
                     excluded=False,
-                    reason=f"Software file {file_ext} in design directory"
+                    reason=f"Software file {file_ext} in design directory (CAD script)"
                 )
             else:
                 return FileCategorizationResult(
@@ -274,8 +289,13 @@ class FileCategorizationRules:
     
     def _categorize_by_directory(self, path_lower: str) -> Optional[FileCategorizationResult]:
         """Categorize file by directory path."""
-        # Making instructions
-        if any(dir_name in path_lower for dir_name in self.making_instructions_dirs):
+        # Split path into directory components (exclude filename)
+        path_obj = Path(path_lower)
+        # Get directory parts only (exclude filename)
+        path_parts = [part.lower() for part in path_obj.parts[:-1]] if path_obj.parts else []
+        
+        # Making instructions - check if any directory component matches
+        if any(dir_name in path_parts for dir_name in self.making_instructions_dirs):
             return FileCategorizationResult(
                 documentation_type=DocumentationType.MAKING_INSTRUCTIONS,
                 confidence=0.8,
@@ -283,17 +303,8 @@ class FileCategorizationRules:
                 reason="File in making instructions directory"
             )
         
-        # Design files
-        if any(dir_name in path_lower for dir_name in self.design_dirs):
-            return FileCategorizationResult(
-                documentation_type=DocumentationType.DESIGN_FILES,
-                confidence=0.8,
-                excluded=False,
-                reason="File in design directory"
-            )
-        
-        # Publications
-        if any(dir_name in path_lower for dir_name in self.publications_dirs):
+        # Publications - check BEFORE design files (higher priority for publication directory)
+        if any(dir_name in path_parts for dir_name in self.publications_dirs):
             return FileCategorizationResult(
                 documentation_type=DocumentationType.PUBLICATIONS,
                 confidence=0.8,
@@ -301,9 +312,18 @@ class FileCategorizationRules:
                 reason="File in publication directory"
             )
         
+        # Design files - check if any directory component matches
+        if any(dir_name in path_parts for dir_name in self.design_dirs):
+            return FileCategorizationResult(
+                documentation_type=DocumentationType.DESIGN_FILES,
+                confidence=0.8,
+                excluded=False,
+                reason="File in design directory"
+            )
+        
         # Technical specifications (testing/validation directories)
         # But exclude raw test data files (spectrum files, CSV data)
-        if any(dir_name in path_lower for dir_name in self.technical_specs_dirs):
+        if any(dir_name in path_parts for dir_name in self.technical_specs_dirs):
             # Check if it's raw test data (should be excluded)
             filename_lower = Path(path_lower).name.lower()
             if any(pattern in filename_lower for pattern in ['spectrum', 'test_data', 'test_results']):
@@ -322,7 +342,7 @@ class FileCategorizationRules:
             )
         
         # Software
-        if any(dir_name in path_lower for dir_name in self.software_dirs):
+        if any(dir_name in path_parts for dir_name in self.software_dirs):
             return FileCategorizationResult(
                 documentation_type=DocumentationType.SOFTWARE,
                 confidence=0.7,
@@ -331,7 +351,7 @@ class FileCategorizationRules:
             )
         
         # Operating instructions
-        if any(dir_name in path_lower for dir_name in self.operating_instructions_dirs):
+        if any(dir_name in path_parts for dir_name in self.operating_instructions_dirs):
             return FileCategorizationResult(
                 documentation_type=DocumentationType.OPERATING_INSTRUCTIONS,
                 confidence=0.7,
