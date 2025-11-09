@@ -64,7 +64,14 @@ async def _create_llm_service(provider: Optional[str] = None, model: Optional[st
 
 def _get_default_model(provider: str) -> str:
     """Get default model for provider via centralized selector."""
-    return default_model_for(provider) or "claude-3-5-sonnet-latest"
+    from ..core.llm.provider_selection import get_provider_selector
+    from ..core.llm.providers.base import LLMProviderType
+    selector = get_provider_selector()
+    default = default_model_for(provider)
+    if default:
+        return default
+    # Fallback to Anthropic default if provider not found
+    return selector.DEFAULT_MODELS.get(LLMProviderType.ANTHROPIC, "claude-sonnet-4-5-20250929")
 
 
 async def _generate_content(prompt: str, provider: Optional[str], model: Optional[str], 

@@ -26,6 +26,7 @@ from .providers.openai import OpenAIProvider
 from .providers.ollama import OllamaProvider
 from .models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
 from .models.responses import LLMResponse, LLMResponseStatus
+# Note: provider_selection imports LLMService, so we use lazy import to avoid circular dependency
 
 
 logger = get_logger(__name__)
@@ -39,7 +40,7 @@ class LLMServiceConfig(ServiceConfig):
         name: str = "LLMService",
         # Default provider settings
         default_provider: LLMProviderType = LLMProviderType.ANTHROPIC,
-        default_model: str = "claude-3-5-sonnet-latest",
+        default_model: Optional[str] = None,  # Will use centralized config if None
         # Provider configurations
         providers: Optional[Dict[str, LLMProviderConfig]] = None,
         # Request settings
@@ -68,7 +69,13 @@ class LLMServiceConfig(ServiceConfig):
         
         # LLM-specific settings
         self.default_provider = default_provider
-        self.default_model = default_model
+        # Use centralized config for default model if not provided
+        # Lazy import to avoid circular dependency with provider_selection
+        if default_model is None:
+            from .provider_selection import LLMProviderSelector
+            self.default_model = LLMProviderSelector.DEFAULT_MODELS.get(default_provider, "claude-sonnet-4-5-20250929")
+        else:
+            self.default_model = default_model
         self.providers = providers or {}
         self.enable_fallback = enable_fallback
         self.fallback_providers = fallback_providers or [

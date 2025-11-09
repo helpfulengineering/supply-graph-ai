@@ -43,6 +43,9 @@ class GitLabExtractor(ProjectExtractor):
         temp_dir: Directory for temporary cloned repositories
     """
     
+    # Class-level flag to track if authentication message has been printed
+    _auth_message_printed = False
+    
     def __init__(self, cache_dir: Optional[str] = None, cache_ttl_hours: int = 24, 
                  gitlab_token: Optional[str] = None, temp_dir: Optional[str] = None):
         """
@@ -67,10 +70,14 @@ class GitLabExtractor(ProjectExtractor):
         # Update rate limit expectations based on authentication
         if self.is_authenticated:
             self.rate_limit_remaining = 2000  # Authenticated rate limit
-            print("✅ GitLab authentication enabled - using 2,000 requests/hour rate limit")
+            if not GitLabExtractor._auth_message_printed:
+                print("✅ GitLab authentication enabled - using 2,000 requests/hour rate limit")
+                GitLabExtractor._auth_message_printed = True
         else:
-            print("⚠️  GitLab authentication not found - using 20 requests/hour rate limit")
-            print("   To increase rate limits, set GITLAB_TOKEN environment variable or use --gitlab-token flag")
+            if not GitLabExtractor._auth_message_printed:
+                print("⚠️  GitLab authentication not found - using 20 requests/hour rate limit")
+                print("   To increase rate limits, set GITLAB_TOKEN environment variable or use --gitlab-token flag")
+                GitLabExtractor._auth_message_printed = True
         
         # Caching configuration
         self.cache_dir = Path(cache_dir) if cache_dir else Path.home() / ".cache" / "supply-graph-ai" / "gitlab"
@@ -255,7 +262,7 @@ class GitLabExtractor(ProjectExtractor):
                 DocumentInfo(
                     title="README",
                     path="README.md",
-                    doc_type="user-manual",
+                    doc_type="operating-instructions",
                     content="# Mock GitLab Project\n\nThis is a mock GitLab project for testing."
                 )
             ]
@@ -459,7 +466,7 @@ class GitLabExtractor(ProjectExtractor):
                 documentation.append(DocumentInfo(
                     title="README",
                     path=file_info.path,
-                    doc_type="user-manual",
+                    doc_type="operating-instructions",
                     content=file_info.content
                 ))
         

@@ -78,11 +78,11 @@ class LLMGenerationLayer(BaseGenerationLayer):
     def _create_llm_service(self) -> LLMService:
         """Create LLM service (initialization will be done in process method)"""
         try:
-            # Create LLM service configuration
+            # Create LLM service configuration (uses centralized default model)
             service_config = LLMServiceConfig(
                 name="LLMGenerationLayer",
                 default_provider=LLMProviderType.ANTHROPIC,
-                default_model="claude-3-5-sonnet-latest",
+                default_model=None,  # Use centralized config
                 max_retries=3,
                 retry_delay=1.0,
                 timeout=60,  # Longer timeout for complex analysis
@@ -664,26 +664,185 @@ Use {context_file} as your scratchpad for analysis.
     async def _parse_llm_response(self, response_content: str, result: LayerResult):
         """Parse LLM response and extract manifest fields"""
         try:
-            # Try to extract JSON from response
-            json_start = response_content.find('{')
-            json_end = response_content.rfind('}') + 1
+            # Try to extract JSON from response with multiple strategies
+            manifest_json = self._extract_json_from_response(response_content)
             
-            if json_start != -1 and json_end > json_start:
-                manifest_json = response_content[json_start:json_end]
-                manifest_data = json.loads(manifest_json)
+            if manifest_json:
+                # Try to parse, with recovery attempts for common issues
+                manifest_data = self._parse_json_with_recovery(manifest_json)
                 
-                # Extract fields from manifest data
-                await self._extract_fields_from_manifest(manifest_data, result)
+                if manifest_data:
+                    # Extract fields from manifest data
+                    await self._extract_fields_from_manifest(manifest_data, result)
+                else:
+                    # Failed to parse even with recovery - fallback to text extraction
+                    logger.warning("JSON parsing failed even with recovery attempts, falling back to text extraction")
+                    await self._extract_fields_from_text(response_content, result)
             else:
-                # Fallback: try to extract fields from text
+                # No JSON found - try to extract fields from text
                 await self._extract_fields_from_text(response_content, result)
                 
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse JSON from LLM response: {e}")
+            logger.debug(f"JSON error at line {e.lineno}, column {e.colno}: {e.msg}")
             await self._extract_fields_from_text(response_content, result)
         except Exception as e:
             logger.error(f"Failed to parse LLM response: {e}")
             result.add_error(f"Failed to parse LLM response: {e}")
+    
+    def _extract_json_from_response(self, response_content: str) -> Optional[str]:
+        """
+        Extract JSON from LLM response using multiple strategies.
+        
+        Args:
+            response_content: Raw LLM response content
+            
+        Returns:
+            Extracted JSON string or None if no JSON found
+        """
+        # Strategy 1: Find JSON between first { and last }
+        json_start = response_content.find('{')
+        json_end = response_content.rfind('}')
+        
+        if json_start != -1 and json_end > json_start:
+            extracted = response_content[json_start:json_end + 1]
+            
+            # Strategy 2: Try to find JSON block (between code fences or after keywords)
+            # Check if we have markdown code blocks
+            code_block_markers = ['```json', '```JSON', '```']
+            for marker in code_block_markers:
+                if marker in response_content:
+                    start_idx = response_content.find(marker)
+                    if start_idx != -1:
+                        start_idx = response_content.find('\n', start_idx) + 1
+                        end_marker = response_content.find('```', start_idx)
+                        if end_marker != -1:
+                            block_json = response_content[start_idx:end_marker].strip()
+                            # Prefer code block extraction if it looks valid
+                            if '{' in block_json and '}' in block_json:
+                                return block_json
+            
+            return extracted
+        
+        # Strategy 3: Look for JSON after common keywords
+        keywords = ['```json', '```JSON', 'JSON:', 'json:', 'manifest:', 'Manifest:']
+        for keyword in keywords:
+            idx = response_content.find(keyword)
+            if idx != -1:
+                # Find the next {
+                json_start = response_content.find('{', idx)
+                if json_start != -1:
+                    json_end = response_content.rfind('}', json_start)
+                    if json_end > json_start:
+                        return response_content[json_start:json_end + 1]
+        
+        return None
+    
+    def _parse_json_with_recovery(self, json_str: str) -> Optional[Dict[str, Any]]:
+        """
+        Parse JSON with recovery attempts for common issues.
+        
+        Args:
+            json_str: JSON string to parse
+            
+        Returns:
+            Parsed JSON dict or None if parsing fails
+        """
+        # First try: Direct parse
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            pass
+        
+        # Recovery attempt 1: Fix trailing commas before } or ]
+        try:
+            fixed = self._fix_trailing_commas(json_str)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+        
+        # Recovery attempt 2: Fix missing commas between object properties
+        try:
+            fixed = self._fix_missing_commas(json_str)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+        
+        # Recovery attempt 3: Remove comments (// and /* */)
+        try:
+            fixed = self._remove_json_comments(json_str)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+        
+        # Recovery attempt 4: Try to extract and parse top-level object only
+        try:
+            # Sometimes LLM includes extra text - try to extract just the main object
+            json_start = json_str.find('{')
+            json_end = json_str.rfind('}')
+            if json_start != -1 and json_end > json_start:
+                isolated = json_str[json_start:json_end + 1]
+                return json.loads(isolated)
+        except json.JSONDecodeError:
+            pass
+        
+        logger.debug(f"All JSON recovery attempts failed for string (first 500 chars): {json_str[:500]}")
+        return None
+    
+    def _fix_trailing_commas(self, json_str: str) -> str:
+        """Fix trailing commas before } or ]"""
+        import re
+        # Remove trailing commas before closing braces/brackets
+        fixed = re.sub(r',(\s*[}\]])', r'\1', json_str)
+        return fixed
+    
+    def _fix_missing_commas(self, json_str: str) -> str:
+        """Fix missing commas between object properties and array elements"""
+        import re
+        
+        # Pattern 1: Missing comma after value before closing brace/bracket
+        # Match: value }\n  "key" or value ]\n  "key"
+        # This handles cases where a value is followed by } or ] and then a new property starts
+        fixed = re.sub(r'([^,\s}\]])\s*([}\]])', r'\1\2', json_str)
+        
+        # Pattern 2: Missing comma between properties on same line
+        # Match: "key": value "next_key": - add comma before "next_key"
+        fixed = re.sub(r'("\s*:\s*[^,}\]]+)\s+("[\w_]+"\s*:)', r'\1,\2', fixed)
+        
+        # Pattern 3: Missing comma after value before new property (multiline)
+        # Match: "key": value\n    "next_key": - add comma at end of first line
+        lines = fixed.split('\n')
+        fixed_lines = []
+        for i, line in enumerate(lines):
+            if i < len(lines) - 1:
+                next_line = lines[i + 1]
+                # If current line has a property (contains :), doesn't end with comma/}/], 
+                # and next line starts with a property (starts with quote followed by colon)
+                if (':' in line and 
+                    not line.rstrip().endswith(',') and 
+                    not line.rstrip().endswith('}') and
+                    not line.rstrip().endswith(']') and
+                    re.match(r'^\s*"[^"]+"\s*:', next_line)):
+                    # Add comma at end of current line
+                    line = line.rstrip() + ','
+            fixed_lines.append(line)
+        
+        fixed = '\n'.join(fixed_lines)
+        
+        # Pattern 4: Missing comma after closing brace/bracket before new property
+        # Match: }\n    "key": or ]\n    "key":
+        fixed = re.sub(r'([}\]])[\s\n]+("[^"]+"\s*:)', r'\1,\2', fixed)
+        
+        return fixed
+    
+    def _remove_json_comments(self, json_str: str) -> str:
+        """Remove JSON comments (// and /* */)"""
+        import re
+        # Remove // comments
+        fixed = re.sub(r'//.*', '', json_str)
+        # Remove /* */ comments
+        fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+        return fixed
     
     async def _extract_fields_from_manifest(self, manifest_data: Dict[str, Any], result: LayerResult):
         """Extract fields from parsed manifest JSON"""

@@ -702,7 +702,7 @@ ome llm generate PROMPT [OPTIONS]
 
 **Options:**
 - `--provider TEXT` - LLM provider (anthropic, openai, google, local)
-- `--model TEXT` - Model name (e.g., claude-3-5-sonnet-20241022)
+- `--model TEXT` - Model name (e.g., claude-sonnet-4-5-20250929)
 - `--max-tokens INTEGER` - Maximum tokens to generate (default: 4000)
 - `--temperature FLOAT` - Sampling temperature (default: 0.1)
 - `--timeout INTEGER` - Request timeout in seconds (default: 60)
@@ -717,7 +717,7 @@ ome llm generate "Analyze this hardware project and generate an OKH manifest"
 # With specific provider and model
 ome llm generate "Generate OKH manifest" \
   --provider anthropic \
-  --model claude-3-5-sonnet-20241022
+  --model claude-sonnet-4-5-20250929
 
 # Save to file with JSON format
 ome llm generate "Analyze project" \
@@ -755,7 +755,7 @@ ome llm generate-okh https://github.com/example/iot-sensor
 # With specific provider
 ome llm generate-okh https://github.com/example/project \
   --provider anthropic \
-  --model claude-3-5-sonnet-20241022
+  --model claude-sonnet-4-5-20250929
 
 # Clone repository for better analysis
 ome llm generate-okh https://github.com/example/project \

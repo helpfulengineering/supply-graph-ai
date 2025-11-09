@@ -7,12 +7,17 @@ from file structures, naming conventions, and content patterns.
 
 import re
 import os
+import logging
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo
+from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo, AnalysisDepth
+from ...models.okh import DocumentationType, DocumentRef
+from ..utils.file_categorization import FileCategorizationRules, FileCategorizationResult
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -32,6 +37,49 @@ class HeuristicMatcher(BaseGenerationLayer):
         super().__init__(GenerationLayer.HEURISTIC, layer_config)
         self.file_patterns = self._initialize_file_patterns()
         self.content_patterns = self._initialize_content_patterns()
+        self.file_categorization_rules = FileCategorizationRules()
+        
+        # Initialize FileCategorizationService if LLM categorization is enabled
+        self.file_categorization_service = None
+        if self.layer_config and self.layer_config.file_categorization_config.get("enable_llm_categorization", True):
+            try:
+                from ..services.file_categorization_service import FileCategorizationService
+                from ...llm.service import LLMService, LLMServiceConfig
+                from ...llm.providers.base import LLMProviderType
+                
+                # Create LLM service if LLM is configured
+                llm_service = None
+                if self.layer_config.use_llm and self.layer_config.is_llm_configured():
+                    try:
+                        service_config = LLMServiceConfig(
+                            name="HeuristicMatcher",
+                            default_provider=LLMProviderType.ANTHROPIC,
+                            default_model=None,  # Use centralized config
+                            max_retries=3,
+                            retry_delay=1.0,
+                            timeout=60,
+                            enable_fallback=True,
+                            max_cost_per_request=1.0,
+                            enable_cost_tracking=True,
+                            max_concurrent_requests=5
+                        )
+                        llm_service = LLMService("HeuristicMatcher", service_config)
+                    except Exception as e:
+                        logger.warning(f"Failed to create LLM service for file categorization: {e}")
+                
+                # Create FileCategorizationService
+                enable_caching = self.layer_config.file_categorization_config.get("enable_caching", True)
+                min_confidence_for_llm = self.layer_config.file_categorization_config.get("min_confidence_for_llm", 0.8)
+                self.file_categorization_service = FileCategorizationService(
+                    llm_service=llm_service,
+                    enable_caching=enable_caching,
+                    min_confidence_for_llm=min_confidence_for_llm
+                )
+                logger.debug("FileCategorizationService initialized with LLM support")
+            except ImportError as e:
+                logger.warning(f"FileCategorizationService not available: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize FileCategorizationService: {e}")
     
     def _initialize_file_patterns(self) -> List[FilePattern]:
         """Initialize file pattern matching rules"""
@@ -159,135 +207,151 @@ class HeuristicMatcher(BaseGenerationLayer):
         return result
     
     async def _analyze_file_structure(self, project_data: ProjectData, result: LayerResult):
-        """Analyze file structure for manufacturing and design files"""
-        file_paths = [f.path for f in project_data.files]
+        """
+        Analyze file structure using two-layer file categorization.
         
-        # Check for common hardware project directories
-        directories = set()
-        for file_path in file_paths:
-            path_parts = Path(file_path).parts
-            for part in path_parts[:-1]:  # Exclude filename
-                directories.add(part.lower())
+        This method uses:
+        - Layer 1: FileCategorizationRules for fast heuristic categorization
+        - Layer 2: FileCategorizationService with LLM content analysis (if enabled and available)
         
-        # Detect manufacturing files based on directory structure and file extensions
-        manufacturing_indicators = {
-            'stl', 'stls', '3d', 'print', 'printing', 'manufacturing', 'production',
-            'assembly', 'build', 'make', 'fabrication', 'parts', 'hardware'
-        }
-        
-        design_indicators = {
-            'cad', 'design', 'model', 'models', 'openscad', 'freecad', 'fusion',
-            'solidworks', 'inventor', 'sketchup', 'blender', 'step', 'stp', 'iges'
-        }
-        
-        docs_indicators = {
-            'docs', 'documentation', 'manual', 'guide', 'instructions', 'tutorial',
-            'readme', 'help', 'wiki'
-        }
-        
-        # Also check file extensions
-        manufacturing_extensions = {'.stl', '.gcode', '.3mf', '.amf'}
-        design_extensions = {'.scad', '.step', '.stp', '.iges', '.iges', '.dxf', '.dwg', '.kicad_pcb', '.kicad_mod'}
-        doc_extensions = {'.md', '.txt', '.pdf', '.doc', '.docx'}
-        
-        # Count indicators
-        manufacturing_score = len(manufacturing_indicators.intersection(directories))
-        design_score = len(design_indicators.intersection(directories))
-        docs_score = len(docs_indicators.intersection(directories))
-        
-        # Generate manufacturing files list
-        manufacturing_files = []
-        for file_path in file_paths:
-            path_lower = file_path.lower()
-            file_ext = Path(file_path).suffix.lower()
+        Layer 1 provides suggestions that Layer 2 (LLM) will refine when available.
+        Falls back to Layer 1 if LLM is unavailable or disabled.
+        """
+        # Step 1: Generate Layer 1 suggestions for all files
+        layer1_suggestions: Dict[str, FileCategorizationResult] = {}
+        for file_info in project_data.files:
+            file_path = file_info.path
+            filename = Path(file_path).name
             
-            # Skip GitHub-specific files and directories
-            if (path_lower.startswith('.github/') or 
-                path_lower.startswith('.git/') or
-                path_lower.startswith('.vscode/') or
-                'workflow' in path_lower):
-                continue
-            
-            # Check directory structure and file extensions
-            # Exclude design files from manufacturing files
-            if (file_ext in design_extensions):
-                continue
+            # Use FileCategorizationRules to get Layer 1 suggestion
+            categorization_result = self.file_categorization_rules.categorize_file(
+                filename, file_path
+            )
+            layer1_suggestions[file_path] = categorization_result
+        
+        # Step 2: Use FileCategorizationService if available (Layer 1 + Layer 2 LLM)
+        final_categorizations: Dict[str, FileCategorizationResult] = {}
+        
+        if self.file_categorization_service:
+            try:
+                # Get analysis depth from config
+                analysis_depth_str = self.layer_config.file_categorization_config.get("analysis_depth", "shallow")
+                analysis_depth = AnalysisDepth(analysis_depth_str.lower())
                 
-            if (any(indicator in path_lower for indicator in manufacturing_indicators) or 
-                file_ext in manufacturing_extensions):
-                manufacturing_files.append({
-                    "title": Path(file_path).name,
-                    "path": file_path,
-                    "type": "manufacturing-files",
-                    "metadata": {"detected_by": "file_analysis"}
-                })
+                # Use FileCategorizationService to get final categorizations
+                # This will use LLM if available, otherwise fall back to Layer 1
+                final_categorizations = await self.file_categorization_service.categorize_files(
+                    files=project_data.files,
+                    layer1_suggestions=layer1_suggestions,
+                    analysis_depth=analysis_depth
+                )
+                logger.debug(f"FileCategorizationService categorized {len(final_categorizations)} files")
+            except Exception as e:
+                logger.warning(f"FileCategorizationService failed, falling back to Layer 1: {e}")
+                # Fall back to Layer 1 suggestions
+                final_categorizations = layer1_suggestions
+        else:
+            # No FileCategorizationService available, use Layer 1 directly
+            final_categorizations = layer1_suggestions
         
-        if manufacturing_files:
-            result.add_field(
-                "manufacturing_files",
-                manufacturing_files,
-                0.8,  # Higher confidence for file-based detection
-                "file_analysis",
-                f"Detected {len(manufacturing_files)} manufacturing files"
-            )
+        # Step 3: Group files by DocumentationType
+        categorized_files: Dict[DocumentationType, List[Dict[str, Any]]] = {}
+        excluded_count = 0
         
-        # Generate design files list
-        design_files = []
-        for file_path in file_paths:
-            path_lower = file_path.lower()
-            file_ext = Path(file_path).suffix.lower()
+        for file_info in project_data.files:
+            file_path = file_info.path
+            filename = Path(file_path).name
             
-            # Check directory structure and file extensions
-            if (any(indicator in path_lower for indicator in design_indicators) or 
-                file_ext in design_extensions):
-                design_files.append({
-                    "title": Path(file_path).name,
-                    "path": file_path,
-                    "type": "design-files",
-                    "metadata": {"detected_by": "file_analysis"}
-                })
-        
-        if design_files:
-            result.add_field(
-                "design_files",
-                design_files,
-                0.8,  # Higher confidence for file-based detection
-                "file_analysis",
-                f"Detected {len(design_files)} design files"
-            )
-        
-        # Generate making instructions list
-        making_instructions = []
-        for file_path in file_paths:
-            path_lower = file_path.lower()
-            file_ext = Path(file_path).suffix.lower()
+            # Get final categorization result
+            categorization_result = final_categorizations.get(file_path)
+            if not categorization_result:
+                # If no result, use Layer 1 suggestion
+                categorization_result = layer1_suggestions.get(file_path)
+                if not categorization_result:
+                    # Skip if no categorization available
+                    continue
             
-            # Skip GitHub-specific files and directories
-            if (path_lower.startswith('.github/') or 
-                path_lower.startswith('.git/') or
-                path_lower.startswith('.vscode/') or
-                'workflow' in path_lower):
+            # Skip excluded files
+            if categorization_result.excluded:
+                excluded_count += 1
                 continue
             
-            # Check directory structure and file extensions
-            if (any(indicator in path_lower for indicator in docs_indicators) or 
-                file_ext in doc_extensions):
-                making_instructions.append({
-                    "title": Path(file_path).name,
-                    "path": file_path,
-                    "type": "manufacturing-files",
-                    "metadata": {"detected_by": "file_analysis"}
-                })
+            # Group files by DocumentationType
+            doc_type = categorization_result.documentation_type
+            if doc_type not in categorized_files:
+                categorized_files[doc_type] = []
+            
+            # Determine detection method for metadata
+            detected_by = "file_categorization_service" if self.file_categorization_service else "file_categorization_rules"
+            
+            # Create DocumentRef-like structure for result
+            categorized_files[doc_type].append({
+                "title": filename,
+                "path": file_path,
+                "type": doc_type.value,
+                "metadata": {
+                    "detected_by": detected_by,
+                    "confidence": categorization_result.confidence,
+                    "reason": categorization_result.reason
+                }
+            })
         
-        if making_instructions:
-            confidence = self.calculate_confidence("making_instructions", making_instructions, "file_analysis")
-            result.add_field(
-                "making_instructions",
-                making_instructions,
-                confidence,
-                "file_analysis",
-                f"Detected {len(making_instructions)} documentation files"
-            )
+        # Add categorized files to result with appropriate field names
+        # Map DocumentationType to OKHManifest field names
+        field_mapping = {
+            DocumentationType.MANUFACTURING_FILES: "manufacturing_files",
+            DocumentationType.DESIGN_FILES: "design_files",
+            DocumentationType.MAKING_INSTRUCTIONS: "making_instructions",
+            DocumentationType.OPERATING_INSTRUCTIONS: "operating_instructions",
+            DocumentationType.PUBLICATIONS: "publications",
+            DocumentationType.DOCUMENTATION_HOME: "documentation_home",
+            DocumentationType.TECHNICAL_SPECIFICATIONS: "technical_specifications",
+            DocumentationType.SOFTWARE: "software",
+            DocumentationType.SCHEMATICS: "schematics",
+            DocumentationType.MAINTENANCE_INSTRUCTIONS: "maintenance_instructions",
+            DocumentationType.DISPOSAL_INSTRUCTIONS: "disposal_instructions",
+            DocumentationType.RISK_ASSESSMENT: "risk_assessment",
+        }
+        
+        # Add each category to result
+        for doc_type, files in categorized_files.items():
+            if not files:
+                continue
+            
+            # Calculate average confidence for this category
+            avg_confidence = sum(
+                f["metadata"]["confidence"] for f in files
+            ) / len(files)
+            
+            # Get field name
+            field_name = field_mapping.get(doc_type)
+            if not field_name:
+                # Skip unmapped types (shouldn't happen, but be safe)
+                continue
+            
+            # Special handling for documentation_home (it's a string, not a list)
+            if doc_type == DocumentationType.DOCUMENTATION_HOME:
+                if files:
+                    # Use the first README file path
+                    result.add_field(
+                        "documentation_home",
+                        files[0]["path"],
+                        avg_confidence,
+                        "file_categorization_rules",
+                        f"Detected documentation home: {files[0]['title']}"
+                    )
+            else:
+                # Add list of files
+                result.add_field(
+                    field_name,
+                    files,
+                    avg_confidence,
+                    "file_categorization_rules",
+                    f"Detected {len(files)} {doc_type.value} files"
+                )
+        
+        if excluded_count > 0:
+            logger.debug(f"Excluded {excluded_count} files (workflow, testing data, correspondence)")
     
     async def _parse_readme_content(self, project_data: ProjectData, result: LayerResult):
         """Parse README content for key information"""

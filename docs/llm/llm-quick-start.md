@@ -79,7 +79,7 @@ ANTHROPIC_API_KEY=sk-ant-api03-...
 # Optional
 LLM_ENABLED=true
 LLM_DEFAULT_PROVIDER=anthropic
-LLM_DEFAULT_MODEL=claude-3-5-sonnet-20241022
+LLM_DEFAULT_MODEL=claude-sonnet-4-5-20250929
 ```
 
 ### Configuration File (`config/llm_config.json`)
@@ -87,7 +87,7 @@ LLM_DEFAULT_MODEL=claude-3-5-sonnet-20241022
 {
   "enabled": true,
   "default_provider": "anthropic",
-  "default_model": "claude-3-5-sonnet-20241022",
+  "default_model": "claude-sonnet-4-5-20250929",
   "fallback_enabled": true,
   "cost_tracking_enabled": true
 }

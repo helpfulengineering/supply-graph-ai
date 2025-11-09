@@ -31,7 +31,7 @@ export GOOGLE_API_KEY="your_google_key"
 
 # Optional: Set default provider
 export LLM_PROVIDER="anthropic"
-export LLM_MODEL="claude-3-5-sonnet-20241022"
+export LLM_MODEL="claude-sonnet-4-5-20250929"
 ```
 
 ### 2. Basic Usage
@@ -76,13 +76,13 @@ The LLM integration includes an intelligent provider selection system that autom
 
 1. **Command Line Flags** (highest priority)
    ```bash
-   ome llm generate "Hello" --provider anthropic --model claude-3-5-sonnet-20241022
+   ome llm generate "Hello" --provider anthropic --model claude-sonnet-4-5-20250929
    ```
 
 2. **Environment Variables**
    ```bash
    export LLM_PROVIDER=anthropic
-   export LLM_MODEL=claude-3-5-sonnet-20241022
+   export LLM_MODEL=claude-sonnet-4-5-20250929
    ome llm generate "Hello"
    ```
 

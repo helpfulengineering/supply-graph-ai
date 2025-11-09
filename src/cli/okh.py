@@ -852,11 +852,28 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
     help_text="""
     Generate OKH manifest from repository URL.
     
-    This command analyzes a repository URL and generates a     OKH manifest by extracting project information, documentation, and
-    manufacturing specifications.
+    This command analyzes a repository URL and generates an OKH manifest by extracting
+    project information, documentation, and manufacturing specifications.
+    
+    **File Categorization**:
+    The command uses a two-layer intelligent file categorization system:
+    - **Layer 1 (Heuristics)**: Fast rule-based categorization using file extensions,
+      directory paths, and filename patterns. Always available and provides fallback.
+    - **Layer 2 (LLM)**: Content-aware categorization with semantic understanding.
+      Automatically used when LLM is available, gracefully falls back to Layer 1 if unavailable.
+    
+    Files are automatically categorized into:
+    - making_instructions: Assembly/build guides for humans
+    - manufacturing_files: Machine-readable files (.stl, .3mf, .gcode)
+    - design_files: Source CAD files (.scad, .fcstd, etc.)
+    - operating_instructions: User manuals and usage guides
+    - technical_specifications: Technical specs and validation reports
+    - publications: Research papers and academic publications
+    - documentation_home: Main project documentation (README.md)
     
     When LLM is enabled, generation includes:
     - Enhanced project analysis and understanding
+    - Intelligent file categorization with content analysis
     - Intelligent field completion and suggestions
     - Quality assessment and recommendations
     - Advanced manufacturing specification extraction

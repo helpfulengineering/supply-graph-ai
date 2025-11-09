@@ -36,7 +36,7 @@ AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
 # LLM Configuration
 LLM_ENABLED=true
 LLM_DEFAULT_PROVIDER=anthropic
-LLM_DEFAULT_MODEL=claude-3-5-sonnet-20241022
+LLM_DEFAULT_MODEL=claude-sonnet-4-5-20250929
 ```
 
 ### Configuration File
@@ -47,7 +47,7 @@ You can also configure the LLM service using a JSON configuration file at `confi
 {
   "enabled": true,
   "default_provider": "anthropic",
-  "default_model": "claude-3-5-sonnet-20241022",
+  "default_model": "claude-sonnet-4-5-20250929",
   "fallback_enabled": true,
   "cost_tracking_enabled": true,
   "max_concurrent_requests": 10,
@@ -84,7 +84,7 @@ Response:
   "providers": {
     "anthropic": {
       "status": "connected",
-      "model": "claude-3-5-sonnet-20241022",
+      "model": "claude-sonnet-4-5-20250929",
       "available": true
     }
   },
@@ -110,7 +110,7 @@ curl -X POST http://localhost:8001/v1/api/llm/generate \
     "max_tokens": 200,
     "temperature": 0.7,
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022"
+    "model": "claude-sonnet-4-5-20250929"
   }'
 ```
 
@@ -121,7 +121,7 @@ Response:
   "status": "success",
   "metadata": {
     "provider": "anthropic",
-    "model": "claude-3-5-sonnet-20241022",
+    "model": "claude-sonnet-4-5-20250929",
     "tokens_used": 156,
     "cost": 0.0023,
     "processing_time": 1.1
@@ -210,7 +210,7 @@ ome llm generate "Create a manufacturing process description" \
   --max-tokens 300 \
   --temperature 0.3 \
   --provider anthropic \
-  --model claude-3-5-sonnet-20241022
+  --model claude-sonnet-4-5-20250929
 ```
 
 #### OKH Manifest Generation
@@ -228,7 +228,7 @@ ome llm generate-okh https://github.com/example/project \
 # Generate with specific LLM settings
 ome llm generate-okh https://github.com/example/project \
   --provider anthropic \
-  --model claude-3-5-sonnet-20241022 \
+  --model claude-sonnet-4-5-20250929 \
   --preserve-context
 ```
 
@@ -328,7 +328,7 @@ Error: Rate limit exceeded for provider 'anthropic'
 
 #### Model Not Found
 ```
-Error: Model 'claude-3-5-sonnet-20241022' not found
+Error: Model 'claude-sonnet-4-5-20250929' not found
 ```
 **Solution**: Use a valid model name for the provider.
 

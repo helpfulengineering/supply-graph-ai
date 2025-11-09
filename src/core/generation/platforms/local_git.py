@@ -398,7 +398,7 @@ class LocalGitExtractor(ProjectExtractor):
         if any(dir_name in path_str for dir_name in ['schematics', 'circuit', 'electrical', 'pcb']):
             return "schematics", "schematics"
         elif any(dir_name in path_str for dir_name in ['docs', 'documentation', 'manual', 'guide']):
-            return "documentation", "user-manual"
+            return "documentation", "operating-instructions"
         elif any(dir_name in path_str for dir_name in ['manufacturing', 'production', 'assembly', 'build']):
             return "manufacturing", "manufacturing-files"
         elif any(dir_name in path_str for dir_name in ['design', 'cad', 'model', '3d']):
@@ -408,17 +408,17 @@ class LocalGitExtractor(ProjectExtractor):
         elif any(dir_name in path_str for dir_name in ['maintenance', 'repair', 'service']):
             return "maintenance", "maintenance-instructions"
         elif any(dir_name in path_str for dir_name in ['quality', 'testing', 'test', 'validation']):
-            return "quality", "quality-instructions"
+            return "quality", "technical-specifications"
         elif any(dir_name in path_str for dir_name in ['safety', 'risk', 'hazard']):
             return "safety", "risk-assessment"
         elif any(dir_name in path_str for dir_name in ['tools', 'tool', 'settings', 'config']):
-            return "config", "tool-settings"
+            return "config", "making-instructions"
         elif any(dir_name in path_str for dir_name in ['disposal', 'recycle', 'waste']):
             return "disposal", "disposal-instructions"
         
         # Filename-based categorization (secondary clues)
         if any(pattern in filename for pattern in ['readme', 'manual', 'guide', 'instructions']):
-            return "documentation", "user-manual"
+            return "documentation", "operating-instructions"
         elif any(pattern in filename for pattern in ['schematic', 'circuit', 'pcb', 'wiring']):
             return "schematics", "schematics"
         elif any(pattern in filename for pattern in ['bom', 'bill_of_materials', 'parts_list']):
@@ -430,21 +430,21 @@ class LocalGitExtractor(ProjectExtractor):
         elif any(pattern in filename for pattern in ['maintenance', 'repair', 'service']):
             return "maintenance", "maintenance-instructions"
         elif any(pattern in filename for pattern in ['quality', 'test', 'validation']):
-            return "quality", "quality-instructions"
+            return "quality", "technical-specifications"
         elif any(pattern in filename for pattern in ['safety', 'risk', 'hazard']):
             return "safety", "risk-assessment"
         elif any(pattern in filename for pattern in ['tool', 'settings', 'config']):
-            return "config", "tool-settings"
+            return "config", "making-instructions"
         elif any(pattern in filename for pattern in ['disposal', 'recycle']):
             return "disposal", "disposal-instructions"
         
         # Extension-based categorization (fallback)
         if file_path.suffix.lower() in ['.md', '.rst', '.txt', '.pdf']:
-            return "documentation", "user-manual"
+            return "documentation", "operating-instructions"
         elif file_path.suffix.lower() in ['.py', '.js', '.ts', '.cpp', '.c', '.h', '.java']:
             return "code", "software"
         elif file_path.suffix.lower() in ['.json', '.yaml', '.yml', '.xml', '.ini', '.cfg']:
-            return "config", "tool-settings"
+            return "config", "making-instructions"
         elif file_path.suffix.lower() in ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.bmp']:
             return "image", "design-files"
         elif file_path.suffix.lower() in ['.csv', '.xlsx', '.xls', '.tsv']:

@@ -647,6 +647,19 @@ async def generate_from_url(
     - URL validation and platform detection
     - Repository metadata extraction
     - Content analysis and field generation
+    - **Intelligent file categorization** using two-layer approach:
+      - **Layer 1 (Heuristics)**: Fast rule-based categorization using file extensions,
+        directory paths, and filename patterns
+      - **Layer 2 (LLM)**: Content-aware categorization with semantic understanding
+        (when LLM is available, falls back to Layer 1 if unavailable)
+    - Files are categorized into:
+      - `making_instructions`: Step-by-step assembly/build guides for humans
+      - `manufacturing_files`: Machine-readable files (.stl, .3mf, .gcode, etc.)
+      - `design_files`: Source CAD files (.scad, .fcstd, etc.)
+      - `operating_instructions`: User manuals and usage guides
+      - `technical_specifications`: Technical specs, dimensions, validation reports
+      - `publications`: Research papers and academic publications
+      - `documentation_home`: Main project documentation (README.md)
     - Quality assessment and recommendations
     - Optional interactive review for field validation
     """

@@ -81,11 +81,11 @@ class PackageBuilder:
             # Download files by type
             files_by_type = self._categorize_documents_by_type(manifest.manufacturing_files)
             
-            if options.include_quality_instructions and "quality-instructions" in files_by_type:
+            if options.include_quality_instructions and "technical-specifications" in files_by_type:
                 files = await self._download_document_files(
-                    files_by_type["quality-instructions"], 
-                    package_path / "quality-instructions", 
-                    "quality-instructions", manifest.repo, downloaded_files
+                    files_by_type["technical-specifications"], 
+                    package_path / "technical-specifications", 
+                    "technical-specifications", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
@@ -105,11 +105,11 @@ class PackageBuilder:
                 )
                 file_inventory.extend(files)
             
-            if options.include_tool_settings and "tool-settings" in files_by_type:
+            if options.include_tool_settings and "making-instructions" in files_by_type:
                 files = await self._download_document_files(
-                    files_by_type["tool-settings"], 
-                    package_path / "tool-settings", 
-                    "tool-settings", manifest.repo, downloaded_files
+                    files_by_type["making-instructions"], 
+                    package_path / "making-instructions", 
+                    "making-instructions", manifest.repo, downloaded_files
                 )
                 file_inventory.extend(files)
             
@@ -212,10 +212,9 @@ class PackageBuilder:
             "manufacturing-files", 
             "making-instructions",
             "operating-instructions",
-            "quality-instructions",
+            "technical-specifications",
             "risk-assessment",
             "software",
-            "tool-settings",
             "schematics",
             "parts",
             "metadata"
@@ -521,10 +520,9 @@ class PackageBuilder:
             "design-files": [],
             "making-instructions": [],
             "operating-instructions": [],
-            "quality-instructions": [],
+            "technical-specifications": [],
             "risk-assessment": [],
             "schematics": [],
-            "tool-settings": [],
             "software": [],
             "parts": [],
             "bom": [],
@@ -571,11 +569,11 @@ class PackageBuilder:
         if options.include_manufacturing_files and manifest.manufacturing_files:
             files_by_type = self._categorize_documents_by_type(manifest.manufacturing_files)
             
-            if options.include_quality_instructions and "quality-instructions" in files_by_type:
-                for doc in files_by_type["quality-instructions"]:
-                    files_to_download["quality-instructions"].append({
+            if options.include_quality_instructions and "technical-specifications" in files_by_type:
+                for doc in files_by_type["technical-specifications"]:
+                    files_to_download["technical-specifications"].append({
                         "document_ref": doc,
-                        "target_category": "quality-instructions",
+                        "target_category": "technical-specifications",
                         "part_name": None
                     })
             
@@ -595,11 +593,11 @@ class PackageBuilder:
                         "part_name": None
                     })
             
-            if options.include_tool_settings and "tool-settings" in files_by_type:
-                for doc in files_by_type["tool-settings"]:
-                    files_to_download["tool-settings"].append({
+            if options.include_tool_settings and "making-instructions" in files_by_type:
+                for doc in files_by_type["making-instructions"]:
+                    files_to_download["making-instructions"].append({
                         "document_ref": doc,
-                        "target_category": "tool-settings",
+                        "target_category": "making-instructions",
                         "part_name": None
                     })
         

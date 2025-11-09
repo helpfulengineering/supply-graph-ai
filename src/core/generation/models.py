@@ -25,7 +25,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Generic, TypeVar, Union, Callable
+from typing import Dict, List, Optional, Any, Generic, TypeVar, Union, Callable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ...models.okh import DocumentationType
 
 # Generic type variables
 T = TypeVar('T')
@@ -71,6 +74,20 @@ class GenerationQuality(Enum):
     PARTIAL = auto()       # Some critical elements missing
     INSUFFICIENT = auto()  # Majority of critical elements missing
     REQUIRES_REVIEW = auto()  # Significant ambiguities detected
+
+
+class AnalysisDepth(Enum):
+    """
+    Configurable content analysis depth levels for file categorization.
+    
+    Defines how deeply to analyze file content when categorizing files:
+    - SHALLOW: Fast, low cost - First 500 chars, keyword matching (default)
+    - MEDIUM: Moderate cost, better accuracy - First 2000 chars, structure analysis
+    - DEEP: Higher cost, maximum accuracy - Full document, semantic analysis
+    """
+    SHALLOW = "shallow"  # Default: First 500 chars, keyword matching
+    MEDIUM = "medium"    # First 2000 chars, structure analysis
+    DEEP = "deep"        # Full document, semantic analysis
 
 
 class GenerationLayer(Enum):
@@ -169,6 +186,113 @@ class ProjectData:
     files: List[FileInfo]
     documentation: List[DocumentInfo]
     raw_content: Dict[str, str]
+
+
+@dataclass
+class RepositoryAssessment:
+    """
+    Assessment of repository size, structure, and complexity.
+    
+    This dataclass provides information about a repository's structure
+    to help with efficient processing, especially for large repositories.
+    
+    Attributes:
+        total_files: Total number of files in the repository
+        total_directories: Total number of directories in the repository
+        file_types: Dictionary mapping file types to counts
+        directory_tree: Dictionary mapping directory paths to file lists
+    """
+    total_files: int = 0
+    total_directories: int = 0
+    file_types: Dict[str, int] = field(default_factory=dict)
+    directory_tree: Dict[str, List[str]] = field(default_factory=dict)
+
+
+@dataclass
+class RouteEntry:
+    """
+    Entry in the repository routing table.
+    
+    Represents a mapping from a source file path to an OKH destination.
+    
+    Attributes:
+        source_path: Original file path in repository
+        destination_type: DocumentationType for the destination
+        destination_path: Destination path in OKH structure
+        confidence: Confidence score for this route (0.0 to 1.0)
+    """
+    source_path: str
+    destination_type: 'DocumentationType'  # Forward reference
+    destination_path: str
+    confidence: float = 0.0
+
+
+@dataclass
+class RepositoryRoutingTable:
+    """
+    Routing table mapping repository files to OKH model destinations.
+    
+    This dataclass acts as a central coordination point for file categorization,
+    mapping repository file paths to their destinations in the OKH manifest structure.
+    It can be updated iteratively by multiple processes (Layer 1, Layer 2, etc.).
+    
+    Attributes:
+        routes: Dictionary mapping source paths to RouteEntry objects
+        metadata: Additional metadata about the routing table
+    """
+    routes: Dict[str, RouteEntry] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def add_route(
+        self,
+        source_path: str,
+        destination_type: 'DocumentationType',
+        destination_path: str,
+        confidence: float = 0.0
+    ) -> None:
+        """
+        Add or update a route in the routing table.
+        
+        Args:
+            source_path: Original file path in repository
+            destination_type: DocumentationType for the destination
+            destination_path: Destination path in OKH structure
+            confidence: Confidence score for this route
+        """
+        self.routes[source_path] = RouteEntry(
+            source_path=source_path,
+            destination_type=destination_type,
+            destination_path=destination_path,
+            confidence=confidence
+        )
+    
+    def get_route(self, source_path: str) -> Optional[RouteEntry]:
+        """
+        Get a route by source path.
+        
+        Args:
+            source_path: Source file path
+            
+        Returns:
+            RouteEntry or None if not found
+        """
+        return self.routes.get(source_path)
+    
+    def get_routes_by_type(self, destination_type: 'DocumentationType') -> Dict[str, RouteEntry]:
+        """
+        Get all routes for a specific documentation type.
+        
+        Args:
+            destination_type: DocumentationType to filter by
+            
+        Returns:
+            Dictionary of routes matching the type
+        """
+        return {
+            path: route
+            for path, route in self.routes.items()
+            if route.destination_type == destination_type
+        }
 
 
 @dataclass
@@ -299,6 +423,8 @@ class ManifestGeneration:
             "design_files": fields_dict.get("design_files", []),
             "making_instructions": fields_dict.get("making_instructions", []),
             "operating_instructions": fields_dict.get("operating_instructions", []),
+            "technical_specifications": fields_dict.get("technical_specifications", []),
+            "publications": fields_dict.get("publications", []),
             "tool_list": fields_dict.get("tool_list", []),
             "manufacturing_processes": fields_dict.get("manufacturing_processes", []),
             "materials": fields_dict.get("materials", []),
@@ -548,6 +674,7 @@ class LayerConfig:
     heuristic_config: Dict[str, Any] = field(default_factory=dict)
     nlp_config: Dict[str, Any] = field(default_factory=dict)
     llm_config: Dict[str, Any] = field(default_factory=dict)
+    file_categorization_config: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
         """Validate configuration after initialization"""
@@ -591,9 +718,15 @@ class LayerConfig:
             "entity_extraction": True,
             "semantic_analysis": True
         }
+        # Import provider selector to get default model
+        from ..llm.provider_selection import get_provider_selector
+        from ..llm.providers.base import LLMProviderType
+        selector = get_provider_selector()
+        default_model = selector.DEFAULT_MODELS.get(LLMProviderType.ANTHROPIC, "claude-sonnet-4-5-20250929")
+        
         default_llm_config = {
             "provider": "anthropic",  # openai, anthropic, local, etc.
-            "model": "claude-3-5-sonnet-latest",
+            "model": default_model,
             "max_tokens": 1000,
             "temperature": 0.1,
             "timeout": 30,
@@ -615,11 +748,22 @@ class LayerConfig:
             }
         }
         
+        default_file_categorization_config = {
+            "enable_llm_categorization": True,  # Enable Layer 2
+            "analysis_depth": "shallow",        # Default depth (shallow/medium/deep)
+            "fallback_to_heuristics": True,     # Fallback to Layer 1 when LLM unavailable
+            "batch_size": 10,                   # Files per LLM request
+            "max_files_per_request": 50,        # Max files in single request
+            "min_confidence_for_llm": 0.8,      # Skip LLM if Layer 1 confidence >= this (trust Layer 1 for clear patterns)
+            "enable_caching": True,             # Enable caching by file content hash
+        }
+        
         # Merge with provided configs (provided configs take precedence)
         self.direct_config = {**default_direct_config, **self.direct_config}
         self.heuristic_config = {**default_heuristic_config, **self.heuristic_config}
         self.nlp_config = {**default_nlp_config, **self.nlp_config}
         self.llm_config = {**default_llm_config, **self.llm_config}
+        self.file_categorization_config = {**default_file_categorization_config, **self.file_categorization_config}
     
     def get_layer_config(self, layer_name: str) -> Dict[str, Any]:
         """Get configuration for a specific layer"""

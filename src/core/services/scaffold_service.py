@@ -196,7 +196,7 @@ class ScaffoldService:
                 "operating-instructions": {
                     "index.md": "",
                 },
-                "quality-instructions": {
+                "technical-specifications": {
                     "index.md": "",
                 },
                 "risk-assessment": {
@@ -205,7 +205,7 @@ class ScaffoldService:
                 "software": {
                     "index.md": "",
                 },
-                "tool-settings": {
+                "making-instructions": {
                     "index.md": "",
                 },
                 "schematics": {
@@ -230,8 +230,8 @@ class ScaffoldService:
                         "software.md": "",
                         "schematics.md": "",
                         "parts.md": "",
-                        "tool-settings.md": "",
-                        "quality-instructions.md": "",
+                        "making-instructions.md": "",
+                        "technical-specifications.md": "",
                         "risk-assessment.md": "",
                     },
                 },
@@ -377,10 +377,10 @@ class ScaffoldService:
         setf(("making-instructions",), "index.md", self._template_index("Making Instructions", options))
         setf(("making-instructions",), "assembly-guide.md", self._template_assembly_guide(options))
         setf(("operating-instructions",), "index.md", self._template_index("Operating Instructions", options))
-        setf(("quality-instructions",), "index.md", self._template_index("Quality Instructions", options))
+        setf(("technical-specifications",), "index.md", self._template_index("Technical Specifications", options))
         setf(("risk-assessment",), "index.md", self._template_index("Risk Assessment", options))
         setf(("software",), "index.md", self._template_index("Software", options))
-        setf(("tool-settings",), "index.md", self._template_index("Tool Settings", options))
+        setf(("making-instructions",), "index.md", self._template_index("Making Instructions", options))
         setf(("schematics",), "index.md", self._template_index("Schematics", options))
         setf(("parts",), "index.md", self._template_index("Parts", options))
 
@@ -401,8 +401,8 @@ class ScaffoldService:
         setf(("docs", "sections"), "software.md", self._template_section_bridge("Software", "software", options))
         setf(("docs", "sections"), "schematics.md", self._template_section_bridge("Schematics", "schematics", options))
         setf(("docs", "sections"), "parts.md", self._template_section_bridge("Parts", "parts", options))
-        setf(("docs", "sections"), "tool-settings.md", self._template_section_bridge("Tool Settings", "tool-settings", options))
-        setf(("docs", "sections"), "quality-instructions.md", self._template_section_bridge("Quality Instructions", "quality-instructions", options))
+        setf(("docs", "sections"), "making-instructions.md", self._template_section_bridge("Making Instructions", "making-instructions", options))
+        setf(("docs", "sections"), "technical-specifications.md", self._template_section_bridge("Technical Specifications", "technical-specifications", options))
         setf(("docs", "sections"), "risk-assessment.md", self._template_section_bridge("Risk Assessment", "risk-assessment", options))
 
     # -------- Templates (first pass, lightweight) --------
@@ -447,10 +447,10 @@ class ScaffoldService:
                 "- `bom/` - Bill of Materials in both CSV and Markdown formats\n"
                 "- `making-instructions/` - Step-by-step build and assembly instructions\n"
                 "- `operating-instructions/` - User manuals and maintenance guides\n"
-                "- `quality-instructions/` - QC checklists and testing protocols\n"
+                "- `technical-specifications/` - Technical specs, QC checklists and testing protocols\n"
                 "- `risk-assessment/` - Safety and risk documentation\n"
                 "- `software/` - Firmware, control software, and related code\n"
-                "- `tool-settings/` - Machine configurations and tool parameters\n"
+                "- `making-instructions/` - Assembly instructions, machine configurations and tool parameters\n"
                 "- `schematics/` - Electrical schematics and circuit diagrams\n"
                 "- `parts/` - Part-specific files organized by component\n"
                 "- `docs/` - Comprehensive documentation using MkDocs\n\n"
@@ -495,8 +495,8 @@ class ScaffoldService:
             ("Software", "sections/software.md"),
             ("Schematics", "sections/schematics.md"),
             ("Parts", "sections/parts.md"),
-            ("Tool Settings", "sections/tool-settings.md"),
-            ("Quality Instructions", "sections/quality-instructions.md"),
+            ("Making Instructions", "sections/making-instructions.md"),
+            ("Technical Specifications", "sections/technical-specifications.md"),
             ("Risk Assessment", "sections/risk-assessment.md"),
         ]
         
@@ -695,8 +695,8 @@ class ScaffoldService:
             ("Software", "software"),
             ("Schematics", "schematics"),
             ("Parts", "parts"),
-            ("Tool Settings", "tool-settings"),
-            ("Quality Instructions", "quality-instructions"),
+            ("Making Instructions", "making-instructions"),
+            ("Technical Specifications", "technical-specifications"),
             ("Risk Assessment", "risk-assessment"),
         ]
         
@@ -764,7 +764,7 @@ class ScaffoldService:
                 "\n## Related Sections\n\n"
                 "- [Making Instructions](../making-instructions/index.md) - Detailed build instructions\n"
                 "- [Assembly Guide](../making-instructions/assembly-guide.md) - Step-by-step assembly guide\n"
-                "- [Tool Settings](../tool-settings/index.md) - Required tools and configurations\n"
+                "- [Making Instructions](../making-instructions/index.md) - Assembly instructions and required tools\n"
             )
             return base_content + cross_refs
         else:  # detailed
@@ -774,7 +774,7 @@ class ScaffoldService:
                 "- [Making Instructions](../making-instructions/index.md) - All making and assembly instructions\n"
                 "- [Assembly Guide](../making-instructions/assembly-guide.md) - Detailed step-by-step assembly guide\n\n"
                 "### Supporting Documentation\n"
-                "- [Tool Settings](../tool-settings/index.md) - Required tools, machines, and their configurations\n"
+                "- [Making Instructions](../making-instructions/index.md) - Assembly instructions, tools, machines, and their configurations\n"
                 "- [Bill of Materials](../bom/index.md) - Parts and components needed for assembly\n"
                 "- [Parts](../parts/index.md) - Part-specific documentation and files\n"
             )
@@ -794,8 +794,8 @@ class ScaffoldService:
                 "\n## Related Sections\n\n"
                 "- [Bill of Materials](../bom/index.md) - Required parts and components\n"
                 "- [Manufacturing Files](../manufacturing-files/index.md) - Manufacturing documentation\n"
-                "- [Tool Settings](../tool-settings/index.md) - Manufacturing tools and configurations\n"
-                "- [Quality Instructions](../quality-instructions/index.md) - Quality control and testing\n"
+                "- [Making Instructions](../making-instructions/index.md) - Manufacturing tools and configurations\n"
+                "- [Technical Specifications](../technical-specifications/index.md) - Technical specs, quality control and testing\n"
             )
             return base_content + cross_refs
         else:  # detailed
@@ -804,9 +804,9 @@ class ScaffoldService:
                 "### Core Manufacturing Resources\n"
                 "- [Bill of Materials](../bom/index.md) - Complete list of parts, quantities, and suppliers\n"
                 "- [Manufacturing Files](../manufacturing-files/index.md) - Assembly guides, compliance docs, and manufacturing specifications\n"
-                "- [Tool Settings](../tool-settings/index.md) - Machine configurations, tool parameters, and setup instructions\n\n"
+                "- [Making Instructions](../making-instructions/index.md) - Machine configurations, tool parameters, and setup instructions\n\n"
                 "### Quality and Safety\n"
-                "- [Quality Instructions](../quality-instructions/index.md) - QC checklists, testing protocols, and quality standards\n"
+                "- [Technical Specifications](../technical-specifications/index.md) - Technical specs, QC checklists, testing protocols, and quality standards\n"
                 "- [Risk Assessment](../risk-assessment/index.md) - Safety documentation and risk analysis\n\n"
                 "### Supporting Documentation\n"
                 "- [Design Files](../design-files/index.md) - CAD models and technical drawings\n"
@@ -827,7 +827,7 @@ class ScaffoldService:
             cross_refs = (
                 "\n## Related Sections\n\n"
                 "- [Operating Instructions](../operating-instructions/index.md) - User manuals and maintenance guides\n"
-                "- [Quality Instructions](../quality-instructions/index.md) - Testing and quality procedures\n"
+                "- [Technical Specifications](../technical-specifications/index.md) - Technical specs, testing and quality procedures\n"
             )
             return base_content + cross_refs
         else:  # detailed
@@ -836,7 +836,7 @@ class ScaffoldService:
                 "### User Documentation\n"
                 "- [Operating Instructions](../operating-instructions/index.md) - User manuals, operating procedures, and maintenance schedules\n\n"
                 "### Maintenance Resources\n"
-                "- [Quality Instructions](../quality-instructions/index.md) - Testing protocols and quality checks for maintenance\n"
+                "- [Technical Specifications](../technical-specifications/index.md) - Technical specs, testing protocols and quality checks for maintenance\n"
                 "- [Parts](../parts/index.md) - Part-specific maintenance documentation\n"
                 "- [Schematics](../schematics/index.md) - Electrical schematics for troubleshooting\n"
             )
