@@ -33,7 +33,8 @@ from ..models.okh.response import (
     OKHResponse, 
     OKHExtractResponse,
     OKHUploadResponse,
-    OKHGenerateResponse
+    OKHGenerateResponse,
+    OKHExportResponse
 )
 from ..models.scaffold.request import (
     ScaffoldRequest
@@ -181,6 +182,74 @@ async def create_okh(
         )
         logger.error(
             f"Error creating OKH manifest: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
+
+@router.get(
+    "/export",
+    response_model=OKHExportResponse,
+    summary="Export OKH JSON Schema",
+    description="""
+    Export the JSON schema for the OKH (OpenKnowHow) domain model in canonical format.
+    
+    This endpoint generates a JSON schema that represents the complete structure
+    of the OKHManifest dataclass, including all fields, types, and constraints.
+    
+    **Features:**
+    - Canonical JSON Schema format (draft-07)
+    - Complete type definitions
+    - Required field specifications
+    - Nested object schemas
+    """
+)
+async def export_okh_schema(
+    http_request: Request = None
+):
+    """Export OKH domain model as JSON schema."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
+    try:
+        from ...models.okh import OKHManifest
+        from ...utils.schema_generator import generate_json_schema
+        
+        # Generate JSON schema from OKHManifest dataclass
+        schema = generate_json_schema(OKHManifest, title="OKHManifest")
+        
+        logger.info(
+            "OKH schema exported successfully",
+            extra={
+                "request_id": request_id,
+                "schema_title": schema.get("title"),
+                "schema_version": schema.get("$schema")
+            }
+        )
+        
+        return OKHExportResponse(
+            success=True,
+            message="OKH schema exported successfully",
+            schema=schema,
+            schema_version=schema.get("$schema", "http://json-schema.org/draft-07/schema#"),
+            model_name="OKHManifest"
+        )
+        
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error exporting OKH schema: {str(e)}",
             extra={
                 "request_id": request_id,
                 "error": str(e),

@@ -290,9 +290,11 @@ class OKWService(BaseService['OKWService']):
         """Ensure domains are registered (for fallback mode when server startup doesn't run)"""
         from ..registry.domain_registry import DomainRegistry, DomainMetadata, DomainStatus
         
-        # Check if domains are already registered
-        if DomainRegistry.list_domains():
-            logger.info("Domains already registered")
+        # Check if all required domains are already registered
+        required_domains = {"manufacturing", "cooking"}
+        registered_domains = set(DomainRegistry.list_domains())
+        if required_domains.issubset(registered_domains):
+            logger.info("All required domains already registered")
             return
         
         logger.info("Registering domains for fallback mode...")

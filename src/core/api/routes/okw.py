@@ -35,7 +35,8 @@ from ..models.okw.response import (
     OKWResponse, 
     OKWExtractResponse,
     OKWListResponse,
-    OKWUploadResponse
+    OKWUploadResponse,
+    OKWExportResponse
 )
 from ...services.storage_service import StorageService
 from ...services.okw_service import OKWService
@@ -350,6 +351,74 @@ async def search_okw(
     except Exception as e:
         logger.error(f"Error searching OKW facilities: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error searching OKW facilities: {str(e)}")
+
+@router.get(
+    "/export",
+    response_model=OKWExportResponse,
+    summary="Export OKW JSON Schema",
+    description="""
+    Export the JSON schema for the OKW (OpenKnowWhere) domain model in canonical format.
+    
+    This endpoint generates a JSON schema that represents the complete structure
+    of the ManufacturingFacility dataclass, including all fields, types, and constraints.
+    
+    **Features:**
+    - Canonical JSON Schema format (draft-07)
+    - Complete type definitions
+    - Required field specifications
+    - Nested object schemas
+    """
+)
+async def export_okw_schema(
+    http_request: Request = None
+):
+    """Export OKW domain model as JSON schema."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
+    try:
+        from ...models.okw import ManufacturingFacility
+        from ...utils.schema_generator import generate_json_schema
+        
+        # Generate JSON schema from ManufacturingFacility dataclass
+        schema = generate_json_schema(ManufacturingFacility, title="ManufacturingFacility")
+        
+        logger.info(
+            "OKW schema exported successfully",
+            extra={
+                "request_id": request_id,
+                "schema_title": schema.get("title"),
+                "schema_version": schema.get("$schema")
+            }
+        )
+        
+        return OKWExportResponse(
+            success=True,
+            message="OKW schema exported successfully",
+            schema=schema,
+            schema_version=schema.get("$schema", "http://json-schema.org/draft-07/schema#"),
+            model_name="ManufacturingFacility"
+        )
+        
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error exporting OKW schema: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
 
 @router.get("/{id}", response_model=OKWResponse)
 async def get_okw(

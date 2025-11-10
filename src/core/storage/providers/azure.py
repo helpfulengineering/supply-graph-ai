@@ -69,6 +69,10 @@ class AzureBlobProvider(StorageProvider):
         """Disconnect from Azure Blob Storage"""
         if self._connected:
             try:
+                # Close container client first
+                if self._container:
+                    await self._container.close()
+                # Close blob service client (this closes underlying aiohttp session)
                 if self._client:
                     await self._client.close()
                 self._connected = False

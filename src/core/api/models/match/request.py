@@ -15,10 +15,19 @@ class OptimizationCriteria(BaseModel):
 
 class MatchRequest(BaseAPIRequest, LLMRequestMixin):
     """Consolidated match request with standardized fields and LLM support"""
-    # Core matching fields - either okh_id, okh_manifest, or okh_url must be provided
+    # Core matching fields - either okh_id, okh_manifest, okh_url, recipe_id, recipe, or recipe_url must be provided
+    # Manufacturing domain fields
     okh_id: Optional[UUID] = None
     okh_manifest: Optional[dict] = None  # Changed from OKHManifest to dict for API compatibility
     okh_url: Optional[str] = Field(None, description="URL to fetch OKH manifest from")
+    
+    # Cooking domain fields
+    recipe_id: Optional[UUID] = None
+    recipe: Optional[dict] = None  # Recipe data (for cooking domain)
+    recipe_url: Optional[str] = Field(None, description="URL to fetch recipe from")
+    
+    # Domain override (optional - will be auto-detected if not provided)
+    domain: Optional[str] = Field(None, description="Domain override (manufacturing, cooking). Auto-detected if not provided")
     
     # Enhanced filtering options
     access_type: Optional[str] = None
@@ -35,7 +44,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
     location_coords: Optional[Dict[str, float]] = None  # {"lat": 0.0, "lng": 0.0}
     
     # Quality and validation options
-    min_confidence: Optional[float] = 0.7
+    min_confidence: Optional[float] = 0.3  # Relaxed default to show more matches
     max_results: Optional[int] = 10
     
     # Backward compatibility
@@ -86,20 +95,39 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         }
 
     @model_validator(mode='after')
-    def validate_okh_input(self):
-        """Ensure only one of okh_id, okh_manifest, or okh_url is provided"""
-        provided_fields = []
-        if self.okh_id is not None:
-            provided_fields.append('okh_id')
-        if self.okh_manifest is not None:
-            provided_fields.append('okh_manifest')
-        if self.okh_url is not None:
-            provided_fields.append('okh_url')
+    def validate_input(self):
+        """Ensure exactly one input type is provided (either manufacturing or cooking domain)"""
+        manufacturing_fields = []
+        cooking_fields = []
         
-        if len(provided_fields) > 1:
-            raise ValueError(f"Cannot provide multiple OKH inputs: {', '.join(provided_fields)}")
-        if len(provided_fields) == 0:
-            raise ValueError("Must provide either okh_id, okh_manifest, or okh_url")
+        if self.okh_id is not None:
+            manufacturing_fields.append('okh_id')
+        if self.okh_manifest is not None:
+            manufacturing_fields.append('okh_manifest')
+        if self.okh_url is not None:
+            manufacturing_fields.append('okh_url')
+        
+        if self.recipe_id is not None:
+            cooking_fields.append('recipe_id')
+        if self.recipe is not None:
+            cooking_fields.append('recipe')
+        if self.recipe_url is not None:
+            cooking_fields.append('recipe_url')
+        
+        # Check for multiple inputs within same domain
+        if len(manufacturing_fields) > 1:
+            raise ValueError(f"Cannot provide multiple OKH inputs: {', '.join(manufacturing_fields)}")
+        if len(cooking_fields) > 1:
+            raise ValueError(f"Cannot provide multiple recipe inputs: {', '.join(cooking_fields)}")
+        
+        # Check for cross-domain inputs
+        if len(manufacturing_fields) > 0 and len(cooking_fields) > 0:
+            raise ValueError(f"Cannot provide both manufacturing (OKH) and cooking (recipe) inputs. Choose one domain.")
+        
+        # Must provide at least one input
+        if len(manufacturing_fields) == 0 and len(cooking_fields) == 0:
+            raise ValueError("Must provide either okh_id/okh_manifest/okh_url (manufacturing) or recipe_id/recipe/recipe_url (cooking)")
+        
         return self
 
 class ValidateMatchRequest(BaseModel):
