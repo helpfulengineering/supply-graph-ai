@@ -41,7 +41,10 @@ def match_group():
 
 
 @match_group.command()
-@click.argument('okh_file', type=click.Path(exists=True))
+@click.argument('input_file', type=click.Path(exists=True))
+@click.option('--domain', 
+              type=click.Choice(['manufacturing', 'cooking']),
+              help='Domain override (auto-detected from file if not provided)')
 @click.option('--access-type', 
               type=click.Choice(['public', 'private', 'restricted']),
               help='Filter by facility access type')
@@ -51,35 +54,44 @@ def match_group():
 @click.option('--location', help='Filter by location (city, country, or region)')
 @click.option('--capabilities', help='Comma-separated list of required capabilities')
 @click.option('--materials', help='Comma-separated list of required materials')
-@click.option('--min-confidence', type=float, default=0.7,
-              help='Minimum confidence threshold for matches (0.0-1.0)')
+@click.option('--min-confidence', type=float, default=0.3,
+              help='Minimum confidence threshold for matches (0.0-1.0). Default: 0.3 (relaxed)')
 @click.option('--max-results', type=int, default=10,
               help='Maximum number of results to return')
 @click.option('--output', '-o', help='Output file path')
 @standard_cli_command(
     help_text="""
-    Match OKH requirements to OKW capabilities.
+    Match requirements to capabilities (supports both manufacturing and cooking domains).
     
-    This command analyzes an OKH manifest file and finds manufacturing facilities
-    that can produce the design based on their capabilities and requirements.
+    This command analyzes an input file (OKH manifest for manufacturing or recipe for cooking)
+    and finds facilities (OKW facilities or kitchens) that can satisfy the requirements.
     
-    The matching process considers:
+    For manufacturing domain:
     - Process requirements (3D printing, CNC machining, etc.)
     - Material requirements (PLA, metal, etc.)
     - Quality and precision requirements
     - Location and access preferences
     - Facility capabilities and equipment
     
+    For cooking domain:
+    - Ingredient requirements
+    - Equipment requirements
+    - Appliance requirements
+    - Kitchen capabilities
+    
     When LLM is enabled, the matching process uses advanced AI to:
-    - Better understand process requirements
-    - Find creative solutions for complex designs
+    - Better understand requirements
+    - Find creative solutions
     - Provide detailed explanations for matches
-    - Suggest alternative manufacturing approaches
+    - Suggest alternative approaches
     """,
     epilog="""
     Examples:
-      # Basic matching
+      # Match OKH requirements (manufacturing)
       ome match requirements my-design.okh.json
+      
+      # Match recipe requirements (cooking)
+      ome match requirements chocolate-chip-cookies-recipe.json
       
       # Match with location filter
       ome match requirements my-design.okh.json --location "Berlin"
@@ -100,7 +112,8 @@ def match_group():
     add_llm_config=True
 )
 @click.pass_context
-async def requirements(ctx, okh_file: str, access_type: Optional[str], 
+async def requirements(ctx, input_file: str, domain: Optional[str],
+                      access_type: Optional[str], 
                       facility_status: Optional[str], location: Optional[str],
                       capabilities: Optional[str], materials: Optional[str],
                       min_confidence: float, max_results: int, output: Optional[str],
@@ -121,9 +134,13 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
     )
     
     try:
-        # Read and validate OKH file
-        cli_ctx.log("Reading OKH file...", "info")
-        okh_data = await _read_okh_file(okh_file)
+        # Read and validate input file
+        cli_ctx.log("Reading input file...", "info")
+        input_data = await _read_input_file(input_file)
+        
+        # Detect domain from file content if not provided
+        detected_domain = domain or _detect_domain_from_data(input_data)
+        cli_ctx.log(f"Detected domain: {detected_domain}", "info")
         
         # Parse filter options
         filters = _parse_match_filters(
@@ -131,11 +148,21 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
             capabilities, materials, min_confidence, max_results
         )
         
-        # Create request data with LLM configuration
-        request_data = create_llm_request_data(cli_ctx, {
-            "okh_manifest": okh_data,
-            "filters": filters
-        })
+        # Create request data based on domain
+        if detected_domain == "manufacturing":
+            request_data = create_llm_request_data(cli_ctx, {
+                "okh_manifest": input_data,
+                "domain": detected_domain,
+                **filters
+            })
+        elif detected_domain == "cooking":
+            request_data = create_llm_request_data(cli_ctx, {
+                "recipe": input_data,
+                "domain": detected_domain,
+                **filters
+            })
+        else:
+            raise click.ClickException(f"Unsupported domain: {detected_domain}")
         
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
@@ -145,41 +172,135 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
             """Match via HTTP API"""
             cli_ctx.log("Attempting HTTP API matching...", "info")
             response = await cli_ctx.api_client.request(
-                "POST", "/match", json_data=request_data
+                "POST", "/api/match", json_data=request_data
             )
+            # Extract data from wrapped response (api_endpoint decorator wraps it)
+            if isinstance(response, dict) and "data" in response:
+                return response["data"]
             return response
         
         async def fallback_match():
             """Match using direct service calls"""
             cli_ctx.log("Using direct service matching...", "info")
-            manifest = OKHManifest.from_dict(okh_data)
-            matching_service = await MatchingService.get_instance()
             
-            # Get facilities for matching
-            from ..core.services.okw_service import OKWService
-            okw_service = await OKWService.get_instance()
-            facilities, _ = await okw_service.list()
-            
-            # Create match request
-            from ..core.api.models.match.request import MatchRequest
-            match_request = MatchRequest(
-                okh_manifest=okh_data,
-                access_type=filters.get("access_type"),
-                facility_status=filters.get("facility_status"),
-                location=filters.get("location"),
-                capabilities=filters.get("capabilities"),
-                materials=filters.get("materials"),
-                min_confidence=filters.get("min_confidence"),
-                max_results=filters.get("max_results")
-            )
-            
-            results = await matching_service.find_matches_with_manifest(manifest, facilities)
-            # Convert Set to List and return first result for CLI compatibility
-            results_list = list(results)
-            if results_list:
-                return results_list[0].to_dict()
+            if detected_domain == "manufacturing":
+                manifest = OKHManifest.from_dict(input_data)
+                matching_service = await MatchingService.get_instance()
+                
+                # Get facilities for matching
+                from ..core.services.okw_service import OKWService
+                okw_service = await OKWService.get_instance()
+                facilities, _ = await okw_service.list()
+                
+                # Create match request
+                from ..core.api.models.match.request import MatchRequest
+                match_request = MatchRequest(
+                    okh_manifest=input_data,
+                    domain=detected_domain,
+                    access_type=filters.get("access_type"),
+                    facility_status=filters.get("facility_status"),
+                    location=filters.get("location"),
+                    capabilities=filters.get("capabilities"),
+                    materials=filters.get("materials"),
+                    min_confidence=filters.get("min_confidence"),
+                    max_results=filters.get("max_results")
+                )
+                
+                results = await matching_service.find_matches_with_manifest(manifest, facilities)
+                # Convert Set to List and return first result for CLI compatibility
+                results_list = list(results)
+                if results_list:
+                    return {"solutions": [r.to_dict() for r in results_list], "total_solutions": len(results_list)}
+                else:
+                    return {"solutions": [], "total_solutions": 0, "message": "No matching facilities found"}
+            elif detected_domain == "cooking":
+                # Use cooking domain extractor and matcher
+                from ..core.domains.cooking.extractors import CookingExtractor
+                from ..core.domains.cooking.matchers import CookingMatcher
+                from ..core.services.storage_service import StorageService
+                from ..config.storage_config import get_default_storage_config
+                
+                extractor = CookingExtractor()
+                matcher = CookingMatcher()
+                
+                # Extract requirements from recipe
+                extraction_result = extractor.extract_requirements(input_data)
+                requirements = extraction_result.data if extraction_result.data else None
+                
+                if not requirements:
+                    return {"solutions": [], "total_solutions": 0, "message": "Failed to extract requirements from recipe"}
+                
+                # Load kitchens from storage
+                storage_service = await StorageService.get_instance()
+                await storage_service.configure(get_default_storage_config())
+                
+                kitchens = []
+                async for obj in storage_service.manager.list_objects():
+                    try:
+                        # Check if this is a kitchen file
+                        key_lower = obj["key"].lower()
+                        if 'kitchen' not in key_lower:
+                            continue
+                        
+                        data = await storage_service.manager.get_object(obj["key"])
+                        content = data.decode('utf-8')
+                        kitchen_data = json.loads(content)
+                        
+                        # Ensure kitchen has an ID - extract from storage key if not present
+                        if "id" not in kitchen_data:
+                            # Extract ID from storage key format: {name}-{id}-kitchen.json
+                            key_parts = obj["key"].split("-")
+                            if len(key_parts) >= 2:
+                                # Try to extract ID from key (format: name-id-kitchen.json)
+                                potential_id = key_parts[-2] if key_parts[-1].startswith("kitchen") else None
+                                if potential_id and len(potential_id) == 8:  # UUID short format
+                                    kitchen_data["id"] = potential_id
+                                else:
+                                    # Generate new UUID if can't extract from key
+                                    from uuid import uuid4
+                                    kitchen_data["id"] = str(uuid4())
+                            else:
+                                # Generate new UUID if key format is unexpected
+                                from uuid import uuid4
+                                kitchen_data["id"] = str(uuid4())
+                        
+                        # Store storage key for reference
+                        kitchen_data["storage_key"] = obj["key"]
+                        
+                        kitchens.append(kitchen_data)
+                        cli_ctx.log(f"Loaded kitchen: {kitchen_data.get('name', 'Unknown')} (ID: {kitchen_data.get('id', 'N/A')[:8]}) from {obj['key']}", "info")
+                    except Exception as e:
+                        cli_ctx.log(f"Warning: Failed to load {obj.get('key', 'unknown')}: {e}", "warning")
+                        continue
+                
+                cli_ctx.log(f"Loaded {len(kitchens)} kitchens from storage", "info")
+                
+                # Match against each kitchen
+                solutions = []
+                for kitchen in kitchens:
+                    capabilities_result = extractor.extract_capabilities(kitchen)
+                    capabilities = capabilities_result.data if capabilities_result.data else None
+                    
+                    if not capabilities:
+                        continue
+                    
+                    # Get kitchen and recipe names for supply tree
+                    kitchen_name = kitchen.get("name", "Unknown Kitchen")
+                    recipe_name = input_data.get("name", "Unknown Recipe")
+                    supply_tree = matcher.generate_supply_tree(requirements, capabilities, kitchen_name, recipe_name)
+                    solution = {
+                        "tree": supply_tree.to_dict() if hasattr(supply_tree, 'to_dict') else supply_tree,
+                        "facility": kitchen,
+                        "facility_id": kitchen.get("id", kitchen.get("storage_key", "unknown")),
+                        "facility_name": kitchen_name,
+                        "match_type": "cooking",
+                        "confidence": supply_tree.confidence_score if hasattr(supply_tree, 'confidence_score') else 0.8
+                    }
+                    solutions.append(solution)
+                
+                return {"solutions": solutions, "total_solutions": len(solutions)}
             else:
-                return {"message": "No matching facilities found"}
+                raise click.ClickException(f"Unsupported domain: {detected_domain}")
         
         # Execute matching with fallback
         command = SmartCommand(cli_ctx)
@@ -187,6 +308,16 @@ async def requirements(ctx, okh_file: str, access_type: Optional[str],
         
         # Process and display results
         await _display_match_results(cli_ctx, result, output, output_format)
+        
+        # Cleanup storage service if it was used
+        if detected_domain == "cooking":
+            try:
+                from ..core.services.storage_service import StorageService
+                storage_service = await StorageService.get_instance()
+                if storage_service and hasattr(storage_service, 'cleanup'):
+                    await storage_service.cleanup()
+            except Exception:
+                pass  # Ignore cleanup errors
         
         cli_ctx.end_command_tracking()
         
@@ -243,13 +374,13 @@ async def validate(ctx, okh_file: str, output: Optional[str],
     )
     
     try:
-        # Read OKH file
-        cli_ctx.log("Reading OKH file...", "info")
-        okh_data = await _read_okh_file(okh_file)
+        # Read input file
+        cli_ctx.log("Reading input file...", "info")
+        input_data = await _read_input_file(okh_file)
         
         # Create request data with LLM configuration
         request_data = create_llm_request_data(cli_ctx, {
-            "okh_content": okh_data
+            "okh_content": input_data
         })
         
         # Log LLM usage if enabled
@@ -267,7 +398,7 @@ async def validate(ctx, okh_file: str, output: Optional[str],
         async def fallback_validate():
             """Validate using direct service calls"""
             cli_ctx.log("Using direct service validation...", "info")
-            manifest = OKHManifest.from_dict(okh_data)
+            manifest = OKHManifest.from_dict(input_data)
             
             # Basic validation
             validation_result = {
@@ -280,7 +411,7 @@ async def validate(ctx, okh_file: str, output: Optional[str],
             # Check required fields
             required_fields = ["title", "version", "manufacturing_specs"]
             for field in required_fields:
-                if field not in okh_data:
+                if field not in input_data:
                     validation_result["errors"].append(f"Missing required field: {field}")
                     validation_result["is_valid"] = False
             
@@ -379,19 +510,33 @@ async def domains(ctx, domain: Optional[str], active_only: bool,
 
 # Helper functions
 
-async def _read_okh_file(file_path: str) -> Dict[str, Any]:
-    """Read and parse OKH file."""
-    okh_path = Path(file_path)
+async def _read_input_file(file_path: str) -> Dict[str, Any]:
+    """Read and parse input file (OKH or recipe)."""
+    input_path = Path(file_path)
     
     try:
-        with open(okh_path, 'r') as f:
-            if okh_path.suffix.lower() in ['.yaml', '.yml']:
+        with open(input_path, 'r') as f:
+            if input_path.suffix.lower() in ['.yaml', '.yml']:
                 import yaml
                 return yaml.safe_load(f)
             else:
                 return json.load(f)
     except Exception as e:
-        raise click.ClickException(f"Failed to read OKH file: {str(e)}")
+        raise click.ClickException(f"Failed to read input file: {str(e)}")
+
+
+def _detect_domain_from_data(data: Dict[str, Any]) -> str:
+    """Detect domain from input data structure."""
+    # Check for OKH/manufacturing indicators
+    if "title" in data and "version" in data and ("manufacturing_specs" in data or "manufacturing_processes" in data):
+        return "manufacturing"
+    
+    # Check for recipe/cooking indicators
+    if "ingredients" in data and "instructions" in data and "name" in data:
+        return "cooking"
+    
+    # Default to manufacturing for backward compatibility
+    return "manufacturing"
 
 
 def _parse_match_filters(access_type: Optional[str], facility_status: Optional[str],
@@ -419,14 +564,15 @@ def _parse_match_filters(access_type: Optional[str], facility_status: Optional[s
 async def _display_match_results(cli_ctx: CLIContext, result: Dict[str, Any], 
                                output: Optional[str], output_format: str):
     """Display matching results in the specified format."""
-    matches = result.get("matches", [])
-    total_matches = len(matches)
+    # Handle both old format (matches) and new format (solutions)
+    solutions = result.get("solutions", result.get("matches", []))
+    total_solutions = result.get("total_solutions", len(solutions))
     
-    if total_matches == 0:
+    if total_solutions == 0:
         cli_ctx.log("No matching facilities found", "warning")
         return
     
-    cli_ctx.log(f"Found {total_matches} matching facilities", "success")
+    cli_ctx.log(f"Found {total_solutions} matching facilities", "success")
     
     # Format output based on format preference
     if output_format == "json":
@@ -439,11 +585,35 @@ async def _display_match_results(cli_ctx: CLIContext, result: Dict[str, Any],
             click.echo(output_data)
     else:
         # Table format
-        for i, match in enumerate(matches, 1):
-            click.echo(f"\n{i}. {match.get('name', 'Unknown Facility')}")
-            click.echo(f"   Location: {match.get('location', 'Unknown')}")
-            click.echo(f"   Confidence: {match.get('confidence', 0):.2f}")
-            click.echo(f"   Capabilities: {', '.join(match.get('capabilities', []))}")
+        for i, solution in enumerate(solutions, 1):
+            # Handle both old format (direct match dict) and new format (solution with tree/facility)
+            if "facility" in solution:
+                facility = solution.get("facility", {})
+                facility_name = facility.get("name", "Unknown Facility") if isinstance(facility, dict) else getattr(facility, "name", "Unknown Facility")
+                confidence = solution.get("confidence", 0)
+            else:
+                facility_name = solution.get("name", "Unknown Facility")
+                confidence = solution.get("confidence", solution.get("score", 0))
+            
+            click.echo(f"\n{i}. {facility_name}")
+            
+            # Show facility ID if available
+            facility_id = solution.get("facility_id")
+            if facility_id:
+                # Show short version of ID for readability
+                short_id = facility_id[:8] if len(facility_id) > 8 else facility_id
+                click.echo(f"   ID: {short_id}")
+            
+            if "facility" in solution and isinstance(solution["facility"], dict):
+                location = solution["facility"].get("location", "Unknown")
+                if location != "Unknown":
+                    click.echo(f"   Location: {location}")
+            click.echo(f"   Confidence: {confidence:.2f}")
+            
+            # Show match type if available
+            match_type = solution.get("match_type", "unknown")
+            if match_type != "unknown":
+                click.echo(f"   Match Type: {match_type}")
 
 
 async def _display_validation_results(cli_ctx: CLIContext, result: Dict[str, Any],

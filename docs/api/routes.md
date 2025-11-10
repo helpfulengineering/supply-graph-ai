@@ -2,15 +2,21 @@
 
 ## Introduction
 
-The Open Matching Engine (OME) API provides programmatic access to match requirements (specified in OKH format) with capabilities (specified in OKW format) and generate valid manufacturing solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 43 routes across 6 command groups, featuring  error handling, LLM integration support, and production readiness.
+The Open Matching Engine (OME) API provides programmatic access to match requirements with capabilities across multiple domains and generate valid solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 43 routes across 6 command groups, featuring  error handling, LLM integration support, and production readiness.
+
+**Supported Domains:**
+- **Manufacturing Domain**: Match OKH requirements with OKW capabilities
+- **Cooking Domain**: Match recipe requirements with kitchen capabilities
 
 ## Architecture Overview
 
-The API is structured around the three core domain models:
+The API is structured around core domain models:
 
-1. **OpenKnowHow (OKH)** - Represents hardware design specifications and requirements
-2. **OpenKnowWhere (OKW)** - Represents manufacturing capabilities and facilities
-3. **Supply Trees** - Represents valid solutions matching OKH requirements with OKW capabilities
+1. **OpenKnowHow (OKH)** - Represents hardware design specifications and requirements (Manufacturing Domain)
+2. **OpenKnowWhere (OKW)** - Represents manufacturing capabilities and facilities (Manufacturing Domain)
+3. **Recipes** - Represents cooking requirements (Cooking Domain)
+4. **Kitchens** - Represents cooking capabilities and facilities (Cooking Domain)
+5. **Supply Trees** - Represents valid solutions matching requirements with capabilities across all domains
 
 Each domain has its own set of routes for creation, validation, retrieval, and specialized operations. The API follows RESTful principles with **standardized response formats**, **error handling**, **LLM integration support**, and appropriate status codes.
 
@@ -1019,21 +1025,33 @@ The supply tree in the requested format.
 
 ### Matching Routes
 
-#### Match Requirements to Capabilities
+#### Match Requirements to Capabilities (Domain-Aware)
 
 ```
 POST /v1/api/match
 ```
 
-**Advanced matching endpoint** that matches OKH requirements with OKW capabilities to generate valid supply trees. Supports multiple input methods and advanced filtering.
+**Advanced matching endpoint** that matches requirements with capabilities across multiple domains. Supports both **manufacturing domain** (OKH/OKW) and **cooking domain** (recipe/kitchen) matching. The endpoint automatically detects the domain from input data or accepts an explicit domain override.
 
-**Request:**
+**Domain Support:**
+- **Manufacturing Domain**: Match OKH requirements with OKW capabilities
+- **Cooking Domain**: Match recipe requirements with kitchen capabilities
+
+**Domain Auto-Detection:**
+The endpoint automatically detects the domain from the input data:
+- **Manufacturing**: Detected from OKH manifest structure (presence of `title`, `version`, `manufacturing_specs`)
+- **Cooking**: Detected from recipe structure (presence of `ingredients`, `instructions`, `name`)
+
+**Request (Manufacturing Domain):**
 ```json
 {
   // OKH Input (choose ONE of the following):
   "okh_manifest": {...},           // Inline OKH manifest object
   "okh_id": "uuid-here",          // Reference to stored OKH manifest
   "okh_url": "https://example.com/manifest.yaml",  // Remote OKH manifest URL
+  
+  // Optional: Explicit domain override
+  "domain": "manufacturing",
   
   // OKW Capabilities (choose ONE of the following):
   "okw_facilities": [...],         // Inline OKW facilities (Local Development Mode)
@@ -1059,64 +1077,123 @@ POST /v1/api/match
 }
 ```
 
-**Response:**
+**Request (Cooking Domain):**
 ```json
 {
-  "solutions": [
-    {
-      "tree": {
-        "id": "123e4567-e89b-12d3-a456-426614174000",
-        "workflows": {...},
-        "creation_time": "2023-12-07T10:30:00Z",
-        "confidence": 0.85,
-        "required_quantity": 1,
-        "connections": [],
-        "snapshots": {...},
-        "okh_reference": "okh-id",
-        "deadline": null,
-        "metadata": {...}
-      },
-      "score": 0.85,
-      "metrics": {
-        "facility_count": 3,
-        "requirement_count": 8,
-        "capability_count": 12
+  // Recipe Input (choose ONE of the following):
+  "recipe": {...},                 // Inline recipe object
+  "recipe_id": "uuid-here",        // Reference to stored recipe
+  "recipe_url": "https://example.com/recipe.json",  // Remote recipe URL
+  
+  // Optional: Explicit domain override
+  "domain": "cooking",
+  
+  // Optional Filtering
+  "access_type": "public",
+  "facility_status": "active",
+  "location": "San Francisco",
+  
+  // Optional Matching Parameters
+  "min_confidence": 0.5,
+  "max_results": 10
+}
+```
+
+**Response Structure:**
+The endpoint returns a wrapped response with the following structure:
+```json
+{
+  "status": "success",
+  "message": "Matching completed successfully",
+  "timestamp": "2023-12-07T10:30:00Z",
+  "request_id": "request-id-here",
+  "data": {
+    "solutions": [
+      {
+        "tree": {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "facility_name": "Baking Kitchen",
+          "okh_reference": "Chocolate Chip Cookies",
+          "confidence_score": 1.0,
+          "materials_required": ["flour", "butter", "sugar"],
+          "capabilities_used": ["mixing bowl", "oven"],
+          "match_type": "cooking",
+          "metadata": {...}
+        },
+        "facility": {
+          "id": "02f03dca",
+          "name": "Baking Kitchen",
+          "appliances": ["oven", "refrigerator"],
+          "tools": ["mixing bowl", "whisk"],
+          "ingredients": ["flour", "sugar", "butter"]
+        },
+        "facility_id": "02f03dca",
+        "facility_name": "Baking Kitchen",
+        "match_type": "cooking",
+        "confidence": 1.0,
+        "rank": 1,
+        "processing_timestamp": "2023-12-07T10:30:00Z"
       }
-    }
-  ],
+    ],
+    "total_solutions": 1,
+    "matching_metrics": {
+      "direct_matches": 0,
+      "heuristic_matches": 0,
+      "nlp_matches": 0,
+      "llm_matches": 0
+    },
+    "validation_results": [...]
+  },
   "metadata": {
-    "solution_count": 1,
-    "facility_count": 3,
-    "optimization_criteria": {
-      "cost": 0.5,
-      "quality": 0.3,
-      "speed": 0.2
-    }
+    "processing_time": 0.123
   }
 }
 ```
 
+**Response Fields:**
+- `solutions`: Array of matching solutions, each containing:
+  - `tree`: Supply tree with matching details
+  - `facility`: Complete facility/kitchen information
+  - `facility_id`: **Unique identifier** for the facility (required for API operations)
+  - `facility_name`: Human-readable facility name
+  - `match_type`: Domain type ("manufacturing" or "cooking")
+  - `confidence`: Match confidence score (0.0-1.0)
+  - `rank`: Solution rank (1 = best match)
+- `total_solutions`: Total number of matching solutions found
+- `matching_metrics`: Breakdown of match types
+- `validation_results`: Validation results for each solution
+
 **Status:**  **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
 
 **Key Features:**
-- **Multiple OKH Input Methods**: Accept inline manifests, storage references, or remote URLs
-- **Flexible OKW Input Methods**: 
-  - **Cloud Storage Mode**: Automatically loads OKW facilities from Azure Blob Storage (default)
-  - **Local Development Mode**: Accept inline OKW facilities for local development and testing
+- **Domain-Aware Matching**: Supports both manufacturing (OKH/OKW) and cooking (recipe/kitchen) domains
+- **Automatic Domain Detection**: Detects domain from input data structure, or accepts explicit domain override
+- **Multiple Input Methods**: 
+  - **Manufacturing**: Accept inline OKH manifests, storage references, or remote URLs
+  - **Cooking**: Accept inline recipes, storage references, or remote URLs
+- **Flexible Facility Loading**: 
+  - **Cloud Storage Mode**: Automatically loads facilities/kitchens from Azure Blob Storage (default)
+  - **Local Development Mode**: Accept inline facilities for local development and testing
 - **Advanced Filtering**: Filter facilities by location, capabilities, access type, and status
 - **Real-time Processing**: Processes YAML/JSON files from storage in real-time
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
 - **Multi-layered Matching**: Advanced Direct Matching with heuristic rules
 - **Supply Tree Generation**: Creates complete supply tree solutions with workflows and metadata
+- **Unique Facility IDs**: All match results include unique facility IDs for API operations
 
 **Advanced Matching Workflow:**
-1. **OKH Input Processing**: Validates and processes OKH manifest from one of three input methods
-2. **OKW Capabilities Processing**: 
-   - **If `okw_facilities` provided**: Uses inline OKW facilities (Local Development Mode)
-   - **If `okw_facilities` not provided**: Loads OKW facilities from Azure Blob Storage (Cloud Storage Mode)
-3. **File Processing**: Parses YAML/JSON files and converts to `ManufacturingFacility` objects
-4. **Filtering**: Applies optional filters to narrow down relevant facilities (works with both inline and cloud-loaded facilities)
-5. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
+1. **Domain Detection**: Automatically detects domain from input data or uses explicit domain override
+2. **Requirements Extraction**:
+   - **Manufacturing**: Validates and processes OKH manifest from one of three input methods
+   - **Cooking**: Validates and processes recipe from one of three input methods
+3. **Capabilities Loading**: 
+   - **Manufacturing**: Loads OKW facilities from storage or uses inline facilities
+   - **Cooking**: Loads kitchens from storage (kitchens are stored as JSON files)
+4. **File Processing**: Parses YAML/JSON files and converts to domain-specific objects
+5. **Filtering**: Applies optional filters to narrow down relevant facilities/kitchens
+6. **Domain Extraction**: Uses domain-specific extractors to extract requirements and capabilities
+7. **Matching**: Performs domain-aware matching using appropriate matchers
+8. **Result Processing**: Filters, sorts, and ranks results by confidence score
 6. **Multi-Layered Matching Logic**: 
    - **Layer 1**: Direct Matching with metadata tracking and confidence scoring
    - **Layer 2**: Heuristic Matching with rule-based synonyms and abbreviations

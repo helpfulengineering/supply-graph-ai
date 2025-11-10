@@ -8,7 +8,7 @@ request validation, and response formatting.
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Request, status
 from uuid import UUID
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 import json
 import yaml
 from datetime import datetime
@@ -75,23 +75,37 @@ async def get_okh_service() -> OKHService:
 @router.post(
     "",
     status_code=status.HTTP_200_OK,
-    summary="Enhanced Requirements Matching",
+    summary="Enhanced Requirements Matching (Domain-Aware)",
     description="""
-    Enhanced endpoint for matching OKH requirements with OKW capabilities.
+    Enhanced endpoint for matching requirements with capabilities across multiple domains.
     
-    This endpoint provides:
+    **Supported Domains:**
+    - **Manufacturing**: Match OKH requirements with OKW capabilities
+    - **Cooking**: Match recipe requirements with kitchen capabilities
+    
+    **Domain Auto-Detection:**
+    The endpoint automatically detects the domain from the input data structure:
+    - Manufacturing domain: Detected from OKH manifest structure (title, version, manufacturing_specs)
+    - Cooking domain: Detected from recipe structure (ingredients, instructions, name)
+    
+    You can also explicitly specify the domain using the `domain` field in the request.
+    
+    **This endpoint provides:**
     - Standardized request/response formats
     - LLM integration support
     - Enhanced error handling
     - Performance metrics
     - Validation
+    - Domain-aware matching logic
     
     **Features:**
-    - Support for multiple input formats (manifest, ID, URL)
+    - Support for multiple input formats (manifest/recipe, ID, URL)
+    - Domain auto-detection or explicit domain override
     - Advanced filtering options
     - LLM-powered matching capabilities
     - Real-time performance tracking
     - Detailed validation results
+    - Unique facility IDs in match results
     """
 )
 @api_endpoint(
@@ -130,20 +144,46 @@ async def match_requirements_to_capabilities(
     start_time = datetime.now()
     
     try:
-        # 1. Validate and extract OKH manifest
-        okh_manifest = await _extract_okh_manifest(
-            request, okh_service, storage_service, request_id
-        )
+        # 1. Detect domain from request
+        domain = await _detect_domain_from_request(request)
+        logger.info(f"Detected domain: {domain}", extra={"request_id": request_id, "domain": domain})
         
-        if not okh_manifest:
+        # 2. Extract requirements based on domain
+        if domain == "manufacturing":
+            # Extract OKH manifest
+            okh_manifest = await _extract_okh_manifest(
+                request, okh_service, storage_service, request_id
+            )
+            
+            if not okh_manifest:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Must provide either okh_manifest, okh_id, or okh_url"
+                )
+            
+            requirements_data = okh_manifest
+        elif domain == "cooking":
+            # Extract recipe
+            recipe = await _extract_recipe(
+                request, storage_service, request_id
+            )
+            
+            if not recipe:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Must provide either recipe, recipe_id, or recipe_url"
+                )
+            
+            requirements_data = recipe
+        else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Must provide either okh_manifest, okh_id, or okh_url"
+                detail=f"Unsupported domain: {domain}"
             )
         
-        # 2. Get available facilities with filtering
+        # 3. Get available facilities with filtering
         facilities = await _get_filtered_facilities(
-            storage_service, request, request_id
+            storage_service, request, request_id, domain=domain
         )
         
         if not facilities:
@@ -151,6 +191,7 @@ async def match_requirements_to_capabilities(
                 f"No facilities found matching criteria",
                 extra={
                     "request_id": request_id,
+                    "domain": domain,
                     "filters": {
                         "access_type": request.access_type,
                         "facility_status": request.facility_status,
@@ -159,20 +200,27 @@ async def match_requirements_to_capabilities(
                 }
             )
         
-        # 3. Perform matching with enhanced options
+        # 4. Perform matching with enhanced options
         matching_results = await _perform_enhanced_matching(
-            matching_service, okh_manifest, facilities, request, request_id
+            matching_service, requirements_data, facilities, request, request_id, domain=domain
         )
         
-        # 4. Process and format results
+        # 5. Process and format results
         solutions = await _process_matching_results(
-            matching_results, request, request_id
+            matching_results, request, request_id, domain=domain
         )
         
         # 5. Calculate processing metrics
         processing_time = (datetime.now() - start_time).total_seconds()
         
         # 6. Create enhanced response
+        validation_results = await _validate_results(solutions, request_id)
+        # Convert ValidationResult objects to dicts for JSON serialization
+        validation_results_dicts = [
+            result.model_dump() if hasattr(result, 'model_dump') else result
+            for result in validation_results
+        ]
+        
         response_data = {
             "solutions": solutions,
             "total_solutions": len(solutions),
@@ -182,7 +230,7 @@ async def match_requirements_to_capabilities(
                 "nlp_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "nlp"]),
                 "llm_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "llm"])
             },
-            "validation_results": await _validate_results(solutions, request_id)
+            "validation_results": validation_results_dicts
         }
         
         logger.info(
@@ -757,6 +805,22 @@ async def detect_domain_from_input(
 
 
 # Helper functions
+async def _detect_domain_from_request(request: MatchRequest) -> str:
+    """Detect domain from request input"""
+    # If domain is explicitly provided, use it
+    if request.domain:
+        return request.domain
+    
+    # Detect from input type
+    if request.okh_id or request.okh_manifest or request.okh_url:
+        return "manufacturing"
+    elif request.recipe_id or request.recipe or request.recipe_url:
+        return "cooking"
+    else:
+        # Default to manufacturing for backward compatibility
+        return "manufacturing"
+
+
 async def _extract_okh_manifest(
     request: MatchRequest,
     okh_service: OKHService,
@@ -796,41 +860,141 @@ async def _extract_okh_manifest(
         )
 
 
+async def _extract_recipe(
+    request: MatchRequest,
+    storage_service: StorageService,
+    request_id: str
+) -> Optional[dict]:
+    """Extract recipe from request."""
+    try:
+        if request.recipe:
+            # Recipe is already provided as dict
+            return request.recipe
+        elif request.recipe_id:
+            # Load recipe from storage by ID
+            # For now, we'll need to search storage for the recipe
+            # This is a simplified implementation - in production, you'd have a recipe service
+            async for obj in storage_service.manager.list_objects():
+                if 'recipe' in obj["key"].lower():
+                    try:
+                        data = await storage_service.manager.get_object(obj["key"])
+                        content = data.decode('utf-8')
+                        recipe_data = json.loads(content)
+                        # Check if this is the recipe we're looking for
+                        # For now, we'll just return the first recipe found
+                        # In production, you'd match by ID
+                        return recipe_data
+                    except Exception:
+                        continue
+            return None
+        elif request.recipe_url:
+            # Fetch recipe from URL
+            import httpx
+            async with httpx.AsyncClient() as client:
+                response = await client.get(request.recipe_url)
+                response.raise_for_status()
+                return response.json()
+        else:
+            return None
+    except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            request_id=request_id,
+            suggestion="Please check the recipe format and try again"
+        )
+        logger.error(
+            f"Error extracting recipe: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_response.model_dump(mode='json')
+        )
+
+
 async def _get_filtered_facilities(
     storage_service: StorageService,
     request: MatchRequest,
-    request_id: str
-) -> List[ManufacturingFacility]:
-    """Get facilities with applied filters."""
+    request_id: str,
+    domain: str = "manufacturing"
+) -> List[Any]:
+    """Get facilities with applied filters. Returns ManufacturingFacility for manufacturing domain, dict for cooking domain."""
     try:
-        # Get all facilities using OKWService with proper pagination
-        okw_service = await OKWService.get_instance()
-        
-        # Get all facilities by paginating through all pages
-        all_facilities = []
-        page = 1
-        page_size = 1000
-        
-        while True:
-            facilities_batch, _ = await okw_service.list(page=page, page_size=page_size)
-            all_facilities.extend(facilities_batch)
+        if domain == "manufacturing":
+            # Get all facilities using OKWService with proper pagination
+            okw_service = await OKWService.get_instance()
             
-            # If we got fewer facilities than page_size, we've reached the end
-            if len(facilities_batch) < page_size:
-                break
+            # Get all facilities by paginating through all pages
+            all_facilities = []
+            page = 1
+            page_size = 1000
+            
+            while True:
+                facilities_batch, _ = await okw_service.list(page=page, page_size=page_size)
+                all_facilities.extend(facilities_batch)
                 
-            page += 1
-        
-        facilities = all_facilities
-        total = len(all_facilities)
+                # If we got fewer facilities than page_size, we've reached the end
+                if len(facilities_batch) < page_size:
+                    break
+                    
+                page += 1
+            
+            facilities = all_facilities
+            total = len(all_facilities)
+        elif domain == "cooking":
+            # Load kitchens from storage
+            all_facilities = []
+            async for obj in storage_service.manager.list_objects():
+                try:
+                    # Only process kitchen files
+                    if 'kitchen' not in obj["key"].lower():
+                        continue
+                    
+                    data = await storage_service.manager.get_object(obj["key"])
+                    content = data.decode('utf-8')
+                    kitchen_data = json.loads(content)
+                    
+                    # Ensure kitchen has an ID - extract from storage key if not present
+                    if "id" not in kitchen_data:
+                        # Extract ID from storage key format: {name}-{id}-kitchen.json
+                        key_parts = obj["key"].split("-")
+                        if len(key_parts) >= 2:
+                            # Try to extract ID from key (format: name-id-kitchen.json)
+                            potential_id = key_parts[-2] if key_parts[-1].startswith("kitchen") else None
+                            if potential_id and len(potential_id) == 8:  # UUID short format
+                                # Generate full UUID from short ID or use as-is
+                                kitchen_data["id"] = potential_id
+                            else:
+                                # Generate new UUID if can't extract from key
+                                from uuid import uuid4
+                                kitchen_data["id"] = str(uuid4())
+                        else:
+                            # Generate new UUID if key format is unexpected
+                            from uuid import uuid4
+                            kitchen_data["id"] = str(uuid4())
+                    
+                    # Store storage key for reference
+                    kitchen_data["storage_key"] = obj["key"]
+                    
+                    all_facilities.append(kitchen_data)
+                except Exception as e:
+                    logger.warning(f"Failed to load kitchen from {obj['key']}: {e}")
+                    continue
+            
+            facilities = all_facilities
+            total = len(all_facilities)
+        else:
+            raise ValueError(f"Unsupported domain: {domain}")
         
         logger.info(
-            f"Loaded {total} facilities from {page} pages",
+            f"Loaded {total} facilities for {domain} domain",
             extra={
                 "request_id": request_id,
                 "total_facilities": total,
-                "pages_loaded": page,
-                "page_size": page_size
+                "domain": domain
             }
         )
         
@@ -894,29 +1058,109 @@ async def _get_filtered_facilities(
 
 async def _perform_enhanced_matching(
     matching_service: MatchingService,
-    okh_manifest: OKHManifest,
-    facilities: List[dict],
+    requirements_data: Any,
+    facilities: List[Any],
     request: MatchRequest,
-    request_id: str
+    request_id: str,
+    domain: str = "manufacturing"
 ) -> List[dict]:
     """Perform enhanced matching with LLM support."""
     try:
-        # Use the existing matching service with enhanced options
-        results = await matching_service.find_matches_with_manifest(
-            okh_manifest=okh_manifest,
-            facilities=facilities
-        )
+        if domain == "manufacturing":
+            # Use the existing matching service for manufacturing
+            if not isinstance(requirements_data, OKHManifest):
+                raise ValueError("Requirements data must be OKHManifest for manufacturing domain")
+            
+            solutions = await matching_service.find_matches_with_manifest(
+                okh_manifest=requirements_data,
+                facilities=facilities
+            )
+            
+            # Convert SupplyTreeSolution objects to dict format expected by API
+            results = []
+            for solution in solutions:
+                # Extract facility information from the solution
+                facility_name = solution.tree.facility_name if solution.tree.facility_name else "Unknown Facility"
+                
+                # Try to find the facility in the facilities list to get its ID
+                facility_id = None
+                facility_data = None
+                for facility in facilities:
+                    if hasattr(facility, 'name') and facility.name == facility_name:
+                        facility_id = str(facility.id)
+                        facility_data = facility.to_dict()
+                        break
+                    elif isinstance(facility, dict) and facility.get('name') == facility_name:
+                        facility_id = facility.get('id', 'unknown')
+                        facility_data = facility
+                        break
+                
+                # If we couldn't find the facility, try to extract from tree metadata
+                if not facility_id:
+                    facility_id = solution.tree.metadata.get('facility_id') if solution.tree.metadata else None
+                    if not facility_id:
+                        # Generate a placeholder ID
+                        from uuid import uuid4
+                        facility_id = str(uuid4())[:8]
+                
+                # Create solution dict in expected format
+                solution_dict = {
+                    "tree": solution.tree.to_dict(),
+                    "facility": facility_data if facility_data else {},
+                    "facility_id": facility_id,
+                    "facility_name": facility_name,
+                    "match_type": "manufacturing",
+                    "confidence": solution.tree.confidence_score if solution.tree.confidence_score else solution.score,
+                    "score": solution.score,
+                    "metrics": solution.metrics
+                }
+                results.append(solution_dict)
+        elif domain == "cooking":
+            # Use cooking domain extractor and matcher
+            from ...domains.cooking.extractors import CookingExtractor
+            from ...domains.cooking.matchers import CookingMatcher
+            
+            extractor = CookingExtractor()
+            matcher = CookingMatcher()
+            
+            # Extract requirements from recipe
+            extraction_result = extractor.extract_requirements(requirements_data)
+            requirements = extraction_result.data if extraction_result.data else None
+            
+            if not requirements:
+                raise ValueError("Failed to extract requirements from recipe")
+            
+            # Match against each kitchen
+            results = []
+            for kitchen in facilities:
+                # Extract capabilities from kitchen
+                capabilities_result = extractor.extract_capabilities(kitchen)
+                capabilities = capabilities_result.data if capabilities_result.data else None
+                
+                if not capabilities:
+                    continue
+                
+                # Generate supply tree with kitchen and recipe names
+                kitchen_name = kitchen.get("name", "Unknown Kitchen")
+                recipe_name = requirements_data.get("name", "Unknown Recipe")
+                supply_tree = matcher.generate_supply_tree(requirements, capabilities, kitchen_name, recipe_name)
+                
+                # Create a simple solution dict with unique ID
+                solution = {
+                    "tree": supply_tree.to_dict() if hasattr(supply_tree, 'to_dict') else supply_tree,
+                    "facility": kitchen,
+                    "facility_id": kitchen.get("id", kitchen.get("storage_key", "unknown")),
+                    "facility_name": kitchen.get("name", "Unknown Kitchen"),
+                    "match_type": "cooking",
+                    "confidence": supply_tree.confidence_score if hasattr(supply_tree, 'confidence_score') else 0.8
+                }
+                results.append(solution)
+        else:
+            raise ValueError(f"Unsupported domain: {domain}")
         
-        # Convert Set to List for iteration
-        results = list(results)
-        
-        # Convert results to list of dicts
-        matching_results = []
-        for result in results:
-            if hasattr(result, 'to_dict'):
-                matching_results.append(result.to_dict())
-            else:
-                matching_results.append(result)
+        # Results are already in dict format (manufacturing) or list of dicts (cooking)
+        # No need for additional conversion
+        matching_results = results
         
         logger.info(
             f"Enhanced matching completed: {len(matching_results)} results",
@@ -952,7 +1196,8 @@ async def _perform_enhanced_matching(
 async def _process_matching_results(
     results: List[dict],
     request: MatchRequest,
-    request_id: str
+    request_id: str,
+    domain: str = "manufacturing"
 ) -> List[dict]:
     """Process and format matching results."""
     try:

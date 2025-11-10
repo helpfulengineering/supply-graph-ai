@@ -1,0 +1,142 @@
+{
+  "id": "d8138335-9f73-40dd-95e0-f45c0ca12d37",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "3991",
+      "street": "Marcia Burg",
+      "city": "New Laurashire",
+      "region": "Alabama",
+      "country": "Ethiopia",
+      "postcode": "55533"
+    },
+    "gps_coordinates": "53.984849, -48.215041",
+    "directions": "Located near Cochran, Pitts and Stephenson",
+    "city": "New Laurashire",
+    "country": "Ethiopia"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Frazier-Martinez",
+    "location": {
+      "address": {
+        "number": "6611",
+        "street": "Brianna Alley",
+        "city": "East Brianashire",
+        "region": "Minnesota",
+        "country": "Namibia",
+        "postcode": "38715"
+      },
+      "gps_coordinates": "47.95762, -107.20379",
+      "directions": "Located behind Beard-Martinez",
+      "city": "East Brianashire",
+      "country": "Namibia"
+    },
+    "languages": [
+      "fr",
+      "en",
+      "es"
+    ],
+    "mailing_list": "jennifersoto@lists.nguyen.com",
+    "contact": {
+      "landline": "+1-441-293-9393"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/faulknerkeith",
+      "twitter": "@bjones",
+      "instagram": "@hartrussell",
+      "other_urls": [
+        "https://larson.com",
+        "https://thomas.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-20:00",
+  "description": "Large-scale manufacturing facility",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VTC-20",
+      "serial_number": "SN985785",
+      "condition": "Needs Maintenance",
+      "quantity": 5,
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "7007",
+              "street": "Ashley Course",
+              "city": "Riostown",
+              "region": "Georgia",
+              "country": "Singapore",
+              "postcode": "29805"
+            },
+            "gps_coordinates": "28.826703, 13.100257",
+            "directions": "Located behind Gray, Wright and Garcia",
+            "city": "Riostown",
+            "country": "Singapore"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 945",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 332",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 708",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 783,
+  "storage_capacity": "521 cubic meters",
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true
+}

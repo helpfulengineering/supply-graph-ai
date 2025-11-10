@@ -1,8 +1,8 @@
 from typing import Dict, List, Any
 
-from src.core.models.base.base_extractors import BaseExtractor, ExtractionMetadata, ExtractionQuality, ExtractionFlag
-from src.core.models.base.base_types import NormalizedRequirements, NormalizedCapabilities
-from src.core.models.okh import OKHManifest, ProcessRequirement
+from ...models.base.base_extractors import BaseExtractor, ExtractionMetadata, ExtractionQuality, ExtractionFlag
+from ...models.base.base_types import NormalizedRequirements, NormalizedCapabilities
+from ...models.okh import OKHManifest, ProcessRequirement
 
 class OKHExtractor(BaseExtractor):
     """Implementation of BaseExtractor for OKH data"""

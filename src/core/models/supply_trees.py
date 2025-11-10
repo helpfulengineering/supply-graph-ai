@@ -186,20 +186,19 @@ class SupplyTree:
         self.confidence_score = round(self.confidence_score, 2)
     
     def __hash__(self):
-        """Enable Set operations by hashing on facility_id"""
-        return hash(self.facility_id)
+        """Enable Set operations by hashing on facility_name and okh_reference"""
+        return hash((self.facility_name, self.okh_reference))
     
     def __eq__(self, other):
-        """Enable Set operations by comparing facility_id"""
+        """Enable Set operations by comparing facility_name and okh_reference"""
         if not isinstance(other, SupplyTree):
             return False
-        return self.facility_id == other.facility_id
+        return (self.facility_name, self.okh_reference) == (other.facility_name, other.okh_reference)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to serializable dictionary"""
         return {
             'id': str(self.id),
-            'facility_id': str(self.facility_id),
             'facility_name': self.facility_name,
             'okh_reference': self.okh_reference,
             'confidence_score': self.confidence_score,
@@ -216,8 +215,7 @@ class SupplyTree:
     def from_dict(cls, data: Dict[str, Any]) -> 'SupplyTree':
         """Create from dictionary"""
         return cls(
-            id=UUID(data['id']),
-            facility_id=UUID(data['facility_id']),
+            id=UUID(data['id']) if 'id' in data else uuid4(),
             facility_name=data['facility_name'],
             okh_reference=data['okh_reference'],
             confidence_score=data['confidence_score'],
@@ -227,7 +225,7 @@ class SupplyTree:
             capabilities_used=data.get('capabilities_used', []),
             match_type=data.get('match_type', 'unknown'),
             metadata=data.get('metadata', {}),
-            creation_time=datetime.fromisoformat(data['creation_time'])
+            creation_time=datetime.fromisoformat(data['creation_time']) if 'creation_time' in data else datetime.now()
         )
     
     @classmethod
@@ -276,7 +274,6 @@ class SupplyTree:
         }
         
         return cls(
-            facility_id=facility.id,
             facility_name=facility.name or f"Facility {str(facility.id)[:8]}",
             okh_reference=str(manifest.id),
             confidence_score=confidence_score,
@@ -323,12 +320,12 @@ class SupplyTreeSolution:
         )
     
     def __hash__(self):
-        """Enable Set operations by hashing on facility_id"""
-        return hash(self.tree.facility_id)
+        """Enable Set operations by hashing on facility_name and okh_reference"""
+        return hash((self.tree.facility_name, self.tree.okh_reference))
     
     def __eq__(self, other):
-        """Enable Set operations by comparing facility_id"""
+        """Enable Set operations by comparing facility_name and okh_reference"""
         if not isinstance(other, SupplyTreeSolution):
             return False
-        return self.tree.facility_id == other.tree.facility_id
+        return (self.tree.facility_name, self.tree.okh_reference) == (other.tree.facility_name, other.tree.okh_reference)
 

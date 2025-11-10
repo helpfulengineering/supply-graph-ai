@@ -60,6 +60,9 @@ mkdocs serve  # Or mkdocs build
 # 6. Use in matching operations
 ome match requirements okh-manifest.json
 
+# Or match a recipe to kitchens (cooking domain)
+ome match requirements recipe.json
+
 # 7. Build package when ready
 ome package build okh-manifest.json
 ```

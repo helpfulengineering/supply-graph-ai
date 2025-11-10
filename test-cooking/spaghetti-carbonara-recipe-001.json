@@ -1,0 +1,25 @@
+{
+  "name": "Spaghetti Carbonara",
+  "ingredients": [
+    "spaghetti",
+    "eggs",
+    "bacon",
+    "parmesan cheese",
+    "black pepper"
+  ],
+  "instructions": [
+    "Boil water in a pot",
+    "Cook spaghetti according to package directions",
+    "Cook bacon in a pan",
+    "Mix eggs and parmesan in a bowl",
+    "Combine pasta with egg mixture and bacon",
+    "Season with black pepper"
+  ],
+  "equipment": [
+    "pot",
+    "pan",
+    "strainer",
+    "whisk"
+  ],
+  "totalTime": "30 minutes"
+}

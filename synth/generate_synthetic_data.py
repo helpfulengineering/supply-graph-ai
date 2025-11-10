@@ -16,7 +16,7 @@ import os
 import random
 import sys
 from datetime import date, datetime
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Any
 
 from faker import Faker
 
@@ -1372,7 +1372,181 @@ class OKWGenerator(SyntheticDataGenerator):
             
         return facility
 
-def validate_record(record: Union[OKHManifest, ManufacturingFacility]) -> bool:
+class RecipeGenerator(SyntheticDataGenerator):
+    """Generator for Cooking domain recipes"""
+    
+    def __init__(self, complexity: str = "minimal"):
+        super().__init__(complexity)
+        
+        # Simple recipe templates for low complexity
+        self.recipe_templates = [
+            {
+                "name": "Spaghetti Carbonara",
+                "ingredients": ["spaghetti", "eggs", "bacon", "parmesan cheese", "black pepper"],
+                "equipment": ["pot", "pan", "strainer", "whisk"],
+                "appliances": ["stovetop"],
+                "instructions": [
+                    "Boil water in a pot",
+                    "Cook spaghetti according to package directions",
+                    "Cook bacon in a pan",
+                    "Mix eggs and parmesan in a bowl",
+                    "Combine pasta with egg mixture and bacon",
+                    "Season with black pepper"
+                ],
+                "totalTime": "30 minutes"
+            },
+            {
+                "name": "Chocolate Chip Cookies",
+                "ingredients": ["flour", "butter", "sugar", "eggs", "chocolate chips", "vanilla extract"],
+                "equipment": ["mixing bowl", "whisk", "baking sheet", "spatula"],
+                "appliances": ["oven"],
+                "instructions": [
+                    "Preheat oven to 375°F",
+                    "Mix butter and sugar",
+                    "Add eggs and vanilla",
+                    "Stir in flour and chocolate chips",
+                    "Drop spoonfuls onto baking sheet",
+                    "Bake for 10-12 minutes"
+                ],
+                "totalTime": "25 minutes"
+            },
+            {
+                "name": "Grilled Chicken Salad",
+                "ingredients": ["chicken breast", "lettuce", "tomatoes", "cucumber", "olive oil", "lemon"],
+                "equipment": ["grill", "cutting board", "knife", "bowl"],
+                "appliances": ["grill"],
+                "instructions": [
+                    "Season chicken breast",
+                    "Grill chicken until cooked through",
+                    "Chop vegetables",
+                    "Slice grilled chicken",
+                    "Combine in bowl with olive oil and lemon"
+                ],
+                "totalTime": "20 minutes"
+            },
+            {
+                "name": "Vegetable Stir Fry",
+                "ingredients": ["broccoli", "carrots", "bell peppers", "soy sauce", "garlic", "ginger"],
+                "equipment": ["wok", "spatula", "cutting board", "knife"],
+                "appliances": ["stovetop"],
+                "instructions": [
+                    "Cut vegetables into bite-sized pieces",
+                    "Heat oil in wok",
+                    "Add garlic and ginger",
+                    "Stir fry vegetables",
+                    "Add soy sauce",
+                    "Cook until vegetables are tender"
+                ],
+                "totalTime": "15 minutes"
+            },
+            {
+                "name": "Scrambled Eggs",
+                "ingredients": ["eggs", "butter", "salt", "pepper"],
+                "equipment": ["pan", "spatula", "bowl", "whisk"],
+                "appliances": ["stovetop"],
+                "instructions": [
+                    "Crack eggs into bowl",
+                    "Whisk eggs with salt and pepper",
+                    "Heat butter in pan",
+                    "Pour eggs into pan",
+                    "Stir gently until cooked"
+                ],
+                "totalTime": "5 minutes"
+            }
+        ]
+    
+    def generate_recipe(self) -> Dict[str, Any]:
+        """Generate a complete recipe"""
+        template = random.choice(self.recipe_templates)
+        
+        recipe = {
+            "name": template["name"],
+            "ingredients": template["ingredients"].copy(),
+            "instructions": template["instructions"].copy(),
+            "equipment": template["equipment"].copy(),
+            "totalTime": template["totalTime"]
+        }
+        
+        # Add optional fields based on complexity (but keep it simple for cooking domain)
+        if self.should_include_field():
+            recipe["description"] = f"A simple recipe for {template['name'].lower()}"
+        
+        if self.should_include_field():
+            recipe["servings"] = random.randint(2, 6)
+        
+        if self.should_include_field():
+            recipe["difficulty"] = random.choice(["easy", "medium"])
+        
+        return recipe
+
+
+class KitchenGenerator(SyntheticDataGenerator):
+    """Generator for Cooking domain kitchens"""
+    
+    def __init__(self, complexity: str = "minimal"):
+        super().__init__(complexity)
+        
+        # Simple kitchen templates for low complexity
+        self.kitchen_templates = [
+            {
+                "name": "Home Kitchen",
+                "appliances": ["stovetop", "oven", "refrigerator", "microwave"],
+                "tools": ["pot", "pan", "cutting board", "knife", "spatula", "whisk", "bowl"],
+                "ingredients": ["eggs", "butter", "flour", "salt", "pepper", "olive oil", "garlic"]
+            },
+            {
+                "name": "Basic Kitchen",
+                "appliances": ["stovetop", "refrigerator"],
+                "tools": ["pot", "pan", "spatula", "bowl"],
+                "ingredients": ["eggs", "butter", "salt", "pepper"]
+            },
+            {
+                "name": "Well-Equipped Kitchen",
+                "appliances": ["stovetop", "oven", "refrigerator", "microwave", "grill"],
+                "tools": ["pot", "pan", "wok", "cutting board", "knife", "spatula", "whisk", "bowl", "baking sheet", "strainer"],
+                "ingredients": ["eggs", "butter", "flour", "sugar", "salt", "pepper", "olive oil", "garlic", "chicken", "vegetables", "pasta"]
+            },
+            {
+                "name": "Baking Kitchen",
+                "appliances": ["oven", "refrigerator"],
+                "tools": ["mixing bowl", "whisk", "baking sheet", "spatula", "measuring cups"],
+                "ingredients": ["flour", "sugar", "butter", "eggs", "chocolate chips", "vanilla extract"]
+            },
+            {
+                "name": "Grilling Kitchen",
+                "appliances": ["grill", "refrigerator"],
+                "tools": ["grill", "cutting board", "knife", "tongs", "bowl"],
+                "ingredients": ["chicken", "vegetables", "olive oil", "lemon", "salt", "pepper"]
+            }
+        ]
+    
+    def generate_kitchen(self) -> Dict[str, Any]:
+        """Generate a complete kitchen"""
+        template = random.choice(self.kitchen_templates)
+        
+        # Generate unique ID for kitchen
+        from uuid import uuid4
+        kitchen_id = str(uuid4())
+        
+        kitchen = {
+            "id": kitchen_id,
+            "name": template["name"],
+            "appliances": template["appliances"].copy(),
+            "tools": template["tools"].copy(),
+            "ingredients": template["ingredients"].copy()
+        }
+        
+        # Add optional fields based on complexity (but keep it simple)
+        if self.should_include_field():
+            kitchen["location"] = self.faker.city()
+        
+        if self.should_include_field():
+            kitchen["capacity"] = random.choice(["small", "medium", "large"])
+        
+        return kitchen
+
+
+def validate_record(record: Union[OKHManifest, ManufacturingFacility, Dict]) -> bool:
     """Validate a generated record"""
     try:
         if isinstance(record, OKHManifest):
@@ -1381,12 +1555,22 @@ def validate_record(record: Union[OKHManifest, ManufacturingFacility]) -> bool:
         elif isinstance(record, ManufacturingFacility):
             if not record.name or not record.location or not record.facility_status:
                 return False
+        # For cooking domain (dicts), check required fields
+        elif isinstance(record, dict):
+            # Recipe validation
+            if "name" in record and "ingredients" in record:
+                if not record.get("ingredients") or not record.get("instructions"):
+                    return False
+            # Kitchen validation
+            elif "name" in record and "appliances" in record:
+                if not record.get("appliances") or not record.get("tools"):
+                    return False
         return True
     except Exception as e:
         print(f"Validation error: {e}")
         return False
 
-def save_record(record: Union[OKHManifest, ManufacturingFacility], output_dir: str, index: int) -> str:
+def save_record(record: Union[OKHManifest, ManufacturingFacility, Dict], output_dir: str, index: int) -> str:
     """Save a record to a JSON file"""
     os.makedirs(output_dir, exist_ok=True)
     
@@ -1396,37 +1580,196 @@ def save_record(record: Union[OKHManifest, ManufacturingFacility], output_dir: s
         safe_title = safe_title.replace(' ', '-').lower()
         safe_version = record.version.replace('.', '-')
         filename = f"{safe_title}-{safe_version}-okh.json"
-    else:
+        data = record.to_dict()
+    elif isinstance(record, ManufacturingFacility):
         # Use name for OKW files
         safe_name = "".join(c for c in record.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
         safe_name = safe_name.replace(' ', '-').lower()
         filename = f"{safe_name}-{index:03d}-okw.json"
+        data = record.to_dict()
+    elif isinstance(record, dict):
+        # Cooking domain records (recipes or kitchens)
+        safe_name = "".join(c for c in record.get("name", "unknown") if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        safe_name = safe_name.replace(' ', '-').lower()
+        
+        # Determine type from record structure
+        if "ingredients" in record and "instructions" in record:
+            # It's a recipe
+            filename = f"{safe_name}-recipe-{index:03d}.json"
+        elif "appliances" in record and "tools" in record:
+            # It's a kitchen
+            filename = f"{safe_name}-kitchen-{index:03d}.json"
+        else:
+            filename = f"{safe_name}-{index:03d}.json"
+        
+        data = record
+    else:
+        raise ValueError(f"Unsupported record type: {type(record)}")
     
     filepath = os.path.join(output_dir, filename)
     
     with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(record.to_dict(), f, indent=2, ensure_ascii=False, default=str)
+        json.dump(data, f, indent=2, ensure_ascii=False, default=str)
     
     return filepath
 
 def main():
     """Main function"""
-    parser = argparse.ArgumentParser(description="Generate synthetic OKH and OKW data")
-    parser.add_argument("--type", choices=["okh", "okw"], required=True, help="Type of data to generate")
+    parser = argparse.ArgumentParser(description="Generate synthetic data for matching engine")
+    parser.add_argument("--domain", choices=["manufacturing", "cooking"], default="manufacturing", 
+                       help="Domain to generate data for (default: manufacturing)")
+    parser.add_argument("--type", required=True, 
+                       help="Type of data to generate (okh/okw for manufacturing, recipe/kitchen for cooking)")
     parser.add_argument("--count", type=int, default=10, help="Number of records to generate")
-    parser.add_argument("--complexity", choices=["minimal", "complex", "mixed"], default="mixed", help="Complexity level of generated data")
+    parser.add_argument("--complexity", choices=["minimal", "complex", "mixed"], default="mixed", 
+                       help="Complexity level of generated data")
     parser.add_argument("--output-dir", default="./synthetic_data", help="Output directory for generated files")
     parser.add_argument("--validate", action="store_true", help="Validate generated records")
+    parser.add_argument("--match", action="store_true", 
+                       help="Generate matched pairs (okh+okw or recipe+kitchen)")
     
     args = parser.parse_args()
     
-    print(f"Generating {args.count} {args.type.upper()} records with {args.complexity} complexity...")
+    # Validate type based on domain
+    if args.domain == "manufacturing":
+        if args.type not in ["okh", "okw"]:
+            parser.error(f"For manufacturing domain, --type must be 'okh' or 'okw', got '{args.type}'")
+    elif args.domain == "cooking":
+        if args.type not in ["recipe", "kitchen"]:
+            parser.error(f"For cooking domain, --type must be 'recipe' or 'kitchen', got '{args.type}'")
     
-    # Initialize generator
-    if args.type == "okh":
-        generator = OKHGenerator(args.complexity)
+    # For cooking domain, use minimal complexity (as per requirements)
+    if args.domain == "cooking":
+        complexity = "minimal"
     else:
-        generator = OKWGenerator(args.complexity)
+        complexity = args.complexity
+    
+    print(f"Generating {args.count} {args.type.upper()} records for {args.domain} domain with {complexity} complexity...")
+    
+    # Handle matched pair generation
+    if args.match:
+        if args.domain == "manufacturing":
+            if args.type not in ["okh", "okw"]:
+                parser.error("For --match with manufacturing, specify either 'okh' or 'okw' (will generate pairs)")
+            # Generate both types
+            okh_generator = OKHGenerator(complexity)
+            okw_generator = OKWGenerator(complexity)
+            
+            generated_count = 0
+            failed_count = 0
+            
+            for i in range(args.count):
+                try:
+                    # Generate matched pair
+                    okh_record = okh_generator.generate_okh_manifest()
+                    okw_record = okw_generator.generate_manufacturing_facility()
+                    
+                    # Validate if requested
+                    if args.validate:
+                        if not validate_record(okh_record):
+                            print(f"Warning: OKH record {i+1} failed validation, skipping...")
+                            failed_count += 1
+                            continue
+                        if not validate_record(okw_record):
+                            print(f"Warning: OKW record {i+1} failed validation, skipping...")
+                            failed_count += 1
+                            continue
+                    
+                    # Save both records
+                    okh_filepath = save_record(okh_record, args.output_dir, i + 1)
+                    okw_filepath = save_record(okw_record, args.output_dir, i + 1)
+                    print(f"Generated pair {i+1}: {okh_filepath} + {okw_filepath}")
+                    generated_count += 2
+                    
+                except Exception as e:
+                    print(f"Error generating pair {i+1}: {e}")
+                    failed_count += 1
+            
+            print(f"\nGeneration complete!")
+            print(f"Successfully generated: {generated_count} records ({args.count} pairs)")
+            print(f"Failed: {failed_count} pairs")
+            print(f"Output directory: {args.output_dir}")
+            return
+        
+        elif args.domain == "cooking":
+            if args.type not in ["recipe", "kitchen"]:
+                parser.error("For --match with cooking, specify either 'recipe' or 'kitchen' (will generate pairs)")
+            # Generate both types
+            recipe_generator = RecipeGenerator(complexity)
+            kitchen_generator = KitchenGenerator(complexity)
+            
+            generated_count = 0
+            failed_count = 0
+            
+            for i in range(args.count):
+                try:
+                    # Generate matched pair - ensure compatibility
+                    recipe = recipe_generator.generate_recipe()
+                    kitchen = kitchen_generator.generate_kitchen()
+                    
+                    # Ensure kitchen has required equipment/appliances for recipe
+                    # This ensures at least one valid match
+                    recipe_equipment = set(recipe.get("equipment", []))
+                    recipe_appliances = set(recipe.get("appliances", []))
+                    kitchen_tools = set(kitchen.get("tools", []))
+                    kitchen_appliances = set(kitchen.get("appliances", []))
+                    
+                    # Add missing equipment/appliances to kitchen if needed
+                    missing_equipment = recipe_equipment - kitchen_tools
+                    missing_appliances = recipe_appliances - kitchen_appliances
+                    
+                    if missing_equipment:
+                        kitchen["tools"].extend(list(missing_equipment))
+                    if missing_appliances:
+                        kitchen["appliances"].extend(list(missing_appliances))
+                    
+                    # Ensure some ingredient overlap
+                    recipe_ingredients = set(recipe.get("ingredients", []))
+                    kitchen_ingredients = set(kitchen.get("ingredients", []))
+                    if not (recipe_ingredients & kitchen_ingredients):
+                        # Add at least one common ingredient
+                        common_ingredient = random.choice(list(recipe_ingredients))
+                        if common_ingredient not in kitchen["ingredients"]:
+                            kitchen["ingredients"].append(common_ingredient)
+                    
+                    # Validate if requested
+                    if args.validate:
+                        if not validate_record(recipe):
+                            print(f"Warning: Recipe {i+1} failed validation, skipping...")
+                            failed_count += 1
+                            continue
+                        if not validate_record(kitchen):
+                            print(f"Warning: Kitchen {i+1} failed validation, skipping...")
+                            failed_count += 1
+                            continue
+                    
+                    # Save both records
+                    recipe_filepath = save_record(recipe, args.output_dir, i + 1)
+                    kitchen_filepath = save_record(kitchen, args.output_dir, i + 1)
+                    print(f"Generated pair {i+1}: {recipe_filepath} + {kitchen_filepath}")
+                    generated_count += 2
+                    
+                except Exception as e:
+                    print(f"Error generating pair {i+1}: {e}")
+                    failed_count += 1
+            
+            print(f"\nGeneration complete!")
+            print(f"Successfully generated: {generated_count} records ({args.count} pairs)")
+            print(f"Failed: {failed_count} pairs")
+            print(f"Output directory: {args.output_dir}")
+            return
+    
+    # Regular single-type generation
+    if args.domain == "manufacturing":
+        if args.type == "okh":
+            generator = OKHGenerator(complexity)
+        else:  # okw
+            generator = OKWGenerator(complexity)
+    else:  # cooking
+        if args.type == "recipe":
+            generator = RecipeGenerator(complexity)
+        else:  # kitchen
+            generator = KitchenGenerator(complexity)
     
     generated_count = 0
     failed_count = 0
@@ -1434,10 +1777,16 @@ def main():
     for i in range(args.count):
         try:
             # Generate record
-            if args.type == "okh":
-                record = generator.generate_okh_manifest()
-            else:
-                record = generator.generate_manufacturing_facility()
+            if args.domain == "manufacturing":
+                if args.type == "okh":
+                    record = generator.generate_okh_manifest()
+                else:
+                    record = generator.generate_manufacturing_facility()
+            else:  # cooking
+                if args.type == "recipe":
+                    record = generator.generate_recipe()
+                else:
+                    record = generator.generate_kitchen()
             
             # Validate if requested
             if args.validate and not validate_record(record):

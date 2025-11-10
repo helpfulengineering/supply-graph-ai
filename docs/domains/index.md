@@ -44,30 +44,33 @@ The system uses a multi-layered approach to detect the appropriate domain:
 ## API Endpoints
 
 ### Domain Management
-- `GET /v1/match/domains` - List all available domains
-- `GET /v1/match/domains/{domain_name}` - Get domain details
-- `GET /v1/match/domains/{domain_name}/health` - Domain health check
-- `POST /v1/match/detect-domain` - Detect domain from input data
+- `GET /v1/api/match/domains` - List all available domains
+- `GET /v1/api/match/domains/{domain_name}` - Get domain details
+- `GET /v1/api/match/domains/{domain_name}/health` - Domain health check
+- `POST /v1/api/match/detect-domain` - Detect domain from input data
 
 ### Domain-aware Matching
-- `POST /v1/match` - Match requirements to capabilities (domain-aware)
-- `POST /v1/match/upload` - Match from uploaded files (domain-aware)
+- `POST /v1/api/match` - Match requirements to capabilities (domain-aware)
+  - **Manufacturing Domain**: Match OKH requirements with OKW capabilities
+  - **Cooking Domain**: Match recipe requirements with kitchen capabilities
+  - Automatic domain detection or explicit domain override
+- `POST /v1/api/match/upload` - Match from uploaded files (domain-aware)
 
 ## Usage Examples
 
 ### List Available Domains
 ```bash
-curl http://localhost:8001/v1/match/domains
+curl http://localhost:8001/v1/api/match/domains
 ```
 
 ### Get Domain Information
 ```bash
-curl http://localhost:8001/v1/match/domains/manufacturing
+curl http://localhost:8001/v1/api/match/domains/manufacturing
 ```
 
 ### Detect Domain from Input
 ```bash
-curl -X POST http://localhost:8001/v1/match/detect-domain \
+curl -X POST http://localhost:8001/v1/api/match/detect-domain \
   -H "Content-Type: application/json" \
   -d '{
     "requirements_data": {"type": "okh", "content": {"manufacturing_processes": ["CNC"]}},
@@ -75,9 +78,9 @@ curl -X POST http://localhost:8001/v1/match/detect-domain \
   }'
 ```
 
-### Domain-aware Matching
+### Domain-aware Matching (Manufacturing)
 ```bash
-curl -X POST http://localhost:8001/v1/match \
+curl -X POST http://localhost:8001/v1/api/match \
   -H "Content-Type: application/json" \
   -d '{
     "okh_manifest": {
@@ -87,8 +90,45 @@ curl -X POST http://localhost:8001/v1/match \
       "licensor": "Test Org",
       "documentation_language": "en",
       "function": "Precision bracket"
-    }
+    },
+    "domain": "manufacturing"
   }'
+```
+
+### Domain-aware Matching (Cooking)
+```bash
+curl -X POST http://localhost:8001/v1/api/match \
+  -H "Content-Type: application/json" \
+  -d '{
+    "recipe": {
+      "name": "Chocolate Chip Cookies",
+      "ingredients": ["flour", "butter", "sugar", "eggs", "chocolate chips"],
+      "instructions": ["Preheat oven", "Mix ingredients", "Bake"],
+      "equipment": ["mixing bowl", "whisk", "baking sheet"]
+    },
+    "domain": "cooking"
+  }'
+```
+
+**Response:**
+The endpoint returns a wrapped response with the actual data in the `data` field:
+```json
+{
+  "status": "success",
+  "message": "Matching completed successfully",
+  "data": {
+    "solutions": [
+      {
+        "facility_id": "02f03dca",
+        "facility_name": "Baking Kitchen",
+        "confidence": 1.0,
+        "match_type": "cooking",
+        ...
+      }
+    ],
+    "total_solutions": 1
+  }
+}
 ```
 
 ## Adding New Domains

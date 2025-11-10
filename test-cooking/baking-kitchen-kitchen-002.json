@@ -1,0 +1,22 @@
+{
+  "name": "Baking Kitchen",
+  "appliances": [
+    "oven",
+    "refrigerator"
+  ],
+  "tools": [
+    "mixing bowl",
+    "whisk",
+    "baking sheet",
+    "spatula",
+    "measuring cups"
+  ],
+  "ingredients": [
+    "flour",
+    "sugar",
+    "butter",
+    "eggs",
+    "chocolate chips",
+    "vanilla extract"
+  ]
+}

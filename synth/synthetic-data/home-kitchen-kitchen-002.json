@@ -1,0 +1,27 @@
+{
+  "name": "Home Kitchen",
+  "appliances": [
+    "stovetop",
+    "oven",
+    "refrigerator",
+    "microwave"
+  ],
+  "tools": [
+    "pot",
+    "pan",
+    "cutting board",
+    "knife",
+    "spatula",
+    "whisk",
+    "bowl"
+  ],
+  "ingredients": [
+    "eggs",
+    "butter",
+    "flour",
+    "salt",
+    "pepper",
+    "olive oil",
+    "garlic"
+  ]
+}

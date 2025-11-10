@@ -1,0 +1,173 @@
+{
+  "id": "0aec865c-33cc-4a23-b1e9-2d5b5bfafad4",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "3530",
+      "street": "Holloway Causeway",
+      "city": "Port Wendy",
+      "region": "West Virginia",
+      "country": "Switzerland",
+      "postcode": "94149"
+    },
+    "gps_coordinates": "25.978351, -93.84321",
+    "city": "Port Wendy",
+    "country": "Switzerland"
+  },
+  "facility_status": "Active",
+  "description": "Large-scale manufacturing facility",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VF-2",
+      "condition": "Excellent",
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "1405",
+              "street": "Nathaniel Row",
+              "city": "Villanuevaland",
+              "region": "Rhode Island",
+              "country": "Tajikistan",
+              "postcode": "89667"
+            },
+            "gps_coordinates": "51.676884, -20.23254",
+            "city": "Villanuevaland",
+            "country": "Tajikistan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "3957",
+              "street": "Beck Center",
+              "city": "Debraview",
+              "region": "Texas",
+              "country": "Sweden",
+              "postcode": "33255"
+            },
+            "gps_coordinates": "36.75767, -23.897531",
+            "directions": "Located across from Moore and Sons",
+            "city": "Debraview",
+            "country": "Sweden"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "7054",
+              "street": "Chloe Neck",
+              "city": "Tammyton",
+              "region": "Alaska",
+              "country": "Bhutan",
+              "postcode": "72500"
+            },
+            "gps_coordinates": "51.109711, -12.683115",
+            "directions": "Located across from Gonzalez PLC",
+            "city": "Tammyton",
+            "country": "Bhutan"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 480",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand A",
+      "model": "Model 610",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 199",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "storage_capacity": "604 cubic meters",
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "backup_generator": true,
+  "typical_products": [
+    "Organic executive utilization"
+  ],
+  "innovation_space": {
+    "staff": 4,
+    "learning_resources": [
+      "Synchronized secondary moratorium",
+      "Visionary logistical benchmark"
+    ],
+    "services": [
+      "Optional client-server extranet"
+    ],
+    "footfall": 44
+  },
+  "record_data": {
+    "date_created": "2025-11-09T16:20:42.797319",
+    "created_by": {
+      "name": "Nelson Group",
+      "location": {
+        "address": {
+          "number": "9558",
+          "street": "William Drive",
+          "city": "South Russell",
+          "region": "Delaware",
+          "country": "Tajikistan",
+          "postcode": "17408"
+        },
+        "gps_coordinates": "54.898311, -100.083718",
+        "directions": "Located across from Garrett-Gordon",
+        "city": "South Russell",
+        "country": "Tajikistan"
+      },
+      "contact_person": "John Frazier",
+      "bio": "Established in 1996, we specialize in Enterprise-wide clear-thinking Graphic Interface",
+      "website": "https://ware-villarreal.info",
+      "mailing_list": "martinkristin@lists.jackson-schultz.com",
+      "contact": {
+        "mobile": "+1-905-220-7526",
+        "whatsapp": "+1-326-901-6541"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

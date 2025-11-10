@@ -1,0 +1,26 @@
+{
+  "name": "Chocolate Chip Cookies",
+  "ingredients": [
+    "flour",
+    "butter",
+    "sugar",
+    "eggs",
+    "chocolate chips",
+    "vanilla extract"
+  ],
+  "instructions": [
+    "Preheat oven to 375°F",
+    "Mix butter and sugar",
+    "Add eggs and vanilla",
+    "Stir in flour and chocolate chips",
+    "Drop spoonfuls onto baking sheet",
+    "Bake for 10-12 minutes"
+  ],
+  "equipment": [
+    "mixing bowl",
+    "whisk",
+    "baking sheet",
+    "spatula"
+  ],
+  "totalTime": "25 minutes"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "Vegetable Stir Fry",
+  "ingredients": [
+    "broccoli",
+    "carrots",
+    "bell peppers",
+    "soy sauce",
+    "garlic",
+    "ginger"
+  ],
+  "instructions": [
+    "Cut vegetables into bite-sized pieces",
+    "Heat oil in wok",
+    "Add garlic and ginger",
+    "Stir fry vegetables",
+    "Add soy sauce",
+    "Cook until vegetables are tender"
+  ],
+  "equipment": [
+    "wok",
+    "spatula",
+    "cutting board",
+    "knife"
+  ],
+  "totalTime": "15 minutes"
+}

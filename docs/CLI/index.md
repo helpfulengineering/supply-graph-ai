@@ -620,25 +620,78 @@ ome okw search --location "San Francisco"
 
 ## Match Commands
 
-Perform matching operations between OKH requirements and OKW capabilities.
+Perform matching operations between requirements and capabilities across multiple domains. Supports both **manufacturing domain** (OKH/OKW) and **cooking domain** (recipe/kitchen).
 
 ### `ome match requirements`
 
-Match OKH requirements to OKW capabilities.
+Match requirements to capabilities across multiple domains. Supports both **manufacturing domain** (OKH/OKW) and **cooking domain** (recipe/kitchen).
 
 ```bash
-ome match requirements MANIFEST_FILE [OPTIONS]
+ome match requirements INPUT_FILE [OPTIONS]
 ```
 
 **Arguments:**
-- `MANIFEST_FILE` - Path to OKH manifest file
+- `INPUT_FILE` - Path to input file:
+  - **Manufacturing**: OKH manifest file (JSON or YAML)
+  - **Cooking**: Recipe file (JSON or YAML)
+
+**Domain Detection:**
+The command automatically detects the domain from the input file structure:
+- **Manufacturing**: Detected from OKH manifest structure (presence of `title`, `version`, `manufacturing_specs`)
+- **Cooking**: Detected from recipe structure (presence of `ingredients`, `instructions`, `name`)
+
+You can also explicitly specify the domain using the `--domain` option.
 
 **Options:**
-- `--facility-id TEXT` - Specific facility ID to match against
-- `--domain TEXT` - Domain for matching (e.g., "manufacturing")
-- `--context TEXT` - Validation context (e.g., "hobby", "professional")
-- `--quality-level [basic\|standard\|premium]` - Matching quality level
-- `--strict-mode` - Enable strict matching mode
+- `--domain [manufacturing|cooking]` - Explicit domain override. Auto-detected if not provided
+- `--access-type [public|private|restricted]` - Filter by facility access type
+- `--facility-status [active|inactive|maintenance]` - Filter by facility status
+- `--location TEXT` - Filter by location (city, country, or region)
+- `--capabilities TEXT` - Comma-separated list of required capabilities
+- `--materials TEXT` - Comma-separated list of required materials
+- `--min-confidence FLOAT` - Minimum confidence threshold (0.0-1.0, default: 0.7)
+- `--max-results INTEGER` - Maximum number of results (default: 10)
+- `--output, -o TEXT` - Output file path
+- `--use-llm` - Enable LLM integration for enhanced matching
+- `--llm-provider [anthropic|openai|google|azure|local]` - LLM provider
+- `--llm-model TEXT` - Specific LLM model to use
+- `--quality-level [hobby|professional|medical]` - Quality level for LLM processing
+- `--strict-mode` - Enable strict validation mode
+- `--json` - Output results in JSON format
+- `--table` - Output results in table format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Match OKH requirements (manufacturing domain)
+ome match requirements my-design.okh.json
+
+# Match recipe requirements (cooking domain)
+ome match requirements chocolate-chip-cookies-recipe.json
+
+# Match with explicit domain override
+ome match requirements input.json --domain cooking
+
+# Match with location filter
+ome match requirements my-design.okh.json --location "San Francisco"
+
+# Match with high confidence threshold
+ome match requirements my-design.okh.json --min-confidence 0.9
+
+# Match with LLM enhancement
+ome match requirements my-design.okh.json --use-llm --quality-level professional
+
+# Save results to file
+ome match requirements my-design.okh.json --output matches.json
+```
+
+**Output:**
+The command displays matching facilities with:
+- Facility name
+- **Unique facility ID** (required for API operations)
+- Confidence score
+- Match type (manufacturing or cooking)
+- Location (if available)
 
 ### `ome match validate`
 
