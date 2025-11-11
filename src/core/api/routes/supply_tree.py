@@ -84,7 +84,7 @@ router = APIRouter(
 @track_performance("supply_tree_create")
 @llm_endpoint(
     default_provider="anthropic",
-    default_model="claude-3-sonnet",
+    default_model="claude-sonnet-4-5",
     track_costs=True
 )
 async def create_supply_tree(

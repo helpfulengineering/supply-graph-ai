@@ -106,7 +106,7 @@ async def get_remote_storage() -> PackageRemoteStorage:
 @track_performance("package_build")
 @llm_endpoint(
     default_provider="anthropic",
-    default_model="claude-3-sonnet",
+    default_model="claude-sonnet-4-5",
     track_costs=True
 )
 async def build_package_from_manifest(

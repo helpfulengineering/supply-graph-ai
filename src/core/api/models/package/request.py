@@ -27,7 +27,7 @@ class PackageBuildRequest(BaseAPIRequest, LLMRequestMixin):
                 },
                 "use_llm": True,
                 "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
+                "llm_model": "claude-sonnet-4-5",
                 "quality_level": "professional",
                 "strict_mode": False
             }

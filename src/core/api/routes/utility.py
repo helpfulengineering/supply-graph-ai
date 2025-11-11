@@ -60,7 +60,7 @@ router = APIRouter(
 @track_performance("utility_domains")
 @llm_endpoint(
     default_provider="anthropic",
-    default_model="claude-3-sonnet",
+    default_model="claude-sonnet-4-5",
     track_costs=True
 )
 async def get_domains(
@@ -157,7 +157,7 @@ async def get_domains(
 @track_performance("utility_contexts")
 @llm_endpoint(
     default_provider="anthropic",
-    default_model="claude-3-sonnet",
+    default_model="claude-sonnet-4-5",
     track_costs=True
 )
 async def get_contexts(

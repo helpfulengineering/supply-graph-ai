@@ -4,7 +4,7 @@ set -e
 # Default values
 MODE=${1:-"api"}
 API_HOST=${API_HOST:-"0.0.0.0"}
-API_PORT=${API_PORT:-"8000"}
+API_PORT=${API_PORT:-"8001"}
 
 # Function to start the API server
 start_api() {
@@ -55,7 +55,7 @@ show_help() {
     echo ""
     echo "Environment Variables:"
     echo "  API_HOST     API server host (default: 0.0.0.0)"
-    echo "  API_PORT     API server port (default: 8000)"
+    echo "  API_PORT     API server port (default: 8001)"
     echo "  LOG_LEVEL    Logging level (default: INFO)"
     echo "  DEBUG        Enable debug mode (default: false)"
     echo "  CORS_ORIGINS CORS allowed origins (default: *)"

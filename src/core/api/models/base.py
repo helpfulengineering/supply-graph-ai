@@ -269,7 +269,7 @@ class LLMRequestMixin(BaseModel):
             "example": {
                 "use_llm": True,
                 "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
+                "llm_model": "claude-sonnet-4-5",
                 "llm_temperature": 0.7,
                 "llm_max_tokens": 2048
             }
@@ -292,7 +292,7 @@ class LLMResponseMixin(BaseModel):
             "example": {
                 "llm_used": True,
                 "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
+                "llm_model": "claude-sonnet-4-5",
                 "llm_cost": 0.012,
                 "llm_tokens_used": 1500,
                 "llm_processing_time": 2.5

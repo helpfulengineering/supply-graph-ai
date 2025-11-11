@@ -16,7 +16,7 @@ class DomainFilterRequest(BaseAPIRequest, LLMRequestMixin):
                 "active_only": True,
                 "use_llm": True,
                 "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
+                "llm_model": "claude-sonnet-4-5",
                 "quality_level": "professional",
                 "strict_mode": False
             }
@@ -37,7 +37,7 @@ class ContextFilterRequest(BaseAPIRequest, LLMRequestMixin):
                 "with_details": True,
                 "use_llm": True,
                 "llm_provider": "anthropic",
-                "llm_model": "claude-3-sonnet",
+                "llm_model": "claude-sonnet-4-5",
                 "quality_level": "professional",
                 "strict_mode": False
             }

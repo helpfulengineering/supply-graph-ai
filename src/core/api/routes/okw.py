@@ -95,7 +95,7 @@ async def get_okw_service() -> OKWService:
 @track_performance("okw_creation")
 # @llm_endpoint(
 #     default_provider="anthropic",
-#     default_model="claude-3-sonnet",
+#     default_model="claude-sonnet-4-5",
 #     track_costs=True
 # )
 async def create_okw(
