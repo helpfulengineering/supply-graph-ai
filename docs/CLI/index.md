@@ -492,6 +492,40 @@ ome okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-unmodifie
    ⚠️  Broken link(s) in docs/index.md: ../bom/index.md
 ```
 
+### `ome okh export`
+
+Export the JSON schema for the OKH (OpenKnowHow) domain model.
+
+```bash
+ome okh export [OPTIONS]
+```
+
+**Description:**
+This command generates and exports the JSON schema for the OKHManifest dataclass in canonical JSON Schema format (draft-07). The schema represents the complete structure of the OKH domain model including all fields, types, and constraints.
+
+The exported schema can be used for:
+- Validation of OKH manifests
+- Documentation generation
+- API contract specification
+- Integration with other systems
+
+**Options:**
+- `--output, -o PATH` - Output file path for the JSON schema
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Export schema to console
+ome okh export
+
+# Export schema to file
+ome okh export --output okh-schema.json
+
+# Export with JSON output format
+ome okh export --output okh-schema.json --json
+```
+
 ---
 
 ## OKW Commands
@@ -614,6 +648,40 @@ ome okw search --capability "3d-printing"
 
 # Search for facilities in a specific location
 ome okw search --location "San Francisco"
+```
+
+### `ome okw export`
+
+Export the JSON schema for the OKW (OpenKnowWhere) domain model.
+
+```bash
+ome okw export [OPTIONS]
+```
+
+**Description:**
+This command generates and exports the JSON schema for the ManufacturingFacility dataclass in canonical JSON Schema format (draft-07). The schema represents the complete structure of the OKW domain model including all fields, types, and constraints.
+
+The exported schema can be used for:
+- Validation of OKW facilities
+- Documentation generation
+- API contract specification
+- Integration with other systems
+
+**Options:**
+- `--output, -o PATH` - Output file path for the JSON schema
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Export schema to console
+ome okw export
+
+# Export schema to file
+ome okw export --output okw-schema.json
+
+# Export with JSON output format
+ome okw export --output okw-schema.json --json
 ```
 
 ---
