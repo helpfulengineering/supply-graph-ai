@@ -43,10 +43,24 @@ class SupplyTreeCreateRequest(BaseAPIRequest, LLMRequestMixin):
         }
 
 
-# class SupplyTreeOptimizeRequest(BaseModel):
-#     """Request model for optimizing a supply tree"""
-#     # Required fields only
-#     criteria: Dict[str, Any]
+class SupplyTreeOptimizeRequest(BaseAPIRequest):
+    """Request model for optimizing a supply tree"""
+    # Required fields
+    criteria: Dict[str, Any] = Field(..., description="Optimization criteria with priority and weights")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "criteria": {
+                    "priority": "cost",  # or "time", "quality"
+                    "weights": {
+                        "cost": 0.5,
+                        "time": 0.3,
+                        "quality": 0.2
+                    }
+                }
+            }
+        }
 
 class SupplyTreeValidateRequest(BaseModel):
     """Request model for validating a supply tree"""

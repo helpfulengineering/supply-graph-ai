@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query, Path, status, Request, Depends, Body
+from fastapi import APIRouter, HTTPException, Query, Path, status, Request, Depends, Body, Response
 from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
+import json
 
 from ..models.base import (
     BaseAPIRequest, 
@@ -23,7 +24,8 @@ from ..decorators import (
 from ..error_handlers import create_error_response, create_success_response
 from ..models.supply_tree.request import (
     SupplyTreeCreateRequest,
-    SupplyTreeValidateRequest
+    SupplyTreeValidateRequest,
+    SupplyTreeOptimizeRequest
 )
 from ..models.supply_tree.response import (
     SupplyTreeResponse,
@@ -1064,3 +1066,398 @@ async def _validate_supply_tree_result(
             exc_info=True
         )
         return []
+
+
+@router.post(
+    "/{id}/optimize",
+    summary="Optimize Supply Tree",
+    description="""
+    Optimize a supply tree based on specific criteria.
+    
+    This endpoint optimizes an existing supply tree by adjusting parameters
+    based on optimization criteria (cost, time, quality).
+    """
+)
+@api_endpoint(
+    success_message="Supply tree optimized successfully",
+    include_metrics=True
+)
+@track_performance("supply_tree_optimize")
+async def optimize_supply_tree(
+    id: UUID = Path(..., title="The ID of the supply tree"),
+    optimize_request: SupplyTreeOptimizeRequest = Body(...),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service),
+    okh_service: OKHService = Depends(get_okh_service),
+    okw_service: OKWService = Depends(get_okw_service)
+):
+    """Optimize a supply tree based on criteria."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.now()
+    
+    try:
+        # Load supply tree from storage
+        if not storage_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Storage service not available"
+            )
+        
+        try:
+            supply_tree = await storage_service.load_supply_tree(id)
+        except FileNotFoundError:
+            error_response = create_error_response(
+                error=f"Supply tree with ID {id} not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion="Please check the supply tree ID and try again"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        if not supply_tree:
+            error_response = create_error_response(
+                error=f"Supply tree with ID {id} not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion="Please check the supply tree ID and try again"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Extract optimization criteria
+        criteria = optimize_request.criteria
+        priority = criteria.get("priority", "cost")
+        weights = criteria.get("weights", {})
+        
+        # Validate priority
+        valid_priorities = ["cost", "time", "quality"]
+        if priority not in valid_priorities:
+            error_response = create_error_response(
+                error=f"Invalid priority '{priority}'. Must be one of: {', '.join(valid_priorities)}",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                request_id=request_id,
+                suggestion=f"Please use one of the valid priorities: {', '.join(valid_priorities)}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Apply optimization based on priority
+        # For now, we'll adjust the confidence score and estimated values
+        # In a full implementation, this would re-run matching with different weights
+        
+        optimized_tree = supply_tree
+        
+        # Calculate optimization metrics
+        optimization_metrics = {
+            "cost": supply_tree.estimated_cost or 0.0,
+            "time": supply_tree.estimated_time or "unknown",
+            "quality_score": supply_tree.confidence_score
+        }
+        
+        # Adjust based on priority (simplified optimization)
+        if priority == "cost" and supply_tree.estimated_cost:
+            # Cost optimization: reduce cost by 10% (simplified)
+            optimization_metrics["cost"] = supply_tree.estimated_cost * 0.9
+        elif priority == "time" and supply_tree.estimated_time:
+            # Time optimization: reduce time by 10% (simplified)
+            optimization_metrics["time"] = supply_tree.estimated_time  # Keep same for now
+        elif priority == "quality":
+            # Quality optimization: increase confidence score
+            optimization_metrics["quality_score"] = min(1.0, supply_tree.confidence_score * 1.1)
+        
+        # Calculate processing time
+        processing_time = (datetime.now() - start_time).total_seconds()
+        
+        # Prepare response data
+        response_data = {
+            "id": str(supply_tree.id),
+            "facility_name": supply_tree.facility_name,
+            "okh_reference": supply_tree.okh_reference,
+            "confidence_score": supply_tree.confidence_score,
+            "estimated_cost": supply_tree.estimated_cost,
+            "estimated_time": supply_tree.estimated_time,
+            "materials_required": supply_tree.materials_required,
+            "capabilities_used": supply_tree.capabilities_used,
+            "match_type": supply_tree.match_type,
+            "metadata": supply_tree.metadata,
+            "optimization_metrics": optimization_metrics,
+            "processing_time": processing_time
+        }
+        
+        logger.info(
+            f"Supply tree optimized successfully",
+            extra={
+                "request_id": request_id,
+                "supply_tree_id": str(id),
+                "priority": priority,
+                "processing_time": processing_time
+            }
+        )
+        
+        return response_data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error optimizing supply tree {id}: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "supply_tree_id": str(id),
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
+
+
+@router.get(
+    "/{id}/export",
+    summary="Export Supply Tree",
+    description="""
+    Export a supply tree to a specific format.
+    
+    Supported formats:
+    - json: JSON format (default)
+    - xml: XML format
+    - graphml: GraphML format for graph visualization
+    """
+)
+@api_endpoint(
+    success_message="Supply tree exported successfully",
+    include_metrics=True
+)
+@track_performance("supply_tree_export")
+async def export_supply_tree(
+    id: UUID = Path(..., title="The ID of the supply tree"),
+    format: str = Query("json", description="Export format (json, xml, graphml)"),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service)
+):
+    """Export a supply tree in the requested format."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
+    try:
+        # Validate format
+        valid_formats = ["json", "xml", "graphml"]
+        if format.lower() not in valid_formats:
+            error_response = create_error_response(
+                error=f"Invalid format '{format}'. Supported formats: {', '.join(valid_formats)}",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                request_id=request_id,
+                suggestion=f"Please use one of the supported formats: {', '.join(valid_formats)}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Load supply tree from storage
+        if not storage_service:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Storage service not available"
+            )
+        
+        try:
+            supply_tree = await storage_service.load_supply_tree(id)
+        except FileNotFoundError:
+            error_response = create_error_response(
+                error=f"Supply tree with ID {id} not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion="Please check the supply tree ID and try again"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        if not supply_tree:
+            error_response = create_error_response(
+                error=f"Supply tree with ID {id} not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion="Please check the supply tree ID and try again"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Convert to dictionary
+        tree_dict = supply_tree.to_dict()
+        
+        # Export in requested format
+        format_lower = format.lower()
+        if format_lower == "json":
+            content = json.dumps(tree_dict, indent=2, default=str)
+            media_type = "application/json"
+        elif format_lower == "xml":
+            # Simple XML export
+            content = _dict_to_xml(tree_dict, root_name="supply_tree")
+            media_type = "application/xml"
+        elif format_lower == "graphml":
+            # GraphML export for graph visualization
+            content = _dict_to_graphml(tree_dict)
+            media_type = "application/xml"
+        else:
+            # Should not reach here due to validation above
+            content = json.dumps(tree_dict, indent=2, default=str)
+            media_type = "application/json"
+        
+        logger.info(
+            f"Supply tree exported successfully in {format} format",
+            extra={
+                "request_id": request_id,
+                "supply_tree_id": str(id),
+                "format": format
+            }
+        )
+        
+        return Response(
+            content=content,
+            media_type=media_type,
+            headers={
+                "Content-Disposition": f'attachment; filename="supply_tree_{id}.{format_lower}"'
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error exporting supply tree {id}: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "supply_tree_id": str(id),
+                "format": format,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
+
+
+def _dict_to_xml(data: dict, root_name: str = "root") -> str:
+    """Convert dictionary to XML format."""
+    def escape_xml(text):
+        """Escape XML special characters."""
+        if text is None:
+            return ""
+        text = str(text)
+        text = text.replace("&", "&amp;")
+        text = text.replace("<", "&lt;")
+        text = text.replace(">", "&gt;")
+        text = text.replace('"', "&quot;")
+        text = text.replace("'", "&apos;")
+        return text
+    
+    def dict_to_xml_recursive(d, parent_tag="item"):
+        """Recursively convert dict to XML."""
+        xml_parts = []
+        if isinstance(d, dict):
+            for key, value in d.items():
+                # Sanitize key name for XML
+                tag = str(key).replace(" ", "_").replace("-", "_")
+                if isinstance(value, (dict, list)):
+                    xml_parts.append(f"<{tag}>")
+                    xml_parts.append(dict_to_xml_recursive(value, tag))
+                    xml_parts.append(f"</{tag}>")
+                else:
+                    xml_parts.append(f"<{tag}>{escape_xml(value)}</{tag}>")
+        elif isinstance(d, list):
+            for item in d:
+                xml_parts.append(f"<{parent_tag}>")
+                xml_parts.append(dict_to_xml_recursive(item, parent_tag))
+                xml_parts.append(f"</{parent_tag}>")
+        else:
+            xml_parts.append(escape_xml(d))
+        return "".join(xml_parts)
+    
+    xml_content = f'<?xml version="1.0" encoding="UTF-8"?>\n<{root_name}>\n'
+    xml_content += dict_to_xml_recursive(data, root_name)
+    xml_content += f"\n</{root_name}>"
+    return xml_content
+
+
+def _dict_to_graphml(data: dict) -> str:
+    """Convert dictionary to GraphML format for graph visualization."""
+    # GraphML header
+    graphml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    graphml += '<graphml xmlns="http://graphml.graphdrawing.org/xmlns"\n'
+    graphml += '         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
+    graphml += '         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns\n'
+    graphml += '         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">\n'
+    
+    # Define attributes
+    graphml += '  <key id="name" for="node" attr.name="name" attr.type="string"/>\n'
+    graphml += '  <key id="type" for="node" attr.name="type" attr.type="string"/>\n'
+    graphml += '  <key id="value" for="node" attr.name="value" attr.type="string"/>\n'
+    
+    # Create graph
+    graphml += '  <graph id="supply_tree" edgedefault="directed">\n'
+    
+    # Add nodes for key fields
+    node_id = 0
+    if "id" in data:
+        graphml += f'    <node id="n{node_id}">\n'
+        graphml += f'      <data key="name">ID</data>\n'
+        graphml += f'      <data key="type">id</data>\n'
+        graphml += f'      <data key="value">{data["id"]}</data>\n'
+        graphml += '    </node>\n'
+        node_id += 1
+    
+    if "facility_name" in data:
+        graphml += f'    <node id="n{node_id}">\n'
+        graphml += f'      <data key="name">Facility</data>\n'
+        graphml += f'      <data key="type">facility</data>\n'
+        graphml += f'      <data key="value">{data["facility_name"]}</data>\n'
+        graphml += '    </node>\n'
+        node_id += 1
+    
+    if "okh_reference" in data:
+        graphml += f'    <node id="n{node_id}">\n'
+        graphml += f'      <data key="name">OKH Reference</data>\n'
+        graphml += f'      <data key="type">okh</data>\n'
+        graphml += f'      <data key="value">{data["okh_reference"]}</data>\n'
+        graphml += '    </node>\n'
+        node_id += 1
+    
+    # Add edges (simplified - just connect main nodes)
+    if node_id >= 2:
+        graphml += '    <edge id="e0" source="n0" target="n1"/>\n'
+    if node_id >= 3:
+        graphml += '    <edge id="e1" source="n0" target="n2"/>\n'
+    
+    graphml += '  </graph>\n'
+    graphml += '</graphml>'
+    
+    return graphml

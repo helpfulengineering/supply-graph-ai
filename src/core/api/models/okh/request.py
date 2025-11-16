@@ -167,3 +167,9 @@ class OKHGenerateRequest(BaseModel):
     
     # Optional fields
     skip_review: bool = Field(False, description="Skip interactive review and generate manifest directly")
+
+
+class OKHFromStorageRequest(BaseAPIRequest):
+    """Request model for retrieving OKH manifest from storage"""
+    # Required fields
+    manifest_id: str = Field(..., description="ID of the stored OKH manifest to retrieve")

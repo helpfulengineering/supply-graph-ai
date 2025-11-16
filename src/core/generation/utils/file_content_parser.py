@@ -3,9 +3,18 @@ File Content Parser utility for file categorization.
 
 This module provides utilities for parsing file content at different
 analysis depths for LLM-based file categorization.
+
+Supported file formats:
+- Text files: .md, .txt, .rst (direct content extraction)
+- PDF files: .pdf (text extraction using pypdf)
+- DOCX files: .docx (text extraction using python-docx)
+- Other binary files: Not supported (returns None)
+
+Note: Old .doc format is not supported. Only .docx format is supported.
 """
 
 import logging
+import re
 from typing import Optional
 from pathlib import Path
 
@@ -51,7 +60,19 @@ class FileContentParser:
         if file_info.content is None:
             # Try binary extraction for binary file types
             if self._is_binary_file(file_info):
-                return self.extract_binary_text(file_info)
+                extracted_text = self.extract_binary_text(file_info)
+                if extracted_text is None:
+                    return None
+                # Apply depth limits to extracted text
+                if depth == AnalysisDepth.SHALLOW:
+                    return extracted_text[:self.SHALLOW_LIMIT]
+                elif depth == AnalysisDepth.MEDIUM:
+                    return extracted_text[:self.MEDIUM_LIMIT]
+                elif depth == AnalysisDepth.DEEP:
+                    return extracted_text
+                else:
+                    # Default to shallow
+                    return extracted_text[:self.SHALLOW_LIMIT]
             return None
         
         # Handle empty content
@@ -84,35 +105,56 @@ class FileContentParser:
             Extracted text or None if extraction fails
             
         Supported formats:
-            - PDF: Extract text content (TODO: implement PDF extraction)
-            - DOCX: Extract text content (TODO: implement DOCX extraction)
+            - PDF: Extract text content using pypdf
+            - DOCX: Extract text content using python-docx
             - Other binary: Returns None, logs attempt
         """
         file_path = Path(file_info.path)
         file_ext = file_path.suffix.lower()
         
-        # PDF extraction (TODO: implement with PyPDF2 or similar)
-        if file_ext == '.pdf':
-            logger.debug(f"PDF text extraction not yet implemented for {file_info.path}")
-            # TODO: Implement PDF text extraction
-            # try:
-            #     import PyPDF2
-            #     # Extract text from PDF
-            #     return extracted_text
-            # except Exception as e:
-            #     logger.warning(f"Failed to extract text from PDF {file_info.path}: {e}")
+        # Resolve file path (handle both absolute and relative)
+        try:
+            if not file_path.is_absolute():
+                # If relative, try to resolve from current working directory
+                resolved_path = file_path.resolve()
+            else:
+                resolved_path = file_path
+            
+            # Check if file exists
+            if not resolved_path.exists():
+                logger.warning(f"File not found for text extraction: {resolved_path}")
+                return None
+            
+            # Check file size (skip very large files to avoid memory issues)
+            file_size = resolved_path.stat().st_size
+            max_file_size = 50 * 1024 * 1024  # 50 MB limit
+            if file_size > max_file_size:
+                logger.warning(
+                    f"File too large for text extraction: {resolved_path} ({file_size} bytes)"
+                )
+                return None
+            
+        except Exception as e:
+            logger.warning(
+                f"Error resolving file path {file_info.path}: {e}",
+                exc_info=True
+            )
             return None
         
-        # DOCX extraction (TODO: implement with python-docx or similar)
-        if file_ext in ['.docx', '.doc']:
-            logger.debug(f"DOCX text extraction not yet implemented for {file_info.path}")
-            # TODO: Implement DOCX text extraction
-            # try:
-            #     from docx import Document
-            #     # Extract text from DOCX
-            #     return extracted_text
-            # except Exception as e:
-            #     logger.warning(f"Failed to extract text from DOCX {file_info.path}: {e}")
+        # PDF extraction
+        if file_ext == '.pdf':
+            return self._extract_pdf_text(resolved_path)
+        
+        # DOCX extraction
+        if file_ext == '.docx':
+            return self._extract_docx_text(resolved_path)
+        
+        # DOC (old format) - not supported yet
+        if file_ext == '.doc':
+            logger.debug(
+                f"Old .doc format not supported for text extraction: {file_info.path}. "
+                "Only .docx format is supported."
+            )
             return None
         
         # Other binary formats - not supported yet
@@ -146,4 +188,182 @@ class FileContentParser:
         binary_file_types = {'pdf', 'image', 'binary', 'archive', 'video', 'audio'}
         
         return file_ext in binary_extensions or file_info.file_type in binary_file_types
+    
+    def _extract_pdf_text(self, file_path: Path) -> Optional[str]:
+        """
+        Extract text from PDF file.
+        
+        Args:
+            file_path: Path to PDF file
+            
+        Returns:
+            Extracted text or None if extraction fails
+        """
+        try:
+            import pypdf
+            
+            text_parts = []
+            
+            with open(file_path, 'rb') as pdf_file:
+                try:
+                    pdf_reader = pypdf.PdfReader(pdf_file)
+                    
+                    # Check if PDF is encrypted
+                    if pdf_reader.is_encrypted:
+                        logger.warning(
+                            f"PDF is encrypted, cannot extract text: {file_path}"
+                        )
+                        return None
+                    
+                    # Extract text from each page
+                    for page_num, page in enumerate(pdf_reader.pages):
+                        try:
+                            page_text = page.extract_text()
+                            if page_text:
+                                text_parts.append(page_text)
+                        except Exception as e:
+                            logger.warning(
+                                f"Error extracting text from PDF page {page_num + 1} "
+                                f"in {file_path}: {e}"
+                            )
+                            # Continue with other pages
+                            continue
+                    
+                    if not text_parts:
+                        logger.debug(f"No text found in PDF: {file_path}")
+                        return None
+                    
+                    # Combine all pages with double newline separator
+                    extracted_text = "\n\n".join(text_parts)
+                    
+                    # Clean up excessive whitespace
+                    extracted_text = self._clean_extracted_text(extracted_text)
+                    
+                    logger.debug(
+                        f"Successfully extracted {len(extracted_text)} characters "
+                        f"from PDF: {file_path}"
+                    )
+                    
+                    return extracted_text
+                    
+                except pypdf.errors.PdfReadError as e:
+                    logger.warning(
+                        f"Error reading PDF file {file_path}: {e}",
+                        exc_info=True
+                    )
+                    return None
+                except Exception as e:
+                    logger.warning(
+                        f"Unexpected error extracting text from PDF {file_path}: {e}",
+                        exc_info=True
+                    )
+                    return None
+                    
+        except ImportError:
+            logger.warning(
+                "pypdf library not installed. Install with: pip install pypdf"
+            )
+            return None
+        except Exception as e:
+            logger.warning(
+                f"Failed to extract text from PDF {file_path}: {e}",
+                exc_info=True
+            )
+            return None
+    
+    def _extract_docx_text(self, file_path: Path) -> Optional[str]:
+        """
+        Extract text from DOCX file.
+        
+        Args:
+            file_path: Path to DOCX file
+            
+        Returns:
+            Extracted text or None if extraction fails
+        """
+        try:
+            from docx import Document
+            
+            text_parts = []
+            
+            try:
+                doc = Document(file_path)
+                
+                # Extract text from paragraphs
+                for paragraph in doc.paragraphs:
+                    para_text = paragraph.text.strip()
+                    if para_text:
+                        text_parts.append(para_text)
+                
+                # Extract text from tables
+                for table in doc.tables:
+                    for row in table.rows:
+                        row_texts = []
+                        for cell in row.cells:
+                            cell_text = cell.text.strip()
+                            if cell_text:
+                                row_texts.append(cell_text)
+                        if row_texts:
+                            text_parts.append(" | ".join(row_texts))
+                
+                if not text_parts:
+                    logger.debug(f"No text found in DOCX: {file_path}")
+                    return None
+                
+                # Combine all text parts with double newline separator
+                extracted_text = "\n\n".join(text_parts)
+                
+                # Clean up excessive whitespace
+                extracted_text = self._clean_extracted_text(extracted_text)
+                
+                logger.debug(
+                    f"Successfully extracted {len(extracted_text)} characters "
+                    f"from DOCX: {file_path}"
+                )
+                
+                return extracted_text
+                
+            except Exception as e:
+                logger.warning(
+                    f"Error reading DOCX file {file_path}: {e}",
+                    exc_info=True
+                )
+                return None
+                
+        except ImportError:
+            logger.warning(
+                "python-docx library not installed. Install with: pip install python-docx"
+            )
+            return None
+        except Exception as e:
+            logger.warning(
+                f"Failed to extract text from DOCX {file_path}: {e}",
+                exc_info=True
+            )
+            return None
+    
+    def _clean_extracted_text(self, text: str) -> str:
+        """
+        Clean up extracted text by removing excessive whitespace.
+        
+        Args:
+            text: Raw extracted text
+            
+        Returns:
+            Cleaned text
+        """
+        # Replace multiple spaces with single space
+        text = re.sub(r' +', ' ', text)
+        
+        # Replace multiple newlines (3+) with double newline
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        
+        # Remove leading/trailing whitespace from each line
+        lines = [line.strip() for line in text.split('\n')]
+        text = '\n'.join(lines)
+        
+        # Remove excessive blank lines
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        
+        return text.strip()
 

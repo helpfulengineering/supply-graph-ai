@@ -64,6 +64,11 @@ def api_endpoint(
                 # Execute the endpoint function
                 result = await func(*args, **kwargs)
                 
+                # If result is already a Response object (like for file downloads, exports), return it directly
+                from fastapi.responses import Response
+                if isinstance(result, Response):
+                    return result
+                
                 # If result is already a Pydantic model (like PaginatedResponse), return it directly
                 # Check if it's a Pydantic BaseModel instance
                 if hasattr(result, 'model_dump') or hasattr(result, 'dict'):
