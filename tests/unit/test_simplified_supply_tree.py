@@ -19,20 +19,78 @@ class TestSimplifiedSupplyTree:
     
     def test_basic_creation(self):
         """Test basic SimplifiedSupplyTree creation."""
-        facility_id = uuid4()
         tree = SimplifiedSupplyTree(
-            facility_id=facility_id,
             facility_name="Test Facility",
             okh_reference="test-okh-123",
             confidence_score=0.85
         )
         
-        assert tree.facility_id == facility_id
         assert tree.facility_name == "Test Facility"
         assert tree.okh_reference == "test-okh-123"
         assert tree.confidence_score == 0.85
         assert tree.match_type == "unknown"
         assert isinstance(tree.creation_time, datetime)
+    
+    def test_okw_reference_field(self):
+        """Test that OKW reference field can be set and retrieved."""
+        tree = SimplifiedSupplyTree(
+            facility_name="Test Facility",
+            okh_reference="test-okh-123",
+            okw_reference="test-okw-456",
+            confidence_score=0.85
+        )
+        
+        assert tree.okw_reference == "test-okw-456"
+    
+    def test_okw_reference_optional(self):
+        """Test that OKW reference is optional (backward compatibility)."""
+        tree = SimplifiedSupplyTree(
+            facility_name="Test Facility",
+            okh_reference="test-okh-123",
+            confidence_score=0.85
+        )
+        
+        assert tree.okw_reference is None
+    
+    def test_okw_reference_in_serialization(self):
+        """Test that OKW reference is included in serialization."""
+        tree = SimplifiedSupplyTree(
+            facility_name="Test Facility",
+            okh_reference="test-okh-123",
+            okw_reference="test-okw-456",
+            confidence_score=0.85
+        )
+        
+        tree_dict = tree.to_dict()
+        assert 'okw_reference' in tree_dict
+        assert tree_dict['okw_reference'] == "test-okw-456"
+    
+    def test_okw_reference_deserialization(self):
+        """Test that OKW reference can be deserialized."""
+        tree_dict = {
+            'id': str(uuid4()),
+            'facility_name': "Test Facility",
+            'okh_reference': "test-okh-123",
+            'okw_reference': "test-okw-456",
+            'confidence_score': 0.85,
+            'creation_time': datetime.now().isoformat()
+        }
+        
+        tree = SimplifiedSupplyTree.from_dict(tree_dict)
+        assert tree.okw_reference == "test-okw-456"
+    
+    def test_okw_reference_backward_compatibility(self):
+        """Test that deserialization works without OKW reference (backward compatibility)."""
+        tree_dict = {
+            'id': str(uuid4()),
+            'facility_name': "Test Facility",
+            'okh_reference': "test-okh-123",
+            'confidence_score': 0.85,
+            'creation_time': datetime.now().isoformat()
+        }
+        
+        tree = SimplifiedSupplyTree.from_dict(tree_dict)
+        assert tree.okw_reference is None
     
     def test_set_operations(self):
         """Test that SimplifiedSupplyTree works with Set operations."""

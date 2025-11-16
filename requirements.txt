@@ -55,3 +55,6 @@ wasabi>=0.8.1,<1.2.0
 # Container and deployment utilities
 gunicorn>=21.0.0
 psutil>=5.9.0
+
+# authentication
+bcrypt>=4.0.0

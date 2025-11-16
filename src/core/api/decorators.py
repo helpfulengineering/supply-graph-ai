@@ -244,15 +244,29 @@ def require_authentication(required_permissions: List[str] = None):
     Decorator for requiring authentication and permissions.
     
     Args:
-        required_permissions: List of required permissions
+        required_permissions: List of required permissions. If None, only authentication required.
         
-    Returns:
-        Decorated function
+    Usage:
+        @require_authentication()
+        async def endpoint(user: AuthenticatedUser = Depends(get_current_user)):
+            ...
+            
+        @require_authentication(required_permissions=["write"])
+        async def write_endpoint(user: AuthenticatedUser = Depends(get_current_user)):
+            ...
     """
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Extract request object if available
+            # Extract AuthenticatedUser from kwargs (injected by FastAPI dependency)
+            user = None
+            for key, value in kwargs.items():
+                from ..models.auth import AuthenticatedUser
+                if isinstance(value, AuthenticatedUser):
+                    user = value
+                    break
+            
+            # Extract request object if available for request_id
             request = None
             for arg in args:
                 if isinstance(arg, Request):
@@ -261,23 +275,40 @@ def require_authentication(required_permissions: List[str] = None):
             
             request_id = getattr(request.state, 'request_id', None) if request else None
             
-            # Check authentication
-            auth_header = request.headers.get("Authorization") if request else None
-            if not auth_header:
+            if not user:
+                # If no user found, check if endpoint uses get_current_user dependency
+                # This is a fallback - ideally endpoints should use Depends(get_current_user)
                 error_response = create_error_response(
                     error="Authentication required",
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     request_id=request_id,
-                    suggestion="Please provide a valid authentication token."
+                    suggestion="This endpoint requires authentication. Use Depends(get_current_user) in your endpoint."
                 )
-                
                 return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    content=error_response.dict()
+                    content=error_response.model_dump(mode='json')
                 )
             
-            # TODO: Implement actual authentication and permission checking
-            # This is a placeholder for future implementation
+            # Check permissions if required
+            if required_permissions:
+                from ..services.auth_service import AuthenticationService
+                auth_service = await AuthenticationService.get_instance()
+                has_permission = await auth_service.check_permission(
+                    user,
+                    required_permissions
+                )
+                
+                if not has_permission:
+                    error_response = create_error_response(
+                        error="Insufficient permissions",
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        request_id=request_id,
+                        suggestion=f"This endpoint requires the following permissions: {', '.join(required_permissions)}"
+                    )
+                    return JSONResponse(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        content=error_response.model_dump(mode='json')
+                    )
             
             return await func(*args, **kwargs)
         

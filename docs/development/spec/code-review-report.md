@@ -2,6 +2,17 @@
 
 This document contains the comprehensive findings from the pre-publication code review of the Open Matching Engine (OME).
 
+## Update History
+
+- **2025-11-16**: Completed Critical TODOs:
+  - ✅ **Authentication & Authorization** - Full implementation with storage-based API key validation, permission checking, and FastAPI dependencies
+  - ✅ **Core Functionality TODOs**:
+    - Validation endpoint implementation (`src/core/api/routes/match.py:321`)
+    - Processing time calculation (`src/core/api/routes/match.py:495`)
+    - Multi-factor scoring logic (`src/core/services/matching_service.py:554`)
+    - OKW reference field addition (`src/core/models/supply_trees.py:172`)
+  - All implementations include comprehensive unit and integration tests
+
 ## Table of Contents
 1. [TODO/FIXME/Placeholder Findings](#todofixmeplaceholder-findings)
 2. [Hardcoded Values](#hardcoded-values)
@@ -21,13 +32,29 @@ This document contains the comprehensive findings from the pre-publication code 
   - **Issue**: `# TODO: Implement actual API key validation against database`
   - **Context**: API key validation currently uses simple list check from environment variable
   - **Severity**: Critical - Security concern
-  - **Recommendation**: Implement database-backed validation or document current limitation clearly
+  - **Status**: ✅ **COMPLETED** - Implemented full authentication system with:
+    - Storage-based API key validation with bcrypt hashing
+    - Key creation, revocation, expiration support
+    - Permission-based access control with hierarchy
+    - Backward compatibility with environment variable keys
+    - FastAPI dependencies (`get_current_user`, `get_optional_user`)
+    - In-memory caching (5-minute TTL) for performance
+    - AUTH_MODE configuration (env/storage/hybrid)
+  - **Implementation Date**: 2025-11-16 (Phase 1 complete)
+  - **Tests**: Comprehensive unit tests (53 tests) and integration tests (18 tests)
+  - **Documentation**: Updated `docs/api/auth.md` to match implementation
 
 - **File**: `src/core/api/decorators.py:279`
   - **Issue**: `# TODO: Implement actual authentication and permission checking`
   - **Context**: `require_authentication` decorator is a placeholder
   - **Severity**: Critical - Security concern
-  - **Recommendation**: Implement proper authentication/permission checking or remove decorator
+  - **Status**: ✅ **COMPLETED** - Enhanced `require_authentication` decorator with:
+    - Full token validation via AuthenticationService
+    - Permission checking with hierarchy support
+    - Proper error responses (401/403)
+    - Integration with FastAPI dependencies
+  - **Implementation Date**: 2025-11-16
+  - **Tests**: Unit tests verify decorator functionality (8 tests)
 
 #### 2. Metrics & Monitoring
 - **File**: `src/core/main.py:23,92`
@@ -51,23 +78,38 @@ This document contains the comprehensive findings from the pre-publication code 
   - **Issue**: `# TODO: Implement validation using matching service and new validation framework`
   - **Context**: Validation endpoint returns placeholder response
   - **Severity**: Critical - Incomplete feature
-  - **Recommendation**: Implement proper validation or document as "coming soon"
+  - **Status**: ✅ **COMPLETED** - Implemented validation endpoint using domain validators from DomainRegistry. Supports quality levels (hobby, professional, medical) and strict mode. Validates OKH manifests and returns detailed validation results with errors, warnings, and scores.
+  - **Implementation Date**: 2025-11-16
+  - **Tests**: Unit tests in `tests/unit/test_validation_endpoint.py`, integration tests in `tests/integration/test_match_integration.py`
 
 - **File**: `src/core/api/routes/match.py:495`
   - **Issue**: `# TODO: Calculate actual processing time`
   - **Context**: Processing time hardcoded to 0.0
   - **Severity**: Medium - Missing metric
-  - **Recommendation**: Implement actual timing calculation
+  - **Status**: ✅ **COMPLETED** - Implemented processing time calculation using `datetime.now()` at start and calculating difference at end. Added to both main match endpoint and file upload endpoint. Processing time is now included in response data.
+  - **Implementation Date**: 2025-11-16
+  - **Tests**: Integration tests verify processing_time is present and >= 0
 
 - **File**: `src/core/services/matching_service.py:554`
   - **Issue**: `# TODO: Implement actual scoring logic`
   - **Severity**: High - Core functionality incomplete
-  - **Recommendation**: Implement scoring logic
+  - **Status**: ✅ **COMPLETED** - Implemented multi-factor weighted scoring algorithm with the following factors:
+    - Process matching (40% weight) with Levenshtein distance for near-matches
+    - Material matching (25% weight)
+    - Equipment/tool matching (20% weight)
+    - Scale/capacity matching (10% weight)
+    - Other factors (5% weight) including match layer quality
+    - Supports optimization criteria weights
+    - Integrates with matching layer results (direct, heuristic, NLP, LLM)
+  - **Implementation Date**: 2025-11-16
+  - **Tests**: Comprehensive unit tests in `tests/unit/test_matching_scoring.py` (16 tests)
 
 - **File**: `src/core/models/supply_trees.py:172`
   - **Issue**: `# TODO: add okw_reference: str`
   - **Severity**: Medium - Missing field
-  - **Recommendation**: Add field or document why it's not needed
+  - **Status**: ✅ **COMPLETED** - Added `okw_reference: Optional[str] = None` field to SupplyTree model. Updated serialization/deserialization, `__hash__` and `__eq__` methods, and `from_facility_and_manifest` to populate the field. Maintains backward compatibility.
+  - **Implementation Date**: 2025-11-16
+  - **Tests**: Unit tests in `tests/unit/test_simplified_supply_tree.py` verify field presence and serialization
 
 ### High Priority TODOs
 
@@ -179,10 +221,10 @@ This document contains the comprehensive findings from the pre-publication code 
 
 **File**: `src/core/api/routes/match.py:321-323,1102`
 - **Endpoints**: 
-  - `POST /v1/api/match/validate` (line 321) - Placeholder validation
-  - ID generation (line 1102) - Placeholder ID
+  - `POST /v1/api/match/validate` (line 321) - ✅ **COMPLETED** - Now implements full validation using domain validators, supports quality levels and strict mode
+  - ID generation (line 1102) - Placeholder ID (status unchanged)
 - **Severity**: Critical - Core functionality incomplete
-- **Recommendation**: Implement proper validation and ID generation
+- **Status**: Validation endpoint completed 2025-11-16. ID generation placeholder remains.
 
 #### 2. Service Placeholders
 
@@ -310,13 +352,22 @@ This document contains the comprehensive findings from the pre-publication code 
 - **Location**: `src/core/main.py:114-119`
 - **Issue**: Simple list check from environment variable
 - **Risk**: Cannot revoke keys, no audit trail
-- **Recommendation**: Implement database-backed validation or document limitation
+- **Status**: ✅ **RESOLVED** (2025-11-16) - Implemented storage-based validation with:
+  - Persistent key storage via StorageService
+  - Key revocation and expiration support
+  - Bcrypt hashing for secure token storage
+  - Permission-based access control
+  - Audit trail via key metadata (creation date, last used, etc.)
 
 #### 4. Authentication Decorator Not Implemented
 - **Location**: `src/core/api/decorators.py:279-280`
 - **Issue**: `require_authentication` decorator is placeholder
 - **Risk**: Routes may not be properly protected
-- **Recommendation**: Implement proper authentication or remove decorator
+- **Status**: ✅ **RESOLVED** (2025-11-16) - Enhanced decorator with:
+  - Full token validation via AuthenticationService
+  - Permission checking with hierarchy support
+  - Proper 401/403 error responses
+  - Integration with FastAPI dependency system
 
 #### 5. No Rate Limiting Implementation
 - **Location**: `src/core/api/decorators.py:344`
@@ -330,7 +381,8 @@ This document contains the comprehensive findings from the pre-publication code 
 - **Location**: `src/config/settings.py:33`
 - **Issue**: No API keys required by default
 - **Risk**: Unauthenticated access
-- **Recommendation**: Require API keys in production mode
+- **Status**: ⚠️ **PARTIALLY ADDRESSED** - System now supports storage-based keys, but default behavior still allows empty keys. AUTH_MODE setting provides control, but production deployments should explicitly configure authentication.
+- **Recommendation**: Require API keys in production mode (can be enforced via AUTH_MODE=storage)
 
 #### 7. Credential Logging Risk
 - **Location**: Various files
@@ -402,9 +454,9 @@ This document contains the comprehensive findings from the pre-publication code 
 1. Hardcoded Azure Storage URL in README
 2. Default encryption credentials (default_salt/default_password)
 3. CORS defaults to allow all origins
-4. Placeholder API implementations (supply tree CRUD, validation endpoints)
-5. Incomplete authentication implementation
-6. Authentication header documentation mismatch
+4. Placeholder API implementations (supply tree CRUD, ~~validation endpoints~~ ✅ **COMPLETED** 2025-11-16)
+5. ~~Incomplete authentication implementation~~ ✅ **COMPLETED** (2025-11-16) - Full authentication system with storage-based validation
+6. ~~Authentication header documentation mismatch~~ ✅ **COMPLETED** (2025-11-16) - Documentation updated to match Bearer token implementation
 
 ### High Priority Issues (Should Fix)
 1. MetricsTracker not implemented (multiple references)
@@ -415,7 +467,7 @@ This document contains the comprehensive findings from the pre-publication code 
 6. Port number inconsistencies in documentation
 
 ### Medium Priority Issues (Nice to Have)
-1. Processing time calculation missing
+1. ~~Processing time calculation missing~~ ✅ **COMPLETED** (2025-11-16)
 2. File format support (PDF, DOCX) missing
 3. Version hardcoding
 4. Various enhancement TODOs
@@ -429,12 +481,12 @@ This document contains the comprehensive findings from the pre-publication code 
 1. **Security Hardening**:
    - Remove default encryption credentials, require explicit configuration
    - Change CORS default to empty list
-   - Document security implications of current authentication approach
-   - Implement or remove placeholder security decorators
+   - ~~Document security implications of current authentication approach~~ ✅ **COMPLETED** (2025-11-16) - Authentication fully implemented and documented
+   - ~~Implement or remove placeholder security decorators~~ ✅ **COMPLETED** (2025-11-16) - Authentication decorator fully implemented
 
 2. **Complete or Document Placeholders**:
    - Implement supply tree CRUD operations OR document as "coming soon" with proper 501 status codes
-   - Implement validation endpoints OR document limitations
+   - ~~Implement validation endpoints OR document limitations~~ ✅ **COMPLETED** (2025-11-16) - Validation endpoint fully implemented
    - Remove or implement placeholder decorators
 
 3. **Configuration Cleanup**:

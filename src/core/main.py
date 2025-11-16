@@ -2,7 +2,6 @@ import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import APIKeyHeader
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -21,6 +20,7 @@ from src.core.api.error_handlers import (
 )
 from src.core.api.middleware import setup_api_middleware
 # from src.core.errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
+from src.core.api.dependencies import get_current_user, get_optional_user
 
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -32,6 +32,7 @@ from src.core.domains.manufacturing.validation.compatibility import Manufacturin
 from src.core.domains.cooking.validation.compatibility import CookingValidatorCompat
 from src.core.registry.domain_registry import DomainRegistry
 from src.core.services.storage_service import StorageService
+from src.core.services.auth_service import AuthenticationService
 from src.core.registry.domain_registry import DomainMetadata, DomainStatus
 from src.config import settings
 from src.core.utils.logging import setup_logging, get_logger
@@ -45,9 +46,6 @@ setup_logging(
 # Get logger for this module
 logger = get_logger(__name__)
 
-# Initialize API key security
-API_KEY_HEADER = APIKeyHeader(name="Authorization")
-
 # Define lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,6 +57,10 @@ async def lifespan(app: FastAPI):
         logger.info("Initializing storage service")
         storage_service = await StorageService.get_instance()
         await storage_service.configure(settings.STORAGE_CONFIG)
+        
+        # Initialize authentication service
+        logger.info("Initializing authentication service")
+        await AuthenticationService.get_instance()
         
         # Register domain components
         logger.info("Registering domain components")
@@ -100,25 +102,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Define dependency for authentication
-async def get_api_key(api_key: str = Depends(API_KEY_HEADER)):
-    if not api_key.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token format"
-        )
-    
-    token = api_key.replace("Bearer ", "")
-    
-    # TODO: Implement actual API key validation against database
-    if token not in settings.API_KEYS:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token"
-        )
-    
-    return token
 
 # Root endpoint
 @app.get("/", tags=["system"])

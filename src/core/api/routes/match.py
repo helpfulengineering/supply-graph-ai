@@ -224,6 +224,7 @@ async def match_requirements_to_capabilities(
         response_data = {
             "solutions": solutions,
             "total_solutions": len(solutions),
+            "processing_time": processing_time,
             "matching_metrics": {
                 "direct_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "direct"]),
                 "heuristic_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "heuristic"]),
@@ -301,6 +302,7 @@ async def validate_match(
     quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
     strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
     matching_service: MatchingService = Depends(get_matching_service),
+    storage_service: StorageService = Depends(get_storage_service),
     http_request: Request = None
 ):
     """Enhanced validation endpoint with standardized patterns."""
@@ -318,23 +320,103 @@ async def validate_match(
             }
         )
         
-        # TODO: Implement validation using matching service and new validation framework
-        # For now, return a placeholder response
-        logger.debug("Using placeholder validation response")
+        # Load OKH manifest from storage
+        okh_handler = await storage_service.get_domain_handler("okh")
+        okh_manifest = await okh_handler.load(request.okh_id)
+        
+        if not okh_manifest:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKH manifest {request.okh_id} not found"
+            )
+        
+        # Get domain from OKH manifest or default to manufacturing
+        domain = "manufacturing"  # Default, could be detected from manifest
+        
+        # Get domain validator from registry
+        if not DomainRegistry.is_domain_registered(domain):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Domain {domain} is not registered"
+            )
+        
+        domain_services = DomainRegistry.get_domain_services(domain)
+        validator = domain_services.validator
+        
+        # Create validation context
+        from src.core.validation.context import ValidationContext
+        context = ValidationContext(
+            name=f"match_validation_{request.okh_id}",
+            domain=domain,
+            quality_level=quality_level or "professional",
+            strict_mode=strict_mode
+        )
+        
+        # Validate OKH manifest
+        okh_validation = await validator.validate(okh_manifest, context)
+        
+        # Validate supply tree structure and compatibility
+        supply_tree_errors = []
+        supply_tree_warnings = []
+        supply_tree_suggestions = []
+        
+        # TODO: Load actual supply tree from storage if available and validate it
+        # For now, we'll just validate the OKH manifest
+        
+        # Convert validation result to API format
+        from src.core.api.models.base import ErrorDetail, ErrorCode
+        all_errors = [
+            ErrorDetail(
+                message=error.message,
+                field=error.field,
+                code=ErrorCode.VALIDATION_ERROR if error.code is None else ErrorCode(error.code) if isinstance(error.code, str) else error.code
+            )
+            for error in okh_validation.errors
+        ] + [
+            ErrorDetail(message=err, code=ErrorCode.VALIDATION_ERROR) if isinstance(err, str) else err
+            for err in supply_tree_errors
+        ]
+        all_warnings = [warning.message for warning in okh_validation.warnings] + supply_tree_warnings
+        all_suggestions = supply_tree_suggestions  # Could add suggestions from validation
+        
+        # Calculate validation score
+        okh_score = okh_validation.metadata.get("completeness_score", 1.0) if okh_validation.valid else 0.0
+        supply_tree_score = 1.0  # Placeholder, would calculate from supply tree validation
+        validation_score = (okh_score + supply_tree_score) / 2.0
+        
+        # Apply strict mode: treat warnings as errors
+        if strict_mode and all_warnings:
+            # Convert warnings to errors in strict mode
+            from src.core.api.models.base import ErrorCode
+            all_errors.extend([
+                ErrorDetail(message=w, code=ErrorCode.VALIDATION_ERROR) if isinstance(w, str) else w
+                for w in all_warnings
+            ])
+            all_warnings = []
+            # Reduce score if there were warnings
+            validation_score *= 0.9
+        
+        is_valid = len(all_errors) == 0 and okh_validation.valid
+        
         return ValidationResult(
-            is_valid=True,
-            score=0.8,
-            errors=[],
-            warnings=[],
-            suggestions=[],
+            is_valid=is_valid,
+            score=validation_score,
+            errors=all_errors,
+            warnings=all_warnings,
+            suggestions=all_suggestions,
             metadata={
                 "okh_id": str(request.okh_id),
                 "supply_tree_id": str(request.supply_tree_id),
                 "validation_criteria": request.validation_criteria,
                 "quality_level": quality_level,
-                "strict_mode": strict_mode
+                "strict_mode": strict_mode,
+                "okh_validation_score": okh_score,
+                "supply_tree_validation_score": supply_tree_score
             }
         )
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404)
+        raise
     except Exception as e:
         # Use standardized error handler
         error_response = create_error_response(
@@ -395,6 +477,7 @@ async def match_requirements_from_file(
 ):
     """Enhanced file upload matching endpoint."""
     request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.now()
     
     try:
         # Validate file type
@@ -487,12 +570,15 @@ async def match_requirements_from_file(
             # Use the simplified to_dict method from SupplyTreeSolution
             results.append(solution.to_dict())
         
+        # Calculate processing time
+        processing_time = (datetime.now() - start_time).total_seconds()
+        
         return create_success_response(
             message="Matching completed successfully",
             data={
                 "solutions": results,
                 "total_solutions": len(results),
-                "processing_time": 0.0,  # TODO: Calculate actual processing time
+                "processing_time": processing_time,
                 "matching_metrics": {
                     "direct_matches": len(results),
                     "heuristic_matches": 0,

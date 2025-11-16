@@ -29,8 +29,14 @@ else:
     # Parse comma-separated list of allowed origins
     CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_ENV.split(",")]
 
-# API Keys
+# API Keys (backward compatibility - used for environment variable keys)
 API_KEYS = os.getenv("API_KEYS", "").split(",")
+
+# Authentication Configuration
+AUTH_MODE = os.getenv("AUTH_MODE", "hybrid")  # "env", "storage", "hybrid"
+AUTH_ENABLE_STORAGE = os.getenv("AUTH_ENABLE_STORAGE", "true").lower() in ("true", "1", "t")
+AUTH_CACHE_TTL = int(os.getenv("AUTH_CACHE_TTL", "300"))  # 5 minutes in seconds
+AUTH_KEY_LENGTH = int(os.getenv("AUTH_KEY_LENGTH", "32"))  # bytes
 
 # Storage Configuration
 try:
