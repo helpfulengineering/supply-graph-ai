@@ -53,3 +53,6 @@ class SupplyTreeValidateRequest(BaseModel):
     # Optional fields
     okh_reference: Optional[str] = None
     okw_references: Optional[List[str]] = None
+    domain: Optional[str] = Field(default="manufacturing", description="Domain for validation (e.g., 'manufacturing', 'cooking')")
+    quality_level: Optional[str] = Field(default="professional", description="Quality level: hobby, professional, or medical")
+    strict_mode: Optional[bool] = Field(default=False, description="Enable strict validation mode")

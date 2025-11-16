@@ -13,16 +13,12 @@ from fastapi import HTTPException, status, Request
 from fastapi.responses import JSONResponse
 
 from .models.base import (
-    BaseAPIRequest, 
-    BaseAPIResponse, 
-    ErrorResponse, 
-    SuccessResponse,
     APIStatus,
-    ErrorCode,
-    LLMResponseMixin,
-    PaginationParams
+    PaginationParams,
+    PaginatedResponse,
+    PaginationInfo
 )
-from .error_handlers import create_error_response, create_success_response
+from .error_handlers import create_error_response
 # MetricsTracker is available but not currently used in decorators
 # from ..errors.metrics import MetricsTracker
 from ..utils.logging import get_logger
@@ -67,6 +63,13 @@ def api_endpoint(
             try:
                 # Execute the endpoint function
                 result = await func(*args, **kwargs)
+                
+                # If result is already a Pydantic model (like PaginatedResponse), return it directly
+                # Check if it's a Pydantic BaseModel instance
+                if hasattr(result, 'model_dump') or hasattr(result, 'dict'):
+                    # It's a Pydantic model, return it directly (FastAPI will serialize it)
+                    # FastAPI can handle Pydantic models directly, so we return it as-is
+                    return result
                 
                 # Calculate processing time
                 processing_time = time.time() - start_time
@@ -691,41 +694,114 @@ def paginated_response(
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Extract request object if available
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
+            try:
+                # Extract request object if available
+                request = None
+                for arg in args:
+                    if isinstance(arg, Request):
+                        request = arg
+                        break
+                
+                request_id = getattr(request.state, 'request_id', None) if request else None
+                
+                # Extract pagination parameters
+                page = int(request.query_params.get("page", 1)) if request else 1
+                page_size = int(request.query_params.get("page_size", default_page_size)) if request else default_page_size
+                
+                # Validate pagination parameters
+                if page < 1:
+                    page = 1
+                if page_size < 1:
+                    page_size = default_page_size
+                if page_size > max_page_size:
+                    page_size = max_page_size
+                
+                # Create PaginationParams object
+                pagination = PaginationParams(page=page, page_size=page_size)
+                
+                # Execute the function with pagination parameters (only if function doesn't already have pagination)
+                import inspect
+                sig = inspect.signature(func)
+                if 'pagination' in sig.parameters and 'pagination' not in kwargs:
+                    result = await func(*args, **kwargs, pagination=pagination)
+                else:
+                    result = await func(*args, **kwargs)
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Error in paginated_response decorator: {e}", exc_info=True)
+                raise
             
-            request_id = getattr(request.state, 'request_id', None) if request else None
+            # If result is already a PaginatedResponse, return as-is
+            if isinstance(result, PaginatedResponse):
+                return result
             
-            # Extract pagination parameters
-            page = int(request.query_params.get("page", 1)) if request else 1
-            page_size = int(request.query_params.get("page_size", default_page_size)) if request else default_page_size
+            # If result is a dict with 'items' key, extract items for pagination
+            items = None
+            if isinstance(result, dict) and 'items' in result:
+                items = result['items']
+            elif isinstance(result, (list, tuple)):
+                items = list(result)
             
-            # Validate pagination parameters
-            if page < 1:
-                page = 1
-            if page_size < 1:
-                page_size = default_page_size
-            if page_size > max_page_size:
-                page_size = max_page_size
+            # If we have items to paginate, apply pagination
+            if items is not None:
+                total_items = len(items)
+                total_pages = (total_items + page_size - 1) // page_size if total_items > 0 else 0
+                
+                # Calculate slice indices
+                start_idx = (page - 1) * page_size
+                end_idx = start_idx + page_size
+                paginated_items = items[start_idx:end_idx]
+                
+                # Convert items to dict format if needed (PaginatedResponse expects List[Dict[str, Any]])
+                # If items are already dicts, keep them; otherwise convert
+                converted_items = []
+                for item in paginated_items:
+                    try:
+                        if isinstance(item, dict):
+                            # Ensure all values in dict are JSON-serializable
+                            serializable_item = {}
+                            for k, v in item.items():
+                                if isinstance(v, datetime):
+                                    serializable_item[k] = v.isoformat()
+                                else:
+                                    serializable_item[k] = v
+                            converted_items.append(serializable_item)
+                        else:
+                            # Convert to dict - try to_dict() method first, then fallback to simple conversion
+                            if hasattr(item, 'to_dict'):
+                                converted_items.append(item.to_dict())
+                            elif hasattr(item, 'model_dump'):
+                                converted_items.append(item.model_dump())
+                            elif hasattr(item, 'dict'):
+                                converted_items.append(item.dict())
+                            else:
+                                # For primitive types, wrap in a simple dict
+                                converted_items.append({"value": item})
+                    except Exception as e:
+                        logger.error(f"Error converting item to dict: {e}", exc_info=True)
+                        # Skip items that can't be converted
+                        continue
+                
+                # Create PaginationInfo
+                pagination_info = PaginationInfo(
+                    page=page,
+                    page_size=page_size,
+                    total_items=total_items,
+                    total_pages=total_pages,
+                    has_next=page < total_pages,
+                    has_previous=page > 1
+                )
+                
+                # Create PaginatedResponse
+                return PaginatedResponse(
+                    items=converted_items,
+                    pagination=pagination_info,
+                    message="Items retrieved successfully",
+                    request_id=request_id
+                )
             
-            # Create PaginationParams object
-            pagination = PaginationParams(page=page, page_size=page_size)
-            
-            # Execute the function with pagination parameters (only if function doesn't already have pagination)
-            import inspect
-            sig = inspect.signature(func)
-            if 'pagination' in sig.parameters and 'pagination' not in kwargs:
-                result = await func(*args, **kwargs, pagination=pagination)
-            else:
-                result = await func(*args, **kwargs)
-            
-            # TODO: Implement actual pagination logic
-            # This is a placeholder for future implementation
-            
+            # For non-list results, return as-is
             return result
         
         return wrapper

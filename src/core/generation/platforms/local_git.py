@@ -19,6 +19,7 @@ import json
 import subprocess
 import tempfile
 import shutil
+import re
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -363,7 +364,7 @@ class LocalGitExtractor(ProjectExtractor):
                 url=url,
                 metadata=metadata,
                 files=files,
-                documentation=[],  # TODO: Parse documentation files
+                documentation=self._build_documentation_list(files),
                 raw_content={"clone_path": str(repo_path)}
             )
             
@@ -456,6 +457,138 @@ class LocalGitExtractor(ProjectExtractor):
         
         # Default fallback
         return "unknown", "design-files"
+    
+    def _build_documentation_list(self, files: List[FileInfo]) -> List[DocumentInfo]:
+        """
+        Build documentation list from files.
+        
+        Parses documentation files and creates DocumentInfo objects.
+        Identifies documentation types based on filename, path, and content.
+        
+        Args:
+            files: List of FileInfo objects from repository
+            
+        Returns:
+            List of DocumentInfo objects
+        """
+        documentation = []
+        # Order matters: more specific patterns first
+        documentation_patterns = [
+            # README files (most specific first)
+            (r"(?i)^readme(\.(md|txt|rst))?$", "documentation-home"),
+            (r"(?i)readme", "documentation-home"),
+            
+            # Operating instructions (more specific than manual)
+            (r"(?i)(user[_\s]?manual|operating[_\s]?guide|usage)", "operating-instructions"),
+            (r"(?i)^(how[_\s]?to[_\s]?use|usage)", "operating-instructions"),
+            
+            # Technical specifications
+            (r"(?i)(spec|specs|specification|technical[_\s]?spec)", "technical-specifications"),
+            (r"(?i)^(dimensions?|tolerances?)", "technical-specifications"),
+            
+            # Maintenance
+            (r"(?i)(maintenance|repair|servicing)", "maintenance-instructions"),
+            
+            # Disposal
+            (r"(?i)(disposal|recycling|end[_\s]?of[_\s]?life)", "disposal-instructions"),
+            
+            # Risk assessment
+            (r"(?i)(risk[_\s]?assessment|safety|hazard)", "risk-assessment"),
+            
+            # Manual files (less specific, checked last)
+            (r"(?i)(manual|guide|instructions?)", "making-instructions"),
+            (r"(?i)^(assembly|build|making|fabrication)", "making-instructions"),
+        ]
+        
+        # Documentation directories
+        documentation_dirs = {
+            "docs/": "documentation-home",
+            "documentation/": "documentation-home",
+            "manual/": "making-instructions",
+            "manuals/": "making-instructions",
+            "guides/": "making-instructions",
+            "instructions/": "making-instructions",
+        }
+        
+        for file_info in files:
+            # Skip non-documentation file types (but allow markdown, document, text, and documentation)
+            # Also check file extension as fallback
+            file_path = Path(file_info.path)
+            is_doc_file = (
+                file_info.file_type in ["markdown", "document", "text", "documentation"] or
+                file_path.suffix.lower() in ['.md', '.txt', '.rst', '.pdf', '.docx', '.doc']
+            )
+            if not is_doc_file:
+                continue
+            
+            file_path = Path(file_info.path)
+            file_name = file_path.name.lower()
+            file_dir = str(file_path.parent).lower() + "/"
+            
+            # Determine documentation type
+            doc_type = None
+            title = file_path.stem.replace("_", " ").replace("-", " ").title()
+            
+            # Check directory patterns first
+            for dir_pattern, type_name in documentation_dirs.items():
+                if dir_pattern in file_dir:
+                    doc_type = type_name
+                    break
+            
+            # Check filename patterns (order matters - more specific first)
+            if not doc_type:
+                for pattern, type_name in documentation_patterns:
+                    # Use search instead of match to allow patterns anywhere in filename
+                    if re.search(pattern, file_name):
+                        doc_type = type_name
+                        break
+            
+            # Default to making-instructions if in docs directory
+            if not doc_type and ("docs/" in file_dir or "documentation/" in file_dir):
+                doc_type = "making-instructions"
+            
+            # Skip if not identified as documentation
+            if not doc_type:
+                continue
+            
+            # Extract title from content if available
+            if file_info.content:
+                # Try to extract title from first heading
+                title_match = re.search(r'^#+\s+(.+)$', file_info.content, re.MULTILINE)
+                if title_match:
+                    title = title_match.group(1).strip()
+                # Or from first line if no heading and it looks like a title
+                elif file_info.content.strip():
+                    first_line = file_info.content.strip().split('\n')[0]
+                    # Remove markdown formatting
+                    first_line = re.sub(r'^#+\s*', '', first_line)
+                    first_line = re.sub(r'\*\*([^*]+)\*\*', r'\1', first_line)
+                    # Only use first line as title if it's very short and looks like a title
+                    # (starts with capital, single phrase, etc.)
+                    first_line_clean = first_line.strip()
+                    # Check if it looks like a title: short, starts with capital, no lowercase words in middle
+                    looks_like_title = (
+                        len(first_line_clean) <= 20 and  # Very short
+                        first_line_clean and first_line_clean[0].isupper()  # Starts with capital
+                    )
+                    if looks_like_title:
+                        title = first_line_clean
+                    # Otherwise keep filename-derived title (already set above)
+            
+            # Limit content size for very large files
+            content = file_info.content or ""
+            max_content_size = 50000  # 50KB limit
+            if len(content) > max_content_size:
+                content = content[:max_content_size] + "\n\n... (truncated)"
+            
+            documentation.append(DocumentInfo(
+                title=title,
+                path=file_info.path,
+                doc_type=doc_type,
+                content=content
+            ))
+        
+        return documentation
     
     def cleanup_all(self):
         """Clean up all temporary cloned repositories."""

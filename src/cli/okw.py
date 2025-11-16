@@ -646,7 +646,7 @@ async def delete(ctx, facility_id: str, force: bool,
         raise
 
 
-@okw_group.command()
+@okw_group.command(name="extract")
 @click.argument('facility_file', type=click.Path(exists=True))
 @standard_cli_command(
     help_text="""
@@ -665,10 +665,10 @@ async def delete(ctx, facility_id: str, force: bool,
     epilog="""
     Examples:
       # Extract capabilities from facility
-      ome okw extract-capabilities my-facility.okw.json
+      ome okw extract my-facility.okw.json
       
       # Use LLM for enhanced extraction
-      ome okw extract-capabilities my-facility.okw.json --use-llm --quality-level professional
+      ome okw extract my-facility.okw.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -712,6 +712,19 @@ async def extract_capabilities(ctx, facility_file: str,
             """Extract via HTTP API"""
             cli_ctx.log("Extracting via HTTP API...", "info")
             response = await cli_ctx.api_client.request("POST", "/api/okw/extract", json_data=request_data)
+            
+            # Handle API response structure - may be wrapped in 'data' or direct
+            if isinstance(response, dict):
+                # Check if response is wrapped in 'data' field
+                if "data" in response and isinstance(response["data"], dict):
+                    # Response wrapped in standard API format
+                    return response["data"]
+                elif "capabilities" in response:
+                    # Direct response with capabilities
+                    return response
+                else:
+                    # Try to extract from nested structure
+                    return response
             return response
         
         async def fallback_extract():
@@ -727,7 +740,15 @@ async def extract_capabilities(ctx, facility_file: str,
         result = await command.execute_with_fallback(http_extract, fallback_extract)
         
         # Display extraction results
+        # Handle both direct capabilities and wrapped response
         capabilities = result.get("capabilities", [])
+        
+        # If capabilities is not a list, try to extract from nested structure
+        if not isinstance(capabilities, list):
+            if isinstance(result, dict) and "data" in result:
+                capabilities = result["data"].get("capabilities", [])
+            else:
+                capabilities = []
         
         if capabilities:
             cli_ctx.log(f"Extracted {len(capabilities)} capabilities", "success")
@@ -736,8 +757,19 @@ async def extract_capabilities(ctx, facility_file: str,
                 output_data = format_llm_output(result, cli_ctx)
                 click.echo(output_data)
             else:
+                # Display capabilities in a readable format
+                click.echo(f"\n✅ Extracted {len(capabilities)} capabilities:\n")
                 for i, cap in enumerate(capabilities, 1):
-                    cli_ctx.log(f"{i}. {cap.get('type', 'Unknown')}: {cap.get('description', 'No description')}", "info")
+                    cap_type = cap.get('type', 'Unknown') if isinstance(cap, dict) else str(cap)
+                    cap_params = cap.get('parameters', {}) if isinstance(cap, dict) else {}
+                    cap_limitations = cap.get('limitations', {}) if isinstance(cap, dict) else {}
+                    
+                    click.echo(f"  {i}. {cap_type}")
+                    if cap_params:
+                        click.echo(f"     Parameters: {cap_params}")
+                    if cap_limitations:
+                        click.echo(f"     Limitations: {cap_limitations}")
+                    click.echo()
         else:
             cli_ctx.log("No capabilities found in facility", "info")
         

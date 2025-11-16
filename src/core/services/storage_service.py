@@ -179,25 +179,29 @@ class StorageService:
         trees = []
         count = 0
         
-        async for obj in self.manager.list_objects(prefix="supply-trees/"):
-            if offset and count < offset:
-                count += 1
-                continue
-            
-            if limit and len(trees) >= limit:
-                break
-            
-            try:
-                data = await self.manager.get_object(obj["key"])
-                tree_dict = json.loads(data.decode('utf-8'))
-                trees.append({
-                    "id": tree_dict["id"],
-                    "okh_reference": tree_dict.get("okh_reference"),
-                    "last_modified": obj["last_modified"]
-                })
-            except Exception as e:
-                logger.error(f"Failed to load supply tree from {obj['key']}: {e}")
-                continue
+        try:
+            async for obj in self.manager.list_objects(prefix="supply-trees/"):
+                if offset and count < offset:
+                    count += 1
+                    continue
+                
+                if limit and len(trees) >= limit:
+                    break
+                
+                try:
+                    data = await self.manager.get_object(obj["key"])
+                    tree_dict = json.loads(data.decode('utf-8'))
+                    trees.append({
+                        "id": tree_dict["id"],
+                        "okh_reference": tree_dict.get("okh_reference"),
+                        "last_modified": obj["last_modified"]
+                    })
+                except Exception as e:
+                    logger.error(f"Failed to load supply tree from {obj['key']}: {e}")
+                    continue
+        except Exception as e:
+            logger.error(f"Error iterating over supply trees: {e}", exc_info=True)
+            raise
         
         return trees
     

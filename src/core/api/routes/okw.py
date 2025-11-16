@@ -36,7 +36,8 @@ from ..models.okw.response import (
     OKWExtractResponse,
     OKWListResponse,
     OKWUploadResponse,
-    OKWExportResponse
+    OKWExportResponse,
+    Capability
 )
 from ...services.storage_service import StorageService
 from ...services.okw_service import OKWService
@@ -770,12 +771,128 @@ async def validate_okw(
         )
 
 @router.post("/extract", response_model=OKWExtractResponse)
-async def extract_capabilities(request: OKWExtractRequest):
-    """Extract capabilities from an OKW object"""
-    # Placeholder implementation
-    return OKWExtractResponse(
-        capabilities=[]  # Return empty list for now
-    )
+@track_performance("okw_extract_capabilities")
+async def extract_capabilities(
+    request: OKWExtractRequest,
+    http_request: Request = None
+):
+    """
+    Extract capabilities from an OKW object.
+    
+    This endpoint extracts manufacturing capabilities from OKW facility data
+    using the domain-specific extractor. The extracted capabilities can be
+    used for matching against OKH requirements.
+    
+    Args:
+        request: OKW extract request containing facility data
+        http_request: HTTP request object
+        
+    Returns:
+        OKWExtractResponse with extracted capabilities
+        
+    Raises:
+        HTTPException: If extraction fails or data is invalid
+    """
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.now()
+    
+    try:
+        # Get domain extractor from registry
+        from ...registry.domain_registry import DomainRegistry
+        
+        # Determine domain (default to manufacturing for OKW)
+        domain = "manufacturing"
+        
+        # Get extractor for domain
+        extractor = DomainRegistry.get_extractor(domain)
+        
+        # Extract capabilities using extractor
+        extraction_result = extractor.extract_capabilities(request.content)
+        
+        # Check if extraction was successful
+        if not extraction_result.data:
+            logger.warning(
+                f"Extraction returned no data for OKW content",
+                extra={"request_id": request_id}
+            )
+            return OKWExtractResponse(capabilities=[])
+        
+        # Extract capabilities from normalized data
+        normalized_capabilities = extraction_result.data
+        capabilities_list = []
+        
+        # Convert NormalizedCapabilities to List[Capability]
+        # The content field contains the capabilities
+        if hasattr(normalized_capabilities, 'content'):
+            content = normalized_capabilities.content
+            
+            # Extract capabilities array
+            if isinstance(content, dict):
+                capabilities_data = content.get('capabilities', [])
+                
+                # Convert to Capability objects
+                for cap_data in capabilities_data:
+                    if isinstance(cap_data, dict):
+                        # Capability model only has type, parameters, limitations (no name field)
+                        capability = Capability(
+                            type=cap_data.get('process_name', cap_data.get('name', cap_data.get('type', 'process'))),
+                            parameters=cap_data.get('parameters', {}),
+                            limitations=cap_data.get('limitations', {})
+                        )
+                        capabilities_list.append(capability)
+                    elif isinstance(cap_data, Capability):
+                        # Already a Capability object
+                        capabilities_list.append(cap_data)
+        
+        # Calculate processing time
+        processing_time = (datetime.now() - start_time).total_seconds()
+        
+        logger.info(
+            f"Extracted {len(capabilities_list)} capabilities from OKW content",
+            extra={
+                "request_id": request_id,
+                "capability_count": len(capabilities_list),
+                "processing_time": processing_time
+            }
+        )
+        
+        return OKWExtractResponse(capabilities=capabilities_list)
+        
+    except ValueError as e:
+        # Invalid domain or extractor not found
+        error_response = create_error_response(
+            error=f"Invalid domain or extractor not available: {str(e)}",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            request_id=request_id,
+            suggestion="Please check the domain configuration"
+        )
+        logger.error(
+            f"Extraction failed: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error_response.model_dump(mode='json')
+        )
+        
+    except Exception as e:
+        # Generic error handling
+        error_response = create_error_response(
+            error=f"Failed to extract capabilities: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please check the OKW content format and try again"
+        )
+        logger.error(
+            f"Extraction error: {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )
 
 @router.post("/upload", response_model=OKWUploadResponse, status_code=status.HTTP_201_CREATED)
 async def upload_okw_file(

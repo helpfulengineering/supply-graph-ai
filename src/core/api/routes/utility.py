@@ -82,23 +82,29 @@ async def get_domains(
     start_time = datetime.now()
     
     try:
-        # Placeholder implementation
-        domains = [
-            Domain(
-                id="manufacturing",
-                name="Manufacturing Domain",
-                description="Hardware manufacturing capabilities"
-            ),
-            Domain(
-                id="cooking",
-                name="Cooking Domain",
-                description="Food preparation capabilities"
+        # Get domains from DomainRegistry
+        from ...registry.domain_registry import DomainRegistry
+        
+        # Get all domain metadata
+        all_metadata = DomainRegistry.get_all_metadata(include_disabled=False)
+        
+        # Convert to Domain objects
+        domains = []
+        for domain_name, metadata in all_metadata.items():
+            domain = Domain(
+                id=metadata.name,
+                name=metadata.display_name,
+                description=metadata.description
             )
-        ]
+            domains.append(domain)
         
         # Apply name filter if provided
         if filter_params.name:
-            domains = [d for d in domains if filter_params.name.lower() in d.name.lower()]
+            domains = [
+                d for d in domains 
+                if filter_params.name.lower() in d.name.lower() or 
+                   filter_params.name.lower() in d.id.lower()
+            ]
         
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -181,39 +187,56 @@ async def get_contexts(
     start_time = datetime.now()
     
     try:
-        # Placeholder implementation
-        if domain == "manufacturing":
-            contexts = [
-                Context(
-                    id="hobby",
-                    name="Hobby Manufacturing",
-                    description="Non-commercial, limited quality requirements"
-                ),
-                Context(
-                    id="professional",
-                    name="Professional Manufacturing",
-                    description="Commercial-grade production"
-                )
-            ]
-        elif domain == "cooking":
-            contexts = [
-                Context(
-                    id="home",
-                    name="Home Cooking",
-                    description="Basic home kitchen capabilities"
-                ),
-                Context(
-                    id="commercial",
-                    name="Commercial Kitchen",
-                    description="Professional kitchen capabilities"
-                )
-            ]
-        else:
-            contexts = []
+        # Validate domain exists
+        from ...registry.domain_registry import DomainRegistry
+        
+        try:
+            domain_metadata = DomainRegistry.get_domain_metadata(domain)
+        except ValueError:
+            error_response = create_error_response(
+                error=f"Domain '{domain}' not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion=f"Available domains: {', '.join(DomainRegistry.list_domains())}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Get contexts based on validation framework quality levels
+        # Quality levels map to contexts per domain
+        quality_levels_map = {
+            "manufacturing": ["hobby", "professional", "medical"],
+            "cooking": ["home", "commercial", "professional"]
+        }
+        
+        # Get quality levels for this domain, default to professional if unknown
+        quality_levels = quality_levels_map.get(domain, ["professional"])
+        
+        contexts = []
+        for level in quality_levels:
+            # Map quality level to context
+            context_id = level
+            # Create context name from quality level and domain
+            context_name = level.title() + " " + domain_metadata.display_name.split()[0]
+            # Create context description
+            context_description = f"{level.title()} level validation and matching for {domain_metadata.display_name}"
+            
+            context = Context(
+                id=context_id,
+                name=context_name,
+                description=context_description
+            )
+            contexts.append(context)
         
         # Apply name filter if provided
         if filter_params.name:
-            contexts = [c for c in contexts if filter_params.name.lower() in c.name.lower()]
+            contexts = [
+                c for c in contexts 
+                if filter_params.name.lower() in c.name.lower() or 
+                   filter_params.name.lower() in c.id.lower()
+            ]
         
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -243,6 +266,8 @@ async def get_contexts(
             validation_results=await _validate_utility_result(contexts, request_id)
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         # Use standardized error handler
         error_response = create_error_response(
