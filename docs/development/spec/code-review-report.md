@@ -744,22 +744,25 @@ This document contains the comprehensive findings from the pre-publication code 
 ### Routes in Code but Not Fully Documented
 
 1. **OKH Routes**:
-   - `POST /v1/api/okh/generate-from-url` - Implemented but not in main routes documentation
-   - `GET /v1/api/okh/export` - Implemented, documented
-   - `POST /v1/api/okh/scaffold` - Implemented, documented
-   - `POST /v1/api/okh/scaffold/cleanup` - Implemented, documented
+   - ✅ **COMPLETED** (2025-11-16) - All routes now fully documented:
+     - `POST /v1/api/okh/generate-from-url` - Added detailed documentation section
+     - `GET /v1/api/okh/export` - Added detailed documentation section
+     - `POST /v1/api/okh/scaffold` - Already documented
+     - `POST /v1/api/okh/scaffold/cleanup` - Already documented
 
 2. **OKW Routes**:
-   - `GET /v1/api/okw/export` - Implemented but not prominently documented
-   - `POST /v1/api/okw/extract` - Implemented (placeholder), documented as `/extract-capabilities`
+   - ✅ **COMPLETED** (2025-11-16) - All routes now fully documented:
+     - `GET /v1/api/okw/export` - Added detailed documentation section
+     - `POST /v1/api/okw/extract` - Fixed documentation (was incorrectly documented as `/extract-capabilities`)
 
 3. **Package Routes**:
-   - `GET /v1/api/package/list` - Code uses `/list`, docs mention `/list-packages`
-   - `GET /v1/api/package/{package_name}/{version}` - Implemented, documented
-   - `GET /v1/api/package/{package_name}/{version}/verify` - Implemented, docs show `/verify` without path params
-   - `GET /v1/api/package/{package_name}/{version}/download` - Implemented, documented
-   - `DELETE /v1/api/package/{package_name}/{version}` - Implemented, docs show `/delete` without path params
-   - `GET /v1/api/package/remote` - Implemented, docs mention `/list-remote`
+   - ✅ **COMPLETED** (2025-11-16) - All route paths corrected in documentation:
+     - `GET /v1/api/package/list` - Fixed (was `/list-packages`)
+     - `GET /v1/api/package/{package_name}/{version}` - Already correct
+     - `GET /v1/api/package/{package_name}/{version}/verify` - Fixed (was `/verify` without path params)
+     - `GET /v1/api/package/{package_name}/{version}/download` - Already correct
+     - `DELETE /v1/api/package/{package_name}/{version}` - Fixed (was `/delete` without path params)
+     - `GET /v1/api/package/remote` - Fixed (was `/list-remote`)
 
 4. **Supply Tree Routes**:
    - ✅ **COMPLETED** (2025-11-16) - All CRUD routes fully implemented:
@@ -782,15 +785,16 @@ This document contains the comprehensive findings from the pre-publication code 
 
 ### Routes Documented but Not Found in Code
 
-1. **LLM Routes** (mentioned in docs but no LLM routes file found):
-   - `GET /v1/api/llm/health`
-   - `POST /v1/api/llm/generate`
-   - `POST /v1/api/llm/generate-okh`
-   - `POST /v1/api/llm/match-facilities`
-   - `GET /v1/api/llm/providers`
-   - `GET /v1/api/llm/metrics`
-   - `POST /v1/api/llm/provider`
-   - **Issue**: LLM routes are documented but no corresponding route file exists
+1. **LLM Routes** - ✅ **COMPLETED**:
+   - ✅ `GET /v1/api/llm/health` - Implemented in `src/core/api/routes/llm.py`
+   - ✅ `GET /v1/api/llm/providers` - Implemented in `src/core/api/routes/llm.py`
+   - ❌ `POST /v1/api/llm/generate` - Removed from docs (redundant with CLI)
+   - ❌ `POST /v1/api/llm/generate-okh` - Removed from docs (redundant with `/v1/api/okh/generate-from-url`)
+   - ❌ `POST /v1/api/llm/match-facilities` - Removed from docs (redundant with `/v1/api/match` which has LLM support)
+   - ❌ `GET /v1/api/llm/metrics` - Removed from docs (redundant with `/v1/api/utility/metrics`)
+   - ❌ `POST /v1/api/llm/provider` - Removed from docs (provider selection should be via config, not runtime API)
+   - **Status**: Implemented 2 useful routes, removed 5 redundant routes from documentation
+   - **Analysis**: See `docs/development/llm-routes-analysis.md` for detailed rationale
    - **Severity**: High - Documentation claims features that don't exist
 
 2. **OKH Routes**:

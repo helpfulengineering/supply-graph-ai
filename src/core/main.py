@@ -11,6 +11,7 @@ from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.api.routes.package import router as package_router
+from src.core.api.routes.llm import router as llm_router
 
 # Import new standardized API components
 from src.core.api.error_handlers import (
@@ -142,6 +143,7 @@ api_v1.include_router(okw_router, prefix="/api/okw", tags=["okw"])
 api_v1.include_router(supply_tree_router, tags=["supply-tree"])  # Already has /api/supply-tree prefix
 api_v1.include_router(utility_router, tags=["utility"])  # Already has /api/utility prefix
 api_v1.include_router(package_router, tags=["package"])  # Already has /api/package prefix
+api_v1.include_router(llm_router, tags=["llm"])  # Already has /api/llm prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

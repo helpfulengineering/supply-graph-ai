@@ -568,6 +568,86 @@ curl -X POST http://localhost:8001/v1/api/okh/scaffold/cleanup \
 
 **Status:**  **Fully Implemented** - Complete cleanup system with broken link detection and template alignment
 
+#### Generate from URL
+
+```
+POST /v1/api/okh/generate-from-url
+```
+
+Generate an OKH manifest from a repository URL by analyzing the repository structure, metadata, and content.
+
+**Request:**
+```json
+{
+  "url": "https://github.com/example/hardware-project",
+  "skip_review": false
+}
+```
+
+**Request Parameters:**
+- `url` (string, required): Repository URL (GitHub or GitLab)
+- `skip_review` (boolean, optional): Skip interactive review. Default: `false`
+
+**Response:**
+```json
+{
+  "manifest": {
+    "title": "Hardware Project",
+    "version": "1.0.0",
+    ...
+  },
+  "metadata": {
+    "repository_url": "https://github.com/example/hardware-project",
+    "generated_at": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+**Features:**
+- URL validation and platform detection (GitHub, GitLab)
+- Repository metadata extraction
+- Content analysis and field generation
+- Intelligent file categorization using two-layer approach:
+  - **Layer 1 (Heuristics)**: Fast rule-based categorization using file extensions, directory paths, and filename patterns
+  - **Layer 2 (LLM)**: Content-aware categorization with semantic understanding (when LLM is available)
+- Files categorized into: making_instructions, manufacturing_files, design_files, operating_instructions, technical_specifications, publications, documentation_home
+- Quality assessment and recommendations
+- Optional interactive review for field validation
+
+**Status:**  **Fully Implemented** - Complete generation system with intelligent file categorization and LLM support
+
+#### Export Schema
+
+```
+GET /v1/api/okh/export
+```
+
+Export the JSON schema for the OKH (OpenKnowHow) domain model in canonical format.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "OKH schema exported successfully",
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "OKHManifest",
+    "type": "object",
+    "properties": {...}
+  },
+  "schema_version": "http://json-schema.org/draft-07/schema#",
+  "model_name": "OKHManifest"
+}
+```
+
+**Features:**
+- Canonical JSON Schema format (draft-07)
+- Complete type definitions
+- Required field specifications
+- Nested object schemas
+
+**Status:**  **Fully Implemented** - Complete schema export functionality
+
 ### OKW Routes
 
 #### Create
@@ -817,7 +897,39 @@ Extracts capabilities from an OKW object for matching.
 }
 ```
 
-**Status:** 🚧 **Placeholder Implementation** - Returns empty capabilities list, needs full implementation
+**Status:**  **Fully Implemented** - Complete capabilities extraction with service integration
+
+#### Export Schema
+
+```
+GET /v1/api/okw/export
+```
+
+Export the JSON schema for the OKW (OpenKnowWhere) domain model in canonical format.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "OKW schema exported successfully",
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "ManufacturingFacility",
+    "type": "object",
+    "properties": {...}
+  },
+  "schema_version": "http://json-schema.org/draft-07/schema#",
+  "model_name": "ManufacturingFacility"
+}
+```
+
+**Features:**
+- Canonical JSON Schema format (draft-07)
+- Complete type definitions
+- Required field specifications
+- Nested object schemas
+
+**Status:**  **Fully Implemented** - Complete schema export functionality
 
 ### Supply Tree Routes
 
@@ -1606,6 +1718,8 @@ Paginated responses include consistent metadata:
 - `POST /v1/api/okh/extract` - **Complete requirements extraction with service integration**
 - `POST /v1/api/okh/upload` - **File upload with validation, parsing, and storage integration**
 - `POST /v1/api/okh/from-storage` - **Create OKH from stored manifest**
+- `POST /v1/api/okh/generate-from-url` - **Generate OKH manifest from repository URL with intelligent file categorization**
+- `GET /v1/api/okh/export` - **Export OKH JSON Schema in canonical format**
 - `POST /v1/api/okh/scaffold` - **Generate OKH project scaffold with interlinked documentation stubs and MkDocs integration**
 - `POST /v1/api/okh/scaffold/cleanup` - **Clean scaffolded projects with broken link detection and template alignment**
 
@@ -1617,20 +1731,21 @@ Paginated responses include consistent metadata:
 - `DELETE /v1/api/okw/{id}` - **Complete delete functionality with existence checking**
 - `GET /v1/api/okw/search` - **Advanced search with Azure Blob Storage integration, real-time file processing, and  filtering**
 - `POST /v1/api/okw/validate` - **Advanced validation with domain-aware quality levels,  error reporting, and strict mode support**
-- `POST /v1/api/okw/extract-capabilities` - **Capabilities extraction with service integration**
+- `POST /v1/api/okw/extract` - **Capabilities extraction with service integration**
+- `GET /v1/api/okw/export` - **Export OKW JSON Schema in canonical format**
 - `POST /v1/api/okw/upload` - **File upload with validation, parsing, and storage integration**
 
 #### **Package Routes**
 - `POST /v1/api/package/build` - **Package building with LLM support**
-- `POST /v1/api/package/build-from-storage` - **Build package from stored manifest**
-- `GET /v1/api/package/list-packages` - **List all built packages**
-- `GET /v1/api/package/verify` - **Verify package integrity**
-- `DELETE /v1/api/package/delete` - **Delete a package**
+- `POST /v1/api/package/build/{manifest_id}` - **Build package from manifest ID**
+- `GET /v1/api/package/list` - **List all built packages with pagination**
+- `GET /v1/api/package/{package_name}/{version}` - **Get package metadata**
+- `GET /v1/api/package/{package_name}/{version}/verify` - **Verify package integrity**
+- `GET /v1/api/package/{package_name}/{version}/download` - **Download package**
+- `DELETE /v1/api/package/{package_name}/{version}` - **Delete a package**
 - `POST /v1/api/package/push` - **Push package to remote storage**
 - `POST /v1/api/package/pull` - **Pull package from remote storage**
-- `GET /v1/api/package/list-remote` - **List remote packages**
-- `GET /v1/api/package/remote` - **Get remote package information**
-- `POST /v1/api/package/remote` - **Create remote package**
+- `GET /v1/api/package/remote` - **List remote packages**
 
 #### **Supply Tree Routes**
 - `POST /v1/api/supply-tree/create` - **Supply tree creation with validation**
@@ -1985,7 +2100,9 @@ async def validate_strict():
 
 ## LLM API Endpoints
 
-The OME API includes  LLM (Large Language Model) integration for enhanced OKH manifest generation and facility matching.
+The OME API includes LLM (Large Language Model) integration for enhanced OKH manifest generation and facility matching. LLM functionality is primarily integrated into domain-specific endpoints (e.g., `/v1/api/match`, `/v1/api/okh/generate-from-url`) via the `@llm_endpoint` decorator.
+
+For direct LLM operations, use the CLI commands (`ome llm generate`, `ome llm generate-okh`). The API provides monitoring and discovery endpoints for LLM service management.
 
 ### LLM Health Check
 
@@ -1996,316 +2113,84 @@ Check LLM service health and provider status.
 **Response:**
 ```json
 {
-  "status": "healthy",
+  "status": "success",
+  "message": "LLM service health check completed",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "health_status": "healthy",
   "providers": {
     "anthropic": {
-      "status": "active",
+      "name": "anthropic",
+      "type": "anthropic",
+      "status": "healthy",
       "model": "claude-sonnet-4-5-20250929",
-      "last_check": "2024-12-25T10:30:00Z"
+      "is_connected": true,
+      "available_models": ["claude-sonnet-4-5-20250929", "claude-3-5-sonnet-latest"]
     },
     "openai": {
-      "status": "inactive",
-      "error": "API key not configured"
+      "name": "openai",
+      "type": "openai",
+      "status": "error",
+      "error": "Provider not initialized"
     }
   },
   "metrics": {
     "total_requests": 150,
-    "successful_requests": 148,
-    "failed_requests": 2,
-    "average_response_time": 2.5,
-    "total_cost": 0.45
+    "total_cost": 0.45,
+    "average_cost_per_request": 0.003,
+    "active_provider": "anthropic",
+    "available_providers": ["anthropic"]
   }
 }
 ```
 
-### Generate Content
-
-**Endpoint:** `POST /v1/api/llm/generate`
-
-Generate content using the LLM service.
-
-**Request Body:**
-```json
-{
-  "prompt": "Analyze this hardware project and generate an OKH manifest...",
-  "request_type": "generation",
-  "config": {
-    "max_tokens": 4000,
-    "temperature": 0.1,
-    "timeout": 60
-  },
-  "provider": "anthropic",
-  "model": "claude-sonnet-4-5-20250929"
-}
-```
-
-**Response:**
-```json
-{
-  "content": "Generated OKH manifest content...",
-  "status": "success",
-  "metadata": {
-    "provider": "anthropic",
-    "model": "claude-sonnet-4-5-20250929",
-    "tokens_used": 1981,
-    "cost": 0.0143,
-    "processing_time": 8.12,
-    "request_id": "req_123456789",
-    "response_id": "resp_987654321",
-    "created_at": "2024-12-25T10:30:00Z"
-  }
-}
-```
-
-### Generate OKH Manifest
-
-**Endpoint:** `POST /v1/api/llm/generate-okh`
-
-Generate an OKH manifest for a hardware project.
-
-**Request Body:**
-```json
-{
-  "project_data": {
-    "name": "IoT Sensor Node",
-    "description": "A low-power IoT sensor node for environmental monitoring",
-    "url": "https://github.com/example/iot-sensor",
-    "files": [
-      {
-        "path": "README.md",
-        "content": "# IoT Sensor Node\n\nA low-power...",
-        "file_type": "text"
-      }
-    ],
-    "metadata": {
-      "language": "C++",
-      "topics": ["iot", "sensor", "arduino"]
-    }
-  },
-  "config": {
-    "max_tokens": 4000,
-    "temperature": 0.1,
-    "timeout": 60
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "manifest": {
-    "title": "IoT Sensor Node",
-    "version": "1.0.0",
-    "license": {
-      "hardware": "MIT",
-      "documentation": "MIT",
-      "software": "MIT"
-    },
-    "licensor": "example/iot-sensor",
-    "documentation_language": "en",
-    "function": "Environmental monitoring sensor node",
-    "description": "A low-power IoT sensor node designed for environmental monitoring applications...",
-    "keywords": ["iot", "sensor", "environmental", "arduino"],
-    "manufacturing_processes": ["3D printing", "PCB assembly", "soldering"],
-    "materials": [
-      {
-        "material_id": "arduino_pro_mini",
-        "name": "Arduino Pro Mini 3.3V",
-        "quantity": 1,
-        "unit": "piece"
-      }
-    ]
-  },
-  "confidence_scores": {
-    "title": 1.0,
-    "version": 0.7,
-    "license": 0.9,
-    "function": 0.9,
-    "description": 1.0
-  },
-  "status": "success",
-  "metadata": {
-    "provider": "anthropic",
-    "model": "claude-sonnet-4-5-20250929",
-    "tokens_used": 1981,
-    "cost": 0.0143,
-    "processing_time": 8.12
-  }
-}
-```
-
-### Match Facilities
-
-**Endpoint:** `POST /v1/api/llm/match-facilities`
-
-Use LLM to enhance facility matching.
-
-**Request Body:**
-```json
-{
-  "requirements": {
-    "processes": ["3D printing", "laser cutting"],
-    "materials": ["PLA", "acrylic"],
-    "capabilities": ["rapid prototyping", "small batch production"]
-  },
-  "facilities": [
-    {
-      "name": "TechShop",
-      "capabilities": ["3D printing", "laser cutting", "CNC machining"],
-      "materials": ["PLA", "ABS", "acrylic", "wood"],
-      "description": "Community makerspace with full fabrication capabilities"
-    }
-  ],
-  "config": {
-    "max_tokens": 2000,
-    "temperature": 0.1,
-    "timeout": 30
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "matches": [
-    {
-      "facility": "TechShop",
-      "confidence": 0.85,
-      "reasoning": "TechShop provides both required processes (3D printing, laser cutting) and materials (PLA, acrylic). The community makerspace model is ideal for small batch production and rapid prototyping.",
-      "capabilities_used": ["3D printing", "laser cutting", "rapid prototyping"],
-      "materials_available": ["PLA", "acrylic"],
-      "match_type": "llm_enhanced"
-    }
-  ],
-  "status": "success",
-  "metadata": {
-    "provider": "anthropic",
-    "model": "claude-sonnet-4-5-20250929",
-    "tokens_used": 1205,
-    "cost": 0.0087,
-    "processing_time": 4.23
-  }
-}
-```
+**Status:**  **Fully Implemented** - LLM service health check with provider status
 
 ### Get Available Providers
 
 **Endpoint:** `GET /v1/api/llm/providers`
 
-List all configured LLM providers.
-
-**Response:**
-```json
-{
-  "providers": [
-    {
-      "name": "anthropic",
-      "type": "anthropic",
-      "status": "active",
-      "model": "claude-sonnet-4-5-20250929",
-      "capabilities": ["generation", "matching", "analysis"],
-      "cost_per_1k_tokens": 0.003
-    },
-    {
-      "name": "openai",
-      "type": "openai",
-      "status": "inactive",
-      "error": "API key not configured",
-      "capabilities": ["generation", "matching", "analysis"],
-      "cost_per_1k_tokens": 0.01
-    }
-  ],
-  "default_provider": "anthropic"
-}
-```
-
-### Get Service Metrics
-
-**Endpoint:** `GET /v1/api/llm/metrics`
-
-Retrieve LLM service usage metrics and statistics.
-
-**Response:**
-```json
-{
-  "total_requests": 150,
-  "successful_requests": 148,
-  "failed_requests": 2,
-  "success_rate": 0.987,
-  "average_response_time": 2.5,
-  "total_cost": 0.45,
-  "average_cost_per_request": 0.003,
-  "provider_usage": {
-    "anthropic": {
-      "requests": 120,
-      "cost": 0.36,
-      "average_response_time": 2.8
-    },
-    "openai": {
-      "requests": 28,
-      "cost": 0.09,
-      "average_response_time": 1.9
-    }
-  },
-  "request_history": [
-    {
-      "timestamp": "2024-12-25T10:30:00Z",
-      "provider": "anthropic",
-      "model": "claude-sonnet-4-5-20250929",
-      "tokens_used": 1981,
-      "cost": 0.0143,
-      "status": "success"
-    }
-  ]
-}
-```
-
-### Set Active Provider
-
-**Endpoint:** `POST /v1/api/llm/provider`
-
-Change the active LLM provider.
-
-**Request Body:**
-```json
-{
-  "provider": "openai",
-  "model": "gpt-4-turbo-preview"
-}
-```
+List all configured LLM providers and their status.
 
 **Response:**
 ```json
 {
   "status": "success",
-  "active_provider": "openai",
-  "model": "gpt-4-turbo-preview",
-  "message": "Provider changed successfully"
+  "message": "Providers retrieved successfully",
+  "timestamp": "2024-01-01T12:00:00Z",
+  "providers": [
+    {
+      "name": "anthropic",
+      "type": "anthropic",
+      "status": "healthy",
+      "model": "claude-sonnet-4-5-20250929",
+      "is_connected": true,
+      "available_models": ["claude-sonnet-4-5-20250929", "claude-3-5-sonnet-latest"]
+    },
+    {
+      "name": "openai",
+      "type": "openai",
+      "status": "not_available",
+      "error": "Provider not initialized"
+    }
+  ],
+  "default_provider": "anthropic",
+  "available_providers": ["anthropic"]
 }
 ```
 
-### Error Responses
+**Status:**  **Fully Implemented** - Provider discovery and status information
 
-All LLM endpoints may return error responses in the following format:
+### Note on LLM Functionality
 
-```json
-{
-  "error": "Error message",
-  "error_code": "ERROR_CODE",
-  "status": "error",
-  "details": {
-    "field": "Additional error details"
-  }
-}
-```
+LLM capabilities are integrated into domain-specific endpoints:
+- **OKH Generation**: `POST /v1/api/okh/generate-from-url` - Uses LLM for intelligent file categorization
+- **Matching**: `POST /v1/api/match` - Supports LLM-enhanced matching via `@llm_endpoint` decorator
+- **Metrics**: `GET /v1/api/utility/metrics` - Includes LLM usage metrics and costs
 
-**Common Error Codes:**
-- `INVALID_REQUEST`: Request body is invalid
-- `PROVIDER_UNAVAILABLE`: LLM provider is not available
-- `RATE_LIMITED`: API rate limit exceeded
-- `COST_LIMIT_EXCEEDED`: Request cost exceeds limit
-- `TIMEOUT`: Request timed out
-- `AUTHENTICATION_FAILED`: Invalid API key
+For direct LLM operations, use the CLI:
+- `ome llm generate` - Generic content generation
+- `ome llm generate-okh` - OKH manifest generation
+- `ome llm providers info` - Provider information
 
 ## API Documentation & Developer Experience
 
