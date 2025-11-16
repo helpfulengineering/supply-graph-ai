@@ -25,6 +25,7 @@ from ..models.utility.response import (
     Context
 )
 from ...utils.logging import get_logger
+from ...errors.metrics import get_metrics_tracker
 
 # Set up logging
 logger = get_logger(__name__)
@@ -315,3 +316,68 @@ async def _validate_utility_result(
             exc_info=True
         )
         return []
+
+
+@router.get(
+    "/metrics",
+    summary="Get System Metrics",
+    description="""
+    Get system metrics including request tracking, performance, and LLM usage.
+    
+    This endpoint provides access to the MetricsTracker data, including:
+    - Overall request statistics
+    - Endpoint-level metrics
+    - Error summaries
+    - Performance metrics
+    - LLM usage and costs
+    
+    Args:
+        endpoint: Optional endpoint filter (format: "METHOD /path")
+        summary: If True, return summary only; if False, return detailed metrics
+    """
+)
+@api_endpoint(
+    success_message="Metrics retrieved successfully",
+    include_metrics=False  # Don't track metrics for the metrics endpoint itself
+)
+async def get_metrics(
+    endpoint: Optional[str] = None,
+    summary: bool = True,
+    http_request: Request = None
+):
+    """
+    Get system metrics.
+    
+    Args:
+        endpoint: Optional endpoint filter (format: "METHOD /path")
+        summary: If True, return summary; if False, return detailed metrics
+    """
+    try:
+        tracker = get_metrics_tracker()
+        
+        if endpoint:
+            # Parse endpoint format: "METHOD /path"
+            parts = endpoint.split(" ", 1)
+            if len(parts) != 2:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Endpoint format must be 'METHOD /path'"
+                )
+            method, path = parts
+            return tracker.get_endpoint_metrics(method=method, path=path)
+        
+        if summary:
+            return tracker.get_summary()
+        
+        return {
+            "summary": tracker.get_summary(),
+            "endpoints": tracker.get_endpoint_metrics()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving metrics: {str(e)}"
+        )

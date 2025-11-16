@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from datetime import datetime
 
 from ..utils.logging import get_logger
-# from ..errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
+from ..errors.metrics import MetricsTracker
 
 # Set up logging
 logger = get_logger(__name__)
@@ -23,7 +23,7 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app, metrics_tracker=None):
         super().__init__(app)
-        self.metrics_tracker = metrics_tracker  # TODO: Implement MetricsTracker
+        self.metrics_tracker = metrics_tracker
     
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Process request with tracking and metrics."""
@@ -125,7 +125,7 @@ class LLMRequestMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app, metrics_tracker=None):
         super().__init__(app)
-        self.metrics_tracker = metrics_tracker  # TODO: Implement MetricsTracker
+        self.metrics_tracker = metrics_tracker
     
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         """Process request with LLM tracking."""

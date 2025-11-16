@@ -23,7 +23,8 @@ from .models.base import (
     PaginationParams
 )
 from .error_handlers import create_error_response, create_success_response
-# from ..errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
+# MetricsTracker is available but not currently used in decorators
+# from ..errors.metrics import MetricsTracker
 from ..utils.logging import get_logger
 
 # Set up logging

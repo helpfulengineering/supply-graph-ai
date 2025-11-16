@@ -19,7 +19,7 @@ from src.core.api.error_handlers import (
     general_exception_handler
 )
 from src.core.api.middleware import setup_api_middleware
-# from src.core.errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
+from src.core.errors.metrics import get_metrics_tracker
 from src.core.api.dependencies import get_current_user, get_optional_user
 
 from src.core.domains.cooking.extractors import CookingExtractor
@@ -91,8 +91,8 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Set up API middleware
-# metrics_tracker = MetricsTracker()  # TODO: Implement MetricsTracker
-setup_api_middleware(app, None)
+metrics_tracker = get_metrics_tracker()
+setup_api_middleware(app, metrics_tracker)
 
 # Add CORS middleware
 app.add_middleware(
