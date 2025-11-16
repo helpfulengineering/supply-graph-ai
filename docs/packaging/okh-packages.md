@@ -110,7 +110,7 @@ You can also build packages programmatically using the FastAPI endpoints:
 import httpx
 
 # Build from manifest data
-response = httpx.post("http://localhost:8000/v1/api/package/build", json={
+response = httpx.post("http://localhost:8001/v1/api/package/build", json={
     "manifest": manifest_data,
     "options": {
         "include_design_files": True,
@@ -120,7 +120,7 @@ response = httpx.post("http://localhost:8000/v1/api/package/build", json={
 })
 
 # Build from stored manifest
-response = httpx.post("http://localhost:8000/v1/api/package/build/a736334a-efd3-4745-a59f-a386ba4abdeb")
+response = httpx.post("http://localhost:8001/v1/api/package/build/a736334a-efd3-4745-a59f-a386ba4abdeb")
 ```
 
 ## Package Management

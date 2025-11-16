@@ -1371,7 +1371,7 @@ ome okh validate manifest.json --use-llm --quality-level professional --strict-m
 ome system health
 
 # Try with different server URL
-ome --server-url http://localhost:8000 system health
+ome --server-url http://localhost:8001 system health
 ```
 
 #### 2. Package Build Failures

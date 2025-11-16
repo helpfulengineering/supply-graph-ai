@@ -202,4 +202,5 @@ async def cleanup_resources():
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    from src.config.settings import API_HOST, API_PORT, DEBUG
+    uvicorn.run("main:app", host=API_HOST, port=API_PORT, reload=DEBUG)

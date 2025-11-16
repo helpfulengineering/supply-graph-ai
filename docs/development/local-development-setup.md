@@ -117,7 +117,7 @@ The `local.settings.json` file should look like this:
   "Values": {
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "Azure_Storage_ServiceName": "https://projectdatablobstorage.blob.core.windows.net",
+    "Azure_Storage_ServiceName": "${AZURE_STORAGE_SERVICE_NAME}",
     "Azure_Storage_OKH_ContainerName": "okh",
     "Azure_Storage_OKW_ContainerName": "okw"
   },
@@ -230,12 +230,12 @@ The frontend uses Nuxt's runtime configuration. Key settings in `nuxt.config.ts`
 runtimeConfig: {
   public: {
     baseUrl: process.env.BACKEND_URL || 'http://127.0.0.1:7071/api',
-    supplyGraphAiUrl: process.env.SUPPLY_GRAPH_AI_URL || 'http://localhost:8081'
+    supplyGraphAiUrl: process.env.SUPPLY_GRAPH_AI_URL || 'http://localhost:8001'
   }
 }
 ```
 
-**Note**: There's a port mismatch in the configuration. The frontend components use port 8001, but the config defaults to 8081. This should be standardized to 8001.
+**Note**: The API server runs on port 8001 by default. This matches the CLI default and Docker compose configuration.
 
 #### Supply Graph AI Configuration
 The server can be configured using environment variables:

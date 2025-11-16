@@ -153,12 +153,21 @@ For container deployment guides, see the [Container Guide](docs/development/cont
 # Our current working OKH and OKW libraries
 Our current OKH and OKW libraries are implemented as publicly accessible Azure blob containers:
 
-    "Azure_Storage_ServiceName": "https://projdatablobstorage.blob.core.windows.net",
-    "Azure_Storage_OKH_ContainerName": "okh",
-    "Azure_Storage_OKW_ContainerName": "okw"
-These OKHs and OKWs are taken from our repo: https://github.com/helpfulengineering/library.
+    "Azure_Storage_ServiceName": "${AZURE_STORAGE_SERVICE_NAME}",
+    "Azure_Storage_OKH_ContainerName": "${AZURE_STORAGE_OKH_CONTAINER_NAME:-okh}",
+    "Azure_Storage_OKW_ContainerName": "${AZURE_STORAGE_OKW_CONTAINER_NAME:-okw}"
 
-Helpful created its own OKW template, and added an extenstion to OKH, both of which are defined here: https://github.com/helpfulengineering/OKF-Schema
+These OKHs and OKWs are taken from our repo: ${OKH_LIBRARY_REPO_URL:-https://github.com/example/library}.
+
+Example OKW template and OKH extensions are defined here: ${OKF_SCHEMA_REPO_URL:-https://github.com/example/OKF-Schema}
 
 We are currently working with the Internet of Production Alliance (IoPA) to unify these extensions with their official schemas.
+
+**Configuration:**
+Set the following environment variables:
+- `AZURE_STORAGE_SERVICE_NAME`: Azure storage service URL
+- `AZURE_STORAGE_OKH_CONTAINER_NAME`: OKH container name (default: okh)
+- `AZURE_STORAGE_OKW_CONTAINER_NAME`: OKW container name (default: okw)
+- `OKH_LIBRARY_REPO_URL`: Repository URL for OKH library (optional)
+- `OKF_SCHEMA_REPO_URL`: Repository URL for OKF schema (optional)
 

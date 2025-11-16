@@ -30,7 +30,10 @@ class CLIConfig:
     """CLI configuration management with LLM support"""
     
     def __init__(self):
-        self.server_url = "http://localhost:8001"
+        import os
+        # Allow environment variable override
+        default_server_url = os.getenv("OME_SERVER_URL", "http://localhost:8001")
+        self.server_url = default_server_url
         self.timeout = 120.0
         self.retry_attempts = 3
         self.verbose = False

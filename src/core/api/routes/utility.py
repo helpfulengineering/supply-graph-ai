@@ -9,7 +9,9 @@ from ..models.base import (
 from ..decorators import (
     api_endpoint,
     track_performance,
-    llm_endpoint
+    llm_endpoint,
+    cache_response,
+    rate_limit
 )
 from ..error_handlers import create_error_response, create_success_response
 
@@ -45,7 +47,6 @@ router = APIRouter(
 
 @router.get(
     "/domains", 
-    response_model=DomainsResponse,
     summary="List Available Domains",
     description="""
     Get a list of available domains with enhanced capabilities.
@@ -56,8 +57,16 @@ router = APIRouter(
     - Performance metrics
     - LLM integration support
     - Validation
+    - Response caching (5 minutes TTL)
+    - Rate limiting (60 requests per minute)
     """
 )
+@api_endpoint(
+    success_message="Domains retrieved successfully",
+    include_metrics=True
+)
+@rate_limit(requests_per_minute=60, per_user=False)
+@cache_response(ttl_seconds=300, cache_key_prefix="domains")
 @track_performance("utility_domains")
 @llm_endpoint(
     default_provider="anthropic",
@@ -111,12 +120,13 @@ async def get_domains(
             }
         )
         
-        return DomainsResponse(
-            domains=domains,
-            message="Domains retrieved successfully",
-            processing_time=processing_time,
-            validation_results=await _validate_utility_result(domains, request_id)
-        )
+        # Return dict for api_endpoint decorator to wrap
+        validation_results = await _validate_utility_result(domains, request_id)
+        return {
+            "domains": [domain.model_dump(mode='json') for domain in domains],
+            "processing_time": processing_time,
+            "validation_results": [vr.model_dump(mode='json') if hasattr(vr, 'model_dump') else vr for vr in validation_results]
+        }
         
     except Exception as e:
         # Use standardized error handler

@@ -18,13 +18,13 @@ The frontend currently integrates with Supply Graph AI in **2 locations**:
 **Environment Variables:**
 ```typescript
 // In nuxt.config.ts
-supplyGraphAiUrl: process.env.SUPPLY_GRAPH_AI_URL || 'http://localhost:8081'
+supplyGraphAiUrl: process.env.SUPPLY_GRAPH_AI_URL || 'http://localhost:8001'
 
 // In Vue components
 const supplyGraphApiUrl = ref(import.meta.env.VITE_SUPPLY_GRAPH_AI_URL || 'http://localhost:8001');
 ```
 
-⚠️ **Configuration Issue**: There's a port mismatch between nuxt.config.ts (8081) and Vue components (8001). This should be standardized to 8001
+**Note**: The API server runs on port 8001 by default. This matches the CLI default and Docker compose configuration.
 
 ## Supply Graph AI API Endpoints
 

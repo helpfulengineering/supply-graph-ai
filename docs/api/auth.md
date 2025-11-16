@@ -257,7 +257,20 @@ To migrate from environment variable keys to storage-based keys:
 
 ```bash
 curl -H "Authorization: Bearer your-api-key-here" \
-     https://api.example.com/v1/api/match/requirements
+     http://localhost:8001/v1/api/okh
+```
+
+### Python (httpx)
+
+```python
+import httpx
+
+async with httpx.AsyncClient() as client:
+    response = await client.get(
+        "http://localhost:8001/v1/api/okh",
+        headers={"Authorization": "Bearer your-api-key-here"}
+    )
+    print(response.json())
 ```
 
 ### Python (requests)
@@ -270,15 +283,16 @@ headers = {
 }
 
 response = requests.get(
-    "https://api.example.com/v1/api/match/requirements",
+    "http://localhost:8001/v1/api/okh",
     headers=headers
 )
+print(response.json())
 ```
 
 ### JavaScript (fetch)
 
 ```javascript
-fetch('https://api.example.com/v1/api/match/requirements', {
+fetch('http://localhost:8001/v1/api/okh', {
   headers: {
     'Authorization': 'Bearer your-api-key-here'
   }
@@ -286,3 +300,16 @@ fetch('https://api.example.com/v1/api/match/requirements', {
   .then(response => response.json())
   .then(data => console.log(data));
 ```
+
+### Multiple API Keys
+
+You can configure multiple API keys by providing a comma-separated list in the `API_KEYS` environment variable:
+
+```bash
+API_KEYS=key1,key2,key3
+```
+
+Any of these keys can be used for authentication. This is useful for:
+- Supporting multiple applications
+- Key rotation (create new key, update apps, remove old key)
+- Different environments (development, staging, production)

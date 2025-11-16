@@ -161,12 +161,48 @@ class CredentialManager:
     def _initialize_encryption(self):
         """Initialize encryption for credential storage"""
         if self.encryption_key:
-            # Use provided key
-            key = self.encryption_key.encode()
+            # Use provided key (must be valid Fernet key format)
+            try:
+                # Try to decode as base64 to validate format
+                key = self.encryption_key.encode() if isinstance(self.encryption_key, str) else self.encryption_key
+                # Validate it's a valid Fernet key by attempting to create Fernet instance
+                # This will raise ValueError if invalid
+                Fernet(key)
+            except (ValueError, TypeError):
+                # If not valid Fernet key, treat as raw key and encode
+                key = self.encryption_key.encode() if isinstance(self.encryption_key, str) else self.encryption_key
         else:
             # Generate key from environment or create new one
-            salt = os.getenv("LLM_ENCRYPTION_SALT", "default_salt").encode()
-            password = os.getenv("LLM_ENCRYPTION_PASSWORD", "default_password").encode()
+            # Check if we're in production mode
+            environment = os.getenv("ENVIRONMENT", "development").lower()
+            is_production = environment == "production"
+            
+            # Get encryption credentials from environment
+            salt_env = os.getenv("LLM_ENCRYPTION_SALT")
+            password_env = os.getenv("LLM_ENCRYPTION_PASSWORD")
+            
+            # In production, require explicit configuration
+            if is_production:
+                if not salt_env or not password_env:
+                    raise ValueError(
+                        "LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD must be set in production. "
+                        "These are required for secure credential encryption."
+                    )
+                if salt_env == "default_salt" or password_env == "default_password":
+                    raise ValueError(
+                        "Default encryption credentials cannot be used in production. "
+                        "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD to secure values."
+                    )
+            
+            # Use provided values or defaults (with warning in development)
+            salt = (salt_env or "default_salt").encode()
+            password = (password_env or "default_password").encode()
+            
+            if not is_production and (not salt_env or not password_env):
+                logger.warning(
+                    "Using default encryption credentials. This is insecure for production. "
+                    "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD environment variables."
+                )
             
             kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),

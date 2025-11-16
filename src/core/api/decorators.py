@@ -6,7 +6,7 @@ error handling, and response formatting across all endpoints.
 """
 
 from functools import wraps
-from typing import Callable, List
+from typing import Callable, List, Optional
 import time
 from datetime import datetime
 from fastapi import HTTPException, status, Request
@@ -57,6 +57,10 @@ def api_endpoint(
                     request = arg
                     break
             
+            # Also check kwargs for request/http_request
+            if not request:
+                request = kwargs.get("http_request") or kwargs.get("request")
+            
             request_id = getattr(request.state, 'request_id', None) if request else None
             start_time = time.time()
             
@@ -89,6 +93,20 @@ def api_endpoint(
                         response_data["metadata"]["llm_provider"] = result.llm_provider
                     if hasattr(result, 'llm_cost'):
                         response_data["metadata"]["llm_cost"] = result.llm_cost
+                
+                # Check for rate limit info from rate_limit decorator
+                rate_limit_info = getattr(request.state, 'rate_limit_info', None) if request else None
+                
+                # If rate limit info is present, return JSONResponse with headers
+                if rate_limit_info:
+                    response = JSONResponse(
+                        status_code=status.HTTP_200_OK,
+                        content=response_data
+                    )
+                    response.headers["X-RateLimit-Limit"] = str(rate_limit_info["limit"])
+                    response.headers["X-RateLimit-Remaining"] = str(rate_limit_info["remaining"])
+                    response.headers["X-RateLimit-Reset"] = str(rate_limit_info["reset_time"])
+                    return response
                 
                 return response_data
                 
@@ -331,6 +349,10 @@ def cache_response(ttl_seconds: int = 300, cache_key_prefix: str = None):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            from ..services.cache_service import get_cache_service
+            import hashlib
+            import json
+            
             # Extract request object if available
             request = None
             for arg in args:
@@ -338,13 +360,56 @@ def cache_response(ttl_seconds: int = 300, cache_key_prefix: str = None):
                     request = arg
                     break
             
+            # Also check kwargs for request/http_request
+            if not request:
+                request = kwargs.get("http_request") or kwargs.get("request")
+            
             request_id = getattr(request.state, 'request_id', None) if request else None
             
-            # TODO: Implement actual caching logic
-            # This is a placeholder for future implementation
-            # For now, just execute the function normally
+            # Generate cache key
+            cache_key = _generate_cache_key(
+                func=func,
+                request=request,
+                args=args,
+                kwargs=kwargs,
+                prefix=cache_key_prefix
+            )
             
-            return await func(*args, **kwargs)
+            # Try to get from cache
+            cache_service = get_cache_service()
+            cached_response = cache_service.get(cache_key)
+            
+            if cached_response is not None:
+                logger.debug(
+                    f"Cache hit for {func.__name__}",
+                    extra={"request_id": request_id, "cache_key": cache_key}
+                )
+                # Add cache indicator if response is a dict
+                if isinstance(cached_response, dict):
+                    cached_response["_cached"] = True
+                # Note: rate_limit_info should already be set by rate_limit decorator
+                # (which executes before cache_response in the decorator chain)
+                # So we can safely return the cached response
+                return cached_response
+            
+            # Cache miss - execute function
+            logger.debug(
+                f"Cache miss for {func.__name__}",
+                extra={"request_id": request_id, "cache_key": cache_key}
+            )
+            result = await func(*args, **kwargs)
+            
+            # Cache the result
+            try:
+                cache_service.set(cache_key, result, ttl_seconds=ttl_seconds)
+            except Exception as e:
+                # Don't fail request if caching fails
+                logger.warning(
+                    f"Failed to cache response for {func.__name__}: {e}",
+                    extra={"request_id": request_id, "cache_key": cache_key}
+                )
+            
+            return result
         
         return wrapper
     return decorator
@@ -356,7 +421,7 @@ def rate_limit(requests_per_minute: int = 60, per_user: bool = False):
     
     Args:
         requests_per_minute: Maximum requests per minute
-        per_user: Whether to apply rate limiting per user or globally
+        per_user: Whether to apply rate limiting per user or globally (per IP)
         
     Returns:
         Decorated function
@@ -364,6 +429,8 @@ def rate_limit(requests_per_minute: int = 60, per_user: bool = False):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            from ..services.rate_limit_service import get_rate_limit_service
+            
             # Extract request object if available
             request = None
             for arg in args:
@@ -371,16 +438,165 @@ def rate_limit(requests_per_minute: int = 60, per_user: bool = False):
                     request = arg
                     break
             
+            # Also check kwargs for request/http_request
+            if not request:
+                request = kwargs.get("http_request") or kwargs.get("request")
+            
             request_id = getattr(request.state, 'request_id', None) if request else None
             
-            # TODO: Implement actual rate limiting logic
-            # This is a placeholder for future implementation
-            # For now, just execute the function normally
+            if not request:
+                # No request object - can't rate limit, just execute
+                logger.warning(
+                    f"Rate limit decorator on {func.__name__} but no request object found"
+                )
+                return await func(*args, **kwargs)
             
-            return await func(*args, **kwargs)
+            # Determine identifier (user ID or IP address)
+            identifier = None
+            
+            if per_user:
+                # Try to get authenticated user
+                user = getattr(request.state, 'user', None)
+                if user and hasattr(user, 'key_id'):
+                    identifier = str(user.key_id)
+                elif user and hasattr(user, 'id'):
+                    identifier = str(user.id)
+            
+            # Fallback to IP address
+            if not identifier:
+                identifier = request.client.host if request.client else "unknown"
+            
+            # Check rate limit
+            rate_limit_service = get_rate_limit_service()
+            is_allowed, rate_limit_info = rate_limit_service.check_rate_limit(
+                identifier=identifier,
+                requests_per_minute=requests_per_minute
+            )
+            
+            if not is_allowed:
+                logger.warning(
+                    f"Rate limit exceeded for {identifier} on {func.__name__}",
+                    extra={
+                        "request_id": request_id,
+                        "identifier": identifier,
+                        "limit": rate_limit_info["limit"],
+                        "remaining": rate_limit_info["remaining"]
+                    }
+                )
+                
+                # Create error response with rate limit headers
+                error_response = create_error_response(
+                    error="Rate limit exceeded",
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    request_id=request_id,
+                    suggestion=f"Please try again after {rate_limit_info['reset_time']}"
+                )
+                
+                response = JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content=error_response.model_dump(mode='json')
+                )
+                
+                # Add rate limit headers
+                response.headers["X-RateLimit-Limit"] = str(rate_limit_info["limit"])
+                response.headers["X-RateLimit-Remaining"] = str(rate_limit_info["remaining"])
+                response.headers["X-RateLimit-Reset"] = str(rate_limit_info["reset_time"])
+                
+                return response
+            
+            # Store rate limit info in request state for api_endpoint to use
+            # This must be set BEFORE calling func() in case cache_response returns early
+            if request:
+                request.state.rate_limit_info = rate_limit_info
+            
+            # Execute function
+            result = await func(*args, **kwargs)
+            
+            # Add rate limit headers to response if it's already a JSONResponse
+            if isinstance(result, JSONResponse):
+                result.headers["X-RateLimit-Limit"] = str(rate_limit_info["limit"])
+                result.headers["X-RateLimit-Remaining"] = str(rate_limit_info["remaining"])
+                result.headers["X-RateLimit-Reset"] = str(rate_limit_info["reset_time"])
+            # If result is a dict, api_endpoint decorator will handle headers via request.state.rate_limit_info
+            
+            return result
         
         return wrapper
     return decorator
+
+
+def _generate_cache_key(
+    func: Callable,
+    request: Optional[Request],
+    args: tuple,
+    kwargs: dict,
+    prefix: Optional[str] = None
+) -> str:
+    """
+    Generate cache key from function and request parameters.
+    
+    Args:
+        func: Function being cached
+        request: FastAPI request object
+        args: Function arguments
+        kwargs: Function keyword arguments
+        prefix: Optional cache key prefix
+        
+    Returns:
+        Cache key string
+    """
+    import hashlib
+    import json
+    
+    # Build key components
+    key_parts = []
+    
+    # Add prefix if provided
+    if prefix:
+        key_parts.append(prefix)
+    
+    # Add function name
+    key_parts.append(func.__name__)
+    
+    # Add request method and path
+    if request:
+        key_parts.append(request.method)
+        key_parts.append(str(request.url.path))
+        
+        # Add query parameters (sorted for consistency)
+        if request.query_params:
+            query_dict = dict(request.query_params)
+            key_parts.append(json.dumps(query_dict, sort_keys=True))
+    
+    # Add non-request kwargs (excluding request objects)
+    other_kwargs = {
+        k: v for k, v in kwargs.items()
+        if k not in ("request", "http_request") and not isinstance(v, Request)
+    }
+    
+    # Handle Pydantic models and other serializable objects
+    serializable_kwargs = {}
+    for k, v in other_kwargs.items():
+        try:
+            # Try to serialize Pydantic models
+            if hasattr(v, 'model_dump'):
+                serializable_kwargs[k] = v.model_dump()
+            elif hasattr(v, 'dict'):
+                serializable_kwargs[k] = v.dict()
+            else:
+                serializable_kwargs[k] = v
+        except (TypeError, AttributeError):
+            # Fallback to string representation
+            serializable_kwargs[k] = str(v)
+    
+    if serializable_kwargs:
+        key_parts.append(json.dumps(serializable_kwargs, sort_keys=True, default=str))
+    
+    # Combine and hash
+    key_string = "|".join(str(part) for part in key_parts)
+    key_hash = hashlib.md5(key_string.encode()).hexdigest()
+    
+    return f"cache:{key_hash}"
 
 
 def llm_endpoint(

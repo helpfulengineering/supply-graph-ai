@@ -68,7 +68,10 @@ class OllamaProvider(BaseLLMProvider):
         """
         super().__init__(config)
         self._client: Optional[httpx.AsyncClient] = None
-        self._base_url = config.base_url or "http://localhost:11434"
+        # Get base URL from config, environment variable, or default
+        import os
+        default_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        self._base_url = config.base_url or default_url
         
         # Validate that this is a LOCAL provider
         if config.provider_type != LLMProviderType.LOCAL:
