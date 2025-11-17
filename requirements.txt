@@ -34,6 +34,8 @@ dotenv
 anthropic
 openai
 ollama
+google-cloud-aiplatform
+google-auth
 
 #cli tools
 click

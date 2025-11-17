@@ -62,7 +62,7 @@ pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
 mkdocs serve
 ```
 
-4. Open your browser to `http://localhost:8000/`
+4. Open your browser to `http://localhost:8000/` (Note: This is the MkDocs documentation server port, not the API server which runs on port 8001)
 
 ### Documentation Structure
 

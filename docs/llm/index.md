@@ -6,7 +6,7 @@ The Open Matching Engine (OME) includes Large Language Model (LLM) integration f
 
 The LLM integration provides:
 
-- **Multi-Provider Support**: Anthropic Claude, OpenAI GPT, Google Gemini, and local models
+- **Multi-Provider Support**: Anthropic Claude, OpenAI GPT, Azure OpenAI, AWS Bedrock, Google Vertex AI (Gemini), and local models
 - **Intelligent Provider Selection**: Automatic provider selection with environment variables and CLI overrides
 - **Intelligent Generation**: Enhanced OKH manifest generation with context-aware analysis
 - **Smart Matching**: Improved facility matching using natural language understanding
@@ -20,14 +20,33 @@ The LLM integration provides:
 Set your API keys in environment variables:
 
 ```bash
-# Anthropic (recommended)
+# Anthropic Claude (recommended)
 export ANTHROPIC_API_KEY="your_anthropic_key"
 
-# OpenAI (alternative)
+# OpenAI GPT
 export OPENAI_API_KEY="your_openai_key"
 
-# Google (alternative)
-export GOOGLE_API_KEY="your_google_key"
+# Azure OpenAI Service
+export AZURE_OPENAI_API_KEY="your_azure_key"
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com"
+export AZURE_OPENAI_DEPLOYMENT_ID="your-deployment-name"
+export AZURE_OPENAI_API_VERSION="2024-05-01-preview"  # Optional
+
+# AWS Bedrock
+export AWS_BEDROCK_API_KEY="your_bedrock_key"  # Optional if using AWS credentials
+export AWS_BEDROCK_REGION="us-east-1"
+# OR use AWS credentials (access keys or IAM role)
+export AWS_ACCESS_KEY_ID="your_access_key"
+export AWS_SECRET_ACCESS_KEY="your_secret_key"
+
+# Google Cloud Vertex AI
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
+export GOOGLE_CLOUD_PROJECT="your-project-id"
+export GOOGLE_CLOUD_LOCATION="us-central1"  # Optional
+export VERTEX_AI_MODEL_ID="gemini-1.5-pro"  # Optional
+
+# Local Ollama (optional)
+export OLLAMA_BASE_URL="http://localhost:11434"
 
 # Optional: Set default provider
 export LLM_PROVIDER="anthropic"
@@ -42,6 +61,9 @@ ome llm generate-okh https://github.com/example/project
 
 # Override provider via CLI flag
 ome llm generate-okh https://github.com/example/project --provider openai
+ome llm generate-okh https://github.com/example/project --provider azure_openai
+ome llm generate-okh https://github.com/example/project --provider aws_bedrock
+ome llm generate-okh https://github.com/example/project --provider google
 
 # Match facilities with LLM enhancement
 ome llm match requirements.okh.json facilities.okw.json
@@ -77,10 +99,14 @@ The LLM integration includes an intelligent provider selection system that autom
 1. **Command Line Flags** (highest priority)
    ```bash
    ome llm generate "Hello" --provider anthropic --model claude-sonnet-4-5-20250929
+   ome llm generate "Hello" --provider azure_openai --model gpt-35-turbo
+   ome llm generate "Hello" --provider aws_bedrock --model anthropic.claude-3-5-sonnet-20241022-v2:0
+   ome llm generate "Hello" --provider google --model gemini-1.5-pro
    ```
 
 2. **Environment Variables**
    ```bash
+   # Available provider types: anthropic, openai, azure_openai, aws_bedrock, google, local
    export LLM_PROVIDER=anthropic
    export LLM_MODEL=claude-sonnet-4-5-20250929
    ome llm generate "Hello"
@@ -94,6 +120,9 @@ The LLM integration includes an intelligent provider selection system that autom
 4. **Default Fallback** (lowest priority)
    - Anthropic Claude (if API key available)
    - OpenAI GPT (if API key available)
+   - Google Vertex AI (if credentials available)
+   - Azure OpenAI (if configured)
+   - AWS Bedrock (if credentials available)
    - Local Ollama (if service running)
 
 ### Provider Information
@@ -140,17 +169,21 @@ The LLM integration follows a modular architecture:
                                   │
                     ┌─────────────┴─────────────┐
                     │    LLM Providers          │
-                    │  Anthropic | OpenAI | ... │
+                    │  Anthropic | OpenAI |     │
+                    │  Azure OpenAI | AWS       │
+                    │  Bedrock | Google | Local │
                     └───────────────────────────┘
 ```
 
 ## Features
 
 ### Multi-Provider Support
-- **Anthropic Claude**: High-quality analysis and generation
+- **Anthropic Claude**: High-quality analysis and generation (recommended)
 - **OpenAI GPT**: Fast and cost-effective processing
-- **Google Gemini**: Alternative provider option
-- **Local Models**: Ollama and other local LLM support
+- **Azure OpenAI**: Enterprise-grade OpenAI models on Azure infrastructure
+- **AWS Bedrock**: Unified API for multiple foundation models (Claude, Llama, Titan, etc.)
+- **Google Vertex AI**: Google's Gemini models with enterprise features
+- **Local Models**: Ollama and other local LLM support for offline use
 
 ### Intelligent Processing
 - **Context-Aware Analysis**: Understands project structure and content

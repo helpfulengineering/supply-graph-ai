@@ -360,8 +360,9 @@ async def validate_match(
         supply_tree_warnings = []
         supply_tree_suggestions = []
         
-        # TODO: Load actual supply tree from storage if available and validate it
-        # For now, we'll just validate the OKH manifest
+        # Note: Currently validates only the OKH manifest.
+        # Future enhancement: Load actual supply tree from storage if available and validate it.
+        # This would provide more comprehensive validation including supply tree structure validation.
         
         # Convert validation result to API format
         from src.core.api.models.base import ErrorDetail, ErrorCode
@@ -381,7 +382,9 @@ async def validate_match(
         
         # Calculate validation score
         okh_score = okh_validation.metadata.get("completeness_score", 1.0) if okh_validation.valid else 0.0
-        supply_tree_score = 1.0  # Placeholder, would calculate from supply tree validation
+        # Note: Supply tree validation not yet implemented. Using default score of 1.0.
+        # Future enhancement: Calculate actual score from supply tree validation results.
+        supply_tree_score = 1.0
         validation_score = (okh_score + supply_tree_score) / 2.0
         
         # Apply strict mode: treat warnings as errors
@@ -1185,7 +1188,8 @@ async def _perform_enhanced_matching(
                 if not facility_id:
                     facility_id = solution.tree.metadata.get('facility_id') if solution.tree.metadata else None
                     if not facility_id:
-                        # Generate a placeholder ID
+                        # Generate a fallback ID when facility_id is not available
+                        # This is a temporary identifier for the response, not a stored facility ID
                         from uuid import uuid4
                         facility_id = str(uuid4())[:8]
                 

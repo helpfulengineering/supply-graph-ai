@@ -312,7 +312,9 @@ async def get_supply_tree(
             )
         
         # Convert to response format
-        # Note: SupplyTree doesn't have facility_id, so we'll derive it from metadata or use a placeholder
+        # Note: SupplyTree model doesn't have a direct facility_id field.
+        # We attempt to derive it from metadata or okw_reference.
+        # If unavailable, we use None (which is acceptable for the response model).
         facility_id = None
         if supply_tree.metadata and "facility_id" in supply_tree.metadata:
             try:
@@ -327,7 +329,10 @@ async def get_supply_tree(
             except (ValueError, TypeError):
                 pass
         
-        # If still no facility_id, use a placeholder UUID (all zeros)
+        # If still no facility_id, use the standard nil UUID (all-zeros) as a sentinel value
+        # Note: Response model requires UUID (not Optional), so we use the standard nil UUID
+        # (00000000-0000-0000-0000-000000000000) which is the standard way to represent "no UUID"
+        # Clients can check for this value to detect when facility_id is not available
         if not facility_id:
             facility_id = UUID("00000000-0000-0000-0000-000000000000")
         

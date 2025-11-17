@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from .version import get_version
+
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.okh import router as okh_router
 from src.core.api.routes.okw import router as okw_router
@@ -81,7 +83,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Open Matching Engine API",
     description="API for matching OKH requirements with OKW capabilities",
-    version="1.0.0",
+    version=get_version(),
     lifespan=lifespan
 )
 
@@ -110,7 +112,7 @@ async def root():
     """Root endpoint with API information."""
     return {
         "message": "Open Matching Engine API",
-        "version": "1.0.0",
+        "version": get_version(),
         "docs": {
             "main": "/docs",
             "v1": "/v1/docs"
@@ -126,14 +128,14 @@ async def health_check():
     return {
         "status": "ok", 
         "domains": list(DomainRegistry.get_registered_domains()),
-        "version": "1.0.0"
+        "version": get_version()
     }
 
 # Create a versioned API
 api_v1 = FastAPI(
     title="Open Matching Engine API v1",
     description="Version 1 of the Open Matching Engine API",
-    version="1.0.0"
+    version=get_version()
 )
 
 # Include routers - those with prefixes don't need additional prefixes
@@ -157,7 +159,7 @@ async def register_domain_components():
         name="cooking",
         display_name="Cooking & Food Preparation",
         description="Domain for recipe and kitchen capability matching",
-        version="1.0.0",
+        version=get_version(),
         status=DomainStatus.ACTIVE,
         supported_input_types={"recipe", "kitchen"},
         supported_output_types={"cooking_workflow", "meal_plan"},
@@ -178,7 +180,7 @@ async def register_domain_components():
         name="manufacturing",
         display_name="Manufacturing & Hardware Production",
         description="Domain for OKH/OKW manufacturing capability matching",
-        version="1.0.0",
+        version=get_version(),
         status=DomainStatus.ACTIVE,
         supported_input_types={"okh", "okw"},
         supported_output_types={"supply_tree", "manufacturing_plan"},

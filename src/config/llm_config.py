@@ -19,6 +19,11 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 logger = logging.getLogger(__name__)
 
+# Default encryption credentials (only for development mode)
+# These are rejected in production and should never be used in production environments
+DEFAULT_ENCRYPTION_SALT = "default_salt"
+DEFAULT_ENCRYPTION_PASSWORD = "default_password"
+
 
 class LLMProvider(Enum):
     """Supported LLM providers"""
@@ -188,15 +193,16 @@ class CredentialManager:
                         "LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD must be set in production. "
                         "These are required for secure credential encryption."
                     )
-                if salt_env == "default_salt" or password_env == "default_password":
+                if salt_env == DEFAULT_ENCRYPTION_SALT or password_env == DEFAULT_ENCRYPTION_PASSWORD:
                     raise ValueError(
                         "Default encryption credentials cannot be used in production. "
                         "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD to secure values."
                     )
             
             # Use provided values or defaults (with warning in development)
-            salt = (salt_env or "default_salt").encode()
-            password = (password_env or "default_password").encode()
+            # Note: Default values are only used in development mode and are rejected in production
+            salt = (salt_env or DEFAULT_ENCRYPTION_SALT).encode()
+            password = (password_env or DEFAULT_ENCRYPTION_PASSWORD).encode()
             
             if not is_production and (not salt_env or not password_env):
                 logger.warning(

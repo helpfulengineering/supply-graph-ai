@@ -1,9 +1,61 @@
 from uuid import uuid4
-from src.core.models.base.base_types import NormalizedRequirements, NormalizedCapabilities
+from typing import List, Optional
+from src.core.models.base.base_types import (
+    BaseMatcher, Requirement, Capability, MatchResult, NormalizedRequirements, NormalizedCapabilities
+)
 from src.core.models.supply_trees import SupplyTree
 
-class CookingMatcher:
+class CookingMatcher(BaseMatcher):
     """Matcher for cooking domain - simplified version without workflows"""
+    
+    def match(self, 
+             requirements: List[Requirement],
+             capabilities: List[Capability]) -> MatchResult:
+        """
+        Match requirements against capabilities.
+        
+        This is a simplified implementation that performs basic matching
+        for cooking domain requirements (ingredients, tools, techniques).
+        
+        Args:
+            requirements: List of requirements to match
+            capabilities: List of capabilities to match against
+            
+        Returns:
+            MatchResult with matched capabilities and confidence
+        """
+        matched_capabilities = {}
+        missing_requirements = []
+        substitutions = []
+        
+        for req in requirements:
+            matched = False
+            for cap in capabilities:
+                if self._can_satisfy(req, cap):
+                    matched_capabilities[req] = cap
+                    matched = True
+                    break
+            
+            if not matched:
+                missing_requirements.append(req)
+        
+        # Calculate confidence
+        total = len(requirements)
+        matched_count = len(matched_capabilities)
+        confidence = matched_count / total if total > 0 else 0.0
+        
+        return MatchResult(
+            confidence=confidence,
+            matched_capabilities=matched_capabilities,
+            missing_requirements=missing_requirements,
+            substitutions=substitutions
+        )
+    
+    def _can_satisfy(self, requirement: Requirement, capability: Capability) -> bool:
+        """Check if capability can satisfy requirement."""
+        # Simple name matching for now
+        # Can be enhanced with more sophisticated matching logic
+        return requirement.name.lower() == capability.name.lower()
     
     def generate_supply_tree(self, requirements: 'NormalizedRequirements', 
                         capabilities: 'NormalizedCapabilities',

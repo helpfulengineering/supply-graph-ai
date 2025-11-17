@@ -8,6 +8,14 @@ This service provides centralized management of LLM providers, including:
 - Cost tracking and usage analytics
 - Integration with existing service patterns
 
+Supported Providers:
+- Anthropic: Claude models (claude-3-5-sonnet, claude-3-opus, etc.)
+- OpenAI: GPT models (gpt-4, gpt-3.5-turbo, etc.)
+- Local: Open-source models via Ollama (llama2, mistral, etc.)
+- Azure OpenAI: Azure-hosted OpenAI models (gpt-4, gpt-3.5-turbo, etc.)
+- AWS Bedrock: Unified API for multiple foundation models (Claude, Llama, Titan, etc.)
+- Google Vertex AI: Google Gemini models (gemini-1.5-pro, gemini-1.5-flash, etc.)
+
 The LLM service follows the BaseService pattern and provides a unified
 interface for all LLM operations across the system.
 """
@@ -24,6 +32,9 @@ from .providers.base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 from .providers.anthropic import AnthropicProvider
 from .providers.openai import OpenAIProvider
 from .providers.ollama import OllamaProvider
+from .providers.azure_openai import AzureOpenAIProvider
+from .providers.aws_bedrock import AWSBedrockProvider
+from .providers.google_vertex_ai import GoogleVertexAIProvider
 from .models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
 from .models.responses import LLMResponse, LLMResponseStatus
 # Note: provider_selection imports LLMService, so we use lazy import to avoid circular dependency
@@ -121,13 +132,27 @@ class LLMService(BaseService['LLMService']):
         self._request_history: List[Dict[str, Any]] = []
         
         # Provider registry
+        # Currently supported providers:
+        # - ANTHROPIC: Anthropic Claude models (via AnthropicProvider)
+        # - OPENAI: OpenAI GPT models (via OpenAIProvider)
+        # - LOCAL: Local models via Ollama (via OllamaProvider)
+        # - AZURE_OPENAI: Azure OpenAI service (via AzureOpenAIProvider)
+        # - AWS_BEDROCK: AWS Bedrock unified API (via AWSBedrockProvider)
+        # - GOOGLE: Google Vertex AI Gemini models (via GoogleVertexAIProvider)
+        #
+        # To add a new provider:
+        # 1. Create provider class extending BaseLLMProvider
+        # 2. Implement required abstract methods
+        # 3. Add provider type to LLMProviderType enum
+        # 4. Register provider class in _provider_classes dict below
+        # 5. Update LLMConfig to support provider configuration
         self._provider_classes: Dict[LLMProviderType, Type[BaseLLMProvider]] = {
             LLMProviderType.ANTHROPIC: AnthropicProvider,
             LLMProviderType.OPENAI: OpenAIProvider,
             LLMProviderType.LOCAL: OllamaProvider,
-            # TODO: Add other providers as they're implemented
-            # LLMProviderType.GOOGLE: GoogleProvider,
-            # LLMProviderType.AZURE_OPENAI: AzureOpenAIProvider,
+            LLMProviderType.AZURE_OPENAI: AzureOpenAIProvider,
+            LLMProviderType.AWS_BEDROCK: AWSBedrockProvider,
+            LLMProviderType.GOOGLE: GoogleVertexAIProvider,
         }
     
     async def initialize(self) -> None:
@@ -329,6 +354,39 @@ class LLMService(BaseService['LLMService']):
     async def get_available_providers(self) -> List[LLMProviderType]:
         """Get list of available providers."""
         return list(self._providers.keys())
+    
+    def is_ready(self) -> bool:
+        """
+        Check if LLM service is ready to handle requests.
+        
+        Returns:
+            True if service is initialized, healthy, and has at least one provider
+        """
+        if self.status != ServiceStatus.ACTIVE:
+            return False
+        
+        if not self.is_healthy():
+            return False
+        
+        # Check if at least one provider is available
+        if not self._providers or len(self._providers) == 0:
+            return False
+        
+        return True
+    
+    async def is_ready_async(self) -> bool:
+        """
+        Async version of is_ready that also checks provider availability.
+        
+        Returns:
+            True if service is ready and has available providers
+        """
+        if not self.is_ready():
+            return False
+        
+        # Check if at least one provider is actually available
+        available_providers = await self.get_available_providers()
+        return len(available_providers) > 0
     
     async def get_provider_status(self, provider_type: LLMProviderType) -> Dict[str, Any]:
         """Get status information for a specific provider."""
