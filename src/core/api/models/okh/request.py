@@ -167,6 +167,7 @@ class OKHGenerateRequest(BaseModel):
     
     # Optional fields
     skip_review: bool = Field(False, description="Skip interactive review and generate manifest directly")
+    verbose: bool = Field(False, description="Include file metadata in manifest (default: False for less verbose output)")
 
 
 class OKHFromStorageRequest(BaseAPIRequest):

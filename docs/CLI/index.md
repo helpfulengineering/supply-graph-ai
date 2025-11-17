@@ -1401,21 +1401,6 @@ ls -la manifest.json
 mkdir -p ./packages && chmod 755 ./packages
 ```
 
-#### 5. Domain Registration Issues (Fixed)
-```bash
-# Domain registration is now automatic in fallback mode
-# No manual intervention required
-ome okh validate manifest.json
-ome okw validate facility.json
-```
-
-#### 6. API Format Issues (Fixed)
-```bash
-# API format mismatches are now automatically handled
-# Commands work seamlessly in both HTTP and fallback modes
-ome okh upload manifest.json
-ome okw upload facility.json
-```
 
 ### Getting Help
 

@@ -987,7 +987,8 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
             engine = GenerationEngine(config=config)
             cli_ctx.log("Generating manifest fields...", "info")
             
-            result = await engine.generate_manifest_async(project_data)
+            # Pass verbose flag to control file metadata inclusion
+            result = await engine.generate_manifest_async(project_data, include_file_metadata=verbose)
             
             if not no_review:
                 cli_ctx.log("Starting interactive review...", "info")

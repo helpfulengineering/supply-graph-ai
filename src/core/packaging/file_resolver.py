@@ -220,7 +220,7 @@ class FileResolver:
         part_name: Optional[str] = None
     ) -> List[ResolvedFile]:
         """
-        Download multiple files concurrently
+        Download multiple files concurrently, preserving directory structure
         
         Args:
             file_refs: List of DocumentRef objects to download
@@ -233,21 +233,13 @@ class FileResolver:
         """
         tasks = []
         
+        # Extract relative paths preserving directory structure
+        relative_paths = self._extract_relative_paths(file_refs)
+        
         for i, file_ref in enumerate(file_refs):
-            # Generate target filename
-            if file_ref.path.startswith(('http://', 'https://')):
-                # Extract filename from URL
-                parsed_url = urlparse(file_ref.path)
-                filename = Path(parsed_url.path).name
-                if not filename or '.' not in filename:
-                    # Generate filename from title and extension
-                    ext = self._guess_extension_from_content_type(file_ref.path)
-                    filename = f"{self._sanitize_filename(file_ref.title)}{ext}"
-            else:
-                # Use original filename for local files
-                filename = Path(file_ref.path).name
-            
-            target_path = base_target_dir / filename
+            # Use preserved relative path structure
+            relative_path = relative_paths[i]
+            target_path = base_target_dir / relative_path
             
             # Create task for downloading
             task = self.resolve_and_download(file_ref, target_path, file_type, part_name)
@@ -294,6 +286,147 @@ class FileResolver:
         # to get the actual content type, but for now we'll use common patterns
         return '.bin'  # Default fallback
     
+    def _extract_relative_paths(self, file_refs: List[DocumentRef]) -> List[str]:
+        """
+        Extract relative paths from file references, preserving directory structure.
+        
+        This method preserves the original directory structure from the source paths
+        while sanitizing for filesystem compatibility. For example:
+        - "docs/images/camera_screws_1.jpg" -> "docs/images/camera_screws_1.jpg"
+        - "design_files/optics_for_objective_2.SPD" -> "design_files/optics_for_objective_2.SPD"
+        - URL: "https://raw.githubusercontent.com/user/repo/master/docs/images/file.jpg" 
+          -> "docs/images/file.jpg"
+        
+        Args:
+            file_refs: List of DocumentRef objects
+            
+        Returns:
+            List of relative paths preserving directory structure
+        """
+        relative_paths = []
+        
+        for file_ref in file_refs:
+            if file_ref.path.startswith(('http://', 'https://')):
+                # Extract path from URL
+                parsed_url = urlparse(file_ref.path)
+                url_path = parsed_url.path
+                
+                # Remove leading slash and extract relative path
+                # For GitHub raw URLs like: /user/repo/master/docs/images/file.jpg
+                # We want to extract: docs/images/file.jpg
+                path_parts = url_path.strip('/').split('/')
+                
+                # Skip common repository path prefixes (user, repo, branch)
+                # Look for common patterns like: user/repo/branch/path/to/file
+                # We want to keep everything after the branch name
+                if len(path_parts) >= 3:
+                    # Common pattern: user/repo/branch/filepath
+                    # Try to detect if third part is a branch name (common: master, main, develop)
+                    branch_names = {'master', 'main', 'develop', 'dev', 'trunk', 'default'}
+                    if path_parts[2].lower() in branch_names or len(path_parts[2]) <= 20:
+                        # Skip user/repo/branch, keep the rest
+                        relative_path = '/'.join(path_parts[3:])
+                    else:
+                        # Not a branch pattern, keep everything after repo name
+                        relative_path = '/'.join(path_parts[2:])
+                else:
+                    # Fallback: use filename only
+                    relative_path = Path(url_path).name
+                
+                # If we couldn't extract a meaningful path, use filename
+                if not relative_path or relative_path == Path(url_path).name:
+                    filename = Path(url_path).name
+                    if not filename or '.' not in filename:
+                        # Generate filename from title and extension
+                        ext = self._guess_extension_from_content_type(file_ref.path)
+                        relative_path = f"{self._sanitize_filename(file_ref.title)}{ext}"
+                    else:
+                        relative_path = filename
+            else:
+                # For relative paths, preserve the full structure
+                relative_path = file_ref.path
+            
+            # Sanitize the path (handle each component separately)
+            sanitized_parts = []
+            for part in relative_path.split('/'):
+                sanitized_part = self._sanitize_filename(part)
+                if sanitized_part:  # Skip empty parts
+                    sanitized_parts.append(sanitized_part)
+            
+            # Reconstruct path
+            if sanitized_parts:
+                relative_path = '/'.join(sanitized_parts)
+            else:
+                # Fallback to filename if sanitization removed everything
+                relative_path = self._sanitize_filename(file_ref.title) or "file"
+            
+            relative_paths.append(relative_path)
+        
+        # Optionally strip common prefix if all paths share the same prefix
+        # This helps avoid redundant nesting (e.g., if all files are in "docs/")
+        relative_paths = self._strip_common_prefix(relative_paths)
+        
+        return relative_paths
+    
+    def _strip_common_prefix(self, paths: List[str]) -> List[str]:
+        """
+        Strip common directory prefix from all paths if they all share it.
+        
+        For example, if all paths are:
+        - "docs/images/file1.jpg"
+        - "docs/images/file2.jpg"
+        - "docs/parts/file3.md"
+        
+        The common prefix "docs/" would be stripped, resulting in:
+        - "images/file1.jpg"
+        - "images/file2.jpg"
+        - "parts/file3.md"
+        
+        Args:
+            paths: List of relative paths
+            
+        Returns:
+            List of paths with common prefix stripped
+        """
+        if not paths or len(paths) == 1:
+            return paths
+        
+        # Find common prefix by comparing path components
+        path_components = [path.split('/') for path in paths]
+        
+        # Find the minimum length (to avoid index errors)
+        min_length = min(len(components) for components in path_components)
+        if min_length <= 1:
+            # All paths are just filenames, no prefix to strip
+            return paths
+        
+        # Find how many leading components are common
+        common_prefix_length = 0
+        for i in range(min_length):
+            # Get the i-th component from all paths
+            components_at_i = [components[i] for components in path_components]
+            # Check if all components at this level are the same
+            if len(set(components_at_i)) == 1:
+                common_prefix_length = i + 1
+            else:
+                break
+        
+        # Only strip if there's a meaningful common prefix (at least 1 level)
+        # and not all paths would become just filenames
+        if common_prefix_length > 0 and common_prefix_length < min_length:
+            # Strip the common prefix
+            stripped_paths = []
+            for components in path_components:
+                if len(components) > common_prefix_length:
+                    stripped_path = '/'.join(components[common_prefix_length:])
+                    stripped_paths.append(stripped_path)
+                else:
+                    # This path would become empty, keep original
+                    stripped_paths.append('/'.join(components))
+            return stripped_paths
+        
+        return paths
+    
     def _sanitize_filename(self, filename: str) -> str:
         """Sanitize filename for filesystem compatibility"""
         import re
@@ -301,5 +434,6 @@ class FileResolver:
         sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
         # Remove multiple underscores
         sanitized = re.sub(r'_+', '_', sanitized)
-        # Remove leading/trailing underscores
-        return sanitized.strip('_')
+        # Remove leading/trailing underscores and dots
+        sanitized = sanitized.strip('_.')
+        return sanitized

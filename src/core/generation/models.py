@@ -357,6 +357,7 @@ class ManifestGeneration:
     missing_fields: List[str]
     full_bom: Optional[Any] = None  # Store full BillOfMaterials object for export
     unified_bom_mode: bool = False  # Whether to include full BOM in manifest
+    include_file_metadata: bool = False  # Whether to include metadata in file entries
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format"""
@@ -435,7 +436,6 @@ class ManifestGeneration:
             "parts": fields_dict.get("parts", []),
             "sub_parts": fields_dict.get("sub_parts", []),
             "software": fields_dict.get("software", []),
-            "files": self._get_files_field(),
             "metadata": {
                 "generated_at": datetime.now().isoformat() + "Z",
                 "generation_confidence": round(self.quality_report.overall_quality, 2),
