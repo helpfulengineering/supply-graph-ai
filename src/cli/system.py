@@ -176,23 +176,36 @@ async def health(ctx, verbose: bool, output_format: str, use_llm: bool,
         
         async def http_health_check():
             """Check health via HTTP API"""
-            cli_ctx.log("Checking health via HTTP API...", "info")
+            health_url = f"{cli_ctx.config.server_url}/health"
+            cli_ctx.log(f"Checking health via HTTP API at {health_url}...", "info")
             # Health endpoint is at root level, not under /v1
             async with httpx.AsyncClient(timeout=cli_ctx.config.timeout) as client:
-                response = await client.get(f"{cli_ctx.config.server_url}/health")
-                response.raise_for_status()
-                return response.json()
+                try:
+                    response = await client.get(health_url)
+                    response.raise_for_status()
+                    return response.json()
+                except httpx.ConnectError as e:
+                    cli_ctx.log(f"Connection error: {e}", "debug")
+                    raise
+                except Exception as e:
+                    cli_ctx.log(f"Health check error: {e}", "debug")
+                    raise
         
         async def fallback_health_check():
             """Fallback health check using direct services"""
             cli_ctx.log("Using direct service health check...", "info")
+            # Ensure domains are registered
+            from .base import ensure_domains_registered
+            await ensure_domains_registered()
+            
             # Try to initialize services to check if they're working
             try:
                 domains = list(DomainRegistry.get_registered_domains())
+                from ..core.version import get_version
                 return {
                     "status": "ok",
                     "domains": domains,
-                    "version": "1.0.0",
+                    "version": get_version(),
                     "mode": "fallback"
                 }
             except Exception as e:

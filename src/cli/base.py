@@ -26,13 +26,90 @@ from ..core.services.matching_service import MatchingService
 logger = logging.getLogger(__name__)
 
 
+async def ensure_domains_registered():
+    """Ensure domains are registered when using direct service calls in CLI mode"""
+    from ..core.registry.domain_registry import DomainRegistry
+    from ..core.registry.domain_registry import DomainMetadata, DomainStatus
+    from ..core.domains.manufacturing.okh_extractor import OKHExtractor
+    from ..core.domains.manufacturing.okh_matcher import OKHMatcher
+    from ..core.domains.manufacturing.validation.compatibility import ManufacturingOKHValidatorCompat
+    from ..core.domains.cooking.extractors import CookingExtractor
+    from ..core.domains.cooking.matchers import CookingMatcher
+    from ..core.domains.cooking.validation.compatibility import CookingValidatorCompat
+    from ..core.version import get_version
+    
+    # Check if domains are already registered
+    registered_domains = DomainRegistry.get_registered_domains()
+    if len(registered_domains) > 0:
+        # Domains already registered, skip
+        return
+    
+    logger.info("Registering domains for CLI direct service mode...")
+    
+    try:
+        # Register Cooking domain
+        cooking_metadata = DomainMetadata(
+            name="cooking",
+            display_name="Cooking & Food Preparation",
+            description="Domain for recipe and kitchen capability matching",
+            version=get_version(),
+            status=DomainStatus.ACTIVE,
+            supported_input_types={"recipe", "kitchen"},
+            supported_output_types={"cooking_workflow", "meal_plan"},
+            documentation_url="https://docs.ome.org/domains/cooking",
+            maintainer="OME Cooking Team"
+        )
+        
+        DomainRegistry.register_domain(
+            domain_name="cooking",
+            extractor=CookingExtractor(),
+            matcher=CookingMatcher(),
+            validator=CookingValidatorCompat(),
+            metadata=cooking_metadata
+        )
+        
+        # Register Manufacturing domain
+        manufacturing_metadata = DomainMetadata(
+            name="manufacturing",
+            display_name="Manufacturing & Hardware Production",
+            description="Domain for OKH/OKW manufacturing capability matching",
+            version=get_version(),
+            status=DomainStatus.ACTIVE,
+            supported_input_types={"okh", "okw"},
+            supported_output_types={"supply_tree", "manufacturing_plan"},
+            documentation_url="https://docs.ome.org/domains/manufacturing",
+            maintainer="OME Manufacturing Team"
+        )
+        
+        DomainRegistry.register_domain(
+            domain_name="manufacturing",
+            extractor=OKHExtractor(),
+            matcher=OKHMatcher(),
+            validator=ManufacturingOKHValidatorCompat(),
+            metadata=manufacturing_metadata
+        )
+        
+        logger.info("Successfully registered domains for CLI direct service mode")
+    except Exception as e:
+        logger.warning(f"Failed to register domains for CLI mode: {e}")
+        # Don't raise - allow commands to continue, they may work without domains
+
+
 class CLIConfig:
     """CLI configuration management with LLM support"""
     
     def __init__(self):
         import os
         # Allow environment variable override
-        default_server_url = os.getenv("OME_SERVER_URL", "http://localhost:8001")
+        # Check for OME_SERVER_URL first, then construct from API_HOST and API_PORT
+        if "OME_SERVER_URL" in os.environ:
+            default_server_url = os.getenv("OME_SERVER_URL")
+        else:
+            # Use API_HOST and API_PORT from settings to match server configuration
+            from src.config.settings import API_HOST, API_PORT
+            # Convert 0.0.0.0 to localhost for CLI connections
+            host = "localhost" if API_HOST == "0.0.0.0" else API_HOST
+            default_server_url = f"http://{host}:{API_PORT}"
         self.server_url = default_server_url
         self.timeout = 120.0
         self.retry_attempts = 3
@@ -96,6 +173,9 @@ class APIClient:
         params: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Make HTTP request with error handling"""
+        full_url = f"{self.base_url}{endpoint}"
+        logger.debug(f"Making {method} request to {full_url}")
+        
         async with self.get_client() as client:
             try:
                 response = await client.request(
@@ -114,12 +194,16 @@ class APIClient:
                 except:
                     error_detail = e.response.text or str(e)
                 
+                logger.debug(f"HTTP error {e.response.status_code} from {full_url}: {error_detail}")
                 raise click.ClickException(f"API Error ({e.response.status_code}): {error_detail}")
-            except httpx.ConnectError:
+            except httpx.ConnectError as e:
+                logger.debug(f"Connection error to {full_url}: {e}")
                 raise click.ClickException(f"Could not connect to server at {self.config.server_url}")
-            except httpx.TimeoutException:
+            except httpx.TimeoutException as e:
+                logger.debug(f"Timeout error to {full_url}: {e}")
                 raise click.ClickException(f"Request timed out after {self.config.timeout}s")
             except Exception as e:
+                logger.debug(f"Unexpected error to {full_url}: {e}", exc_info=True)
                 raise click.ClickException(f"Unexpected error: {str(e)}")
 
     async def upload_file(
@@ -332,19 +416,55 @@ class SmartCommand:
         """Execute operation with HTTP first, fallback to direct service calls"""
         try:
             # Try HTTP first
-            self.ctx.log("Attempting to connect to server...", "info")
+            self.ctx.log(f"Attempting to connect to server at {self.ctx.config.server_url}...", "info")
             result = await http_operation()
             self.ctx.log("Connected to server successfully", "success")
             return result
-        except (click.ClickException, Exception) as e:
-            # Check if it's a connection error
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError) as e:
+            # Connection-related errors - fallback to direct service calls
+            if self.ctx.verbose:
+                self.ctx.log(f"Connection error details: {type(e).__name__}: {e}", "debug")
+            self.ctx.log("Server unavailable, using direct service calls...", "warning")
+            # Ensure domains are registered before using direct services
+            await ensure_domains_registered()
+            return await fallback_operation()
+        except httpx.HTTPStatusError as e:
+            # HTTP errors (4xx, 5xx) - these mean server is available but request failed
+            # Don't fallback, re-raise the error
+            if self.ctx.verbose:
+                self.ctx.log(f"HTTP error {e.response.status_code}: {e.response.text}", "debug")
+            raise click.ClickException(f"API Error ({e.response.status_code}): {e.response.text}")
+        except click.ClickException as e:
+            # Check if ClickException is actually a connection error
+            # (APIClient converts connection errors to ClickException)
             error_msg = str(e).lower()
             if any(keyword in error_msg for keyword in [
                 "connection", "connect", "timeout", "unreachable", 
-                "refused", "failed", "not found", "404", "405", "500"
+                "refused", "network", "dns", "could not connect"
+            ]):
+                # This is a connection error wrapped in ClickException - fallback
+                if self.ctx.verbose:
+                    self.ctx.log(f"Connection error (ClickException): {e}", "debug")
+                self.ctx.log("Server unavailable, using direct service calls...", "warning")
+                # Ensure domains are registered before using direct services
+                await ensure_domains_registered()
+                return await fallback_operation()
+            else:
+                # Other ClickExceptions should be re-raised as-is
+                raise
+        except Exception as e:
+            # For other exceptions, check if it's a connection-related error message
+            error_msg = str(e).lower()
+            if any(keyword in error_msg for keyword in [
+                "connection", "connect", "timeout", "unreachable", 
+                "refused", "network", "dns"
             ]):
                 # Fallback to direct service calls
+                if self.ctx.verbose:
+                    self.ctx.log(f"Connection error (Exception): {type(e).__name__}: {e}", "debug")
                 self.ctx.log("Server unavailable, using direct service calls...", "warning")
+                # Ensure domains are registered before using direct services
+                await ensure_domains_registered()
                 return await fallback_operation()
             else:
                 # Re-raise other errors

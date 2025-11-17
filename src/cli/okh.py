@@ -234,10 +234,14 @@ async def validate(ctx, manifest_file: str, quality_level: str, strict_mode: boo
         async def fallback_validate():
             """Validate using direct service calls"""
             cli_ctx.log("Using direct service validation...", "info")
-            manifest = OKHManifest.from_dict(manifest_data)
+            # Domains are registered by execute_with_fallback, but ensure here as well for safety
+            from .base import ensure_domains_registered
+            await ensure_domains_registered()
+            
             okh_service = await OKHService.get_instance()
-            result = await okh_service.validate(manifest, quality_level, strict_mode)
-            return result.to_dict()
+            # validate() expects a dict, not an OKHManifest object
+            result = await okh_service.validate(manifest_data, validation_context=quality_level, strict_mode=strict_mode)
+            return result
         
         # Execute validation with fallback
         command = SmartCommand(cli_ctx)
