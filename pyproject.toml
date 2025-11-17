@@ -1,7 +1,0 @@
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-testpaths = ["tests"]
-markers = [
-    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
-    "asyncio: marks tests as async tests",
-]
