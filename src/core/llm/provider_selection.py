@@ -50,6 +50,9 @@ class LLMProviderSelector:
         LLMProviderType.ANTHROPIC: "ANTHROPIC_API_KEY",
         LLMProviderType.OPENAI: "OPENAI_API_KEY",
         LLMProviderType.LOCAL: "OLLAMA_BASE_URL",  # Optional for local
+        LLMProviderType.AZURE_OPENAI: "AZURE_OPENAI_API_KEY",
+        LLMProviderType.AWS_BEDROCK: "AWS_BEDROCK_API_KEY",  # Optional, can use AWS credentials
+        LLMProviderType.GOOGLE: "GOOGLE_APPLICATION_CREDENTIALS",  # Service account JSON path
     }
     
     # Default models for each provider
@@ -57,6 +60,9 @@ class LLMProviderSelector:
         LLMProviderType.ANTHROPIC: "claude-sonnet-4-5-20250929",
         LLMProviderType.OPENAI: "gpt-3.5-turbo",
         LLMProviderType.LOCAL: "llama3.1:8b",
+        LLMProviderType.AZURE_OPENAI: "gpt-35-turbo",
+        LLMProviderType.AWS_BEDROCK: "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        LLMProviderType.GOOGLE: "gemini-1.5-pro",
     }
     
     def __init__(self):
@@ -214,7 +220,49 @@ class LLMProviderSelector:
             # For local providers, check if Ollama is running
             return self._is_ollama_available()
         
-        # For cloud providers, check for API key
+        if provider_type == LLMProviderType.AZURE_OPENAI:
+            # Azure OpenAI requires API key, endpoint, and deployment ID
+            return (
+                os.getenv("AZURE_OPENAI_API_KEY") is not None and
+                os.getenv("AZURE_OPENAI_ENDPOINT") is not None and
+                os.getenv("AZURE_OPENAI_DEPLOYMENT_ID") is not None
+            )
+        
+        if provider_type == LLMProviderType.AWS_BEDROCK:
+            # AWS Bedrock can use API key or AWS credentials (from environment/IAM role)
+            # Check for API key first, then check for AWS credentials
+            if os.getenv("AWS_BEDROCK_API_KEY") is not None:
+                return True
+            # Check for AWS credentials (access key or IAM role)
+            if os.getenv("AWS_ACCESS_KEY_ID") is not None:
+                return True
+            # If running on AWS, might have IAM role credentials
+            # For simplicity, we'll check if boto3 can find credentials
+            try:
+                import boto3
+                session = boto3.Session()
+                credentials = session.get_credentials()
+                return credentials is not None
+            except ImportError:
+                return False
+        
+        if provider_type == LLMProviderType.GOOGLE:
+            # Google Vertex AI requires service account credentials
+            # Check for explicit credentials path
+            if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") is not None:
+                return os.path.exists(os.getenv("GOOGLE_APPLICATION_CREDENTIALS", ""))
+            # Check for project ID (required)
+            if os.getenv("GOOGLE_CLOUD_PROJECT") is not None:
+                # Try to use default credentials (from gcloud or metadata server)
+                try:
+                    from google.auth import default as google_auth_default
+                    credentials, _ = google_auth_default()
+                    return credentials is not None
+                except Exception:
+                    return False
+            return False
+        
+        # For other cloud providers, check for API key
         env_var = self.PROVIDER_ENV_VARS.get(provider_type)
         if env_var:
             return os.getenv(env_var) is not None

@@ -547,17 +547,72 @@ class MatchingService:
         self,
         requirements: List[Dict[str, Any]],
         capabilities: List[Dict[str, Any]],
-        optimization_criteria: Optional[Dict[str, float]] = None
+        optimization_criteria: Optional[Dict[str, float]] = None,
+        match_results: Optional[List[Any]] = None
     ) -> float:
-        """Calculate confidence score for a match"""
+        """
+        Calculate confidence score for a match using multi-factor weighted scoring.
+        
+        Args:
+            requirements: List of requirement dictionaries
+            capabilities: List of capability dictionaries
+            optimization_criteria: Optional weights for different factors
+            match_results: Optional matching layer results for layer-specific scoring
+            
+        Returns:
+            Confidence score between 0.0 and 1.0
+        """
         try:
-            # TODO: Implement actual scoring logic
-            # For now, return a simple score based on requirement coverage
-            matched_requirements = sum(
-                1 for req in requirements
-                if any(req["process_name"] == cap["process_name"] for cap in capabilities)
+            if not requirements:
+                return 0.0
+            
+            # Default weights
+            default_weights = {
+                "process": 0.40,
+                "material": 0.25,
+                "equipment": 0.20,
+                "scale": 0.10,
+                "other": 0.05
+            }
+            
+            # Use optimization criteria if provided, otherwise use defaults
+            weights = optimization_criteria if optimization_criteria else default_weights
+            
+            # Normalize weights to sum to 1.0
+            total_weight = sum(weights.values())
+            if total_weight > 0:
+                weights = {k: v / total_weight for k, v in weights.items()}
+            else:
+                weights = default_weights
+            
+            # Calculate process matching score
+            process_score = self._calculate_process_score(requirements, capabilities)
+            
+            # Calculate material matching score
+            material_score = self._calculate_material_score(requirements, capabilities)
+            
+            # Calculate equipment matching score
+            equipment_score = self._calculate_equipment_score(requirements, capabilities)
+            
+            # Calculate scale/capacity matching score
+            scale_score = self._calculate_scale_score(requirements, capabilities)
+            
+            # Calculate other factors score
+            other_score = self._calculate_other_score(requirements, capabilities, match_results)
+            
+            # Weighted combination
+            confidence_score = (
+                process_score * weights.get("process", 0.40) +
+                material_score * weights.get("material", 0.25) +
+                equipment_score * weights.get("equipment", 0.20) +
+                scale_score * weights.get("scale", 0.10) +
+                other_score * weights.get("other", 0.05)
             )
-            return matched_requirements / len(requirements) if requirements else 0.0
+            
+            # Ensure score is between 0.0 and 1.0
+            confidence_score = max(0.0, min(1.0, confidence_score))
+            
+            return round(confidence_score, 2)
             
         except Exception as e:
             logger.error(
@@ -570,7 +625,196 @@ class MatchingService:
                 },
                 exc_info=True
             )
-            raise
+            # Return a conservative score on error
+            return 0.5
+    
+    def _calculate_process_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]]
+    ) -> float:
+        """Calculate process matching score."""
+        if not requirements:
+            return 0.0
+        
+        matched_processes = 0
+        total_processes = 0
+        
+        for req in requirements:
+            req_process = req.get("process_name", "").lower()
+            if not req_process:
+                continue
+            
+            total_processes += 1
+            
+            # Check for exact or near-match in capabilities
+            for cap in capabilities:
+                cap_process = cap.get("process_name", "").lower()
+                if not cap_process:
+                    continue
+                
+                # Exact match
+                if req_process == cap_process:
+                    matched_processes += 1
+                    break
+                
+                # Near-match (Levenshtein distance <= 2)
+                if self._levenshtein_distance(req_process, cap_process) <= 2:
+                    matched_processes += 0.8  # Partial credit for near-match
+                    break
+        
+        return matched_processes / total_processes if total_processes > 0 else 0.0
+    
+    def _calculate_material_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]]
+    ) -> float:
+        """Calculate material matching score."""
+        req_materials = set()
+        for req in requirements:
+            materials = req.get("materials", [])
+            if isinstance(materials, list):
+                req_materials.update(m.lower() for m in materials if m)
+            elif isinstance(materials, str):
+                req_materials.add(materials.lower())
+        
+        if not req_materials:
+            return 1.0  # No material requirements = perfect score
+        
+        cap_materials = set()
+        for cap in capabilities:
+            materials = cap.get("materials", [])
+            if isinstance(materials, list):
+                cap_materials.update(m.lower() for m in materials if m)
+            elif isinstance(materials, str):
+                cap_materials.add(materials.lower())
+        
+        # Calculate overlap
+        matched_materials = req_materials.intersection(cap_materials)
+        return len(matched_materials) / len(req_materials) if req_materials else 0.0
+    
+    def _calculate_equipment_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]]
+    ) -> float:
+        """Calculate equipment/tool matching score."""
+        req_equipment = set()
+        for req in requirements:
+            equipment = req.get("equipment", []) or req.get("tools", [])
+            if isinstance(equipment, list):
+                req_equipment.update(e.lower() for e in equipment if e)
+            elif isinstance(equipment, str):
+                req_equipment.add(equipment.lower())
+        
+        if not req_equipment:
+            return 1.0  # No equipment requirements = perfect score
+        
+        cap_equipment = set()
+        for cap in capabilities:
+            equipment = cap.get("equipment", []) or cap.get("tools", [])
+            if isinstance(equipment, list):
+                cap_equipment.update(e.lower() for e in equipment if e)
+            elif isinstance(equipment, str):
+                cap_equipment.add(equipment.lower())
+        
+        matched_equipment = req_equipment.intersection(cap_equipment)
+        return len(matched_equipment) / len(req_equipment) if req_equipment else 0.0
+    
+    def _calculate_scale_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]]
+    ) -> float:
+        """Calculate scale/capacity matching score."""
+        # Extract scale requirements
+        req_scale = None
+        for req in requirements:
+            scale = req.get("scale") or req.get("quantity") or req.get("volume")
+            if scale:
+                req_scale = scale
+                break
+        
+        if not req_scale:
+            return 1.0  # No scale requirements = perfect score
+        
+        # Extract capability scale
+        cap_scale = None
+        for cap in capabilities:
+            scale = cap.get("scale") or cap.get("capacity") or cap.get("max_volume")
+            if scale:
+                cap_scale = scale
+                break
+        
+        if not cap_scale:
+            return 0.5  # Unknown capability scale = moderate score
+        
+        # Compare scales (assuming numeric values)
+        try:
+            req_val = float(req_scale)
+            cap_val = float(cap_scale)
+            
+            if cap_val >= req_val:
+                return 1.0  # Capability can handle requirement
+            else:
+                # Partial credit based on ratio
+                return min(1.0, cap_val / req_val)
+        except (ValueError, TypeError):
+            # Non-numeric scales, use string comparison
+            return 0.5
+    
+    def _calculate_other_score(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]],
+        match_results: Optional[List[Any]] = None
+    ) -> float:
+        """Calculate score for other factors (match layer quality, etc.)."""
+        if match_results:
+            # Use match layer results to inform score
+            # Higher confidence from direct matches, lower from NLP/LLM
+            layer_scores = []
+            for result in match_results:
+                layer = getattr(result, 'layer', None)
+                confidence = getattr(result, 'confidence', 0.5)
+                
+                # Weight by layer type
+                if layer == "direct":
+                    layer_scores.append(confidence * 1.0)
+                elif layer == "heuristic":
+                    layer_scores.append(confidence * 0.8)
+                elif layer == "nlp":
+                    layer_scores.append(confidence * 0.6)
+                elif layer == "llm":
+                    layer_scores.append(confidence * 0.7)
+                else:
+                    layer_scores.append(confidence * 0.5)
+            
+            if layer_scores:
+                return sum(layer_scores) / len(layer_scores)
+        
+        return 0.5  # Default moderate score
+    
+    def _levenshtein_distance(self, s1: str, s2: str) -> int:
+        """Calculate Levenshtein distance between two strings."""
+        if len(s1) < len(s2):
+            return self._levenshtein_distance(s2, s1)
+        
+        if len(s2) == 0:
+            return len(s1)
+        
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        
+        return previous_row[-1]
     
     def _normalize_process_name(self, process_name: str) -> str:
         """

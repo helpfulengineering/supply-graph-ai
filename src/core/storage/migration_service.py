@@ -269,17 +269,28 @@ class StorageMigrationService:
             if not dry_run:
                 # Store file at new location with updated data
                 updated_content = json.dumps(file_data, indent=2)
+                migration_timestamp = datetime.now().isoformat()
                 await self.storage_manager.put_object(
                     key=new_path,
                     data=updated_content.encode('utf-8'),
                     content_type='application/json',
                     metadata={
                         'original_path': file_info.key,
-                        'migrated_at': datetime.now().isoformat(),
+                        'migrated_at': migration_timestamp,
                         'file_type': file_info.file_type,
                         'data_quality_fixes': json.dumps(data_quality_fixes) if data_quality_fixes else '[]'
                     }
                 )
+                
+                # Log migration for rollback tracking
+                self.migration_log.append({
+                    'old_path': file_info.key,
+                    'new_path': new_path,
+                    'migrated_at': migration_timestamp,
+                    'file_type': file_info.file_type,
+                    'original_content': content,  # Store original content for rollback
+                    'data_quality_fixes': data_quality_fixes
+                })
                 
                 # Remove old file
                 await self.storage_manager.delete_object(file_info.key)
@@ -307,30 +318,134 @@ class StorageMigrationService:
                 error=str(e)
             )
     
-    async def rollback_migration(self) -> Dict[str, Any]:
+    async def rollback_migration(self, migration_id: Optional[str] = None) -> Dict[str, Any]:
         """
-        Rollback the last migration operation
+        Rollback a migration operation by restoring files to their original locations.
+        
+        Args:
+            migration_id: Optional ID of specific migration to rollback.
+                         If None, rolls back the most recent migration.
         
         Returns:
-            Dictionary with rollback results
+            Dictionary with rollback results including:
+            - rollback_successful: bool
+            - files_restored: int
+            - files_failed: int
+            - errors: List[str]
         """
+        if not self.storage_manager:
+            await self.initialize()
+        
         try:
-            # This is a simplified rollback - in a real implementation,
-            # we would track migration operations and restore from backups
+            logger.info(f"Rollback operation requested (migration_id={migration_id})")
             
-            logger.info("Rollback operation requested")
+            if not self.migration_log:
+                logger.warning("No migration log found - cannot rollback")
+                return {
+                    'rollback_successful': False,
+                    'message': 'No migration log found. Cannot rollback.',
+                    'files_restored': 0,
+                    'files_failed': 0,
+                    'errors': ['No migration log available']
+                }
             
-            # For now, return a placeholder response
-            return {
-                'rollback_successful': True,
-                'message': 'Rollback functionality needs to be implemented with proper backup tracking',
-                'files_restored': 0
+            # Determine which migrations to rollback
+            migrations_to_rollback = []
+            if migration_id:
+                # Find specific migration by ID (if we add ID tracking)
+                # For now, rollback all if ID specified
+                migrations_to_rollback = self.migration_log.copy()
+            else:
+                # Rollback most recent migration (last entry in log)
+                migrations_to_rollback = [self.migration_log[-1]] if self.migration_log else []
+            
+            files_restored = 0
+            files_failed = 0
+            errors = []
+            
+            # Rollback each migration in reverse order (most recent first)
+            for migration in reversed(migrations_to_rollback):
+                try:
+                    old_path = migration['old_path']
+                    new_path = migration['new_path']
+                    original_content = migration.get('original_content')
+                    
+                    # Check if file exists at new location
+                    try:
+                        migrated_file = await self.storage_manager.get_object(new_path)
+                        # If we have original content, use it; otherwise use current content
+                        content_to_restore = original_content if original_content else migrated_file.decode('utf-8')
+                    except Exception as e:
+                        logger.warning(f"File not found at new location {new_path}: {e}")
+                        errors.append(f"File not found at {new_path}: {str(e)}")
+                        files_failed += 1
+                        continue
+                    
+                    # Restore file to original location
+                    try:
+                        await self.storage_manager.put_object(
+                            key=old_path,
+                            data=content_to_restore.encode('utf-8'),
+                            content_type='application/json',
+                            metadata={
+                                'restored_at': datetime.now().isoformat(),
+                                'restored_from': new_path,
+                                'file_type': migration.get('file_type', 'unknown')
+                            }
+                        )
+                        
+                        # Remove file from new location
+                        try:
+                            await self.storage_manager.delete_object(new_path)
+                        except Exception as e:
+                            logger.warning(f"Failed to delete migrated file at {new_path}: {e}")
+                            # Continue anyway - file is restored
+                        
+                        files_restored += 1
+                        logger.info(f"Restored file from {new_path} to {old_path}")
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to restore file to {old_path}: {e}")
+                        errors.append(f"Failed to restore {old_path}: {str(e)}")
+                        files_failed += 1
+                        
+                except Exception as e:
+                    logger.error(f"Error processing migration rollback: {e}")
+                    errors.append(f"Error processing migration: {str(e)}")
+                    files_failed += 1
+            
+            # Remove rolled back migrations from log
+            if files_restored > 0:
+                # Remove the rolled back entries from migration log
+                for migration in migrations_to_rollback:
+                    if migration in self.migration_log:
+                        self.migration_log.remove(migration)
+            
+            success = files_failed == 0 and files_restored > 0
+            
+            result = {
+                'rollback_successful': success,
+                'files_restored': files_restored,
+                'files_failed': files_failed,
+                'errors': errors
             }
             
+            if not success and files_restored == 0:
+                result['message'] = 'Rollback failed - no files were restored'
+            elif files_failed > 0:
+                result['message'] = f'Rollback partially successful - {files_restored} restored, {files_failed} failed'
+            else:
+                result['message'] = f'Rollback successful - {files_restored} file(s) restored'
+            
+            logger.info(f"Rollback completed: {files_restored} restored, {files_failed} failed")
+            return result
+            
         except Exception as e:
-            logger.error(f"Rollback failed: {e}")
+            logger.error(f"Rollback failed: {e}", exc_info=True)
             return {
                 'rollback_successful': False,
                 'error': str(e),
-                'files_restored': 0
+                'files_restored': 0,
+                'files_failed': 0,
+                'errors': [str(e)]
             }

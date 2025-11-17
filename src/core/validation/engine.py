@@ -81,7 +81,12 @@ class ValidationEngine:
             # Apply domain-specific validation
             if hasattr(domain_validator, 'validate'):
                 # Use the domain validator's validate method
-                validation_result = domain_validator.validate(data)
+                import inspect
+                if inspect.iscoroutinefunction(domain_validator.validate):
+                    validation_result = await domain_validator.validate(data, context)
+                else:
+                    # Handle synchronous validators
+                    validation_result = domain_validator.validate(data)
                 
                 # Convert to our ValidationResult format
                 if isinstance(validation_result, dict):

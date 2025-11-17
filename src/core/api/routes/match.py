@@ -29,8 +29,8 @@ from ..decorators import (
 from ..error_handlers import create_error_response, create_success_response
 
 # Import existing models and services
-from ..models.match.request import MatchRequest, ValidateMatchRequest
-from ..models.match.response import MatchResponse
+from ..models.match.request import MatchRequest, ValidateMatchRequest, SimulateRequest
+from ..models.match.response import MatchResponse, SimulateResponse
 from ...services.matching_service import MatchingService
 from ...services.storage_service import StorageService
 from ...services.okh_service import OKHService
@@ -224,6 +224,7 @@ async def match_requirements_to_capabilities(
         response_data = {
             "solutions": solutions,
             "total_solutions": len(solutions),
+            "processing_time": processing_time,
             "matching_metrics": {
                 "direct_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "direct"]),
                 "heuristic_matches": len([s for s in solutions if s.get("tree", {}).get("match_type") == "heuristic"]),
@@ -301,6 +302,7 @@ async def validate_match(
     quality_level: Optional[str] = Query("professional", description="Quality level: hobby, professional, or medical"),
     strict_mode: Optional[bool] = Query(False, description="Enable strict validation mode"),
     matching_service: MatchingService = Depends(get_matching_service),
+    storage_service: StorageService = Depends(get_storage_service),
     http_request: Request = None
 ):
     """Enhanced validation endpoint with standardized patterns."""
@@ -318,23 +320,106 @@ async def validate_match(
             }
         )
         
-        # TODO: Implement validation using matching service and new validation framework
-        # For now, return a placeholder response
-        logger.debug("Using placeholder validation response")
+        # Load OKH manifest from storage
+        okh_handler = await storage_service.get_domain_handler("okh")
+        okh_manifest = await okh_handler.load(request.okh_id)
+        
+        if not okh_manifest:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"OKH manifest {request.okh_id} not found"
+            )
+        
+        # Get domain from OKH manifest or default to manufacturing
+        domain = "manufacturing"  # Default, could be detected from manifest
+        
+        # Get domain validator from registry
+        if not DomainRegistry.is_domain_registered(domain):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Domain {domain} is not registered"
+            )
+        
+        domain_services = DomainRegistry.get_domain_services(domain)
+        validator = domain_services.validator
+        
+        # Create validation context
+        from src.core.validation.context import ValidationContext
+        context = ValidationContext(
+            name=f"match_validation_{request.okh_id}",
+            domain=domain,
+            quality_level=quality_level or "professional",
+            strict_mode=strict_mode
+        )
+        
+        # Validate OKH manifest
+        okh_validation = await validator.validate(okh_manifest, context)
+        
+        # Validate supply tree structure and compatibility
+        supply_tree_errors = []
+        supply_tree_warnings = []
+        supply_tree_suggestions = []
+        
+        # Note: Currently validates only the OKH manifest.
+        # Future enhancement: Load actual supply tree from storage if available and validate it.
+        # This would provide more comprehensive validation including supply tree structure validation.
+        
+        # Convert validation result to API format
+        from src.core.api.models.base import ErrorDetail, ErrorCode
+        all_errors = [
+            ErrorDetail(
+                message=error.message,
+                field=error.field,
+                code=ErrorCode.VALIDATION_ERROR if error.code is None else ErrorCode(error.code) if isinstance(error.code, str) else error.code
+            )
+            for error in okh_validation.errors
+        ] + [
+            ErrorDetail(message=err, code=ErrorCode.VALIDATION_ERROR) if isinstance(err, str) else err
+            for err in supply_tree_errors
+        ]
+        all_warnings = [warning.message for warning in okh_validation.warnings] + supply_tree_warnings
+        all_suggestions = supply_tree_suggestions  # Could add suggestions from validation
+        
+        # Calculate validation score
+        okh_score = okh_validation.metadata.get("completeness_score", 1.0) if okh_validation.valid else 0.0
+        # Note: Supply tree validation not yet implemented. Using default score of 1.0.
+        # Future enhancement: Calculate actual score from supply tree validation results.
+        supply_tree_score = 1.0
+        validation_score = (okh_score + supply_tree_score) / 2.0
+        
+        # Apply strict mode: treat warnings as errors
+        if strict_mode and all_warnings:
+            # Convert warnings to errors in strict mode
+            from src.core.api.models.base import ErrorCode
+            all_errors.extend([
+                ErrorDetail(message=w, code=ErrorCode.VALIDATION_ERROR) if isinstance(w, str) else w
+                for w in all_warnings
+            ])
+            all_warnings = []
+            # Reduce score if there were warnings
+            validation_score *= 0.9
+        
+        is_valid = len(all_errors) == 0 and okh_validation.valid
+        
         return ValidationResult(
-            is_valid=True,
-            score=0.8,
-            errors=[],
-            warnings=[],
-            suggestions=[],
+            is_valid=is_valid,
+            score=validation_score,
+            errors=all_errors,
+            warnings=all_warnings,
+            suggestions=all_suggestions,
             metadata={
                 "okh_id": str(request.okh_id),
                 "supply_tree_id": str(request.supply_tree_id),
                 "validation_criteria": request.validation_criteria,
                 "quality_level": quality_level,
-                "strict_mode": strict_mode
+                "strict_mode": strict_mode,
+                "okh_validation_score": okh_score,
+                "supply_tree_validation_score": supply_tree_score
             }
         )
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404)
+        raise
     except Exception as e:
         # Use standardized error handler
         error_response = create_error_response(
@@ -395,6 +480,7 @@ async def match_requirements_from_file(
 ):
     """Enhanced file upload matching endpoint."""
     request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.now()
     
     try:
         # Validate file type
@@ -487,12 +573,15 @@ async def match_requirements_from_file(
             # Use the simplified to_dict method from SupplyTreeSolution
             results.append(solution.to_dict())
         
+        # Calculate processing time
+        processing_time = (datetime.now() - start_time).total_seconds()
+        
         return create_success_response(
             message="Matching completed successfully",
             data={
                 "solutions": results,
                 "total_solutions": len(results),
-                "processing_time": 0.0,  # TODO: Calculate actual processing time
+                "processing_time": processing_time,
                 "matching_metrics": {
                     "direct_matches": len(results),
                     "heuristic_matches": 0,
@@ -1099,7 +1188,8 @@ async def _perform_enhanced_matching(
                 if not facility_id:
                     facility_id = solution.tree.metadata.get('facility_id') if solution.tree.metadata else None
                     if not facility_id:
-                        # Generate a placeholder ID
+                        # Generate a fallback ID when facility_id is not available
+                        # This is a temporary identifier for the response, not a stored facility ID
                         from uuid import uuid4
                         facility_id = str(uuid4())[:8]
                 
@@ -1341,3 +1431,152 @@ def _matches_filters(facility, filters: dict) -> bool:
     except Exception as e:
         logger.warning(f"Error applying filters to facility {facility.name}: {e}")
         return True  # Default to including the facility if filter fails
+
+
+@router.post(
+    "/simulate",
+    response_model=SimulateResponse,
+    summary="Simulate Supply Tree Execution",
+    description="""
+    Simulate the execution of a supply tree.
+    
+    This endpoint simulates the execution of a supply tree by analyzing
+    resource availability, critical paths, and potential bottlenecks.
+    """
+)
+@api_endpoint(
+    success_message="Simulation completed successfully",
+    include_metrics=True
+)
+@track_performance("match_simulate")
+async def simulate_supply_tree(
+    request: SimulateRequest,
+    http_request: Request = None
+):
+    """Simulate execution of a supply tree."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    start_time = datetime.now()
+    
+    try:
+        # Extract supply tree and parameters
+        supply_tree = request.supply_tree
+        parameters = request.parameters
+        
+        # Parse start time
+        try:
+            start_time_parsed = datetime.fromisoformat(parameters.start_time.replace('Z', '+00:00'))
+        except ValueError:
+            error_response = create_error_response(
+                error=f"Invalid start_time format: {parameters.start_time}",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                request_id=request_id,
+                suggestion="Please provide start_time in ISO format (e.g., '2023-01-01T00:00:00Z')"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Extract estimated time from supply tree
+        estimated_time_str = supply_tree.get("estimated_time", "2 weeks")
+        
+        # Simple time estimation (in a full implementation, this would be more sophisticated)
+        # For now, we'll add a fixed duration to the start time
+        days_to_add = 7  # Default to 1 week
+        if "week" in estimated_time_str.lower():
+            try:
+                weeks = int(estimated_time_str.split()[0])
+                days_to_add = weeks * 7
+            except (ValueError, IndexError):
+                pass
+        elif "day" in estimated_time_str.lower():
+            try:
+                days_to_add = int(estimated_time_str.split()[0])
+            except (ValueError, IndexError):
+                pass
+        
+        from datetime import timedelta
+        completion_time = start_time_parsed + timedelta(days=days_to_add)
+        
+        # Calculate critical path (simplified - in full implementation would analyze workflow DAG)
+        critical_path = []
+        if supply_tree.get("capabilities_used"):
+            for i, capability in enumerate(supply_tree["capabilities_used"][:3]):  # Limit to first 3
+                critical_path.append({
+                    "step": capability,
+                    "duration": f"{days_to_add // len(supply_tree['capabilities_used'])} days" if supply_tree["capabilities_used"] else "1 day"
+                })
+        
+        # Identify bottlenecks (simplified)
+        bottlenecks = []
+        resource_utilization = {
+            "equipment": {},
+            "labor": {}
+        }
+        
+        # If resource availability is provided, calculate utilization
+        if parameters.resource_availability:
+            for resource, availability in parameters.resource_availability.items():
+                # Simplified utilization calculation
+                utilization = 0.75  # Default
+                if isinstance(availability, dict) and "capacity" in availability:
+                    capacity = availability.get("capacity", 1)
+                    if capacity > 0:
+                        utilization = min(1.0, 0.75 / capacity)
+                
+                if utilization > 0.9:
+                    bottlenecks.append({
+                        "resource": resource,
+                        "utilization": round(utilization, 2),
+                        "impact": "high"
+                    })
+                
+                # Categorize as equipment or labor
+                if "machine" in resource.lower() or "equipment" in resource.lower():
+                    resource_utilization["equipment"][resource] = round(utilization, 2)
+                else:
+                    resource_utilization["labor"][resource] = round(utilization, 2)
+        
+        logger.info(
+            f"Simulation completed successfully",
+            extra={
+                "request_id": request_id,
+                "supply_tree_id": supply_tree.get("id"),
+                "completion_time": completion_time.isoformat(),
+                "bottlenecks_count": len(bottlenecks)
+            }
+        )
+        
+        return SimulateResponse(
+            status="success",
+            message="Simulation completed successfully",
+            timestamp=datetime.now(),
+            request_id=request_id,
+            completion_time=completion_time.isoformat(),
+            critical_path=critical_path,
+            bottlenecks=bottlenecks,
+            resource_utilization=resource_utilization
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error simulating supply tree: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
+        )

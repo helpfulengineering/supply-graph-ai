@@ -7,13 +7,13 @@ defining the standardized interface that all providers must implement.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, AsyncContextManager
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from enum import Enum
 import logging
 
 from ..models.requests import LLMRequest
-from ..models.responses import LLMResponse, LLMResponseStatus
+from ..models.responses import LLMResponse
 from ..models.metrics import LLMMetrics
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,7 @@ class LLMProviderType(Enum):
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
     AZURE_OPENAI = "azure_openai"
+    AWS_BEDROCK = "aws_bedrock"
     LOCAL = "local"
     CUSTOM = "custom"
 
@@ -177,7 +178,14 @@ class BaseLLMProvider(ABC):
     
     def _validate_config(self) -> None:
         """Validate the provider configuration."""
-        if not self.config.api_key and self.config.provider_type not in [LLMProviderType.LOCAL, LLMProviderType.CUSTOM]:
+        # AWS_BEDROCK and GOOGLE can use alternative authentication methods
+        providers_without_required_api_key = [
+            LLMProviderType.LOCAL,
+            LLMProviderType.CUSTOM,
+            LLMProviderType.AWS_BEDROCK,  # Can use AWS credentials
+            LLMProviderType.GOOGLE,  # Can use service account credentials
+        ]
+        if not self.config.api_key and self.config.provider_type not in providers_without_required_api_key:
             raise ValueError(f"API key required for {self.config.provider_type.value} provider")
         
         # Validate model-specific requirements

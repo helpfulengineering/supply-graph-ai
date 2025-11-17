@@ -97,10 +97,38 @@ class ValidationResult(BaseModel):
         default_factory=list,
         description="List of validation issues if any"
     )
-    metadata: Dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional metadata about the validation process"
-    )
+
+
+class SimulateResponse(SuccessResponse):
+    """Response model for simulation results"""
+    # Required fields
+    completion_time: str = Field(..., description="Estimated completion time (ISO format)")
+    
+    # Optional fields
+    critical_path: List[Dict[str, Any]] = Field(default_factory=list, description="Critical path in the supply tree")
+    bottlenecks: List[Dict[str, Any]] = Field(default_factory=list, description="Identified bottlenecks")
+    resource_utilization: Dict[str, Any] = Field(default_factory=dict, description="Resource utilization metrics")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "status": "success",
+                "message": "Simulation completed successfully",
+                "timestamp": "2024-01-01T12:00:00Z",
+                "completion_time": "2023-01-10T15:30:00Z",
+                "critical_path": [
+                    {"step": "material_preparation", "duration": "2 days"},
+                    {"step": "assembly", "duration": "5 days"}
+                ],
+                "bottlenecks": [
+                    {"resource": "CNC Machine", "utilization": 0.95, "impact": "high"}
+                ],
+                "resource_utilization": {
+                    "equipment": {"CNC Machine": 0.95, "3D Printer": 0.60},
+                    "labor": {"technicians": 0.80}
+                }
+            }
+        }
 
 class SimulationResult(BaseModel):
     """Response model for simulation results"""

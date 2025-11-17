@@ -2,9 +2,10 @@ import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import APIKeyHeader
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from .version import get_version
 
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.okh import router as okh_router
@@ -12,6 +13,7 @@ from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.api.routes.package import router as package_router
+from src.core.api.routes.llm import router as llm_router
 
 # Import new standardized API components
 from src.core.api.error_handlers import (
@@ -20,7 +22,8 @@ from src.core.api.error_handlers import (
     general_exception_handler
 )
 from src.core.api.middleware import setup_api_middleware
-# from src.core.errors.metrics import MetricsTracker  # TODO: Implement MetricsTracker
+from src.core.errors.metrics import get_metrics_tracker
+from src.core.api.dependencies import get_current_user, get_optional_user
 
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -32,6 +35,7 @@ from src.core.domains.manufacturing.validation.compatibility import Manufacturin
 from src.core.domains.cooking.validation.compatibility import CookingValidatorCompat
 from src.core.registry.domain_registry import DomainRegistry
 from src.core.services.storage_service import StorageService
+from src.core.services.auth_service import AuthenticationService
 from src.core.registry.domain_registry import DomainMetadata, DomainStatus
 from src.config import settings
 from src.core.utils.logging import setup_logging, get_logger
@@ -45,9 +49,6 @@ setup_logging(
 # Get logger for this module
 logger = get_logger(__name__)
 
-# Initialize API key security
-API_KEY_HEADER = APIKeyHeader(name="Authorization")
-
 # Define lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,6 +60,10 @@ async def lifespan(app: FastAPI):
         logger.info("Initializing storage service")
         storage_service = await StorageService.get_instance()
         await storage_service.configure(settings.STORAGE_CONFIG)
+        
+        # Initialize authentication service
+        logger.info("Initializing authentication service")
+        await AuthenticationService.get_instance()
         
         # Register domain components
         logger.info("Registering domain components")
@@ -78,7 +83,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Open Matching Engine API",
     description="API for matching OKH requirements with OKW capabilities",
-    version="1.0.0",
+    version=get_version(),
     lifespan=lifespan
 )
 
@@ -89,8 +94,8 @@ app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Set up API middleware
-# metrics_tracker = MetricsTracker()  # TODO: Implement MetricsTracker
-setup_api_middleware(app, None)
+metrics_tracker = get_metrics_tracker()
+setup_api_middleware(app, metrics_tracker)
 
 # Add CORS middleware
 app.add_middleware(
@@ -101,32 +106,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define dependency for authentication
-async def get_api_key(api_key: str = Depends(API_KEY_HEADER)):
-    if not api_key.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token format"
-        )
-    
-    token = api_key.replace("Bearer ", "")
-    
-    # TODO: Implement actual API key validation against database
-    if token not in settings.API_KEYS:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authentication token"
-        )
-    
-    return token
-
 # Root endpoint
 @app.get("/", tags=["system"])
 async def root():
     """Root endpoint with API information."""
     return {
         "message": "Open Matching Engine API",
-        "version": "1.0.0",
+        "version": get_version(),
         "docs": {
             "main": "/docs",
             "v1": "/v1/docs"
@@ -142,14 +128,14 @@ async def health_check():
     return {
         "status": "ok", 
         "domains": list(DomainRegistry.get_registered_domains()),
-        "version": "1.0.0"
+        "version": get_version()
     }
 
 # Create a versioned API
 api_v1 = FastAPI(
     title="Open Matching Engine API v1",
     description="Version 1 of the Open Matching Engine API",
-    version="1.0.0"
+    version=get_version()
 )
 
 # Include routers - those with prefixes don't need additional prefixes
@@ -159,6 +145,7 @@ api_v1.include_router(okw_router, prefix="/api/okw", tags=["okw"])
 api_v1.include_router(supply_tree_router, tags=["supply-tree"])  # Already has /api/supply-tree prefix
 api_v1.include_router(utility_router, tags=["utility"])  # Already has /api/utility prefix
 api_v1.include_router(package_router, tags=["package"])  # Already has /api/package prefix
+api_v1.include_router(llm_router, tags=["llm"])  # Already has /api/llm prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)
@@ -172,7 +159,7 @@ async def register_domain_components():
         name="cooking",
         display_name="Cooking & Food Preparation",
         description="Domain for recipe and kitchen capability matching",
-        version="1.0.0",
+        version=get_version(),
         status=DomainStatus.ACTIVE,
         supported_input_types={"recipe", "kitchen"},
         supported_output_types={"cooking_workflow", "meal_plan"},
@@ -193,7 +180,7 @@ async def register_domain_components():
         name="manufacturing",
         display_name="Manufacturing & Hardware Production",
         description="Domain for OKH/OKW manufacturing capability matching",
-        version="1.0.0",
+        version=get_version(),
         status=DomainStatus.ACTIVE,
         supported_input_types={"okh", "okw"},
         supported_output_types={"supply_tree", "manufacturing_plan"},
@@ -219,4 +206,5 @@ async def cleanup_resources():
 
 # Only run the app if this file is executed directly
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    from src.config.settings import API_HOST, API_PORT, DEBUG
+    uvicorn.run("main:app", host=API_HOST, port=API_PORT, reload=DEBUG)

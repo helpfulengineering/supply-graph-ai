@@ -5,9 +5,14 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from enum import Enum
 import re
+import json
+import yaml
+import logging
 
 # Import Component from the BOM models
 from ..models.bom import Component, BillOfMaterials
+
+logger = logging.getLogger(__name__)
 
 
 class BOMSourceType(Enum):
@@ -755,10 +760,174 @@ class BOMProcessor:
         return None
     
     def _extract_components_from_structured(self, content: str, source: BOMSource) -> List['Component']:
-        """Extract components from structured formats (JSON, YAML)"""
-        # For now, fallback to markdown parsing
-        # TODO: Implement proper JSON/YAML parsing
-        return self._extract_components_from_markdown(content, source)
+        """
+        Extract components from structured formats (JSON, YAML).
+        
+        Supports multiple BOM schemas:
+        - Array of component objects: [{"name": "...", "quantity": ...}, ...]
+        - Object with components array: {"components": [...], ...}
+        - Object with parts array: {"parts": [...], ...}
+        - Object with items array: {"items": [...], ...}
+        
+        Args:
+            content: File content as string
+            source: BOMSource object with file metadata
+            
+        Returns:
+            List of Component objects
+        """
+        file_path = source.file_path.lower()
+        components = []
+        
+        try:
+            # Parse JSON or YAML
+            if file_path.endswith('.json'):
+                data = json.loads(content)
+            elif file_path.endswith(('.yaml', '.yml')):
+                data = yaml.safe_load(content)
+            else:
+                # Unknown format, fallback to markdown
+                return self._extract_components_from_markdown(content, source)
+            
+            if not data:
+                return []
+            
+            # Extract components array from different schema formats
+            components_data = None
+            
+            if isinstance(data, list):
+                # Array of components
+                components_data = data
+            elif isinstance(data, dict):
+                # Object with components array (check top level first)
+                for key in ['components', 'parts', 'items', 'materials', 'bom']:
+                    if key in data:
+                        value = data[key]
+                        # Handle nested structure: {"bom": {"components": [...]}}
+                        if isinstance(value, dict):
+                            for nested_key in ['components', 'parts', 'items', 'materials']:
+                                if nested_key in value and isinstance(value[nested_key], list):
+                                    components_data = value[nested_key]
+                                    break
+                        elif isinstance(value, list):
+                            components_data = value
+                            break
+                    if components_data:
+                        break
+                
+                # If no array found, try to extract from dict values
+                if not components_data:
+                    # Check if dict values are component objects
+                    if all(isinstance(v, dict) for v in data.values()):
+                        components_data = list(data.values())
+            
+            if not components_data:
+                # Couldn't find components, fallback to markdown
+                logger.warning(f"Could not find components array in structured BOM: {source.file_path}")
+                return self._extract_components_from_markdown(content, source)
+            
+            # Parse each component
+            for comp_data in components_data:
+                if not isinstance(comp_data, dict):
+                    continue
+                
+                component = self._parse_component_from_dict(comp_data, source)
+                if component:
+                    components.append(component)
+            
+            return components
+            
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse JSON BOM {source.file_path}: {e}")
+            return self._extract_components_from_markdown(content, source)
+        except yaml.YAMLError as e:
+            logger.warning(f"Failed to parse YAML BOM {source.file_path}: {e}")
+            return self._extract_components_from_markdown(content, source)
+        except Exception as e:
+            logger.warning(f"Error parsing structured BOM {source.file_path}: {e}", exc_info=True)
+            return self._extract_components_from_markdown(content, source)
+    
+    def _parse_component_from_dict(self, comp_data: Dict[str, Any], source: BOMSource) -> Optional['Component']:
+        """
+        Parse a single component from dictionary data.
+        
+        Supports various field name variations:
+        - Name: name, item, component, part, id, title
+        - Quantity: quantity, qty, amount, count, number
+        - Unit: unit, units, measure, uom
+        - Description: description, desc, notes, comment
+        
+        Args:
+            comp_data: Dictionary with component data
+            source: BOMSource object
+            
+        Returns:
+            Component object or None if parsing fails
+        """
+        # Extract name
+        name = None
+        for key in ['name', 'item', 'component', 'part', 'id', 'title']:
+            if key in comp_data and comp_data[key]:
+                name = str(comp_data[key]).strip()
+                break
+        
+        if not name:
+            return None
+        
+        # Extract quantity
+        quantity = 1.0
+        for key in ['quantity', 'qty', 'amount', 'count', 'number']:
+            if key in comp_data:
+                try:
+                    quantity = float(comp_data[key])
+                    break
+                except (ValueError, TypeError):
+                    continue
+        
+        # Extract unit
+        unit = "pcs"
+        for key in ['unit', 'units', 'measure', 'uom']:
+            if key in comp_data and comp_data[key]:
+                unit = str(comp_data[key]).strip()
+                break
+        
+        # Extract description/notes (store in metadata since Component doesn't have description field)
+        description = None
+        for key in ['description', 'desc', 'notes', 'comment', 'note']:
+            if key in comp_data and comp_data[key]:
+                description = str(comp_data[key]).strip()
+                break
+        
+        # Extract metadata (all other fields)
+        standard_fields = ['name', 'item', 'component', 'part', 'id', 'title',
+                          'quantity', 'qty', 'amount', 'count', 'number',
+                          'unit', 'units', 'measure', 'uom',
+                          'description', 'desc', 'notes', 'comment', 'note']
+        metadata = {k: v for k, v in comp_data.items() 
+                    if k not in standard_fields}
+        
+        # Add description to metadata if present
+        if description:
+            metadata['description'] = description
+        
+        # Add source metadata
+        metadata.update({
+            "source": source.source_type.value,
+            "file_path": source.file_path,
+            "confidence": source.confidence
+        })
+        
+        # Generate component ID
+        component_id = self._generate_component_id(name)
+        
+        # Create component
+        return Component(
+            id=component_id,
+            name=name,
+            quantity=quantity,
+            unit=unit,
+            metadata=metadata
+        )
     
     def _find_column_index(self, header: List[str], possible_names: List[str]) -> Optional[int]:
         """Find the index of a column by name"""

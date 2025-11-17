@@ -9,6 +9,7 @@ This service provides functionality for:
 """
 
 import logging
+import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 from collections import defaultdict
@@ -180,7 +181,7 @@ class RepositoryMappingService:
             updated_count += 1
         
         # Update metadata
-        routing_table.metadata["last_updated"] = "now"  # TODO: Use proper timestamp
+        routing_table.metadata["last_updated"] = datetime.now().isoformat()
         routing_table.metadata["updated_routes"] = updated_count
         
         self.logger.debug(

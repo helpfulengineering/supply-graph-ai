@@ -699,8 +699,9 @@ class PackageBuilder:
         # Calculate total size
         total_size = sum(f.size_bytes for f in file_inventory)
         
-        # Get OME version (placeholder for now)
-        ome_version = "1.0.0"  # TODO: Get from actual version
+        # Get OME version from version module
+        from ..version import get_version
+        ome_version = get_version()
         
         return PackageMetadata(
             package_name=package_name,

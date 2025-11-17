@@ -1,11 +1,18 @@
-from typing import Dict, Type, Any, Optional, Set, List
+from typing import Dict, Type, Any, Optional, Set, List, Union, TYPE_CHECKING
 from dataclasses import dataclass
 from enum import Enum
 import logging
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
+from .validator_adapter import ValidatorAdapter
+
+if TYPE_CHECKING:
+    from ..validation.engine import Validator as ValidationEngineValidator
 
 logger = logging.getLogger(__name__)
+
+# Type alias for validators (supports both old and new)
+ValidatorType = Union[BaseValidator, ValidatorAdapter]
 
 class DomainStatus(Enum):
     """Status of a domain registration"""
@@ -44,8 +51,8 @@ class DomainMetadata:
 class DomainServices:
     """Container for all services associated with a domain"""
     extractor: BaseExtractor
-    matcher: Any  # TODO: Make this BaseMatcher when existing classes are refactored
-    validator: Any  # TODO: Make this BaseValidator when existing classes are refactored
+    matcher: BaseMatcher  # Now properly typed
+    validator: ValidatorType  # Supports both BaseValidator and adapted Validator
     metadata: DomainMetadata
     orchestrator: Optional[Any] = None  # BaseOrchestrator when available
 
@@ -59,8 +66,8 @@ class DomainRegistry:
         cls,
         domain_name: str,
         extractor: BaseExtractor,
-        matcher: Any,
-        validator: Any,
+        matcher: BaseMatcher,  # Now requires BaseMatcher
+        validator: Union[BaseValidator, Any],  # Accepts BaseValidator or ValidationEngineValidator
         metadata: DomainMetadata,
         orchestrator: Optional[Any] = None
     ) -> None:
@@ -70,6 +77,12 @@ class DomainRegistry:
         
         # Validate services
         cls._validate_services(extractor, matcher, validator)
+        
+        # Wrap ValidationEngineValidator if needed (lazy import to avoid circular dependency)
+        from ..validation.engine import Validator as ValidationEngineValidator
+        if isinstance(validator, ValidationEngineValidator):
+            validator = ValidatorAdapter(validator)
+            logger.debug(f"Wrapped ValidationEngineValidator for domain {domain_name}")
         
         services = DomainServices(
             extractor=extractor,
@@ -88,16 +101,28 @@ class DomainRegistry:
         logger.info(f"Registered domain: {domain_name} with types: {metadata.supported_input_types}")
     
     @classmethod
-    def _validate_services(cls, extractor: BaseExtractor, matcher: Any, validator: Any) -> None:
+    def _validate_services(cls, extractor: BaseExtractor, matcher: BaseMatcher, validator: Union[BaseValidator, Any]) -> None:
         """Validate that services implement required interfaces"""
         if not isinstance(extractor, BaseExtractor):
             raise TypeError(f"Extractor must inherit from BaseExtractor, got {type(extractor)}")
-        # For now, be flexible with matcher and validator types to work with existing code
-        # TODO: Refactor existing matchers and validators to inherit from base classes
-        if matcher is None:
-            raise TypeError("Matcher cannot be None")
-        if validator is None:
-            raise TypeError("Validator cannot be None")
+        
+        if not isinstance(matcher, BaseMatcher):
+            raise TypeError(f"Matcher must inherit from BaseMatcher, got {type(matcher)}")
+        
+        # Validator can be BaseValidator or ValidationEngineValidator (will be wrapped)
+        # Use lazy import to avoid circular dependency
+        from ..validation.engine import Validator as ValidationEngineValidator
+        if isinstance(validator, BaseValidator):
+            # Already correct type
+            pass
+        elif isinstance(validator, ValidationEngineValidator):
+            # Will be wrapped by register_domain
+            pass
+        else:
+            raise TypeError(
+                f"Validator must be BaseValidator or ValidationEngineValidator, "
+                f"got {type(validator)}"
+            )
     
     @classmethod
     def get_domain_services(cls, domain_name: str) -> DomainServices:
@@ -112,12 +137,12 @@ class DomainRegistry:
         return cls.get_domain_services(domain).extractor
     
     @classmethod
-    def get_matcher(cls, domain: str) -> Any:
+    def get_matcher(cls, domain: str) -> BaseMatcher:
         """Get registered matcher for domain"""
         return cls.get_domain_services(domain).matcher
     
     @classmethod
-    def get_validator(cls, domain: str) -> Any:
+    def get_validator(cls, domain: str) -> ValidatorType:
         """Get registered validator for domain"""
         return cls.get_domain_services(domain).validator
     

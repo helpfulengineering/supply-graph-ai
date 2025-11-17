@@ -9,7 +9,9 @@ from ..models.base import (
 from ..decorators import (
     api_endpoint,
     track_performance,
-    llm_endpoint
+    llm_endpoint,
+    cache_response,
+    rate_limit
 )
 from ..error_handlers import create_error_response, create_success_response
 
@@ -25,6 +27,7 @@ from ..models.utility.response import (
     Context
 )
 from ...utils.logging import get_logger
+from ...errors.metrics import get_metrics_tracker
 
 # Set up logging
 logger = get_logger(__name__)
@@ -44,7 +47,6 @@ router = APIRouter(
 
 @router.get(
     "/domains", 
-    response_model=DomainsResponse,
     summary="List Available Domains",
     description="""
     Get a list of available domains with enhanced capabilities.
@@ -55,8 +57,16 @@ router = APIRouter(
     - Performance metrics
     - LLM integration support
     - Validation
+    - Response caching (5 minutes TTL)
+    - Rate limiting (60 requests per minute)
     """
 )
+@api_endpoint(
+    success_message="Domains retrieved successfully",
+    include_metrics=True
+)
+@rate_limit(requests_per_minute=60, per_user=False)
+@cache_response(ttl_seconds=300, cache_key_prefix="domains")
 @track_performance("utility_domains")
 @llm_endpoint(
     default_provider="anthropic",
@@ -72,23 +82,29 @@ async def get_domains(
     start_time = datetime.now()
     
     try:
-        # Placeholder implementation
-        domains = [
-            Domain(
-                id="manufacturing",
-                name="Manufacturing Domain",
-                description="Hardware manufacturing capabilities"
-            ),
-            Domain(
-                id="cooking",
-                name="Cooking Domain",
-                description="Food preparation capabilities"
+        # Get domains from DomainRegistry
+        from ...registry.domain_registry import DomainRegistry
+        
+        # Get all domain metadata
+        all_metadata = DomainRegistry.get_all_metadata(include_disabled=False)
+        
+        # Convert to Domain objects
+        domains = []
+        for domain_name, metadata in all_metadata.items():
+            domain = Domain(
+                id=metadata.name,
+                name=metadata.display_name,
+                description=metadata.description
             )
-        ]
+            domains.append(domain)
         
         # Apply name filter if provided
         if filter_params.name:
-            domains = [d for d in domains if filter_params.name.lower() in d.name.lower()]
+            domains = [
+                d for d in domains 
+                if filter_params.name.lower() in d.name.lower() or 
+                   filter_params.name.lower() in d.id.lower()
+            ]
         
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -110,12 +126,13 @@ async def get_domains(
             }
         )
         
-        return DomainsResponse(
-            domains=domains,
-            message="Domains retrieved successfully",
-            processing_time=processing_time,
-            validation_results=await _validate_utility_result(domains, request_id)
-        )
+        # Return dict for api_endpoint decorator to wrap
+        validation_results = await _validate_utility_result(domains, request_id)
+        return {
+            "domains": [domain.model_dump(mode='json') for domain in domains],
+            "processing_time": processing_time,
+            "validation_results": [vr.model_dump(mode='json') if hasattr(vr, 'model_dump') else vr for vr in validation_results]
+        }
         
     except Exception as e:
         # Use standardized error handler
@@ -170,39 +187,56 @@ async def get_contexts(
     start_time = datetime.now()
     
     try:
-        # Placeholder implementation
-        if domain == "manufacturing":
-            contexts = [
-                Context(
-                    id="hobby",
-                    name="Hobby Manufacturing",
-                    description="Non-commercial, limited quality requirements"
-                ),
-                Context(
-                    id="professional",
-                    name="Professional Manufacturing",
-                    description="Commercial-grade production"
-                )
-            ]
-        elif domain == "cooking":
-            contexts = [
-                Context(
-                    id="home",
-                    name="Home Cooking",
-                    description="Basic home kitchen capabilities"
-                ),
-                Context(
-                    id="commercial",
-                    name="Commercial Kitchen",
-                    description="Professional kitchen capabilities"
-                )
-            ]
-        else:
-            contexts = []
+        # Validate domain exists
+        from ...registry.domain_registry import DomainRegistry
+        
+        try:
+            domain_metadata = DomainRegistry.get_domain_metadata(domain)
+        except ValueError:
+            error_response = create_error_response(
+                error=f"Domain '{domain}' not found",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion=f"Available domains: {', '.join(DomainRegistry.list_domains())}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Get contexts based on validation framework quality levels
+        # Quality levels map to contexts per domain
+        quality_levels_map = {
+            "manufacturing": ["hobby", "professional", "medical"],
+            "cooking": ["home", "commercial", "professional"]
+        }
+        
+        # Get quality levels for this domain, default to professional if unknown
+        quality_levels = quality_levels_map.get(domain, ["professional"])
+        
+        contexts = []
+        for level in quality_levels:
+            # Map quality level to context
+            context_id = level
+            # Create context name from quality level and domain
+            context_name = level.title() + " " + domain_metadata.display_name.split()[0]
+            # Create context description
+            context_description = f"{level.title()} level validation and matching for {domain_metadata.display_name}"
+            
+            context = Context(
+                id=context_id,
+                name=context_name,
+                description=context_description
+            )
+            contexts.append(context)
         
         # Apply name filter if provided
         if filter_params.name:
-            contexts = [c for c in contexts if filter_params.name.lower() in c.name.lower()]
+            contexts = [
+                c for c in contexts 
+                if filter_params.name.lower() in c.name.lower() or 
+                   filter_params.name.lower() in c.id.lower()
+            ]
         
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -232,6 +266,8 @@ async def get_contexts(
             validation_results=await _validate_utility_result(contexts, request_id)
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         # Use standardized error handler
         error_response = create_error_response(
@@ -315,3 +351,68 @@ async def _validate_utility_result(
             exc_info=True
         )
         return []
+
+
+@router.get(
+    "/metrics",
+    summary="Get System Metrics",
+    description="""
+    Get system metrics including request tracking, performance, and LLM usage.
+    
+    This endpoint provides access to the MetricsTracker data, including:
+    - Overall request statistics
+    - Endpoint-level metrics
+    - Error summaries
+    - Performance metrics
+    - LLM usage and costs
+    
+    Args:
+        endpoint: Optional endpoint filter (format: "METHOD /path")
+        summary: If True, return summary only; if False, return detailed metrics
+    """
+)
+@api_endpoint(
+    success_message="Metrics retrieved successfully",
+    include_metrics=False  # Don't track metrics for the metrics endpoint itself
+)
+async def get_metrics(
+    endpoint: Optional[str] = None,
+    summary: bool = True,
+    http_request: Request = None
+):
+    """
+    Get system metrics.
+    
+    Args:
+        endpoint: Optional endpoint filter (format: "METHOD /path")
+        summary: If True, return summary; if False, return detailed metrics
+    """
+    try:
+        tracker = get_metrics_tracker()
+        
+        if endpoint:
+            # Parse endpoint format: "METHOD /path"
+            parts = endpoint.split(" ", 1)
+            if len(parts) != 2:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Endpoint format must be 'METHOD /path'"
+                )
+            method, path = parts
+            return tracker.get_endpoint_metrics(method=method, path=path)
+        
+        if summary:
+            return tracker.get_summary()
+        
+        return {
+            "summary": tracker.get_summary(),
+            "endpoints": tracker.get_endpoint_metrics()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting metrics: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error retrieving metrics: {str(e)}"
+        )

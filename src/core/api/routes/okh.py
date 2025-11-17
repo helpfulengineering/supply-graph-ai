@@ -15,6 +15,7 @@ from ..models.base import (
     ValidationResult
 )
 from ..decorators import (
+    api_endpoint,
     validate_request,
     track_performance,
     paginated_response
@@ -27,7 +28,8 @@ from ..models.okh.request import (
     OKHUpdateRequest, 
     OKHValidateRequest,
     OKHExtractRequest,
-    OKHGenerateRequest
+    OKHGenerateRequest,
+    OKHFromStorageRequest
 )
 from ..models.okh.response import (
     OKHResponse, 
@@ -698,6 +700,99 @@ async def upload_okh_file(
         raise HTTPException(
             status_code=500, 
             detail=f"Internal server error: {str(e)}"
+        )
+
+@router.post(
+    "/from-storage",
+    response_model=OKHResponse,
+    summary="Get OKH from Storage",
+    description="""
+    Retrieve an OKH manifest from storage by ID.
+    
+    This endpoint retrieves a previously stored OKH manifest from the storage service
+    using its unique identifier.
+    """
+)
+@api_endpoint(
+    success_message="OKH manifest retrieved from storage successfully",
+    include_metrics=True
+)
+@track_performance("okh_from_storage")
+async def get_okh_from_storage(
+    request: OKHFromStorageRequest,
+    http_request: Request = None,
+    okh_service: OKHService = Depends(get_okh_service)
+):
+    """Retrieve an OKH manifest from storage by ID."""
+    request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+    
+    try:
+        # Parse manifest_id as UUID
+        try:
+            manifest_id = UUID(request.manifest_id)
+        except ValueError:
+            error_response = create_error_response(
+                error=f"Invalid manifest ID format: {request.manifest_id}",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                request_id=request_id,
+                suggestion="Please provide a valid UUID for the manifest ID"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Get manifest from storage
+        manifest = await okh_service.get(manifest_id)
+        
+        if not manifest:
+            error_response = create_error_response(
+                error=f"OKH manifest with ID {manifest_id} not found in storage",
+                status_code=status.HTTP_404_NOT_FOUND,
+                request_id=request_id,
+                suggestion="Please check the manifest ID and try again"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_response.model_dump(mode='json')
+            )
+        
+        # Convert OKHManifest to OKHResponse
+        manifest_dict = manifest.to_dict()
+        
+        logger.info(
+            f"OKH manifest retrieved from storage successfully",
+            extra={
+                "request_id": request_id,
+                "manifest_id": str(manifest_id),
+                "title": manifest.title
+            }
+        )
+        
+        return OKHResponse(**manifest_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists"
+        )
+        logger.error(
+            f"Error retrieving OKH manifest from storage: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "manifest_id": request.manifest_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            },
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode='json')
         )
 
 @router.post("/generate-from-url", response_model=OKHGenerateResponse)

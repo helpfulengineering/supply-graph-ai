@@ -1211,6 +1211,56 @@ ome utility contexts manufacturing
 ome utility contexts cooking
 ```
 
+### `ome utility metrics`
+
+Get system metrics including request tracking, performance, and LLM usage.
+
+```bash
+ome utility metrics [OPTIONS]
+```
+
+**Description:**
+This command provides access to the MetricsTracker data, including:
+- Overall request statistics
+- Endpoint-level metrics with processing times
+- Error summaries
+- Performance metrics
+- LLM usage and costs
+
+**Options:**
+- `--endpoint TEXT` - Filter metrics by endpoint (format: "METHOD /path")
+- `--summary / --no-summary` - Show summary only (default: True)
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Get overall metrics summary
+ome utility metrics
+
+# Get detailed metrics with all endpoints
+ome utility metrics --no-summary
+
+# Get metrics for a specific endpoint
+ome utility metrics --endpoint "GET /health"
+
+# Get metrics for a specific API endpoint
+ome utility metrics --endpoint "POST /v1/api/match"
+
+# Output in JSON format
+ome utility metrics --json
+```
+
+**Output:**
+The command displays:
+- Total requests and recent activity
+- Endpoint-level statistics (requests, success rate, processing times)
+- Error summaries
+- Performance metrics
+- LLM usage and costs (if applicable)
+
+**Note:** Metrics are only available when connected to the API server. The command will show an error if the server is not accessible.
+
 ---
 
 ## Output Formats
@@ -1321,7 +1371,7 @@ ome okh validate manifest.json --use-llm --quality-level professional --strict-m
 ome system health
 
 # Try with different server URL
-ome --server-url http://localhost:8000 system health
+ome --server-url http://localhost:8001 system health
 ```
 
 #### 2. Package Build Failures

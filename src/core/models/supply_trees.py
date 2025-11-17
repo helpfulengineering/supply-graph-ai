@@ -169,8 +169,8 @@ class SupplyTree:
     # replace facility_id with okw_reference: str
     facility_name: str
     okh_reference: str
-    # TODO: add okw_reference: str
     confidence_score: float
+    okw_reference: Optional[str] = None
     id: UUID = field(default_factory=uuid4)
     estimated_cost: Optional[float] = None
     estimated_time: Optional[str] = None
@@ -186,14 +186,14 @@ class SupplyTree:
         self.confidence_score = round(self.confidence_score, 2)
     
     def __hash__(self):
-        """Enable Set operations by hashing on facility_name and okh_reference"""
-        return hash((self.facility_name, self.okh_reference))
+        """Enable Set operations by hashing on facility_name, okh_reference, and okw_reference"""
+        return hash((self.facility_name, self.okh_reference, self.okw_reference))
     
     def __eq__(self, other):
-        """Enable Set operations by comparing facility_name and okh_reference"""
+        """Enable Set operations by comparing facility_name, okh_reference, and okw_reference"""
         if not isinstance(other, SupplyTree):
             return False
-        return (self.facility_name, self.okh_reference) == (other.facility_name, other.okh_reference)
+        return (self.facility_name, self.okh_reference, self.okw_reference) == (other.facility_name, other.okh_reference, other.okw_reference)
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to serializable dictionary"""
@@ -201,6 +201,7 @@ class SupplyTree:
             'id': str(self.id),
             'facility_name': self.facility_name,
             'okh_reference': self.okh_reference,
+            'okw_reference': self.okw_reference,
             'confidence_score': self.confidence_score,
             'estimated_cost': self.estimated_cost,
             'estimated_time': self.estimated_time,
@@ -218,6 +219,7 @@ class SupplyTree:
             id=UUID(data['id']) if 'id' in data else uuid4(),
             facility_name=data['facility_name'],
             okh_reference=data['okh_reference'],
+            okw_reference=data.get('okw_reference'),  # Optional for backward compatibility
             confidence_score=data['confidence_score'],
             estimated_cost=data.get('estimated_cost'),
             estimated_time=data.get('estimated_time'),
@@ -273,9 +275,13 @@ class SupplyTree:
             "process_count": len(manifest.manufacturing_processes or [])
         }
         
+        # Get OKW reference (facility ID or name)
+        okw_reference = str(facility.id) if hasattr(facility, 'id') else facility.name
+        
         return cls(
             facility_name=facility.name or f"Facility {str(facility.id)[:8]}",
             okh_reference=str(manifest.id),
+            okw_reference=okw_reference,
             confidence_score=confidence_score,
             estimated_cost=estimated_cost,
             estimated_time=estimated_time,
@@ -320,12 +326,12 @@ class SupplyTreeSolution:
         )
     
     def __hash__(self):
-        """Enable Set operations by hashing on facility_name and okh_reference"""
-        return hash((self.tree.facility_name, self.tree.okh_reference))
+        """Enable Set operations by hashing on facility_name, okh_reference, and okw_reference"""
+        return hash((self.tree.facility_name, self.tree.okh_reference, self.tree.okw_reference))
     
     def __eq__(self, other):
-        """Enable Set operations by comparing facility_name and okh_reference"""
+        """Enable Set operations by comparing facility_name, okh_reference, and okw_reference"""
         if not isinstance(other, SupplyTreeSolution):
             return False
-        return (self.tree.facility_name, self.tree.okh_reference) == (other.tree.facility_name, other.tree.okh_reference)
+        return (self.tree.facility_name, self.tree.okh_reference, self.tree.okw_reference) == (other.tree.facility_name, other.tree.okh_reference, other.tree.okw_reference)
 

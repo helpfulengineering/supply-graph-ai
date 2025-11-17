@@ -168,7 +168,13 @@ class FileCategorizationService:
     
     async def _is_llm_available(self) -> bool:
         """
-        Check if LLM service is available.
+        Check if LLM service is available and ready to use.
+        
+        This method performs a comprehensive check to determine if LLM
+        categorization can be used:
+        - Service must exist and be initialized
+        - Service must be enabled and healthy
+        - At least one provider must be available
         
         Returns:
             True if LLM service is available and active, False otherwise
@@ -176,10 +182,59 @@ class FileCategorizationService:
         if self.llm_service is None:
             return False
         
-        # Check if LLM service is initialized and active
-        # TODO: Implement proper LLM service status check
-        # For now, just check if service exists
-        return True
+        try:
+            # Check if service is initialized and healthy
+            # LLMService extends BaseService which has get_status() and is_healthy()
+            if not hasattr(self.llm_service, 'get_status'):
+                # Service doesn't have status methods, assume not available
+                return False
+            
+            # Check service status
+            from ...services.base import ServiceStatus
+            service_status = self.llm_service.get_status()
+            if service_status != ServiceStatus.ACTIVE:
+                # Service is not active (not initialized, error, etc.)
+                return False
+            
+            # Check if service is healthy
+            if not self.llm_service.is_healthy():
+                # Service is not healthy
+                return False
+            
+            # Check if LLM is enabled in configuration
+            # LLMServiceConfig extends ServiceConfig which has enabled field
+            if hasattr(self.llm_service, 'config'):
+                config = self.llm_service.config
+                if hasattr(config, 'enabled') and not config.enabled:
+                    # LLM is disabled in configuration
+                    return False
+            
+            # Check if at least one provider is available (async)
+            if hasattr(self.llm_service, 'get_available_providers'):
+                available_providers = await self.llm_service.get_available_providers()
+                if not available_providers or len(available_providers) == 0:
+                    # No providers available
+                    return False
+            else:
+                # Fallback: check _providers dict
+                if hasattr(self.llm_service, '_providers'):
+                    providers = self.llm_service._providers
+                    if not providers or len(providers) == 0:
+                        return False
+                else:
+                    # Can't check providers, assume not available
+                    return False
+            
+            # All checks passed
+            return True
+            
+        except Exception as e:
+            # If any check fails, assume LLM is not available
+            self.logger.warning(
+                f"Error checking LLM service availability: {e}",
+                exc_info=True
+            )
+            return False
     
     async def _categorize_with_llm(
         self,
