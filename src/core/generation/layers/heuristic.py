@@ -13,8 +13,8 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, LayerConfig, FileInfo, DocumentInfo, AnalysisDepth
-from ...models.okh import DocumentationType, DocumentRef
+from ..models import ProjectData, GenerationLayer, LayerConfig, AnalysisDepth
+from ...models.okh import DocumentationType
 from ..utils.file_categorization import FileCategorizationRules, FileCategorizationResult
 
 logger = logging.getLogger(__name__)
@@ -281,20 +281,30 @@ class HeuristicMatcher(BaseGenerationLayer):
             if doc_type not in categorized_files:
                 categorized_files[doc_type] = []
             
-            # Determine detection method for metadata
-            detected_by = "file_categorization_service" if self.file_categorization_service else "file_categorization_rules"
+            # Check if we should include file metadata (default: False for less verbose output)
+            include_metadata = (
+                project_data.metadata.get('_include_file_metadata', False) 
+                if project_data.metadata 
+                else False
+            )
             
             # Create DocumentRef-like structure for result
-            categorized_files[doc_type].append({
+            file_entry = {
                 "title": filename,
                 "path": file_path,
-                "type": doc_type.value,
-                "metadata": {
+                "type": doc_type.value
+            }
+            
+            # Only include metadata if verbose mode is enabled
+            if include_metadata:
+                detected_by = "file_categorization_service" if self.file_categorization_service else "file_categorization_rules"
+                file_entry["metadata"] = {
                     "detected_by": detected_by,
                     "confidence": categorization_result.confidence,
                     "reason": categorization_result.reason
                 }
-            })
+            
+            categorized_files[doc_type].append(file_entry)
         
         # Add categorized files to result with appropriate field names
         # Map DocumentationType to OKHManifest field names
@@ -319,9 +329,11 @@ class HeuristicMatcher(BaseGenerationLayer):
                 continue
             
             # Calculate average confidence for this category
-            avg_confidence = sum(
-                f["metadata"]["confidence"] for f in files
-            ) / len(files)
+            # Handle both cases: with and without metadata
+            confidences = [
+                f.get("metadata", {}).get("confidence", 0.8) for f in files
+            ]
+            avg_confidence = sum(confidences) / len(confidences) if confidences else 0.8
             
             # Get field name
             field_name = field_mapping.get(doc_type)
@@ -373,24 +385,66 @@ class HeuristicMatcher(BaseGenerationLayer):
             return
         
         # Extract function/purpose - look for project description
+        # Exclude common license disclaimer phrases and assembly instructions
+        license_phrases = [
+            'disclaimed', 'warranty', 'liability', 'copyright', 'license',
+            'permission', 'granted', 'redistribute', 'modify', 'derivative',
+            'respect of', 'without limitation', 'as is', 'as available'
+        ]
+        
+        # Phrases that indicate assembly instructions, not function
+        assembly_phrases = [
+            'pushing', 'inserting', 'screwing', 'mounting', 'attaching',
+            'assembling', 'installing', 'fitting', 'placing', 'positioning',
+            'without damaging', 'carefully', 'gently', 'step', 'instructions'
+        ]
+        
+        # Better patterns that capture complete sentences describing what the project does
         function_patterns = [
-            r"(?i)this.project.aims.to\s+([^.]{20,200})",
-            r"(?i)this.project.creates\s+([^.]{20,200})",
-            r"(?i)this.project.builds\s+([^.]{20,200})",
-            r"(?i)is a\s+([^.]{20,200})(?:\s+that|\s+which|\s+for)",
-            r"(?i)the\s+([^.]{20,200})\s+is a\s+([^.]{20,200})"
+            # Pattern: "The [Project] is a [description]"
+            r"(?i)(?:^|\n|\.)\s*the\s+([A-Z][^\s]{2,30})\s+is\s+(?:a|an)\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "[Project] is a [description]"
+            r"(?i)(?:^|\n|\.)\s*([A-Z][^\s]{2,30})\s+is\s+(?:a|an)\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "This project aims to [description]"
+            r"(?i)(?:^|\n|\.)\s*this\s+project\s+aims\s+to\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "This project creates/builds [description]"
+            r"(?i)(?:^|\n|\.)\s*this\s+project\s+(?:creates|builds|provides|enables)\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "A [description] for [purpose]"
+            r"(?i)(?:^|\n|\.)\s*(?:a|an)\s+([^.]{30,200})\s+(?:for|that|which)\s+([^.]{20,150})\.(?:\s|$)",
         ]
         
         for pattern in function_patterns:
-            function_match = re.search(pattern, readme_content, re.DOTALL)
+            function_match = re.search(pattern, readme_content, re.DOTALL | re.MULTILINE)
             if function_match:
                 # Handle patterns with different numbers of capturing groups
                 if function_match.groups() and len(function_match.groups()) >= 1:
-                    function_text = function_match.group(1).strip()
+                    # Use the last group (usually the most descriptive)
+                    function_text = function_match.group(-1).strip()
                     # Clean up the text - remove extra whitespace and newlines
                     function_text = re.sub(r'\s+', ' ', function_text)
+                    
+                    # Validate: must be a complete, meaningful sentence
+                    # Check if it contains license disclaimer phrases - skip if so
+                    if any(phrase in function_text.lower() for phrase in license_phrases):
+                        continue
+                    # Check if it contains assembly instruction phrases - skip if so
+                    if any(phrase in function_text.lower() for phrase in assembly_phrases):
+                        continue
+                    # Must start with a capital letter (complete sentence)
+                    if not function_text[0].isupper():
+                        continue
+                    # Must contain meaningful words (not just fragments)
+                    words = function_text.split()
+                    if len(words) < 5:  # Too short to be meaningful
+                        continue
+                    # Check for sentence completeness - should end with punctuation or be substantial
+                    if len(function_text) < 30:  # Too short
+                        continue
+                    
+                    # Remove excessive punctuation but keep basic punctuation
                     function_text = re.sub(r'[^\w\s\-.,()]', '', function_text)
-                    if len(function_text) > 20 and not function_text.startswith('='):
+                    # Ensure we have a reasonable length and it's not just formatting
+                    if len(function_text) > 30 and len(function_text) < 500 and not function_text.startswith('='):
                         confidence = self.calculate_confidence("function", function_text, "content_analysis")
                         result.add_field(
                             "function",
@@ -402,25 +456,50 @@ class HeuristicMatcher(BaseGenerationLayer):
                         break
         
         # Extract intended use - look for specific use cases
+        # Exclude license disclaimer phrases and assembly instructions
+        # (license_phrases and assembly_phrases defined above)
         intended_use_patterns = [
-            r"(?i)for\s+([^.]{20,200})(?:\s+in|\s+with|\s+using)",
-            r"(?i)can.be.used\s+([^.]{20,200})",
-            r"(?i)suitable.for\s+([^.]{20,200})",
-            r"(?i)designed.for\s+([^.]{20,200})",
-            r"(?i)functions.as\s+([^.]{20,200})",
-            r"(?i)resulting.from.this.project.functions.as\s+([^.]{20,200})"
+            # Pattern: "Designed for [use case]"
+            r"(?i)(?:^|\n|\.)\s*designed\s+for\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "Can be used for [use case]"
+            r"(?i)(?:^|\n|\.)\s*can\s+be\s+used\s+(?:for|to|in)\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "Suitable for [use case]"
+            r"(?i)(?:^|\n|\.)\s*suitable\s+for\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "Intended for [use case]"
+            r"(?i)(?:^|\n|\.)\s*intended\s+for\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "Ideal/Perfect for [use case]"
+            r"(?i)(?:^|\n|\.)\s*(?:ideal|perfect|great)\s+for\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "Use cases include [list]"
+            r"(?i)(?:^|\n|\.)\s*use\s+cases?\s+(?:include|are)\s+([^.]{30,200})\.(?:\s|$)",
+            # Pattern: "Applications include [list]"
+            r"(?i)(?:^|\n|\.)\s*applications?\s+(?:include|are)\s+([^.]{30,200})\.(?:\s|$)",
         ]
         
         for pattern in intended_use_patterns:
-            intended_use_match = re.search(pattern, readme_content, re.DOTALL)
+            intended_use_match = re.search(pattern, readme_content, re.DOTALL | re.MULTILINE)
             if intended_use_match:
                 # Handle patterns with different numbers of capturing groups
                 if intended_use_match.groups() and len(intended_use_match.groups()) >= 1:
                     intended_use_text = intended_use_match.group(1).strip()
+                    # Check if it contains license disclaimer phrases - skip if so
+                    if any(phrase in intended_use_text.lower() for phrase in license_phrases):
+                        continue
+                    # Check if it contains assembly instruction phrases - skip if so
+                    if any(phrase in intended_use_text.lower() for phrase in assembly_phrases):
+                        continue
                     # Clean up the text - remove extra whitespace and newlines
                     intended_use_text = re.sub(r'\s+', ' ', intended_use_text)
+                    # Must contain meaningful words (not just fragments)
+                    words = intended_use_text.split()
+                    if len(words) < 4:  # Too short to be meaningful
+                        continue
+                    # Check for sentence completeness
+                    if len(intended_use_text) < 25:  # Too short
+                        continue
+                    # Remove excessive punctuation but keep basic punctuation
                     intended_use_text = re.sub(r'[^\w\s\-.,()]', '', intended_use_text)
-                    if len(intended_use_text) > 20 and not intended_use_text.startswith('='):
+                    # Ensure we have a reasonable length and it's not just formatting
+                    if len(intended_use_text) > 25 and len(intended_use_text) < 500 and not intended_use_text.startswith('='):
                         confidence = self.calculate_confidence("intended_use", intended_use_text, "content_analysis")
                         result.add_field(
                             "intended_use",
@@ -472,21 +551,41 @@ class HeuristicMatcher(BaseGenerationLayer):
                     "Extracted from README materials section"
                 )
         
-        # Extract tool list
-        tools_match = re.search(r"(?i)(?:tools|equipment|requirements)[\s:]*([^\n]+)", readme_content)
-        if tools_match:
-            tools_text = tools_match.group(1).strip()
-            tools = re.split(r'[,;|\n]', tools_text)
-            tools = [tool.strip() for tool in tools if tool.strip()]
-            if tools:
-                confidence = self.calculate_confidence("tool_list", tools, "readme_tools_extraction")
-                result.add_field(
-                    "tool_list",
-                    tools,
-                    confidence,
-                    "readme_tools_extraction",
-                    "Extracted from README tools section"
-                )
+        # Extract tool list - use word boundaries to avoid partial matches
+        # Look for sections like "Tools:", "Equipment:", "Required tools:", etc.
+        tools_patterns = [
+            r"(?i)\b(?:tools|equipment|required\s+tools|tools\s+required|tools\s+needed)[\s:]+([^\n]+)",
+            r"(?i)##\s*(?:tools|equipment)[\s:]*\n([^\n#]+)",
+            r"(?i)###\s*(?:tools|equipment)[\s:]*\n([^\n#]+)",
+        ]
+        
+        tools = []
+        for pattern in tools_patterns:
+            tools_match = re.search(pattern, readme_content)
+            if tools_match:
+                tools_text = tools_match.group(1).strip()
+                # Split on common delimiters
+                tools = re.split(r'[,;|\n•\-\*]', tools_text)
+                # Clean up each tool
+                tools = [tool.strip() for tool in tools if tool.strip()]
+                # Filter out invalid entries (too short, contains only punctuation, etc.)
+                tools = [
+                    tool for tool in tools 
+                    if len(tool) > 2 
+                    and not tool.endswith(':') 
+                    and not re.match(r'^[^\w]+$', tool)  # Not just punctuation
+                    and not tool.lower() in ['tool', 'tools', 'equipment', 'required']
+                ]
+                if tools:
+                    confidence = self.calculate_confidence("tool_list", tools, "readme_tools_extraction")
+                    result.add_field(
+                        "tool_list",
+                        tools,
+                        confidence,
+                        "readme_tools_extraction",
+                        "Extracted from README tools section"
+                    )
+                    break
     
     async def _analyze_documentation(self, project_data: ProjectData, result: LayerResult):
         """Analyze documentation files for additional information"""

@@ -325,7 +325,7 @@ class OKHService(BaseService['OKHService']):
             logger.error(f"Error validating OKH manifest: {str(e)}")
             raise ValueError(f"Validation failed: {str(e)}")
     
-    async def generate_from_url(self, url: str, skip_review: bool = False) -> Dict[str, Any]:
+    async def generate_from_url(self, url: str, skip_review: bool = False, verbose: bool = False) -> Dict[str, Any]:
         """Generate OKH manifest from repository URL"""
         try:
             await self.ensure_initialized()
@@ -355,7 +355,7 @@ class OKHService(BaseService['OKHService']):
             # Lazy import to avoid loading heavy dependencies at module import time
             from ..generation.engine import GenerationEngine
             engine = GenerationEngine()
-            result = await engine.generate_manifest_async(project_data)
+            result = await engine.generate_manifest_async(project_data, include_file_metadata=verbose)
             
             # Note: Review interface is handled by CLI, not API service
             

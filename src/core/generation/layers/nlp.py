@@ -311,22 +311,43 @@ class NLPMatcher(BaseGenerationLayer):
         # Look for sentences that describe what the project does
         function_sentences = []
         
+        # Phrases to exclude (license disclaimers, assembly instructions, etc.)
+        exclude_phrases = [
+            'disclaimed', 'warranty', 'liability', 'copyright', 'license',
+            'permission', 'granted', 'redistribute', 'modify', 'derivative',
+            'respect of', 'without limitation', 'as is', 'as available',
+            'pushing', 'inserting', 'screwing', 'mounting', 'attaching',
+            'without damaging', 'carefully', 'gently', 'step', 'instructions',
+            'windows', 'mac', 'linux', 'operating system', 'compatible with',
+            'manual', 'automatic', 'stage control'  # Too generic, likely from wrong context
+        ]
+        
         for sent in doc.sents:
             sent_text = sent.text.strip()
             
             # Skip very short sentences
-            if len(sent_text) < 20:
+            if len(sent_text) < 30:  # Increased minimum length
+                continue
+            
+            # Skip if it contains exclude phrases
+            if any(phrase in sent_text.lower() for phrase in exclude_phrases):
                 continue
             
             # Look for function indicators
             function_indicators = [
                 'is designed to', 'is used to', 'allows you to', 'enables',
                 'provides', 'creates', 'generates', 'measures', 'monitors',
-                'controls', 'automates', 'detects', 'senses', 'displays'
+                'automates', 'detects', 'senses', 'displays'
             ]
             
+            # Only use "controls" if it's in a broader context (not just "Manual stage control")
+            if 'controls' in sent_text.lower() and len(sent_text.split()) < 5:
+                continue
+            
             if any(indicator in sent_text.lower() for indicator in function_indicators):
-                function_sentences.append(sent_text)
+                # Validate it's a complete, meaningful sentence
+                if len(sent_text.split()) >= 5 and sent_text[0].isupper():
+                    function_sentences.append(sent_text)
         
         if function_sentences:
             # Return the first (usually most relevant) function description
@@ -339,11 +360,26 @@ class NLPMatcher(BaseGenerationLayer):
         # Look for sentences that describe the intended use/application
         intended_use_sentences = []
         
+        # Phrases to exclude (license disclaimers, assembly instructions, software compatibility, etc.)
+        exclude_phrases = [
+            'disclaimed', 'warranty', 'liability', 'copyright', 'license',
+            'permission', 'granted', 'redistribute', 'modify', 'derivative',
+            'respect of', 'without limitation', 'as is', 'as available',
+            'pushing', 'inserting', 'screwing', 'mounting', 'attaching',
+            'without damaging', 'carefully', 'gently', 'step', 'instructions',
+            'windows', 'mac', 'linux', 'operating system', 'compatible with',
+            'software', 'runs on', 'supports', 'platform'
+        ]
+        
         for sent in doc.sents:
             sent_text = sent.text.strip()
             
             # Skip very short sentences
-            if len(sent_text) < 20:
+            if len(sent_text) < 25:  # Increased minimum length
+                continue
+            
+            # Skip if it contains exclude phrases (especially software compatibility)
+            if any(phrase in sent_text.lower() for phrase in exclude_phrases):
                 continue
             
             # Look for intended use indicators
@@ -354,7 +390,9 @@ class NLPMatcher(BaseGenerationLayer):
             ]
             
             if any(indicator in sent_text.lower() for indicator in intended_use_indicators):
-                intended_use_sentences.append(sent_text)
+                # Validate it's a complete, meaningful sentence
+                if len(sent_text.split()) >= 4 and sent_text[0].isupper():
+                    intended_use_sentences.append(sent_text)
         
         if intended_use_sentences:
             # Return the first (usually most relevant) intended use description

@@ -831,7 +831,8 @@ async def generate_from_url(
         # Call service to generate manifest from URL
         result = await okh_service.generate_from_url(
             url=request.url,
-            skip_review=request.skip_review
+            skip_review=request.skip_review,
+            verbose=request.verbose
         )
         
         return OKHGenerateResponse(**result)

@@ -307,12 +307,18 @@ class PackageBuilder:
                 logger.warning(f"Failed to download file: {result.error_message}")
         
         # Handle duplicate files by creating symbolic links
-        for doc in duplicate_documents:
+        # Extract relative paths for duplicate documents to preserve structure
+        duplicate_relative_paths = self.file_resolver._extract_relative_paths(duplicate_documents)
+        
+        for i, doc in enumerate(duplicate_documents):
             original_file_info = downloaded_files[doc.path]
+            # Use preserved relative path structure for the duplicate
+            relative_path = duplicate_relative_paths[i]
+            
             # Create a new FileInfo for this duplicate with the correct target path
             duplicate_file_info = FileInfo(
                 original_url=original_file_info.original_url,
-                local_path=str(target_dir / Path(original_file_info.local_path).name),
+                local_path=str(target_dir / relative_path),
                 content_type=original_file_info.content_type,
                 size_bytes=original_file_info.size_bytes,
                 checksum_sha256=original_file_info.checksum_sha256,
@@ -324,7 +330,7 @@ class PackageBuilder:
             
             # Create symbolic link to the original file
             original_path = Path(original_file_info.local_path)
-            link_path = target_dir / original_path.name
+            link_path = target_dir / relative_path
             
             try:
                 if not link_path.exists():
@@ -367,21 +373,38 @@ class PackageBuilder:
             type=DocumentationType.MANUFACTURING_FILES  # Default type
         )
         
-        # Determine target filename
+        # Determine target path, preserving directory structure
         if actual_url.startswith(('http://', 'https://')):
             from urllib.parse import urlparse
             parsed_url = urlparse(actual_url)
-            original_filename = Path(parsed_url.path).name
-            if original_filename and '.' in original_filename:
-                target_filename = original_filename
+            url_path = parsed_url.path
+            
+            # Extract relative path preserving directory structure
+            path_parts = url_path.strip('/').split('/')
+            if len(path_parts) >= 3:
+                # Common pattern: user/repo/branch/filepath
+                branch_names = {'master', 'main', 'develop', 'dev', 'trunk', 'default'}
+                if path_parts[2].lower() in branch_names or len(path_parts[2]) <= 20:
+                    # Skip user/repo/branch, keep the rest
+                    relative_path = '/'.join(path_parts[3:])
+                else:
+                    relative_path = '/'.join(path_parts[2:])
             else:
-                # Guess extension from URL or use default
-                ext = self._guess_extension_from_url(actual_url)
-                target_filename = f"{filename}{ext}"
+                relative_path = Path(url_path).name
+            
+            # If we couldn't extract a meaningful path, use filename
+            if not relative_path or relative_path == Path(url_path).name:
+                original_filename = Path(url_path).name
+                if original_filename and '.' in original_filename:
+                    relative_path = original_filename
+                else:
+                    ext = self._guess_extension_from_url(actual_url)
+                    relative_path = f"{filename}{ext}"
+            
+            target_path = target_dir / relative_path
         else:
-            target_filename = Path(url).name
-        
-        target_path = target_dir / target_filename
+            # For relative paths, preserve the full structure
+            target_path = target_dir / url
         
         result = await self.file_resolver.resolve_and_download(
             doc_ref, target_path, file_type

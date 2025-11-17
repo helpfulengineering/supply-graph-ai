@@ -344,7 +344,12 @@ class FileContentParser:
     
     def _clean_extracted_text(self, text: str) -> str:
         """
-        Clean up extracted text by removing excessive whitespace.
+        Clean up extracted text by removing excessive whitespace and corrupted patterns.
+        
+        This method filters out common PDF extraction artifacts:
+        - Control characters and non-printable characters
+        - Corrupted text patterns (random alphanumeric sequences)
+        - Excessive whitespace
         
         Args:
             text: Raw extracted text
@@ -352,15 +357,63 @@ class FileContentParser:
         Returns:
             Cleaned text
         """
+        # Remove control characters and non-printable characters (except newlines and tabs)
+        # This helps filter out corrupted text from PDF extraction
+        text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+        
+        # Filter out lines that look like corrupted text patterns
+        # Pattern: random alphanumeric sequences with underscores (e.g., "h28qPJWAI_3NuLXk1RQ_")
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                cleaned_lines.append('')
+                continue
+            
+            # Check for random-looking patterns that suggest PDF corruption
+            # Skip lines that are mostly random alphanumeric with underscores
+            if re.match(r'^[a-zA-Z0-9_]+$', line) and '_' in line and len(line) > 8:
+                # Check if it looks like a random sequence
+                unique_chars = len(set(line.lower()))
+                if unique_chars > len(line) * 0.6:  # High character diversity
+                    parts = line.split('_')
+                    if len(parts) >= 3:
+                        part_lengths = [len(p) for p in parts]
+                        avg_length = sum(part_lengths) / len(part_lengths)
+                        variance = sum((l - avg_length) ** 2 for l in part_lengths) / len(part_lengths)
+                        if variance > 10:  # High variance suggests random pattern
+                            # Skip this line - it's likely corrupted
+                            continue
+            
+            # Check for excessive case changes (suggests corruption)
+            case_changes = 0
+            alpha_chars = 0
+            for i in range(len(line) - 1):
+                if line[i].isalpha() and line[i+1].isalpha():
+                    alpha_chars += 1
+                    if line[i].islower() != line[i+1].islower():
+                        case_changes += 1
+            
+            if alpha_chars > 0 and case_changes > alpha_chars * 0.4:
+                words = line.split()
+                if len(words) == 1 and case_changes > 3:
+                    # Single word with many case changes - likely corrupted
+                    continue
+                if len(words) > 1 and case_changes > 5:
+                    # Multiple words but still high case change ratio - likely corrupted
+                    continue
+            
+            cleaned_lines.append(line)
+        
+        text = '\n'.join(cleaned_lines)
+        
         # Replace multiple spaces with single space
         text = re.sub(r' +', ' ', text)
         
         # Replace multiple newlines (3+) with double newline
         text = re.sub(r'\n{3,}', '\n\n', text)
-        
-        # Remove leading/trailing whitespace from each line
-        lines = [line.strip() for line in text.split('\n')]
-        text = '\n'.join(lines)
         
         # Remove excessive blank lines
         text = re.sub(r'\n{3,}', '\n\n', text)

@@ -177,7 +177,7 @@ class GenerationEngine:
         
         logger.info(f"Initialized {len(self._matchers)} generation layers")
     
-    def generate_manifest(self, project_data: ProjectData) -> ManifestGeneration:
+    def generate_manifest(self, project_data: ProjectData, include_file_metadata: bool = False) -> ManifestGeneration:
         """
         Generate an OKH manifest from project data (synchronous version).
         
@@ -209,6 +209,11 @@ class GenerationEngine:
             
             logger.info(f"Starting manifest generation for project: {project_data.url}")
             
+            # Store generation options in project_data metadata for layers to access
+            if not hasattr(project_data, 'metadata') or project_data.metadata is None:
+                project_data.metadata = {}
+            project_data.metadata['_include_file_metadata'] = include_file_metadata
+            
             # Initialize result containers
             generated_fields: Dict[str, FieldGeneration] = {}
             confidence_scores: Dict[str, float] = {}
@@ -226,6 +231,9 @@ class GenerationEngine:
             
             # Normalize fields before quality assessment (manufacturing_processes, etc.)
             generated_fields = self._normalize_generated_fields(generated_fields)
+            
+            # Validate and filter out obviously bad field values
+            generated_fields = self._validate_field_values(generated_fields)
             
             # Ensure materials only come from BOM if BOM exists
             # This prevents false positives from text extraction (e.g., "electronics" mentioned in docs but not in BOM)
@@ -312,7 +320,8 @@ class GenerationEngine:
                 generated_fields=generated_fields,
                 confidence_scores=confidence_scores,
                 quality_report=quality_report,
-                missing_fields=missing_fields
+                missing_fields=missing_fields,
+                include_file_metadata=include_file_metadata
             )
             
             # Update metrics
@@ -368,7 +377,7 @@ class GenerationEngine:
         self._metrics = EngineMetrics()
         logger.info("Engine metrics reset")
     
-    async def generate_manifest_async(self, project_data: ProjectData) -> ManifestGeneration:
+    async def generate_manifest_async(self, project_data: ProjectData, include_file_metadata: bool = False) -> ManifestGeneration:
         """
         Async version of generate_manifest for concurrent layer processing.
         
@@ -399,6 +408,11 @@ class GenerationEngine:
                 raise ValueError("Invalid project data")
             
             logger.info(f"Starting async manifest generation for project: {project_data.url}")
+            
+            # Store generation options in project_data metadata for layers to access
+            if not hasattr(project_data, 'metadata') or project_data.metadata is None:
+                project_data.metadata = {}
+            project_data.metadata['_include_file_metadata'] = include_file_metadata
             
             # Initialize result containers
             generated_fields: Dict[str, FieldGeneration] = {}
@@ -481,7 +495,8 @@ class GenerationEngine:
                 confidence_scores=confidence_scores,
                 quality_report=quality_report,
                 missing_fields=missing_fields,
-                full_bom=full_bom_object
+                full_bom=full_bom_object,
+                include_file_metadata=include_file_metadata
             )
             
             # Update metrics
@@ -592,10 +607,23 @@ class GenerationEngine:
                 continue
             
             # Merge results (keep highest confidence)
+            # Special handling: prefer LLM-generated values for function and intended_use
             for field_name, field_gen in result.fields.items():
                 if field_name not in generated_fields:
                     generated_fields[field_name] = field_gen
                     confidence_scores[field_name] = field_gen.confidence
+                elif field_name in ['function', 'intended_use'] and layer == GenerationLayer.LLM:
+                    # Prefer LLM-generated values for these fields if LLM is available
+                    # Even if confidence is slightly lower, LLM values are generally better
+                    existing = generated_fields[field_name]
+                    if existing.source_layer != GenerationLayer.LLM:
+                        # Replace non-LLM value with LLM value
+                        generated_fields[field_name] = field_gen
+                        confidence_scores[field_name] = field_gen.confidence
+                    elif field_gen.confidence > existing.confidence:
+                        # LLM value with higher confidence
+                        generated_fields[field_name] = field_gen
+                        confidence_scores[field_name] = field_gen.confidence
                 elif field_gen.confidence > generated_fields[field_name].confidence:
                     generated_fields[field_name] = field_gen
                     confidence_scores[field_name] = field_gen.confidence
@@ -640,11 +668,24 @@ class GenerationEngine:
             layer_result = await self._matchers[layer].process(project_data)
             
             # Merge results
+            # Special handling: prefer LLM-generated values for function and intended_use
             for field_name, field_gen in layer_result.fields.items():
                 if field_name not in generated_fields:
                     # New field
                     generated_fields[field_name] = field_gen
                     confidence_scores[field_name] = field_gen.confidence
+                elif field_name in ['function', 'intended_use'] and layer == GenerationLayer.LLM:
+                    # Prefer LLM-generated values for these fields if LLM is available
+                    # Even if confidence is slightly lower, LLM values are generally better
+                    existing = generated_fields[field_name]
+                    if existing.source_layer != GenerationLayer.LLM:
+                        # Replace non-LLM value with LLM value
+                        generated_fields[field_name] = field_gen
+                        confidence_scores[field_name] = field_gen.confidence
+                    elif field_gen.confidence > existing.confidence:
+                        # LLM value with higher confidence
+                        generated_fields[field_name] = field_gen
+                        confidence_scores[field_name] = field_gen.confidence
                 elif field_gen.confidence > generated_fields[field_name].confidence:
                     # Better confidence, replace
                     generated_fields[field_name] = field_gen
@@ -761,6 +802,101 @@ class GenerationEngine:
                 )
         
         return normalized
+    
+    def _validate_field_values(self, generated_fields: Dict[str, FieldGeneration]) -> Dict[str, FieldGeneration]:
+        """
+        Validate and filter out obviously bad field values.
+        
+        This method performs post-processing validation to catch bad extractions
+        that might have passed through individual layers, such as:
+        - Sentence fragments
+        - License disclaimers
+        - Assembly instructions
+        - Software compatibility information (for hardware fields)
+        
+        Args:
+            generated_fields: Dictionary of generated fields
+            
+        Returns:
+            Dictionary with bad values filtered out
+        """
+        validated = {}
+        
+        # Phrases that indicate bad extractions
+        bad_phrases = {
+            'function': [
+                'disclaimed', 'warranty', 'liability', 'copyright', 'license',
+                'permission', 'granted', 'redistribute', 'modify', 'derivative',
+                'respect of', 'without limitation', 'as is', 'as available',
+                'pushing', 'inserting', 'screwing', 'mounting', 'attaching',
+                'without damaging', 'carefully', 'gently', 'step', 'instructions',
+                'windows', 'mac', 'linux', 'operating system', 'compatible with',
+                'manual', 'automatic', 'stage control'  # Too generic/fragment
+            ],
+            'intended_use': [
+                'disclaimed', 'warranty', 'liability', 'copyright', 'license',
+                'permission', 'granted', 'redistribute', 'modify', 'derivative',
+                'respect of', 'without limitation', 'as is', 'as available',
+                'pushing', 'inserting', 'screwing', 'mounting', 'attaching',
+                'without damaging', 'carefully', 'gently', 'step', 'instructions',
+                'windows', 'mac', 'linux', 'operating system', 'compatible with',
+                'software', 'runs on', 'supports', 'platform'
+            ]
+        }
+        
+        for field_name, field_gen in generated_fields.items():
+            if field_name not in bad_phrases:
+                # No validation needed for this field
+                validated[field_name] = field_gen
+                continue
+            
+            value = field_gen.value
+            
+            # Skip validation for non-string values
+            if not isinstance(value, str):
+                validated[field_name] = field_gen
+                continue
+            
+            value_lower = value.lower().strip()
+            
+            # Don't filter out LLM-generated values - trust the LLM's judgment
+            # LLM values are generally better even if they contain some phrases
+            if field_gen.source_layer == GenerationLayer.LLM:
+                # Only filter LLM values if they're clearly wrong (very short or obvious fragments)
+                if len(value.strip()) < 15:
+                    logger.warning(f"Filtered out too short LLM {field_name} value: {value[:50]}...")
+                    continue
+                # Allow LLM values through even if they contain some bad phrases
+                validated[field_name] = field_gen
+                continue
+            
+            # Check if value contains bad phrases (for non-LLM values)
+            if any(phrase in value_lower for phrase in bad_phrases[field_name]):
+                logger.warning(f"Filtered out bad {field_name} value: {value[:50]}...")
+                continue
+            
+            # Additional validation for function and intended_use
+            if field_name in ['function', 'intended_use']:
+                # Must be a reasonable length
+                if len(value.strip()) < 20:
+                    logger.warning(f"Filtered out too short {field_name} value: {value}")
+                    continue
+                
+                # Must have reasonable word count
+                words = value.split()
+                if len(words) < 4:
+                    logger.warning(f"Filtered out too short {field_name} value: {value}")
+                    continue
+                
+                # Must start with capital letter (complete sentence)
+                if not value[0].isupper():
+                    logger.warning(f"Filtered out {field_name} value that doesn't start with capital: {value}")
+                    continue
+            
+            # Value passed validation
+            validated[field_name] = field_gen
+        
+        return validated
     
     def _normalize_manufacturing_processes(self, processes: List[str]) -> List[str]:
         """

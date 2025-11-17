@@ -609,6 +609,58 @@ class BOMProcessor:
     
     def _clean_text(self, text: str) -> str:
         """Clean and normalize text content"""
+        # Remove control characters and non-printable characters (except newlines and tabs)
+        # This helps filter out corrupted text from PDF extraction
+        text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+        
+        # Filter out lines that look like corrupted text patterns from PDF extraction
+        # Pattern: random alphanumeric sequences with underscores (e.g., "h28qPJWAI_3NuLXk1RQ_")
+        lines = text.split('\n')
+        cleaned_lines = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                cleaned_lines.append('')
+                continue
+            
+            # Check for random-looking patterns that suggest PDF corruption
+            # Skip lines that are mostly random alphanumeric with underscores
+            if re.match(r'^[a-zA-Z0-9_]+$', line) and '_' in line and len(line) > 8:
+                # Check if it looks like a random sequence
+                unique_chars = len(set(line.lower()))
+                if unique_chars > len(line) * 0.6:  # High character diversity
+                    parts = line.split('_')
+                    if len(parts) >= 3:
+                        part_lengths = [len(p) for p in parts]
+                        avg_length = sum(part_lengths) / len(part_lengths)
+                        variance = sum((l - avg_length) ** 2 for l in part_lengths) / len(part_lengths)
+                        if variance > 10:  # High variance suggests random pattern
+                            # Skip this line - it's likely corrupted
+                            continue
+            
+            # Check for excessive case changes (suggests corruption)
+            case_changes = 0
+            alpha_chars = 0
+            for i in range(len(line) - 1):
+                if line[i].isalpha() and line[i+1].isalpha():
+                    alpha_chars += 1
+                    if line[i].islower() != line[i+1].islower():
+                        case_changes += 1
+            
+            if alpha_chars > 0 and case_changes > alpha_chars * 0.4:
+                words = line.split()
+                if len(words) == 1 and case_changes > 3:
+                    # Single word with many case changes - likely corrupted
+                    continue
+                if len(words) > 1 and case_changes > 5:
+                    # Multiple words but still high case change ratio - likely corrupted
+                    continue
+            
+            cleaned_lines.append(line)
+        
+        text = '\n'.join(cleaned_lines)
+        
         # Remove markdown formatting (but preserve bullet points)
         text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  # Remove bold
         text = re.sub(r'^\*\*$', '', text, flags=re.MULTILINE)  # Remove standalone ** lines
@@ -666,11 +718,24 @@ class BOMProcessor:
             if not name:
                 continue
             
+            # Clean up name - remove control characters and non-printable characters
+            name = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', name).strip()
+            
+            # Validate component name
+            if not self._is_valid_component_name(name):
+                continue
+            
             # Extract quantity
             quantity = 1.0
             if qty_col is not None and qty_col < len(columns):
                 try:
-                    quantity = float(columns[qty_col])
+                    parsed_quantity = float(columns[qty_col])
+                    # Validate quantity is positive
+                    if parsed_quantity > 0:
+                        quantity = parsed_quantity
+                    # If 0 or negative, skip this component
+                    else:
+                        continue
                 except (ValueError, TypeError):
                     quantity = 1.0
             
@@ -728,7 +793,17 @@ class BOMProcessor:
         for pattern in patterns:
             match = re.search(pattern, line, re.IGNORECASE)
             if match:
-                quantity = float(match.group(1))
+                # Extract and validate quantity
+                try:
+                    parsed_quantity = float(match.group(1))
+                    # Validate quantity is positive
+                    if parsed_quantity <= 0:
+                        continue  # Skip components with invalid quantities
+                    quantity = parsed_quantity
+                except (ValueError, TypeError):
+                    # If parsing fails, use default quantity
+                    quantity = 1.0
+                
                 name = match.group(2).strip()
                 
                 # Extract file reference if present
@@ -736,10 +811,13 @@ class BOMProcessor:
                 if len(match.groups()) >= 3 and match.group(3):
                     file_reference = match.group(3).strip()
                 
-                # Clean up name
+                # Clean up name - remove control characters and non-printable characters
+                name = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', name)
+                # Remove special characters but keep alphanumeric, spaces, and common punctuation
                 name = re.sub(r'[^\w\s\-.,()]', '', name).strip()
                 
-                if name and len(name) > 2:  # Minimum name length
+                # Validate that name is readable (not corrupted text)
+                if name and len(name) > 2 and self._is_valid_component_name(name):
                     metadata = {
                         "source": source.source_type.value,
                         "file_path": source.file_path,
@@ -869,9 +947,11 @@ class BOMProcessor:
         for key in ['name', 'item', 'component', 'part', 'id', 'title']:
             if key in comp_data and comp_data[key]:
                 name = str(comp_data[key]).strip()
+                # Clean up name - remove control characters and non-printable characters
+                name = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]', '', name)
                 break
         
-        if not name:
+        if not name or not self._is_valid_component_name(name):
             return None
         
         # Extract quantity
@@ -879,8 +959,14 @@ class BOMProcessor:
         for key in ['quantity', 'qty', 'amount', 'count', 'number']:
             if key in comp_data:
                 try:
-                    quantity = float(comp_data[key])
-                    break
+                    parsed_quantity = float(comp_data[key])
+                    # Validate quantity is positive
+                    if parsed_quantity > 0:
+                        quantity = parsed_quantity
+                        break
+                    # If 0 or negative, return None (invalid component)
+                    else:
+                        return None
                 except (ValueError, TypeError):
                     continue
         
@@ -960,6 +1046,140 @@ class BOMProcessor:
                     component_map[key] = component
         
         return list(component_map.values())
+    
+    def _is_valid_component_name(self, name: str) -> bool:
+        """
+        Check if a component name appears to be valid, readable text.
+        
+        Filters out corrupted text patterns commonly found in PDF extraction:
+        - Excessive control characters
+        - Non-printable unicode characters
+        - Patterns that suggest encoding corruption
+        - Unusual unicode ranges mixed with ASCII (common in PDF corruption)
+        - Random-looking character sequences (common in PDF corruption)
+        """
+        if not name or len(name.strip()) < 2:
+            return False
+        
+        # Check for excessive control characters or non-printable characters
+        control_char_count = sum(1 for c in name if ord(c) < 32 and c not in '\n\t')
+        if control_char_count > len(name) * 0.1:  # More than 10% control chars
+            return False
+        
+        # Check for patterns that suggest encoding corruption
+        # Look for sequences of unusual unicode characters
+        unusual_unicode_count = sum(1 for c in name if ord(c) > 127 and not c.isprintable())
+        if unusual_unicode_count > len(name) * 0.3:  # More than 30% unusual unicode
+            return False
+        
+        # Check for random-looking patterns (common in PDF corruption)
+        # Pattern: alternating case with numbers and underscores (e.g., "h28qPJWAI_3NuLXk1RQ_")
+        # This pattern suggests corrupted text extraction
+        # Count case changes in the name
+        case_changes = 0
+        alpha_chars = 0
+        for i in range(len(name) - 1):
+            if name[i].isalpha() and name[i+1].isalpha():
+                alpha_chars += 1
+                if name[i].islower() != name[i+1].islower():
+                    case_changes += 1
+        
+        # Check for corrupted text patterns based on case changes
+        words = name.split()
+        
+        # If it's a single "word" with many case changes, likely corrupted
+        if len(words) == 1:
+            if alpha_chars > 0 and case_changes > alpha_chars * 0.35 and case_changes > 3:
+                return False
+        
+        # If multiple words, check if most words have case changes (suggests corruption)
+        # This catches patterns like "mgY js4ixtCYZ" where individual words are corrupted
+        if len(words) > 1:
+            words_with_case_changes = sum(1 for word in words if any(
+                word[i].islower() != word[i+1].islower() 
+                for i in range(len(word) - 1) 
+                if word[i].isalpha() and word[i+1].isalpha()
+            ))
+            # If most words have case changes, likely corrupted
+            # Legitimate names like "M3x25mm hexagon head screws" have few/no case changes
+            if words_with_case_changes > len(words) * 0.5:  # More than 50% of words have case changes
+                return False
+            # Also check total case changes for multi-word names
+            if case_changes > 4:  # Lowered threshold for multi-word names
+                return False
+        
+        # Check for patterns like "h28qPJWAI_3NuLXk1RQ_" - random alphanumeric with underscores
+        # Pattern: mix of letters and numbers with underscores, no spaces, looks random
+        if re.match(r'^[a-zA-Z0-9_]+$', name) and '_' in name:
+            # Check if it looks like a random sequence (not a valid identifier)
+            # Valid identifiers usually have some pattern (e.g., "m3x25mm", "led_holder")
+            # Random sequences have high entropy (many different characters)
+            unique_chars = len(set(name.lower()))
+            if len(name) > 8 and unique_chars > len(name) * 0.6:  # High character diversity (lowered threshold)
+                # Check if it has a reasonable word-like structure
+                # Random sequences often have many single-character "words" when split by underscore
+                parts = name.split('_')
+                single_char_parts = sum(1 for p in parts if len(p) == 1)
+                if single_char_parts > len(parts) * 0.2:  # More than 20% single-char parts (lowered threshold)
+                    return False
+                # Also check for alternating short/long patterns which suggest randomness
+                # Valid names usually have consistent part lengths
+                if len(parts) >= 3:
+                    part_lengths = [len(p) for p in parts]
+                    # Check for high variance in part lengths (suggests randomness)
+                    avg_length = sum(part_lengths) / len(part_lengths)
+                    variance = sum((l - avg_length) ** 2 for l in part_lengths) / len(part_lengths)
+                    if variance > 10:  # High variance suggests random pattern
+                        return False
+        
+        # Check for unusual unicode ranges that are commonly corrupted in PDFs
+        # Focus on non-Latin scripts that are unlikely in component names when mixed with ASCII
+        # Common corruption patterns: Cyrillic, Greek, Armenian, etc. mixed with ASCII
+        suspicious_unicode_ranges = [
+            (0x0370, 0x03FF),  # Greek and Coptic (common in PDF corruption)
+            (0x0400, 0x04FF),  # Cyrillic (very common in PDF corruption)
+            (0x0500, 0x052F),  # Cyrillic Supplement
+            (0x0530, 0x058F),  # Armenian
+            (0x0590, 0x05FF),  # Hebrew
+            (0x0600, 0x06FF),  # Arabic
+            (0x16A0, 0x16FF),  # Runic
+            (0x1800, 0x18AF),  # Mongolian
+            (0x1E00, 0x1EFF),  # Latin Extended Additional (some corruption)
+            (0x1F00, 0x1FFF),  # Greek Extended
+            (0x2C80, 0x2CFF),  # Coptic
+            (0x2DE0, 0x2DFF),  # Cyrillic Extended-A
+            (0xA640, 0xA69F),  # Cyrillic Extended-B
+            (0x9E00, 0x9FFF),  # CJK Unified Ideographs Extension B (common in PDF corruption)
+            (0xE000, 0xF8FF),  # Private Use Area (definitely corruption)
+        ]
+        
+        # Count characters in suspicious ranges
+        suspicious_range_count = 0
+        for start, end in suspicious_unicode_ranges:
+            suspicious_range_count += sum(1 for c in name if start <= ord(c) <= end)
+        
+        # If more than 3% of characters are in suspicious ranges, likely corrupted
+        # This catches cases like "xbNxGh1E(fV,wOdj3QbzJM\u161fQN" which has Cyrillic mixed with ASCII
+        if suspicious_range_count > len(name) * 0.03:
+            return False
+        
+        # Check if name has at least some alphanumeric characters
+        alphanumeric_count = sum(1 for c in name if c.isalnum())
+        if alphanumeric_count < len(name) * 0.3:  # Less than 30% alphanumeric
+            return False
+        
+        # Check for suspicious patterns (e.g., lots of underscores, random character sequences)
+        if name.count('_') > len(name) * 0.5:  # More than 50% underscores
+            return False
+        
+        # Check for very short words that might be fragments
+        words = name.split()
+        if len(words) > 0:
+            avg_word_length = sum(len(w) for w in words) / len(words)
+            if avg_word_length < 2:  # Average word length less than 2
+                return False
+        
+        return True
 
 
 class BOMBuilder:
@@ -1012,6 +1232,12 @@ class BOMBuilder:
                     continue
                 if not component.unit:
                     component.unit = "pcs"  # Default unit
+                
+                # Validate component name is readable (not corrupted text)
+                # Use BOMProcessor's validation method (components are already validated during processing)
+                # But double-check here as well
+                if not component.name or len(component.name.strip()) < 2:
+                    continue
                 
                 validated.append(component)
             except Exception:

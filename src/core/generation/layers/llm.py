@@ -143,18 +143,33 @@ The OKH manifest is designed to maximize interoperability and discoverability in
 - **Mapping Strategy**: Analyze documentation files and repository metadata
 
 ### function (string, required)
-- **Purpose**: Brief description of what the project does
-- **Format**: Concise functional description
-- **Example**: "Environmental monitoring sensor node"
-- **Mapping Strategy**: Extract from README, project description, or code analysis
+- **Purpose**: Concise statement of WHAT the hardware does - its primary function or purpose
+- **Format**: One sentence describing the core functionality (action-oriented, 15-30 words)
+- **Focus**: The hardware's primary capability or what it accomplishes
+- **Example**: "Environmental monitoring sensor node that measures temperature, humidity, and air quality"
+- **DO NOT**: Include use cases, target users, or detailed features - those belong in description or intended_use
+- **Mapping Strategy**: Extract the core functional purpose from README, project description, or technical documentation
 
 ## Optional Fields
 
 ### description (string, optional)
-- **Purpose**: Detailed project description
-- **Format**: description of what the project does
-- **Example**: "A low-power IoT sensor node based on Arduino with environmental monitoring capabilities"
-- **Mapping Strategy**: Combine README content, project documentation, and code analysis
+- **Purpose**: Comprehensive overview of the project - what it is, its features, capabilities, and context
+- **Format**: Detailed multi-sentence description (50-200 words)
+- **Focus**: Complete picture of the project including features, capabilities, technical details, and context
+- **Example**: "A low-power IoT sensor node based on Arduino with environmental monitoring capabilities. Features include temperature, humidity, and air quality sensors, wireless connectivity via WiFi, battery-powered operation, and a compact 3D-printed enclosure. Designed for deployment in remote locations with minimal maintenance requirements."
+- **Distinction from function**: Description is comprehensive and detailed; function is concise and action-oriented
+- **Distinction from intended_use**: Description focuses on WHAT the project is; intended_use focuses on WHO uses it and FOR WHAT PURPOSE
+- **Mapping Strategy**: Combine README content, project documentation, and code analysis to create a comprehensive overview
+
+### intended_use (string, optional)
+- **Purpose**: Describes WHO uses the hardware and FOR WHAT PURPOSE - the use cases, applications, and target users
+- **Format**: One or two sentences describing use cases and target applications (20-50 words)
+- **Focus**: Use cases, applications, target users, and scenarios where the hardware is deployed
+- **Example**: "Designed for researchers, educators, and hobbyists conducting environmental monitoring in field studies, classroom experiments, and home automation projects"
+- **DO NOT**: Include technical specifications, features, or what the hardware does - those belong in description or function
+- **Distinction from function**: Function describes WHAT it does; intended_use describes WHO uses it and WHY
+- **Distinction from description**: Description is a comprehensive overview; intended_use focuses specifically on use cases and applications
+- **Mapping Strategy**: Extract from README sections about use cases, applications, target audience, or "who is this for" content
 
 ### keywords (array, optional)
 - **Purpose**: Keywords for discoverability
@@ -476,6 +491,18 @@ MANDATORY REQUIREMENTS:
 ## OKH Schema Reference:
 {self.okh_schema_prompt}
 
+## Critical Field Distinctions - AVOID OVERLAP:
+
+### description vs function vs intended_use:
+- **description**: Comprehensive overview - "A 3D printable microscope with precise mechanical stage. Features include sub-micron positioning, multiple optics configurations, and excellent stability. Supports various optical setups from webcam lenses to 100x oil immersion objectives."
+- **function**: Core functionality - "3D printable microscope with precise mechanical stage for sub-micron sample positioning and high-resolution imaging"
+- **intended_use**: Use cases and applications - "Designed for researchers and educators conducting microscopy in laboratory settings, field studies, and educational demonstrations requiring precise sample positioning"
+
+**CRITICAL**: These three fields must be DISTINCT and NON-OVERLAPPING:
+- description = comprehensive overview (WHAT it is, features, capabilities)
+- function = core functionality (WHAT it does, action-oriented)
+- intended_use = use cases and applications (WHO uses it, FOR WHAT PURPOSE)
+
 ## Critical Field Examples:
 
 ### BOM Construction Examples:
@@ -675,8 +702,15 @@ Use {context_file} as your scratchpad for analysis.
                     # Extract fields from manifest data
                     await self._extract_fields_from_manifest(manifest_data, result)
                 else:
-                    # Failed to parse even with recovery - fallback to text extraction
-                    logger.warning("JSON parsing failed even with recovery attempts, falling back to text extraction")
+                    # Failed to parse even with recovery - try to extract fields from partial JSON
+                    logger.warning(
+                        "JSON parsing failed even with recovery attempts, attempting partial field extraction. "
+                        f"Extracted JSON (first 500 chars): {manifest_json[:500]}"
+                    )
+                    logger.debug(f"Full extracted JSON length: {len(manifest_json)} characters")
+                    # Try to extract specific fields from the partial JSON string using regex
+                    await self._extract_fields_from_partial_json(manifest_json, result)
+                    # Also try text extraction as fallback for any missing fields
                     await self._extract_fields_from_text(response_content, result)
             else:
                 # No JSON found - try to extract fields from text
@@ -775,18 +809,39 @@ Use {context_file} as your scratchpad for analysis.
         except json.JSONDecodeError:
             pass
         
-        # Recovery attempt 4: Try to extract and parse top-level object only
+        # Recovery attempt 4: Apply multiple fixes in combination
+        # This handles cases where JSON has multiple issues (e.g., comments + trailing commas)
+        try:
+            fixed = self._remove_json_comments(json_str)
+            fixed = self._fix_trailing_commas(fixed)
+            fixed = self._fix_missing_commas(fixed)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+        
+        # Recovery attempt 5: Try to extract and parse top-level object only
         try:
             # Sometimes LLM includes extra text - try to extract just the main object
             json_start = json_str.find('{')
             json_end = json_str.rfind('}')
             if json_start != -1 and json_end > json_start:
                 isolated = json_str[json_start:json_end + 1]
-                return json.loads(isolated)
+                # Apply fixes to isolated JSON too
+                try:
+                    return json.loads(isolated)
+                except json.JSONDecodeError:
+                    fixed = self._remove_json_comments(isolated)
+                    fixed = self._fix_trailing_commas(fixed)
+                    fixed = self._fix_missing_commas(fixed)
+                    return json.loads(fixed)
         except json.JSONDecodeError:
             pass
         
-        logger.debug(f"All JSON recovery attempts failed for string (first 500 chars): {json_str[:500]}")
+        # Log the actual JSON string that failed (for debugging)
+        logger.warning(
+            f"All JSON recovery attempts failed. JSON string (first 1000 chars):\n{json_str[:1000]}"
+        )
+        logger.debug(f"Full JSON string length: {len(json_str)} characters")
         return None
     
     def _fix_trailing_commas(self, json_str: str) -> str:
@@ -800,10 +855,9 @@ Use {context_file} as your scratchpad for analysis.
         """Fix missing commas between object properties and array elements"""
         import re
         
-        # Pattern 1: Missing comma after value before closing brace/bracket
-        # Match: value }\n  "key" or value ]\n  "key"
-        # This handles cases where a value is followed by } or ] and then a new property starts
-        fixed = re.sub(r'([^,\s}\]])\s*([}\]])', r'\1\2', json_str)
+        # Pattern 1: This pattern was too aggressive and caused issues
+        # Disabled - Pattern 3 handles missing commas more reliably
+        fixed = json_str
         
         # Pattern 2: Missing comma between properties on same line
         # Match: "key": value "next_key": - add comma before "next_key"
@@ -829,9 +883,10 @@ Use {context_file} as your scratchpad for analysis.
         
         fixed = '\n'.join(fixed_lines)
         
-        # Pattern 4: Missing comma after closing brace/bracket before new property
-        # Match: }\n    "key": or ]\n    "key":
-        fixed = re.sub(r'([}\]])[\s\n]+("[^"]+"\s*:)', r'\1,\2', fixed)
+        # Pattern 4: Missing comma after closing brace/bracket before new property at same level
+        # This pattern is disabled as it's too error-prone and causes more issues than it fixes
+        # Pattern 3 already handles most missing comma cases between properties
+        # The combination of comment removal, trailing comma fixes, and Pattern 3 should be sufficient
         
         return fixed
     
@@ -876,18 +931,65 @@ Use {context_file} as your scratchpad for analysis.
                     "Generated by LLM analysis"
                 )
     
+    async def _extract_fields_from_partial_json(self, json_str: str, result: LayerResult):
+        """Extract fields from partial/invalid JSON using regex patterns"""
+        import re
+        
+        # Extract function field - look for "function": "value"
+        # Handle both single-line and multi-line values, escaped quotes, and truncated strings
+        # Pattern: "function": "value" where value can contain escaped quotes and newlines
+        # Also handle case where string might be truncated (no closing quote)
+        function_pattern = r'"function"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'
+        function_match = re.search(function_pattern, json_str, re.DOTALL)
+        if function_match and not result.fields.get("function"):
+            function_value = function_match.group(1)
+            # Unescape common escape sequences
+            function_value = function_value.replace('\\n', ' ').replace('\\"', '"').replace('\\\\', '\\')
+            # Clean up whitespace
+            function_value = ' '.join(function_value.split())
+            # Only add if it looks reasonable (not a fragment)
+            if len(function_value) > 20 and not any(phrase in function_value.lower() for phrase in ['disclaimed', 'warranty', 'license', 'respect of']):
+                result.add_field("function", function_value, 0.85, "llm_partial_json", "Extracted from partial JSON")
+        
+        # Extract intended_use field
+        intended_use_pattern = r'"intended_use"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'
+        intended_use_match = re.search(intended_use_pattern, json_str, re.DOTALL)
+        if intended_use_match and not result.fields.get("intended_use"):
+            intended_use_value = intended_use_match.group(1)
+            # Unescape common escape sequences
+            intended_use_value = intended_use_value.replace('\\n', ' ').replace('\\"', '"').replace('\\\\', '\\')
+            # Clean up whitespace
+            intended_use_value = ' '.join(intended_use_value.split())
+            # Only add if it looks reasonable
+            if len(intended_use_value) > 20 and not any(phrase in intended_use_value.lower() for phrase in ['windows', 'mac', 'linux', 'disclaimed', 'respect of']):
+                result.add_field("intended_use", intended_use_value, 0.85, "llm_partial_json", "Extracted from partial JSON")
+        
+        # Extract description field
+        description_pattern = r'"description"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'
+        description_match = re.search(description_pattern, json_str, re.DOTALL)
+        if description_match and not result.fields.get("description"):
+            description_value = description_match.group(1)
+            # Unescape common escape sequences
+            description_value = description_value.replace('\\n', ' ').replace('\\"', '"').replace('\\\\', '\\')
+            # Clean up whitespace
+            description_value = ' '.join(description_value.split())
+            if len(description_value) > 30:
+                result.add_field("description", description_value, 0.85, "llm_partial_json", "Extracted from partial JSON")
+    
     async def _extract_fields_from_text(self, text: str, result: LayerResult):
         """Fallback: extract fields from text response"""
-        # Simple text-based extraction as fallback
+        # Only extract if we don't already have the field from partial JSON extraction
         lines = text.split('\n')
         
         for line in lines:
-            if 'title:' in line.lower():
+            if 'title:' in line.lower() and not result.fields.get("title"):
                 title = line.split(':', 1)[1].strip()
                 result.add_field("title", title, 0.7, "llm_text_extraction", "Extracted from text response")
-            elif 'function:' in line.lower():
+            elif 'function:' in line.lower() and not result.fields.get("function"):
                 function = line.split(':', 1)[1].strip()
-                result.add_field("function", function, 0.7, "llm_text_extraction", "Extracted from text response")
+                # Only add if it looks reasonable
+                if len(function) > 20 and not any(phrase in function.lower() for phrase in ['disclaimed', 'warranty', 'license']):
+                    result.add_field("function", function, 0.7, "llm_text_extraction", "Extracted from text response")
     
     async def _cleanup_context_file(self, context_file: Path):
         """Remove temporary context file (unless preserve_context is True)"""
