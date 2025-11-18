@@ -14,6 +14,7 @@
     * [Matching Architecture](architecture/matching.md)
     * [Generation](architecture/generation.md)
     * [Services](architecture/services.md)
+* [Cheatsheet](cheatsheet.md)
 
 ### Development Plans
 * [Developer Guide](development/developer-guide.md)
