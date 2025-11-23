@@ -1,0 +1,1751 @@
+✅ Connected to server successfully
+✅ Found 9 matching facilities
+{
+  "solutions": [
+    {
+      "tree": {
+        "id": "a402012d-d2e0-4dbd-a889-1975092200c4",
+        "facility_name": "Community Makerspace",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "df6c3cf3-0477-416f-bcda-473e1a8690ec",
+        "confidence_score": 0.57,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+          "https://en.wikipedia.org/wiki/Laser_cutting",
+          "https://en.wikipedia.org/wiki/CNC_router"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Community Makerspace",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:32.708923"
+      },
+      "facility": {
+        "id": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+        "name": "Community Makerspace",
+        "location": {
+          "address": {
+            "number": "5841",
+            "street": "Arthur Lodge",
+            "city": "Garcialand",
+            "region": "Maine",
+            "country": "Burundi",
+            "postcode": "28716"
+          },
+          "gps_coordinates": "63.174552, -18.440748",
+          "directions": "Located near Petersen-Moreno",
+          "city": "Garcialand",
+          "country": "Burundi"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 7:00-18:00",
+        "description": "Public makerspace with basic fabrication equipment",
+        "date_founded": "2002-04-14",
+        "access_type": "Membership",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+            "make": "Formlabs",
+            "model": "Ender 3",
+            "serial_number": "SN800300",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Yourself picture not compare require.",
+            "quantity": 2,
+            "throughput": "15 parts/hour",
+            "power_rating": 7317,
+            "maintenance_schedule": "Every 7 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PLA",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PETG",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/ABS",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/TPU",
+                "manufacturer": "Brand B",
+                "brand": "Industrial"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+            "make": "Trotec",
+            "model": "Speedy 300",
+            "serial_number": "SN120504",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Race impact discover trade bring sometimes.",
+            "quantity": 4,
+            "throughput": "87 parts/hour",
+            "power_rating": 7890,
+            "maintenance_schedule": "Every 4 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Generic",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Fabric",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Leather",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+            "make": "Onefinity",
+            "model": "Desktop",
+            "serial_number": "SN109766",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Around foreign share cold peace.",
+            "quantity": 2,
+            "throughput": "2 parts/hour",
+            "power_rating": 4743,
+            "maintenance_schedule": "Every 3 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand A",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Generic",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Foam",
+                "manufacturer": "Brand A",
+                "brand": "Professional"
+              }
+            ]
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/3D_printer",
+          "https://en.wikipedia.org/wiki/Laser_cutter",
+          "https://en.wikipedia.org/wiki/CNC_router"
+        ],
+        "typical_batch_size": "0 -- 50 units",
+        "floor_size": 1865,
+        "storage_capacity": "143 cubic meters",
+        "certifications": [
+          "Basic Safety"
+        ],
+        "backup_generator": true,
+        "road_access": true,
+        "maintenance_schedule": "Every 6 months",
+        "typical_products": [
+          "Public-key attitude-oriented system engine",
+          "Devolved interactive ability"
+        ],
+        "circular_economy": {
+          "applies_principles": true,
+          "by_products": [
+            "health",
+            "spring",
+            "cold"
+          ]
+        },
+        "human_capacity": {
+          "headcount": 20
+        },
+        "innovation_space": {
+          "staff": 3,
+          "learning_resources": [
+            "Inverse bottom-line knowledge user"
+          ],
+          "footfall": 100,
+          "residencies": true
+        }
+      },
+      "facility_id": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+      "facility_name": "Community Makerspace",
+      "match_type": "manufacturing",
+      "confidence": 0.57,
+      "score": 0.57,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 1,
+      "processing_timestamp": "2025-11-18T15:38:32.799045"
+    },
+    {
+      "tree": {
+        "id": "f1c5528d-ded0-419f-8cd4-05a01f26af9b",
+        "facility_name": "Community Makerspace",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+        "confidence_score": 0.57,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+          "https://en.wikipedia.org/wiki/Laser_cutting",
+          "https://en.wikipedia.org/wiki/CNC_router"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Community Makerspace",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:31.908668"
+      },
+      "facility": {
+        "id": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+        "name": "Community Makerspace",
+        "location": {
+          "address": {
+            "number": "5841",
+            "street": "Arthur Lodge",
+            "city": "Garcialand",
+            "region": "Maine",
+            "country": "Burundi",
+            "postcode": "28716"
+          },
+          "gps_coordinates": "63.174552, -18.440748",
+          "directions": "Located near Petersen-Moreno",
+          "city": "Garcialand",
+          "country": "Burundi"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 7:00-18:00",
+        "description": "Public makerspace with basic fabrication equipment",
+        "date_founded": "2002-04-14",
+        "access_type": "Membership",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+            "make": "Formlabs",
+            "model": "Ender 3",
+            "serial_number": "SN800300",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Yourself picture not compare require.",
+            "quantity": 2,
+            "throughput": "15 parts/hour",
+            "power_rating": 7317,
+            "maintenance_schedule": "Every 7 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PLA",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PETG",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/ABS",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/TPU",
+                "manufacturer": "Brand B",
+                "brand": "Industrial"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+            "make": "Trotec",
+            "model": "Speedy 300",
+            "serial_number": "SN120504",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Race impact discover trade bring sometimes.",
+            "quantity": 4,
+            "throughput": "87 parts/hour",
+            "power_rating": 7890,
+            "maintenance_schedule": "Every 4 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Generic",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Fabric",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Leather",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+            "make": "Onefinity",
+            "model": "Desktop",
+            "serial_number": "SN109766",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Around foreign share cold peace.",
+            "quantity": 2,
+            "throughput": "2 parts/hour",
+            "power_rating": 4743,
+            "maintenance_schedule": "Every 3 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand A",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Generic",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Foam",
+                "manufacturer": "Brand A",
+                "brand": "Professional"
+              }
+            ]
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/3D_printer",
+          "https://en.wikipedia.org/wiki/Laser_cutter",
+          "https://en.wikipedia.org/wiki/CNC_router"
+        ],
+        "typical_batch_size": "0 -- 50 units",
+        "floor_size": 1865,
+        "storage_capacity": "143 cubic meters",
+        "certifications": [
+          "Basic Safety"
+        ],
+        "backup_generator": true,
+        "road_access": true,
+        "maintenance_schedule": "Every 6 months",
+        "typical_products": [
+          "Public-key attitude-oriented system engine",
+          "Devolved interactive ability"
+        ],
+        "circular_economy": {
+          "applies_principles": true,
+          "by_products": [
+            "health",
+            "spring",
+            "cold"
+          ]
+        },
+        "human_capacity": {
+          "headcount": 20
+        },
+        "innovation_space": {
+          "staff": 3,
+          "learning_resources": [
+            "Inverse bottom-line knowledge user"
+          ],
+          "footfall": 100,
+          "residencies": true
+        }
+      },
+      "facility_id": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+      "facility_name": "Community Makerspace",
+      "match_type": "manufacturing",
+      "confidence": 0.57,
+      "score": 0.57,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 2,
+      "processing_timestamp": "2025-11-18T15:38:32.799047"
+    },
+    {
+      "tree": {
+        "id": "4722abfe-51db-46cf-b9d5-e5eeab86e446",
+        "facility_name": "Community Makerspace",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "d24a04df-6137-4ffc-9b46-7c5df9016693",
+        "confidence_score": 0.57,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+          "https://en.wikipedia.org/wiki/Laser_cutting",
+          "https://en.wikipedia.org/wiki/CNC_router"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Community Makerspace",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:32.604097"
+      },
+      "facility": {
+        "id": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+        "name": "Community Makerspace",
+        "location": {
+          "address": {
+            "number": "5841",
+            "street": "Arthur Lodge",
+            "city": "Garcialand",
+            "region": "Maine",
+            "country": "Burundi",
+            "postcode": "28716"
+          },
+          "gps_coordinates": "63.174552, -18.440748",
+          "directions": "Located near Petersen-Moreno",
+          "city": "Garcialand",
+          "country": "Burundi"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 7:00-18:00",
+        "description": "Public makerspace with basic fabrication equipment",
+        "date_founded": "2002-04-14",
+        "access_type": "Membership",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+            "make": "Formlabs",
+            "model": "Ender 3",
+            "serial_number": "SN800300",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Yourself picture not compare require.",
+            "quantity": 2,
+            "throughput": "15 parts/hour",
+            "power_rating": 7317,
+            "maintenance_schedule": "Every 7 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PLA",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PETG",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/ABS",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/TPU",
+                "manufacturer": "Brand B",
+                "brand": "Industrial"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+            "make": "Trotec",
+            "model": "Speedy 300",
+            "serial_number": "SN120504",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Race impact discover trade bring sometimes.",
+            "quantity": 4,
+            "throughput": "87 parts/hour",
+            "power_rating": 7890,
+            "maintenance_schedule": "Every 4 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Generic",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Fabric",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Leather",
+                "manufacturer": "Premium",
+                "brand": "Professional"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+            "make": "Onefinity",
+            "model": "Desktop",
+            "serial_number": "SN109766",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Around foreign share cold peace.",
+            "quantity": 2,
+            "throughput": "2 parts/hour",
+            "power_rating": 4743,
+            "maintenance_schedule": "Every 3 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand A",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Generic",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Foam",
+                "manufacturer": "Brand A",
+                "brand": "Professional"
+              }
+            ]
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/3D_printer",
+          "https://en.wikipedia.org/wiki/Laser_cutter",
+          "https://en.wikipedia.org/wiki/CNC_router"
+        ],
+        "typical_batch_size": "0 -- 50 units",
+        "floor_size": 1865,
+        "storage_capacity": "143 cubic meters",
+        "certifications": [
+          "Basic Safety"
+        ],
+        "backup_generator": true,
+        "road_access": true,
+        "maintenance_schedule": "Every 6 months",
+        "typical_products": [
+          "Public-key attitude-oriented system engine",
+          "Devolved interactive ability"
+        ],
+        "circular_economy": {
+          "applies_principles": true,
+          "by_products": [
+            "health",
+            "spring",
+            "cold"
+          ]
+        },
+        "human_capacity": {
+          "headcount": 20
+        },
+        "innovation_space": {
+          "staff": 3,
+          "learning_resources": [
+            "Inverse bottom-line knowledge user"
+          ],
+          "footfall": 100,
+          "residencies": true
+        }
+      },
+      "facility_id": "7afa1ca2-8c52-4837-b7c2-09172b2f63b1",
+      "facility_name": "Community Makerspace",
+      "match_type": "manufacturing",
+      "confidence": 0.57,
+      "score": 0.57,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 3,
+      "processing_timestamp": "2025-11-18T15:38:32.799048"
+    },
+    {
+      "tree": {
+        "id": "23c4d968-fa66-434b-8245-a377a51a2265",
+        "facility_name": "Industrial Manufacturing Plant",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "5279217b-28f9-4a29-9167-5e41fcc5e34d",
+        "confidence_score": 0.47,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Machining",
+          "https://en.wikipedia.org/wiki/CNC_lathe",
+          "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+          "https://en.wikipedia.org/wiki/Welder"
+        ],
+        "match_type": "nlp",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Industrial Manufacturing Plant",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 4,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:31.569501"
+      },
+      "facility": {
+        "id": "5279217b-28f9-4a29-9167-5e41fcc5e34d",
+        "name": "Industrial Manufacturing Plant",
+        "location": {
+          "address": {
+            "number": "3668",
+            "street": "Joshua Crossing",
+            "city": "Lake Michael",
+            "region": "Washington",
+            "country": "Mauritania",
+            "postcode": "59561"
+          },
+          "gps_coordinates": "35.656521, -99.716262",
+          "directions": "Located behind Turner, Goodman and Bean",
+          "city": "Lake Michael",
+          "country": "Mauritania"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 6:00-22:00",
+        "description": "Large-scale manufacturing facility",
+        "date_founded": "2003-11-20",
+        "access_type": "Restricted",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Tormach",
+            "model": "VF-2",
+            "serial_number": "SN375377",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Social change system home parent seek range guy.",
+            "quantity": 3,
+            "throughput": "12 parts/hour",
+            "power_rating": 4110,
+            "maintenance_schedule": "Every 5 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Premium",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Steel",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Premium",
+                "brand": "Standard"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+            "make": "Brand B",
+            "model": "Model 201",
+            "condition": "Good"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "make": "Brand A",
+            "model": "Model 878",
+            "condition": "Good"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+            "make": "Brand B",
+            "model": "Model 280",
+            "condition": "Excellent"
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/CNC_mill",
+          "https://en.wikipedia.org/wiki/CNC_lathe",
+          "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+          "https://en.wikipedia.org/wiki/Welder"
+        ],
+        "typical_batch_size": "500 -- 5000 units",
+        "floor_size": 317,
+        "storage_capacity": "344 cubic meters",
+        "certifications": [
+          "ISO 9001",
+          "ISO 14001",
+          "OHSAS 18001"
+        ],
+        "maintenance_schedule": "Every 2 months",
+        "typical_products": [
+          "Upgradable web-enabled task-force",
+          "Virtual 24hour algorithm",
+          "Virtual disintermediate initiative"
+        ],
+        "human_capacity": {
+          "headcount": 21
+        },
+        "innovation_space": {
+          "staff": 10,
+          "learning_resources": [
+            "Stand-alone optimal support",
+            "Reduced 24hour model",
+            "Diverse empowering protocol"
+          ],
+          "services": [
+            "Multi-tiered clear-thinking encryption",
+            "Cloned value-added Local Area Network"
+          ],
+          "footfall": 81,
+          "residencies": true
+        }
+      },
+      "facility_id": "5279217b-28f9-4a29-9167-5e41fcc5e34d",
+      "facility_name": "Industrial Manufacturing Plant",
+      "match_type": "manufacturing",
+      "confidence": 0.47,
+      "score": 0.47,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 4
+      },
+      "rank": 4,
+      "processing_timestamp": "2025-11-18T15:38:32.799049"
+    },
+    {
+      "tree": {
+        "id": "36920997-3573-4680-9b2a-d3b631b80ebd",
+        "facility_name": "Professional Machine Shop",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "b709f8ee-3ae7-4607-bf8b-2dc66d495601",
+        "confidence_score": 0.47,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Machining",
+          "https://en.wikipedia.org/wiki/CNC_lathe",
+          "https://en.wikipedia.org/wiki/Surface_grinder"
+        ],
+        "match_type": "nlp",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Professional Machine Shop",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:32.084581"
+      },
+      "facility": {
+        "id": "b709f8ee-3ae7-4607-bf8b-2dc66d495601",
+        "name": "Professional Machine Shop",
+        "location": {
+          "address": {
+            "number": "9493",
+            "street": "Marshall Streets",
+            "city": "Cooperborough",
+            "region": "Vermont",
+            "country": "Libyan Arab Jamahiriya",
+            "postcode": "06014"
+          },
+          "gps_coordinates": "25.432409, -83.580952",
+          "directions": "Located near Bryant, Morris and Perez",
+          "city": "Cooperborough",
+          "country": "Libyan Arab Jamahiriya"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 8:00-20:00",
+        "description": "Commercial machining facility with precision equipment",
+        "date_founded": "2003-02-23",
+        "access_type": "Restricted",
+        "wheelchair_accessibility": "Partially accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Mazak",
+            "model": "VF-2",
+            "serial_number": "SN916177",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Study process bill bit.",
+            "quantity": 4,
+            "throughput": "44 parts/hour",
+            "power_rating": 9613,
+            "maintenance_schedule": "Every 8 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Steel",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand A",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+            "make": "Brand A",
+            "model": "Model 859",
+            "condition": "Fair"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+            "make": "Brand A",
+            "model": "Model 158",
+            "condition": "Fair"
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/CNC_mill",
+          "https://en.wikipedia.org/wiki/CNC_lathe",
+          "https://en.wikipedia.org/wiki/Surface_grinder"
+        ],
+        "typical_batch_size": "50 -- 500 units",
+        "floor_size": 735,
+        "storage_capacity": "174 cubic meters",
+        "certifications": [
+          "ISO 9001",
+          "AS9100"
+        ],
+        "uninterrupted_power_supply": true,
+        "maintenance_schedule": "Every 1 months",
+        "typical_products": [
+          "Pre-emptive heuristic installation",
+          "Profit-focused tangible conglomeration",
+          "Networked multimedia access"
+        ],
+        "circular_economy": {
+          "applies_principles": true,
+          "description": "Circular economy practices: Tend institution beautiful change.",
+          "by_products": [
+            "much",
+            "read",
+            "born"
+          ]
+        },
+        "human_capacity": {
+          "headcount": 30
+        },
+        "innovation_space": {
+          "learning_resources": [
+            "Enhanced bi-directional matrix",
+            "Multi-lateral actuating intranet",
+            "User-centric fresh-thinking hardware",
+            "Object-based systematic project",
+            "Synergistic intermediate artificial intelligence"
+          ],
+          "services": [
+            "Front-line content-based concept",
+            "Balanced homogeneous success",
+            "Distributed static protocol",
+            "Front-line well-modulated emulation"
+          ],
+          "footfall": 24
+        }
+      },
+      "facility_id": "b709f8ee-3ae7-4607-bf8b-2dc66d495601",
+      "facility_name": "Professional Machine Shop",
+      "match_type": "manufacturing",
+      "confidence": 0.47,
+      "score": 0.47,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 5,
+      "processing_timestamp": "2025-11-18T15:38:32.799050"
+    },
+    {
+      "tree": {
+        "id": "b580f178-e82f-4640-92d2-579f6c92e02d",
+        "facility_name": "Professional Machine Shop",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "d00b5fa3-0142-4cab-8694-3bdae781422b",
+        "confidence_score": 0.47,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Machining",
+          "https://en.wikipedia.org/wiki/CNC_lathe",
+          "https://en.wikipedia.org/wiki/Surface_grinder"
+        ],
+        "match_type": "nlp",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Professional Machine Shop",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:32.497036"
+      },
+      "facility": {
+        "id": "b709f8ee-3ae7-4607-bf8b-2dc66d495601",
+        "name": "Professional Machine Shop",
+        "location": {
+          "address": {
+            "number": "9493",
+            "street": "Marshall Streets",
+            "city": "Cooperborough",
+            "region": "Vermont",
+            "country": "Libyan Arab Jamahiriya",
+            "postcode": "06014"
+          },
+          "gps_coordinates": "25.432409, -83.580952",
+          "directions": "Located near Bryant, Morris and Perez",
+          "city": "Cooperborough",
+          "country": "Libyan Arab Jamahiriya"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 8:00-20:00",
+        "description": "Commercial machining facility with precision equipment",
+        "date_founded": "2003-02-23",
+        "access_type": "Restricted",
+        "wheelchair_accessibility": "Partially accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Mazak",
+            "model": "VF-2",
+            "serial_number": "SN916177",
+            "condition": "Excellent",
+            "notes": "Equipment notes: Study process bill bit.",
+            "quantity": 4,
+            "throughput": "44 parts/hour",
+            "power_rating": 9613,
+            "maintenance_schedule": "Every 8 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Steel",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand A",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+            "make": "Brand A",
+            "model": "Model 859",
+            "condition": "Fair"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+            "make": "Brand A",
+            "model": "Model 158",
+            "condition": "Fair"
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/CNC_mill",
+          "https://en.wikipedia.org/wiki/CNC_lathe",
+          "https://en.wikipedia.org/wiki/Surface_grinder"
+        ],
+        "typical_batch_size": "50 -- 500 units",
+        "floor_size": 735,
+        "storage_capacity": "174 cubic meters",
+        "certifications": [
+          "ISO 9001",
+          "AS9100"
+        ],
+        "uninterrupted_power_supply": true,
+        "maintenance_schedule": "Every 1 months",
+        "typical_products": [
+          "Pre-emptive heuristic installation",
+          "Profit-focused tangible conglomeration",
+          "Networked multimedia access"
+        ],
+        "circular_economy": {
+          "applies_principles": true,
+          "description": "Circular economy practices: Tend institution beautiful change.",
+          "by_products": [
+            "much",
+            "read",
+            "born"
+          ]
+        },
+        "human_capacity": {
+          "headcount": 30
+        },
+        "innovation_space": {
+          "learning_resources": [
+            "Enhanced bi-directional matrix",
+            "Multi-lateral actuating intranet",
+            "User-centric fresh-thinking hardware",
+            "Object-based systematic project",
+            "Synergistic intermediate artificial intelligence"
+          ],
+          "services": [
+            "Front-line content-based concept",
+            "Balanced homogeneous success",
+            "Distributed static protocol",
+            "Front-line well-modulated emulation"
+          ],
+          "footfall": 24
+        }
+      },
+      "facility_id": "b709f8ee-3ae7-4607-bf8b-2dc66d495601",
+      "facility_name": "Professional Machine Shop",
+      "match_type": "manufacturing",
+      "confidence": 0.47,
+      "score": 0.47,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 6,
+      "processing_timestamp": "2025-11-18T15:38:32.799051"
+    },
+    {
+      "tree": {
+        "id": "84885d7f-0c7e-4a00-a3b0-ed89542b193b",
+        "facility_name": "Rapid Prototyping Lab",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "e0b7ac89-db86-435a-b59e-4c514985f27f",
+        "confidence_score": 0.33,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+          "https://en.wikipedia.org/wiki/SLA_printer",
+          "https://en.wikipedia.org/wiki/Machining"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Rapid Prototyping Lab",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:32.798506"
+      },
+      "facility": {
+        "id": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+        "name": "Rapid Prototyping Lab",
+        "location": {
+          "address": {
+            "number": "940",
+            "street": "Lowe Green",
+            "city": "Port Jennifer",
+            "region": "North Dakota",
+            "country": "Swaziland",
+            "postcode": "43765"
+          },
+          "gps_coordinates": "43.771694, -43.134566",
+          "directions": "Located near Williams Inc",
+          "city": "Port Jennifer",
+          "country": "Swaziland"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 6:00-22:00",
+        "description": "University research facility for rapid prototyping",
+        "date_founded": "2009-03-24",
+        "access_type": "Restricted with public hours",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+            "make": "Ultimaker",
+            "model": "i3 MK3S+",
+            "serial_number": "SN820750",
+            "condition": "Fair",
+            "notes": "Equipment notes: Protect clear be maybe beautiful.",
+            "quantity": 1,
+            "throughput": "65 parts/hour",
+            "power_rating": 2510,
+            "maintenance_schedule": "Every 4 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PLA",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PETG",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/ABS",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/TPU",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+            "make": "Brand B",
+            "model": "Model 349",
+            "condition": "Good"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Tormach",
+            "model": "VTC-20",
+            "serial_number": "SN488176",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Development peace question subject recognize policy.",
+            "quantity": 2,
+            "throughput": "60 parts/hour",
+            "power_rating": 2290,
+            "maintenance_schedule": "Every 11 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Premium",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Steel",
+                "manufacturer": "Generic",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Premium",
+                "brand": "Standard"
+              }
+            ]
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/3D_printer",
+          "https://en.wikipedia.org/wiki/SLA_printer",
+          "https://en.wikipedia.org/wiki/CNC_mill"
+        ],
+        "typical_batch_size": "0 -- 50 units",
+        "floor_size": 1088,
+        "storage_capacity": "194 cubic meters",
+        "certifications": [
+          "Research Grade"
+        ],
+        "backup_generator": true,
+        "uninterrupted_power_supply": true,
+        "road_access": true,
+        "maintenance_schedule": "Every 6 months",
+        "typical_products": [
+          "Open-architected 24/7 circuit"
+        ],
+        "human_capacity": {
+          "headcount": 43
+        },
+        "innovation_space": {
+          "staff": 1,
+          "learning_resources": [
+            "Re-contextualized context-sensitive superstructure",
+            "Customer-focused client-driven alliance"
+          ],
+          "services": [
+            "Quality-focused national concept",
+            "Monitored bi-directional open system",
+            "Vision-oriented clear-thinking collaboration",
+            "Visionary national hierarchy"
+          ],
+          "footfall": 45
+        }
+      },
+      "facility_id": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+      "facility_name": "Rapid Prototyping Lab",
+      "match_type": "manufacturing",
+      "confidence": 0.33,
+      "score": 0.33,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 7,
+      "processing_timestamp": "2025-11-18T15:38:32.799052"
+    },
+    {
+      "tree": {
+        "id": "6da7a98d-a6fd-4501-b212-504246879bc5",
+        "facility_name": "Rapid Prototyping Lab",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+        "confidence_score": 0.33,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+          "https://en.wikipedia.org/wiki/SLA_printer",
+          "https://en.wikipedia.org/wiki/Machining"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Rapid Prototyping Lab",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:31.993129"
+      },
+      "facility": {
+        "id": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+        "name": "Rapid Prototyping Lab",
+        "location": {
+          "address": {
+            "number": "940",
+            "street": "Lowe Green",
+            "city": "Port Jennifer",
+            "region": "North Dakota",
+            "country": "Swaziland",
+            "postcode": "43765"
+          },
+          "gps_coordinates": "43.771694, -43.134566",
+          "directions": "Located near Williams Inc",
+          "city": "Port Jennifer",
+          "country": "Swaziland"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 6:00-22:00",
+        "description": "University research facility for rapid prototyping",
+        "date_founded": "2009-03-24",
+        "access_type": "Restricted with public hours",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+            "make": "Ultimaker",
+            "model": "i3 MK3S+",
+            "serial_number": "SN820750",
+            "condition": "Fair",
+            "notes": "Equipment notes: Protect clear be maybe beautiful.",
+            "quantity": 1,
+            "throughput": "65 parts/hour",
+            "power_rating": 2510,
+            "maintenance_schedule": "Every 4 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PLA",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PETG",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/ABS",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/TPU",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+            "make": "Brand B",
+            "model": "Model 349",
+            "condition": "Good"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Tormach",
+            "model": "VTC-20",
+            "serial_number": "SN488176",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Development peace question subject recognize policy.",
+            "quantity": 2,
+            "throughput": "60 parts/hour",
+            "power_rating": 2290,
+            "maintenance_schedule": "Every 11 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Premium",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Steel",
+                "manufacturer": "Generic",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Premium",
+                "brand": "Standard"
+              }
+            ]
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/3D_printer",
+          "https://en.wikipedia.org/wiki/SLA_printer",
+          "https://en.wikipedia.org/wiki/CNC_mill"
+        ],
+        "typical_batch_size": "0 -- 50 units",
+        "floor_size": 1088,
+        "storage_capacity": "194 cubic meters",
+        "certifications": [
+          "Research Grade"
+        ],
+        "backup_generator": true,
+        "uninterrupted_power_supply": true,
+        "road_access": true,
+        "maintenance_schedule": "Every 6 months",
+        "typical_products": [
+          "Open-architected 24/7 circuit"
+        ],
+        "human_capacity": {
+          "headcount": 43
+        },
+        "innovation_space": {
+          "staff": 1,
+          "learning_resources": [
+            "Re-contextualized context-sensitive superstructure",
+            "Customer-focused client-driven alliance"
+          ],
+          "services": [
+            "Quality-focused national concept",
+            "Monitored bi-directional open system",
+            "Vision-oriented clear-thinking collaboration",
+            "Visionary national hierarchy"
+          ],
+          "footfall": 45
+        }
+      },
+      "facility_id": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+      "facility_name": "Rapid Prototyping Lab",
+      "match_type": "manufacturing",
+      "confidence": 0.33,
+      "score": 0.33,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 8,
+      "processing_timestamp": "2025-11-18T15:38:32.799053"
+    },
+    {
+      "tree": {
+        "id": "4d3dace8-0ee6-4167-97c1-db12bc46318a",
+        "facility_name": "Rapid Prototyping Lab",
+        "okh_reference": "7c8c267c-fdef-4bfd-88f2-ec7936c26d3e",
+        "okw_reference": "baffd969-ec52-4e0b-aa27-4608ea5e51d6",
+        "confidence_score": 0.33,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='Steel', name='Mild Steel', quantity=804.85, unit='kg', notes=None)",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=None, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+          "https://en.wikipedia.org/wiki/SLA_printer",
+          "https://en.wikipedia.org/wiki/Machining"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Arduino-based IoT Sensor Node",
+          "facility_name": "Rapid Prototyping Lab",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 3,
+          "process_count": 3
+        },
+        "creation_time": "2025-11-18T15:38:32.167713"
+      },
+      "facility": {
+        "id": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+        "name": "Rapid Prototyping Lab",
+        "location": {
+          "address": {
+            "number": "940",
+            "street": "Lowe Green",
+            "city": "Port Jennifer",
+            "region": "North Dakota",
+            "country": "Swaziland",
+            "postcode": "43765"
+          },
+          "gps_coordinates": "43.771694, -43.134566",
+          "directions": "Located near Williams Inc",
+          "city": "Port Jennifer",
+          "country": "Swaziland"
+        },
+        "facility_status": "Active",
+        "opening_hours": "Mon-Fri: 6:00-22:00",
+        "description": "University research facility for rapid prototyping",
+        "date_founded": "2009-03-24",
+        "access_type": "Restricted with public hours",
+        "wheelchair_accessibility": "Not accessible",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+            "make": "Ultimaker",
+            "model": "i3 MK3S+",
+            "serial_number": "SN820750",
+            "condition": "Fair",
+            "notes": "Equipment notes: Protect clear be maybe beautiful.",
+            "quantity": 1,
+            "throughput": "65 parts/hour",
+            "power_rating": 2510,
+            "maintenance_schedule": "Every 4 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PLA",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/PETG",
+                "manufacturer": "Generic",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/ABS",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/TPU",
+                "manufacturer": "Brand B",
+                "brand": "Standard"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+            "make": "Brand B",
+            "model": "Model 349",
+            "condition": "Good"
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+            "make": "Tormach",
+            "model": "VTC-20",
+            "serial_number": "SN488176",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Development peace question subject recognize policy.",
+            "quantity": 2,
+            "throughput": "60 parts/hour",
+            "power_rating": 2290,
+            "maintenance_schedule": "Every 11 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+                "manufacturer": "Premium",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Steel",
+                "manufacturer": "Generic",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Plastic",
+                "manufacturer": "Brand B",
+                "brand": "Professional"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Wood",
+                "manufacturer": "Premium",
+                "brand": "Standard"
+              }
+            ]
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/3D_printer",
+          "https://en.wikipedia.org/wiki/SLA_printer",
+          "https://en.wikipedia.org/wiki/CNC_mill"
+        ],
+        "typical_batch_size": "0 -- 50 units",
+        "floor_size": 1088,
+        "storage_capacity": "194 cubic meters",
+        "certifications": [
+          "Research Grade"
+        ],
+        "backup_generator": true,
+        "uninterrupted_power_supply": true,
+        "road_access": true,
+        "maintenance_schedule": "Every 6 months",
+        "typical_products": [
+          "Open-architected 24/7 circuit"
+        ],
+        "human_capacity": {
+          "headcount": 43
+        },
+        "innovation_space": {
+          "staff": 1,
+          "learning_resources": [
+            "Re-contextualized context-sensitive superstructure",
+            "Customer-focused client-driven alliance"
+          ],
+          "services": [
+            "Quality-focused national concept",
+            "Monitored bi-directional open system",
+            "Vision-oriented clear-thinking collaboration",
+            "Visionary national hierarchy"
+          ],
+          "footfall": 45
+        }
+      },
+      "facility_id": "b684daee-3bff-43ff-8b8d-d6f3d921aff7",
+      "facility_name": "Rapid Prototyping Lab",
+      "match_type": "manufacturing",
+      "confidence": 0.33,
+      "score": 0.33,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 8,
+        "capability_count": 3
+      },
+      "rank": 9,
+      "processing_timestamp": "2025-11-18T15:38:32.799054"
+    }
+  ],
+  "total_solutions": 9,
+  "processing_time": 2.777069,
+  "matching_metrics": {
+    "direct_matches": 6,
+    "heuristic_matches": 0,
+    "nlp_matches": 3,
+    "llm_matches": 0
+  },
+  "validation_results": [
+    {
+      "is_valid": true,
+      "score": 0.57,
+      "errors": [],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "is_valid": true,
+      "score": 0.57,
+      "errors": [],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "is_valid": true,
+      "score": 0.57,
+      "errors": [],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "is_valid": true,
+      "score": 0.47,
+      "errors": [],
+      "warnings": [],
+      "suggestions": [
+        "Consider reviewing the matching criteria"
+      ]
+    },
+    {
+      "is_valid": true,
+      "score": 0.47,
+      "errors": [],
+      "warnings": [],
+      "suggestions": [
+        "Consider reviewing the matching criteria"
+      ]
+    },
+    {
+      "is_valid": true,
+      "score": 0.47,
+      "errors": [],
+      "warnings": [],
+      "suggestions": [
+        "Consider reviewing the matching criteria"
+      ]
+    },
+    {
+      "is_valid": true,
+      "score": 0.33,
+      "errors": [],
+      "warnings": [],
+      "suggestions": [
+        "Consider reviewing the matching criteria"
+      ]
+    },
+    {
+      "is_valid": true,
+      "score": 0.33,
+      "errors": [],
+      "warnings": [],
+      "suggestions": [
+        "Consider reviewing the matching criteria"
+      ]
+    },
+    {
+      "is_valid": true,
+      "score": 0.33,
+      "errors": [],
+      "warnings": [],
+      "suggestions": [
+        "Consider reviewing the matching criteria"
+      ]
+    }
+  ]
+}

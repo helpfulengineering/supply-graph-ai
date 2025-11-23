@@ -9,6 +9,7 @@ import click
 import json
 from pathlib import Path
 from typing import Optional, Dict, Any
+from urllib.parse import urlparse
 
 from ..core.models.okh import OKHManifest
 from ..core.services.matching_service import MatchingService
@@ -41,7 +42,7 @@ def match_group():
 
 
 @match_group.command()
-@click.argument('input_file', type=click.Path(exists=True))
+@click.argument('input_file', type=str)
 @click.option('--domain', 
               type=click.Choice(['manufacturing', 'cooking']),
               help='Domain override (auto-detected from file if not provided)')
@@ -63,8 +64,12 @@ def match_group():
     help_text="""
     Match requirements to capabilities (supports both manufacturing and cooking domains).
     
-    This command analyzes an input file (OKH manifest for manufacturing or recipe for cooking)
+    This command analyzes an input file or URL (OKH manifest for manufacturing or recipe for cooking)
     and finds facilities (OKW facilities or kitchens) that can satisfy the requirements.
+    
+    Input can be:
+    - Local file path (e.g., my-design.okh.json)
+    - HTTP/HTTPS URL (e.g., https://example.com/manifest.json)
     
     For manufacturing domain:
     - Process requirements (3D printing, CNC machining, etc.)
@@ -87,8 +92,11 @@ def match_group():
     """,
     epilog="""
     Examples:
-      # Match OKH requirements (manufacturing)
+      # Match OKH requirements (manufacturing) from local file
       ome match requirements my-design.okh.json
+      
+      # Match OKH requirements from URL
+      ome match requirements https://example.com/manifest.okh.json
       
       # Match recipe requirements (cooking)
       ome match requirements chocolate-chip-cookies-recipe.json
@@ -134,13 +142,28 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
     )
     
     try:
-        # Read and validate input file
-        cli_ctx.log("Reading input file...", "info")
-        input_data = await _read_input_file(input_file)
+        # Check if input is a URL
+        is_url = _is_url(input_file)
+        
+        if is_url:
+            cli_ctx.log(f"Detected URL input: {input_file}", "info")
+            input_data = None  # URLs will be passed directly to API
+        else:
+            # Read and validate input file
+            cli_ctx.log("Reading input file...", "info")
+            input_data = await _read_input_file(input_file)
         
         # Detect domain from file content if not provided
-        detected_domain = domain or _detect_domain_from_data(input_data)
-        cli_ctx.log(f"Detected domain: {detected_domain}", "info")
+        # For URLs, default to manufacturing if domain not specified
+        if is_url and not domain:
+            detected_domain = "manufacturing"  # Default for URLs (most common case)
+            cli_ctx.log(f"Using default domain for URL: {detected_domain}", "info")
+        elif input_data:
+            detected_domain = domain or _detect_domain_from_data(input_data)
+            cli_ctx.log(f"Detected domain: {detected_domain}", "info")
+        else:
+            detected_domain = domain or "manufacturing"
+            cli_ctx.log(f"Using domain: {detected_domain}", "info")
         
         # Parse filter options
         filters = _parse_match_filters(
@@ -148,19 +171,33 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
             capabilities, materials, min_confidence, max_results
         )
         
-        # Create request data based on domain
+        # Create request data based on domain and input type
         if detected_domain == "manufacturing":
-            request_data = create_llm_request_data(cli_ctx, {
-                "okh_manifest": input_data,
-                "domain": detected_domain,
-                **filters
-            })
+            if is_url:
+                request_data = create_llm_request_data(cli_ctx, {
+                    "okh_url": input_file,
+                    "domain": detected_domain,
+                    **filters
+                })
+            else:
+                request_data = create_llm_request_data(cli_ctx, {
+                    "okh_manifest": input_data,
+                    "domain": detected_domain,
+                    **filters
+                })
         elif detected_domain == "cooking":
-            request_data = create_llm_request_data(cli_ctx, {
-                "recipe": input_data,
-                "domain": detected_domain,
-                **filters
-            })
+            if is_url:
+                request_data = create_llm_request_data(cli_ctx, {
+                    "recipe_url": input_file,
+                    "domain": detected_domain,
+                    **filters
+                })
+            else:
+                request_data = create_llm_request_data(cli_ctx, {
+                    "recipe": input_data,
+                    "domain": detected_domain,
+                    **filters
+                })
         else:
             raise click.ClickException(f"Unsupported domain: {detected_domain}")
         
@@ -184,7 +221,15 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
             cli_ctx.log("Using direct service matching...", "info")
             
             if detected_domain == "manufacturing":
-                manifest = OKHManifest.from_dict(input_data)
+                # Handle URL or local file
+                if is_url:
+                    # Fetch manifest from URL
+                    from ..core.services.okh_service import OKHService
+                    okh_service = await OKHService.get_instance()
+                    manifest = await okh_service.fetch_from_url(input_file)
+                else:
+                    manifest = OKHManifest.from_dict(input_data)
+                
                 matching_service = await MatchingService.get_instance()
                 
                 # Get facilities for matching
@@ -194,17 +239,30 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
                 
                 # Create match request
                 from ..core.api.models.match.request import MatchRequest
-                match_request = MatchRequest(
-                    okh_manifest=input_data,
-                    domain=detected_domain,
-                    access_type=filters.get("access_type"),
-                    facility_status=filters.get("facility_status"),
-                    location=filters.get("location"),
-                    capabilities=filters.get("capabilities"),
-                    materials=filters.get("materials"),
-                    min_confidence=filters.get("min_confidence"),
-                    max_results=filters.get("max_results")
-                )
+                if is_url:
+                    match_request = MatchRequest(
+                        okh_url=input_file,
+                        domain=detected_domain,
+                        access_type=filters.get("access_type"),
+                        facility_status=filters.get("facility_status"),
+                        location=filters.get("location"),
+                        capabilities=filters.get("capabilities"),
+                        materials=filters.get("materials"),
+                        min_confidence=filters.get("min_confidence"),
+                        max_results=filters.get("max_results")
+                    )
+                else:
+                    match_request = MatchRequest(
+                        okh_manifest=input_data,
+                        domain=detected_domain,
+                        access_type=filters.get("access_type"),
+                        facility_status=filters.get("facility_status"),
+                        location=filters.get("location"),
+                        capabilities=filters.get("capabilities"),
+                        materials=filters.get("materials"),
+                        min_confidence=filters.get("min_confidence"),
+                        max_results=filters.get("max_results")
+                    )
                 
                 results = await matching_service.find_matches_with_manifest(manifest, facilities)
                 # Convert Set to List and return first result for CLI compatibility
@@ -220,11 +278,27 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
                 from ..core.services.storage_service import StorageService
                 from ..config.storage_config import get_default_storage_config
                 
+                # Handle URL or local file for cooking domain
+                if is_url:
+                    # Fetch recipe from URL
+                    import httpx
+                    async with httpx.AsyncClient(timeout=120.0) as client:
+                        response = await client.get(input_file)
+                        response.raise_for_status()
+                        content = response.text
+                        if input_file.endswith(('.yaml', '.yml')) or 'yaml' in response.headers.get('content-type', ''):
+                            import yaml
+                            recipe_data = yaml.safe_load(content)
+                        else:
+                            recipe_data = json.loads(content)
+                else:
+                    recipe_data = input_data
+                
                 extractor = CookingExtractor()
                 matcher = CookingMatcher()
                 
                 # Extract requirements from recipe
-                extraction_result = extractor.extract_requirements(input_data)
+                extraction_result = extractor.extract_requirements(recipe_data)
                 requirements = extraction_result.data if extraction_result.data else None
                 
                 if not requirements:
@@ -286,7 +360,7 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
                     
                     # Get kitchen and recipe names for supply tree
                     kitchen_name = kitchen.get("name", "Unknown Kitchen")
-                    recipe_name = input_data.get("name", "Unknown Recipe")
+                    recipe_name = recipe_data.get("name", "Unknown Recipe")
                     supply_tree = matcher.generate_supply_tree(requirements, capabilities, kitchen_name, recipe_name)
                     solution = {
                         "tree": supply_tree.to_dict() if hasattr(supply_tree, 'to_dict') else supply_tree,
@@ -510,9 +584,33 @@ async def domains(ctx, domain: Optional[str], active_only: bool,
 
 # Helper functions
 
-async def _read_input_file(file_path: str) -> Dict[str, Any]:
-    """Read and parse input file (OKH or recipe)."""
+def _is_url(path: str) -> bool:
+    """Check if the given path is a URL."""
+    try:
+        result = urlparse(path)
+        return result.scheme in ('http', 'https')
+    except Exception:
+        return False
+
+
+async def _read_input_file(file_path: str) -> Optional[Dict[str, Any]]:
+    """
+    Read and parse input file (OKH or recipe) from local file or URL.
+    
+    Returns None if the input is a URL (to indicate it should be passed as okh_url).
+    Returns the parsed data if it's a local file.
+    """
+    # Check if it's a URL
+    if _is_url(file_path):
+        # Return None to indicate this is a URL that should be passed directly
+        return None
+    
+    # Handle local file
     input_path = Path(file_path)
+    
+    # Check if file exists
+    if not input_path.exists():
+        raise click.ClickException(f"File not found: {file_path}")
     
     try:
         with open(input_path, 'r') as f:
