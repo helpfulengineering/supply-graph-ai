@@ -381,6 +381,9 @@ class OKHManifest:
     # Additional metadata
     metadata: Dict = field(default_factory=dict)
     
+    # Domain metadata
+    domain: Optional[str] = None  # "manufacturing" or "cooking"
+    
     def validate(self) -> bool:
         """
         Validate that all required fields are present and properly formatted.
@@ -472,7 +475,8 @@ class OKHManifest:
             "variant_of": self.variant_of,
             "sub_parts": self.sub_parts,
             "software": [sw.to_dict() for sw in self.software],
-            "metadata": self.metadata
+            "metadata": self.metadata,
+            "domain": self.domain
         }
         
         # Merge optional fields with result
@@ -543,7 +547,7 @@ class OKHManifest:
             'documentation_readiness_level', 'documentation_home',
             'archive_download', 'tool_list', 'manufacturing_processes',
             'cpc_patent_class', 'tsdc', 'derivative_of', 'variant_of',
-            'sub_parts', 'metadata', 'bom', 'okhv', 'data_source'
+            'sub_parts', 'metadata', 'bom', 'okhv', 'data_source', 'domain'
         ]:
             if field in data:
                 setattr(instance, field, data[field])

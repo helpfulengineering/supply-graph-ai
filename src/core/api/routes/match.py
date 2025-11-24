@@ -560,7 +560,7 @@ async def match_requirements_from_file(
                 logger.warning(f"Failed to load OKW facility from {obj['key']}: {e}")
                 continue
         
-        # Find matches
+        # Find matches (domain will be auto-detected from manifest/facilities)
         solutions = await matching_service.find_matches_with_manifest(
             okh_manifest, okw_facilities
         )
@@ -1162,7 +1162,8 @@ async def _perform_enhanced_matching(
             
             solutions = await matching_service.find_matches_with_manifest(
                 okh_manifest=requirements_data,
-                facilities=facilities
+                facilities=facilities,
+                explicit_domain=domain
             )
             
             # Convert SupplyTreeSolution objects to dict format expected by API

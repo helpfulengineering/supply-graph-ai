@@ -264,7 +264,9 @@ async def requirements(ctx, input_file: str, domain: Optional[str],
                         max_results=filters.get("max_results")
                     )
                 
-                results = await matching_service.find_matches_with_manifest(manifest, facilities)
+                results = await matching_service.find_matches_with_manifest(
+                    manifest, facilities, explicit_domain=detected_domain
+                )
                 # Convert Set to List and return first result for CLI compatibility
                 results_list = list(results)
                 if results_list:
@@ -553,7 +555,7 @@ async def domains(ctx, domain: Optional[str], active_only: bool,
             """Get domains via HTTP API"""
             cli_ctx.log("Fetching domains via HTTP API...", "info")
             response = await cli_ctx.api_client.request(
-                "GET", "/match/domains", params=request_data
+                "GET", "/api/match/domains", params=request_data
             )
             return response
         
@@ -625,6 +627,10 @@ async def _read_input_file(file_path: str) -> Optional[Dict[str, Any]]:
 
 def _detect_domain_from_data(data: Dict[str, Any]) -> str:
     """Detect domain from input data structure."""
+    # First check for explicit domain field
+    if "domain" in data and data["domain"]:
+        return data["domain"]
+    
     # Check for OKH/manufacturing indicators
     if "title" in data and "version" in data and ("manufacturing_specs" in data or "manufacturing_processes" in data):
         return "manufacturing"

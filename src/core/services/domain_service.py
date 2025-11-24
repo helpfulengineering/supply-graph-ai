@@ -35,7 +35,7 @@ class DomainDetector:
     
     # Type-based domain mapping
     TYPE_DOMAIN_MAP = {
-        ("okh", "okw"): "manufacturing",
+        ("okh", "okw"): None,  # Ambiguous - requires content analysis
         ("recipe", "kitchen"): "cooking",
         ("okh", "manufacturing_facility"): "manufacturing",
         ("recipe", "cooking_facility"): "cooking"
@@ -51,7 +51,11 @@ class DomainDetector:
         "cooking": [
             "recipe", "ingredient", "kitchen", "cooking", 
             "baking", "food", "meal", "preparation", "chef",
-            "cuisine", "flavor", "seasoning"
+            "cuisine", "flavor", "seasoning", "nutrition",
+            "dietary", "allergen", "temperature", "cooking time",
+            # New keywords for OKH/OKW detection
+            "oven", "stove", "refrigerator", "mixer", "blender",
+            "sauté", "roast", "grill", "steam", "boil", "fry"
         ]
     }
     
@@ -60,26 +64,48 @@ class DomainDetector:
         """Detect domain from input data with confidence scoring"""
         
         # Method 1: Explicit domain information
-        if hasattr(requirements, 'domain') and hasattr(capabilities, 'domain'):
-            if requirements.domain and capabilities.domain:
-                if requirements.domain == capabilities.domain:
-                    return DomainDetectionResult(
-                        domain=requirements.domain,
-                        confidence=1.0,
-                        method="explicit"
-                    )
-                else:
-                    raise ValueError(f"Domain mismatch: requirements={requirements.domain}, capabilities={capabilities.domain}")
+        req_domain = getattr(requirements, 'domain', None) if hasattr(requirements, 'domain') else None
+        cap_domain = getattr(capabilities, 'domain', None) if hasattr(capabilities, 'domain') else None
+        
+        # If both have explicit domain fields
+        if req_domain and cap_domain:
+            if req_domain == cap_domain:
+                return DomainDetectionResult(
+                    domain=req_domain,
+                    confidence=1.0,
+                    method="explicit"
+                )
+            else:
+                raise ValueError(f"Domain mismatch: requirements={req_domain}, capabilities={cap_domain}")
+        
+        # If only requirements has explicit domain
+        if req_domain and not cap_domain:
+            return DomainDetectionResult(
+                domain=req_domain,
+                confidence=1.0,
+                method="explicit"
+            )
+        
+        # If only capabilities has explicit domain
+        if cap_domain and not req_domain:
+            return DomainDetectionResult(
+                domain=cap_domain,
+                confidence=1.0,
+                method="explicit"
+            )
         
         # Method 2: Type-based detection
         if hasattr(requirements, 'type') and hasattr(capabilities, 'type'):
             key = (requirements.type, capabilities.type)
             if key in cls.TYPE_DOMAIN_MAP:
-                return DomainDetectionResult(
-                    domain=cls.TYPE_DOMAIN_MAP[key],
-                    confidence=0.9,
-                    method="type_mapping"
-                )
+                mapped_domain = cls.TYPE_DOMAIN_MAP[key]
+                # If mapping is None (ambiguous), skip to content analysis
+                if mapped_domain is not None:
+                    return DomainDetectionResult(
+                        domain=mapped_domain,
+                        confidence=0.9,
+                        method="type_mapping"
+                    )
         
         # Method 3: Content analysis
         content_result = cls._detect_from_content(requirements, capabilities)

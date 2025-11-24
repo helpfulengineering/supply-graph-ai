@@ -7,6 +7,7 @@ from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from .okh_service import OKHService
 from .okw_service import OKWService
 from ..registry.domain_registry import DomainRegistry
+from ..services.domain_service import DomainDetector
 from ..utils.logging import get_logger
 from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
@@ -125,7 +126,8 @@ class MatchingService:
         self,
         okh_manifest: OKHManifest,
         facilities: List[ManufacturingFacility],
-        optimization_criteria: Optional[Dict[str, float]] = None
+        optimization_criteria: Optional[Dict[str, float]] = None,
+        explicit_domain: Optional[str] = None
     ) -> Set[SupplyTreeSolution]:
         """Find matching facilities for an in-memory OKH manifest and provided facilities."""
         await self.ensure_initialized()
@@ -140,9 +142,7 @@ class MatchingService:
 
         try:
             # Detect domain from the inputs
-            # For now, we know this is manufacturing domain from OKH/OKW
-            # In the future, this could be more dynamic
-            domain = "manufacturing"
+            domain = await self._detect_domain_for_matching(okh_manifest, facilities, explicit_domain)
             
             # Get the domain services
             domain_services = DomainRegistry.get_domain_services(domain)
@@ -1043,3 +1043,39 @@ class MatchingService:
         """Ensure service is initialized"""
         if not self._initialized:
             raise RuntimeError("Matching service not initialized")
+    
+    async def _detect_domain_for_matching(
+        self,
+        okh_manifest: OKHManifest,
+        facilities: List[ManufacturingFacility],
+        explicit_domain: Optional[str] = None
+    ) -> str:
+        """Detect domain for matching operation"""
+        # 1. Check explicit domain override
+        if explicit_domain:
+            return explicit_domain
+        
+        # 2. Check manifest domain field
+        if okh_manifest.domain:
+            return okh_manifest.domain
+        
+        # 3. Check facilities domain (if all have same domain)
+        facility_domains = {f.domain for f in facilities if f.domain}
+        if len(facility_domains) == 1:
+            return facility_domains.pop()
+        
+        # 4. Use DomainDetector for content-based detection
+        # Sample a facility for detection (or use all)
+        sample_facility = facilities[0] if facilities else None
+        if sample_facility:
+            try:
+                detection_result = DomainDetector.detect_domain(okh_manifest, sample_facility)
+                return detection_result.domain
+            except Exception as e:
+                logger.warning(
+                    f"Domain detection failed, defaulting to manufacturing: {e}",
+                    extra={"error": str(e)}
+                )
+        
+        # 5. Default to manufacturing for backward compatibility
+        return "manufacturing"

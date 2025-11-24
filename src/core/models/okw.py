@@ -329,6 +329,9 @@ class ManufacturingFacility:
     
     # Record metadata
     record_data: Optional[RecordData] = None
+    
+    # Domain metadata
+    domain: Optional[str] = None  # "manufacturing" or "cooking"
 
     def to_dict(self) -> Dict:
         """Convert to dictionary representation"""
@@ -443,6 +446,10 @@ class ManufacturingFacility:
                 record_data_dict["data_collection_method"] = self.record_data.data_collection_method
                 
             result["record_data"] = record_data_dict
+        
+        # Domain field
+        if self.domain:
+            result["domain"] = self.domain
             
         return result
     
@@ -520,6 +527,8 @@ class ManufacturingFacility:
             facility.maintenance_schedule = data['maintenance_schedule']
         if 'typical_products' in data:
             facility.typical_products = data['typical_products']
+        if 'domain' in data:
+            facility.domain = data['domain']
         
         # Boolean fields
         facility.backup_generator = data.get('backup_generator', False)
