@@ -608,7 +608,7 @@ class OKHManifest:
                 instance.materials.append(mat)
         
         # Handle manufacturing specs
-        if 'manufacturing_specs' in data:
+        if 'manufacturing_specs' in data and data['manufacturing_specs'] is not None:
             spec_data = data['manufacturing_specs']
             process_reqs = []
             for proc_data in spec_data.get('process_requirements', []):

@@ -208,51 +208,50 @@ class OKWService(BaseService['OKWService']):
         return True
     
     async def validate(self, content: Dict[str, Any], validation_context: Optional[str] = None, strict_mode: bool = False) -> Dict[str, Any]:
-        """Validate OKW facility content using the new validation framework"""
+        """Validate OKW facility content against canonical ManufacturingFacility dataclass"""
         await self.ensure_initialized()
         logger.info(f"Validating OKW facility content")
         
-        try:            
-            # Create validator
-            validator = ManufacturingOKWValidator()
+        try:
+            # Use common validation utility that validates against canonical ManufacturingFacility dataclass
+            from ..validation.model_validator import validate_okw_facility
             
-            # Create validation context if provided
-            context = None
-            if validation_context:
-                context = ValidationContext(
-                    name=f"okw_validation_{validation_context}",
-                    domain="manufacturing",
-                    quality_level=validation_context if validation_context in ["hobby", "professional", "medical"] else "professional",
-                    strict_mode=strict_mode
-                )
+            quality_level = validation_context if validation_context in ["hobby", "professional", "medical"] else "professional"
             
-            # Validate the content
-            result = await validator.validate(content, context)
+            validation_result = validate_okw_facility(
+                content=content,
+                quality_level=quality_level,
+                strict_mode=strict_mode
+            )
             
-            # Convert to API response format
+            # Convert to service response format (for backward compatibility)
             return {
-                "valid": result.valid,
-                "normalized_content": content,  # For now, return original content
-                "completeness_score": result.metadata.get("completeness_score", 0.0),
+                "is_valid": validation_result.valid,
+                "valid": validation_result.valid,  # Alias for backward compatibility
+                "score": validation_result.details.get("completeness_score", 1.0),
+                "errors": validation_result.errors,
+                "warnings": validation_result.warnings,
+                "suggestions": validation_result.suggestions,
+                "completeness_score": validation_result.details.get("completeness_score", 1.0),
                 "issues": [
                     {
                         "severity": "error",
-                        "message": error.message,
-                        "path": [error.field] if error.field else [],
-                        "code": error.code
-                    } for error in result.errors
+                        "message": error,
+                        "path": [],
+                        "code": "VALIDATION_ERROR"
+                    } for error in validation_result.errors
                 ] + [
                     {
                         "severity": "warning", 
-                        "message": warning.message,
-                        "path": [warning.field] if warning.field else [],
-                        "code": warning.code
-                    } for warning in result.warnings
+                        "message": warning,
+                        "path": [],
+                        "code": "VALIDATION_WARNING"
+                    } for warning in validation_result.warnings
                 ]
             }
             
         except Exception as e:
-            self.logger.error(f"Error validating OKW facility: {str(e)}")
+            self.logger.error(f"Error validating OKW facility: {str(e)}", exc_info=True)
             raise ValueError(f"Validation failed: {str(e)}")
     
     # LLM Integration Methods

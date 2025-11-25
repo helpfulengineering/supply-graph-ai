@@ -450,18 +450,32 @@ async def get_okw(
             }
         }
         
-        return create_success_response(
+        # Convert facility_status and access_type to strings if they're enums
+        facility_status_str = facility.facility_status.value if hasattr(facility.facility_status, 'value') else str(facility.facility_status)
+        access_type_str = facility.access_type.value if hasattr(facility.access_type, 'value') else str(facility.access_type)
+        
+        # Return OKWResponse with fields at top level (not nested in data)
+        return OKWResponse(
+            status=APIStatus.SUCCESS,
             message="OKW facility retrieved successfully",
-            data={
-                "id": str(facility.id),
-                "name": facility.name,
-                "location": location_dict,
-                "facility_status": facility.facility_status,
-                "access_type": facility.access_type,
-                "manufacturing_processes": facility.manufacturing_processes,
-                "equipment": [eq.to_dict() for eq in facility.equipment] if facility.equipment else [],
-                "typical_materials": [mat.to_dict() for mat in facility.typical_materials] if facility.typical_materials else []
-            },
+            id=facility.id,
+            name=facility.name,
+            location=location_dict,
+            facility_status=facility_status_str,
+            access_type=access_type_str,
+            manufacturing_processes=facility.manufacturing_processes or [],
+            equipment=[eq.to_dict() if hasattr(eq, 'to_dict') else eq for eq in facility.equipment] if facility.equipment else [],
+            typical_materials=[mat.to_dict() if hasattr(mat, 'to_dict') else mat for mat in facility.typical_materials] if facility.typical_materials else [],
+            owner=facility.owner.to_dict() if facility.owner and hasattr(facility.owner, 'to_dict') else None,
+            contact=facility.contact.to_dict() if facility.contact and hasattr(facility.contact, 'to_dict') else None,
+            description=facility.description,
+            opening_hours=facility.opening_hours,
+            date_founded=facility.date_founded.isoformat() if facility.date_founded else None,
+            wheelchair_accessibility=facility.wheelchair_accessibility,
+            typical_batch_size=str(facility.typical_batch_size) if facility.typical_batch_size else None,
+            floor_size=facility.floor_size,
+            storage_capacity=facility.storage_capacity,
+            certifications=facility.certifications or [],
             request_id=None
         )
         
@@ -705,31 +719,20 @@ async def validate_okw(
             }
         )
         
-        # Call service to validate OKW facility with enhanced parameters
-        result = await okw_service.validate(
-            request.content, 
-            validation_context,
-            strict_mode
+        # Use common validation utility that validates against canonical ManufacturingFacility dataclass
+        from ...validation.model_validator import validate_okw_facility
+        
+        validation_result = validate_okw_facility(
+            content=request.content,
+            quality_level=validation_context,
+            strict_mode=strict_mode
         )
         
-        # Convert to ValidationResult format if needed
-        if hasattr(result, 'to_dict'):
-            result_dict = result.to_dict()
-        else:
-            result_dict = result
+        # Convert to API ValidationResult format
+        api_result = validation_result.to_api_format()
+        api_result["metadata"]["request_id"] = request_id
         
-        return ValidationResult(
-            is_valid=result_dict.get("is_valid", True),
-            score=result_dict.get("score", 1.0),
-            errors=result_dict.get("errors", []),
-            warnings=result_dict.get("warnings", []),
-            suggestions=result_dict.get("suggestions", []),
-            metadata={
-                "validation_context": validation_context,
-                "strict_mode": strict_mode,
-                "request_id": request_id
-            }
-        )
+        return ValidationResult(**api_result)
         
     except ValueError as e:
         # Handle validation errors using standardized error handler

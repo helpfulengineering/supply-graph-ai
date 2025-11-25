@@ -1,0 +1,143 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd",
+  "title": "Chocolate Chip Cookies",
+  "version": "0.0.1",
+  "license": {
+    "hardware": null,
+    "documentation": null,
+    "software": "No license information on Quaker Oats website, but \"Quaker(R)\" is a registered trademark"
+  },
+  "licensor": {
+    "name": "James Butler",
+    "email": "Jbutler@helpfulengineering.org",
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "en-US",
+  "function": "Recipe for baking chocolate chip cookies.",
+  "description": "This recipe for chocolate chip cookies was adapted by James Butler from past expericence a reading of the respie literature on the internet primary ref Babagebasics with babish",
+  "intended_use": "Joy and happiness in moderation",
+  "keywords": [
+    "cookie - chocolate"
+  ],
+  "contact": {
+    "name": "James Butler",
+    "email": "Jbutler@helpfulengineering.org",
+    "affiliation": "Helpful Engineering, non-profit",
+    "social": []
+  },
+  "organization": {
+    "name": "Helpful Engineering, non-profit",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "version_date": "2023-08-26",
+  "development_stage": "development",
+  "manufacturing_files": [],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "CHOCOLATE CHIP COOKIES",
+      "path": "https://basicswithbabish.co/basicsepisodes/2017/10/23/baressentials-7xwwz",
+      "type": "making-instructions",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Oven",
+    "Sheet Pan",
+    "Spatula"
+  ],
+  "manufacturing_processes": [
+    "bake"
+  ],
+  "materials": [
+    {
+      "material_id": "Q779360",
+      "name": "Flour",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q779360"
+    },
+    {
+      "material_id": "Q9309",
+      "name": "egg",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q9309"
+    },
+    {
+      "material_id": "Q4116639",
+      "name": "brown sugar",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q4116639"
+    },
+    {
+      "material_id": "Q179731",
+      "name": "baking soda",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q179731"
+    },
+    {
+      "material_id": "Q117207909",
+      "name": "food storage bag",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q117207909"
+    },
+    {
+      "material_id": "Q83037",
+      "name": "butter",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q83037"
+    },
+    {
+      "material_id": "Q110786",
+      "name": "salt",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q110786"
+    },
+    {
+      "material_id": "Q1527888",
+      "name": "vanilla extract",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q1527888"
+    },
+    {
+      "material_id": "Q117207938",
+      "name": "chocolate chip",
+      "quantity": null,
+      "unit": null,
+      "notes": "https://www.wikidata.org/wiki/Q117207938"
+    }
+  ],
+  "standards_used": [],
+  "tsdc": [],
+  "parts": [],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {
+    "original": {
+      "date_created": "2023-08-26",
+      "date_updated": "2023-08-16",
+      "manifest_author": {
+        "name": "James Butler",
+        "affiliation": "Helpful Engineering, a non-profit",
+        "email": "Jbutler@helpfulengineering.org"
+      },
+      "made": true,
+      "made_independently": true,
+      "okh_manifest_version": "1.0.0"
+    }
+  }
+}

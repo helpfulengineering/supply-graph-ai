@@ -639,8 +639,9 @@ async def list_domains(
     
     try:
         # Get registered domains
-        domains = DomainRegistry.list_domains()
+        # Use get_all_metadata() directly to ensure consistency (avoids KeyError if list_domains() and get_all_metadata() are out of sync)
         metadata = DomainRegistry.get_all_metadata()
+        domains = list(metadata.keys())  # Get domain names from metadata dict
         
         # Convert to list format
         domain_list = []
@@ -665,21 +666,24 @@ async def list_domains(
         paginated_domains = domain_list[start_idx:end_idx]
         
         # Create pagination info
-        total_pages = (total_items + pagination.page_size - 1) // pagination.page_size
+        total_pages = (total_items + pagination.page_size - 1) // pagination.page_size if total_items > 0 else 0
         
-        return create_success_response(
+        # Create proper PaginatedResponse (not wrapped in create_success_response)
+        from ..models.base import PaginationInfo, APIStatus
+        pagination_info = PaginationInfo(
+            page=pagination.page,
+            page_size=pagination.page_size,
+            total_items=total_items,
+            total_pages=total_pages,
+            has_next=pagination.page < total_pages,
+            has_previous=pagination.page > 1
+        )
+        
+        return PaginatedResponse(
+            status=APIStatus.SUCCESS,
             message="Domains listed successfully",
-            data={
-                "items": paginated_domains,
-                "pagination": {
-                    "page": pagination.page,
-                    "page_size": pagination.page_size,
-                    "total_items": total_items,
-                    "total_pages": total_pages,
-                    "has_next": pagination.page < total_pages,
-                    "has_previous": pagination.page > 1
-                }
-            },
+            pagination=pagination_info,
+            items=paginated_domains,
             request_id=request_id
         )
         

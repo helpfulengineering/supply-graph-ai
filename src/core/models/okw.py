@@ -362,7 +362,8 @@ class ManufacturingFacility:
             result["wheelchair_accessibility"] = self.wheelchair_accessibility
         if self.equipment:
             result["equipment"] = [e.to_dict() for e in self.equipment]
-        if self.manufacturing_processes:
+        # Always include manufacturing_processes if it exists (even if empty list)
+        if self.manufacturing_processes is not None:
             result["manufacturing_processes"] = self.manufacturing_processes
         if self.typical_batch_size:
             result["typical_batch_size"] = self.typical_batch_size.value
@@ -372,7 +373,8 @@ class ManufacturingFacility:
             result["storage_capacity"] = self.storage_capacity
         if self.typical_materials:
             result["typical_materials"] = [m.to_dict() for m in self.typical_materials]
-        if self.certifications:
+        # Always include certifications if it exists (even if empty list)
+        if self.certifications is not None:
             result["certifications"] = self.certifications
         
         # Boolean properties

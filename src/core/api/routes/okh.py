@@ -519,31 +519,26 @@ async def validate_okh(
             }
         )
         
-        # Call service to validate OKH manifest with enhanced parameters
-        result = await okh_service.validate(
-            request.content, 
-            validation_context,
-            strict_mode
+        # Use common validation utility that validates against canonical OKHManifest dataclass
+        from ...validation.model_validator import validate_okh_manifest
+        
+        # Detect domain from request content or use default
+        domain = None
+        if isinstance(request.content, dict):
+            domain = request.content.get("domain")
+        
+        validation_result = validate_okh_manifest(
+            content=request.content,
+            quality_level=validation_context,
+            strict_mode=strict_mode,
+            domain=domain
         )
         
-        # Convert to ValidationResult format if needed
-        if hasattr(result, 'to_dict'):
-            result_dict = result.to_dict()
-        else:
-            result_dict = result
+        # Convert to API ValidationResult format
+        api_result = validation_result.to_api_format()
+        api_result["metadata"]["request_id"] = request_id
         
-        return ValidationResult(
-            is_valid=result_dict.get("is_valid", True),
-            score=result_dict.get("score", 1.0),
-            errors=result_dict.get("errors", []),
-            warnings=result_dict.get("warnings", []),
-            suggestions=result_dict.get("suggestions", []),
-            metadata={
-                "validation_context": validation_context,
-                "strict_mode": strict_mode,
-                "request_id": request_id
-            }
-        )
+        return ValidationResult(**api_result)
         
     except ValueError as e:
         # Handle validation errors using standardized error handler
