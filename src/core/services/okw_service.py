@@ -69,11 +69,12 @@ class OKWService(BaseService['OKWService']):
             # Store in storage with proper naming convention
             if self.storage:
                 # Generate filename based on facility name and ID (similar to synthetic data)
+                # Use okw/facilities/ prefix to match SmartFileDiscovery expectations
                 safe_name = "".join(c for c in facility.name if c.isalnum() or c in (' ', '-', '_')).rstrip()
-                safe_name = safe_name.replace(' ', '-').lower()
-                filename = f"{safe_name}-{str(facility.id)[:8]}-okw.json"
+                safe_name = safe_name.replace(' ', '').replace("'", "")  # Remove spaces and apostrophes for filename
+                filename = f"okw/facilities/general/{safe_name}.json"
                 
-                # Save directly to storage root
+                # Save to okw/facilities/general/ directory (matching the directory structure used by SmartFileDiscovery)
                 facility_json = json.dumps(facility.to_dict(), indent=2, ensure_ascii=False, default=str)
                 await self.storage.manager.put_object(filename, facility_json.encode('utf-8'))
                 self.logger.info(f"Saved OKW facility to {filename}")
@@ -94,6 +95,8 @@ class OKWService(BaseService['OKWService']):
                 self.logger.info(f"Found {len(file_infos)} OKW files using smart discovery")
                 
                 # Search through OKW files for the matching ID
+                # If multiple files have the same ID, prefer the most recently modified one
+                matching_facilities = []
                 for file_info in file_infos:
                     try:
                         data = await self.storage.manager.get_object(file_info.key)
@@ -105,10 +108,18 @@ class OKWService(BaseService['OKWService']):
                         
                         facility = ManufacturingFacility.from_dict(fixed_okw_data)
                         if facility.id == facility_id:
-                            return facility
+                            # Store with file info for sorting
+                            matching_facilities.append((file_info, facility))
                     except Exception as e:
                         self.logger.error(f"Failed to load OKW file {file_info.key}: {e}")
                         continue
+                
+                # If multiple matches, return the most recently modified one
+                if matching_facilities:
+                    # Sort by last_modified (most recent first)
+                    matching_facilities.sort(key=lambda x: x[0].last_modified if hasattr(x[0], 'last_modified') else '', reverse=True)
+                    self.logger.info(f"Found {len(matching_facilities)} file(s) with ID {facility_id}, using most recent: {matching_facilities[0][0].key}")
+                    return matching_facilities[0][1]
             
             return None
     
@@ -133,12 +144,12 @@ class OKWService(BaseService['OKWService']):
             
             logger.info(f"Found {len(file_infos)} OKW files using smart discovery")
             
-            # Process files and apply pagination
-            objects = []
-            start_idx = (page - 1) * page_size
-            end_idx = start_idx + page_size
+            # Process files and deduplicate by facility ID
+            # Use a dict to track unique facilities by ID (keep most recently modified)
+            facilities_by_id: Dict[UUID, ManufacturingFacility] = {}
+            file_info_by_id: Dict[UUID, Any] = {}
             
-            for file_info in file_infos[start_idx:end_idx]:
+            for file_info in file_infos:
                 try:
                     data = await self.storage.manager.get_object(file_info.key)
                     content = data.decode('utf-8')
@@ -147,12 +158,35 @@ class OKWService(BaseService['OKWService']):
                     # Validate and fix UUID issues
                     fixed_okw_data = UUIDValidator.validate_and_fix_okw_data(okw_data)
                     
-                    objects.append(ManufacturingFacility.from_dict(fixed_okw_data))
+                    facility = ManufacturingFacility.from_dict(fixed_okw_data)
+                    facility_id = facility.id
+                    
+                    # If we haven't seen this ID, or this file is more recent, keep it
+                    if facility_id not in facilities_by_id:
+                        facilities_by_id[facility_id] = facility
+                        file_info_by_id[facility_id] = file_info
+                    else:
+                        # Compare last_modified dates to keep the most recent
+                        existing_modified = file_info_by_id[facility_id].last_modified if hasattr(file_info_by_id[facility_id], 'last_modified') else None
+                        current_modified = file_info.last_modified if hasattr(file_info, 'last_modified') else None
+                        
+                        if current_modified and (not existing_modified or current_modified > existing_modified):
+                            facilities_by_id[facility_id] = facility
+                            file_info_by_id[facility_id] = file_info
+                            logger.debug(f"Replacing facility {facility_id} with more recent version from {file_info.key}")
                 except Exception as e:
                     logger.error(f"Failed to load OKW file {file_info.key}: {e}")
                     continue
             
-            return objects, len(file_infos)
+            # Convert dict values to list and apply pagination
+            unique_facilities = list(facilities_by_id.values())
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            paginated_facilities = unique_facilities[start_idx:end_idx]
+            
+            logger.info(f"Found {len(file_infos)} OKW files, {len(unique_facilities)} unique facilities (page {page}: {len(paginated_facilities)} facilities)")
+            
+            return paginated_facilities, len(unique_facilities)
         
         return [], 0
     
@@ -208,51 +242,50 @@ class OKWService(BaseService['OKWService']):
         return True
     
     async def validate(self, content: Dict[str, Any], validation_context: Optional[str] = None, strict_mode: bool = False) -> Dict[str, Any]:
-        """Validate OKW facility content using the new validation framework"""
+        """Validate OKW facility content against canonical ManufacturingFacility dataclass"""
         await self.ensure_initialized()
         logger.info(f"Validating OKW facility content")
         
-        try:            
-            # Create validator
-            validator = ManufacturingOKWValidator()
+        try:
+            # Use common validation utility that validates against canonical ManufacturingFacility dataclass
+            from ..validation.model_validator import validate_okw_facility
             
-            # Create validation context if provided
-            context = None
-            if validation_context:
-                context = ValidationContext(
-                    name=f"okw_validation_{validation_context}",
-                    domain="manufacturing",
-                    quality_level=validation_context if validation_context in ["hobby", "professional", "medical"] else "professional",
-                    strict_mode=strict_mode
-                )
+            quality_level = validation_context if validation_context in ["hobby", "professional", "medical"] else "professional"
             
-            # Validate the content
-            result = await validator.validate(content, context)
+            validation_result = validate_okw_facility(
+                content=content,
+                quality_level=quality_level,
+                strict_mode=strict_mode
+            )
             
-            # Convert to API response format
+            # Convert to service response format (for backward compatibility)
             return {
-                "valid": result.valid,
-                "normalized_content": content,  # For now, return original content
-                "completeness_score": result.metadata.get("completeness_score", 0.0),
+                "is_valid": validation_result.valid,
+                "valid": validation_result.valid,  # Alias for backward compatibility
+                "score": validation_result.details.get("completeness_score", 1.0),
+                "errors": validation_result.errors,
+                "warnings": validation_result.warnings,
+                "suggestions": validation_result.suggestions,
+                "completeness_score": validation_result.details.get("completeness_score", 1.0),
                 "issues": [
                     {
                         "severity": "error",
-                        "message": error.message,
-                        "path": [error.field] if error.field else [],
-                        "code": error.code
-                    } for error in result.errors
+                        "message": error,
+                        "path": [],
+                        "code": "VALIDATION_ERROR"
+                    } for error in validation_result.errors
                 ] + [
                     {
                         "severity": "warning", 
-                        "message": warning.message,
-                        "path": [warning.field] if warning.field else [],
-                        "code": warning.code
-                    } for warning in result.warnings
+                        "message": warning,
+                        "path": [],
+                        "code": "VALIDATION_WARNING"
+                    } for warning in validation_result.warnings
                 ]
             }
             
         except Exception as e:
-            self.logger.error(f"Error validating OKW facility: {str(e)}")
+            self.logger.error(f"Error validating OKW facility: {str(e)}", exc_info=True)
             raise ValueError(f"Validation failed: {str(e)}")
     
     # LLM Integration Methods

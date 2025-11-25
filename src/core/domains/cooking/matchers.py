@@ -76,13 +76,19 @@ class CookingMatcher(BaseMatcher):
         appliances = capabilities.content.get("appliances", [])
         
         # Calculate confidence based on capability matching
-        # Check ingredient overlap
-        ingredient_overlap = set(ingredients) & set(available_ingredients)
-        ingredient_score = len(ingredient_overlap) / len(ingredients) if ingredients else 0.0
+        # Normalize to lowercase for case-insensitive matching
+        ingredients_lower = [i.lower() if isinstance(i, str) else str(i).lower() for i in ingredients]
+        available_ingredients_lower = [i.lower() if isinstance(i, str) else str(i).lower() for i in available_ingredients]
+        tools_lower = [t.lower() if isinstance(t, str) else str(t).lower() for t in tools]
+        available_tools_lower = [t.lower() if isinstance(t, str) else str(t).lower() for t in available_tools]
         
-        # Check tool availability
-        tool_overlap = set(tools) & set(available_tools)
-        tool_score = len(tool_overlap) / len(tools) if tools else 0.0
+        # Check ingredient overlap (case-insensitive)
+        ingredient_overlap = set(ingredients_lower) & set(available_ingredients_lower)
+        ingredient_score = len(ingredient_overlap) / len(ingredients_lower) if ingredients_lower else 0.0
+        
+        # Check tool availability (case-insensitive)
+        tool_overlap = set(tools_lower) & set(available_tools_lower)
+        tool_score = len(tool_overlap) / len(tools_lower) if tools_lower else 0.0
         
         # Overall confidence (weighted average)
         confidence_score = (ingredient_score * 0.6 + tool_score * 0.4)

@@ -329,6 +329,9 @@ class ManufacturingFacility:
     
     # Record metadata
     record_data: Optional[RecordData] = None
+    
+    # Domain metadata
+    domain: Optional[str] = None  # "manufacturing" or "cooking"
 
     def to_dict(self) -> Dict:
         """Convert to dictionary representation"""
@@ -357,9 +360,11 @@ class ManufacturingFacility:
         
         if self.wheelchair_accessibility:
             result["wheelchair_accessibility"] = self.wheelchair_accessibility
-        if self.equipment:
+        # Always include equipment if it exists (even if empty list)
+        if self.equipment is not None:
             result["equipment"] = [e.to_dict() for e in self.equipment]
-        if self.manufacturing_processes:
+        # Always include manufacturing_processes if it exists (even if empty list)
+        if self.manufacturing_processes is not None:
             result["manufacturing_processes"] = self.manufacturing_processes
         if self.typical_batch_size:
             result["typical_batch_size"] = self.typical_batch_size.value
@@ -367,9 +372,11 @@ class ManufacturingFacility:
             result["floor_size"] = self.floor_size
         if self.storage_capacity:
             result["storage_capacity"] = self.storage_capacity
-        if self.typical_materials:
+        # Always include typical_materials if it exists (even if empty list)
+        if self.typical_materials is not None:
             result["typical_materials"] = [m.to_dict() for m in self.typical_materials]
-        if self.certifications:
+        # Always include certifications if it exists (even if empty list)
+        if self.certifications is not None:
             result["certifications"] = self.certifications
         
         # Boolean properties
@@ -443,6 +450,10 @@ class ManufacturingFacility:
                 record_data_dict["data_collection_method"] = self.record_data.data_collection_method
                 
             result["record_data"] = record_data_dict
+        
+        # Domain field
+        if self.domain:
+            result["domain"] = self.domain
             
         return result
     
@@ -520,6 +531,8 @@ class ManufacturingFacility:
             facility.maintenance_schedule = data['maintenance_schedule']
         if 'typical_products' in data:
             facility.typical_products = data['typical_products']
+        if 'domain' in data:
+            facility.domain = data['domain']
         
         # Boolean fields
         facility.backup_generator = data.get('backup_generator', False)
@@ -649,5 +662,84 @@ class ManufacturingFacility:
                     )
                     materials_list.append(material)
             facility.typical_materials = materials_list
+        
+        # Parse owner and contact (Agent objects)
+        if 'owner' in data and data['owner']:
+            owner_data = data['owner']
+            if isinstance(owner_data, dict):
+                facility.owner = Agent(
+                    name=owner_data.get('name', ''),
+                    contact_person=owner_data.get('contact_person'),
+                    bio=owner_data.get('bio'),
+                    website=owner_data.get('website'),
+                    languages=owner_data.get('languages', []),
+                    mailing_list=owner_data.get('mailing_list')
+                )
+                # Parse contact sub-object if present
+                if 'contact' in owner_data and owner_data['contact']:
+                    contact_data = owner_data['contact']
+                    facility.owner.contact = Contact(
+                        landline=contact_data.get('landline'),
+                        mobile=contact_data.get('mobile'),
+                        fax=contact_data.get('fax'),
+                        email=contact_data.get('email'),
+                        whatsapp=contact_data.get('whatsapp')
+                    )
+                # Parse social media if present
+                if 'social_media' in owner_data and owner_data['social_media']:
+                    sm_data = owner_data['social_media']
+                    facility.owner.social_media = SocialMedia(
+                        facebook=sm_data.get('facebook'),
+                        twitter=sm_data.get('twitter'),
+                        instagram=sm_data.get('instagram'),
+                        other_urls=sm_data.get('other_urls', [])
+                    )
+        
+        if 'contact' in data and data['contact']:
+            contact_data = data['contact']
+            if isinstance(contact_data, dict):
+                facility.contact = Agent(
+                    name=contact_data.get('name', ''),
+                    contact_person=contact_data.get('contact_person'),
+                    bio=contact_data.get('bio'),
+                    website=contact_data.get('website'),
+                    languages=contact_data.get('languages', []),
+                    mailing_list=contact_data.get('mailing_list')
+                )
+                # Parse contact sub-object if present
+                if 'contact' in contact_data and contact_data['contact']:
+                    contact_info_data = contact_data['contact']
+                    facility.contact.contact = Contact(
+                        landline=contact_info_data.get('landline'),
+                        mobile=contact_info_data.get('mobile'),
+                        fax=contact_info_data.get('fax'),
+                        email=contact_info_data.get('email'),
+                        whatsapp=contact_info_data.get('whatsapp')
+                    )
+                # Parse social media if present
+                if 'social_media' in contact_data and contact_data['social_media']:
+                    sm_data = contact_data['social_media']
+                    facility.contact.social_media = SocialMedia(
+                        facebook=sm_data.get('facebook'),
+                        twitter=sm_data.get('twitter'),
+                        instagram=sm_data.get('instagram'),
+                        other_urls=sm_data.get('other_urls', [])
+                    )
+        
+        # Parse affiliations
+        if 'affiliations' in data and data['affiliations']:
+            affiliations_list = []
+            for aff_data in data['affiliations']:
+                if isinstance(aff_data, dict):
+                    affiliation = Agent(
+                        name=aff_data.get('name', ''),
+                        contact_person=aff_data.get('contact_person'),
+                        bio=aff_data.get('bio'),
+                        website=aff_data.get('website'),
+                        languages=aff_data.get('languages', []),
+                        mailing_list=aff_data.get('mailing_list')
+                    )
+                    affiliations_list.append(affiliation)
+            facility.affiliations = affiliations_list
         
         return facility

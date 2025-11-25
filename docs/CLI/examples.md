@@ -266,13 +266,16 @@ ome utility contexts manufacturing
 ome utility contexts cooking
 ```
 
-## Validation Workflows
+## Validation and Fix Workflows
 
 ### OKH Manifest Validation
 
 ```bash
 # Basic validation
 ome okh validate manifest.json
+
+# Validate cooking domain recipe
+ome okh validate recipe.json --domain cooking --quality-level home
 
 # Enhanced validation with LLM analysis
 ome okh validate manifest.json --use-llm --llm-provider anthropic --quality-level professional
@@ -284,11 +287,33 @@ ome okh validate manifest.json --use-llm --quality-level medical --strict-mode
 ome okh upload manifest.json --use-llm --quality-level professional
 ```
 
+### OKH Manifest Auto-Fix
+
+```bash
+# Fix validation issues interactively
+ome okh fix manifest.json
+
+# Preview fixes without applying
+ome okh fix manifest.json --dry-run
+
+# Fix with backup and auto-confirm
+ome okh fix manifest.json --backup --yes
+
+# Fix cooking domain recipe
+ome okh fix recipe.json --domain cooking --confidence-threshold 0.7
+
+# Fix with verbose output to see all issues
+ome okh fix manifest.json --verbose
+```
+
 ### OKW Facility Validation
 
 ```bash
 # Validate facility capabilities
 ome okw validate facility.json
+
+# Validate cooking domain kitchen
+ome okw validate kitchen.json --domain cooking
 
 # Enhanced validation with LLM analysis
 ome okw validate facility.json --use-llm --llm-provider anthropic --quality-level professional
@@ -301,13 +326,38 @@ ome okw search --capability "3d-printing"
 ome okw search --location "San Francisco"
 ```
 
+### OKW Facility Auto-Fix
+
+```bash
+# Fix validation issues interactively
+ome okw fix facility.json
+
+# Preview fixes without applying
+ome okw fix facility.json --dry-run
+
+# Fix with backup and auto-confirm
+ome okw fix facility.json --backup --yes
+
+# Fix cooking domain kitchen
+ome okw fix kitchen.json --domain cooking --confidence-threshold 0.7
+
+# Fix with verbose output to see all issues
+ome okw fix facility.json --verbose
+```
+
 ## Matching Operations
 
 ### Basic Matching
 
 ```bash
-# Match requirements to capabilities
+# Match requirements to capabilities (manufacturing domain)
 ome match requirements manifest.json
+
+# Match recipe to kitchens (cooking domain)
+ome match requirements recipe.json
+
+# Match with explicit domain override
+ome match requirements input.json --domain cooking
 
 # Enhanced matching with LLM analysis
 ome match requirements manifest.json --use-llm --llm-provider anthropic --quality-level professional
@@ -325,11 +375,37 @@ ome match requirements manifest.json --context professional --use-llm --strict-m
 # Match against specific facility with LLM analysis
 ome match requirements manifest.json --facility-id 123e4567-e89b-12d3-a456-426614174000 --use-llm --quality-level professional
 
+# Match recipe with local kitchen file (cooking domain)
+ome match requirements recipe.json --domain cooking --facility-file kitchen.json
+
 # Match with quality level and LLM enhancement
 ome match requirements manifest.json --use-llm --quality-level medical --strict-mode
 
+# Match with location filter
+ome match requirements manifest.json --location "San Francisco" --min-confidence 0.8
+
 # List recent matches
 ome match list-recent --limit 10
+```
+
+### Working with OKH and OKW Files
+
+```bash
+# List all OKH manifests
+ome okh list-manifests
+
+# Get a specific manifest and save to file
+ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd --output manifest.json
+
+# List OKW files in storage with facility IDs
+ome okw list-files
+
+# Get a specific facility and save to file
+ome okw get 550e8400-e29b-41d4-a716-446655440001 --output facility.json
+
+# Use facility ID from list-files output in matching
+FACILITY_ID=$(ome okw list-files --format json | jq -r '.files[0].facility_id')
+ome okw get "$FACILITY_ID"
 ```
 
 ## Supply Tree Operations

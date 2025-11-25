@@ -112,9 +112,11 @@ class OKHExtractor(BaseExtractor):
         )
         
         # Create normalized requirements with metadata
+        # Use domain from manifest if set, otherwise default to manufacturing for backward compatibility
+        domain = parsed_data.domain if hasattr(parsed_data, 'domain') and parsed_data.domain else "manufacturing"
         requirements = NormalizedRequirements(
             content=content,
-            domain="manufacturing"
+            domain=domain
         )
         
         return requirements
@@ -186,9 +188,12 @@ class OKHExtractor(BaseExtractor):
         )
         
         # Create normalized capabilities with metadata
+        # Use domain from facility data if set, otherwise default to manufacturing for backward compatibility
+        domain = parsed_data.get('domain') if isinstance(parsed_data, dict) else (getattr(parsed_data, 'domain', None) if hasattr(parsed_data, 'domain') else None)
+        domain = domain if domain else "manufacturing"
         normalized_capabilities = NormalizedCapabilities(
             content=content,
-            domain="manufacturing",
+            domain=domain,
             confidence=1.0,
             metadata=metadata
         )

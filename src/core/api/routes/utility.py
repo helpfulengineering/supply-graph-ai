@@ -109,12 +109,8 @@ async def get_domains(
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
         
-        # Create enhanced response using the proper DomainsResponse structure
-        response_data = {
-            "domains": [domain.model_dump(mode='json') for domain in domains],
-            "processing_time": processing_time,
-            "validation_results": await _validate_utility_result(domains, request_id)
-        }
+        # Validate results (only once)
+        validation_results = await _validate_utility_result(domains, request_id)
         
         logger.info(
             f"Domains retrieved successfully",
@@ -127,7 +123,6 @@ async def get_domains(
         )
         
         # Return dict for api_endpoint decorator to wrap
-        validation_results = await _validate_utility_result(domains, request_id)
         return {
             "domains": [domain.model_dump(mode='json') for domain in domains],
             "processing_time": processing_time,

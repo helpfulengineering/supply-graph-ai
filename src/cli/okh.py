@@ -8,15 +8,15 @@ creation, validation, extraction, and storage operations.
 import click
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict, Any
 from uuid import UUID
 
-from ..core.generation.platforms.github import GitHubExtractor
-from ..core.generation.platforms.gitlab import GitLabExtractor
-from ..core.generation.models import LayerConfig
+
 from ..core.generation.built_directory import BuiltDirectoryExporter
 from ..core.services.okh_service import OKHService
 from ..core.models.okh import OKHManifest
+from ..core.validation.auto_fix import auto_fix_okh_manifest
+from ..core.validation.model_validator import validate_okh_manifest
 from .base import (
     CLIContext, SmartCommand, format_llm_output,
     create_llm_request_data, log_llm_usage
@@ -117,27 +117,52 @@ async def _display_creation_results(cli_ctx: CLIContext, result: dict, output: O
         cli_ctx.log("Failed to create OKH manifest", "error")
 
 
+def _detect_domain_from_manifest_data(data: Dict[str, Any]) -> str:
+    """Detect domain from manifest data structure."""
+    # First check for explicit domain field
+    if "domain" in data and data["domain"]:
+        return data["domain"]
+    
+    # Check for cooking indicators
+    cooking_keywords = ["recipe", "cooking", "baking", "ingredient", "food", "meal", "kitchen", "oven", "stove"]
+    content_lower = (data.get("function", "") + " " + data.get("description", "")).lower()
+    if any(keyword in content_lower for keyword in cooking_keywords):
+        return "cooking"
+    
+    # Check for OKH/manufacturing indicators
+    if "title" in data and "version" in data and ("manufacturing_specs" in data or "manufacturing_processes" in data):
+        return "manufacturing"
+    
+    # Default to manufacturing for backward compatibility
+    return "manufacturing"
+
+
 async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str):
     """Display retrieval results."""
+    # Extract manifest data from response
+    # The API now returns OKHResponse with fields at top level, not nested in "manifest"
     manifest = result.get("manifest", result)
     
-    if manifest:
-        cli_ctx.log(f"Retrieved OKH manifest: {manifest.get('title', 'Unknown')}", "success")
+    # If result has top-level fields like "id", "title", etc., use result directly
+    if "id" in result and "title" in result:
+        manifest = result
+    elif "manifest" in result:
+        manifest = result["manifest"]
+    
+    if manifest and manifest.get("id"):
+        manifest_title = manifest.get('title', 'Unknown')
+        cli_ctx.log(f"Retrieved OKH manifest: {manifest_title}", "success")
         
+        # Save to file if output is specified
         if output:
-            # Save manifest to output file
             with open(output, 'w') as f:
                 json.dump(manifest, f, indent=2, default=str)
             cli_ctx.log(f"Manifest saved to {output}", "info")
         
-        if output_format == "json":
-            output_data = format_llm_output(result, cli_ctx)
-            click.echo(output_data)
-        else:
-            # Show basic manifest info
-            cli_ctx.log(f"Title: {manifest.get('title', 'Unknown')}", "info")
-            cli_ctx.log(f"Version: {manifest.get('version', 'Unknown')}", "info")
-            cli_ctx.log(f"Organization: {manifest.get('organization', {}).get('name', 'Unknown')}", "info")
+        # Always output full JSON to stdout by default
+        # If output_format is explicitly set to something other than json, still output JSON
+        # (the format option is mainly for other commands)
+        click.echo(json.dumps(manifest, indent=2, default=str))
     else:
         cli_ctx.log("Manifest not found", "error")
 
@@ -146,6 +171,9 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
 
 @okh_group.command()
 @click.argument('manifest_file', type=click.Path(exists=True))
+@click.option('--domain', 
+              type=click.Choice(['manufacturing', 'cooking']),
+              help='Domain override (auto-detected from file if not provided)')
 @standard_cli_command(
     help_text="""
     Validate an OKH manifest for compliance and completeness.
@@ -185,7 +213,7 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
     add_llm_config=True
 )
 @click.pass_context
-async def validate(ctx, manifest_file: str, quality_level: str, strict_mode: bool,
+async def validate(ctx, manifest_file: str, domain: Optional[str], quality_level: str, strict_mode: bool,
                   verbose: bool, output_format: str, use_llm: bool,
                   llm_provider: str, llm_model: Optional[str]):
     """Validate an OKH manifest with enhanced LLM support."""
@@ -209,6 +237,14 @@ async def validate(ctx, manifest_file: str, quality_level: str, strict_mode: boo
         # Read manifest file
         cli_ctx.log("Reading manifest file...", "info")
         manifest_data = await _read_manifest_file(manifest_file)
+        
+        # Detect or use explicit domain
+        detected_domain = domain or _detect_domain_from_manifest_data(manifest_data) if manifest_data else None
+        if detected_domain:
+            cli_ctx.log(f"Using domain: {detected_domain}", "info")
+            # Set domain in manifest_data so API can detect it
+            if manifest_data and not manifest_data.get("domain"):
+                manifest_data["domain"] = detected_domain
     
         # Create request data with LLM configuration
         # The API expects manifest data wrapped in a 'content' field
@@ -619,25 +655,45 @@ async def list_manifests(ctx, limit: int, offset: int,
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_list, fallback_list)
         
-        # Display listing results
-        manifests = result.get("manifests", [])
-        total = result.get("total", len(manifests))
-        
-        if manifests:
-            cli_ctx.log(f"Found {total} OKH manifests", "success")
-            
-            if output_format == "json":
-                output_data = format_llm_output(result, cli_ctx)
-                click.echo(output_data)
-            else:
-                for manifest in manifests:
-                    cli_ctx.log(f"📄 {manifest.get('id', 'Unknown')}", "info")
-                    cli_ctx.log(f"   Title: {manifest.get('title', 'Unknown')}", "info")
-                    cli_ctx.log(f"   Version: {manifest.get('version', 'Unknown')}", "info")
-                    cli_ctx.log(f"   Organization: {manifest.get('organization', {}).get('name', 'Unknown')}", "info")
-                    cli_ctx.log("", "info")  # Empty line for spacing
+        # Handle both API response format (PaginatedResponse with 'items') and fallback format (with 'manifests')
+        # API response may have nested 'data' field or top-level 'items'
+        if "data" in result and isinstance(result["data"], dict):
+            # Handle nested data structure
+            manifests = result["data"].get("items", result["data"].get("manifests", []))
+            pagination = result["data"].get("pagination", {})
+            total = pagination.get("total_items", len(manifests))
         else:
-            cli_ctx.log("No OKH manifests found", "info")
+            # Handle top-level items or manifests
+            manifests = result.get("items", result.get("manifests", []))
+            pagination = result.get("pagination", {})
+            total = pagination.get("total_items", result.get("total", len(manifests)))
+        
+        # Display results
+        if output_format == "json":
+            output_data = format_llm_output(result, cli_ctx)
+            click.echo(output_data)
+        else:
+            # Display manifest list in text format (similar to okw list-files)
+            if manifests and len(manifests) > 0:
+                click.echo(f"\n📄 Found {total} OKH manifest(s):\n")
+                for i, manifest in enumerate(manifests, 1):
+                    manifest_id = manifest.get('id', 'Unknown')
+                    title = manifest.get('title', 'Unknown')
+                    version = manifest.get('version', 'Unknown')
+                    organization = manifest.get('organization', {})
+                    org_name = organization.get('name', 'Unknown') if isinstance(organization, dict) else str(organization) if organization else 'Unknown'
+                    
+                    click.echo(f"  {i}. {title}")
+                    click.echo(f"     Manifest ID: {manifest_id}")
+                    click.echo(f"     Version: {version} | Organization: {org_name}")
+                    if i < len(manifests):
+                        click.echo()  # Empty line between items
+                click.echo(f"\nTotal: {total} manifest(s)")
+            elif total > 0:
+                # Total indicates there are manifests, but they might be on a different page
+                click.echo(f"\n📄 Found {total} OKH manifest(s) (not shown - may be on a different page)\n")
+            else:
+                click.echo("\nNo OKH manifests found\n")
         
         cli_ctx.end_command_tracking()
         
@@ -1483,4 +1539,203 @@ async def scaffold_cleanup(ctx, project_path: str, apply: bool,
         if cli_ctx and cli_ctx.verbose:
             import traceback
             click.echo(traceback.format_exc())
+        raise
+
+
+@okh_group.command()
+@click.argument('manifest_file', type=click.Path(exists=True))
+@click.option('--output', '-o', type=click.Path(), help='Output file path (default: overwrites input file)')
+@click.option('--dry-run', is_flag=True, help='Preview fixes without applying them')
+@click.option('--backup', is_flag=True, help='Create backup of original file before fixing')
+@click.option('--confidence-threshold', type=float, default=0.7, help='Minimum confidence to apply a fix (0.0-1.0, default: 0.7)')
+@click.option('--domain', 
+              type=click.Choice(['manufacturing', 'cooking']),
+              help='Domain override (auto-detected from file if not provided)')
+@click.option('--yes', '-y', is_flag=True, help='Automatically confirm all fixes without prompting')
+@standard_cli_command(
+    help_text="""
+    Automatically fix validation warnings and errors in an OKH manifest.
+    
+    This command analyzes validation warnings and errors and applies automatic
+    fixes based on confidence levels. Fixes include:
+    - Typo corrections (e.g., 'descroption' → 'description')
+    - Case error fixes (e.g., 'Link' → 'link')
+    - Data movement from metadata to proper fields
+    - Field removal for empty or duplicate data
+    
+    Fixes are categorized by confidence:
+    - High confidence (1.0): Typos and case errors (always applied)
+    - Medium confidence (0.7-0.9): Data movement and transformations
+    - Low confidence (0.5): Field removal (requires confirmation)
+    
+    Use --dry-run to preview fixes before applying them.
+    """,
+    epilog="""
+    Examples:
+      # Preview fixes without applying
+      ome okh fix recipe.json --dry-run
+      
+      # Apply fixes with backup
+      ome okh fix recipe.json --backup
+      
+      # Apply fixes to new file
+      ome okh fix recipe.json --output recipe-fixed.json
+      
+      # Apply all fixes including low-confidence ones
+      ome okh fix recipe.json --confidence-threshold 0.5 --yes
+      
+      # Fix with domain override
+      ome okh fix recipe.json --domain cooking
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False  # Auto-fix doesn't use LLM
+)
+@click.pass_context
+async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, backup: bool,
+              confidence_threshold: float, domain: Optional[str], yes: bool,
+              verbose: bool, output_format: str, quality_level: str, strict_mode: bool,
+              use_llm: bool = False, llm_provider: str = 'anthropic', llm_model: Optional[str] = None):
+    """Automatically fix validation issues in an OKH manifest."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-fix")
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
+    try:
+        # Read manifest file
+        manifest_data = await _read_manifest_file(manifest_file)
+        
+        # Detect domain if not provided
+        detected_domain = domain
+        if not detected_domain:
+            if "domain" in manifest_data and manifest_data["domain"]:
+                detected_domain = manifest_data["domain"]
+            elif "making_instructions" in manifest_data or "tool_list" in manifest_data:
+                detected_domain = "cooking"
+            else:
+                detected_domain = "manufacturing"
+        
+        cli_ctx.log(f"Using domain: {detected_domain}", "info")
+        
+        # Validate first to get warnings/errors
+        cli_ctx.log("Validating manifest...", "info")
+        validation_result = validate_okh_manifest(
+            manifest_data,
+            quality_level=quality_level,
+            strict_mode=strict_mode,
+            domain=detected_domain
+        )
+        
+        if not validation_result.warnings and not validation_result.errors:
+            cli_ctx.log("✅ No issues found. Manifest is already valid!", "success")
+            cli_ctx.end_command_tracking()
+            return
+        
+        cli_ctx.log(f"Found {len(validation_result.warnings)} warnings and {len(validation_result.errors)} errors", "info")
+        
+        # Run auto-fix
+        cli_ctx.log("Analyzing fixes...", "info")
+        fixed_content, fix_report = auto_fix_okh_manifest(
+            manifest_data,
+            validation_result,
+            quality_level=quality_level,
+            strict_mode=strict_mode,
+            domain=detected_domain,
+            dry_run=dry_run,
+            fix_confidence_threshold=confidence_threshold
+        )
+        
+        # Display fix report
+        cli_ctx.log("\n" + "=" * 70, "info")
+        cli_ctx.log("AUTO-FIX REPORT", "info")
+        cli_ctx.log("=" * 70, "info")
+        cli_ctx.log(f"Fixes applied: {len(fix_report.fixes_applied)}", "info")
+        cli_ctx.log(f"Fixes skipped: {len(fix_report.fixes_skipped)}", "info")
+        cli_ctx.log(f"Original warnings: {fix_report.original_warnings}", "info")
+        cli_ctx.log(f"Remaining warnings: {fix_report.remaining_warnings}", "info")
+        cli_ctx.log(f"Warnings fixed: {fix_report.original_warnings - fix_report.remaining_warnings}", "success")
+        
+        if fix_report.fixes_applied:
+            cli_ctx.log("\nApplied fixes:", "info")
+            for i, fix in enumerate(fix_report.fixes_applied, 1):
+                cli_ctx.log(f"  {i}. [{fix.type}] {fix.description}", "success")
+        
+        if fix_report.fixes_skipped:
+            cli_ctx.log("\nSkipped fixes (low confidence or require confirmation):", "warning")
+            for i, fix in enumerate(fix_report.fixes_skipped, 1):
+                cli_ctx.log(f"  {i}. [{fix.type}] {fix.description} (confidence: {fix.confidence})", "warning")
+            
+            # Ask for confirmation on low-confidence fixes
+            if not dry_run and not yes and fix_report.fixes_skipped:
+                low_confidence_fixes = [f for f in fix_report.fixes_skipped if f.confidence < confidence_threshold]
+                if low_confidence_fixes:
+                    cli_ctx.log(f"\n⚠️  {len(low_confidence_fixes)} fixes require confirmation (confidence < {confidence_threshold})", "warning")
+                    if click.confirm("Apply low-confidence fixes?"):
+                        # Apply only the skipped fixes to the already-fixed content
+                        # We need to re-validate first to get updated warnings
+                        temp_validation = validate_okh_manifest(
+                            fixed_content,
+                            quality_level=quality_level,
+                            strict_mode=strict_mode,
+                            domain=detected_domain
+                        )
+                        # Re-run auto-fix on the already-fixed content with lower threshold
+                        fixed_content, additional_fix_report = auto_fix_okh_manifest(
+                            fixed_content,
+                            temp_validation,
+                            quality_level=quality_level,
+                            strict_mode=strict_mode,
+                            domain=detected_domain,
+                            dry_run=False,
+                            fix_confidence_threshold=0.5  # Lower threshold for user-confirmed fixes
+                        )
+                        # Update the fix report with additional fixes
+                        additional_count = len(additional_fix_report.fixes_applied)
+                        fix_report.fixes_applied.extend(additional_fix_report.fixes_applied)
+                        fix_report.fixes_skipped = additional_fix_report.fixes_skipped
+                        fix_report.remaining_warnings = additional_fix_report.remaining_warnings
+                        fix_report.remaining_errors = additional_fix_report.remaining_errors
+                        cli_ctx.log(f"Applied {additional_count} additional fixes", "success")
+        
+        if dry_run:
+            cli_ctx.log("\n🔍 DRY-RUN MODE: No changes were made", "info")
+            cli_ctx.log("Run without --dry-run to apply fixes", "info")
+        else:
+            # Determine output file
+            output_file = output or manifest_file
+            
+            # Create backup if requested
+            if backup and output_file == manifest_file:
+                backup_file = f"{manifest_file}.backup"
+                import shutil
+                shutil.copy2(manifest_file, backup_file)
+                cli_ctx.log(f"Created backup: {backup_file}", "info")
+            
+            # Write fixed content
+            output_path = Path(output_file)
+            with open(output_path, 'w') as f:
+                json.dump(fixed_content, f, indent=2, ensure_ascii=False)
+            
+            cli_ctx.log(f"\n✅ Fixed manifest saved to: {output_file}", "success")
+            
+            # Re-validate to show final state
+            final_validation = validate_okh_manifest(
+                fixed_content,
+                quality_level=quality_level,
+                strict_mode=strict_mode,
+                domain=detected_domain
+            )
+            
+            if final_validation.warnings or final_validation.errors:
+                cli_ctx.log(f"\n⚠️  Remaining issues: {len(final_validation.warnings)} warnings, {len(final_validation.errors)} errors", "warning")
+            else:
+                cli_ctx.log("\n✅ All issues resolved! Manifest is now valid.", "success")
+        
+        cli_ctx.end_command_tracking()
+        
+    except Exception as e:
+        cli_ctx.log(f"Fix failed: {str(e)}", "error")
         raise

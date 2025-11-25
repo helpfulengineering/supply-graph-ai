@@ -13,6 +13,9 @@ from uuid import UUID
 
 from ..core.models.okw import ManufacturingFacility
 from ..core.services.okw_service import OKWService
+from ..core.services.storage_service import StorageService
+from ..core.validation.auto_fix import auto_fix_okw_facility
+from ..core.validation.model_validator import validate_okw_facility
 from .base import (
     CLIContext, SmartCommand, format_llm_output,
     create_llm_request_data, log_llm_usage
@@ -115,26 +118,30 @@ async def _display_creation_results(cli_ctx: CLIContext, result: dict, output: O
 
 async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str):
     """Display retrieval results."""
+    # Extract facility data from response
+    # The API now returns OKWResponse with fields at top level, not nested in "facility"
     facility = result.get("facility", result)
     
-    if facility:
-        cli_ctx.log(f"Retrieved OKW facility: {facility.get('name', 'Unknown')}", "success")
+    # If result has top-level fields like "id", "name", etc., use result directly
+    if "id" in result and "name" in result:
+        facility = result
+    elif "facility" in result:
+        facility = result["facility"]
+    
+    if facility and facility.get("id"):
+        facility_name = facility.get('name', 'Unknown')
+        cli_ctx.log(f"Retrieved OKW facility: {facility_name}", "success")
         
+        # Save to file if output is specified
         if output:
-            # Save facility to output file
             with open(output, 'w') as f:
                 json.dump(facility, f, indent=2, default=str)
             cli_ctx.log(f"Facility saved to {output}", "info")
         
-        if output_format == "json":
-            output_data = format_llm_output(result, cli_ctx)
-            click.echo(output_data)
-        else:
-            # Show basic facility info
-            cli_ctx.log(f"Name: {facility.get('name', 'Unknown')}", "info")
-            cli_ctx.log(f"Type: {facility.get('facility_type', 'Unknown')}", "info")
-            cli_ctx.log(f"Location: {facility.get('location', {}).get('address', 'Unknown')}", "info")
-            cli_ctx.log(f"Status: {facility.get('status', 'Unknown')}", "info")
+        # Always output full JSON to stdout by default
+        # If output_format is explicitly set to something other than json, still output JSON
+        # (the format option is mainly for other commands)
+        click.echo(json.dumps(facility, indent=2, default=str))
     else:
         cli_ctx.log("Facility not found", "error")
 
@@ -871,12 +878,19 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
         result = await command.execute_with_fallback(http_upload, fallback_upload)
         
         # Display upload results
-        facility_id = result.get("id") or result.get("facility", {}).get("id")
+        # Handle both OKWUploadResponse format (has "okw" field) and direct OKWResponse format
+        if isinstance(result, dict):
+            facility_id = result.get("id") or (result.get("okw", {}) or {}).get("id") or (result.get("facility", {}) or {}).get("id")
+        else:
+            facility_id = getattr(result, "id", None) or getattr(getattr(result, "okw", None), "id", None)
         
         if facility_id:
-            cli_ctx.log(f"OKW facility uploaded with ID: {facility_id}", "success")
+            cli_ctx.log(f"✅ OKW facility uploaded with ID: {facility_id}", "success")
         else:
-            cli_ctx.log("Failed to upload OKW facility", "error")
+            cli_ctx.log(f"⚠️  Upload completed but no facility ID found in response", "warning")
+            if cli_ctx.verbose:
+                cli_ctx.log(f"Response structure: {type(result).__name__}", "info")
+                cli_ctx.log(f"Response keys/attrs: {list(result.keys()) if isinstance(result, dict) else dir(result)[:10]}", "info")
         
         cli_ctx.end_command_tracking()
         
@@ -1110,3 +1124,413 @@ async def search(ctx, query: str, domain: str, capability: str, location: str, l
     except Exception as e:
         cli_ctx.log(f"Search failed: {str(e)}", "error")
         raise
+
+
+@okw_group.command()
+@click.argument('facility_file', type=click.Path(exists=True))
+@click.option('--output', '-o', type=click.Path(), help='Output file path (default: overwrites input file)')
+@click.option('--dry-run', is_flag=True, help='Preview fixes without applying them')
+@click.option('--backup', is_flag=True, help='Create backup of original file before fixing')
+@click.option('--confidence-threshold', type=float, default=0.7, help='Minimum confidence to apply a fix (0.0-1.0, default: 0.7)')
+@click.option('--domain', 
+              type=click.Choice(['manufacturing', 'cooking']),
+              help='Domain override (auto-detected from file if not provided)')
+@click.option('--yes', '-y', is_flag=True, help='Automatically confirm all fixes without prompting')
+@standard_cli_command(
+    help_text="""
+    Automatically fix validation warnings and errors in an OKW facility.
+    
+    This command analyzes validation warnings and errors and applies automatic
+    fixes based on confidence levels. Fixes include:
+    - Typo corrections (e.g., 'descroption' → 'description')
+    - Case error fixes (e.g., 'Link' → 'link')
+    - Data movement from metadata to proper fields
+    - Field removal for empty or duplicate data
+    
+    Fixes are categorized by confidence:
+    - High confidence (1.0): Typos and case errors (always applied)
+    - Medium confidence (0.7-0.9): Data movement and transformations
+    - Low confidence (0.5): Field removal (requires confirmation)
+    
+    Use --dry-run to preview fixes before applying them.
+    """,
+    epilog="""
+    Examples:
+      # Preview fixes without applying
+      ome okw fix facility.json --dry-run
+      
+      # Apply fixes with backup
+      ome okw fix facility.json --backup
+      
+      # Apply fixes to new file
+      ome okw fix facility.json --output facility-fixed.json
+      
+      # Apply all fixes including low-confidence ones
+      ome okw fix facility.json --confidence-threshold 0.5 --yes
+      
+      # Fix with domain override
+      ome okw fix facility.json --domain cooking
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False  # Auto-fix doesn't use LLM
+)
+@click.pass_context
+async def fix(ctx, facility_file: str, output: Optional[str], dry_run: bool, backup: bool,
+              confidence_threshold: float, domain: Optional[str], yes: bool,
+              verbose: bool, output_format: str, quality_level: str, strict_mode: bool,
+              use_llm: bool = False, llm_provider: str = 'anthropic', llm_model: Optional[str] = None):
+    """Automatically fix validation issues in an OKW facility."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-fix")
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
+    try:
+        # Read facility file
+        facility_data = await _read_facility_file(facility_file)
+        
+        # Detect domain if not provided
+        detected_domain = domain
+        if not detected_domain:
+            if "domain" in facility_data and facility_data["domain"]:
+                detected_domain = facility_data["domain"]
+            else:
+                detected_domain = "manufacturing"  # Default for OKW
+        
+        cli_ctx.log(f"Using domain: {detected_domain}", "info")
+        
+        # Validate first to get warnings/errors
+        cli_ctx.log("Validating facility...", "info")
+        validation_result = validate_okw_facility(
+            facility_data,
+            quality_level=quality_level,
+            strict_mode=strict_mode
+        )
+        
+        if not validation_result.warnings and not validation_result.errors:
+            cli_ctx.log("✅ No issues found. Facility is already valid!", "success")
+            cli_ctx.end_command_tracking()
+            return
+        
+        cli_ctx.log(f"Found {len(validation_result.warnings)} warnings and {len(validation_result.errors)} errors", "info")
+        
+        # Run auto-fix
+        cli_ctx.log("Analyzing fixes...", "info")
+        fixed_content, fix_report = auto_fix_okw_facility(
+            facility_data,
+            validation_result,
+            quality_level=quality_level,
+            strict_mode=strict_mode,
+            domain=detected_domain,
+            dry_run=dry_run,
+            fix_confidence_threshold=confidence_threshold
+        )
+        
+        # Display fix report
+        cli_ctx.log("\n" + "=" * 70, "info")
+        cli_ctx.log("AUTO-FIX REPORT", "info")
+        cli_ctx.log("=" * 70, "info")
+        cli_ctx.log(f"Fixes applied: {len(fix_report.fixes_applied)}", "info")
+        cli_ctx.log(f"Fixes skipped: {len(fix_report.fixes_skipped)}", "info")
+        cli_ctx.log(f"Original warnings: {fix_report.original_warnings}", "info")
+        cli_ctx.log(f"Original errors: {fix_report.original_errors}", "info")
+        cli_ctx.log(f"Remaining warnings: {fix_report.remaining_warnings}", "info")
+        cli_ctx.log(f"Remaining errors: {fix_report.remaining_errors}", "info")
+        cli_ctx.log(f"Warnings fixed: {fix_report.warnings_fixed}", "success" if fix_report.warnings_fixed > 0 else "info")
+        cli_ctx.log(f"Errors fixed: {fix_report.errors_fixed}", "success" if fix_report.errors_fixed > 0 else "info")
+        
+        if fix_report.fixes_applied:
+            cli_ctx.log("\nApplied fixes:", "info")
+            for i, fix in enumerate(fix_report.fixes_applied, 1):
+                cli_ctx.log(f"  {i}. [{fix.type}] {fix.description}", "success")
+        
+        if fix_report.fixes_skipped:
+            cli_ctx.log("\nSkipped fixes (low confidence or require confirmation):", "warning")
+            for i, fix in enumerate(fix_report.fixes_skipped, 1):
+                cli_ctx.log(f"  {i}. [{fix.type}] {fix.description} (confidence: {fix.confidence})", "warning")
+            
+            # Ask for confirmation on low-confidence fixes
+            if not dry_run and not yes and fix_report.fixes_skipped:
+                low_confidence_fixes = [f for f in fix_report.fixes_skipped if f.confidence < confidence_threshold]
+                if low_confidence_fixes:
+                    cli_ctx.log(f"\n⚠️  {len(low_confidence_fixes)} fixes require confirmation (confidence < {confidence_threshold})", "warning")
+                    if click.confirm("Apply low-confidence fixes?"):
+                        # Apply the confirmed fixes directly to the already-fixed content
+                        # Parse the facility again to apply fixes
+                        facility = ManufacturingFacility.from_dict(fixed_content)
+                        
+                        # Apply each confirmed fix
+                        applied_count = 0
+                        for fix in low_confidence_fixes:
+                            try:
+                                from ..core.validation.auto_fix import _apply_fix_to_facility
+                                _apply_fix_to_facility(facility, fix)
+                                fix_report.fixes_applied.append(fix)
+                                fix_report.fixes_skipped.remove(fix)
+                                applied_count += 1
+                                cli_ctx.log(f"Applied fix: {fix.description}", "success")
+                            except Exception as e:
+                                cli_ctx.log(f"Failed to apply fix {fix.description}: {str(e)}", "warning")
+                        
+                        # Convert back to dict
+                        fixed_content = facility.to_dict()
+                        
+                        # Re-validate to get updated counts
+                        temp_validation = validate_okw_facility(
+                            fixed_content,
+                            quality_level=quality_level,
+                            strict_mode=strict_mode
+                        )
+                        fix_report.remaining_warnings = len(temp_validation.warnings)
+                        fix_report.remaining_errors = len(temp_validation.errors)
+                        
+                        if applied_count > 0:
+                            cli_ctx.log(f"✅ Applied {applied_count} additional fixes", "success")
+                        else:
+                            cli_ctx.log("⚠️  No fixes were applied", "warning")
+        
+        if dry_run:
+            cli_ctx.log("\n🔍 DRY-RUN MODE: No changes were made", "info")
+            cli_ctx.log("Run without --dry-run to apply fixes", "info")
+        else:
+            # Determine output file
+            output_file = output or facility_file
+            
+            # Create backup if requested
+            if backup and output_file == facility_file:
+                backup_file = f"{facility_file}.backup"
+                import shutil
+                shutil.copy2(facility_file, backup_file)
+                cli_ctx.log(f"Created backup: {backup_file}", "info")
+            
+            # Write fixed content
+            output_path = Path(output_file)
+            with open(output_path, 'w') as f:
+                json.dump(fixed_content, f, indent=2, ensure_ascii=False)
+            
+            # Re-validate to show final state
+            final_validation = validate_okw_facility(
+                fixed_content,
+                quality_level=quality_level,
+                strict_mode=strict_mode
+            )
+            
+            # Update fix report with final validation results
+            fix_report.remaining_warnings = len(final_validation.warnings)
+            fix_report.remaining_errors = len(final_validation.errors)
+            
+            # Display status based on fix report status
+            status = fix_report.status
+            if status == "complete_success":
+                cli_ctx.log(f"\n✅ Complete success! All issues resolved.", "success")
+                cli_ctx.log(f"✅ Fixed facility saved to: {output_file}", "success")
+            elif status == "partial_success":
+                cli_ctx.log(f"\n⚠️  Partial success: Some issues fixed, but {fix_report.remaining_warnings} warnings and {fix_report.remaining_errors} errors remain", "warning")
+                cli_ctx.log(f"✅ Updated facility saved to: {output_file}", "success")
+            else:  # failure
+                cli_ctx.log(f"\n❌ Fix failed: No fixes were applied or errors remain", "error")
+                if fix_report.remaining_errors > 0:
+                    cli_ctx.log(f"❌ {fix_report.remaining_errors} error(s) remain", "error")
+                if fix_report.remaining_warnings > 0:
+                    cli_ctx.log(f"⚠️  {fix_report.remaining_warnings} warning(s) remain", "warning")
+                cli_ctx.log(f"⚠️  Facility saved to: {output_file} (unchanged or partially fixed)", "warning")
+            
+            # Show detailed verbose output if requested
+            if verbose and (final_validation.warnings or final_validation.errors):
+                cli_ctx.log("\n" + "=" * 70, "info")
+                cli_ctx.log("REMAINING ISSUES (sorted by severity)", "info")
+                cli_ctx.log("=" * 70, "info")
+                
+                # Display errors first
+                if final_validation.errors:
+                    cli_ctx.log("\n❌ ERRORS:", "error")
+                    for i, error in enumerate(final_validation.errors, 1):
+                        # Error can be a string or an object with message/code/field attributes
+                        if isinstance(error, str):
+                            cli_ctx.log(f"  {i}. {error}", "error")
+                        else:
+                            error_msg = getattr(error, 'message', str(error))
+                            error_code = getattr(error, 'code', "UNKNOWN")
+                            cli_ctx.log(f"  {i}. [{error_code}] {error_msg}", "error")
+                            if hasattr(error, 'field') and error.field:
+                                cli_ctx.log(f"     Field: {error.field}", "error")
+                            if hasattr(error, 'suggestion') and error.suggestion:
+                                cli_ctx.log(f"     Suggestion: {error.suggestion}", "info")
+                
+                # Display warnings
+                if final_validation.warnings:
+                    cli_ctx.log("\n⚠️  WARNINGS:", "warning")
+                    for i, warning in enumerate(final_validation.warnings, 1):
+                        # Warning can be a string or an object with message/code/field attributes
+                        if isinstance(warning, str):
+                            cli_ctx.log(f"  {i}. {warning}", "warning")
+                        else:
+                            warning_msg = getattr(warning, 'message', str(warning))
+                            warning_code = getattr(warning, 'code', "UNKNOWN")
+                            cli_ctx.log(f"  {i}. [{warning_code}] {warning_msg}", "warning")
+                            if hasattr(warning, 'field') and warning.field:
+                                cli_ctx.log(f"     Field: {warning.field}", "warning")
+                            if hasattr(warning, 'suggestion') and warning.suggestion:
+                                cli_ctx.log(f"     Suggestion: {warning.suggestion}", "info")
+        
+        cli_ctx.end_command_tracking()
+        
+    except Exception as e:
+        cli_ctx.log(f"Fix failed: {str(e)}", "error")
+        raise
+
+
+@okw_group.command(name="list-files")
+@click.option('--prefix', default='okw/', help='Filter by prefix (default: okw/)')
+@click.option('--output', '-o', type=click.Path(), help='Save list to file (JSON)')
+@click.option('--format', type=click.Choice(['json', 'text']), default='text', help='Output format')
+@standard_cli_command(
+    help_text="""
+    List OKW files in Azure blob storage.
+    
+    This command lists raw OKW file keys from blob storage, allowing you to
+    see what files are available for download and processing.
+    
+    The output includes:
+    - Blob keys (file paths in storage)
+    - File sizes
+    - Last modified dates
+    - File metadata
+    """,
+    epilog="""
+    Examples:
+      # List all OKW files
+      ome okw list-files
+      
+      # List with specific prefix
+      ome okw list-files --prefix okw/facilities/
+      
+      # Save list to JSON file
+      ome okw list-files --output files.json --format json
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False
+)
+@click.pass_context
+async def list_files(ctx, prefix: str, output: Optional[str], format: str,
+                     verbose: bool, output_format: str, quality_level: str, strict_mode: bool,
+                     use_llm: bool = False, llm_provider: str = 'anthropic', llm_model: Optional[str] = None):
+    """List OKW files in blob storage."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-list-files")
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+    
+    storage_service = None
+    try:
+        # Get storage service
+        from ..config import settings
+        storage_service = await StorageService.get_instance()
+        if not storage_service.manager:
+            await storage_service.configure(settings.STORAGE_CONFIG)
+        
+        if not storage_service.manager:
+            cli_ctx.log("❌ Storage service not configured", "error")
+            raise click.ClickException("Storage service is not configured. Please configure storage first.")
+        
+        if cli_ctx.verbose:
+            cli_ctx.log(f"Listing files with prefix: {prefix}", "info")
+        
+        # List objects from storage
+        files = []
+        async for obj in storage_service.manager.list_objects(prefix=prefix):
+            # Filter for OKW file extensions
+            key = obj.get("key", "")
+            if key.endswith(('.json', '.yaml', '.yml')):
+                # Extract facility_id by reading and parsing the file
+                facility_id = None
+                try:
+                    file_data = await storage_service.manager.get_object(key)
+                    content = file_data.decode('utf-8')
+                    
+                    # Parse based on file extension
+                    if key.endswith('.json'):
+                        import json
+                        facility_data = json.loads(content)
+                    else:  # yaml or yml
+                        import yaml
+                        facility_data = yaml.safe_load(content)
+                    
+                    # Extract ID from the parsed data
+                    if facility_data and 'id' in facility_data:
+                        facility_id = str(facility_data['id'])
+                except Exception as e:
+                    # If we can't parse the file, continue without facility_id
+                    if cli_ctx.verbose:
+                        cli_ctx.log(f"Warning: Could not extract facility_id from {key}: {str(e)}", "warning")
+                
+                files.append({
+                    "key": key,
+                    "facility_id": facility_id,
+                    "size": obj.get("size", 0),
+                    "last_modified": obj.get("last_modified"),
+                    "etag": obj.get("etag")
+                })
+        
+        # Prepare output
+        result = {
+            "files": files,
+            "total": len(files),
+            "prefix": prefix
+        }
+        
+        # Save to file if requested
+        if output:
+            with open(output, 'w') as f:
+                json.dump(result, f, indent=2, default=str)
+            if cli_ctx.verbose:
+                cli_ctx.log(f"List saved to: {output}", "info")
+        
+        # Display results
+        if output_format == "json" or format == "json":
+            click.echo(json.dumps(result, indent=2, default=str))
+        else:
+            # Display file list in text format
+            if files:
+                click.echo(f"\n📁 Found {len(files)} OKW file(s):\n")
+                for i, file_info in enumerate(files, 1):
+                    size_kb = file_info["size"] / 1024 if file_info["size"] else 0
+                    modified = file_info.get("last_modified", "Unknown")
+                    if isinstance(modified, str):
+                        modified_str = modified
+                    else:
+                        modified_str = str(modified) if modified else "Unknown"
+                    facility_id = file_info.get("facility_id", "Unknown")
+                    click.echo(f"  {i}. {file_info['key']}")
+                    click.echo(f"     Facility ID: {facility_id}")
+                    click.echo(f"     Size: {size_kb:.1f} KB | Modified: {modified_str}")
+                click.echo(f"\nTotal: {len(files)} file(s)")
+            else:
+                click.echo("No OKW files found")
+        
+        cli_ctx.end_command_tracking()
+        
+    except Exception as e:
+        cli_ctx.log(f"List files failed: {str(e)}", "error")
+        raise
+    finally:
+        # Ensure storage service is cleaned up to close aiohttp sessions
+        # This is critical for Azure blob storage which uses aiohttp
+        if storage_service:
+            try:
+                # Register with service_fallback so CLIContext.cleanup() can also clean it up
+                if not hasattr(cli_ctx.service_fallback, '_services'):
+                    cli_ctx.service_fallback._services = {}
+                cli_ctx.service_fallback._services['storage_service'] = storage_service
+                
+                # Explicitly cleanup to close aiohttp sessions
+                await storage_service.cleanup()
+            except Exception as cleanup_error:
+                if cli_ctx.verbose:
+                    cli_ctx.log(f"Warning: Error during storage cleanup: {cleanup_error}", "warning")

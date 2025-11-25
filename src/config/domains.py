@@ -76,8 +76,8 @@ DOMAIN_CONFIGS = {
 
 # Type to domain mapping for automatic detection
 TYPE_DOMAIN_MAPPING = {
-    "okh": "manufacturing",
-    "okw": "manufacturing",
+    "okh": None,  # Ambiguous - can be manufacturing or cooking, requires content detection
+    "okw": None,  # Ambiguous - can be manufacturing or cooking, requires content detection
     "manufacturing_facility": "manufacturing",
     "recipe": "cooking",
     "kitchen": "cooking",
@@ -96,7 +96,10 @@ DOMAIN_KEYWORDS = {
         "recipe", "ingredient", "kitchen", "cooking", 
         "baking", "food", "meal", "preparation", "chef",
         "cuisine", "flavor", "seasoning", "nutrition",
-        "dietary", "allergen", "temperature", "cooking time"
+        "dietary", "allergen", "temperature", "cooking time",
+        # New keywords for OKH/OKW detection
+        "oven", "stove", "refrigerator", "mixer", "blender",
+        "sauté", "roast", "grill", "steam", "boil", "fry"
     ]
 }
 

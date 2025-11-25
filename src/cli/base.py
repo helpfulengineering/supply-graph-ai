@@ -422,9 +422,14 @@ class SmartCommand:
             return result
         except (httpx.ConnectError, httpx.TimeoutException, httpx.NetworkError) as e:
             # Connection-related errors - fallback to direct service calls
-            if self.ctx.verbose:
-                self.ctx.log(f"Connection error details: {type(e).__name__}: {e}", "debug")
-            self.ctx.log("Server unavailable, using direct service calls...", "warning")
+            error_msg = str(e)
+            # Check if this is an intentional fallback (e.g., for local files)
+            if "Use fallback" in error_msg or "local facility file" in error_msg.lower():
+                self.ctx.log("Using direct service calls (required for local files)...", "info")
+            else:
+                if self.ctx.verbose:
+                    self.ctx.log(f"Connection error details: {type(e).__name__}: {e}", "debug")
+                self.ctx.log("Server unavailable, using direct service calls...", "warning")
             # Ensure domains are registered before using direct services
             await ensure_domains_registered()
             return await fallback_operation()
