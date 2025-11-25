@@ -161,8 +161,23 @@ class MatchingService:
             )
 
             solutions = set()
+            # Track processed facility IDs to avoid duplicates
+            processed_facility_ids: Set[UUID] = set()
             
             for facility in facilities:
+                # Skip if we've already processed this facility ID
+                if facility.id in processed_facility_ids:
+                    logger.debug(
+                        f"Skipping duplicate facility {facility.id} ({facility.name})",
+                        extra={
+                            "facility_id": str(facility.id),
+                            "facility_name": facility.name
+                        }
+                    )
+                    continue
+                
+                processed_facility_ids.add(facility.id)
+                
                 logger.debug(
                     "Checking facility for matches",
                     extra={

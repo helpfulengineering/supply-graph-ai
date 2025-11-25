@@ -1038,47 +1038,35 @@ async def _get_filtered_facilities(
             facilities = all_facilities
             total = len(all_facilities)
         elif domain == "cooking":
-            # Load kitchens from storage
-            all_facilities = []
-            async for obj in storage_service.manager.list_objects():
-                try:
-                    # Only process kitchen files
-                    if 'kitchen' not in obj["key"].lower():
-                        continue
-                    
-                    data = await storage_service.manager.get_object(obj["key"])
-                    content = data.decode('utf-8')
-                    kitchen_data = json.loads(content)
-                    
-                    # Ensure kitchen has an ID - extract from storage key if not present
-                    if "id" not in kitchen_data:
-                        # Extract ID from storage key format: {name}-{id}-kitchen.json
-                        key_parts = obj["key"].split("-")
-                        if len(key_parts) >= 2:
-                            # Try to extract ID from key (format: name-id-kitchen.json)
-                            potential_id = key_parts[-2] if key_parts[-1].startswith("kitchen") else None
-                            if potential_id and len(potential_id) == 8:  # UUID short format
-                                # Generate full UUID from short ID or use as-is
-                                kitchen_data["id"] = potential_id
-                            else:
-                                # Generate new UUID if can't extract from key
-                                from uuid import uuid4
-                                kitchen_data["id"] = str(uuid4())
-                        else:
-                            # Generate new UUID if key format is unexpected
-                            from uuid import uuid4
-                            kitchen_data["id"] = str(uuid4())
-                    
-                    # Store storage key for reference
-                    kitchen_data["storage_key"] = obj["key"]
-                    
-                    all_facilities.append(kitchen_data)
-                except Exception as e:
-                    logger.warning(f"Failed to load kitchen from {obj['key']}: {e}")
-                    continue
+            # Load kitchens from storage using OKWService to get proper deduplication
+            okw_service = await OKWService.get_instance()
             
-            facilities = all_facilities
-            total = len(all_facilities)
+            # Get all facilities by paginating through all pages
+            all_facilities = []
+            page = 1
+            page_size = 1000
+            
+            while True:
+                facilities_batch, _ = await okw_service.list(page=page, page_size=page_size)
+                all_facilities.extend(facilities_batch)
+                
+                # If we got fewer facilities than page_size, we've reached the end
+                if len(facilities_batch) < page_size:
+                    break
+                    
+                page += 1
+            
+            # Filter for cooking domain facilities
+            cooking_facilities = []
+            for facility in all_facilities:
+                # Check if facility has domain="cooking" or matches cooking keywords
+                facility_dict = facility.to_dict() if hasattr(facility, 'to_dict') else facility
+                facility_name = str(facility_dict.get('name', '') or '')
+                if facility_dict.get('domain') == 'cooking' or 'kitchen' in facility_name.lower():
+                    cooking_facilities.append(facility)
+            
+            facilities = cooking_facilities
+            total = len(cooking_facilities)
         else:
             raise ValueError(f"Unsupported domain: {domain}")
         
@@ -1109,7 +1097,9 @@ async def _get_filtered_facilities(
                 continue
             
             # Apply location filter
-            if request.location and request.location.lower() not in str(facility_dict.get("location", "")).lower():
+            location_value = facility_dict.get("location", "")
+            location_str = str(location_value) if location_value is not None else ""
+            if request.location and request.location.lower() not in location_str.lower():
                 continue
             
             filtered_facilities.append(facility)
@@ -1159,6 +1149,14 @@ async def _perform_enhanced_matching(
 ) -> List[dict]:
     """Perform enhanced matching with LLM support."""
     try:
+        # Ensure facilities is a list
+        if not isinstance(facilities, list):
+            if facilities is None:
+                facilities = []
+            else:
+                # If it's a single facility, wrap it in a list
+                facilities = [facilities]
+        
         if domain == "manufacturing":
             # Use the existing matching service for manufacturing
             if not isinstance(requirements_data, OKHManifest):
@@ -1228,24 +1226,32 @@ async def _perform_enhanced_matching(
             # Match against each kitchen
             results = []
             for kitchen in facilities:
+                # Convert kitchen to dict if it's a ManufacturingFacility object
+                if hasattr(kitchen, 'to_dict'):
+                    kitchen_dict = kitchen.to_dict()
+                else:
+                    kitchen_dict = kitchen
+                
                 # Extract capabilities from kitchen
-                capabilities_result = extractor.extract_capabilities(kitchen)
+                capabilities_result = extractor.extract_capabilities(kitchen_dict)
                 capabilities = capabilities_result.data if capabilities_result.data else None
                 
                 if not capabilities:
                     continue
                 
                 # Generate supply tree with kitchen and recipe names
-                kitchen_name = kitchen.get("name", "Unknown Kitchen")
-                recipe_name = requirements_data.get("name", "Unknown Recipe")
+                kitchen_name = kitchen_dict.get("name", "Unknown Kitchen") if isinstance(kitchen_dict, dict) else getattr(kitchen, 'name', 'Unknown Kitchen')
+                recipe_name = requirements_data.get("name", "Unknown Recipe") if isinstance(requirements_data, dict) else getattr(requirements_data, 'name', 'Unknown Recipe')
                 supply_tree = matcher.generate_supply_tree(requirements, capabilities, kitchen_name, recipe_name)
                 
                 # Create a simple solution dict with unique ID
+                kitchen_id = kitchen_dict.get("id", kitchen_dict.get("storage_key", "unknown")) if isinstance(kitchen_dict, dict) else (str(kitchen.id) if hasattr(kitchen, 'id') else "unknown")
+                kitchen_name_for_solution = kitchen_dict.get("name", "Unknown Kitchen") if isinstance(kitchen_dict, dict) else getattr(kitchen, 'name', 'Unknown Kitchen')
                 solution = {
                     "tree": supply_tree.to_dict() if hasattr(supply_tree, 'to_dict') else supply_tree,
-                    "facility": kitchen,
-                    "facility_id": kitchen.get("id", kitchen.get("storage_key", "unknown")),
-                    "facility_name": kitchen.get("name", "Unknown Kitchen"),
+                    "facility": kitchen_dict,
+                    "facility_id": kitchen_id,
+                    "facility_name": kitchen_name_for_solution,
                     "match_type": "cooking",
                     "confidence": supply_tree.confidence_score if hasattr(supply_tree, 'confidence_score') else 0.8
                 }
@@ -1404,37 +1410,67 @@ async def _validate_results(
 def _matches_filters(facility, filters: dict) -> bool:
     """Check if a facility matches the provided filters"""
     try:
+        # Ensure filters is a dict
+        if not isinstance(filters, dict):
+            logger.warning(f"Filters must be a dict, got {type(filters)}. Returning True to include facility.")
+            return True
+        
+        # Convert facility to dict if it's a ManufacturingFacility object
+        if hasattr(facility, 'to_dict'):
+            facility_dict = facility.to_dict()
+        else:
+            facility_dict = facility
+        
         # Location filter
         if "location" in filters:
             location_filter = filters["location"]
-            if "country" in location_filter:
-                if facility.location.get("country", "").lower() != location_filter["country"].lower():
-                    return False
-            if "city" in location_filter:
-                if facility.location.get("city", "").lower() != location_filter["city"].lower():
-                    return False
+            location = facility_dict.get("location", {})
+            if isinstance(location, dict):
+                if "country" in location_filter:
+                    if location.get("country", "").lower() != location_filter["country"].lower():
+                        return False
+                if "city" in location_filter:
+                    if location.get("city", "").lower() != location_filter["city"].lower():
+                        return False
         
         # Capability filter
         if "capabilities" in filters:
             required_capabilities = filters["capabilities"]
-            facility_capabilities = [cap.get("name", "").lower() for cap in facility.equipment]
+            equipment = facility_dict.get("equipment", [])
+            facility_capabilities = []
+            for cap in equipment:
+                if isinstance(cap, dict):
+                    facility_capabilities.append(cap.get("equipment_type", cap.get("name", "")).lower())
+                elif hasattr(cap, 'equipment_type'):
+                    facility_capabilities.append(str(cap.equipment_type).lower())
             for required_cap in required_capabilities:
                 if required_cap.lower() not in facility_capabilities:
                     return False
         
         # Access type filter
         if "access_type" in filters:
-            if facility.access_type.lower() != filters["access_type"].lower():
-                return False
+            access_type = facility_dict.get("access_type", "")
+            if isinstance(access_type, str):
+                if access_type.lower() != filters["access_type"].lower():
+                    return False
+            elif hasattr(access_type, 'value'):
+                if access_type.value.lower() != filters["access_type"].lower():
+                    return False
         
         # Facility status filter
         if "facility_status" in filters:
-            if facility.facility_status.lower() != filters["facility_status"].lower():
-                return False
+            facility_status = facility_dict.get("facility_status", "")
+            if isinstance(facility_status, str):
+                if facility_status.lower() != filters["facility_status"].lower():
+                    return False
+            elif hasattr(facility_status, 'value'):
+                if facility_status.value.lower() != filters["facility_status"].lower():
+                    return False
         
         return True
     except Exception as e:
-        logger.warning(f"Error applying filters to facility {facility.name}: {e}")
+        facility_name = getattr(facility, 'name', 'Unknown') if hasattr(facility, 'name') else str(facility)
+        logger.warning(f"Error applying filters to facility {facility_name}: {e}", exc_info=True)
         return True  # Default to including the facility if filter fails
 
 

@@ -878,12 +878,19 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
         result = await command.execute_with_fallback(http_upload, fallback_upload)
         
         # Display upload results
-        facility_id = result.get("id") or result.get("facility", {}).get("id")
+        # Handle both OKWUploadResponse format (has "okw" field) and direct OKWResponse format
+        if isinstance(result, dict):
+            facility_id = result.get("id") or (result.get("okw", {}) or {}).get("id") or (result.get("facility", {}) or {}).get("id")
+        else:
+            facility_id = getattr(result, "id", None) or getattr(getattr(result, "okw", None), "id", None)
         
         if facility_id:
-            cli_ctx.log(f"OKW facility uploaded with ID: {facility_id}", "success")
+            cli_ctx.log(f"✅ OKW facility uploaded with ID: {facility_id}", "success")
         else:
-            cli_ctx.log("Failed to upload OKW facility", "error")
+            cli_ctx.log(f"⚠️  Upload completed but no facility ID found in response", "warning")
+            if cli_ctx.verbose:
+                cli_ctx.log(f"Response structure: {type(result).__name__}", "info")
+                cli_ctx.log(f"Response keys/attrs: {list(result.keys()) if isinstance(result, dict) else dir(result)[:10]}", "info")
         
         cli_ctx.end_command_tracking()
         

@@ -47,6 +47,7 @@ class OKWResponse(SuccessResponse, LLMResponseMixin):
     typical_materials: List[Dict[str, Any]] = []
     certifications: List[str] = []
     metadata: Dict[str, Any] = {}
+    domain: Optional[str] = None  # "manufacturing" or "cooking"
     
     # Additional fields for enhanced response
     processing_time: float = 0.0

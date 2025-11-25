@@ -803,9 +803,8 @@ async def _display_match_results(cli_ctx: CLIContext, result: Dict[str, Any],
             # Show facility ID if available
             facility_id = solution.get("facility_id")
             if facility_id:
-                # Show short version of ID for readability
-                short_id = facility_id[:8] if len(facility_id) > 8 else facility_id
-                click.echo(f"   ID: {short_id}")
+                # Show full UUID (needed for subsequent commands like 'okw get')
+                click.echo(f"   ID: {facility_id}")
             
             if "facility" in solution and isinstance(solution["facility"], dict):
                 location = solution["facility"].get("location", "Unknown")

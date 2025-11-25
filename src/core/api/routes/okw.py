@@ -476,6 +476,7 @@ async def get_okw(
             floor_size=facility.floor_size,
             storage_capacity=facility.storage_capacity,
             certifications=facility.certifications or [],
+            domain=facility.domain,  # Include domain field
             request_id=None
         )
         
@@ -957,9 +958,40 @@ async def upload_okw_file(
                 detail=f"Error storing OKW facility: {str(e)}"
             )
         
-        # Convert result to OKWResponse format
-        result_dict = result.to_dict()
-        okw_response = OKWResponse(**result_dict)
+        # Convert result to OKWResponse format (result is a ManufacturingFacility object)
+        location_dict = result.location.to_dict() if hasattr(result.location, 'to_dict') else {
+            "address": result.location.address.to_dict() if hasattr(result.location.address, 'to_dict') else {
+                "street": getattr(result.location.address, 'street', ''),
+                "city": getattr(result.location.address, 'city', ''),
+                "country": getattr(result.location.address, 'country', '')
+            }
+        } if result.location else {}
+        
+        facility_status_str = result.facility_status.value if hasattr(result.facility_status, 'value') else str(result.facility_status)
+        access_type_str = result.access_type.value if hasattr(result.access_type, 'value') else str(result.access_type)
+        
+        okw_response = OKWResponse(
+            status=APIStatus.SUCCESS,
+            message="OKW facility uploaded successfully",
+            id=result.id,
+            name=result.name,
+            location=location_dict,
+            facility_status=facility_status_str,
+            access_type=access_type_str,
+            equipment=[eq.to_dict() if hasattr(eq, 'to_dict') else eq for eq in result.equipment] if result.equipment else [],
+            typical_materials=[mat.to_dict() if hasattr(mat, 'to_dict') else mat for mat in result.typical_materials] if result.typical_materials else [],
+            owner=result.owner.to_dict() if result.owner and hasattr(result.owner, 'to_dict') else None,
+            contact=result.contact.to_dict() if result.contact and hasattr(result.contact, 'to_dict') else None,
+            description=result.description,
+            opening_hours=result.opening_hours,
+            date_founded=result.date_founded.isoformat() if result.date_founded else None,
+            wheelchair_accessibility=result.wheelchair_accessibility,
+            typical_batch_size=str(result.typical_batch_size) if result.typical_batch_size else None,
+            floor_size=result.floor_size,
+            storage_capacity=result.storage_capacity,
+            certifications=result.certifications or [],
+            request_id=None
+        )
         
         return OKWUploadResponse(
             success=True,

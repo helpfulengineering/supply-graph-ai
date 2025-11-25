@@ -18,7 +18,7 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
 from ..validation.context import ValidationContext
-from ..storage.smart_discovery import SmartFileDiscovery
+from ..storage.smart_discovery import SmartFileDiscovery, FileInfo
 from ..validation.uuid_validator import UUIDValidator
 
 if TYPE_CHECKING:
@@ -49,7 +49,9 @@ class OKHService(BaseService['OKHService']):
         """Initialize service dependencies."""
         # Initialize storage service
         self.storage = await StorageService.get_instance()
-        if self.storage:
+        
+        # Configure storage service if not already configured
+        if self.storage and not self.storage._configured:
             await self.storage.configure(settings.STORAGE_CONFIG)
         
         # Initialize generation engine lazily (only when needed)
@@ -86,13 +88,13 @@ class OKHService(BaseService['OKHService']):
                 manifest = OKHManifest.from_dict(manifest_data)
             
             # Store in storage with -okh.json suffix pattern (consistent with synthetic data)
-            if self.storage:
+            if self.storage and self.storage.manager:
                 # Generate filename based on title and ID (similar to synthetic data)
                 safe_title = "".join(c for c in manifest.title if c.isalnum() or c in (' ', '-', '_')).rstrip()
                 safe_title = safe_title.replace(' ', '-').lower()
-                filename = f"{safe_title}-{str(manifest.id)[:8]}-okh.json"
+                filename = f"okh/manifests/{safe_title}-{str(manifest.id)[:8]}-okh.json"
                 
-                # Save directly to storage root
+                # Save to okh/manifests/ directory to match SmartFileDiscovery expectations
                 manifest_json = json.dumps(manifest.to_dict(), indent=2, ensure_ascii=False, default=str)
                 await self.storage.manager.put_object(filename, manifest_json.encode('utf-8'))
                 self.logger.info(f"Saved OKH manifest to {filename}")
@@ -106,8 +108,8 @@ class OKHService(BaseService['OKHService']):
                 await self.ensure_initialized()
                 self.logger.info(f"Getting OKH manifest with ID {manifest_id}")
                 
-                if not self.storage:
-                    self.logger.error("Storage service not available")
+                if not self.storage or not self.storage.manager:
+                    self.logger.error("Storage service not available or not configured")
                     return None
                 
                 self.logger.info("Storage service is available, searching for OKH files...")
@@ -201,35 +203,50 @@ class OKHService(BaseService['OKHService']):
             await self.ensure_initialized()
             self.logger.info(f"Listing OKH manifests (page={page}, page_size={page_size})")
             
-            if self.storage:
-                # Use smart discovery to find OKH files
-                discovery = SmartFileDiscovery(self.storage.manager)
-                file_infos = await discovery.discover_files("okh")
-                
-                self.logger.info(f"Found {len(file_infos)} OKH files using smart discovery")
-                
-                # Process files and apply pagination
-                objects = []
-                start_idx = (page - 1) * page_size
-                end_idx = start_idx + page_size
-                
-                for file_info in file_infos[start_idx:end_idx]:
-                    try:
-                        data = await self.storage.manager.get_object(file_info.key)
-                        content = data.decode('utf-8')
-                        okh_data = json.loads(content)
-                        
-                        # Validate and fix UUID issues
-                        fixed_okh_data = UUIDValidator.validate_and_fix_okh_data(okh_data)
-                        
-                        objects.append(OKHManifest.from_dict(fixed_okh_data))
-                    except Exception as e:
-                        self.logger.error(f"Failed to load OKH file {file_info.key}: {e}")
-                        continue
-                
-                return objects, len(file_infos)
-        
-        return [], 0
+            if not self.storage or not self.storage.manager:
+                self.logger.warning("Storage service not available or not configured")
+                return [], 0
+            
+            # Use smart discovery to find OKH files
+            discovery = SmartFileDiscovery(self.storage.manager)
+            file_infos = await discovery.discover_files("okh")
+            
+            self.logger.info(f"Found {len(file_infos)} OKH files using smart discovery")
+            
+            # Load and deduplicate manifests by ID (keep most recent)
+            manifest_map: Dict[UUID, Tuple[FileInfo, OKHManifest]] = {}
+            for file_info in file_infos:
+                try:
+                    data = await self.storage.manager.get_object(file_info.key)
+                    content = data.decode('utf-8')
+                    okh_data = json.loads(content)
+                    
+                    # Validate and fix UUID issues
+                    fixed_okh_data = UUIDValidator.validate_and_fix_okh_data(okh_data)
+                    manifest = OKHManifest.from_dict(fixed_okh_data)
+                    
+                    # Deduplicate by ID, keeping the most recently modified
+                    if manifest.id not in manifest_map:
+                        manifest_map[manifest.id] = (file_info, manifest)
+                    else:
+                        existing_file_info, _ = manifest_map[manifest.id]
+                        if hasattr(file_info, 'last_modified') and hasattr(existing_file_info, 'last_modified'):
+                            if file_info.last_modified > existing_file_info.last_modified:
+                                manifest_map[manifest.id] = (file_info, manifest)
+                                self.logger.debug(f"Replacing duplicate manifest {manifest.id} with more recent version from {file_info.key}")
+                except Exception as e:
+                    self.logger.error(f"Failed to load OKH file {file_info.key}: {e}")
+                    continue
+            
+            # Convert to list and apply pagination
+            all_manifests = [manifest for _, manifest in manifest_map.values()]
+            total = len(all_manifests)
+            
+            start_idx = (page - 1) * page_size
+            end_idx = start_idx + page_size
+            paginated_manifests = all_manifests[start_idx:end_idx]
+            
+            return paginated_manifests, total
     
     async def list_manifests(self, limit: int = 100, offset: int = 0) -> List[OKHManifest]:
         """List OKH manifests with limit/offset parameters (CLI compatibility)"""

@@ -12,7 +12,9 @@ from ..models.base import (
     SuccessResponse, 
     PaginationParams,
     PaginatedResponse,
-    ValidationResult
+    PaginationInfo,
+    ValidationResult,
+    APIStatus
 )
 from ..decorators import (
     api_endpoint,
@@ -268,6 +270,7 @@ async def export_okh_schema(
 async def get_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     component: Optional[str] = Query(None, description="Specific component to retrieve"),
+    http_request: Request = None,
     okh_service: OKHService = Depends(get_okh_service)
 ):
     """
@@ -277,6 +280,9 @@ async def get_okh(
     Optionally retrieves only a specific component of the manifest.
     """
     try:
+        # Get request ID if available
+        request_id = getattr(http_request.state, 'request_id', None) if http_request else None
+        
         # Call service to get OKH manifest
         result = await okh_service.get(id)
         if not result:
@@ -285,9 +291,16 @@ async def get_okh(
                 detail=f"OKH manifest with ID {id} not found"
             )
         
-        # Convert OKHManifest to OKHResponse
+        # Convert OKHManifest to dict
         manifest_dict = result.to_dict()
-        return OKHResponse(**manifest_dict)
+        
+        # Construct OKHResponse with required SuccessResponse fields
+        return OKHResponse(
+            status=APIStatus.SUCCESS,
+            message="OKH manifest retrieved successfully",
+            request_id=request_id,
+            **manifest_dict
+        )
     except ValueError as e:
         # Handle invalid parameters
         raise HTTPException(
@@ -357,19 +370,21 @@ async def list_okh(
         # Create pagination info
         total_pages = (total + pagination.page_size - 1) // pagination.page_size
         
-        return create_success_response(
+        # Create proper PaginatedResponse
+        pagination_info = PaginationInfo(
+            page=pagination.page,
+            page_size=pagination.page_size,
+            total_items=total,
+            total_pages=total_pages,
+            has_next=pagination.page < total_pages,
+            has_previous=pagination.page > 1
+        )
+        
+        return PaginatedResponse(
+            status=APIStatus.SUCCESS,
             message="OKH manifests listed successfully",
-            data={
-                "items": results,
-                "pagination": {
-                    "page": pagination.page,
-                    "page_size": pagination.page_size,
-                    "total_items": total,
-                    "total_pages": total_pages,
-                    "has_next": pagination.page < total_pages,
-                    "has_previous": pagination.page > 1
-                }
-            },
+            pagination=pagination_info,
+            items=results,
             request_id=request_id
         )
         

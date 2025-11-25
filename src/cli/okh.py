@@ -139,25 +139,30 @@ def _detect_domain_from_manifest_data(data: Dict[str, Any]) -> str:
 
 async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str):
     """Display retrieval results."""
+    # Extract manifest data from response
+    # The API now returns OKHResponse with fields at top level, not nested in "manifest"
     manifest = result.get("manifest", result)
     
-    if manifest:
-        cli_ctx.log(f"Retrieved OKH manifest: {manifest.get('title', 'Unknown')}", "success")
+    # If result has top-level fields like "id", "title", etc., use result directly
+    if "id" in result and "title" in result:
+        manifest = result
+    elif "manifest" in result:
+        manifest = result["manifest"]
+    
+    if manifest and manifest.get("id"):
+        manifest_title = manifest.get('title', 'Unknown')
+        cli_ctx.log(f"Retrieved OKH manifest: {manifest_title}", "success")
         
+        # Save to file if output is specified
         if output:
-            # Save manifest to output file
             with open(output, 'w') as f:
                 json.dump(manifest, f, indent=2, default=str)
             cli_ctx.log(f"Manifest saved to {output}", "info")
         
-        if output_format == "json":
-            output_data = format_llm_output(result, cli_ctx)
-            click.echo(output_data)
-        else:
-            # Show basic manifest info
-            cli_ctx.log(f"Title: {manifest.get('title', 'Unknown')}", "info")
-            cli_ctx.log(f"Version: {manifest.get('version', 'Unknown')}", "info")
-            cli_ctx.log(f"Organization: {manifest.get('organization', {}).get('name', 'Unknown')}", "info")
+        # Always output full JSON to stdout by default
+        # If output_format is explicitly set to something other than json, still output JSON
+        # (the format option is mainly for other commands)
+        click.echo(json.dumps(manifest, indent=2, default=str))
     else:
         cli_ctx.log("Manifest not found", "error")
 
@@ -650,25 +655,45 @@ async def list_manifests(ctx, limit: int, offset: int,
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_list, fallback_list)
         
-        # Display listing results
-        manifests = result.get("manifests", [])
-        total = result.get("total", len(manifests))
-        
-        if manifests:
-            cli_ctx.log(f"Found {total} OKH manifests", "success")
-            
-            if output_format == "json":
-                output_data = format_llm_output(result, cli_ctx)
-                click.echo(output_data)
-            else:
-                for manifest in manifests:
-                    cli_ctx.log(f"📄 {manifest.get('id', 'Unknown')}", "info")
-                    cli_ctx.log(f"   Title: {manifest.get('title', 'Unknown')}", "info")
-                    cli_ctx.log(f"   Version: {manifest.get('version', 'Unknown')}", "info")
-                    cli_ctx.log(f"   Organization: {manifest.get('organization', {}).get('name', 'Unknown')}", "info")
-                    cli_ctx.log("", "info")  # Empty line for spacing
+        # Handle both API response format (PaginatedResponse with 'items') and fallback format (with 'manifests')
+        # API response may have nested 'data' field or top-level 'items'
+        if "data" in result and isinstance(result["data"], dict):
+            # Handle nested data structure
+            manifests = result["data"].get("items", result["data"].get("manifests", []))
+            pagination = result["data"].get("pagination", {})
+            total = pagination.get("total_items", len(manifests))
         else:
-            cli_ctx.log("No OKH manifests found", "info")
+            # Handle top-level items or manifests
+            manifests = result.get("items", result.get("manifests", []))
+            pagination = result.get("pagination", {})
+            total = pagination.get("total_items", result.get("total", len(manifests)))
+        
+        # Display results
+        if output_format == "json":
+            output_data = format_llm_output(result, cli_ctx)
+            click.echo(output_data)
+        else:
+            # Display manifest list in text format (similar to okw list-files)
+            if manifests and len(manifests) > 0:
+                click.echo(f"\n📄 Found {total} OKH manifest(s):\n")
+                for i, manifest in enumerate(manifests, 1):
+                    manifest_id = manifest.get('id', 'Unknown')
+                    title = manifest.get('title', 'Unknown')
+                    version = manifest.get('version', 'Unknown')
+                    organization = manifest.get('organization', {})
+                    org_name = organization.get('name', 'Unknown') if isinstance(organization, dict) else str(organization) if organization else 'Unknown'
+                    
+                    click.echo(f"  {i}. {title}")
+                    click.echo(f"     Manifest ID: {manifest_id}")
+                    click.echo(f"     Version: {version} | Organization: {org_name}")
+                    if i < len(manifests):
+                        click.echo()  # Empty line between items
+                click.echo(f"\nTotal: {total} manifest(s)")
+            elif total > 0:
+                # Total indicates there are manifests, but they might be on a different page
+                click.echo(f"\n📄 Found {total} OKH manifest(s) (not shown - may be on a different page)\n")
+            else:
+                click.echo("\nNo OKH manifests found\n")
         
         cli_ctx.end_command_tracking()
         
