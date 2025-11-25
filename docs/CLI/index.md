@@ -258,7 +258,7 @@ Manage OpenKnowHow (OKH) manifests for hardware designs.
 
 ### `ome okh validate`
 
-Validate an OKH manifest.
+Validate an OKH manifest with domain-aware validation support.
 
 ```bash
 ome okh validate MANIFEST_FILE [OPTIONS]
@@ -268,11 +268,26 @@ ome okh validate MANIFEST_FILE [OPTIONS]
 - `MANIFEST_FILE` - Path to OKH manifest file
 
 **Options:**
-- `--quality-level [hobby\|professional\|medical]` - Validation quality level
+- `--domain [manufacturing|cooking]` - Domain for validation (auto-detected from file if not provided)
+- `--quality-level [hobby|professional|medical|home|commercial]` - Validation quality level
+  - Manufacturing: `hobby`, `professional`, `medical`
+  - Cooking: `home`, `commercial`, `professional`
 - `--strict-mode` - Enable strict validation mode
 - `--use-llm` - Enable LLM integration for enhanced analysis
 - `--llm-provider TEXT` - LLM provider (openai, anthropic, google, azure, local)
 - `--llm-model TEXT` - Specific LLM model to use
+
+**Examples:**
+```bash
+# Validate manufacturing manifest (auto-detected)
+ome okh validate my-design.okh.json
+
+# Validate cooking recipe with explicit domain
+ome okh validate recipe.json --domain cooking --quality-level home
+
+# Validate with strict mode
+ome okh validate manifest.json --strict-mode --quality-level professional
+```
 
 ### `ome okh create`
 
@@ -291,26 +306,86 @@ ome okh create MANIFEST_FILE [OPTIONS]
 
 ### `ome okh get`
 
-Get an OKH manifest by ID.
+Get an OKH manifest by ID and display the full JSON to stdout.
 
 ```bash
-ome okh get MANIFEST_ID
+ome okh get MANIFEST_ID [OPTIONS]
 ```
 
 **Arguments:**
 - `MANIFEST_ID` - UUID of the manifest
 
+**Options:**
+- `--output, -o PATH` - Save manifest to file instead of stdout
+- `--use-llm` - Enable LLM integration for enhanced analysis
+- `--llm-provider TEXT` - LLM provider (openai, anthropic, google, azure, local)
+- `--llm-model TEXT` - Specific LLM model to use
+- `--quality-level TEXT` - Quality level for LLM processing
+- `--strict-mode` - Enable strict validation mode
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Get manifest and display to stdout
+ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd
+
+# Get manifest and save to file
+ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd --output manifest.json
+
+# Pipe to another command
+ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd | jq '.title'
+```
+
+**Output:**
+The command outputs the complete manifest JSON to stdout by default, making it easy to pipe to other commands or save to files.
+
 ### `ome okh list-manifests`
 
-List stored OKH manifests.
+List stored OKH manifests with detailed information.
 
 ```bash
 ome okh list-manifests [OPTIONS]
 ```
 
 **Options:**
-- `--limit INTEGER` - Maximum number of results
-- `--offset INTEGER` - Number of results to skip
+- `--limit INTEGER` - Maximum number of results (default: 10)
+- `--offset INTEGER` - Number of results to skip (default: 0)
+- `--use-llm` - Enable LLM integration for enhanced analysis
+- `--llm-provider TEXT` - LLM provider (openai, anthropic, google, azure, local)
+- `--llm-model TEXT` - Specific LLM model to use
+- `--quality-level TEXT` - Quality level for LLM processing
+- `--strict-mode` - Enable strict validation mode
+- `--verbose, -v` - Enable verbose output
+
+**Output:**
+The command displays a numbered list of manifests with:
+- Manifest title (name)
+- Manifest ID (UUID)
+- Version
+- Organization name
+
+**Examples:**
+```bash
+# List all manifests
+ome okh list-manifests
+
+# List with pagination
+ome okh list-manifests --limit 20 --offset 10
+
+# List in JSON format
+ome okh list-manifests --json
+```
+
+**Example Output:**
+```
+📄 Found 1 OKH manifest(s):
+
+  1. Chocolate Chip Cookies
+     Manifest ID: 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd
+     Version: 0.0.1 | Organization: Helpful Engineering, non-profit
+
+Total: 1 manifest(s)
+```
 
 ### `ome okh delete`
 
@@ -322,6 +397,56 @@ ome okh delete MANIFEST_ID
 
 **Arguments:**
 - `MANIFEST_ID` - UUID of the manifest
+
+### `ome okh fix`
+
+Automatically fix validation issues in an OKH manifest.
+
+```bash
+ome okh fix MANIFEST_FILE [OPTIONS]
+```
+
+**Arguments:**
+- `MANIFEST_FILE` - Path to OKH manifest file
+
+**Options:**
+- `--output, -o PATH` - Output file path (default: overwrites input file)
+- `--dry-run` - Preview fixes without applying them
+- `--backup` - Create backup of original file before fixing
+- `--confidence-threshold FLOAT` - Minimum confidence for auto-applying fixes (0.0-1.0, default: 0.5)
+- `--domain [manufacturing|cooking]` - Domain for validation (auto-detected if not provided)
+- `--yes` - Auto-confirm all fixes without prompting
+- `--use-llm` - Enable LLM integration for enhanced analysis
+- `--llm-provider TEXT` - LLM provider (openai, anthropic, google, azure, local)
+- `--llm-model TEXT` - Specific LLM model to use
+- `--quality-level TEXT` - Quality level for validation
+- `--strict-mode` - Enable strict validation mode
+- `--verbose, -v` - Enable verbose output with detailed fix report
+
+**Examples:**
+```bash
+# Fix manifest issues interactively
+ome okh fix manifest.json
+
+# Preview fixes without applying
+ome okh fix manifest.json --dry-run
+
+# Fix with backup and auto-confirm
+ome okh fix manifest.json --backup --yes
+
+# Fix with custom confidence threshold
+ome okh fix manifest.json --confidence-threshold 0.7
+
+# Fix cooking domain recipe
+ome okh fix recipe.json --domain cooking
+```
+
+**Output:**
+The command displays a detailed fix report including:
+- Number of fixes applied and skipped
+- Original and remaining warnings/errors
+- Status: complete success, partial success, or failure
+- Detailed list of all fixes (when verbose)
 
 ### `ome okh extract`
 
@@ -564,14 +689,84 @@ ome okw create FACILITY_FILE [OPTIONS]
 
 ### `ome okw get`
 
-Get an OKW facility by ID.
+Get an OKW facility by ID and display the full JSON to stdout.
 
 ```bash
-ome okw get FACILITY_ID
+ome okw get FACILITY_ID [OPTIONS]
 ```
 
 **Arguments:**
-- `FACILITY_ID` - UUID of the facility
+- `FACILITY_ID` - UUID of the facility (full UUID required)
+
+**Options:**
+- `--output, -o PATH` - Save facility to file instead of stdout
+- `--use-llm` - Enable LLM integration for enhanced analysis
+- `--llm-provider TEXT` - LLM provider (openai, anthropic, google, azure, local)
+- `--llm-model TEXT` - Specific LLM model to use
+- `--quality-level TEXT` - Quality level for LLM processing
+- `--strict-mode` - Enable strict validation mode
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Get facility and display to stdout
+ome okw get 550e8400-e29b-41d4-a716-446655440001
+
+# Get facility and save to file
+ome okw get 550e8400-e29b-41d4-a716-446655440001 --output facility.json
+
+# Pipe to another command
+ome okw get 550e8400-e29b-41d4-a716-446655440001 | jq '.name'
+```
+
+**Output:**
+The command outputs the complete facility JSON to stdout by default, making it easy to pipe to other commands or save to files.
+
+**Note:** The facility ID must be the full UUID. Use `ome okw list-files` to find facility IDs.
+
+### `ome okw list-files`
+
+List OKW files in Azure blob storage with facility IDs.
+
+```bash
+ome okw list-files [OPTIONS]
+```
+
+**Options:**
+- `--prefix TEXT` - Filter by prefix (default: `okw/`)
+- `--output, -o PATH` - Save list to file (JSON format)
+- `--format [json|text]` - Output format (default: `text`)
+- `--verbose, -v` - Enable verbose output
+
+**Output:**
+The command displays a numbered list of OKW files with:
+- File key (storage path)
+- Facility ID (UUID) - required for `ome okw get` command
+- File size (in KB)
+- Last modified date
+
+**Examples:**
+```bash
+# List all OKW files
+ome okw list-files
+
+# List files with specific prefix
+ome okw list-files --prefix okw/facilities/
+
+# Save list to JSON file
+ome okw list-files --output files.json --format json
+```
+
+**Example Output:**
+```
+📁 Found 4 OKW file(s):
+
+  1. okw/RobDessertKitchen.json
+     Facility ID: 550e8400-e29b-41d4-a716-446655440001
+     Size: 2.4 KB | Modified: 2025-11-13 23:35:39+00:00
+
+Total: 4 file(s)
+```
 
 ### `ome okw list-facilities`
 
@@ -595,6 +790,56 @@ ome okw delete FACILITY_ID
 
 **Arguments:**
 - `FACILITY_ID` - UUID of the facility
+
+### `ome okw fix`
+
+Automatically fix validation issues in an OKW facility.
+
+```bash
+ome okw fix FACILITY_FILE [OPTIONS]
+```
+
+**Arguments:**
+- `FACILITY_FILE` - Path to OKW facility file
+
+**Options:**
+- `--output, -o PATH` - Output file path (default: overwrites input file)
+- `--dry-run` - Preview fixes without applying them
+- `--backup` - Create backup of original file before fixing
+- `--confidence-threshold FLOAT` - Minimum confidence for auto-applying fixes (0.0-1.0, default: 0.5)
+- `--domain [manufacturing|cooking]` - Domain for validation (auto-detected if not provided)
+- `--yes` - Auto-confirm all fixes without prompting
+- `--use-llm` - Enable LLM integration for enhanced analysis
+- `--llm-provider TEXT` - LLM provider (openai, anthropic, google, azure, local)
+- `--llm-model TEXT` - Specific LLM model to use
+- `--quality-level TEXT` - Quality level for validation
+- `--strict-mode` - Enable strict validation mode
+- `--verbose, -v` - Enable verbose output with detailed fix report
+
+**Examples:**
+```bash
+# Fix facility issues interactively
+ome okw fix facility.json
+
+# Preview fixes without applying
+ome okw fix facility.json --dry-run
+
+# Fix with backup and auto-confirm
+ome okw fix facility.json --backup --yes
+
+# Fix with custom confidence threshold
+ome okw fix facility.json --confidence-threshold 0.7
+
+# Fix cooking domain kitchen
+ome okw fix kitchen.json --domain cooking
+```
+
+**Output:**
+The command displays a detailed fix report including:
+- Number of fixes applied and skipped
+- Original and remaining warnings/errors
+- Status: complete success, partial success, or failure
+- Detailed list of all remaining issues (when verbose)
 
 ### `ome okw extract-capabilities`
 
@@ -712,6 +957,7 @@ You can also explicitly specify the domain using the `--domain` option.
 
 **Options:**
 - `--domain [manufacturing|cooking]` - Explicit domain override. Auto-detected if not provided
+- `--facility-file PATH` - Path to local facility file (cooking domain only, forces fallback mode)
 - `--access-type [public|private|restricted]` - Filter by facility access type
 - `--facility-status [active|inactive|maintenance]` - Filter by facility status
 - `--location TEXT` - Filter by location (city, country, or region)
@@ -740,6 +986,9 @@ ome match requirements chocolate-chip-cookies-recipe.json
 # Match with explicit domain override
 ome match requirements input.json --domain cooking
 
+# Match with local facility file (cooking domain)
+ome match requirements recipe.json --domain cooking --facility-file kitchen.json
+
 # Match with location filter
 ome match requirements my-design.okh.json --location "San Francisco"
 
@@ -756,10 +1005,12 @@ ome match requirements my-design.okh.json --output matches.json
 **Output:**
 The command displays matching facilities with:
 - Facility name
-- **Unique facility ID** (required for API operations)
+- **Full facility ID (UUID)** - required for `ome okw get` command
 - Confidence score
 - Match type (manufacturing or cooking)
 - Location (if available)
+
+**Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ome okw get` to retrieve facility details.
 
 ### `ome match validate`
 
