@@ -87,9 +87,9 @@ ome --use-llm --quality-level medical --strict-mode system health
 
 ## Command Groups
 
-The OME CLI is organized into 7 main command groups with 43 total commands:
+The OME CLI is organized into 7 main command groups with 53 total commands:
 
-1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching
+1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching and rules management
 2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management
 3. **[OKW Commands](#okw-commands)** - OpenKnowWhere facility management
 4. **[Package Commands](#package-commands)** - OKH package management
@@ -1055,6 +1055,316 @@ ome match list-recent [OPTIONS]
 - `--limit INTEGER` - Maximum number of results
 - `--offset INTEGER` - Number of results to skip
 
+### Rules Management Commands
+
+Manage capability-centric heuristic matching rules. These commands allow you to inspect, modify, import, export, and validate the rules used for matching requirements to capabilities.
+
+**Base Command:** `ome match rules`
+
+#### `ome match rules list`
+
+List all matching rules, optionally filtered by domain or tag.
+
+```bash
+ome match rules list [OPTIONS]
+```
+
+**Options:**
+- `--domain TEXT` - Filter rules by domain (e.g., "manufacturing", "cooking")
+- `--tag TEXT` - Filter rules by tag
+- `--include-metadata` - Include creation/update timestamps in output
+- `--json` - Output in JSON format
+- `--table` - Output in table format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# List all rules
+ome match rules list
+
+# List rules for a specific domain
+ome match rules list --domain cooking
+
+# List rules with a specific tag
+ome match rules list --tag "technique"
+
+# List rules with metadata
+ome match rules list --include-metadata --json
+```
+
+#### `ome match rules get`
+
+Get a specific rule by domain and ID.
+
+```bash
+ome match rules get DOMAIN RULE_ID [OPTIONS]
+```
+
+**Arguments:**
+- `DOMAIN` - Domain name (e.g., "manufacturing", "cooking")
+- `RULE_ID` - Rule identifier
+
+**Options:**
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Get a specific rule
+ome match rules get cooking sauté_capability
+
+# Get rule in JSON format
+ome match rules get manufacturing cnc_machining_capability --json
+```
+
+#### `ome match rules create`
+
+Create a new rule from file or interactively.
+
+```bash
+ome match rules create [OPTIONS]
+```
+
+**Options:**
+- `--file PATH` - Path to rule file (YAML or JSON)
+- `--interactive, -i` - Interactive mode (prompts for rule fields)
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Create rule from file
+ome match rules create --file rule.yaml
+
+# Create rule interactively
+ome match rules create --interactive
+
+# Create rule from file with JSON output
+ome match rules create --file rule.json --json
+```
+
+**Interactive Mode:**
+When using `--interactive`, the command will prompt for:
+- Rule ID
+- Capability
+- Requirements (one per line, empty line to finish)
+- Confidence (0.0-1.0)
+- Domain
+- Description
+- Tags (comma-separated)
+
+#### `ome match rules update`
+
+Update an existing rule from file or interactively.
+
+```bash
+ome match rules update DOMAIN RULE_ID [OPTIONS]
+```
+
+**Arguments:**
+- `DOMAIN` - Domain name
+- `RULE_ID` - Rule identifier
+
+**Options:**
+- `--file PATH` - Path to updated rule file (YAML or JSON)
+- `--interactive, -i` - Interactive mode (prompts for rule fields)
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Update rule from file
+ome match rules update cooking sauté_capability --file updated_rule.yaml
+
+# Update rule interactively
+ome match rules update manufacturing cnc_machining_capability --interactive
+```
+
+**Interactive Mode:**
+Interactive mode shows current values and allows you to update them. Press Enter to keep existing values.
+
+#### `ome match rules delete`
+
+Delete a rule.
+
+```bash
+ome match rules delete DOMAIN RULE_ID [OPTIONS]
+```
+
+**Arguments:**
+- `DOMAIN` - Domain name
+- `RULE_ID` - Rule identifier
+
+**Options:**
+- `--confirm` - Skip confirmation prompt
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Delete a rule (with confirmation prompt)
+ome match rules delete cooking sauté_capability
+
+# Delete a rule without confirmation
+ome match rules delete manufacturing cnc_machining_capability --confirm
+```
+
+#### `ome match rules import`
+
+Import rules from YAML or JSON file.
+
+```bash
+ome match rules import FILE [OPTIONS]
+```
+
+**Arguments:**
+- `FILE` - Path to rule file (YAML or JSON)
+
+**Options:**
+- `--domain TEXT` - Target domain (if importing single domain)
+- `--partial-update` - Allow partial updates (default: true)
+- `--no-partial-update` - Disable partial updates
+- `--dry-run` - Validate without applying changes
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Import rules from file
+ome match rules import rules.yaml
+
+# Import rules with dry-run (preview changes)
+ome match rules import rules.yaml --dry-run
+
+# Import rules for specific domain
+ome match rules import rules.yaml --domain manufacturing
+
+# Import rules without partial updates
+ome match rules import rules.yaml --no-partial-update
+```
+
+#### `ome match rules export`
+
+Export rules to YAML or JSON file.
+
+```bash
+ome match rules export OUTPUT_FILE [OPTIONS]
+```
+
+**Arguments:**
+- `OUTPUT_FILE` - Path to output file
+
+**Options:**
+- `--domain TEXT` - Export specific domain (all if not specified)
+- `--format [yaml|json]` - Export format (default: yaml)
+- `--include-metadata` - Include creation/update timestamps
+- `--json` - Output metadata in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Export all rules to YAML
+ome match rules export rules.yaml
+
+# Export rules to JSON
+ome match rules export rules.json --format json
+
+# Export specific domain
+ome match rules export cooking_rules.yaml --domain cooking
+
+# Export with metadata
+ome match rules export rules.yaml --include-metadata
+```
+
+#### `ome match rules validate`
+
+Validate rule file without importing.
+
+```bash
+ome match rules validate FILE [OPTIONS]
+```
+
+**Arguments:**
+- `FILE` - Path to rule file (YAML or JSON)
+
+**Options:**
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Validate rule file
+ome match rules validate rules.yaml
+
+# Validate rule file with JSON output
+ome match rules validate rules.json --json
+```
+
+**Output:**
+The command displays validation results:
+- `valid`: Whether the file is valid
+- `errors`: List of validation errors (if any)
+- `warnings`: List of validation warnings (if any)
+
+#### `ome match rules compare`
+
+Compare rules file with current rules (dry-run import).
+
+```bash
+ome match rules compare FILE [OPTIONS]
+```
+
+**Arguments:**
+- `FILE` - Path to rule file (YAML or JSON)
+
+**Options:**
+- `--domain TEXT` - Compare specific domain
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Compare rules file with current rules
+ome match rules compare rules.yaml
+
+# Compare rules for specific domain
+ome match rules compare rules.yaml --domain manufacturing
+
+# Compare with JSON output
+ome match rules compare rules.yaml --json
+```
+
+**Output:**
+The command displays comparison results:
+- `added`: Rules that would be added
+- `updated`: Rules that would be updated
+- `deleted`: Rules that would be deleted
+- Summary counts for each category
+
+#### `ome match rules reset`
+
+Reset all rules (clear all rule sets).
+
+```bash
+ome match rules reset [OPTIONS]
+```
+
+**Options:**
+- `--confirm` - Skip confirmation prompt
+- `--json` - Output in JSON format
+- `--verbose, -v` - Enable verbose output
+
+**Examples:**
+```bash
+# Reset all rules (with confirmation prompt)
+ome match rules reset
+
+# Reset all rules without confirmation
+ome match rules reset --confirm
+```
+
+**Warning:** This command permanently deletes all rules. Use with caution.
+
 ---
 
 ## LLM Commands
@@ -1574,6 +1884,20 @@ The CLI provides clear error messages and handles various failure scenarios:
 ```
 
 ---
+
+## Best Practices
+
+### Rules Management
+
+When working with matching rules, follow these best practices:
+
+- **Always validate before importing**: Use `ome match rules validate` to check rule files before importing them
+- **Use compare to preview changes**: Use `ome match rules compare` to see what changes will be made before importing
+- **Export rules as backup**: Export rules before making major changes using `ome match rules export`
+- **Use interactive mode for complex rules**: Use `--interactive` flag when creating or updating rules to ensure all fields are properly set
+- **Test with dry-run**: Use `--dry-run` flag when importing to preview changes without applying them
+- **Version control rule files**: Keep rule files in version control to track changes over time
+- **Document rule changes**: Add descriptions to rules explaining their purpose and when they should be used
 
 ## Best Practices
 

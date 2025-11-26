@@ -4,6 +4,8 @@
 
 The Capability-Centric Heuristic Rules System is the second layer in the Open Matching Engine's multi-layered matching approach. It applies rule-based matching using predefined knowledge about what requirements each capability can satisfy, providing a clear and explicit way to handle variations in terminology and domain-specific knowledge.
 
+**Rules are now user-configurable** and can be managed via API endpoints or CLI commands. Rules are stored in `src/config/rules/` and can be easily updated, imported, exported, and validated.
+
 ## Purpose
 
 The Capability-Centric Heuristic Rules System provides:
@@ -138,13 +140,15 @@ class CapabilityMatcher:
 
 ### File Structure
 
-Rules are stored in YAML files in the `src/core/matching/capability_rules/` directory:
+Rules are stored in YAML files in the `src/config/rules/` directory (user-accessible location):
 
 ```
-src/core/matching/capability_rules/
+src/config/rules/
 ├── manufacturing.yaml
 └── cooking.yaml
 ```
+
+**Note:** Rules have been moved from `src/core/matching/rules/` to `src/config/rules/` to make them user-accessible. The system maintains backward compatibility and will fall back to the old location if needed.
 
 ### Manufacturing Rules Example
 
@@ -382,11 +386,138 @@ class MatchingService:
 ```
 
 
+## Rules Management
+
+The Rules Management system provides programmatic access to manage matching rules through both API and CLI interfaces. This enables users to inspect, modify, import, export, and validate rules without directly editing configuration files.
+
+### Accessing Rules
+
+#### Via API
+
+All rules management operations are available through RESTful API endpoints under `/v1/api/match/rules`:
+
+- **List Rules**: `GET /v1/api/match/rules` - List all rules with optional filtering
+- **Get Rule**: `GET /v1/api/match/rules/{domain}/{rule_id}` - Get a specific rule
+- **Create Rule**: `POST /v1/api/match/rules` - Create a new rule
+- **Update Rule**: `PUT /v1/api/match/rules/{domain}/{rule_id}` - Update an existing rule
+- **Delete Rule**: `DELETE /v1/api/match/rules/{domain}/{rule_id}` - Delete a rule
+- **Import Rules**: `POST /v1/api/match/rules/import` - Import rules from YAML/JSON file
+- **Export Rules**: `POST /v1/api/match/rules/export` - Export rules to YAML/JSON format
+- **Validate Rules**: `POST /v1/api/match/rules/validate` - Validate rule file without importing
+- **Compare Rules**: `POST /v1/api/match/rules/compare` - Compare rules file with current rules (dry-run)
+- **Reset Rules**: `POST /v1/api/match/rules/reset` - Reset all rules (clear all rule sets)
+
+See [API Documentation](../../api/routes.md#rules-management-routes) for detailed endpoint documentation.
+
+#### Via CLI
+
+All rules management operations are available through CLI commands under `ome match rules`:
+
+- **List Rules**: `ome match rules list` - List all rules with optional filtering
+- **Get Rule**: `ome match rules get DOMAIN RULE_ID` - Get a specific rule
+- **Create Rule**: `ome match rules create` - Create a new rule (supports `--file` or `--interactive`)
+- **Update Rule**: `ome match rules update DOMAIN RULE_ID` - Update an existing rule (supports `--file` or `--interactive`)
+- **Delete Rule**: `ome match rules delete DOMAIN RULE_ID` - Delete a rule
+- **Import Rules**: `ome match rules import FILE` - Import rules from YAML/JSON file
+- **Export Rules**: `ome match rules export OUTPUT_FILE` - Export rules to YAML/JSON format
+- **Validate Rules**: `ome match rules validate FILE` - Validate rule file without importing
+- **Compare Rules**: `ome match rules compare FILE` - Compare rules file with current rules (dry-run)
+- **Reset Rules**: `ome match rules reset` - Reset all rules (clear all rule sets)
+
+See [CLI Documentation](../../CLI/index.md#rules-management-commands) for detailed command documentation.
+
+### Import/Export Workflows
+
+#### Export Rules for Backup
+
+```bash
+# Export all rules to YAML
+ome match rules export backup_rules.yaml
+
+# Export specific domain
+ome match rules export manufacturing_rules.yaml --domain manufacturing
+
+# Export with metadata
+ome match rules export rules_with_metadata.yaml --include-metadata
+```
+
+#### Import Updated Rules
+
+```bash
+# Validate before importing
+ome match rules validate updated_rules.yaml
+
+# Compare to see changes
+ome match rules compare updated_rules.yaml
+
+# Import with dry-run to preview
+ome match rules import updated_rules.yaml --dry-run
+
+# Import the rules
+ome match rules import updated_rules.yaml
+```
+
+### Validation Process
+
+Rules are automatically validated when imported or created. The validation process checks:
+
+- **Required Fields**: All required fields must be present (`id`, `type`, `capability`, `satisfies_requirements`, `domain`)
+- **Data Types**: Fields must have correct types (strings, numbers, lists, etc.)
+- **Value Ranges**: Confidence scores must be between 0.0 and 1.0
+- **Business Rules**: Additional checks for duplicate requirements, low confidence warnings, etc.
+
+Use the `validate` command or endpoint to check rules before importing:
+
+```bash
+ome match rules validate rules.yaml
+```
+
+### Best Practices for Rule Management
+
+- **Always validate before importing**: Use `validate` to check rule files before importing
+- **Use compare to preview changes**: Use `compare` to see what changes will be made before importing
+- **Export rules as backup**: Export rules before making major changes
+- **Use interactive mode for complex rules**: Use `--interactive` flag when creating or updating rules
+- **Test with dry-run**: Use `--dry-run` flag when importing to preview changes
+- **Version control rule files**: Keep rule files in version control to track changes
+- **Document rule changes**: Add descriptions to rules explaining their purpose
+
 ## Configuration Management
 
 ### Adding New Rules
 
-1. **Edit the appropriate YAML file**:
+You can add new rules using either the API, CLI, or by directly editing YAML files:
+
+#### Method 1: Using CLI (Recommended)
+
+```bash
+# Interactive mode (recommended for new rules)
+ome match rules create --interactive
+
+# Or from a file
+ome match rules create --file new_rule.yaml
+```
+
+#### Method 2: Using API
+
+```bash
+curl -X POST http://localhost:8001/v1/api/match/rules \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rule_data": {
+      "id": "new_rule_id",
+      "type": "capability_match",
+      "capability": "new capability",
+      "satisfies_requirements": ["req1", "req2"],
+      "confidence": 0.9,
+      "domain": "manufacturing"
+    }
+  }'
+```
+
+#### Method 3: Direct File Editing
+
+1. **Edit the appropriate YAML file** in `src/config/rules/`:
    ```yaml
    new_capability_rule:
      id: "new_capability_rule"
@@ -400,10 +531,14 @@ class MatchingService:
      tags: ["tag1", "tag2"]
    ```
 
-2. **Reload the rules**:
-   ```python
-   await rule_manager.reload_rules()
-   ```
+2. **Reload the rules** (if editing files directly):
+   - Rules are automatically reloaded when the server restarts
+   - Or use the API/CLI to import the updated rules file
+   - Or restart the matching service to reload rules
+
+**Recommended Approach:**
+- Use the API or CLI to create/update rules instead of editing files directly
+- This ensures proper validation and immediate availability
 
 ### Adding New Domains
 

@@ -14,6 +14,7 @@ from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.api.routes.package import router as package_router
 from src.core.api.routes.llm import router as llm_router
+from src.core.api.routes.rules import router as rules_router
 
 # Import new standardized API components
 from src.core.api.error_handlers import (
@@ -146,6 +147,7 @@ api_v1.include_router(supply_tree_router, tags=["supply-tree"])  # Already has /
 api_v1.include_router(utility_router, tags=["utility"])  # Already has /api/utility prefix
 api_v1.include_router(package_router, tags=["package"])  # Already has /api/package prefix
 api_v1.include_router(llm_router, tags=["llm"])  # Already has /api/llm prefix
+api_v1.include_router(rules_router, tags=["rules"])  # Already has /api/match/rules prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

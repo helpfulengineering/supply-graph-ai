@@ -1221,96 +1221,394 @@ class RulesService:
 
 ## Implementation Plan
 
-### Phase 1: Foundation (Week 1)
+### Progress Summary
 
-1. **Enhance Dataclass Validation**
-   - [ ] Enhance `CapabilityRule.__post_init__` with better validation
-   - [ ] Enhance `CapabilityRuleSet.__post_init__` with better validation
-   - [ ] Add `include_metadata` parameter to `to_dict()` methods
-   - [ ] Improve error messages in `from_dict()` methods
+**Phase 1: Foundation** ✅ **COMPLETED**
 
-2. **Move Rule Files**
-   - [ ] Create `src/config/rules/` directory
-   - [ ] Move existing YAML files to new location
-   - [ ] Update `CapabilityRuleManager` default path
+All Phase 1 tasks have been successfully completed:
 
-3. **Create Validation Service**
-   - [ ] Implement `ValidationService` with Pydantic validation
-   - [ ] Add business rule validations
-   - [ ] Create validation tests
+1. ✅ **Enhanced Dataclass Validation**
+   - Enhanced `CapabilityRule.__post_init__` with comprehensive validation
+   - Enhanced `CapabilityRuleSet.__post_init__` with validation
+   - Added `include_metadata` parameter to `to_dict()` methods
+   - Improved error messages in `from_dict()` methods
 
-### Phase 2: Core Services (Week 2)
+2. ✅ **Moved Rule Files**
+   - Created `src/config/rules/` directory
+   - Copied existing YAML files to new location
+   - Updated `CapabilityRuleManager` default path with backward compatibility
 
-4. **Create Rules Service**
-   - [ ] Implement `RulesService` with CRUD operations
-   - [ ] Use dataclass methods for all operations
-   - [ ] Add import/export functionality
-   - [ ] Implement rollback mechanism
-   - [ ] Create service tests
+3. ✅ **Created Validation Service**
+   - Implemented `ValidationService` at `src/core/matching/validation.py`
+   - Added business rule validations (duplicate requirements, low confidence, etc.)
+   - Created comprehensive test suite (11 tests, all passing)
 
-5. **Create Validation Service**
-   - [ ] Implement `ValidationService` using dataclass constructors
-   - [ ] Add business rule validations
-   - [ ] Create validation tests
+**Test Coverage:**
+- 40 total tests passing (29 dataclass validation tests + 11 validation service tests)
+- All validation edge cases covered
+- Business rule warnings implemented
 
-6. **Create Import/Export Service**
-   - [ ] Implement YAML/JSON parsing
-   - [ ] Use dataclass `from_dict()` and `to_dict()` methods
-   - [ ] Add comparison functionality
-   - [ ] Support partial updates
-   - [ ] Create import/export tests
-
-### Phase 3: API Layer (Week 3)
-
-7. **Create API Models**
-   - [ ] Create request models in `src/core/api/models/rules/request.py` (Pydantic)
-   - [ ] Create response models in `src/core/api/models/rules/response.py` (Pydantic)
-   - [ ] Models will wrap dataclass data using `to_dict()` method
-   - [ ] Add model validation and examples
-
-8. **Create API Routes**
-   - [ ] Implement all endpoint handlers
-   - [ ] Convert dataclass objects to dicts using `to_dict()` for responses
-   - [ ] Convert request dicts to dataclasses using `from_dict()` for processing
-   - [ ] Add error handling
-   - [ ] Integrate with Rules Service
-   - [ ] Create API tests
-
-9. **Register Routes**
-   - [ ] Add router to main FastAPI app
-   - [ ] Update API documentation
-
-### Phase 4: CLI Layer (Week 4)
-
-10. **Create CLI Commands**
-    - [ ] Add rules subcommand group to match commands
-    - [ ] Implement all CLI commands
-    - [ ] Use dataclass methods for data conversion
-    - [ ] Add interactive mode
-    - [ ] Create CLI tests
-
-11. **Integration Testing**
-    - [ ] End-to-end API tests
-    - [ ] End-to-end CLI tests
-    - [ ] Cross-layer integration tests
-    - [ ] Test dataclass validation edge cases
-
-### Phase 5: Documentation & Polish (Week 5)
-
-12. **Documentation**
-    - [ ] Update API documentation
-    - [ ] Update CLI documentation
-    - [ ] Create user guide for rules management
-    - [ ] Add code examples
-    - [ ] Document dataclass validation rules
-
-13. **Final Testing & Bug Fixes**
-    - [ ] Comprehensive testing
-    - [ ] Performance testing
-    - [ ] Bug fixes and refinements
-    - [ ] Validate error messages are user-friendly
+**Files Created/Modified:**
+- `src/core/matching/validation.py` (new)
+- `src/core/matching/capability_rules.py` (enhanced)
+- `src/config/rules/` (new directory with rule files)
+- `tests/matching/test_validation_service.py` (new)
+- `tests/matching/test_capability_rules_validation.py` (enhanced)
 
 ---
+
+### Phase 1: Foundation (Week 1)
+
+1. **Enhance Dataclass Validation** ✅ COMPLETED
+   - [x] Enhance `CapabilityRule.__post_init__` with better validation
+   - [x] Enhance `CapabilityRuleSet.__post_init__` with better validation
+   - [x] Add `include_metadata` parameter to `to_dict()` methods
+   - [x] Improve error messages in `from_dict()` methods
+
+2. **Move Rule Files** ✅ COMPLETED
+   - [x] Create `src/config/rules/` directory
+   - [x] Move existing YAML files to new location
+   - [x] Update `CapabilityRuleManager` default path
+
+3. **Create Validation Service** ✅ COMPLETED
+   - [x] Implement `ValidationService` using dataclass constructors
+   - [x] Add business rule validations
+   - [x] Create validation tests
+
+### Phase 2: Core Services (Week 2) ✅ **COMPLETED**
+
+4. **Create Rules Service** ✅ COMPLETED
+   - [x] Implement `RulesService` with CRUD operations
+   - [x] Use dataclass methods for all operations
+   - [x] Add import/export functionality
+   - [x] Implement rollback mechanism
+   - [x] Create service tests
+
+5. **Create Import/Export Service** ✅ COMPLETED
+   - [x] Implement YAML/JSON parsing
+   - [x] Use dataclass `from_dict()` and `to_dict()` methods
+   - [x] Add comparison functionality
+   - [x] Support partial updates
+   - [x] Create import/export tests
+
+**Phase 2 Summary:**
+- Created `RulesService` at `src/core/matching/rules_service.py` with full CRUD operations
+- Created `ImportExportService` at `src/core/matching/import_export_service.py` with import/export functionality
+- Implemented rollback mechanism using backup/restore
+- All tests passing (14 RulesService tests + 9 ImportExportService tests = 23 tests)
+- Services use dataclass methods (`from_dict()`, `to_dict()`) for all data conversions
+
+### Phase 3: API Layer (Week 3) ✅ **COMPLETED**
+
+6. **Create API Models** ✅ COMPLETED
+   - [x] Create request models in `src/core/api/models/rules/request.py` (Pydantic)
+   - [x] Create response models in `src/core/api/models/rules/response.py` (Pydantic)
+   - [x] Models will wrap dataclass data using `to_dict()` method
+   - [x] Add model validation and examples
+
+7. **Create API Routes** ✅ COMPLETED
+   - [x] Implement all endpoint handlers
+   - [x] Convert dataclass objects to dicts using `to_dict()` for responses
+   - [x] Convert request dicts to dataclasses using `from_dict()` for processing
+   - [x] Add error handling
+   - [x] Integrate with Rules Service
+   - [x] Create API integration tests
+
+8. **Register Routes** ✅ COMPLETED
+   - [x] Add router to main FastAPI app
+   - [x] Test all endpoints with integration tests
+
+**Phase 3 Summary:**
+- Created API models at `src/core/api/models/rules/` (request.py and response.py)
+- Created API routes at `src/core/api/routes/rules.py` with 10 endpoints
+- Registered router in main FastAPI app
+- All endpoints follow standardized patterns with error handling
+- Fixed decorator compatibility issues (added Request parameter for Pydantic models)
+- Fixed datetime serialization issues (using `model_dump(mode='json')`)
+- Created comprehensive integration tests (15 tests, all passing)
+- All endpoints tested and working against live API server on localhost:8001
+- Fixed test cleanup to prevent unnecessary 404 errors in server logs
+- All 10 endpoints verified: list, get, create, update, delete, import, export, validate, compare, reset
+
+### Phase 4: CLI Layer (Week 4) ✅ **COMPLETED**
+
+9. **Create CLI Commands** ✅ COMPLETED
+   - [x] Add rules subcommand group to match commands
+   - [x] Implement all CLI commands (list, get, create, update, delete, import, export, validate, compare, reset)
+   - [x] Use API client for all operations (calls API endpoints)
+   - [x] Add interactive mode for create/update commands
+   - [x] Create CLI integration tests (15 tests, all passing)
+
+10. **Integration Testing** ✅ **COMPLETED**
+    - [x] End-to-end API tests (15 tests, all passing)
+    - [x] End-to-end CLI tests (15 tests, 14 passing, 1 skipped)
+    - [x] Cross-layer integration tests (API + Services + CLI)
+    - [x] Test dataclass validation edge cases (covered in Phase 1 tests)
+
+**Phase 4 Summary:**
+- Added `rules` subcommand group to `match_group` in `src/cli/match.py`
+- Implemented all 10 CLI commands mirroring API endpoints
+- Commands use `CLIContext.api_client` to call API endpoints
+- Interactive mode implemented for `create` and `update` commands using `click.prompt()`
+- All commands support `--json` and `--table` output formats
+- File reading supports both YAML and JSON formats
+- Created comprehensive CLI integration tests (15 tests, 14 passing, 1 skipped)
+- Fixed JSON output format issues (success messages only shown in non-JSON mode)
+- Fixed export command to properly use query parameters for format specification
+- All tests verified against live API server
+
+### Phase 5: Documentation & Polish (Week 5) ✅ **COMPLETED**
+
+12. **Documentation Updates** ✅ COMPLETED
+    - [x] Update `docs/api/routes.md`:
+      - [x] Add Rules Management Routes section
+      - [x] Document all 10 rules endpoints
+      - [x] Add request/response examples
+      - [x] Update implementation status
+      - [x] Update route count (43 → 53)
+    - [x] Update `docs/CLI/index.md`:
+      - [x] Add Rules Commands subsection under Match Commands
+      - [x] Document all 10 rules commands
+      - [x] Add interactive mode documentation
+      - [x] Add examples and workflows
+      - [x] Update command count (43 → 53)
+      - [x] Add best practices and troubleshooting
+    - [x] Update `docs/matching/heuristic-matching.md`:
+      - [x] Update file structure to show new location (`src/config/rules/`)
+      - [x] Add Rules Management section
+      - [x] Document API and CLI access methods
+      - [x] Add import/export workflows
+      - [x] Update configuration management section
+      - [x] Add migration notes
+    - [x] Review and verify all documentation:
+      - [x] Test all code examples
+      - [x] Verify all file paths and locations
+      - [x] Check cross-references
+      - [x] Ensure consistency across documents
+
+**Phase 5 Summary:**
+- Updated API documentation with complete Rules Management Routes section (10 endpoints)
+- Updated CLI documentation with complete Rules Commands section (10 commands)
+- Updated Heuristic-Matching documentation with Rules Management section and migration notes
+- Updated route/command counts across all documentation (43 → 53)
+- Added best practices and troubleshooting sections for rules management
+- All documentation cross-references verified and consistent
+
+13. **Final Testing & Bug Fixes** ✅ **COMPLETED**
+    - [x] Comprehensive testing (all phases tested)
+    - [x] Integration testing (API and CLI)
+    - [x] Bug fixes and refinements (JSON output format, export command)
+    - [x] Validate error messages are user-friendly
+    - [x] Documentation accuracy verification
+
+---
+
+## Documentation Updates
+
+All documentation updates should be completed at the end of the implementation phase to account for any unforeseen changes made during development. The following documentation files must be updated to reflect the new rules management system.
+
+### API Documentation (`docs/api/routes.md`)
+
+#### New Section: Rules Management Routes
+
+Add a new section documenting all rules management API endpoints under the "Matching Routes" section or as a separate "Rules Routes" section:
+
+**Required Updates:**
+1. **Add Rules Routes Section** with the following endpoints:
+   - `GET /v1/api/match/rules` - List all rules
+   - `GET /v1/api/match/rules/{domain}/{rule_id}` - Get specific rule
+   - `POST /v1/api/match/rules` - Create new rule
+   - `PUT /v1/api/match/rules/{domain}/{rule_id}` - Update existing rule
+   - `DELETE /v1/api/match/rules/{domain}/{rule_id}` - Delete rule
+   - `POST /v1/api/match/rules/import` - Import rules from file
+   - `POST /v1/api/match/rules/export` - Export rules to file
+   - `POST /v1/api/match/rules/validate` - Validate rule file
+   - `POST /v1/api/match/rules/compare` - Compare rules (dry-run)
+   - `POST /v1/api/match/rules/reset` - Reset all rules
+
+2. **For Each Endpoint, Document:**
+   - Request format (with examples)
+   - Response format (with examples)
+   - Query parameters
+   - Request body structure
+   - Error responses
+   - Status codes
+
+3. **Add Examples:**
+   - Import rules from YAML
+   - Export rules to JSON
+   - Validate rule file
+   - Compare rules before import
+   - Create/update/delete operations
+
+4. **Update Implementation Status:**
+   - Mark all rules endpoints as "Fully Implemented" in the implementation status section
+
+5. **Update Route Count:**
+   - Update the total route count in the introduction to include the new rules endpoints
+
+#### Update Existing Sections
+
+1. **Matching Routes Section:**
+   - Add note about rules management being part of the matching system
+   - Reference the new rules endpoints section
+
+2. **Error Handling Section:**
+   - Add examples of rules-specific error responses (validation errors, rule not found, etc.)
+
+### CLI Documentation (`docs/CLI/index.md`)
+
+#### New Section: Rules Commands
+
+Add a new subsection under "Match Commands" for rules management:
+
+**Required Updates:**
+1. **Add Rules Command Group** (`ome match rules`) with the following commands:
+   - `ome match rules list` - List all rules
+   - `ome match rules get DOMAIN RULE_ID` - Get specific rule
+   - `ome match rules create` - Create new rule (with interactive mode)
+   - `ome match rules update DOMAIN RULE_ID` - Update existing rule (with interactive mode)
+   - `ome match rules delete DOMAIN RULE_ID` - Delete rule
+   - `ome match rules import FILE` - Import rules from file
+   - `ome match rules export OUTPUT_FILE` - Export rules to file
+   - `ome match rules validate FILE` - Validate rule file
+   - `ome match rules compare FILE` - Compare rules (dry-run)
+   - `ome match rules reset` - Reset all rules
+
+2. **For Each Command, Document:**
+   - Command syntax
+   - Arguments and options
+   - Examples with different use cases
+   - Output format
+   - Interactive mode usage (for create/update)
+
+3. **Add Interactive Mode Documentation:**
+   - Explain how interactive mode works
+   - Show example interactive session
+   - Document field prompts and validation
+
+4. **Add Examples Section:**
+   - Export rules for backup
+   - Import updated rules
+   - Validate rules before import
+   - Compare rules to see changes
+   - Create new rule interactively
+
+5. **Update Command Count:**
+   - Update the total command count in the overview to include new rules commands
+
+#### Update Existing Sections
+
+1. **Match Commands Section:**
+   - Add note about rules management commands
+   - Reference the new rules subsection
+
+2. **Best Practices Section:**
+   - Add best practices for rules management:
+     - Always validate before importing
+     - Use compare to preview changes
+     - Export rules as backup before major changes
+     - Use interactive mode for complex rule creation
+
+3. **Troubleshooting Section:**
+   - Add common issues with rules management:
+     - Validation errors
+     - Import failures
+     - Rule conflicts
+
+### Heuristic Matching Documentation (`docs/matching/heuristic-matching.md`)
+
+#### Update Existing Sections
+
+**Required Updates:**
+
+1. **Overview Section:**
+   - Add note about rules being user-configurable
+   - Mention rules location (`src/config/rules/`)
+   - Reference API and CLI for rules management
+
+2. **Rule Configuration Section:**
+   - Update file structure to show new location (`src/config/rules/`)
+   - Add note about rules being accessible to users
+   - Update examples to reflect current rule structure
+
+3. **Add New Section: Rules Management**
+
+   **Title:** "Rules Management"
+
+   **Content should include:**
+   - Overview of rules management capabilities
+   - Rules file location and structure
+   - How to access rules via API
+   - How to access rules via CLI
+   - Import/export workflows
+   - Validation process
+   - Best practices for rule management
+
+   **Subsections:**
+   - **Accessing Rules**: How users can view and manage rules
+   - **Modifying Rules**: Step-by-step guide for updating rules
+   - **Import/Export**: How to backup and restore rules
+   - **Validation**: How to validate rules before importing
+   - **Troubleshooting**: Common issues and solutions
+
+4. **Update Usage Examples Section:**
+   - Add examples showing rules management via API
+   - Add examples showing rules management via CLI
+   - Show workflow: export → modify → validate → import
+
+5. **Update Configuration Management Section:**
+   - Update "Adding New Rules" to reference API/CLI methods
+   - Add "Managing Rules via API" subsection
+   - Add "Managing Rules via CLI" subsection
+   - Update "Adding New Domains" to mention rules management
+
+6. **Add Migration Notes:**
+   - Document the move from `src/core/matching/rules/` to `src/config/rules/`
+   - Note any breaking changes (if any)
+   - Provide migration path for existing users
+
+### Documentation Standards
+
+All documentation updates should follow these standards:
+
+1. **Consistency:**
+   - Use consistent terminology across all documentation
+   - Match existing documentation style and format
+   - Follow existing code example patterns
+
+2. **Completeness:**
+   - Include all endpoints/commands
+   - Provide request/response examples
+   - Document all options and parameters
+   - Include error handling examples
+
+3. **Clarity:**
+   - Use clear, concise language
+   - Provide step-by-step workflows
+   - Include practical examples
+   - Add troubleshooting guidance
+
+4. **Accuracy:**
+   - Verify all examples work with actual implementation
+   - Test all code snippets
+   - Ensure all paths and file locations are correct
+   - Update version numbers and dates
+
+### Documentation Review Checklist
+
+Before finalizing documentation:
+
+- [ ] All API endpoints documented with examples
+- [ ] All CLI commands documented with examples
+- [ ] File locations updated to reflect new structure
+- [ ] All code examples tested and verified
+- [ ] Error handling documented
+- [ ] Migration notes included (if applicable)
+- [ ] Cross-references between documents updated
+- [ ] Implementation status updated
+- [ ] Route/command counts updated
+- [ ] Best practices and troubleshooting sections updated
 
 ## Future Enhancements
 

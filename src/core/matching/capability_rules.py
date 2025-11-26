@@ -65,10 +65,40 @@ class CapabilityRule:
     
     def __post_init__(self):
         """Validate rule data after initialization"""
-        if not self.capability or not self.satisfies_requirements:
-            raise ValueError(f"Rule {self.id}: capability and satisfies_requirements cannot be empty")
+        # Enhanced validation with better error messages
+        
+        # Validate rule ID
+        if not self.id or not self.id.strip():
+            raise ValueError("Rule ID cannot be empty or whitespace")
+        
+        # Validate capability
+        if not self.capability or not self.capability.strip():
+            raise ValueError(f"Rule {self.id}: capability cannot be empty or whitespace")
+        
+        # Validate satisfies_requirements
+        if not self.satisfies_requirements:
+            raise ValueError(f"Rule {self.id}: satisfies_requirements cannot be empty")
+        
+        # Validate each requirement is non-empty
+        for i, req in enumerate(self.satisfies_requirements):
+            if not isinstance(req, str):
+                raise ValueError(
+                    f"Rule {self.id}: requirement at index {i} must be a string, got {type(req).__name__}"
+                )
+            if not req.strip():
+                raise ValueError(f"Rule {self.id}: requirement at index {i} cannot be empty or whitespace")
+        
+        # Validate confidence
         if not 0.0 <= self.confidence <= 1.0:
-            raise ValueError(f"Rule {self.id}: confidence must be between 0.0 and 1.0")
+            raise ValueError(f"Rule {self.id}: confidence must be between 0.0 and 1.0, got {self.confidence}")
+        
+        # Validate domain
+        if not self.domain or not self.domain.strip():
+            raise ValueError(f"Rule {self.id}: domain cannot be empty or whitespace")
+        
+        # Check for duplicate requirements (warning, not error)
+        if len(self.satisfies_requirements) != len(set(r.lower().strip() for r in self.satisfies_requirements)):
+            logger.warning(f"Rule {self.id}: duplicate requirements detected (case-insensitive)")
     
     def can_satisfy_requirement(self, requirement: str) -> bool:
         """
@@ -111,9 +141,9 @@ class CapabilityRule:
         # Check if the requirement is in the satisfies_requirements list
         return self.can_satisfy_requirement(requirement)
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, include_metadata: bool = False) -> Dict[str, Any]:
         """Convert rule to dictionary for serialization"""
-        return {
+        result = {
             "id": self.id,
             "type": self.type.value,
             "capability": self.capability,
@@ -124,27 +154,34 @@ class CapabilityRule:
             "description": self.description,
             "source": self.source,
             "tags": list(self.tags),
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
         }
+        
+        if include_metadata:
+            result["created_at"] = self.created_at.isoformat()
+            result["updated_at"] = self.updated_at.isoformat()
+        
+        return result
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CapabilityRule':
-        """Create rule from dictionary"""
-        return cls(
-            id=data["id"],
-            type=RuleType(data["type"]),
-            capability=data["capability"],
-            satisfies_requirements=data["satisfies_requirements"],
-            direction=RuleDirection(data.get("direction", "bidirectional")),
-            confidence=data.get("confidence", 0.9),
-            domain=data.get("domain", "general"),
-            description=data.get("description", ""),
-            source=data.get("source", ""),
-            tags=set(data.get("tags", [])),
-            created_at=datetime.fromisoformat(data.get("created_at", datetime.now().isoformat())),
-            updated_at=datetime.fromisoformat(data.get("updated_at", datetime.now().isoformat()))
-        )
+        """Create rule from dictionary with validation"""
+        try:
+            return cls(
+                id=data["id"],
+                type=RuleType(data["type"]),
+                capability=data["capability"],
+                satisfies_requirements=data["satisfies_requirements"],
+                direction=RuleDirection(data.get("direction", "bidirectional")),
+                confidence=data.get("confidence", 0.9),
+                domain=data.get("domain", "general"),
+                description=data.get("description", ""),
+                source=data.get("source", ""),
+                tags=set(data.get("tags", [])),
+                created_at=datetime.fromisoformat(data.get("created_at", datetime.now().isoformat())),
+                updated_at=datetime.fromisoformat(data.get("updated_at", datetime.now().isoformat()))
+            )
+        except (KeyError, ValueError, TypeError) as e:
+            raise ValueError(f"Invalid rule data: {str(e)}") from e
 
 
 @dataclass
@@ -161,6 +198,28 @@ class CapabilityRuleSet:
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
+    
+    def __post_init__(self):
+        """Validate rule set data after initialization"""
+        # Validate domain
+        if not self.domain or not self.domain.strip():
+            raise ValueError("Rule set domain cannot be empty or whitespace")
+        
+        # Validate rules dictionary is not empty
+        if not self.rules:
+            raise ValueError(f"Rule set for domain '{self.domain}' must contain at least one rule")
+        
+        # Validate domain consistency
+        for rule_id, rule in self.rules.items():
+            if rule.domain != self.domain and rule.domain != "general":
+                logger.warning(
+                    f"Rule {rule_id} has domain '{rule.domain}' but rule set is for domain '{self.domain}'"
+                )
+        
+        # Validate version format (semantic versioning) - warning only
+        import re
+        if not re.match(r'^\d+\.\d+\.\d+$', self.version):
+            logger.warning(f"Rule set version '{self.version}' does not follow semantic versioning (X.Y.Z)")
     
     def add_rule(self, rule: CapabilityRule) -> None:
         """Add a rule to this rule set"""
@@ -213,36 +272,51 @@ class CapabilityRuleSet:
                 matching_rules.append(rule)
         return matching_rules
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, include_metadata: bool = False) -> Dict[str, Any]:
         """Convert rule set to dictionary for serialization"""
-        return {
+        result = {
             "domain": self.domain,
             "version": self.version,
             "description": self.description,
-            "rules": {rule_id: rule.to_dict() for rule_id, rule in self.rules.items()},
+            "rules": {rule_id: rule.to_dict(include_metadata=include_metadata) 
+                     for rule_id, rule in self.rules.items()},
             "metadata": self.metadata,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat()
         }
+        
+        if include_metadata:
+            result["created_at"] = self.created_at.isoformat()
+            result["updated_at"] = self.updated_at.isoformat()
+        
+        return result
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CapabilityRuleSet':
-        """Create rule set from dictionary"""
-        rule_set = cls(
-            domain=data["domain"],
-            version=data.get("version", "1.0.0"),
-            description=data.get("description", ""),
-            metadata=data.get("metadata", {}),
-            created_at=datetime.fromisoformat(data.get("created_at", datetime.now().isoformat())),
-            updated_at=datetime.fromisoformat(data.get("updated_at", datetime.now().isoformat()))
-        )
-        
-        # Load rules
-        for rule_data in data.get("rules", {}).values():
-            rule = CapabilityRule.from_dict(rule_data)
-            rule_set.add_rule(rule)
-        
-        return rule_set
+        """Create rule set from dictionary with validation"""
+        try:
+            # First, try to create rules to catch rule-level errors early
+            rules = {}
+            for rule_id, rule_data in data.get("rules", {}).items():
+                try:
+                    rule = CapabilityRule.from_dict(rule_data)
+                    rules[rule_id] = rule
+                except ValueError as e:
+                    # Preserve the original rule error message
+                    raise ValueError(f"Invalid rule data for rule '{rule_id}': {str(e)}") from e
+            
+            # Create rule set with pre-validated rules
+            rule_set = cls(
+                domain=data["domain"],
+                version=data.get("version", "1.0.0"),
+                description=data.get("description", ""),
+                metadata=data.get("metadata", {}),
+                rules=rules,  # Pass rules directly to avoid double validation
+                created_at=datetime.fromisoformat(data.get("created_at", datetime.now().isoformat())),
+                updated_at=datetime.fromisoformat(data.get("updated_at", datetime.now().isoformat()))
+            )
+            
+            return rule_set
+        except (KeyError, ValueError, TypeError) as e:
+            raise ValueError(f"Invalid rule set data: {str(e)}") from e
 
 
 class CapabilityRuleManager:
@@ -264,13 +338,26 @@ class CapabilityRuleManager:
         
     def _get_default_rules_directory(self) -> str:
         """Get the default rules directory"""
-        current_dir = Path(__file__).parent
-        rules_dir = current_dir / "rules"
-        if rules_dir.exists():
-            return str(rules_dir)
+        # Get the project root (assuming this file is in src/core/matching/)
+        current_file = Path(__file__)
+        project_root = current_file.parent.parent.parent.parent
         
-        config_dir = current_dir.parent / "config" / "rules"
-        return str(config_dir)
+        # Prioritize new location: src/config/rules/
+        config_rules_dir = project_root / "src" / "config" / "rules"
+        if config_rules_dir.exists():
+            return str(config_rules_dir)
+        
+        # Fallback to old location for backward compatibility
+        old_rules_dir = current_file.parent / "rules"
+        if old_rules_dir.exists():
+            logger.warning(
+                f"Using legacy rules directory: {old_rules_dir}. "
+                f"Please migrate rules to: {config_rules_dir}"
+            )
+            return str(old_rules_dir)
+        
+        # Default to new location even if it doesn't exist yet
+        return str(config_rules_dir)
     
     async def initialize(self) -> None:
         """Initialize the rule manager by loading all rule sets"""
