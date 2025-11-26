@@ -1,0 +1,166 @@
+# Cursor Rules Template
+
+## Core Philosophy: Incremental, Testable Development
+
+**PRIMARY RULE: Always prefer small, incremental changes over large, sweeping modifications.**
+
+### Change Management Principles
+
+1. **Incremental Development**
+   - Make the smallest possible change that moves toward the goal
+   - Each change should be independently testable and verifiable
+   - Break large features into multiple small, focused changes
+   - Never refactor multiple components simultaneously unless absolutely necessary
+
+2. **Test-First Approach**
+   - Write or update tests before implementing changes
+   - Ensure each change can be validated with existing or new tests
+   - If tests don't exist, create minimal tests to verify the change works
+   - Run tests after each small change to catch issues early
+
+3. **Scope Limitation**
+   - Focus on ONE specific problem or feature at a time
+   - Avoid "while we're at it" changes that expand scope
+   - Resist the urge to optimize or refactor unrelated code
+   - Clearly define the boundaries of each change
+
+### Code Change Guidelines
+
+#### Before Making Changes
+- [ ] Understand the current state of the code
+- [ ] Identify the minimal change needed
+- [ ] Plan the smallest possible implementation
+- [ ] Consider what tests need to be written/updated
+
+#### During Implementation
+- [ ] Make ONE focused change at a time
+- [ ] Test the change immediately after implementation
+- [ ] Fix any issues before proceeding to the next change
+- [ ] Document any assumptions or limitations
+
+#### After Each Change
+- [ ] Verify the change works as expected
+- [ ] Run relevant tests
+- [ ] Check for any unintended side effects
+- [ ] Commit the change if it's working correctly
+
+### Prohibited Practices
+
+**DO NOT:**
+- Make changes to multiple files simultaneously unless they're directly related
+- Refactor code that isn't part of the current task
+- Add new features while fixing bugs
+- Optimize performance unless specifically requested
+- Change code style/formatting unless it's the primary task
+- Remove "unused" code without explicit confirmation
+- Add dependencies without clear justification
+
+### Communication Guidelines
+
+#### When Proposing Changes
+- Clearly explain what the change does
+- Specify why this particular approach was chosen
+- Mention any assumptions or limitations
+- Suggest the next small step if the change is part of a larger goal
+
+#### When Uncertain
+- Ask for clarification rather than making assumptions
+- Propose the smallest possible change and ask for feedback
+- Suggest breaking down complex requests into smaller steps
+- Offer alternatives if the requested change seems too broad
+
+### Example Workflow
+
+**Instead of:** "I'll refactor the entire authentication system and add new features"
+
+**Do this:**
+1. "I'll add a single test for the current authentication behavior"
+2. "I'll make one small change to fix the specific bug"
+3. "I'll verify the fix works with the test"
+4. "I'll commit this change and move to the next small step"
+
+### File-Specific Guidelines
+
+#### For New Features
+- Start with a failing test
+- Implement the minimal code to make the test pass
+- Add one small piece of functionality at a time
+- Test each addition before moving to the next
+
+#### For Bug Fixes
+- Reproduce the bug with a test
+- Make the smallest possible change to fix it
+- Verify the fix works and doesn't break existing functionality
+- Add regression tests if appropriate
+
+#### For Refactoring
+- Ensure comprehensive test coverage exists first
+- Refactor one small piece at a time
+- Run tests after each small change
+- Never refactor and add features simultaneously
+
+### Temporary Test File Management
+
+#### Creating Temporary Tests
+- Use descriptive names for temporary test files (e.g., `test_temp_feature_xyz.py`, `temp_validation_abc.js`)
+- Clearly mark temporary files with comments indicating their purpose and expected cleanup
+- Keep temporary tests focused on the specific change being implemented
+- Document what the temporary test is validating
+
+#### Cleanup Protocol
+**Temporary test files should be cleaned up when:**
+1. ✅ All tests are passing consistently
+2. ✅ The changes they were testing are working correctly
+3. ✅ The user explicitly agrees to cleanup
+4. ✅ The functionality is properly covered by existing or permanent tests
+
+#### Cleanup Process
+1. **Before cleanup, verify:**
+   - All temporary tests are passing
+   - The implemented changes work as expected
+   - No regressions have been introduced
+   - Permanent test coverage exists for the functionality
+
+2. **Request cleanup approval:**
+   - List the temporary files to be removed
+   - Confirm what functionality they were testing
+   - Ask for explicit user approval before deletion
+
+3. **Clean up systematically:**
+   - Remove temporary test files one at a time
+   - Run tests after each removal to ensure nothing breaks
+   - Confirm the workspace is clean and functional
+
+#### Temporary File Naming Convention
+- Use prefix: `temp_` or `test_temp_`
+- Include purpose: `temp_validation_`, `temp_integration_`, `temp_unit_`
+- Add feature identifier: `temp_auth_bug_fix`, `temp_api_endpoint_test`
+- Example: `temp_validation_user_registration.py`
+
+#### When NOT to Clean Up
+- If tests are still failing and debugging is ongoing
+- If the user hasn't explicitly approved cleanup
+- If the temporary tests reveal issues that need further investigation
+- If permanent test coverage is insufficient
+
+### Success Metrics
+
+A good change should be:
+- ✅ **Focused**: Addresses one specific issue
+- ✅ **Testable**: Can be verified with automated tests
+- ✅ **Reversible**: Can be easily undone if needed
+- ✅ **Incremental**: Builds on previous working state
+- ✅ **Documented**: Clear purpose and scope
+
+### Emergency Override
+
+If a large change is truly necessary:
+1. Explicitly acknowledge this violates the incremental principle
+2. Explain why incremental changes aren't feasible
+3. Break the large change into the smallest possible phases
+4. Ensure comprehensive testing at each phase
+5. Get explicit approval before proceeding
+
+---
+
+**Remember: It's better to make 10 small, working changes than 1 large change that requires 10 bug fixes.**
