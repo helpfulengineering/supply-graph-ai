@@ -267,17 +267,39 @@ async def delete_rule(
         )
 
 
-@router.post("/import", response_model=RuleImportResponse, summary="Import rules from file")
+@router.post("/import", response_model=RuleImportResponse, summary="Import rules from file or reload from filesystem")
 @api_endpoint(success_message="Rules imported successfully")
 @track_performance("rules_import")
 async def import_rules(
     request: RuleImportRequest,
     http_request: Request = None,
-    service: ImportExportService = Depends(get_import_export_service)
+    import_export_service: ImportExportService = Depends(get_import_export_service),
+    rules_service: RulesService = Depends(get_rules_service)
 ):
-    """Import rules from YAML or JSON file content"""
+    """
+    Import rules from YAML or JSON file content, or reload from filesystem.
+    
+    If file_content is provided, imports from that content.
+    If file_content is omitted, reloads rules from the filesystem (useful when
+    files have been modified while the server is running).
+    """
     try:
-        result = await service.import_rules(
+        # If no file_content provided, reload from filesystem
+        if not request.file_content:
+            result = await rules_service.reload_rules(domain=request.domain)
+            return create_success_response(
+                message="Rules reloaded successfully from filesystem",
+                data=result
+            )
+        
+        # Otherwise, import from provided file content
+        if not request.file_format:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="file_format is required when file_content is provided"
+            )
+        
+        result = await import_export_service.import_rules(
             file_content=request.file_content,
             file_format=request.file_format,
             domain=request.domain,
@@ -290,16 +312,18 @@ async def import_rules(
             message=message,
             data=result
         )
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
     except Exception as e:
-        logger.exception("Error importing rules")
+        logger.exception("Error importing/reloading rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to import rules: {str(e)}"
+            detail=f"Failed to import/reload rules: {str(e)}"
         )
 
 

@@ -341,6 +341,58 @@ class RulesService:
         self.rule_manager.rule_sets.clear()
         logger.warning("All rules have been reset")
     
+    async def reload_rules(self, domain: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Reload rules from the filesystem.
+        
+        This forces a refresh of rules from the configuration files,
+        useful when files have been modified while the server is running.
+        
+        Args:
+            domain: Optional domain to reload (reloads all if not specified)
+            
+        Returns:
+            Dictionary with reload results:
+            - reloaded_domains: list of domains that were reloaded
+            - total_rules: total number of rules loaded
+        """
+        if domain:
+            # Reload specific domain by reloading all and filtering
+            # (CapabilityRuleManager doesn't support single-domain reload)
+            await self.rule_manager.reload_rules()
+            rule_set = self.rule_manager.get_rule_set(domain)
+            if rule_set:
+                return {
+                    "reloaded_domains": [domain],
+                    "total_rules": len(rule_set.rules)
+                }
+            else:
+                return {
+                    "reloaded_domains": [],
+                    "total_rules": 0
+                }
+        else:
+            # Reload all domains
+            before_count = sum(len(rs.rules) for rs in self.rule_manager.rule_sets.values())
+            before_domains = list(self.rule_manager.rule_sets.keys())
+            
+            await self.rule_manager.reload_rules()
+            
+            after_count = sum(len(rs.rules) for rs in self.rule_manager.rule_sets.values())
+            after_domains = list(self.rule_manager.rule_sets.keys())
+            
+            logger.info(
+                f"Reloaded rules: {len(after_domains)} domains, "
+                f"{after_count} total rules"
+            )
+            
+            return {
+                "reloaded_domains": after_domains,
+                "total_rules": after_count,
+                "previous_domains": before_domains,
+                "previous_total_rules": before_count
+            }
+    
     # Backup and Rollback
     
     async def _create_backup(self) -> Dict[str, Any]:

@@ -1016,16 +1016,45 @@ async def rules_list(ctx, domain: Optional[str], tag: Optional[str],
             click.echo(json.dumps(response.get("data", {}), indent=2))
         else:
             data = response.get("data", {})
-            rules_data = data.get("rules", {})
-            total = data.get("total_rules", 0)
+            rules_data = data.get("rules", [])
+            # API returns "total" not "total_rules"
+            total = data.get("total", data.get("total_rules", 0))
             
-            click.echo(f"\nTotal rules: {total}")
-            for dom, rules in rules_data.items():
-                click.echo(f"\nDomain: {dom} ({len(rules)} rules)")
-                for rule in rules:
-                    click.echo(f"  - {rule.get('id')}: {rule.get('capability')}")
-                    if tag or verbose:
-                        click.echo(f"    Requirements: {', '.join(rule.get('satisfies_requirements', []))}")
+            # Handle both list and dict formats
+            if isinstance(rules_data, list):
+                # Flat list format - group by domain
+                click.echo(f"\nTotal rules: {total}")
+                domains_dict = {}
+                for rule in rules_data:
+                    rule_domain = rule.get("domain", "unknown")
+                    if rule_domain not in domains_dict:
+                        domains_dict[rule_domain] = []
+                    domains_dict[rule_domain].append(rule)
+                
+                for dom, rules in domains_dict.items():
+                    click.echo(f"\nDomain: {dom} ({len(rules)} rules)")
+                    for rule in rules:
+                        rule_id = rule.get('id', 'unknown')
+                        capability = rule.get('capability', 'N/A')
+                        # Format: ID (capability) - makes ID clearly visible and usable
+                        click.echo(f"  {rule_id} - {capability}")
+                        if tag or verbose:
+                            click.echo(f"    Requirements: {', '.join(rule.get('satisfies_requirements', []))}")
+            elif isinstance(rules_data, dict):
+                # Dict format (grouped by domain)
+                click.echo(f"\nTotal rules: {total}")
+                for dom, rules in rules_data.items():
+                    click.echo(f"\nDomain: {dom} ({len(rules)} rules)")
+                    for rule in rules:
+                        rule_id = rule.get('id', 'unknown')
+                        capability = rule.get('capability', 'N/A')
+                        # Format: ID (capability) - makes ID clearly visible and usable
+                        click.echo(f"  {rule_id} - {capability}")
+                        if tag or verbose:
+                            click.echo(f"    Requirements: {', '.join(rule.get('satisfies_requirements', []))}")
+            else:
+                click.echo(f"\nTotal rules: {total}")
+                click.echo("No rules found.")
         
         cli_ctx.end_command_tracking()
     except Exception as e:
@@ -1281,28 +1310,63 @@ async def rules_delete(ctx, domain: str, rule_id: str, confirm: bool, verbose: b
 
 
 @rules.command("import")
-@click.argument('file', type=click.Path(exists=True))
-@click.option('--domain', help='Target domain (if importing single domain)')
-@click.option('--partial-update/--no-partial-update', default=True, help='Allow partial updates')
-@click.option('--dry-run', is_flag=True, help='Validate without applying changes')
+@click.argument('file', type=click.Path(exists=False), required=False)
+@click.option('--domain', help='Target domain (if importing/reloading single domain)')
+@click.option('--partial-update/--no-partial-update', default=True, help='Allow partial updates (only for file import)')
+@click.option('--dry-run', is_flag=True, help='Validate without applying changes (only for file import)')
 @standard_cli_command(
-    help_text="Import rules from YAML or JSON file.",
+    help_text="Import rules from YAML or JSON file, or reload from filesystem if no file provided.",
     async_cmd=True,
     track_performance=True,
     handle_errors=True,
     format_output=True
 )
 @click.pass_context
-async def rules_import(ctx, file: str, domain: Optional[str], partial_update: bool,
+async def rules_import(ctx, file: Optional[str], domain: Optional[str], partial_update: bool,
                       dry_run: bool, verbose: bool, output_format: str,
                       use_llm: bool, llm_provider: str, llm_model: Optional[str],
                       quality_level: str, strict_mode: bool):
-    """Import rules from file"""
+    """
+    Import rules from file or reload from filesystem.
+    
+    If FILE is provided, imports rules from that file.
+    If FILE is omitted, reloads rules from the filesystem (useful when
+    files have been modified while the server is running).
+    """
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-import")
     
     try:
+        # If no file provided, reload from filesystem
+        if not file:
+            request_data = {}
+            if domain:
+                request_data["domain"] = domain
+            
+            response = await cli_ctx.api_client.request(
+                "POST", "/api/match/rules/import", json_data=request_data
+            )
+            
+            data = response.get("data", {})
+            
+            if output_format == "json":
+                click.echo(json.dumps(data, indent=2))
+            else:
+                cli_ctx.log("Rules reloaded successfully from filesystem", "success")
+                click.echo(f"\nReload Results:")
+                click.echo(f"  Reloaded domains: {', '.join(data.get('reloaded_domains', []))}")
+                click.echo(f"  Total rules: {data.get('total_rules', 0)}")
+                if data.get('previous_total_rules') is not None:
+                    click.echo(f"  Previous total: {data.get('previous_total_rules', 0)}")
+            
+            cli_ctx.end_command_tracking()
+            return
+        
+        # Otherwise, import from file
         file_path = Path(file)
+        if not file_path.exists():
+            raise click.ClickException(f"File not found: {file}")
+        
         file_content = file_path.read_text()
         
         # Determine format from extension

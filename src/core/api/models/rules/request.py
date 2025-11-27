@@ -66,12 +66,12 @@ class RuleDeleteRequest(BaseAPIRequest):
 
 
 class RuleImportRequest(BaseAPIRequest):
-    """Request for importing rules from file content"""
-    file_content: str = Field(..., description="File content (YAML or JSON)")
-    file_format: str = Field(..., description="File format: 'yaml' or 'json'")
-    domain: Optional[str] = Field(None, description="Target domain (if importing single domain)")
-    partial_update: bool = Field(True, description="Allow partial updates (merge vs replace)")
-    dry_run: bool = Field(False, description="Validate and compare without applying changes")
+    """Request for importing rules from file or reloading from filesystem"""
+    file_content: Optional[str] = Field(None, description="File content to import (omit to reload from filesystem)")
+    file_format: Optional[str] = Field(None, description="File format: 'yaml' or 'json' (required if file_content provided)")
+    domain: Optional[str] = Field(None, description="Target domain (if importing/reloading single domain)")
+    partial_update: bool = Field(True, description="Allow partial updates (merge vs replace, only for file import)")
+    dry_run: bool = Field(False, description="Validate and compare without applying changes (only for file import)")
     
     class Config:
         json_schema_extra = {
