@@ -1,6 +1,9 @@
+import json
+import signal
+import asyncio
 import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -50,10 +53,27 @@ setup_logging(
 # Get logger for this module
 logger = get_logger(__name__)
 
+# Global shutdown event for graceful shutdown
+_shutdown_event = asyncio.Event()
+
+def _setup_signal_handlers():
+    """Setup signal handlers for graceful shutdown"""
+    def signal_handler(signum, frame):
+        """Handle shutdown signals"""
+        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+        _shutdown_event.set()
+    
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGTERM, signal_handler)  # Container stop signal
+    signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
+
 # Define lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for FastAPI application"""
+    """Lifespan context manager for FastAPI application with graceful shutdown"""
+    # Setup signal handlers
+    _setup_signal_handlers()
+    
     try:
         logger.info("Starting application")
         
@@ -70,6 +90,8 @@ async def lifespan(app: FastAPI):
         logger.info("Registering domain components")
         await register_domain_components()
         
+        logger.info("Application startup complete")
+        
         yield
         
     except Exception as e:
@@ -77,8 +99,18 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         logger.info("Shutting down application")
+        # Wait for shutdown signal or proceed if already set
+        if not _shutdown_event.is_set():
+            logger.info("Waiting for graceful shutdown signal...")
+            try:
+                # Wait up to 30 seconds for shutdown signal
+                await asyncio.wait_for(_shutdown_event.wait(), timeout=30.0)
+            except asyncio.TimeoutError:
+                logger.warning("Shutdown timeout reached, forcing shutdown")
+        
         # Cleanup resources
         await cleanup_resources()
+        logger.info("Application shutdown complete")
 
 # Create FastAPI app with lifespan
 app = FastAPI(
@@ -125,12 +157,93 @@ async def root():
 # Health check endpoint
 @app.get("/health", tags=["system"])
 async def health_check():
-    """Simple health check endpoint."""
+    """Simple health check endpoint (liveness probe).
+    
+    This endpoint indicates that the application is running.
+    It does not check dependencies, making it suitable for liveness probes.
+    """
     return {
         "status": "ok", 
         "domains": list(DomainRegistry.get_registered_domains()),
         "version": get_version()
     }
+
+# Liveness probe endpoint
+@app.get("/health/liveness", tags=["system"])
+async def liveness_check():
+    """Liveness probe endpoint for container orchestration.
+    
+    This endpoint indicates that the application process is alive.
+    It should return quickly and not check external dependencies.
+    Used by Kubernetes, Cloud Run, ECS, etc. to determine if the container should be restarted.
+    """
+    return {
+        "status": "alive",
+        "version": get_version()
+    }
+
+# Readiness probe endpoint
+@app.get("/health/readiness", tags=["system"])
+async def readiness_check():
+    """Readiness probe endpoint for container orchestration.
+    
+    This endpoint checks if the application is ready to serve traffic.
+    It verifies that critical dependencies (storage, auth service, domains) are initialized.
+    Used by Kubernetes, Cloud Run, ECS, etc. to determine if traffic should be routed to this instance.
+    """
+    checks = {
+        "storage": False,
+        "auth_service": False,
+        "domains": False
+    }
+    errors = []
+    
+    # Check storage service
+    try:
+        storage_service = await StorageService.get_instance()
+        if storage_service:
+            checks["storage"] = True
+    except Exception as e:
+        errors.append(f"Storage service not ready: {str(e)}")
+    
+    # Check authentication service
+    try:
+        auth_service = await AuthenticationService.get_instance()
+        if auth_service:
+            checks["auth_service"] = True
+    except Exception as e:
+        errors.append(f"Authentication service not ready: {str(e)}")
+    
+    # Check domain registration
+    try:
+        domains = list(DomainRegistry.get_registered_domains())
+        if domains:
+            checks["domains"] = True
+    except Exception as e:
+        errors.append(f"Domain registration failed: {str(e)}")
+    
+    # Determine overall readiness
+    all_ready = all(checks.values())
+    status = "ready" if all_ready else "not_ready"
+    
+    response = {
+        "status": status,
+        "checks": checks,
+        "version": get_version(),
+        "domains": list(DomainRegistry.get_registered_domains()) if checks["domains"] else []
+    }
+    
+    if errors:
+        response["errors"] = errors
+    
+    # Return appropriate status code
+    status_code = status.HTTP_200_OK if all_ready else status.HTTP_503_SERVICE_UNAVAILABLE
+    
+    return Response(
+        content=json.dumps(response),
+        status_code=status_code,
+        media_type="application/json"
+    )
 
 # Create a versioned API
 api_v1 = FastAPI(

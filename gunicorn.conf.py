@@ -5,12 +5,15 @@ import multiprocessing
 import os
 
 # Server socket
-bind = f"0.0.0.0:{os.getenv('API_PORT', '8001')}"
+# Support PORT env var (Cloud Run) and API_PORT (backward compatibility)
+port = os.getenv('PORT') or os.getenv('API_PORT', '8001')
+bind = f"0.0.0.0:{port}"
 backlog = 2048
 
 # Worker processes
 workers = int(os.getenv('GUNICORN_WORKERS', multiprocessing.cpu_count() * 2 + 1))
-worker_class = os.getenv('GUNICORN_WORKER_CLASS', 'gevent')
+# Use uvicorn workers for async FastAPI application
+worker_class = os.getenv('GUNICORN_WORKER_CLASS', 'uvicorn.workers.UvicornWorker')
 worker_connections = int(os.getenv('GUNICORN_WORKER_CONNECTIONS', '1000'))
 max_requests = int(os.getenv('GUNICORN_MAX_REQUESTS', '1000'))
 max_requests_jitter = int(os.getenv('GUNICORN_MAX_REQUESTS_JITTER', '100'))
