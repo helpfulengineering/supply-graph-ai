@@ -1,6 +1,4 @@
 import json
-import signal
-import asyncio
 import uvicorn
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status, Response
@@ -53,27 +51,14 @@ setup_logging(
 # Get logger for this module
 logger = get_logger(__name__)
 
-# Global shutdown event for graceful shutdown
-_shutdown_event = asyncio.Event()
-
-def _setup_signal_handlers():
-    """Setup signal handlers for graceful shutdown"""
-    def signal_handler(signum, frame):
-        """Handle shutdown signals"""
-        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
-        _shutdown_event.set()
-    
-    # Register signal handlers for graceful shutdown
-    signal.signal(signal.SIGTERM, signal_handler)  # Container stop signal
-    signal.signal(signal.SIGINT, signal_handler)   # Ctrl+C
-
 # Define lifespan context manager
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan context manager for FastAPI application with graceful shutdown"""
-    # Setup signal handlers
-    _setup_signal_handlers()
+    """Lifespan context manager for FastAPI application with graceful shutdown.
     
+    Uvicorn handles SIGTERM/SIGINT signals and will call the shutdown phase
+    of this lifespan context manager. We don't need to handle signals directly.
+    """
     try:
         logger.info("Starting application")
         
@@ -99,16 +84,8 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         logger.info("Shutting down application")
-        # Wait for shutdown signal or proceed if already set
-        if not _shutdown_event.is_set():
-            logger.info("Waiting for graceful shutdown signal...")
-            try:
-                # Wait up to 30 seconds for shutdown signal
-                await asyncio.wait_for(_shutdown_event.wait(), timeout=30.0)
-            except asyncio.TimeoutError:
-                logger.warning("Shutdown timeout reached, forcing shutdown")
-        
         # Cleanup resources
+        # Uvicorn will wait for in-flight requests to complete before calling this
         await cleanup_resources()
         logger.info("Application shutdown complete")
 
@@ -224,10 +201,10 @@ async def readiness_check():
     
     # Determine overall readiness
     all_ready = all(checks.values())
-    status = "ready" if all_ready else "not_ready"
+    readiness_status = "ready" if all_ready else "not_ready"
     
     response = {
-        "status": status,
+        "status": readiness_status,
         "checks": checks,
         "version": get_version(),
         "domains": list(DomainRegistry.get_registered_domains()) if checks["domains"] else []

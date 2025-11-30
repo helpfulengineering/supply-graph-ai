@@ -16,9 +16,12 @@ services:
       - STORAGE_BUCKET_NAME=ome-storage
       - LLM_ENABLED=false
     volumes:
-      - ./storage:/app/storage
-      - ./logs:/app/logs
-      - ./test-data:/app/test-data
+      - ome-storage:/app/storage
+      - ome-logs:/app/logs
+      # Optional: Mount local directories for development (may require Docker Desktop permissions)
+      # - ./storage:/app/storage
+      # - ./logs:/app/logs
+      # - ./test-data:/app/test-data
     networks:
       - ome-network
     restart: unless-stopped
@@ -28,6 +31,30 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ome-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - ome-network
+    depends_on:
+      - ome-api
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    # Start with: docker-compose --profile monitoring up prometheus
 
   # Open Matching Engine CLI (for testing CLI commands)
   ome-cli:
@@ -40,9 +67,12 @@ services:
       - STORAGE_BUCKET_NAME=ome
       - LLM_ENABLED=false
     volumes:
-      - ./storage:/app/storage
-      - ./logs:/app/logs
-      - ./test-data:/app/test-data
+      - ome-storage:/app/storage
+      - ome-logs:/app/logs
+      # Optional: Mount local directories for development (may require Docker Desktop permissions)
+      # - ./storage:/app/storage
+      # - ./logs:/app/logs
+      # - ./test-data:/app/test-data
     networks:
       - ome-network
     depends_on:
@@ -60,4 +90,6 @@ volumes:
   ome-storage:
     driver: local
   ome-logs:
+    driver: local
+  prometheus-data:
     driver: local
