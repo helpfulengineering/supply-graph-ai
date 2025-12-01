@@ -14,6 +14,7 @@
     * [Matching Architecture](architecture/matching.md)
     * [Generation](architecture/generation.md)
     * [Services](architecture/services.md)
+    * [Offline Mesh Network Use Cases](architecture/offline-mesh-use-cases.md)
 * [Cheatsheet](cheatsheet.md)
 
 ### Development Plans

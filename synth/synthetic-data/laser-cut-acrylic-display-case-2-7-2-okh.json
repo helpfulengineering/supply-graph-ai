@@ -1,0 +1,384 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "8e098e89-928c-4608-a7a1-a3f7a9337471",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/igallagher/laser-cut-acrylic-display-case",
+  "version": "2.7.2",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Cynthia Adams",
+    "email": "pereznathaniel@example.net",
+    "affiliation": "Walls LLC",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "omarrice"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Class chance myself reality position thing.",
+  "intended_use": "Fine hear economy seven right I heavy second.",
+  "keywords": [
+    "modular",
+    "gear"
+  ],
+  "contact": {
+    "name": "Danielle Daniels",
+    "email": "eric31@example.com",
+    "affiliation": "Reed, Cox and Ryan",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "lthomas"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Antonio Crawford",
+      "email": "morgan70@example.com",
+      "affiliation": "Macdonald, Underwood and Parrish",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "villaelizabeth"
+        }
+      ]
+    },
+    {
+      "name": "Juan Thornton",
+      "email": "christianmary@example.org",
+      "affiliation": "Ramirez and Sons",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "smithmonique"
+        }
+      ]
+    },
+    {
+      "name": "Christopher Moore",
+      "email": "klove@example.org",
+      "affiliation": "Murray Group",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "shawn53"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Reyes PLC",
+    "url": "https://holmes.info",
+    "email": "contact@henderson.com"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/kgutierrez/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/fhernandez/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/wilsondaniel/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/williamsrobert/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/cooperdeborah/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/ramossteven/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/pfox/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/davidhowell/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/ylester/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/briana93/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/stevensmith/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/xpatel/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.1"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Material guides",
+    "Screwdriver set",
+    "Laser cutter",
+    "Cutting bed",
+    "Pliers",
+    "Air assist",
+    "Wrench set",
+    "Heat shrink",
+    "Crimping tool"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 773.25,
+      "unit": "m²",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 189.81,
+      "unit": "kg",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 536.41,
+      "unit": "m³",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 389,
+      "width": 357,
+      "height": 142
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "69W",
+          "speed": "251 mm/min",
+          "passes": 3
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Yeah blue near quality close similar now."
+      }
+    ],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Trouble home soon enjoy can add government nation."
+  },
+  "bom": "https://github.com/rebekahchan/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "90a45759-ad93-4757-84bc-cec1ce585e36",
+      "source": [
+        "https://github.com/hbrady/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/pedwards/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/dbrown/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/nicholas31/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": {
+        "length": 25,
+        "width": 86,
+        "height": 73
+      },
+      "mass": 866.48,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "6ec2c1df-95a3-4c10-afb9-e59631e21508",
+      "source": [
+        "https://github.com/sydneyli/project/raw/main/models/main_body.stl"
+      ],
+      "export": [
+        "https://github.com/chad80/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [
+        "https://github.com/wwebb/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/kentward/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 155,
+        "width": 53,
+        "height": 46
+      },
+      "mass": 976.05,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "457fda3d-ae91-48b4-8482-2f5b4d754971",
+      "source": [
+        "https://github.com/victoria85/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/reeddanny/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/lauren48/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/elizabethharvey/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": {
+        "length": 175,
+        "width": 121,
+        "height": 56
+      },
+      "mass": 604.25,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "5b46fc78-22a5-4f43-91d9-f561c899e4ab",
+      "source": [
+        "https://github.com/pittsmichael/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/boliver/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/ganderson/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/wwebster/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 58,
+        "width": 130,
+        "height": 30
+      },
+      "mass": 170.78,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

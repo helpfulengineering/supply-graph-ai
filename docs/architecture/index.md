@@ -376,3 +376,24 @@ Each component provides well-defined extension points:
 - Custom components
 - Domain-specific optimizations
 - Enhanced validation
+
+## Offline and Mesh Network Use Cases
+
+For scenarios where traditional internet connectivity is unavailable or unreliable, see:
+
+- **[Offline Mesh Network Use Cases](offline-mesh-use-cases.md)**: Explores use cases including:
+  - **"Node in a Box"**: Physical package for adding facilities to mesh networks
+  - **"What Can I Build?"**: Local capability matching against available OKH files
+  - **"Publish My Design"**: Design synchronization through mesh networks
+  - **"What's In Demand?"**: Demand discovery for production facilities
+  - Distributed systems patterns (Gossip, Bloom Filters, Event Sourcing, etc.)
+  - BitTorrent protocol for package distribution
+
+- **[Offline Mesh Feature Inventory](offline-mesh-feature-inventory.md)**: Comprehensive mapping of required features to existing codebase, identifying:
+  - Implemented features and their locations
+  - Gaps in functionality
+  - Integration points with existing code
+  - Recommended external tools and libraries
+  - Implementation priorities
+
+These documents demonstrate how supply-graph-ai can operate in offline environments using mesh networking protocols (e.g., Meshtastic) for distributed hardware manufacturing capabilities.
