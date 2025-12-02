@@ -174,14 +174,10 @@ jobs:
           output: 'trivy-results.sarif'
           exit-code: '0'
           severity: 'CRITICAL,HIGH'
-          trivyignores: |
-            # Ignore known false positives or acceptable risks
-            CVE-2021-44228  # Log4j - if not using Java
-            CVE-2021-45046  # Log4j - if not using Java
 
       - name: Upload Trivy results to GitHub Security
         if: always()
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'
 
