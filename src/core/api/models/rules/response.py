@@ -4,7 +4,7 @@ Response models for Rules API endpoints.
 These models define the response structures for rules management operations.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from ..base import SuccessResponse, APIStatus
@@ -12,10 +12,8 @@ from ..base import SuccessResponse, APIStatus
 
 class RuleResponse(SuccessResponse):
     """Response containing a single rule"""
-    data: Dict[str, Any] = Field(..., description="Rule data")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Rule retrieved successfully",
@@ -30,14 +28,15 @@ class RuleResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    data: Dict[str, Any] = Field(..., description="Rule data")
 
 
 class RuleListResponse(SuccessResponse):
     """Response containing a list of rules"""
-    data: Dict[str, Any] = Field(..., description="Rules data with metadata")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Rules retrieved successfully",
@@ -55,14 +54,15 @@ class RuleListResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    data: Dict[str, Any] = Field(..., description="Rules data with metadata")
 
 
 class RuleImportResponse(SuccessResponse):
     """Response from rule import operation"""
-    data: Dict[str, Any] = Field(..., description="Import results")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Rules imported successfully",
@@ -75,14 +75,15 @@ class RuleImportResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    data: Dict[str, Any] = Field(..., description="Import results")
 
 
 class RuleExportResponse(SuccessResponse):
     """Response from rule export operation"""
-    data: Dict[str, Any] = Field(..., description="Export data")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Rules exported successfully",
@@ -95,14 +96,15 @@ class RuleExportResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    data: Dict[str, Any] = Field(..., description="Export data")
 
 
 class RuleValidateResponse(SuccessResponse):
     """Response from rule validation"""
-    data: Dict[str, Any] = Field(..., description="Validation results")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Validation completed",
@@ -114,14 +116,15 @@ class RuleValidateResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    data: Dict[str, Any] = Field(..., description="Validation results")
 
 
 class RuleCompareResponse(SuccessResponse):
     """Response from rule comparison (dry-run)"""
-    data: Dict[str, Any] = Field(..., description="Comparison results")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Comparison completed",
@@ -140,4 +143,7 @@ class RuleCompareResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    data: Dict[str, Any] = Field(..., description="Comparison results")
 

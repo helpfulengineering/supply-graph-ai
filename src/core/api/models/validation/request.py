@@ -4,7 +4,7 @@ Request models for validation API endpoints.
 This module provides Pydantic models for validation requests.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, Optional
 
 
@@ -16,8 +16,8 @@ class ValidationRequest(BaseModel):
     quality_level: Optional[str] = Field("professional", description="Quality level (hobby, professional, medical)")
     strict_mode: Optional[bool] = Field(False, description="Enable strict validation mode")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "content": {
                     "title": "Test OKH Manifest",
@@ -30,6 +30,7 @@ class ValidationRequest(BaseModel):
                 "strict_mode": False
             }
         }
+    )
 
 
 class ValidationContextRequest(BaseModel):
@@ -38,11 +39,12 @@ class ValidationContextRequest(BaseModel):
     quality_level: Optional[str] = Field("professional", description="Quality level")
     strict_mode: Optional[bool] = Field(False, description="Enable strict validation mode")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "domain": "manufacturing",
                 "quality_level": "professional",
                 "strict_mode": False
             }
         }
+    )

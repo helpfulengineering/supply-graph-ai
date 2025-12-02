@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 from typing import Dict, List, Optional, Any
 from uuid import UUID
 
@@ -64,8 +64,8 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         description="Optional list of OKW facilities (as dicts) to use instead of loading from storage"
     )
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "okh_manifest": {
                     "title": "Test OKH Manifest",
@@ -93,6 +93,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
                 "strict_mode": False
             }
         }
+    )
 
     @model_validator(mode='after')
     def validate_input(self):

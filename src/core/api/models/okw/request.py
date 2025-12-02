@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any
 
 from ..base import BaseAPIRequest, LLMRequestMixin
@@ -28,8 +28,8 @@ class OKWCreateRequest(BaseAPIRequest, LLMRequestMixin):
     certifications: List[str] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "TechFab Manufacturing Hub",
                 "facility_status": "active",
@@ -55,6 +55,7 @@ class OKWCreateRequest(BaseAPIRequest, LLMRequestMixin):
                 "strict_mode": False
             }
         }
+    )
 
 class OKWUpdateRequest(BaseModel):
     """Request model for updating an OKW facility"""

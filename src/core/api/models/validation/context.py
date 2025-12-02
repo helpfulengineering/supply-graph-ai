@@ -4,7 +4,7 @@ Context models for validation API.
 This module provides Pydantic models for validation contexts.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, List, Optional
 
 
@@ -18,8 +18,8 @@ class ValidationContextModel(BaseModel):
     supported_types: List[str] = Field(default_factory=list, description="Supported validation types")
     validation_strictness: Optional[str] = Field(None, description="Validation strictness level")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "name": "manufacturing_professional",
                 "domain": "manufacturing",
@@ -33,3 +33,4 @@ class ValidationContextModel(BaseModel):
                 "validation_strictness": "standard"
             }
         }
+    )

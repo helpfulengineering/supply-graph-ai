@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
@@ -13,8 +13,8 @@ class PackageResponse(SuccessResponse, LLMResponseMixin):
     # Enhanced metadata
     validation_results: Optional[List[BaseValidationResult]] = None
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Package operation completed successfully",
@@ -33,6 +33,7 @@ class PackageResponse(SuccessResponse, LLMResponseMixin):
                 "metadata": {}
             }
         }
+    )
 
 class PackageMetadataResponse(BaseModel):
     """Response model for package metadata"""

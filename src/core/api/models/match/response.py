@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any, TYPE_CHECKING
 
 from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
@@ -41,17 +41,8 @@ class SupplyTreeSummary(BaseModel):
 
 class MatchResponse(SuccessResponse, LLMResponseMixin):
     """Consolidated match response with standardized fields and LLM information"""
-    # Core response data
-    solutions: List[dict] = []
-    total_solutions: int = 0
-    processing_time: float = 0.0
-    
-    # Enhanced metadata
-    matching_metrics: Optional[dict] = None
-    validation_results: Optional[List[BaseValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "solutions": [
                     {
@@ -85,6 +76,16 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
                 "data": {}
             }
         }
+    )
+    
+    # Core response data
+    solutions: List[dict] = []
+    total_solutions: int = 0
+    processing_time: float = 0.0
+    
+    # Enhanced metadata
+    matching_metrics: Optional[dict] = None
+    validation_results: Optional[List[BaseValidationResult]] = None
 
 class ValidationResult(BaseModel):
     """Response model for validation results"""
@@ -101,16 +102,8 @@ class ValidationResult(BaseModel):
 
 class SimulateResponse(SuccessResponse):
     """Response model for simulation results"""
-    # Required fields
-    completion_time: str = Field(..., description="Estimated completion time (ISO format)")
-    
-    # Optional fields
-    critical_path: List[Dict[str, Any]] = Field(default_factory=list, description="Critical path in the supply tree")
-    bottlenecks: List[Dict[str, Any]] = Field(default_factory=list, description="Identified bottlenecks")
-    resource_utilization: Dict[str, Any] = Field(default_factory=dict, description="Resource utilization metrics")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Simulation completed successfully",
@@ -129,6 +122,15 @@ class SimulateResponse(SuccessResponse):
                 }
             }
         }
+    )
+    
+    # Required fields
+    completion_time: str = Field(..., description="Estimated completion time (ISO format)")
+    
+    # Optional fields
+    critical_path: List[Dict[str, Any]] = Field(default_factory=list, description="Critical path in the supply tree")
+    bottlenecks: List[Dict[str, Any]] = Field(default_factory=list, description="Identified bottlenecks")
+    resource_utilization: Dict[str, Any] = Field(default_factory=dict, description="Resource utilization metrics")
 
 class SimulationResult(BaseModel):
     """Response model for simulation results"""

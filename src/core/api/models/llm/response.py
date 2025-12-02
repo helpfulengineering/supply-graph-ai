@@ -4,7 +4,7 @@ Response models for LLM API endpoints.
 This module provides Pydantic models for LLM API responses.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
@@ -28,8 +28,8 @@ class LLMHealthResponse(SuccessResponse):
     providers: Dict[str, ProviderStatus] = Field(..., description="Provider status information")
     metrics: Dict[str, Any] = Field(..., description="LLM service metrics")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "LLM service health check completed",
@@ -54,6 +54,7 @@ class LLMHealthResponse(SuccessResponse):
                 }
             }
         }
+    )
 
 
 class LLMProvidersResponse(SuccessResponse):
@@ -62,8 +63,8 @@ class LLMProvidersResponse(SuccessResponse):
     default_provider: Optional[str] = Field(None, description="Default provider name")
     available_providers: List[str] = Field(..., description="List of available provider names")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Providers retrieved successfully",
@@ -82,4 +83,5 @@ class LLMProvidersResponse(SuccessResponse):
                 "available_providers": ["anthropic"]
             }
         }
+    )
 

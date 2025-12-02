@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any
 from uuid import UUID
 
@@ -7,22 +7,8 @@ from ..base import BaseAPIRequest, LLMRequestMixin
 
 class SupplyTreeCreateRequest(BaseAPIRequest, LLMRequestMixin):
     """Consolidated supply tree creation request with standardized fields and LLM support"""
-    # Required fields first
-    facility_id: UUID
-    facility_name: str
-    okh_reference: str
-    confidence_score: float
-    
-    # Optional fields after
-    estimated_cost: Optional[float] = None
-    estimated_time: Optional[str] = None
-    materials_required: List[str] = Field(default_factory=list)
-    capabilities_used: List[str] = Field(default_factory=list)
-    match_type: str = "unknown"
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "facility_id": "12345678-1234-1234-1234-123456789012",
                 "facility_name": "Electronics Manufacturing Facility",
@@ -41,15 +27,27 @@ class SupplyTreeCreateRequest(BaseAPIRequest, LLMRequestMixin):
                 "strict_mode": False
             }
         }
+    )
+    
+    # Required fields first
+    facility_id: UUID
+    facility_name: str
+    okh_reference: str
+    confidence_score: float
+    
+    # Optional fields after
+    estimated_cost: Optional[float] = None
+    estimated_time: Optional[str] = None
+    materials_required: List[str] = Field(default_factory=list)
+    capabilities_used: List[str] = Field(default_factory=list)
+    match_type: str = "unknown"
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class SupplyTreeOptimizeRequest(BaseAPIRequest):
     """Request model for optimizing a supply tree"""
-    # Required fields
-    criteria: Dict[str, Any] = Field(..., description="Optimization criteria with priority and weights")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "criteria": {
                     "priority": "cost",  # or "time", "quality"
@@ -61,6 +59,10 @@ class SupplyTreeOptimizeRequest(BaseAPIRequest):
                 }
             }
         }
+    )
+    
+    # Required fields
+    criteria: Dict[str, Any] = Field(..., description="Optimization criteria with priority and weights")
 
 class SupplyTreeValidateRequest(BaseModel):
     """Request model for validating a supply tree"""

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any, Union
 
 from ..base import BaseAPIRequest, LLMRequestMixin
@@ -50,8 +50,8 @@ class OKHCreateRequest(BaseAPIRequest, LLMRequestMixin):
     software: Optional[List[Dict[str, Any]]] = None
     files: Optional[List[Dict[str, Any]]] = None
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "title": "Arduino-based IoT Sensor Node",
                 "repo": "https://github.com/example/iot-sensor",
@@ -91,6 +91,7 @@ class OKHCreateRequest(BaseAPIRequest, LLMRequestMixin):
                 "strict_mode": False
             }
         }
+    )
 
 
 class OKHUpdateRequest(BaseModel):

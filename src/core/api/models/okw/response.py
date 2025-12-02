@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
@@ -53,8 +53,8 @@ class OKWResponse(SuccessResponse, LLMResponseMixin):
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "OKW operation completed successfully",
@@ -73,6 +73,7 @@ class OKWResponse(SuccessResponse, LLMResponseMixin):
                 "metadata": {}
             }
         }
+    )
 
 class OKWValidationResponse(BaseModel):
     """Response model for OKW validation"""

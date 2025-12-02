@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Dict, List, Optional, Any
 from uuid import UUID
 
@@ -7,28 +7,8 @@ from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseVa
 
 class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
     """Consolidated supply tree response with standardized fields and LLM information"""
-    # Required fields first
-    id: UUID
-    facility_id: UUID
-    facility_name: str
-    okh_reference: str
-    confidence_score: float
-    creation_time: str
-    
-    # Optional fields after
-    estimated_cost: Optional[float] = None
-    estimated_time: Optional[str] = None
-    materials_required: List[str] = []
-    capabilities_used: List[str] = []
-    match_type: str = "unknown"
-    metadata: Dict[str, Any] = {}
-    
-    # Additional fields for enhanced response
-    processing_time: float = 0.0
-    validation_results: Optional[List[BaseValidationResult]] = None
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "00000000-0000-0000-0000-000000000000",
                 "facility_id": "12345678-1234-1234-1234-123456789012",
@@ -54,6 +34,27 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
                 "data": {}
             }
         }
+    )
+    
+    # Required fields first
+    id: UUID
+    facility_id: UUID
+    facility_name: str
+    okh_reference: str
+    confidence_score: float
+    creation_time: str
+    
+    # Optional fields after
+    estimated_cost: Optional[float] = None
+    estimated_time: Optional[str] = None
+    materials_required: List[str] = []
+    capabilities_used: List[str] = []
+    match_type: str = "unknown"
+    metadata: Dict[str, Any] = {}
+    
+    # Additional fields for enhanced response
+    processing_time: float = 0.0
+    validation_results: Optional[List[BaseValidationResult]] = None
 
 # Keep the old class name for backward compatibility
 SimplifiedSupplyTreeResponse = SupplyTreeResponse

@@ -4,7 +4,7 @@ Response models for validation API endpoints.
 This module provides Pydantic models for validation responses.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, Any, List, Optional
 from .context import ValidationContextModel
 
@@ -16,8 +16,8 @@ class ValidationIssue(BaseModel):
     path: List[str] = Field(default_factory=list, description="Path to the field with the issue")
     code: Optional[str] = Field(None, description="Issue code for programmatic handling")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "severity": "error",
                 "message": "Required field 'title' is missing",
@@ -25,6 +25,7 @@ class ValidationIssue(BaseModel):
                 "code": "required_field_missing"
             }
         }
+    )
 
 
 class ValidationResponse(BaseModel):
@@ -35,8 +36,8 @@ class ValidationResponse(BaseModel):
     context: Optional[ValidationContextModel] = Field(None, description="Validation context used")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional validation metadata")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "valid": False,
                 "normalized_content": {
@@ -65,6 +66,7 @@ class ValidationResponse(BaseModel):
                 }
             }
         }
+    )
 
 
 class ValidationContextResponse(BaseModel):
@@ -72,8 +74,8 @@ class ValidationContextResponse(BaseModel):
     contexts: List[ValidationContextModel] = Field(..., description="List of available validation contexts")
     total_count: int = Field(..., description="Total number of contexts")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "contexts": [
                     {
@@ -92,3 +94,4 @@ class ValidationContextResponse(BaseModel):
                 "total_count": 1
             }
         }
+    )

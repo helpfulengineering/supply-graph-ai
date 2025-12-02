@@ -71,21 +71,27 @@ class TestSupplyTreePerformance:
         assert len(deserialized_trees) == 1000
         for i, tree in enumerate(deserialized_trees):
             assert tree.facility_name == f"Facility {i}"
-            assert tree.confidence_score == 0.8 + (i % 20) * 0.01
+            # confidence_score is rounded to 2 decimal places in __post_init__
+            expected_score = round(0.8 + (i % 20) * 0.01, 2)
+            assert tree.confidence_score == expected_score
     
     def test_set_operations_performance(self):
         """Benchmark Set operations performance."""
         # Create test data with some duplicates
+        # SupplyTree.__hash__ and __eq__ use (facility_name, okh_reference, okw_reference)
+        # So we need to create trees that share all three fields to test deduplication
         trees = []
-        okw_refs = [str(uuid4()) for _ in range(500)]  # 500 unique OKW references
+        base_names = [f"Facility {i}" for i in range(500)]  # 500 unique facility names
+        base_okh_refs = [f"okh-{i}" for i in range(500)]  # 500 unique OKH references
+        base_okw_refs = [str(uuid4()) for _ in range(500)]  # 500 unique OKW references
         
         for i in range(1000):
-            # Use same okw_reference for some trees to test deduplication
-            okw_ref = okw_refs[i % 500]
+            # Use same combination for some trees to test deduplication
+            idx = i % 500
             tree = SupplyTree(
-                facility_name=f"Facility {i}",
-                okh_reference=f"okh-{i}",
-                okw_reference=okw_ref,
+                facility_name=base_names[idx],
+                okh_reference=base_okh_refs[idx],
+                okw_reference=base_okw_refs[idx],
                 confidence_score=0.8 + (i % 20) * 0.01
             )
             trees.append(tree)

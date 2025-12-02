@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID
 
@@ -63,8 +63,8 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "id": "00000000-0000-0000-0000-000000000000",
                 "title": "Arduino-based IoT Sensor Node",
@@ -110,6 +110,7 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
                 "validation_results": []
             }
         }
+    )
 
 class OKHValidationResponse(BaseModel):
     """Response model for OKH validation"""
@@ -161,7 +162,7 @@ class OKHExportResponse(BaseModel):
     # Required fields first
     success: bool
     message: str
-    schema: Dict[str, Any]
+    json_schema: Dict[str, Any]  # Renamed from 'schema' to avoid shadowing BaseModel.schema
     
     # Optional fields after
     schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"

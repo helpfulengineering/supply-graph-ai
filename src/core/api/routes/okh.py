@@ -240,7 +240,7 @@ async def export_okh_schema(
         return OKHExportResponse(
             success=True,
             message="OKH schema exported successfully",
-            schema=schema,
+            json_schema=schema,
             schema_version=schema.get("$schema", "http://json-schema.org/draft-07/schema#"),
             model_name="OKHManifest"
         )

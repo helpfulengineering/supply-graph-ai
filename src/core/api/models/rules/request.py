@@ -4,7 +4,7 @@ Request models for Rules API endpoints.
 These models define the request structures for rules management operations.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any, List
 from ..base import BaseAPIRequest
 
@@ -23,10 +23,8 @@ class RuleGetRequest(BaseAPIRequest):
 
 class RuleCreateRequest(BaseAPIRequest):
     """Request for creating a new rule"""
-    rule_data: Dict[str, Any] = Field(..., description="Rule data dictionary")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "rule_data": {
                     "id": "cnc_machining_rule",
@@ -39,14 +37,15 @@ class RuleCreateRequest(BaseAPIRequest):
                 }
             }
         }
+    )
+    
+    rule_data: Dict[str, Any] = Field(..., description="Rule data dictionary")
 
 
 class RuleUpdateRequest(BaseAPIRequest):
     """Request for updating an existing rule"""
-    rule_data: Dict[str, Any] = Field(..., description="Updated rule data dictionary")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "rule_data": {
                     "id": "cnc_machining_rule",
@@ -58,6 +57,9 @@ class RuleUpdateRequest(BaseAPIRequest):
                 }
             }
         }
+    )
+    
+    rule_data: Dict[str, Any] = Field(..., description="Updated rule data dictionary")
 
 
 class RuleDeleteRequest(BaseAPIRequest):
@@ -73,8 +75,8 @@ class RuleImportRequest(BaseAPIRequest):
     partial_update: bool = Field(True, description="Allow partial updates (merge vs replace, only for file import)")
     dry_run: bool = Field(False, description="Validate and compare without applying changes (only for file import)")
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "file_content": "domain: manufacturing\nversion: 1.0.0\nrules:\n  ...",
                 "file_format": "yaml",
@@ -82,6 +84,7 @@ class RuleImportRequest(BaseAPIRequest):
                 "dry_run": False
             }
         }
+    )
 
 
 class RuleExportRequest(BaseAPIRequest):
@@ -93,16 +96,17 @@ class RuleExportRequest(BaseAPIRequest):
 
 class RuleValidateRequest(BaseAPIRequest):
     """Request for validating rule file content"""
-    file_content: str = Field(..., description="File content to validate")
-    file_format: str = Field(..., description="File format: 'yaml' or 'json'")
-    
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "file_content": "domain: manufacturing\nversion: 1.0.0\nrules:\n  ...",
                 "file_format": "yaml"
             }
         }
+    )
+    
+    file_content: str = Field(..., description="File content to validate")
+    file_format: str = Field(..., description="File format: 'yaml' or 'json'")
 
 
 class RuleCompareRequest(BaseAPIRequest):

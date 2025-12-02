@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any
 
 from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
@@ -19,8 +19,8 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "domains": [
                     {
@@ -41,6 +41,7 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
                 "validation_results": []
             }
         }
+    )
 
 class Context(BaseModel):
     """Model for validation context information"""
@@ -58,8 +59,8 @@ class ContextsResponse(SuccessResponse, LLMResponseMixin):
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "contexts": [
                     {
@@ -80,6 +81,7 @@ class ContextsResponse(SuccessResponse, LLMResponseMixin):
                 "validation_results": []
             }
         }
+    )
 
 class ErrorResponse(BaseModel):
     """Response model for API errors"""
