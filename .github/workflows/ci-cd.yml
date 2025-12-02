@@ -181,42 +181,6 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
 
-  # Deploy to staging (example for Cloud Run)
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: [build, security]
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    environment:
-      name: staging
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY_STAGING }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Deploy to Cloud Run
-        id: deploy
-        run: |
-          gcloud run deploy supply-graph-ai-staging \
-            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop \
-            --region us-central1 \
-            --platform managed \
-            --allow-unauthenticated \
-            --set-env-vars ENVIRONMENT=staging \
-            --set-secrets API_KEYS=api-keys:latest \
-            --memory 512Mi \
-            --cpu 1 \
-            --timeout 300 \
-            --max-instances 10 \
-            --min-instances 0
 
   # Deploy to production
   deploy-production:
