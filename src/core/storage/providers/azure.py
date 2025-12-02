@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Dict, Any, List, AsyncIterator
+from typing import Optional, Dict, Any, List, AsyncIterator, TYPE_CHECKING
 
 from ..base import StorageProvider, StorageConfig, StorageMetadata
 
@@ -10,6 +10,14 @@ except ImportError:
     # Fallback for when Azure SDK is not available
     ResourceNotFoundError = Exception
 
+# Type hints for Azure SDK classes (only used for type checking)
+if TYPE_CHECKING:
+    from azure.storage.blob import BlobServiceClient, ContainerClient
+else:
+    # Runtime fallback - these won't be used if Azure SDK is not installed
+    BlobServiceClient = None
+    ContainerClient = None
+
 logger = logging.getLogger(__name__)
 
 class AzureBlobProvider(StorageProvider):
@@ -17,8 +25,8 @@ class AzureBlobProvider(StorageProvider):
     
     def __init__(self, config: StorageConfig):
         self.config = config
-        self._client: Optional[BlobServiceClient] = None
-        self._container: Optional[ContainerClient] = None
+        self._client: Optional['BlobServiceClient'] = None
+        self._container: Optional['ContainerClient'] = None
         self._connected = False
         # Remove retry policy for now to avoid async issues
         self._retry_policy = None

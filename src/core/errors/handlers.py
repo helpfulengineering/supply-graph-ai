@@ -14,7 +14,8 @@ from contextlib import asynccontextmanager
 from .exceptions import (
     OMEError, LLMError, APIError, ServiceError, ConfigurationError,
     LLMRateLimitError, LLMTimeoutError, LLMAuthenticationError,
-    APIRateLimitError, ErrorSeverity, ErrorCategory
+    APIRateLimitError, APIValidationError, APIAuthenticationError,
+    APINotFoundError, APIServerError, ErrorSeverity, ErrorCategory
 )
 
 logger = logging.getLogger(__name__)

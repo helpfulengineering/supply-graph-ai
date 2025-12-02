@@ -1,4 +1,4 @@
-import asyncio
+import pytest
 from pathlib import Path
 import os
 import sys
@@ -24,8 +24,9 @@ async def _create_scaffold(tmp_path: Path) -> Path:
     return project_dir
 
 
-def test_cleanup_removes_unmodified_stubs_and_empty_dirs(tmp_path):
-    project_dir = asyncio.get_event_loop().run_until_complete(_create_scaffold(tmp_path))
+@pytest.mark.asyncio
+async def test_cleanup_removes_unmodified_stubs_and_empty_dirs(tmp_path):
+    project_dir = await _create_scaffold(tmp_path)
 
     # Ensure a stub file exists
     readme = project_dir / "README.md"
@@ -34,28 +35,24 @@ def test_cleanup_removes_unmodified_stubs_and_empty_dirs(tmp_path):
 
     # Dry run first: nothing should be actually removed
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=True,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=True,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     assert readme.exists()
     assert any(str(readme) == p for p in res.removed_files)
 
     # Real cleanup: README.md should be removed as it is unmodified stub
-    res2 = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=False,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res2 = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=False,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     assert not readme.exists()
@@ -77,11 +74,10 @@ async def _create_scaffold_with_template_level(tmp_path: Path, template_level: s
     return project_dir
 
 
-def test_cleanup_with_links_and_bridge_pages(tmp_path):
+@pytest.mark.asyncio
+async def test_cleanup_with_links_and_bridge_pages(tmp_path):
     """Test that cleanup correctly identifies unmodified stubs with links (Phase 1, 2, 3)."""
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold_with_template_level(tmp_path, "standard")
-    )
+    project_dir = await _create_scaffold_with_template_level(tmp_path, "standard")
     
     # Verify scaffold includes links (Phase 1 & 2) and bridge pages (Phase 3)
     docs_index = project_dir / "docs" / "index.md"
@@ -103,14 +99,12 @@ def test_cleanup_with_links_and_bridge_pages(tmp_path):
     
     # Run cleanup in dry-run mode
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=True,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=True,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     
@@ -119,14 +113,12 @@ def test_cleanup_with_links_and_bridge_pages(tmp_path):
     assert len(res.removed_files) > 0
     
     # Run actual cleanup
-    res2 = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=False,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res2 = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=False,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     
@@ -138,11 +130,10 @@ def test_cleanup_with_links_and_bridge_pages(tmp_path):
     assert not bridge_bom.exists() or any(str(bridge_bom) == p for p in res2.removed_files)
 
 
-def test_cleanup_preserves_modified_files_with_links(tmp_path):
+@pytest.mark.asyncio
+async def test_cleanup_preserves_modified_files_with_links(tmp_path):
     """Test that cleanup preserves user-modified files even if they contain links."""
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold_with_template_level(tmp_path, "standard")
-    )
+    project_dir = await _create_scaffold_with_template_level(tmp_path, "standard")
     
     # Modify docs/index.md by adding user content
     docs_index = project_dir / "docs" / "index.md"
@@ -152,14 +143,12 @@ def test_cleanup_preserves_modified_files_with_links(tmp_path):
     
     # Run cleanup
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=False,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=False,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     
@@ -168,26 +157,23 @@ def test_cleanup_preserves_modified_files_with_links(tmp_path):
     assert str(docs_index) not in res.removed_files
 
 
-def test_cleanup_template_level_matching(tmp_path):
+@pytest.mark.asyncio
+async def test_cleanup_template_level_matching(tmp_path):
     """Test cleanup with different template levels (standard vs detailed)."""
     # Create scaffold with "detailed" template level
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold_with_template_level(tmp_path, "detailed")
-    )
+    project_dir = await _create_scaffold_with_template_level(tmp_path, "detailed")
     
     docs_index = project_dir / "docs" / "index.md"
     assert docs_index.exists()
     
     # Cleanup uses "standard" by default, so detailed scaffolds may not match exactly
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=True,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=True,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     
@@ -197,11 +183,10 @@ def test_cleanup_template_level_matching(tmp_path):
     # In practice, users should use the same template level for cleanup as scaffolding
 
 
-def test_cleanup_with_bridge_pages(tmp_path):
+@pytest.mark.asyncio
+async def test_cleanup_with_bridge_pages(tmp_path):
     """Test that cleanup correctly handles bridge pages (Phase 3)."""
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold_with_template_level(tmp_path, "standard")
-    )
+    project_dir = await _create_scaffold_with_template_level(tmp_path, "standard")
     
     # Verify bridge pages exist
     sections_dir = project_dir / "docs" / "sections"
@@ -218,14 +203,12 @@ def test_cleanup_with_bridge_pages(tmp_path):
     
     # Run cleanup
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=False,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=False,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     
@@ -234,11 +217,10 @@ def test_cleanup_with_bridge_pages(tmp_path):
     # This verifies cleanup correctly identifies bridge pages as stubs
 
 
-def test_cleanup_empty_directories_after_link_removal(tmp_path):
+@pytest.mark.asyncio
+async def test_cleanup_empty_directories_after_link_removal(tmp_path):
     """Test that cleanup removes empty directories after removing linked files."""
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold_with_template_level(tmp_path, "standard")
-    )
+    project_dir = await _create_scaffold_with_template_level(tmp_path, "standard")
     
     # Verify structure exists
     bom_dir = project_dir / "bom"
@@ -246,14 +228,12 @@ def test_cleanup_empty_directories_after_link_removal(tmp_path):
     
     # Run cleanup
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=False,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=False,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     
@@ -262,11 +242,10 @@ def test_cleanup_empty_directories_after_link_removal(tmp_path):
     # Directories with user-added files should remain
 
 
-def test_cleanup_detects_broken_links(tmp_path):
+@pytest.mark.asyncio
+async def test_cleanup_detects_broken_links(tmp_path):
     """Test that cleanup detects and warns about broken links after file removal."""
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold_with_template_level(tmp_path, "standard")
-    )
+    project_dir = await _create_scaffold_with_template_level(tmp_path, "standard")
     
     # Modify docs/index.md to keep it (so it has a link to bom/index.md)
     docs_index = project_dir / "docs" / "index.md"
@@ -286,14 +265,12 @@ def test_cleanup_detects_broken_links(tmp_path):
     
     # Run cleanup - this should remove bom/index.md but keep docs/index.md (it's modified)
     cleanup = CleanupService()
-    res = asyncio.get_event_loop().run_until_complete(
-        cleanup.clean(
-            CleanupOptions(
-                project_path=str(project_dir),
-                dry_run=False,
-                remove_unmodified_stubs=True,
-                remove_empty_directories=True,
-            )
+    res = await cleanup.clean(
+        CleanupOptions(
+            project_path=str(project_dir),
+            dry_run=False,
+            remove_unmodified_stubs=True,
+            remove_empty_directories=True,
         )
     )
     

@@ -575,8 +575,8 @@ async def analyze(ctx, project_url: str, provider: Optional[str], model: Optiona
         if result.get('status') != 'success':
             cli_ctx.end_command_tracking()
             md = result.get('metadata', {}) or {}
-            err_provider = md.get('provider') or selected_provider or 'unknown'
-            err_model = md.get('model') or selected_model or 'unknown'
+            err_provider = md.get('provider') or provider or 'unknown'
+            err_model = md.get('model') or model or 'unknown'
             raise click.ClickException(
                 f"LLM analyze failed (status={result.get('status')}). Provider={err_provider}, model={err_model}"
             )

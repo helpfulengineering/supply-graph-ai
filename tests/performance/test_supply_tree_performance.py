@@ -30,9 +30,9 @@ class TestSupplyTreePerformance:
         trees = []
         for i in range(1000):
             tree = SupplyTree(
-                facility_id=uuid4(),
                 facility_name=f"Facility {i}",
                 okh_reference=f"okh-{i}",
+                okw_reference=str(uuid4()),
                 confidence_score=0.8 + (i % 20) * 0.01,
                 estimated_cost=1000.0 + i * 10,
                 estimated_time=f"{i % 10 + 1} hours",
@@ -77,15 +77,15 @@ class TestSupplyTreePerformance:
         """Benchmark Set operations performance."""
         # Create test data with some duplicates
         trees = []
-        facility_ids = [uuid4() for _ in range(500)]  # 500 unique facilities
+        okw_refs = [str(uuid4()) for _ in range(500)]  # 500 unique OKW references
         
         for i in range(1000):
-            # Use same facility_id for some trees to test deduplication
-            facility_id = facility_ids[i % 500]
+            # Use same okw_reference for some trees to test deduplication
+            okw_ref = okw_refs[i % 500]
             tree = SupplyTree(
-                facility_id=facility_id,
                 facility_name=f"Facility {i}",
                 okh_reference=f"okh-{i}",
+                okw_reference=okw_ref,
                 confidence_score=0.8 + (i % 20) * 0.01
             )
             trees.append(tree)
@@ -138,9 +138,9 @@ class TestSupplyTreePerformance:
         trees = []
         for i in range(10000):
             tree = SupplyTree(
-                facility_id=uuid4(),
                 facility_name=f"Facility {i}",
                 okh_reference=f"okh-{i}",
+                okw_reference=str(uuid4()),
                 confidence_score=0.8 + (i % 20) * 0.01,
                 materials_required=[f"material_{j}" for j in range(10)],
                 capabilities_used=[f"capability_{j}" for j in range(5)],
@@ -180,9 +180,9 @@ class TestSupplyTreePerformance:
         trees = []
         for i in range(1000):
             tree = SupplyTree(
-                facility_id=uuid4(),
                 facility_name=f"Facility {i}",
                 okh_reference=f"okh-{i}",
+                okw_reference=str(uuid4()),
                 confidence_score=0.8 + (i % 20) * 0.01
             )
             trees.append(tree)
@@ -234,9 +234,9 @@ class TestSupplyTreePerformance:
         solutions = []
         for i in range(100):  # 100 matching solutions
             tree = SupplyTree(
-                facility_id=uuid4(),
                 facility_name=f"Manufacturing Facility {i}",
                 okh_reference=f"electronics-component-{i}",
+                okw_reference=str(uuid4()),
                 confidence_score=0.7 + (i % 30) * 0.01,
                 estimated_cost=1000.0 + i * 100,
                 estimated_time=f"{i % 7 + 1} days",
@@ -321,9 +321,9 @@ class TestPerformanceComparison:
         simplified_trees = []
         for i in range(1000):
             tree = SupplyTree(
-                facility_id=uuid4(),
                 facility_name=f"Facility {i}",
                 okh_reference=f"okh-{i}",
+                okw_reference=str(uuid4()),
                 confidence_score=0.8 + (i % 20) * 0.01,
                 materials_required=[f"material_{j}" for j in range(5)],
                 capabilities_used=[f"capability_{j}" for j in range(3)],
