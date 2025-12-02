@@ -6,9 +6,9 @@ as the original validator while the new validation framework is being integrated
 """
 
 import os
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
-from src.core.models.base.base_types import BaseValidator, Requirement, Capability
+from src.core.models.base.base_types import BaseValidator, Capability, Requirement
 from src.core.models.okh import OKHManifest
 from src.core.models.supply_trees import SupplyTree
 

@@ -1,17 +1,17 @@
 import json
 import shutil
-import aiofiles
-from typing import Optional, Dict, Any, List
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
+import aiofiles
+
 from ..models.okh import OKHManifest
-from ..models.package import BuildOptions, PackageMetadata
+from ..models.package import BuildOptions, PackageMetadata, calculate_file_checksum
 from ..packaging.builder import PackageBuilder
 from ..packaging.file_resolver import FileResolver
 from ..utils.logging import get_logger
 from .okh_service import OKHService
-from ..models.package import calculate_file_checksum
 
 logger = get_logger(__name__)
 

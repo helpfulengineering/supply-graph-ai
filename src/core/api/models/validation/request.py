@@ -4,8 +4,9 @@ Request models for validation API endpoints.
 This module provides Pydantic models for validation requests.
 """
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ValidationRequest(BaseModel):

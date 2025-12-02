@@ -6,8 +6,8 @@ It leverages the built-in validation in CapabilityRule and CapabilityRuleSet dat
 and adds additional business rule validations.
 """
 
-from typing import Dict, Any, List
 import logging
+from typing import Any, Dict, List
 
 from .capability_rules import CapabilityRule, CapabilityRuleSet
 

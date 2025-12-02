@@ -8,9 +8,9 @@ The prompts include comprehensive DocumentationType definitions, examples, and d
 from pathlib import Path
 from typing import Optional
 
-from ...models import FileInfo, AnalysisDepth
-from ...utils.file_categorization import FileCategorizationResult
 from ....models.okh import DocumentationType
+from ...models import AnalysisDepth, FileInfo
+from ...utils.file_categorization import FileCategorizationResult
 
 
 class FileCategorizationPrompts:

@@ -14,11 +14,11 @@ Layers:
 
 from .base import (
     BaseMatchingLayer,
-    MatchingResult,
-    MatchingMetrics,
-    MatchQuality,
-    MatchMetadata,
     MatchingLayer,
+    MatchingMetrics,
+    MatchingResult,
+    MatchMetadata,
+    MatchQuality,
 )
 
 __all__ = [

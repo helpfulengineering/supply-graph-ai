@@ -17,13 +17,14 @@ Architecture:
 - Focuses on actual matching scenarios, not just synonym relationships
 """
 
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field
-from enum import Enum
-import yaml
 import json
-from pathlib import Path
+from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
+
+import yaml
 
 from ..utils.logging import get_logger
 

@@ -5,11 +5,12 @@ This module provides compatibility between the new validation framework
 and the existing domain registry system.
 """
 
-from typing import Dict, Any, Optional
-from ....models.base.base_types import BaseValidator, Requirement, Capability
+from typing import Any, Dict, Optional
+
+from ....models.base.base_types import BaseValidator, Capability, Requirement
 from ....models.supply_trees import SupplyTree
-from .recipe_validator import CookingRecipeValidator
 from .kitchen_validator import CookingKitchenValidator
+from .recipe_validator import CookingRecipeValidator
 
 
 class CookingValidatorCompat(BaseValidator):

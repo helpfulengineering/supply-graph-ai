@@ -1,12 +1,13 @@
-from uuid import uuid4
 from typing import List, Optional
+from uuid import uuid4
+
 from src.core.models.base.base_types import (
     BaseMatcher,
-    Requirement,
     Capability,
     MatchResult,
-    NormalizedRequirements,
     NormalizedCapabilities,
+    NormalizedRequirements,
+    Requirement,
 )
 from src.core.models.supply_trees import SupplyTree
 

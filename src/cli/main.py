@@ -5,17 +5,18 @@ This module provides the main CLI interface with subcommands for different
 OME operations including package management, OKH/OKW operations, and matching.
 """
 
-import click
 from typing import Optional
 
-from .base import CLIContext, CLIConfig
-from .package import package_group
+import click
+
+from .base import CLIConfig, CLIContext
+from .match import match_group
 from .okh import okh_group
 from .okw import okw_group
-from .match import match_group
+from .package import package_group
+from .storage import storage_group
 from .system import system_group
 from .utility import utility_group
-from .storage import storage_group
 
 # Conditional LLM import - only load if LLM is enabled
 try:

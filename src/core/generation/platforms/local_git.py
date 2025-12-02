@@ -14,17 +14,17 @@ Benefits:
 - Eliminates network timeouts and API failures
 """
 
-import os
 import json
+import os
+import re
+import shutil
 import subprocess
 import tempfile
-import shutil
-import re
-from pathlib import Path
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ..models import ProjectData, PlatformType, FileInfo, DocumentInfo
+from ..models import DocumentInfo, FileInfo, PlatformType, ProjectData
 from .base import ProjectExtractor
 
 

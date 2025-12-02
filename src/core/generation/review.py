@@ -15,11 +15,11 @@ Key Features:
 """
 
 import uuid
-from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from typing import Any, Dict, Optional
 
-from .models import ManifestGeneration, FieldGeneration, GenerationLayer, ProjectData
 from ..models.okh import OKHManifest
+from .models import FieldGeneration, GenerationLayer, ManifestGeneration, ProjectData
 
 
 @dataclass

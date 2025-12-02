@@ -6,14 +6,15 @@ for OpenAI's models, including GPT-3.5, GPT-4, GPT-4-turbo, and other variants.
 """
 
 import logging
-from typing import Dict, Any, Optional, List
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 import openai
 from openai import AsyncOpenAI
 
-from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 from ..models.requests import LLMRequest, LLMRequestConfig
-from ..models.responses import LLMResponse, LLMResponseStatus, LLMResponseMetadata
+from ..models.responses import LLMResponse, LLMResponseMetadata, LLMResponseStatus
+from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 
 logger = logging.getLogger(__name__)
 

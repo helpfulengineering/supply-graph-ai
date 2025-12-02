@@ -5,19 +5,19 @@ This module provides decorators for consistent API route implementation,
 error handling, and response formatting across all endpoints.
 """
 
-from functools import wraps
-from typing import Callable, List, Optional
 import time
 from datetime import datetime
-from fastapi import HTTPException, status, Request
-from fastapi.responses import JSONResponse
+from functools import wraps
+from typing import Callable, List, Optional
 
-from .models.base import APIStatus, PaginationParams, PaginatedResponse, PaginationInfo
-from .error_handlers import create_error_response
+from fastapi import HTTPException, Request, status
+from fastapi.responses import JSONResponse
 
 # MetricsTracker is available but not currently used in decorators
 # from ..errors.metrics import MetricsTracker
 from ..utils.logging import get_logger
+from .error_handlers import create_error_response
+from .models.base import APIStatus, PaginatedResponse, PaginationInfo, PaginationParams
 
 # Set up logging
 logger = get_logger(__name__)
@@ -371,9 +371,10 @@ def cache_response(ttl_seconds: int = 300, cache_key_prefix: str = None):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            from ..services.cache_service import get_cache_service
             import hashlib
             import json
+
+            from ..services.cache_service import get_cache_service
 
             # Extract request object if available
             request = None

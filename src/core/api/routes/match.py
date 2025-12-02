@@ -6,46 +6,48 @@ into a single, standardized API route file with enhanced error handling,
 request validation, and response formatting.
 """
 
+import json
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+import yaml
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
-    UploadFile,
     File,
     Form,
+    HTTPException,
     Query,
     Request,
+    UploadFile,
     status,
 )
-from uuid import UUID
-from typing import Optional, List, Dict, Any
-import json
-import yaml
-from datetime import datetime
 
-# Import new standardized components
-from ..models.base import PaginationParams, PaginatedResponse, ValidationResult
+from ...models.okh import OKHManifest
+from ...models.okw import ManufacturingFacility
+from ...registry.domain_registry import DomainRegistry
+from ...services.domain_service import DomainDetector
+from ...services.matching_service import MatchingService
+from ...services.okh_service import OKHService
+from ...services.okw_service import OKWService
+from ...services.storage_service import StorageService
+from ...utils.logging import get_logger
 from ..decorators import (
     api_endpoint,
-    validate_request,
-    track_performance,
     llm_endpoint,
     paginated_response,
+    track_performance,
+    validate_request,
 )
 from ..error_handlers import create_error_response, create_success_response
 
+# Import new standardized components
+from ..models.base import PaginatedResponse, PaginationParams, ValidationResult
+
 # Import existing models and services
-from ..models.match.request import MatchRequest, ValidateMatchRequest, SimulateRequest
+from ..models.match.request import MatchRequest, SimulateRequest, ValidateMatchRequest
 from ..models.match.response import MatchResponse, SimulateResponse
-from ...services.matching_service import MatchingService
-from ...services.storage_service import StorageService
-from ...services.okh_service import OKHService
-from ...services.okw_service import OKWService
-from ...models.okw import ManufacturingFacility
-from ...services.domain_service import DomainDetector
-from ...registry.domain_registry import DomainRegistry
-from ...models.okh import OKHManifest
-from ...utils.logging import get_logger
 
 # Create consolidated router
 router = APIRouter(
@@ -403,7 +405,7 @@ async def validate_match(
         # This would provide more comprehensive validation including supply tree structure validation.
 
         # Convert validation result to API format
-        from src.core.api.models.base import ErrorDetail, ErrorCode
+        from src.core.api.models.base import ErrorCode, ErrorDetail
 
         all_errors = [
             ErrorDetail(
@@ -751,7 +753,7 @@ async def list_domains(
         )
 
         # Create proper PaginatedResponse (not wrapped in create_success_response)
-        from ..models.base import PaginationInfo, APIStatus
+        from ..models.base import APIStatus, PaginationInfo
 
         pagination_info = PaginationInfo(
             page=pagination.page,

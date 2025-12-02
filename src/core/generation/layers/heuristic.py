@@ -5,20 +5,20 @@ This layer applies rule-based pattern recognition to extract information
 from file structures, naming conventions, and content patterns.
 """
 
-import re
-import os
 import logging
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+import os
+import re
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, LayerConfig, AnalysisDepth
 from ...models.okh import DocumentationType
+from ..models import AnalysisDepth, GenerationLayer, LayerConfig, ProjectData
 from ..utils.file_categorization import (
-    FileCategorizationRules,
     FileCategorizationResult,
+    FileCategorizationRules,
 )
+from .base import BaseGenerationLayer, LayerResult
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +49,11 @@ class HeuristicMatcher(BaseGenerationLayer):
             "enable_llm_categorization", True
         ):
             try:
+                from ...llm.providers.base import LLMProviderType
+                from ...llm.service import LLMService, LLMServiceConfig
                 from ..services.file_categorization_service import (
                     FileCategorizationService,
                 )
-                from ...llm.service import LLMService, LLMServiceConfig
-                from ...llm.providers.base import LLMProviderType
 
                 # Create LLM service if LLM is configured
                 llm_service = None

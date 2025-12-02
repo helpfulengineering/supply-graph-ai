@@ -5,14 +5,16 @@ This module provides middleware for consistent error responses
 across all validation endpoints.
 """
 
-from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
-from typing import Callable, Dict, Any, Optional
 import logging
+from typing import Any, Callable, Dict, Optional
+
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
+
 from ..exceptions import (
-    ValidationException,
-    ValidationContextError,
     DomainValidationError,
+    ValidationContextError,
+    ValidationException,
 )
 
 logger = logging.getLogger(__name__)

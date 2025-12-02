@@ -5,10 +5,10 @@ cloud secrets managers (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault
 with fallback to environment variables for local development and Cloud Run/ECS.
 """
 
-import os
 import logging
-from typing import Optional, Dict, Any
+import os
 from enum import Enum
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +126,8 @@ class SecretsManager:
     def _init_azure(self):
         """Initialize Azure Key Vault client"""
         try:
-            from azure.keyvault.secrets import SecretClient
             from azure.identity import DefaultAzureCredential
+            from azure.keyvault.secrets import SecretClient
 
             vault_url = os.getenv("AZURE_KEY_VAULT_URL")
             if not vault_url:

@@ -1,17 +1,17 @@
-from typing import List, Dict, Any, Optional
-from uuid import uuid4
 import re
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
 
 from src.core.models.base.base_types import (
     BaseMatcher,
-    Requirement,
     Capability,
     MatchResult,
+    Requirement,
     ResourceType,
     Substitution,
 )
-from src.core.models.supply_trees import SupplyTree
 from src.core.models.okh import OKHManifest, ProcessRequirement
+from src.core.models.supply_trees import SupplyTree
 
 
 class OKHRequirement(Requirement):

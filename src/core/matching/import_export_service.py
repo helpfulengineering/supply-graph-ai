@@ -6,14 +6,15 @@ It provides comparison functionality for dry-run operations and uses dataclass
 methods for all data conversions.
 """
 
-from typing import Dict, Any, Optional, Tuple
-import yaml
 import json
 import logging
+from typing import Any, Dict, Optional, Tuple
+
+import yaml
 
 from .capability_rules import CapabilityRuleSet
-from .validation import ValidationService
 from .rules_service import RulesService
+from .validation import ValidationService
 
 logger = logging.getLogger(__name__)
 

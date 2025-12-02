@@ -21,22 +21,22 @@ changes while maintaining backward compatibility.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from .models import (
-    ProjectData,
-    ManifestGeneration,
-    FieldGeneration,
-    LayerConfig,
-    QualityReport,
-    GenerationLayer,
-    GenerationQuality,
-    GenerationResult,
-)
 from .layers.direct import DirectMatcher
 from .layers.heuristic import HeuristicMatcher
 from .layers.nlp import NLPMatcher
+from .models import (
+    FieldGeneration,
+    GenerationLayer,
+    GenerationQuality,
+    GenerationResult,
+    LayerConfig,
+    ManifestGeneration,
+    ProjectData,
+    QualityReport,
+)
 from .quality import QualityAssessor
 
 # Configure logging
@@ -1225,7 +1225,7 @@ class GenerationEngine:
         Returns:
             BillOfMaterials object with normalized components
         """
-        from .bom_models import BOMCollector, BOMProcessor, BOMBuilder
+        from .bom_models import BOMBuilder, BOMCollector, BOMProcessor
 
         # Collect BOM data from multiple sources
         collector = BOMCollector()

@@ -6,15 +6,15 @@ It wraps CapabilityRuleManager and provides CRUD operations, import/export,
 and rollback functionality.
 """
 
-from typing import Dict, List, Optional, Any
 import logging
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from .capability_rules import (
     CapabilityRule,
+    CapabilityRuleManager,
     CapabilityRuleSet,
     RuleType,
-    CapabilityRuleManager,
 )
 from .validation import ValidationService
 

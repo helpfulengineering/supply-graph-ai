@@ -8,10 +8,10 @@ This module provides an LLM provider selection system that supports:
 - Provider availability checking
 """
 
-import os
 import logging
-from typing import Optional, Dict, Any, List
+import os
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from .providers.base import LLMProviderType
 from .service import LLMService, LLMServiceConfig
@@ -309,8 +309,9 @@ class LLMProviderSelector:
     def _is_ollama_available(self) -> bool:
         """Check if Ollama is available locally."""
         try:
-            import httpx
             import asyncio
+
+            import httpx
 
             async def check_ollama():
                 try:

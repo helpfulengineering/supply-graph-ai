@@ -8,11 +8,11 @@ This layer is part of the 4-layer matching architecture and inherits from
 BaseMatchingLayer to ensure consistent interfaces and error handling.
 """
 
-from typing import List, Dict, Any, Optional
 import logging
+from typing import Any, Dict, List, Optional
 
-from .layers.base import BaseMatchingLayer, MatchingResult, MatchQuality, MatchingLayer
-from .capability_rules import CapabilityRuleManager, CapabilityRule
+from .capability_rules import CapabilityRule, CapabilityRuleManager
+from .layers.base import BaseMatchingLayer, MatchingLayer, MatchingResult, MatchQuality
 
 logger = logging.getLogger(__name__)
 

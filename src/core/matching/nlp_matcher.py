@@ -12,11 +12,11 @@ The implementation uses spaCy for semantic similarity and entity recognition,
 following the same pattern as the generation system's NLP layer.
 """
 
-from typing import List, Dict, Any, Optional
+import asyncio
 import logging
 import re
-import asyncio
 from difflib import SequenceMatcher
+from typing import Any, Dict, List, Optional
 
 # Import spaCy for NLP processing
 try:
@@ -27,7 +27,7 @@ except ImportError:
     SPACY_AVAILABLE = False
     spacy = None
 
-from .layers.base import BaseMatchingLayer, MatchingResult, MatchQuality, MatchingLayer
+from .layers.base import BaseMatchingLayer, MatchingLayer, MatchingResult, MatchQuality
 
 logger = logging.getLogger(__name__)
 

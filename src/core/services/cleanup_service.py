@@ -14,10 +14,10 @@ Design notes:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import re
 
 
 @dataclass
@@ -49,7 +49,7 @@ class CleanupService:
 
         # Build known stub contents using ScaffoldService templates
         # Import locally to avoid cycles
-        from src.core.services.scaffold_service import ScaffoldService, ScaffoldOptions
+        from src.core.services.scaffold_service import ScaffoldOptions, ScaffoldService
 
         # We do not need all options; use defaults and infer project name from folder
         scaffold = ScaffoldService()

@@ -6,7 +6,8 @@ with the existing domain management system.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any
+from typing import Any, Dict
+
 from src.core.registry.domain_registry import DomainRegistry
 
 

@@ -5,10 +5,11 @@ This module defines the data models for API key management,
 authentication, and authorization.
 """
 
-from pydantic import BaseModel, Field
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
 from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 class APIKey(BaseModel):

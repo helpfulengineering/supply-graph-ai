@@ -5,40 +5,41 @@ This module provides API endpoints for managing capability rules.
 All endpoints are under /api/match/rules to align with the matching domain.
 """
 
-from fastapi import APIRouter, HTTPException, Depends, status, Path, Query, Request
-from typing import Optional
-import yaml
 import json
+from typing import Optional
 
-# Import standardized components
-from ..models.base import SuccessResponse
-from ..decorators import api_endpoint, track_performance
-from ..error_handlers import create_success_response
+import yaml
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
-# Import rules models
-from ..models.rules.request import (
-    RuleCreateRequest,
-    RuleUpdateRequest,
-    RuleImportRequest,
-    RuleValidateRequest,
-    RuleCompareRequest,
-)
-from ..models.rules.response import (
-    RuleResponse,
-    RuleListResponse,
-    RuleImportResponse,
-    RuleExportResponse,
-    RuleValidateResponse,
-    RuleCompareResponse,
-)
+from ...matching.capability_rules import CapabilityRuleManager
+from ...matching.import_export_service import ImportExportService
 
 # Import services
 from ...matching.rules_service import RulesService
-from ...matching.import_export_service import ImportExportService
 from ...matching.validation import ValidationService
-from ...matching.capability_rules import CapabilityRuleManager
-
 from ...utils.logging import get_logger
+from ..decorators import api_endpoint, track_performance
+from ..error_handlers import create_success_response
+
+# Import standardized components
+from ..models.base import SuccessResponse
+
+# Import rules models
+from ..models.rules.request import (
+    RuleCompareRequest,
+    RuleCreateRequest,
+    RuleImportRequest,
+    RuleUpdateRequest,
+    RuleValidateRequest,
+)
+from ..models.rules.response import (
+    RuleCompareResponse,
+    RuleExportResponse,
+    RuleImportResponse,
+    RuleListResponse,
+    RuleResponse,
+    RuleValidateResponse,
+)
 
 logger = get_logger(__name__)
 

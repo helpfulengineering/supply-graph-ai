@@ -13,7 +13,7 @@ The platform extractors support:
 - Standardized data extraction
 """
 
-from .base import ProjectExtractor, ExtractionMetrics
+from .base import ExtractionMetrics, ProjectExtractor
 from .github import GitHubExtractor
 from .gitlab import GitLabExtractor
 

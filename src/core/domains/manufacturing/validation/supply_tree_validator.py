@@ -5,11 +5,12 @@ This module provides a supply tree validator for the manufacturing domain.
 """
 
 from typing import Any, Optional
-from ....validation.engine import Validator
+
+from ....models.supply_trees import SupplyTree
 from ....validation.context import ValidationContext
+from ....validation.engine import Validator
 from ....validation.result import ValidationResult
 from ....validation.rules.manufacturing import ManufacturingValidationRules
-from ....models.supply_trees import SupplyTree
 
 
 class ManufacturingSupplyTreeValidator(Validator):

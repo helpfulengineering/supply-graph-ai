@@ -9,8 +9,8 @@ to OKH manifest fields for manifest optimization.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Set, Dict, Any, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 
 @dataclass

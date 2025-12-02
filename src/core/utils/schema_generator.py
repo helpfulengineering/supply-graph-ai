@@ -5,12 +5,12 @@ This utility generates JSON schemas in canonical format from Python dataclasses
 using Pydantic's schema generation capabilities.
 """
 
-from typing import Type, Dict, Any, Optional
-from dataclasses import dataclass, fields, is_dataclass, MISSING
-from enum import Enum
-from uuid import UUID
-from datetime import date, datetime
 import inspect
+from dataclasses import MISSING, dataclass, fields, is_dataclass
+from datetime import date, datetime
+from enum import Enum
+from typing import Any, Dict, Optional, Type
+from uuid import UUID
 
 try:
     from pydantic import TypeAdapter, create_model

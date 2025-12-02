@@ -7,14 +7,14 @@ from platform APIs and file structures.
 """
 
 import re
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from ..models import (
-    ProjectData,
     FieldGeneration,
     GenerationLayer,
-    PlatformType,
     LayerConfig,
+    PlatformType,
+    ProjectData,
 )
 from .base import BaseGenerationLayer, LayerResult
 

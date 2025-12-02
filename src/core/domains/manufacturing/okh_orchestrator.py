@@ -1,23 +1,23 @@
 import logging
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
-from src.core.domains.manufacturing.okh_validator import OKHValidator
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher, OKHRequirement
-from src.core.models.okh import (
-    OKHManifest,
-    License,
-    PartSpec,
-    ManufacturingSpec,
-    MaterialSpec,
-    ProcessRequirement,
-)
+from src.core.domains.manufacturing.okh_validator import OKHValidator
 from src.core.models.base.base_orchestrator import BaseOrchestrator, MatchStatus
 from src.core.models.base.base_types import (
+    Capability,
     NormalizedCapabilities,
     NormalizedRequirements,
-    Capability,
+)
+from src.core.models.okh import (
+    License,
+    ManufacturingSpec,
+    MaterialSpec,
+    OKHManifest,
+    PartSpec,
+    ProcessRequirement,
 )
 
 

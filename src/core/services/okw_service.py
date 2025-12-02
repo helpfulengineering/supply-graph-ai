@@ -1,15 +1,15 @@
 import json
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
+from ..models.okw import ManufacturingFacility
+from ..storage.smart_discovery import SmartFileDiscovery
+from ..utils.logging import get_logger
 from ..validation.context import ValidationContext
+from ..validation.uuid_validator import UUIDValidator
 from .base import BaseService, ServiceConfig
 from .storage_service import StorageService
-from ..models.okw import ManufacturingFacility
-from ..utils.logging import get_logger
-from ..storage.smart_discovery import SmartFileDiscovery
-from ..validation.uuid_validator import UUIDValidator
 
 logger = get_logger(__name__)
 
@@ -382,8 +382,8 @@ class OKWService(BaseService["OKWService"]):
     async def _ensure_domains_registered(self) -> None:
         """Ensure domains are registered (for fallback mode when server startup doesn't run)"""
         from ..registry.domain_registry import (
-            DomainRegistry,
             DomainMetadata,
+            DomainRegistry,
             DomainStatus,
         )
 

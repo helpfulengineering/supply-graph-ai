@@ -5,11 +5,11 @@ This module provides centralized file processing functionality including
 file type detection, pattern matching, content extraction, and categorization.
 """
 
-import re
 import os
+import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
-from dataclasses import dataclass
 
 from ..models import FileInfo
 

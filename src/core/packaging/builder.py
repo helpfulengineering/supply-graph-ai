@@ -1,11 +1,11 @@
 import json
-from pathlib import Path
-from typing import List, Dict, Any, Optional
-from datetime import datetime
 import logging
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ..models.okh import OKHManifest, DocumentRef, DocumentationType, PartSpec, Software
-from ..models.package import BuildOptions, PackageMetadata, FileInfo
+from ..models.okh import DocumentationType, DocumentRef, OKHManifest, PartSpec, Software
+from ..models.package import BuildOptions, FileInfo, PackageMetadata
 from .file_resolver import FileResolver
 
 logger = logging.getLogger(__name__)

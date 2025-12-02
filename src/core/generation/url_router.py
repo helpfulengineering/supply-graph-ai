@@ -6,8 +6,9 @@ extractors for different platforms.
 """
 
 import re
-from typing import Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 from urllib.parse import urlparse
+
 from .models import PlatformType
 
 if TYPE_CHECKING:

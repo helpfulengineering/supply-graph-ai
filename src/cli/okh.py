@@ -5,23 +5,23 @@ This module provides commands for managing OKH manifests including
 creation, validation, extraction, and storage operations.
 """
 
-import click
 import json
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 from uuid import UUID
 
+import click
 
 from ..core.generation.built_directory import BuiltDirectoryExporter
-from ..core.services.okh_service import OKHService
 from ..core.models.okh import OKHManifest
+from ..core.services.okh_service import OKHService
 from ..core.validation.auto_fix import auto_fix_okh_manifest
 from ..core.validation.model_validator import validate_okh_manifest
 from .base import (
     CLIContext,
     SmartCommand,
-    format_llm_output,
     create_llm_request_data,
+    format_llm_output,
     log_llm_usage,
 )
 from .decorators import standard_cli_command
@@ -1154,16 +1154,16 @@ async def generate_from_url(
         async def fallback_generate():
             """Generate using direct service calls"""
             cli_ctx.log("Using direct service generation...", "info")
-            from ..core.generation.url_router import URLRouter
             from ..core.generation.engine import GenerationEngine
-            from ..core.generation.review import ReviewInterface
             from ..core.generation.models import (
                 GenerationResult,
-                PlatformType,
                 LayerConfig,
+                PlatformType,
             )
             from ..core.generation.platforms.github import GitHubExtractor
             from ..core.generation.platforms.gitlab import GitLabExtractor
+            from ..core.generation.review import ReviewInterface
+            from ..core.generation.url_router import URLRouter
 
             # Validate and route URL
             router = URLRouter()

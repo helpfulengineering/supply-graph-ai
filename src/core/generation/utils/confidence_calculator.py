@@ -5,9 +5,9 @@ This module provides standardized confidence scoring for field extractions
 across all generation layers, ensuring consistent quality assessment.
 """
 
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from ..models import GenerationLayer
 

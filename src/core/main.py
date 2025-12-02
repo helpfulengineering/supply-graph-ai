@@ -1,34 +1,33 @@
 import json
-import uvicorn
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, status, Response
-from fastapi.middleware.cors import CORSMiddleware
+
+import uvicorn
+from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .version import get_version
-
-from src.core.api.routes.match import router as match_router
-from src.core.api.routes.okh import router as okh_router
-from src.core.api.routes.okw import router as okw_router
-from src.core.api.routes.supply_tree import router as supply_tree_router
-from src.core.api.routes.utility import router as utility_router
-from src.core.api.routes.package import router as package_router
-from src.core.api.routes.llm import router as llm_router
-from src.core.api.routes.rules import router as rules_router
+from src.config import settings
+from src.core.api.dependencies import get_current_user, get_optional_user
 
 # Import new standardized API components
 from src.core.api.error_handlers import (
-    validation_exception_handler,
-    http_exception_handler,
     general_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
 )
 from src.core.api.middleware import setup_api_middleware
-from src.core.errors.metrics import get_metrics_tracker
-from src.core.api.dependencies import get_current_user, get_optional_user
-
+from src.core.api.routes.llm import router as llm_router
+from src.core.api.routes.match import router as match_router
+from src.core.api.routes.okh import router as okh_router
+from src.core.api.routes.okw import router as okw_router
+from src.core.api.routes.package import router as package_router
+from src.core.api.routes.rules import router as rules_router
+from src.core.api.routes.supply_tree import router as supply_tree_router
+from src.core.api.routes.utility import router as utility_router
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
+from src.core.domains.cooking.validation.compatibility import CookingValidatorCompat
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 
@@ -36,13 +35,17 @@ from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 from src.core.domains.manufacturing.validation.compatibility import (
     ManufacturingOKHValidatorCompat,
 )
-from src.core.domains.cooking.validation.compatibility import CookingValidatorCompat
-from src.core.registry.domain_registry import DomainRegistry
-from src.core.services.storage_service import StorageService
+from src.core.errors.metrics import get_metrics_tracker
+from src.core.registry.domain_registry import (
+    DomainMetadata,
+    DomainRegistry,
+    DomainStatus,
+)
 from src.core.services.auth_service import AuthenticationService
-from src.core.registry.domain_registry import DomainMetadata, DomainStatus
-from src.config import settings
-from src.core.utils.logging import setup_logging, get_logger
+from src.core.services.storage_service import StorageService
+from src.core.utils.logging import get_logger, setup_logging
+
+from .version import get_version
 
 # Setup logging
 setup_logging(level=settings.LOG_LEVEL, log_file=settings.LOG_FILE)

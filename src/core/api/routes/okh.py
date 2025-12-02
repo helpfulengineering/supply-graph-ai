@@ -1,66 +1,69 @@
+import json
+from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
+import yaml
 from fastapi import (
     APIRouter,
-    HTTPException,
-    Query,
-    Path,
     Depends,
-    status,
-    UploadFile,
     File,
     Form,
+    HTTPException,
+    Path,
+    Query,
     Request,
+    UploadFile,
+    status,
 )
 from fastapi.encoders import jsonable_encoder
-from typing import Optional, List
-from uuid import UUID
-import json
-import yaml
-from datetime import datetime
 from pydantic import Field
+
+from src.config import settings
+
+from ...services.cleanup_service import CleanupOptions, CleanupService
+from ...services.okh_service import OKHService
+from ...services.scaffold_service import ScaffoldService
+from ...services.storage_service import StorageService
+from ...utils.logging import get_logger
+from ..decorators import (
+    api_endpoint,
+    paginated_response,
+    track_performance,
+    validate_request,
+)
+from ..error_handlers import create_error_response, create_success_response
 
 # Import new standardized components
 from ..models.base import (
-    SuccessResponse,
-    PaginationParams,
+    APIStatus,
     PaginatedResponse,
     PaginationInfo,
+    PaginationParams,
+    SuccessResponse,
     ValidationResult,
-    APIStatus,
 )
-from ..decorators import (
-    api_endpoint,
-    validate_request,
-    track_performance,
-    paginated_response,
-)
-from ..error_handlers import create_error_response, create_success_response
+from ..models.cleanup.request import CleanupRequest
+from ..models.cleanup.response import CleanupResponse
 
 # Import existing models and services (now properly used through inheritance)
 from ..models.okh.request import (
     OKHCreateRequest,
+    OKHExtractRequest,
+    OKHFromStorageRequest,
+    OKHGenerateRequest,
     OKHUpdateRequest,
     OKHValidateRequest,
-    OKHExtractRequest,
-    OKHGenerateRequest,
-    OKHFromStorageRequest,
 )
 from ..models.okh.response import (
-    OKHResponse,
-    OKHExtractResponse,
-    OKHUploadResponse,
-    OKHGenerateResponse,
     OKHExportResponse,
+    OKHExtractResponse,
+    OKHGenerateResponse,
+    OKHResponse,
+    OKHUploadResponse,
 )
 from ..models.scaffold.request import ScaffoldRequest
 from ..models.scaffold.response import ScaffoldResponse
-from ..models.cleanup.request import CleanupRequest
-from ..models.cleanup.response import CleanupResponse
-from ...services.okh_service import OKHService
-from ...services.scaffold_service import ScaffoldService
-from ...services.cleanup_service import CleanupService, CleanupOptions
-from ...services.storage_service import StorageService
-from ...utils.logging import get_logger
-from src.config import settings
 
 # Set up logging
 logger = get_logger(__name__)

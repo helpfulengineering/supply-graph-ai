@@ -5,8 +5,9 @@ This module provides compatibility between the new validation framework
 and the existing domain registry system.
 """
 
-from typing import Dict, Any, Optional
-from ....models.base.base_types import BaseValidator, Requirement, Capability
+from typing import Any, Dict, Optional
+
+from ....models.base.base_types import BaseValidator, Capability, Requirement
 from ....models.okh import OKHManifest
 from ....models.supply_trees import SupplyTree
 from .okh_validator import ManufacturingOKHValidator

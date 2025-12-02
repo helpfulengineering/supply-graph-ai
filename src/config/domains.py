@@ -5,9 +5,9 @@ This module defines the configuration for all supported domains,
 including their metadata, supported types, and component mappings.
 """
 
-from typing import Dict, Any, Set
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, Set
 
 
 class DomainStatus(Enum):

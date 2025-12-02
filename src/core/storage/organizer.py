@@ -7,13 +7,13 @@ using a structured directory hierarchy and proper metadata tagging.
 
 import json
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
 
-from .manager import StorageManager
-from .smart_discovery import SmartFileDiscovery, FileInfo
 from ..utils.logging import get_logger
+from .manager import StorageManager
+from .smart_discovery import FileInfo, SmartFileDiscovery
 
 logger = get_logger(__name__)
 

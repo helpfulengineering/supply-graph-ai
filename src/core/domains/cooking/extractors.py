@@ -1,6 +1,7 @@
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from ...models.base.base_extractors import BaseExtractor
-from ...models.base.base_types import NormalizedRequirements, NormalizedCapabilities
+from ...models.base.base_types import NormalizedCapabilities, NormalizedRequirements
 
 
 class CookingExtractor(BaseExtractor):

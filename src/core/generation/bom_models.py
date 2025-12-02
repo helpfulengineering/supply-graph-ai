@@ -2,16 +2,17 @@
 BOM normalization data models and utilities
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
-from enum import Enum
-import re
 import json
-import yaml
 import logging
+import re
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 # Import Component from the BOM models
-from ..models.bom import Component, BillOfMaterials
+from ..models.bom import BillOfMaterials, Component
 
 logger = logging.getLogger(__name__)
 
@@ -1390,8 +1391,9 @@ class BOMBuilder:
         Returns:
             BillOfMaterials object
         """
-        from ..models.bom import BillOfMaterials
         from datetime import datetime
+
+        from ..models.bom import BillOfMaterials
 
         # Validate components
         validated_components = self._validate_components(components)

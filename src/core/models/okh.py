@@ -1,11 +1,11 @@
+import os
+import re
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Union
 from datetime import date
 from enum import Enum
-from uuid import UUID, uuid4
 from pathlib import Path
-import re
-import os
+from typing import Dict, List, Optional, Union
+from uuid import UUID, uuid4
 
 
 class DocumentationType(Enum):

@@ -1,7 +1,8 @@
-from typing import Dict, Type, Any, Optional, Set, List, Union, TYPE_CHECKING
+import logging
 from dataclasses import dataclass
 from enum import Enum
-import logging
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
+
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
 from .validator_adapter import ValidatorAdapter

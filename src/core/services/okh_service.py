@@ -1,26 +1,28 @@
-import httpx
-import yaml
-import traceback
 import json
-from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
+import traceback
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
+import httpx
+import yaml
+
 from src.config import settings
-from ..generation.url_router import URLRouter
+
+from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
 
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
 from ..generation.models import PlatformType
-from .base import BaseService, ServiceConfig
-from .storage_service import StorageService
-from ..models.okh import OKHManifest, ProcessRequirement
-from ..utils.logging import get_logger
 from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
-from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
+from ..generation.url_router import URLRouter
+from ..models.okh import OKHManifest, ProcessRequirement
+from ..storage.smart_discovery import FileInfo, SmartFileDiscovery
+from ..utils.logging import get_logger
 from ..validation.context import ValidationContext
-from ..storage.smart_discovery import SmartFileDiscovery, FileInfo
 from ..validation.uuid_validator import UUIDValidator
+from .base import BaseService, ServiceConfig
+from .storage_service import StorageService
 
 if TYPE_CHECKING:
     from ..generation.engine import GenerationEngine

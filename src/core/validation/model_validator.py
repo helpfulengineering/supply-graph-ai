@@ -11,9 +11,10 @@ All validation should reference the canonical dataclass definitions:
 - ManufacturingFacility for OKW files
 """
 
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, field
 import json
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger

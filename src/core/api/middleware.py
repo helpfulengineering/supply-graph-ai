@@ -7,12 +7,13 @@ logging, and performance monitoring across all API endpoints.
 
 import time
 import uuid
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from datetime import datetime
 
-from ..utils.logging import get_logger
+from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+
 from ..errors.metrics import MetricsTracker
+from ..utils.logging import get_logger
 
 # Set up logging
 logger = get_logger(__name__)

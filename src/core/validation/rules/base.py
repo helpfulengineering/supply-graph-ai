@@ -5,7 +5,7 @@ This module provides the base class for domain-specific validation rules.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 
 class BaseValidationRules(ABC):

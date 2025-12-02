@@ -5,19 +5,20 @@ This module provides functionality to extract project data from GitLab repositor
 using the GitLab API with caching and temporary local clones to avoid rate limits.
 """
 
-import json
-import hashlib
-import os
 import base64
+import hashlib
+import json
+import os
+import shutil
 import subprocess
 import tempfile
-import shutil
-from dotenv import load_dotenv
-from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from ..models import ProjectData, PlatformType, FileInfo, DocumentInfo
+from dotenv import load_dotenv
+
+from ..models import DocumentInfo, FileInfo, PlatformType, ProjectData
 from .base import ProjectExtractor
 
 

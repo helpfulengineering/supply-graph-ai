@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum, auto
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Generic, TypeVar
-from .base_types import NormalizedRequirements, NormalizedCapabilities
+from enum import Enum, auto
+from typing import Any, Dict, Generic, List, Optional, TypeVar
+
+from .base_types import NormalizedCapabilities, NormalizedRequirements
 
 # Generic type variables
 T = TypeVar("T")

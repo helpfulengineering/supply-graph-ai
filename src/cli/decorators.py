@@ -5,11 +5,12 @@ This module provides decorators for consistent CLI command patterns,
 including LLM integration, error handling, and output formatting.
 """
 
-import click
 import asyncio
 import functools
-from typing import Optional, Callable
 from datetime import datetime
+from typing import Callable, Optional
+
+import click
 
 from .base import CLIContext, echo_error, echo_info
 

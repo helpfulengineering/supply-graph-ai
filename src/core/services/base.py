@@ -16,14 +16,14 @@ The base service architecture provides:
 All services inherit from BaseService and must implement the required abstract methods.
 """
 
+import asyncio
+import logging
 from abc import ABC, abstractmethod
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List, TypeVar, Generic, Type
 from datetime import datetime, timedelta
 from enum import Enum
-import logging
-import asyncio
-from contextlib import asynccontextmanager
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
 
 from ..utils.logging import get_logger
 

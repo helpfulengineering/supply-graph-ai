@@ -13,13 +13,12 @@ All services inherit from BaseService to ensure consistent patterns for:
 """
 
 from .base import BaseService, ServiceConfig, ServiceMetrics, ServiceStatus
-
+from .matching_service import MatchingService
 from .okh_service import OKHService
 from .okw_service import OKWService
-from .matching_service import MatchingService
-from .storage_service import StorageService
 from .package_service import PackageService
 from .service_registry import ServiceRegistry
+from .storage_service import StorageService
 
 __all__ = [
     # Base classes

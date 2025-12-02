@@ -12,18 +12,18 @@ import hashlib
 import json
 import logging
 import re
-from typing import Dict, List, Optional, Any
 from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
-from ..models import FileInfo, AnalysisDepth
+from ...llm.models.requests import LLMRequestConfig, LLMRequestType
+from ...llm.models.responses import LLMResponseStatus
+from ...models.okh import DocumentationType
+from ..models import AnalysisDepth, FileInfo
 from ..utils.file_categorization import (
     FileCategorizationResult,
     FileCategorizationRules,
 )
 from ..utils.file_content_parser import FileContentParser
-from ...models.okh import DocumentationType
-from ...llm.models.requests import LLMRequestConfig, LLMRequestType
-from ...llm.models.responses import LLMResponseStatus
 
 logger = logging.getLogger(__name__)
 

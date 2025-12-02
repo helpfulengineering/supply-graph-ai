@@ -5,7 +5,8 @@ This module provides validation rules for the cooking domain,
 integrating with the existing domain configuration.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
+
 from .base import BaseValidationRules
 
 

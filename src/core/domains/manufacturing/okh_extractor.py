@@ -1,12 +1,12 @@
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 from ...models.base.base_extractors import (
     BaseExtractor,
+    ExtractionFlag,
     ExtractionMetadata,
     ExtractionQuality,
-    ExtractionFlag,
 )
-from ...models.base.base_types import NormalizedRequirements, NormalizedCapabilities
+from ...models.base.base_types import NormalizedCapabilities, NormalizedRequirements
 from ...models.okh import OKHManifest, ProcessRequirement
 
 

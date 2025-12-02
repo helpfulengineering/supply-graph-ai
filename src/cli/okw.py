@@ -5,11 +5,12 @@ This module provides commands for managing OKW facilities including
 creation, validation, listing, and matching operations.
 """
 
-import click
 import json
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
+
+import click
 
 from ..core.models.okw import ManufacturingFacility
 from ..core.services.okw_service import OKWService
@@ -19,8 +20,8 @@ from ..core.validation.model_validator import validate_okw_facility
 from .base import (
     CLIContext,
     SmartCommand,
-    format_llm_output,
     create_llm_request_data,
+    format_llm_output,
     log_llm_usage,
 )
 from .decorators import standard_cli_command

@@ -5,21 +5,22 @@ This module provides standardized commands for matching OKH requirements with OK
 including LLM integration, enhanced error handling, and consistent output formatting.
 """
 
-import click
 import json
-import yaml
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
+import click
+import yaml
+
+from ..core.models.base.base_types import NormalizedCapabilities
 from ..core.models.okh import OKHManifest
 from ..core.services.matching_service import MatchingService
-from ..core.models.base.base_types import NormalizedCapabilities
 from .base import (
     CLIContext,
     SmartCommand,
-    format_llm_output,
     create_llm_request_data,
+    format_llm_output,
     log_llm_usage,
 )
 from .decorators import standard_cli_command
@@ -342,10 +343,10 @@ async def requirements(
                     }
             elif detected_domain == "cooking":
                 # Use cooking domain extractor and matcher
+                from ..config.storage_config import get_default_storage_config
                 from ..core.domains.cooking.extractors import CookingExtractor
                 from ..core.domains.cooking.matchers import CookingMatcher
                 from ..core.services.storage_service import StorageService
-                from ..config.storage_config import get_default_storage_config
 
                 # Handle URL or local file for cooking domain
                 if is_url:

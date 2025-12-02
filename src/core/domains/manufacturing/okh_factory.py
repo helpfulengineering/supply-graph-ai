@@ -1,7 +1,7 @@
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
-from src.core.domains.manufacturing.okh_validator import OKHValidator
 from src.core.domains.manufacturing.okh_orchestrator import OKHOrchestrator
+from src.core.domains.manufacturing.okh_validator import OKHValidator
 from src.core.models.okh import OKHManifest
 
 

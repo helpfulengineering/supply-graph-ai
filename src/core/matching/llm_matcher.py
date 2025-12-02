@@ -16,21 +16,21 @@ The LLM layer uses a prompt engineering strategy for:
 - Confidence scoring with detailed reasoning
 """
 
-import logging
-import json
 import asyncio
+import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
+from ..services.base import ServiceStatus
 from .layers.base import (
     BaseMatchingLayer,
+    MatchingLayer,
     MatchingResult,
     MatchMetadata,
     MatchQuality,
-    MatchingLayer,
 )
-from ..services.base import ServiceStatus
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +96,8 @@ class LLMMatcher(BaseMatchingLayer):
         """Create and configure LLM service for matching operations."""
         try:
             # Lazy import to avoid circular dependencies
-            from ..llm.service import LLMService, LLMServiceConfig
             from ..llm.providers.base import LLMProviderType
+            from ..llm.service import LLMService, LLMServiceConfig
 
             config = LLMServiceConfig(
                 name="LLMMatchingService",

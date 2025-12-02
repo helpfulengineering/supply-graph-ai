@@ -17,20 +17,22 @@ the async process() method. The base class provides utilities
 for file processing, text analysis, and confidence calculation.
 """
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Union
 from enum import Enum
-import logging
+from typing import Any, Dict, List, Optional, Union
 
 from ..models import (
-    ProjectData,
     FieldGeneration,
-    GenerationLayer as LayerType,
     FileInfo,
-    LayerConfig,
 )
-from ..utils import FileProcessor, TextProcessor, ConfidenceCalculator
+from ..models import GenerationLayer as LayerType
+from ..models import (
+    LayerConfig,
+    ProjectData,
+)
+from ..utils import ConfidenceCalculator, FileProcessor, TextProcessor
 
 # Configure logging
 logger = logging.getLogger(__name__)

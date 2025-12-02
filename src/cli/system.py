@@ -5,15 +5,16 @@ This module provides system-level commands including health checks,
 domain information, and server status.
 """
 
-import click
-import httpx
 import socket
 import time
 from typing import Optional
 
+import click
+import httpx
+
+from ..core.registry.domain_registry import DomainRegistry
 from .base import CLIContext, SmartCommand, format_llm_output, log_llm_usage
 from .decorators import standard_cli_command
-from ..core.registry.domain_registry import DomainRegistry
 
 
 @click.group()

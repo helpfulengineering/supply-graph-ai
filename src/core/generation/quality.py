@@ -5,8 +5,8 @@ This module provides functionality to assess the quality of generated manifest f
 validate required fields, and generate quality reports with recommendations.
 """
 
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 from .models import FieldGeneration, QualityReport
 

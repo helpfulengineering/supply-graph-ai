@@ -5,16 +5,17 @@ This module provides functionality to extract project data from GitHub repositor
 using the GitHub API with caching to avoid rate limits.
 """
 
-import json
-import hashlib
-import os
 import base64
-from dotenv import load_dotenv
-from pathlib import Path
+import hashlib
+import json
+import os
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional
 
-from ..models import ProjectData, PlatformType, FileInfo, DocumentInfo
+from dotenv import load_dotenv
+
+from ..models import DocumentInfo, FileInfo, PlatformType, ProjectData
 from .base import ProjectExtractor
 
 

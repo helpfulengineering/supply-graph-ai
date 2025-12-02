@@ -5,10 +5,10 @@ This module provides utilities for validating and fixing UUID-related issues
 in OKH and OKW files.
 """
 
-import re
-from typing import Optional, Union, Dict, Any
-from uuid import UUID, uuid4
 import logging
+import re
+from typing import Any, Dict, Optional, Union
+from uuid import UUID, uuid4
 
 logger = logging.getLogger(__name__)
 

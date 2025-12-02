@@ -7,7 +7,8 @@ to a structured built directory with multiple formats for different use cases.
 
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
 from ..models.bom import BillOfMaterials
 
 

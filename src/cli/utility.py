@@ -4,10 +4,11 @@ Utility CLI Commands
 Commands for utility operations in the Open Matching Engine.
 """
 
-import click
 from typing import Optional
-from ..core.registry.domain_registry import DomainRegistry
 
+import click
+
+from ..core.registry.domain_registry import DomainRegistry
 from .base import CLIContext, SmartCommand, format_llm_output, log_llm_usage
 from .decorators import standard_cli_command
 

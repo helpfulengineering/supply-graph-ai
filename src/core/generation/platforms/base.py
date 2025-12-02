@@ -16,9 +16,9 @@ The base class provides common functionality for:
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
 from ..models import ProjectData
 

@@ -12,20 +12,20 @@ The layer implements the Enhanced LLM Agent Prompt Engineering Strategy with:
 - validation and quality assurance
 """
 
-import logging
-import json
 import asyncio
+import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, LayerConfig
-from ...llm.service import LLMService, LLMServiceConfig
 from ...llm.models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
 from ...llm.models.responses import LLMResponseStatus
 from ...llm.providers.base import LLMProviderType
+from ...llm.service import LLMService, LLMServiceConfig
 from ...services.base import ServiceStatus
+from ..models import GenerationLayer, LayerConfig, ProjectData
+from .base import BaseGenerationLayer, LayerResult
 
 # Configure logging
 logger = logging.getLogger(__name__)

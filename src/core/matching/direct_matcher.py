@@ -11,9 +11,9 @@ BaseMatchingLayer to ensure consistent interfaces and error handling.
 
 import re
 from datetime import datetime
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-from .layers.base import BaseMatchingLayer, MatchingResult, MatchQuality, MatchingLayer
+from .layers.base import BaseMatchingLayer, MatchingLayer, MatchingResult, MatchQuality
 
 
 class DirectMatcher(BaseMatchingLayer):

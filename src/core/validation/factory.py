@@ -5,10 +5,11 @@ This module provides the ValidationContextFactory class for creating
 domain-aware validation contexts.
 """
 
-from typing import Optional, Any
+from typing import Any, Optional
+
+from ..registry.domain_registry import DomainRegistry
 from .context import ValidationContext
 from .exceptions import ValidationContextError
-from ..registry.domain_registry import DomainRegistry
 
 
 class ValidationContextFactory:

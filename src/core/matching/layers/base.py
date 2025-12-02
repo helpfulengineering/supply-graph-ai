@@ -17,13 +17,13 @@ the async match() method. The base class provides utilities
 for string matching, confidence calculation, and result processing.
 """
 
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Union, Tuple
-from enum import Enum
-from datetime import datetime, timedelta
 import logging
 import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 # Configure logging
 logger = logging.getLogger(__name__)

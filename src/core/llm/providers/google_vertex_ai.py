@@ -6,26 +6,26 @@ for Google Cloud Vertex AI, which provides access to Google's Gemini models
 and other foundation models through Google Cloud's unified ML platform.
 """
 
-import logging
-from typing import Dict, Any, Optional, List
-from datetime import datetime
-from dataclasses import dataclass, field
 import json
+import logging
 import os
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 try:
-    from google.cloud import aiplatform
-    from google.oauth2 import service_account
     from google.auth import default as google_auth_default
     from google.auth.exceptions import GoogleAuthError
+    from google.cloud import aiplatform
+    from google.oauth2 import service_account
 
     GOOGLE_CLOUD_AVAILABLE = True
 except ImportError:
     GOOGLE_CLOUD_AVAILABLE = False
 
-from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 from ..models.requests import LLMRequest, LLMRequestConfig
-from ..models.responses import LLMResponse, LLMResponseStatus, LLMResponseMetadata
+from ..models.responses import LLMResponse, LLMResponseMetadata, LLMResponseStatus
+from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +202,7 @@ class GoogleVertexAIProvider(BaseLLMProvider):
             # Make the API call using Vertex AI SDK
             # Note: The SDK is synchronous, so we run it in an executor
             import asyncio
+
             import httpx
 
             # Build the endpoint URL

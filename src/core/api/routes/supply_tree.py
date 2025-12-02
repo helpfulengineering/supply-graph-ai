@@ -1,50 +1,51 @@
+import json
+from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
 from fastapi import (
     APIRouter,
-    HTTPException,
-    Query,
-    Path,
-    status,
-    Request,
-    Depends,
     Body,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Request,
     Response,
+    status,
 )
-from typing import Optional, List
-from uuid import UUID
-from datetime import datetime
-import json
 
-from ..models.base import (
-    BaseAPIRequest,
-    SuccessResponse,
-    ErrorResponse,
-    PaginationParams,
-    PaginatedResponse,
-    LLMRequestMixin,
-    LLMResponseMixin,
-    ValidationResult as BaseValidationResult,
-)
-from ..decorators import (
-    api_endpoint,
-    validate_request,
-    track_performance,
-    llm_endpoint,
-    paginated_response,
-)
-from ..error_handlers import create_error_response, create_success_response
-from ..models.supply_tree.request import (
-    SupplyTreeCreateRequest,
-    SupplyTreeValidateRequest,
-    SupplyTreeOptimizeRequest,
-)
-from ..models.supply_tree.response import SupplyTreeResponse, ValidationResult
-from ...utils.logging import get_logger
-from ...services.storage_service import StorageService
-from ...services.okh_service import OKHService
-from ...services.okw_service import OKWService
-from ...models.supply_trees import SupplyTree
 from ...models.okh import OKHManifest
 from ...models.okw import ManufacturingFacility
+from ...models.supply_trees import SupplyTree
+from ...services.okh_service import OKHService
+from ...services.okw_service import OKWService
+from ...services.storage_service import StorageService
+from ...utils.logging import get_logger
+from ..decorators import (
+    api_endpoint,
+    llm_endpoint,
+    paginated_response,
+    track_performance,
+    validate_request,
+)
+from ..error_handlers import create_error_response, create_success_response
+from ..models.base import (
+    BaseAPIRequest,
+    ErrorResponse,
+    LLMRequestMixin,
+    LLMResponseMixin,
+    PaginatedResponse,
+    PaginationParams,
+    SuccessResponse,
+)
+from ..models.base import ValidationResult as BaseValidationResult
+from ..models.supply_tree.request import (
+    SupplyTreeCreateRequest,
+    SupplyTreeOptimizeRequest,
+    SupplyTreeValidateRequest,
+)
+from ..models.supply_tree.response import SupplyTreeResponse, ValidationResult
 
 logger = get_logger(__name__)
 
@@ -942,8 +943,8 @@ async def validate_supply_tree(
             )
 
         # Use ValidationEngine to validate supply tree
-        from ...validation.engine import ValidationEngine
         from ...validation.context import ValidationContext
+        from ...validation.engine import ValidationEngine
 
         # Create validation context
         context = ValidationContext(
@@ -1077,7 +1078,7 @@ async def _validate_supply_tree_result(
 
         # Basic validation
         is_valid = True
-        from ..models.base import ErrorDetail, ErrorCode
+        from ..models.base import ErrorCode, ErrorDetail
 
         errors = []
         warnings = []

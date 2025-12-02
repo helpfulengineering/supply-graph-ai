@@ -7,9 +7,9 @@ and directory structure to provide initial categorization suggestions.
 """
 
 import re
-from pathlib import Path
-from typing import Optional, Dict, List, Tuple
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 from ...models.okh import DocumentationType
 

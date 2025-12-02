@@ -1,9 +1,9 @@
-from typing import Dict, Any, List
-from dataclasses import dataclass
 import logging
-from ..registry.domain_registry import DomainRegistry
-from ..api.models.supply_tree.response import SupplyTreeResponse
+from dataclasses import dataclass
+from typing import Any, Dict, List
 
+from ..api.models.supply_tree.response import SupplyTreeResponse
+from ..registry.domain_registry import DomainRegistry
 
 logger = logging.getLogger(__name__)
 

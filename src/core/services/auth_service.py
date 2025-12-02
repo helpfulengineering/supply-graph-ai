@@ -7,16 +7,18 @@ and integrates with storage for persistence.
 
 import logging
 import secrets
-import bcrypt
 from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Tuple
+from typing import Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
+
+import bcrypt
 from fastapi import HTTPException, status
 
-from ..models.auth import APIKey, APIKeyCreate, APIKeyResponse, AuthenticatedUser
-from ..storage.auth_storage import AuthStorage
-from ..services.storage_service import StorageService
 from src.config import settings
+
+from ..models.auth import APIKey, APIKeyCreate, APIKeyResponse, AuthenticatedUser
+from ..services.storage_service import StorageService
+from ..storage.auth_storage import AuthStorage
 
 logger = logging.getLogger(__name__)
 

@@ -1,18 +1,18 @@
-from typing import Dict, List, Optional, Any, Set
+from typing import Any, Dict, List, Optional, Set
 from uuid import UUID
 
+from ..domains.cooking.direct_matcher import CookingDirectMatcher
+from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
+from ..matching.capability_rules import CapabilityMatcher, CapabilityRuleManager
+from ..matching.nlp_matcher import NLPMatcher
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..models.supply_trees import SupplyTree, SupplyTreeSolution
-from .okh_service import OKHService
-from .okw_service import OKWService
 from ..registry.domain_registry import DomainRegistry
 from ..services.domain_service import DomainDetector
 from ..utils.logging import get_logger
-from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
-from ..domains.cooking.direct_matcher import CookingDirectMatcher
-from ..matching.capability_rules import CapabilityRuleManager, CapabilityMatcher
-from ..matching.nlp_matcher import NLPMatcher
+from .okh_service import OKHService
+from .okw_service import OKWService
 
 logger = get_logger(__name__)
 
@@ -1051,8 +1051,8 @@ class MatchingService:
     async def _ensure_domains_registered(self) -> None:
         """Ensure domains are registered (for fallback mode when server startup doesn't run)"""
         from ..registry.domain_registry import (
-            DomainRegistry,
             DomainMetadata,
+            DomainRegistry,
             DomainStatus,
         )
 
@@ -1067,15 +1067,15 @@ class MatchingService:
 
         try:
             # Import domain components
-            from ..domains.cooking.extractors import CookingExtractor
-            from ..domains.cooking.matchers import CookingMatcher
-            from ..domains.cooking.validation.compatibility import (
-                CookingValidatorCompat,
-            )
             from ...domains.manufacturing.okh_extractor import OKHExtractor
             from ...domains.manufacturing.okh_matcher import OKHMatcher
             from ...domains.manufacturing.validation.compatibility import (
                 ManufacturingOKHValidatorCompat,
+            )
+            from ..domains.cooking.extractors import CookingExtractor
+            from ..domains.cooking.matchers import CookingMatcher
+            from ..domains.cooking.validation.compatibility import (
+                CookingValidatorCompat,
             )
 
             # Register Cooking domain

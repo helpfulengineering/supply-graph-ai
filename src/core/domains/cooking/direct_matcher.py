@@ -6,7 +6,8 @@ providing specialized direct matching for ingredients, equipment, and techniques
 """
 
 import re
-from typing import List, Dict, Any, Set
+from typing import Any, Dict, List, Set
+
 from ...matching.direct_matcher import DirectMatcher
 from ...matching.layers.base import MatchingResult, MatchMetadata, MatchQuality
 

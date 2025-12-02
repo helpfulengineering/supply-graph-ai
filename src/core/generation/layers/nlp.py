@@ -7,12 +7,13 @@ documentation, and other project content.
 """
 
 import re
-import spacy
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
+import spacy
+
+from ..models import GenerationLayer, LayerConfig, ProjectData
 from .base import BaseGenerationLayer, LayerResult
-from ..models import ProjectData, GenerationLayer, LayerConfig
 
 
 @dataclass

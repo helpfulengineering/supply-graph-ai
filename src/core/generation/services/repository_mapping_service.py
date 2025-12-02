@@ -8,19 +8,19 @@ This service provides functionality for:
 - Supporting iterative discovery and understanding of repositories
 """
 
-import logging
 import datetime
+import logging
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional
-from collections import defaultdict
 
+from ...models.okh import DocumentationType
 from ..models import (
     ProjectData,
     RepositoryAssessment,
     RepositoryRoutingTable,
     RouteEntry,
 )
-from ...models.okh import DocumentationType
 from ..utils.file_categorization import FileCategorizationResult
 
 logger = logging.getLogger(__name__)

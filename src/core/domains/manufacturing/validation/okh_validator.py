@@ -6,14 +6,15 @@ the new validation framework while maintaining compatibility with
 the existing validator interface.
 """
 
-from typing import Dict, Any, Optional, List
-from ....validation.engine import Validator
-from ....validation.context import ValidationContext
-from ....validation.result import ValidationResult, ValidationError, ValidationWarning
-from ....validation.rules.manufacturing import ManufacturingValidationRules
+from typing import Any, Dict, List, Optional
+
+from ....models.base.base_types import Capability, Requirement
 from ....models.okh import OKHManifest
-from ....models.base.base_types import Requirement, Capability
 from ....models.supply_trees import SupplyTree
+from ....validation.context import ValidationContext
+from ....validation.engine import Validator
+from ....validation.result import ValidationError, ValidationResult, ValidationWarning
+from ....validation.rules.manufacturing import ManufacturingValidationRules
 
 
 class ManufacturingOKHValidator(Validator):

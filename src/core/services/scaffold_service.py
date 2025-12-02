@@ -16,10 +16,10 @@ Multi-pass implementation strategy:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
-from pathlib import Path
 import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 # NOTE: Keep imports local where feasible to avoid circular deps during import
 # from src.core.models.okh import OKHManifest  # Imported lazily in methods
@@ -253,8 +253,9 @@ class ScaffoldService:
         Uses dataclass introspection to generate templates with proper field types,
         required/optional indicators, and helpful placeholders based on template_level.
         """
-        from src.core.models.okh import OKHManifest
         import dataclasses
+
+        from src.core.models.okh import OKHManifest
 
         # Get field information from OKHManifest dataclass
         fields = dataclasses.fields(OKHManifest)
@@ -1092,9 +1093,9 @@ class ScaffoldService:
         """
         import io
         import json
-        import time
         import tempfile
-        from zipfile import ZipFile, ZIP_DEFLATED
+        import time
+        from zipfile import ZIP_DEFLATED, ZipFile
 
         # Determine root name
         if len(structure.keys()) != 1:

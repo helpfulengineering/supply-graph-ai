@@ -12,18 +12,18 @@ The generation system uses a multi-layer approach:
 """
 
 from .models import (
-    PlatformType,
-    GenerationQuality,
-    GenerationLayer,
-    ProjectData,
-    FieldGeneration,
-    GenerationMetadata,
-    ManifestGeneration,
-    QualityReport,
-    LayerConfig,
-    GenerationResult,
-    FileInfo,
     DocumentInfo,
+    FieldGeneration,
+    FileInfo,
+    GenerationLayer,
+    GenerationMetadata,
+    GenerationQuality,
+    GenerationResult,
+    LayerConfig,
+    ManifestGeneration,
+    PlatformType,
+    ProjectData,
+    QualityReport,
 )
 
 __all__ = [

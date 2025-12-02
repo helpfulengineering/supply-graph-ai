@@ -8,18 +8,19 @@ All fixes are applied through the canonical dataclass models (OKHManifest, Manuf
 to ensure consistency and proper validation.
 """
 
-import re
 import copy
-from typing import Dict, Any, List, Tuple, Optional, Union
+import re
 from dataclasses import dataclass, field
-from ..models.okh import OKHManifest, MaterialSpec
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from ..models.okh import MaterialSpec, OKHManifest
 from ..models.okw import ManufacturingFacility
+from ..utils.logging import get_logger
 from .model_validator import (
+    ValidationResult,
     validate_okh_manifest,
     validate_okw_facility,
-    ValidationResult,
 )
-from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 

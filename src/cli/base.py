@@ -8,36 +8,40 @@ This module provides the foundation for all CLI commands, including:
 - Configuration management
 """
 
-import httpx
-import click
 import json
 import logging
-from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+import click
+import httpx
 
 from ..config import settings
-from ..core.services.package_service import PackageService
+from ..core.services.matching_service import MatchingService
 from ..core.services.okh_service import OKHService
 from ..core.services.okw_service import OKWService
+from ..core.services.package_service import PackageService
 from ..core.services.storage_service import StorageService
-from ..core.services.matching_service import MatchingService
 
 logger = logging.getLogger(__name__)
 
 
 async def ensure_domains_registered():
     """Ensure domains are registered when using direct service calls in CLI mode"""
-    from ..core.registry.domain_registry import DomainRegistry
-    from ..core.registry.domain_registry import DomainMetadata, DomainStatus
+    from ..core.domains.cooking.extractors import CookingExtractor
+    from ..core.domains.cooking.matchers import CookingMatcher
+    from ..core.domains.cooking.validation.compatibility import CookingValidatorCompat
     from ..core.domains.manufacturing.okh_extractor import OKHExtractor
     from ..core.domains.manufacturing.okh_matcher import OKHMatcher
     from ..core.domains.manufacturing.validation.compatibility import (
         ManufacturingOKHValidatorCompat,
     )
-    from ..core.domains.cooking.extractors import CookingExtractor
-    from ..core.domains.cooking.matchers import CookingMatcher
-    from ..core.domains.cooking.validation.compatibility import CookingValidatorCompat
+    from ..core.registry.domain_registry import (
+        DomainMetadata,
+        DomainRegistry,
+        DomainStatus,
+    )
     from ..core.version import get_version
 
     # Check if domains are already registered

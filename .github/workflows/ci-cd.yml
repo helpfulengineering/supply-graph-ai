@@ -42,7 +42,7 @@ jobs:
         run: black --check src/
 
       - name: Check import sorting with isort
-        run: isort --check-only src/
+        run: isort --profile black --check-only src/
 
       - name: Type checking with mypy
         run: |

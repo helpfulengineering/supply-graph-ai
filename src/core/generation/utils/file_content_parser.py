@@ -15,10 +15,10 @@ Note: Old .doc format is not supported. Only .docx format is supported.
 
 import logging
 import re
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
-from ..models import FileInfo, AnalysisDepth
+from ..models import AnalysisDepth, FileInfo
 
 logger = logging.getLogger(__name__)
 
