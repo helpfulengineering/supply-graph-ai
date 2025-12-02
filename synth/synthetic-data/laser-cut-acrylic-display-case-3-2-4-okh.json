@@ -1,0 +1,322 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b8b1a560-df9f-40ad-bc09-312ae5d83292",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/qlopez/laser-cut-acrylic-display-case",
+  "version": "3.2.4",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Michael Jones",
+    "email": "onealgrant@example.org",
+    "affiliation": "Wilson PLC",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "michaelbrown"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Pressure TV media let.",
+  "intended_use": "Police course some.",
+  "keywords": [
+    "fastener",
+    "bracket",
+    "documented",
+    "housing",
+    "modular"
+  ],
+  "contact": {
+    "name": "Katherine Jacobs",
+    "email": "myersscott@example.org",
+    "affiliation": "Reyes-Stevenson",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "carlsonbrett"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Tammy Cook",
+      "email": "jacksonjames@example.org",
+      "affiliation": "Morgan, Sanchez and Dyer",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "charlescarroll"
+        }
+      ]
+    },
+    {
+      "name": "Nina Gonzalez",
+      "email": "feliciapalmer@example.org",
+      "affiliation": "Jensen-Garcia",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "mortonbrooke"
+        }
+      ]
+    },
+    {
+      "name": "Ann Baldwin",
+      "email": "paulapatterson@example.org",
+      "affiliation": "Anderson LLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "qhunter"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Day-Green",
+    "url": "https://rose.org",
+    "email": "contact@roth-edwards.biz"
+  },
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/rpeterson/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/steven18/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/qjohnston/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/vickiehernandez/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/jeremy62/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/xrogers/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/hgray/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/thomasmichael/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/llopez/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/schaeferamber/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/tcampos/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/destiny83/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Wrench set",
+    "Exhaust system",
+    "Crimping tool",
+    "Heat shrink",
+    "Laser cutter",
+    "Pliers",
+    "Cutting bed",
+    "Focus lens"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 786.72,
+      "unit": "m³",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 99,
+      "width": 101,
+      "height": 93
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "69W",
+          "speed": "678 mm/min",
+          "passes": 2
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Defense foot side keep point tree middle."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": "Manufacturing notes: Person its including fly."
+  },
+  "bom": "https://github.com/owolf/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "6e1ef900-d7fc-468b-9478-72d3a36dfe2b",
+      "source": [
+        "https://github.com/timothy83/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/morgancraig/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/summerstoni/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/reneehartman/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 46,
+        "width": 162,
+        "height": 79
+      },
+      "mass": 631.63,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "9b7793f5-1b92-4db5-a21e-1977ed6f36b2",
+      "source": [
+        "https://github.com/holmesbrian/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/murraybobby/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/susandavidson/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/bdunn/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 162,
+        "width": 22,
+        "height": 31
+      },
+      "mass": 516.38,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

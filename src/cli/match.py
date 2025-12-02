@@ -7,8 +7,9 @@ including LLM integration, enhanced error handling, and consistent output format
 
 import click
 import json
+import yaml
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from urllib.parse import urlparse
 
 from ..core.models.okh import OKHManifest
@@ -885,3 +886,761 @@ async def _display_domains(cli_ctx: CLIContext, result: Dict[str, Any], output_f
             click.echo(f"  ID: {domain.get('id', 'unknown')}")
             click.echo(f"  Description: {domain.get('description', 'No description')}")
             click.echo(f"  Status: {domain.get('status', 'unknown')}")
+
+
+# ============================================================================
+# Rules Management Commands
+# ============================================================================
+
+@match_group.group()
+def rules():
+    """
+    Manage matching rules for capability matching.
+    
+    These commands allow you to inspect, modify, import, export, and validate
+    the rules used for matching requirements to capabilities.
+    
+    Examples:
+      # List all rules
+      ome match rules list
+      
+      # Get a specific rule
+      ome match rules get manufacturing cnc_machining_capability
+      
+      # Create a new rule interactively
+      ome match rules create --interactive
+      
+      # Import rules from file
+      ome match rules import rules.yaml
+    """
+    pass
+
+
+def _read_rule_file(file_path: str) -> Dict[str, Any]:
+    """Read rule data from YAML or JSON file"""
+    path = Path(file_path)
+    if not path.exists():
+        raise click.ClickException(f"File not found: {file_path}")
+    
+    content = path.read_text()
+    
+    if path.suffix.lower() in ['.yaml', '.yml']:
+        try:
+            return yaml.safe_load(content)
+        except yaml.YAMLError as e:
+            raise click.ClickException(f"Invalid YAML file: {e}")
+    elif path.suffix.lower() == '.json':
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError as e:
+            raise click.ClickException(f"Invalid JSON file: {e}")
+    else:
+        raise click.ClickException(f"Unsupported file format: {path.suffix}. Use .yaml or .json")
+
+
+def _interactive_rule_creation() -> Dict[str, Any]:
+    """Interactive rule creation wizard"""
+    click.echo("\n=== Creating New Rule ===")
+    
+    rule_id = click.prompt("Rule ID", type=str)
+    capability = click.prompt("Capability", type=str)
+    
+    click.echo("\nEnter requirements (one per line, empty line to finish):")
+    requirements = []
+    while True:
+        req = click.prompt("Requirement", default="", show_default=False)
+        if not req.strip():
+            break
+        requirements.append(req.strip())
+    
+    if not requirements:
+        raise click.ClickException("At least one requirement is required")
+    
+    confidence = click.prompt("Confidence (0.0-1.0)", type=float, default=0.9)
+    if not 0.0 <= confidence <= 1.0:
+        raise click.ClickException("Confidence must be between 0.0 and 1.0")
+    
+    domain = click.prompt("Domain", type=str, default="general")
+    description = click.prompt("Description", default="", show_default=False)
+    
+    tags_input = click.prompt("Tags (comma-separated)", default="", show_default=False)
+    tags = [t.strip() for t in tags_input.split(",") if t.strip()] if tags_input else []
+    
+    return {
+        "id": rule_id,
+        "type": "capability_match",
+        "capability": capability,
+        "satisfies_requirements": requirements,
+        "confidence": confidence,
+        "domain": domain,
+        "description": description,
+        "tags": tags,
+        "direction": "bidirectional"
+    }
+
+
+@rules.command("list")
+@click.option('--domain', help='Filter by domain')
+@click.option('--tag', help='Filter by tag')
+@click.option('--include-metadata', is_flag=True, help='Include metadata in output')
+@standard_cli_command(
+    help_text="List all matching rules, optionally filtered by domain or tag.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_list(ctx, domain: Optional[str], tag: Optional[str], 
+                    include_metadata: bool, verbose: bool, output_format: str,
+                    use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                    quality_level: str, strict_mode: bool):
+    """List all matching rules"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-list")
+    
+    try:
+        params = {}
+        if domain:
+            params["domain"] = domain
+        if tag:
+            params["tag"] = tag
+        if include_metadata:
+            params["include_metadata"] = "true"
+        
+        response = await cli_ctx.api_client.request(
+            "GET", "/api/match/rules", params=params
+        )
+        
+        if output_format == "json":
+            click.echo(json.dumps(response.get("data", {}), indent=2))
+        else:
+            data = response.get("data", {})
+            rules_data = data.get("rules", [])
+            # API returns "total" not "total_rules"
+            total = data.get("total", data.get("total_rules", 0))
+            
+            # Handle both list and dict formats
+            if isinstance(rules_data, list):
+                # Flat list format - group by domain
+                click.echo(f"\nTotal rules: {total}")
+                domains_dict = {}
+                for rule in rules_data:
+                    rule_domain = rule.get("domain", "unknown")
+                    if rule_domain not in domains_dict:
+                        domains_dict[rule_domain] = []
+                    domains_dict[rule_domain].append(rule)
+                
+                for dom, rules in domains_dict.items():
+                    click.echo(f"\nDomain: {dom} ({len(rules)} rules)")
+                    for rule in rules:
+                        rule_id = rule.get('id', 'unknown')
+                        capability = rule.get('capability', 'N/A')
+                        # Format: ID (capability) - makes ID clearly visible and usable
+                        click.echo(f"  {rule_id} - {capability}")
+                        if tag or verbose:
+                            click.echo(f"    Requirements: {', '.join(rule.get('satisfies_requirements', []))}")
+            elif isinstance(rules_data, dict):
+                # Dict format (grouped by domain)
+                click.echo(f"\nTotal rules: {total}")
+                for dom, rules in rules_data.items():
+                    click.echo(f"\nDomain: {dom} ({len(rules)} rules)")
+                    for rule in rules:
+                        rule_id = rule.get('id', 'unknown')
+                        capability = rule.get('capability', 'N/A')
+                        # Format: ID (capability) - makes ID clearly visible and usable
+                        click.echo(f"  {rule_id} - {capability}")
+                        if tag or verbose:
+                            click.echo(f"    Requirements: {', '.join(rule.get('satisfies_requirements', []))}")
+            else:
+                click.echo(f"\nTotal rules: {total}")
+                click.echo("No rules found.")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("get")
+@click.argument('domain', type=str)
+@click.argument('rule_id', type=str)
+@standard_cli_command(
+    help_text="Get a specific rule by domain and ID.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_get(ctx, domain: str, rule_id: str, verbose: bool, output_format: str,
+                   use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                   quality_level: str, strict_mode: bool):
+    """Get a specific rule"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-get")
+    
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/match/rules/{domain}/{rule_id}"
+        )
+        
+        if output_format == "json":
+            click.echo(json.dumps(response.get("data", {}), indent=2))
+        else:
+            rule = response.get("data", {})
+            click.echo(f"\nRule: {rule.get('id')}")
+            click.echo(f"  Domain: {rule.get('domain')}")
+            click.echo(f"  Capability: {rule.get('capability')}")
+            click.echo(f"  Requirements: {', '.join(rule.get('satisfies_requirements', []))}")
+            click.echo(f"  Confidence: {rule.get('confidence')}")
+            if rule.get('description'):
+                click.echo(f"  Description: {rule.get('description')}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("create")
+@click.option('--file', type=click.Path(exists=True), help='Rule file (YAML/JSON)')
+@click.option('--interactive', '-i', is_flag=True, help='Interactive mode')
+@standard_cli_command(
+    help_text="Create a new rule from file or interactively.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_create(ctx, file: Optional[str], interactive: bool, verbose: bool, 
+                      output_format: str, use_llm: bool, llm_provider: str, 
+                      llm_model: Optional[str], quality_level: str, strict_mode: bool):
+    """Create a new rule"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-create")
+    
+    try:
+        if interactive:
+            rule_data = _interactive_rule_creation()
+        elif file:
+            file_data = _read_rule_file(file)
+            # If file contains a rule set, extract first rule or use structure
+            if "rules" in file_data:
+                # Multi-rule file, use first rule
+                rules_dict = file_data["rules"]
+                if rules_dict:
+                    rule_data = list(rules_dict.values())[0]
+                else:
+                    raise click.ClickException("No rules found in file")
+            elif "id" in file_data and "capability" in file_data:
+                # Single rule file
+                rule_data = file_data
+            else:
+                raise click.ClickException("Invalid rule file format")
+        else:
+            raise click.ClickException("Either --file or --interactive must be specified")
+        
+        response = await cli_ctx.api_client.request(
+            "POST", "/api/match/rules", json_data={"rule_data": rule_data}
+        )
+        
+        if output_format == "json":
+            click.echo(json.dumps(response.get("data", {}), indent=2))
+        else:
+            cli_ctx.log("Rule created successfully", "success")
+            rule = response.get("data", {})
+            click.echo(f"Created rule: {rule.get('id')} in domain {rule.get('domain')}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("update")
+@click.argument('domain', type=str)
+@click.argument('rule_id', type=str)
+@click.option('--file', type=click.Path(exists=True), help='Updated rule file')
+@click.option('--interactive', '-i', is_flag=True, help='Interactive mode')
+@standard_cli_command(
+    help_text="Update an existing rule from file or interactively.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_update(ctx, domain: str, rule_id: str, file: Optional[str], 
+                      interactive: bool, verbose: bool, output_format: str,
+                      use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                      quality_level: str, strict_mode: bool):
+    """Update an existing rule"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-update")
+    
+    try:
+        if interactive:
+            # Get existing rule first
+            try:
+                existing_response = await cli_ctx.api_client.request(
+                    "GET", f"/api/match/rules/{domain}/{rule_id}"
+                )
+                existing_rule = existing_response.get("data", {})
+            except Exception:
+                existing_rule = {}
+            
+            click.echo(f"\n=== Updating Rule: {rule_id} ===")
+            click.echo("Press Enter to keep existing value, or type new value")
+            
+            capability = click.prompt("Capability", default=existing_rule.get("capability", ""), show_default=True)
+            
+            click.echo("\nEnter requirements (one per line, empty line to finish):")
+            if existing_rule.get("satisfies_requirements"):
+                click.echo(f"Current: {', '.join(existing_rule.get('satisfies_requirements', []))}")
+            requirements = []
+            while True:
+                req = click.prompt("Requirement", default="", show_default=False)
+                if not req.strip():
+                    break
+                requirements.append(req.strip())
+            
+            if not requirements:
+                requirements = existing_rule.get("satisfies_requirements", [])
+            
+            confidence = click.prompt("Confidence (0.0-1.0)", 
+                                    type=float, 
+                                    default=existing_rule.get("confidence", 0.9),
+                                    show_default=True)
+            
+            description = click.prompt("Description", 
+                                     default=existing_rule.get("description", ""),
+                                     show_default=True)
+            
+            tags_input = click.prompt("Tags (comma-separated)", 
+                                    default=", ".join(existing_rule.get("tags", [])),
+                                    show_default=True)
+            tags = [t.strip() for t in tags_input.split(",") if t.strip()] if tags_input else []
+            
+            rule_data = {
+                "id": rule_id,
+                "type": existing_rule.get("type", "capability_match"),
+                "capability": capability,
+                "satisfies_requirements": requirements,
+                "confidence": confidence,
+                "domain": domain,
+                "description": description,
+                "tags": tags,
+                "direction": existing_rule.get("direction", "bidirectional")
+            }
+        elif file:
+            file_data = _read_rule_file(file)
+            if "rules" in file_data:
+                rules_dict = file_data["rules"]
+                if rule_id in rules_dict:
+                    rule_data = rules_dict[rule_id]
+                else:
+                    raise click.ClickException(f"Rule '{rule_id}' not found in file")
+            elif "id" in file_data:
+                rule_data = file_data
+                rule_data["id"] = rule_id
+                rule_data["domain"] = domain
+            else:
+                raise click.ClickException("Invalid rule file format")
+        else:
+            raise click.ClickException("Either --file or --interactive must be specified")
+        
+        response = await cli_ctx.api_client.request(
+            "PUT", f"/api/match/rules/{domain}/{rule_id}", json_data={"rule_data": rule_data}
+        )
+        
+        if output_format == "json":
+            click.echo(json.dumps(response.get("data", {}), indent=2))
+        else:
+            cli_ctx.log("Rule updated successfully", "success")
+            rule = response.get("data", {})
+            click.echo(f"Updated rule: {rule.get('id')} in domain {rule.get('domain')}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("delete")
+@click.argument('domain', type=str)
+@click.argument('rule_id', type=str)
+@click.option('--confirm', is_flag=True, help='Skip confirmation prompt')
+@standard_cli_command(
+    help_text="Delete a rule.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_delete(ctx, domain: str, rule_id: str, confirm: bool, verbose: bool,
+                      output_format: str, use_llm: bool, llm_provider: str,
+                      llm_model: Optional[str], quality_level: str, strict_mode: bool):
+    """Delete a rule"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-delete")
+    
+    try:
+        if not confirm:
+            if not click.confirm(f"Are you sure you want to delete rule '{rule_id}' from domain '{domain}'?"):
+                click.echo("Cancelled")
+                return
+        
+        response = await cli_ctx.api_client.request(
+            "DELETE", f"/api/match/rules/{domain}/{rule_id}?confirm=true"
+        )
+        
+        if output_format == "json":
+            click.echo(json.dumps(response, indent=2))
+        else:
+            cli_ctx.log("Rule deleted successfully", "success")
+            click.echo(f"Deleted rule: {rule_id} from domain {domain}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("import")
+@click.argument('file', type=click.Path(exists=False), required=False)
+@click.option('--domain', help='Target domain (if importing/reloading single domain)')
+@click.option('--partial-update/--no-partial-update', default=True, help='Allow partial updates (only for file import)')
+@click.option('--dry-run', is_flag=True, help='Validate without applying changes (only for file import)')
+@standard_cli_command(
+    help_text="Import rules from YAML or JSON file, or reload from filesystem if no file provided.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_import(ctx, file: Optional[str], domain: Optional[str], partial_update: bool,
+                      dry_run: bool, verbose: bool, output_format: str,
+                      use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                      quality_level: str, strict_mode: bool):
+    """
+    Import rules from file or reload from filesystem.
+    
+    If FILE is provided, imports rules from that file.
+    If FILE is omitted, reloads rules from the filesystem (useful when
+    files have been modified while the server is running).
+    """
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-import")
+    
+    try:
+        # If no file provided, reload from filesystem
+        if not file:
+            request_data = {}
+            if domain:
+                request_data["domain"] = domain
+            
+            response = await cli_ctx.api_client.request(
+                "POST", "/api/match/rules/import", json_data=request_data
+            )
+            
+            data = response.get("data", {})
+            
+            if output_format == "json":
+                click.echo(json.dumps(data, indent=2))
+            else:
+                cli_ctx.log("Rules reloaded successfully from filesystem", "success")
+                click.echo(f"\nReload Results:")
+                click.echo(f"  Reloaded domains: {', '.join(data.get('reloaded_domains', []))}")
+                click.echo(f"  Total rules: {data.get('total_rules', 0)}")
+                if data.get('previous_total_rules') is not None:
+                    click.echo(f"  Previous total: {data.get('previous_total_rules', 0)}")
+            
+            cli_ctx.end_command_tracking()
+            return
+        
+        # Otherwise, import from file
+        file_path = Path(file)
+        if not file_path.exists():
+            raise click.ClickException(f"File not found: {file}")
+        
+        file_content = file_path.read_text()
+        
+        # Determine format from extension
+        if file_path.suffix.lower() in ['.yaml', '.yml']:
+            file_format = 'yaml'
+        elif file_path.suffix.lower() == '.json':
+            file_format = 'json'
+        else:
+            raise click.ClickException(f"Unsupported file format: {file_path.suffix}")
+        
+        request_data = {
+            "file_content": file_content,
+            "file_format": file_format,
+            "partial_update": partial_update,
+            "dry_run": dry_run
+        }
+        if domain:
+            request_data["domain"] = domain
+        
+        response = await cli_ctx.api_client.request(
+            "POST", "/api/match/rules/import", json_data=request_data
+        )
+        
+        data = response.get("data", {})
+        
+        if output_format == "json":
+            click.echo(json.dumps(data, indent=2))
+        else:
+            if dry_run:
+                cli_ctx.log("Dry-run completed (no changes applied)", "info")
+            else:
+                cli_ctx.log("Rules imported successfully", "success")
+            click.echo(f"\nImport Results:")
+            click.echo(f"  Imported: {data.get('imported_rules', 0)}")
+            click.echo(f"  Updated: {data.get('updated_rules', 0)}")
+            if data.get('errors'):
+                click.echo(f"  Errors: {len(data.get('errors', []))}")
+                for error in data.get('errors', []):
+                    click.echo(f"    - {error}")
+            if dry_run and data.get('changes'):
+                click.echo(f"\nChanges (dry-run):")
+                changes = data.get('changes', {})
+                if isinstance(changes, dict) and 'summary' in changes:
+                    summary = changes['summary']
+                    click.echo(f"  Would add: {summary.get('total_added', 0)}")
+                    click.echo(f"  Would update: {summary.get('total_updated', 0)}")
+                    click.echo(f"  Would delete: {summary.get('total_deleted', 0)}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("export")
+@click.argument('output_file', type=click.Path())
+@click.option('--domain', help='Export specific domain (all if not specified)')
+@click.option('--format', type=click.Choice(['yaml', 'json']), default='yaml', help='Export format')
+@click.option('--include-metadata', is_flag=True, help='Include metadata')
+@standard_cli_command(
+    help_text="Export rules to YAML or JSON file.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_export(ctx, output_file: str, domain: Optional[str], format: str,
+                      include_metadata: bool, verbose: bool, output_format: str,
+                      use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                      quality_level: str, strict_mode: bool):
+    """Export rules to file"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-export")
+    
+    try:
+        # Build query parameters for GET request
+        params = {
+            "format": format,
+            "include_metadata": "true" if include_metadata else "false"
+        }
+        if domain:
+            params["domain"] = domain
+        
+        # Build query string
+        query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+        endpoint = f"/api/match/rules/export?{query_string}"
+        
+        response = await cli_ctx.api_client.request(
+            "POST", endpoint
+        )
+        
+        data = response.get("data", {})
+        content = data.get("content", "")
+        
+        output_path = Path(output_file)
+        output_path.write_text(content)
+        
+        if output_format == "json":
+            click.echo(json.dumps({
+                "file": str(output_path),
+                "format": format,
+                "domain": domain or "all",
+                "rule_count": data.get("rule_count", 0)
+            }, indent=2))
+        else:
+            cli_ctx.log(f"Rules exported to {output_file}", "success")
+            click.echo(f"Exported {data.get('rule_count', 0)} rules to {output_file}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("validate")
+@click.argument('file', type=click.Path(exists=True))
+@standard_cli_command(
+    help_text="Validate rule file without importing.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_validate(ctx, file: str, verbose: bool, output_format: str,
+                        use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                        quality_level: str, strict_mode: bool):
+    """Validate rule file"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-validate")
+    
+    try:
+        file_path = Path(file)
+        file_content = file_path.read_text()
+        
+        # Determine format from extension
+        if file_path.suffix.lower() in ['.yaml', '.yml']:
+            file_format = 'yaml'
+        elif file_path.suffix.lower() == '.json':
+            file_format = 'json'
+        else:
+            raise click.ClickException(f"Unsupported file format: {file_path.suffix}")
+        
+        response = await cli_ctx.api_client.request(
+            "POST", "/api/match/rules/validate",
+            json_data={"file_content": file_content, "file_format": file_format}
+        )
+        
+        data = response.get("data", {})
+        if output_format == "json":
+            click.echo(json.dumps(data, indent=2))
+        else:
+            if data.get("valid"):
+                cli_ctx.log("Validation passed", "success")
+            else:
+                cli_ctx.log("Validation failed", "error")
+            for error in data.get("errors", []):
+                click.echo(f"  Error: {error}")
+            for warning in data.get("warnings", []):
+                click.echo(f"  Warning: {warning}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("compare")
+@click.argument('file', type=click.Path(exists=True))
+@click.option('--domain', help='Compare specific domain')
+@standard_cli_command(
+    help_text="Compare rules file with current rules (dry-run).",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_compare(ctx, file: str, domain: Optional[str], verbose: bool,
+                       output_format: str, use_llm: bool, llm_provider: str,
+                       llm_model: Optional[str], quality_level: str, strict_mode: bool):
+    """Compare rules file with current rules"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-compare")
+    
+    try:
+        file_path = Path(file)
+        file_content = file_path.read_text()
+        
+        # Determine format from extension
+        if file_path.suffix.lower() in ['.yaml', '.yml']:
+            file_format = 'yaml'
+        elif file_path.suffix.lower() == '.json':
+            file_format = 'json'
+        else:
+            raise click.ClickException(f"Unsupported file format: {file_path.suffix}")
+        
+        request_data = {
+            "file_content": file_content,
+            "file_format": file_format
+        }
+        if domain:
+            request_data["domain"] = domain
+        
+        response = await cli_ctx.api_client.request(
+            "POST", "/api/match/rules/compare", json_data=request_data
+        )
+        
+        data = response.get("data", {})
+        if output_format == "json":
+            click.echo(json.dumps(data, indent=2))
+        else:
+            changes = data.get("changes", {})
+            summary = data.get("summary", {})
+            
+            click.echo("\nComparison Results:")
+            click.echo(f"  Would add: {summary.get('total_added', 0)}")
+            click.echo(f"  Would update: {summary.get('total_updated', 0)}")
+            click.echo(f"  Would delete: {summary.get('total_deleted', 0)}")
+            
+            if verbose and changes:
+                if changes.get("added"):
+                    click.echo(f"\n  Added rules: {', '.join(changes.get('added', []))}")
+                if changes.get("updated"):
+                    click.echo(f"  Updated rules: {', '.join(changes.get('updated', []))}")
+                if changes.get("deleted"):
+                    click.echo(f"  Deleted rules: {', '.join(changes.get('deleted', []))}")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise
+
+
+@rules.command("reset")
+@click.option('--confirm', is_flag=True, help='Skip confirmation prompt')
+@standard_cli_command(
+    help_text="Reset all rules (clear all rule sets).",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True
+)
+@click.pass_context
+async def rules_reset(ctx, confirm: bool, verbose: bool, output_format: str,
+                     use_llm: bool, llm_provider: str, llm_model: Optional[str],
+                     quality_level: str, strict_mode: bool):
+    """Reset all rules"""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("rules-reset")
+    
+    try:
+        if not confirm:
+            if not click.confirm("Are you sure you want to reset ALL rules? This cannot be undone."):
+                click.echo("Cancelled")
+                return
+        
+        # API expects confirm as query parameter, not in body
+        endpoint = "/api/match/rules/reset"
+        if confirm:
+            endpoint += "?confirm=true"
+        
+        response = await cli_ctx.api_client.request(
+            "POST", endpoint
+        )
+        
+        cli_ctx.log("All rules have been reset", "success")
+        if output_format == "json":
+            click.echo(json.dumps(response, indent=2))
+        else:
+            click.echo("All rules have been cleared")
+        
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.end_command_tracking()
+        raise

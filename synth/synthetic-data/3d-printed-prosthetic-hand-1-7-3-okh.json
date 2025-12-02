@@ -1,0 +1,406 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "46c28aea-f3c3-416e-8d26-cc74e4fb9826",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/garyscott/3d-printed-prosthetic-hand",
+  "version": "1.7.3",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Carrie Romero",
+    "email": "carrolllisa@example.com",
+    "affiliation": "Hamilton-Bolton",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jennaclark"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Second forget police instead method know.",
+  "intended_use": "Often fall again wide cold.",
+  "keywords": [
+    "reproducible",
+    "bracket"
+  ],
+  "contact": {
+    "name": "Bradley Russell",
+    "email": "nthomas@example.com",
+    "affiliation": "Gomez, Delgado and Lewis",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "heathersingh"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Greg Perez",
+      "email": "michael71@example.org",
+      "affiliation": "Harris-Miller",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "vramos"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Chung Inc",
+    "url": "https://walker.com",
+    "email": "contact@christensen.net"
+  },
+  "development_stage": "prototype",
+  "technology_readiness_level": "TRL-4",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/davidramirez/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/frylisa/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/amberyoung/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/lbrown/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/rebekahwilliams/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/twilliams/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/kristine59/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/kellymartin/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/oclark/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/skramer/project/raw/main/docs/3d_printing_setup_and_parameters.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/hrivera/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/kathleencastro/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.0"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Filament",
+    "Heat shrink",
+    "Heat gun",
+    "Pliers",
+    "Screwdriver set",
+    "Nozzle",
+    "Build plate"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 925.16,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 151.05,
+      "unit": "kg",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 897.6,
+      "unit": "m²",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 346,
+      "width": 408,
+      "height": 88
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "20%",
+          "temperature": "243°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Former about resource coach trade plant why."
+      }
+    ],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": "Manufacturing notes: Open almost decision leader well outside."
+  },
+  "bom": "https://github.com/jenkinsthomas/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "3d34f979-6cd3-4046-b271-f791d4cd9cb0",
+      "source": [
+        "https://github.com/mark72/project/raw/main/models/main_body.stl"
+      ],
+      "export": [
+        "https://github.com/bjones/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [
+        "https://github.com/pbarron/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/stanleymichael/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 92,
+        "width": 14,
+        "height": 94
+      },
+      "mass": 58.66,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "4bb814e5-fd17-4dd2-97f6-81553dff4c65",
+      "source": [
+        "https://github.com/virginiapreston/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/gerald74/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/tiffany60/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/qstrickland/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 181,
+        "width": 73,
+        "height": 15
+      },
+      "mass": 399.37,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "1872b966-2c1e-48b1-874e-7c0cbd4da9e5",
+      "source": [
+        "https://github.com/jermaine18/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/brooksrobin/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/melissa08/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/tami43/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": {
+        "length": 27,
+        "width": 87,
+        "height": 30
+      },
+      "mass": 237.83,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "7e832e4c-4cbe-4008-8306-f22eb83d350b",
+      "source": [
+        "https://github.com/jamessmith/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/brianakelly/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/traci08/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/annette93/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 21,
+        "width": 19,
+        "height": 36
+      },
+      "mass": 130.71,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "8c04cc2a-9e0d-4705-afd7-e69ba3cec14a",
+      "source": [
+        "https://github.com/athompson/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/stephaniesnyder/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/martinezdaniel/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/alejandra43/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 126,
+        "width": 29,
+        "height": 86
+      },
+      "mass": 962.42,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Open Matching Engine (OME) API provides programmatic access to match requirements with capabilities across multiple domains and generate valid solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 43 routes across 6 command groups, featuring  error handling, LLM integration support, and production readiness.
+The Open Matching Engine (OME) API provides programmatic access to match requirements with capabilities across multiple domains and generate valid solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 53 routes across 7 command groups, featuring  error handling, LLM integration support, and production readiness.
 
 **Supported Domains:**
 - **Manufacturing Domain**: Match OKH requirements with OKW capabilities
@@ -1392,6 +1392,353 @@ POST /v1/api/match/validate
 
 **Status:**  **Advanced Implementation** - **Domain-aware validation with quality levels and  validation criteria (placeholder implementation with advanced parameters)**
 
+### Rules Management Routes
+
+The Rules Management API provides endpoints for managing capability-centric heuristic matching rules. These rules define how requirements map to capabilities in the matching system. Rules are stored in `src/config/rules/` and can be managed via API or CLI.
+
+**Base Path:** `/v1/api/match/rules`
+
+#### List All Rules
+
+```
+GET /v1/api/match/rules
+```
+
+List all matching rules, optionally filtered by domain or tag.
+
+**Query Parameters:**
+- `domain` (optional): Filter rules by domain (e.g., "manufacturing", "cooking")
+- `tag` (optional): Filter rules by tag
+- `include_metadata` (optional, default: false): Include creation/update timestamps
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rules retrieved successfully",
+  "data": {
+    "rules": {
+      "cooking": [
+        {
+          "id": "sauté_capability",
+          "type": "capability_match",
+          "capability": "sauté pan",
+          "satisfies_requirements": ["sauté", "saute", "pan-fry"],
+          "confidence": 0.95,
+          "domain": "cooking",
+          "description": "Sauté pan can satisfy sautéing requirements",
+          "tags": ["frying", "technique"]
+        }
+      ],
+      "manufacturing": [...]
+    },
+    "total_rules": 42,
+    "domains": ["cooking", "manufacturing"]
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Get Specific Rule
+
+```
+GET /v1/api/match/rules/{domain}/{rule_id}
+```
+
+Get a specific rule by domain and ID.
+
+**Path Parameters:**
+- `domain`: Domain name (e.g., "manufacturing", "cooking")
+- `rule_id`: Rule identifier
+
+**Query Parameters:**
+- `include_metadata` (optional, default: false): Include creation/update timestamps
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rule retrieved successfully",
+  "data": {
+    "id": "sauté_capability",
+    "type": "capability_match",
+    "capability": "sauté pan",
+    "satisfies_requirements": ["sauté", "saute", "pan-fry"],
+    "confidence": 0.95,
+    "domain": "cooking",
+    "description": "Sauté pan can satisfy sautéing requirements",
+    "tags": ["frying", "technique"]
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Create Rule
+
+```
+POST /v1/api/match/rules
+```
+
+Create a new matching rule.
+
+**Request:**
+```json
+{
+  "rule_data": {
+    "id": "new_rule_id",
+    "type": "capability_match",
+    "capability": "cnc machining",
+    "satisfies_requirements": ["milling", "machining", "material removal"],
+    "confidence": 0.95,
+    "domain": "manufacturing",
+    "description": "CNC machining can satisfy various milling requirements",
+    "tags": ["machining", "automation"]
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rule created successfully",
+  "data": {
+    "id": "new_rule_id",
+    "type": "capability_match",
+    "capability": "cnc machining",
+    "satisfies_requirements": ["milling", "machining", "material removal"],
+    "confidence": 0.95,
+    "domain": "manufacturing"
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Update Rule
+
+```
+PUT /v1/api/match/rules/{domain}/{rule_id}
+```
+
+Update an existing rule.
+
+**Path Parameters:**
+- `domain`: Domain name
+- `rule_id`: Rule identifier
+
+**Request:**
+```json
+{
+  "rule_data": {
+    "id": "rule_id",
+    "type": "capability_match",
+    "capability": "updated capability",
+    "satisfies_requirements": ["req1", "req2"],
+    "confidence": 0.9,
+    "domain": "manufacturing"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rule updated successfully",
+  "data": {
+    "id": "rule_id",
+    "capability": "updated capability",
+    "satisfies_requirements": ["req1", "req2"],
+    "confidence": 0.9
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Delete Rule
+
+```
+DELETE /v1/api/match/rules/{domain}/{rule_id}?confirm=true
+```
+
+Delete a rule.
+
+**Path Parameters:**
+- `domain`: Domain name
+- `rule_id`: Rule identifier
+
+**Query Parameters:**
+- `confirm` (required): Must be `true` to confirm deletion
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rule deleted successfully"
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Import Rules
+
+```
+POST /v1/api/match/rules/import
+```
+
+Import rules from YAML or JSON file content.
+
+**Request:**
+```json
+{
+  "file_content": "domain: manufacturing\nversion: 1.0.0\nrules:\n  rule_id:\n    id: rule_id\n    ...",
+  "file_format": "yaml",
+  "domain": "manufacturing",
+  "partial_update": true,
+  "dry_run": false
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rules imported successfully",
+  "data": {
+    "imported_rules": 10,
+    "updated_rules": 2,
+    "errors": [],
+    "dry_run": false
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Export Rules
+
+```
+POST /v1/api/match/rules/export?format=yaml&include_metadata=false
+```
+
+Export rules to YAML or JSON format.
+
+**Query Parameters:**
+- `format` (optional, default: "yaml"): Export format ("yaml" or "json")
+- `domain` (optional): Export specific domain (all if not specified)
+- `include_metadata` (optional, default: false): Include creation/update timestamps
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rules exported successfully",
+  "data": {
+    "content": "domain: manufacturing\nversion: 1.0.0\nrules:\n  ...",
+    "format": "yaml",
+    "domain": "all",
+    "rule_count": 42
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Validate Rules
+
+```
+POST /v1/api/match/rules/validate
+```
+
+Validate rule file content without importing.
+
+**Request:**
+```json
+{
+  "file_content": "domain: manufacturing\nversion: 1.0.0\nrules:\n  ...",
+  "file_format": "yaml"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Validation completed",
+  "data": {
+    "valid": true,
+    "errors": [],
+    "warnings": ["Rule has low confidence (< 0.5)"]
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Compare Rules
+
+```
+POST /v1/api/match/rules/compare
+```
+
+Compare rules file with current rules (dry-run import).
+
+**Request:**
+```json
+{
+  "file_content": "domain: manufacturing\nversion: 1.0.0\nrules:\n  ...",
+  "file_format": "yaml",
+  "domain": "manufacturing"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Comparison completed",
+  "data": {
+    "changes": {
+      "added": ["new_rule_1", "new_rule_2"],
+      "updated": ["existing_rule_1"],
+      "deleted": []
+    },
+    "summary": {
+      "total_added": 2,
+      "total_updated": 1,
+      "total_deleted": 0
+    }
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Reset Rules
+
+```
+POST /v1/api/match/rules/reset?confirm=true
+```
+
+Reset all rules (clear all rule sets).
+
+**Query Parameters:**
+- `confirm` (required): Must be `true` to confirm reset
+
+**Response:**
+```json
+{
+  "status": "success",
+  "message": "Rules reset successfully"
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
 ### Domain Management Routes
 
 #### List All Domains
@@ -1707,6 +2054,18 @@ Paginated responses include consistent metadata:
 - `GET /v1/api/match/domains/{domain_name}` - **Complete domain information retrieval with error handling**
 - `GET /v1/api/match/domains/{domain_name}/health` - **Complete domain health checking with component status**
 - `POST /v1/api/match/detect-domain` - **Complete domain detection with confidence scoring**
+
+#### **Rules Management Routes**
+- `GET /v1/api/match/rules` - **List all rules with optional domain/tag filtering**
+- `GET /v1/api/match/rules/{domain}/{rule_id}` - **Get specific rule by domain and ID**
+- `POST /v1/api/match/rules` - **Create new rule**
+- `PUT /v1/api/match/rules/{domain}/{rule_id}` - **Update existing rule**
+- `DELETE /v1/api/match/rules/{domain}/{rule_id}` - **Delete rule**
+- `POST /v1/api/match/rules/import` - **Import rules from YAML/JSON file**
+- `POST /v1/api/match/rules/export` - **Export rules to YAML/JSON format**
+- `POST /v1/api/match/rules/validate` - **Validate rule file without importing**
+- `POST /v1/api/match/rules/compare` - **Compare rules file with current rules (dry-run)**
+- `POST /v1/api/match/rules/reset` - **Reset all rules (clear all rule sets)**
 
 #### **OKH Routes**
 - `POST /v1/api/okh/create` - **Complete CRUD operations with service integration**

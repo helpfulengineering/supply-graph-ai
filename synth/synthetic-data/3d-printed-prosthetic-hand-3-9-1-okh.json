@@ -1,0 +1,287 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "7227ff67-7537-488b-b025-a3f126023603",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/mwalton/3d-printed-prosthetic-hand",
+  "version": "3.9.1",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Lauren Garcia",
+    "email": "armstrongshirley@example.net",
+    "affiliation": "Booth PLC",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "meganadams"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Any simple hand catch keep.",
+  "intended_use": "Treatment hear customer national.",
+  "keywords": [
+    "reproducible",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Brian Thompson",
+    "email": "kayla07@example.org",
+    "affiliation": "Rose-Reed",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "aaron51"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Hayley Frank",
+      "email": "billy42@example.com",
+      "affiliation": "Butler PLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "alejandrogonzalez"
+        }
+      ]
+    },
+    {
+      "name": "Jennifer Forbes",
+      "email": "robin12@example.net",
+      "affiliation": "George-Paul",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "tylerhudson"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Mckinney, Gallegos and Hamilton",
+    "url": "https://nelson-pugh.com",
+    "email": "contact@bradshaw-garrett.net"
+  },
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/rbowers/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/james38/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/jimmygarcia/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/williamterry/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/katherinerivera/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/cooperthomas/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/andreaschultz/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/villegascody/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/hollandscott/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/yorkteresa/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/teresa30/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.2"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/fraziersusan/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Filament",
+    "Crimping tool",
+    "3D printer",
+    "Heat shrink",
+    "Pliers",
+    "Screwdriver set",
+    "Calipers"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 950.84,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 391,
+      "width": 128,
+      "height": 101
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "10%",
+          "temperature": "229°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Table hospital gas others product."
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Good page of address majority sure."
+  },
+  "bom": "https://github.com/johnnywilliams/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "830ae5d0-27db-4d80-bdb6-4fc7518fc1b4",
+      "source": [
+        "https://github.com/mcclurescott/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/teresa80/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/cherylporter/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/shawashley/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 132,
+        "width": 131,
+        "height": 23
+      },
+      "mass": 291.91,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

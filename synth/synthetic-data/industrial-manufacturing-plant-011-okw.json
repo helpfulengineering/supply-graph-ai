@@ -1,0 +1,328 @@
+{
+  "id": "38bb8d9a-8723-43d8-9d11-ce1764b80575",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "6537",
+      "street": "Martinez Views",
+      "city": "Peckchester",
+      "region": "Arizona",
+      "country": "Cambodia",
+      "postcode": "96210"
+    },
+    "gps_coordinates": "43.484143, -116.82098",
+    "directions": "Located across from Rivera, Chavez and Brewer",
+    "city": "Peckchester",
+    "country": "Cambodia"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Harrison, Ibarra and Conley",
+    "location": {
+      "address": {
+        "number": "2883",
+        "street": "Michaela Trail",
+        "city": "New Deborah",
+        "region": "North Dakota",
+        "country": "Korea",
+        "postcode": "82956"
+      },
+      "gps_coordinates": "69.720292, -85.436883",
+      "directions": "Located behind Young-Ramirez",
+      "city": "New Deborah",
+      "country": "Korea"
+    },
+    "contact_person": "Audrey Edwards",
+    "bio": "Established in 2011, we specialize in Visionary object-oriented artificial intelligence",
+    "website": "https://phillips.com",
+    "languages": [
+      "es"
+    ],
+    "mailing_list": "jonesjoshua@lists.schmitt.com",
+    "images": [
+      "images/expert.jpg"
+    ],
+    "contact": {
+      "landline": "+1-600-711-6149",
+      "mobile": "+1-660-827-9296",
+      "email": "info@cook.com",
+      "whatsapp": "+1-451-257-5695"
+    },
+    "social_media": {
+      "twitter": "@henry23",
+      "other_urls": [
+        "https://knight-baxter.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Martinez, Scott and Henderson",
+    "location": {
+      "address": {
+        "number": "7592",
+        "street": "Mathis Harbors",
+        "city": "Blakeshire",
+        "region": "Pennsylvania",
+        "country": "Canada",
+        "postcode": "85267"
+      },
+      "gps_coordinates": "45.923575, -85.043403",
+      "directions": "Located across from Clayton-Warren",
+      "city": "Blakeshire",
+      "country": "Canada"
+    },
+    "contact_person": "Sara Walters",
+    "bio": "Established in 2020, we specialize in Advanced holistic projection",
+    "website": "https://martinez.com",
+    "languages": [
+      "en"
+    ],
+    "mailing_list": "wbailey@lists.gordon.com",
+    "contact": {
+      "landline": "+1-951-242-8778",
+      "mobile": "+1-834-996-2269",
+      "email": "info@peters.org",
+      "whatsapp": "+1-731-277-3852"
+    },
+    "social_media": {
+      "twitter": "@osanchez",
+      "instagram": "@mariakim",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-19:00",
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "2011-01-20",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "DMU 50",
+      "serial_number": "SN911868",
+      "condition": "Good",
+      "notes": "Equipment notes: Side perhaps program federal.",
+      "quantity": 5,
+      "throughput": "15 parts/hour",
+      "power_rating": 7792,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6619",
+              "street": "Davis Pass",
+              "city": "North Gary",
+              "region": "Virginia",
+              "country": "Falkland Islands (Malvinas)",
+              "postcode": "89059"
+            },
+            "gps_coordinates": "51.255144, -48.96176",
+            "directions": "Located behind Dickerson LLC",
+            "city": "North Gary",
+            "country": "Falkland Islands (Malvinas)"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "566",
+              "street": "Ryan Manor",
+              "city": "South Jessicaburgh",
+              "region": "Washington",
+              "country": "Barbados",
+              "postcode": "87570"
+            },
+            "gps_coordinates": "31.231147, -12.999437",
+            "directions": "Located behind Huynh, Nelson and Sharp",
+            "city": "South Jessicaburgh",
+            "country": "Barbados"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "198",
+              "street": "Harry Valley",
+              "city": "Frazierbury",
+              "region": "Washington",
+              "country": "New Zealand",
+              "postcode": "37083"
+            },
+            "gps_coordinates": "28.359862, 31.475083",
+            "directions": "Located across from Clayton, Petty and Smith",
+            "city": "Frazierbury",
+            "country": "New Zealand"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9192",
+              "street": "Patrick Springs",
+              "city": "Webbside",
+              "region": "Wisconsin",
+              "country": "Martinique",
+              "postcode": "11874"
+            },
+            "gps_coordinates": "64.703981, 28.1282",
+            "directions": "Located behind Rodriguez, Clay and Lopez",
+            "city": "Webbside",
+            "country": "Martinique"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Wood",
+          "Plastic",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "23 minutes",
+          "cycle_time": "48 minutes",
+          "changeover_time": "31 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 231",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand A",
+      "model": "Model 499",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 188",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 543,
+  "storage_capacity": "174 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Intuitive bottom-line core",
+    "Proactive holistic complexity",
+    "Ergonomic hybrid complexity",
+    "Front-line systematic standardization"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Station recent reach maintain you and thought."
+  },
+  "human_capacity": {
+    "headcount": 49
+  },
+  "innovation_space": {
+    "staff": 10,
+    "learning_resources": [
+      "Operative maximized database",
+      "Horizontal multi-tasking interface",
+      "Switchable uniform support",
+      "Decentralized dedicated capacity",
+      "Horizontal multimedia hierarchy"
+    ],
+    "services": [
+      "Phased 5thgeneration service-desk",
+      "Multi-channeled intermediate implementation"
+    ],
+    "footfall": 12
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.158023",
+    "created_by": {
+      "name": "Torres-Willis",
+      "location": {
+        "address": {
+          "number": "5635",
+          "street": "Hayes Manor",
+          "city": "Ellisshire",
+          "region": "Indiana",
+          "country": "Bulgaria",
+          "postcode": "36882"
+        },
+        "gps_coordinates": "25.494219, -102.125692",
+        "directions": "Located across from Perkins, Garcia and Neal",
+        "city": "Ellisshire",
+        "country": "Bulgaria"
+      },
+      "contact_person": "Terri May",
+      "bio": "Established in 1996, we specialize in Extended maximized Graphical User Interface",
+      "website": "https://molina-mcneil.net",
+      "languages": [
+        "en",
+        "de"
+      ],
+      "mailing_list": "knapprebecca@lists.mitchell.org",
+      "contact": {
+        "landline": "+1-616-948-8813",
+        "mobile": "+1-514-913-3108",
+        "email": "info@hill.biz",
+        "whatsapp": "+1-694-406-8507"
+      },
+      "social_media": {
+        "instagram": "@matthewtorres",
+        "other_urls": [
+          "https://mckinney.net",
+          "https://randolph.net"
+        ]
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

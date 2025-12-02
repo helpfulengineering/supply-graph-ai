@@ -1,0 +1,326 @@
+{
+  "id": "6d74a81c-061d-4d3c-87d6-da0bb0a68f57",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "6577",
+      "street": "Griffin View",
+      "city": "Jacobsstad",
+      "region": "Massachusetts",
+      "country": "Brazil",
+      "postcode": "60065"
+    },
+    "gps_coordinates": "40.572257, 5.830541",
+    "directions": "Located across from Soto Ltd",
+    "city": "Jacobsstad",
+    "country": "Brazil"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Freeman Ltd",
+    "location": {
+      "address": {
+        "number": "5089",
+        "street": "Kimberly Overpass",
+        "city": "Meganfurt",
+        "region": "Virginia",
+        "country": "Saint Kitts and Nevis",
+        "postcode": "18093"
+      },
+      "gps_coordinates": "66.48281, -14.734355",
+      "directions": "Located across from Robinson PLC",
+      "city": "Meganfurt",
+      "country": "Saint Kitts and Nevis"
+    },
+    "contact_person": "Jodi Wilson",
+    "bio": "Established in 2003, we specialize in Reverse-engineered systematic definition",
+    "website": "https://young.com",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "mailing_list": "bobbyvalenzuela@lists.arias.com",
+    "images": [
+      "images/wife.jpg"
+    ],
+    "contact": {
+      "landline": "+1-622-710-2300",
+      "mobile": "+1-825-669-5253",
+      "email": "info@rodriguez.biz",
+      "whatsapp": "+1-422-421-2968"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/devin03",
+      "twitter": "@barbarahill",
+      "instagram": "@ibenitez",
+      "other_urls": [
+        "https://miles.biz"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Nunez Ltd",
+    "location": {
+      "address": {
+        "number": "6066",
+        "street": "Stacie Isle",
+        "city": "South Phillip",
+        "region": "Georgia",
+        "country": "Puerto Rico",
+        "postcode": "00729"
+      },
+      "gps_coordinates": "51.919458, -97.465718",
+      "directions": "Located behind Green, Mcintyre and Patrick",
+      "city": "South Phillip",
+      "country": "Puerto Rico"
+    },
+    "contact_person": "Erica Massey",
+    "bio": "Established in 2010, we specialize in Open-source asynchronous projection",
+    "website": "https://walker.net",
+    "languages": [
+      "de"
+    ],
+    "mailing_list": "parkerrodney@lists.carter.com",
+    "images": [
+      "images/cell.jpg"
+    ],
+    "contact": {
+      "landline": "+1-810-581-1384",
+      "mobile": "+1-667-437-7250",
+      "email": "info@spencer.com",
+      "whatsapp": "+1-339-238-9296"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/jmartinez",
+      "twitter": "@ykaiser",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-21:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "1999-03-07",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VTC-20",
+      "serial_number": "SN551790",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Growth teacher series order walk sport ok.",
+      "quantity": 1,
+      "throughput": "49 parts/hour",
+      "power_rating": 2756,
+      "maintenance_schedule": "Every 7 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "450",
+              "street": "Susan Corner",
+              "city": "Port Christy",
+              "region": "Minnesota",
+              "country": "Kiribati",
+              "postcode": "85774"
+            },
+            "gps_coordinates": "41.593464, 28.287994",
+            "directions": "Located near Chen PLC",
+            "city": "Port Christy",
+            "country": "Kiribati"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5782",
+              "street": "Freeman Ports",
+              "city": "Rhodesmouth",
+              "region": "Nevada",
+              "country": "Kiribati",
+              "postcode": "08520"
+            },
+            "gps_coordinates": "34.461582, -71.587655",
+            "directions": "Located behind Watson Inc",
+            "city": "Rhodesmouth",
+            "country": "Kiribati"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5429",
+              "street": "Christina Walks",
+              "city": "Nancyshire",
+              "region": "Georgia",
+              "country": "Romania",
+              "postcode": "42323"
+            },
+            "gps_coordinates": "30.451152, -109.086854",
+            "directions": "Located across from Knapp, Grimes and Johns",
+            "city": "Nancyshire",
+            "country": "Romania"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5110",
+              "street": "Michelle Club",
+              "city": "Annaton",
+              "region": "Ohio",
+              "country": "Comoros",
+              "postcode": "51122"
+            },
+            "gps_coordinates": "26.608675, -114.056246",
+            "directions": "Located near Willis PLC",
+            "city": "Annaton",
+            "country": "Comoros"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.015mm",
+        "supported_materials": [
+          "Aluminum",
+          "Wood",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "87 minutes",
+          "cycle_time": "24 minutes",
+          "changeover_time": "20 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 978",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 231",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 3126,
+  "storage_capacity": "489 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Synergistic client-driven secured line",
+    "Configurable system-worthy protocol",
+    "Synergistic multi-tasking circuit",
+    "Down-sized hybrid intranet",
+    "Decentralized disintermediate hub"
+  ],
+  "human_capacity": {
+    "headcount": 6
+  },
+  "innovation_space": {
+    "staff": 3,
+    "learning_resources": [
+      "Stand-alone logistical matrix",
+      "Enhanced neutral intranet",
+      "Fundamental logistical architecture",
+      "Distributed high-level Local Area Network",
+      "Realigned user-facing Internet solution"
+    ],
+    "services": [
+      "De-engineered national core",
+      "Open-source 24hour definition",
+      "Persistent dynamic data-warehouse",
+      "Secured neutral data-warehouse",
+      "Mandatory full-range extranet"
+    ],
+    "footfall": 57
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.185864",
+    "created_by": {
+      "name": "Rodriguez, Johnson and Gilbert",
+      "location": {
+        "address": {
+          "number": "9440",
+          "street": "Chapman Tunnel",
+          "city": "Port Victoria",
+          "region": "Florida",
+          "country": "American Samoa",
+          "postcode": "37038"
+        },
+        "gps_coordinates": "46.964792, 36.929709",
+        "directions": "Located near Johnson, Holmes and Brown",
+        "city": "Port Victoria",
+        "country": "American Samoa"
+      },
+      "contact_person": "Susan Matthews",
+      "bio": "Established in 2010, we specialize in Horizontal transitional definition",
+      "website": "https://duarte.com",
+      "languages": [
+        "es",
+        "de"
+      ],
+      "mailing_list": "xmcdonald@lists.tanner-mullins.com",
+      "images": [
+        "images/else.jpg",
+        "images/hit.jpg"
+      ],
+      "contact": {
+        "landline": "+1-662-848-9145",
+        "mobile": "+1-245-501-9465",
+        "email": "info@baird.com",
+        "whatsapp": "+1-594-209-2185"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/michaelhicks",
+        "twitter": "@ytaylor",
+        "instagram": "@murphydaniel",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

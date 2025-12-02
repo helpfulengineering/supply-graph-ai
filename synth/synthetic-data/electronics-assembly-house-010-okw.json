@@ -1,0 +1,228 @@
+{
+  "id": "ffc95e5b-c757-4770-a50f-ecaf9ec38546",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "2359",
+      "street": "Wanda Pines",
+      "city": "Dunnside",
+      "region": "Tennessee",
+      "country": "Grenada",
+      "postcode": "84359"
+    },
+    "gps_coordinates": "50.701346, -23.259475",
+    "directions": "Located near Adams, Sanford and Ford",
+    "city": "Dunnside",
+    "country": "Grenada"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Lee, Abbott and Smith",
+    "location": {
+      "address": {
+        "number": "3127",
+        "street": "Sanchez Ways",
+        "city": "Faithshire",
+        "region": "Maryland",
+        "country": "Jamaica",
+        "postcode": "61353"
+      },
+      "gps_coordinates": "51.694656, -79.351119",
+      "directions": "Located across from Smith PLC",
+      "city": "Faithshire",
+      "country": "Jamaica"
+    },
+    "contact_person": "Regina Jones",
+    "bio": "Established in 2014, we specialize in Object-based non-volatile service-desk",
+    "website": "https://thompson.org",
+    "languages": [
+      "en",
+      "de",
+      "es"
+    ],
+    "mailing_list": "jelliott@lists.smith.com",
+    "contact": {
+      "landline": "+1-259-936-4288",
+      "mobile": "+1-422-516-1801",
+      "email": "info@cline.biz",
+      "whatsapp": "+1-531-767-7269"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/whiteheadtimothy",
+      "twitter": "@longrobin",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Horn-Bernard",
+    "location": {
+      "address": {
+        "number": "7196",
+        "street": "Nelson Loaf",
+        "city": "Masonburgh",
+        "region": "Minnesota",
+        "country": "Central African Republic",
+        "postcode": "97439"
+      },
+      "gps_coordinates": "51.383282, -86.637126",
+      "directions": "Located near Harper, Martinez and Mcknight",
+      "city": "Masonburgh",
+      "country": "Central African Republic"
+    },
+    "contact_person": "Leslie Lee",
+    "bio": "Established in 2011, we specialize in Multi-channeled optimal open system",
+    "website": "https://salinas.info",
+    "languages": [
+      "de",
+      "es"
+    ],
+    "mailing_list": "zcarrillo@lists.ball.net",
+    "images": [
+      "images/although.jpg",
+      "images/first.jpg",
+      "images/drop.jpg"
+    ],
+    "contact": {
+      "landline": "+1-614-615-1895",
+      "mobile": "+1-346-766-8054",
+      "email": "info@garcia.com",
+      "whatsapp": "+1-369-204-7615"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/woodjoseph",
+      "twitter": "@nathanpark",
+      "instagram": "@qcruz",
+      "other_urls": [
+        "https://russell-pierce.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-17:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "1992-01-05",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 904",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand A",
+      "model": "Model 333",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 618",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 156",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1732,
+  "storage_capacity": "694 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "Total upward-trending encoding",
+    "Up-sized maximized database",
+    "Distributed background conglomeration",
+    "Profound incremental data-warehouse",
+    "Balanced impactful matrix"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Magazine recent participant even yard born.",
+    "by_products": [
+      "hard",
+      "popular"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 37
+  },
+  "innovation_space": {
+    "staff": 4,
+    "services": [
+      "Programmable static support",
+      "Configurable uniform website"
+    ],
+    "footfall": 7,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:09:40.828546",
+    "created_by": {
+      "name": "Gilbert LLC",
+      "location": {
+        "address": {
+          "number": "4365",
+          "street": "Mitchell Cliff",
+          "city": "North Elizabethview",
+          "region": "Louisiana",
+          "country": "Cote d'Ivoire",
+          "postcode": "75246"
+        },
+        "gps_coordinates": "44.606533, -38.680848",
+        "directions": "Located near Meyer, Rodriguez and Jones",
+        "city": "North Elizabethview",
+        "country": "Cote d'Ivoire"
+      },
+      "contact_person": "Brian Garcia",
+      "bio": "Established in 2020, we specialize in Vision-oriented national instruction set",
+      "website": "https://estes.info",
+      "languages": [
+        "es",
+        "en",
+        "fr"
+      ],
+      "mailing_list": "ymarquez@lists.smith.com",
+      "images": [
+        "images/language.jpg",
+        "images/be.jpg",
+        "images/team.jpg"
+      ],
+      "contact": {
+        "landline": "+1-813-872-1124",
+        "mobile": "+1-201-985-2236",
+        "email": "info@arnold-peters.com",
+        "whatsapp": "+1-645-288-5116"
+      },
+      "social_media": {
+        "instagram": "@ebony87",
+        "other_urls": [
+          "https://avila.com",
+          "https://curtis.com"
+        ]
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

@@ -55,8 +55,9 @@ For production deployments, [authentication](auth.md) can be enabled to secure A
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
 - **Supply Tree Generation**: Creates complete manufacturing solutions with confidence scoring
 
-#### API Endpoints (43 total - Fully Standardized)
+#### API Endpoints (53 total - Fully Standardized)
 - **Match Routes (7)**: Enhanced matching with multiple input methods, filtering, and LLM support
+- **Rules Management Routes (10)**: Complete CRUD operations for capability-centric heuristic matching rules
 - **OKH Routes (9)**: Complete CRUD operations with validation, extraction, and LLM integration
 - **OKW Routes (9)**: Complete CRUD operations with search, validation, and LLM integration
 - **Package Routes (10)**: Package building, verification, and management with LLM support

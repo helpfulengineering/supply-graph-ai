@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Path, Depends, Request, status, HTTPException
+from fastapi import APIRouter, Path, Query, Depends, Request, status, HTTPException, Response
 from typing import Optional, List, Any
 from datetime import datetime
 
@@ -152,7 +152,7 @@ async def get_domains(
         )
 
 @router.get(
-    "/contexts/{domain}", 
+    "/contexts", 
     response_model=ContextsResponse,
     summary="List Validation Contexts",
     description="""
@@ -173,7 +173,7 @@ async def get_domains(
     track_costs=True
 )
 async def get_contexts(
-    domain: str = Path(..., title="The domain to get contexts for"),
+    domain: str = Query(..., title="The domain to get contexts for", description="Domain name (e.g., 'manufacturing', 'cooking')"),
     filter_params: ContextFilterRequest = Depends(),
     http_request: Request = None
 ):
@@ -361,9 +361,12 @@ async def _validate_utility_result(
     - Performance metrics
     - LLM usage and costs
     
+    Supports both JSON format (default) and Prometheus format for cloud monitoring.
+    
     Args:
         endpoint: Optional endpoint filter (format: "METHOD /path")
         summary: If True, return summary only; if False, return detailed metrics
+        format: Output format: "json" (default) or "prometheus"
     """
 )
 @api_endpoint(
@@ -373,6 +376,7 @@ async def _validate_utility_result(
 async def get_metrics(
     endpoint: Optional[str] = None,
     summary: bool = True,
+    format: str = "json",
     http_request: Request = None
 ):
     """
@@ -381,10 +385,26 @@ async def get_metrics(
     Args:
         endpoint: Optional endpoint filter (format: "METHOD /path")
         summary: If True, return summary; if False, return detailed metrics
+        format: Output format: "json" (default) or "prometheus"
     """
     try:
         tracker = get_metrics_tracker()
         
+        # Validate format
+        if format not in ["json", "prometheus"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Format must be 'json' or 'prometheus'"
+            )
+        
+        # Prometheus format
+        if format == "prometheus":
+            return Response(
+                content=_format_prometheus_metrics(tracker, endpoint),
+                media_type="text/plain; version=0.0.4"
+            )
+        
+        # JSON format (default)
         if endpoint:
             # Parse endpoint format: "METHOD /path"
             parts = endpoint.split(" ", 1)
@@ -411,3 +431,77 @@ async def get_metrics(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving metrics: {str(e)}"
         )
+
+
+def _format_prometheus_metrics(tracker, endpoint: Optional[str] = None) -> str:
+    """Format metrics in Prometheus exposition format"""
+    lines = []
+    
+    # Get metrics data
+    if endpoint:
+        parts = endpoint.split(" ", 1)
+        if len(parts) == 2:
+            method, path = parts
+            endpoint_metrics = tracker.get_endpoint_metrics(method=method, path=path)
+            if endpoint_metrics:
+                _add_endpoint_prometheus_metrics(lines, endpoint_metrics, method, path)
+    else:
+        summary = tracker.get_summary()
+        all_endpoints = tracker.get_endpoint_metrics()
+        
+        # Overall metrics
+        lines.append("# HELP http_requests_total Total number of HTTP requests")
+        lines.append("# TYPE http_requests_total counter")
+        lines.append(f'http_requests_total {summary.get("total_requests", 0)}')
+        
+        lines.append("# HELP http_requests_successful_total Total number of successful HTTP requests")
+        lines.append("# TYPE http_requests_successful_total counter")
+        lines.append(f'http_requests_successful_total {summary.get("successful_requests", 0)}')
+        
+        lines.append("# HELP http_requests_failed_total Total number of failed HTTP requests")
+        lines.append("# TYPE http_requests_failed_total counter")
+        lines.append(f'http_requests_failed_total {summary.get("failed_requests", 0)}')
+        
+        # Endpoint-specific metrics
+        if isinstance(all_endpoints, dict):
+            for endpoint_key, endpoint_data in all_endpoints.items():
+                if isinstance(endpoint_data, dict):
+                    # Parse endpoint key (format: "METHOD /path")
+                    parts = endpoint_key.split(" ", 1)
+                    if len(parts) == 2:
+                        method, path = parts
+                        _add_endpoint_prometheus_metrics(lines, endpoint_data, method, path)
+    
+    return "\n".join(lines) + "\n"
+
+
+def _add_endpoint_prometheus_metrics(lines: list, endpoint_data: dict, method: str, path: str):
+    """Add Prometheus metrics for a specific endpoint"""
+    # Sanitize labels for Prometheus
+    method_label = method.lower()
+    path_label = path.replace("/", "_").replace("-", "_").strip("_")
+    
+    # Request count
+    request_count = endpoint_data.get("request_count", 0)
+    lines.append(f'http_requests_total{{method="{method}",path="{path}"}} {request_count}')
+    
+    # Success count
+    success_count = endpoint_data.get("success_count", 0)
+    lines.append(f'http_requests_successful_total{{method="{method}",path="{path}"}} {success_count}')
+    
+    # Error count
+    error_count = endpoint_data.get("error_count", 0)
+    lines.append(f'http_requests_failed_total{{method="{method}",path="{path}"}} {error_count}')
+    
+    # Processing time (if available)
+    if "avg_processing_time" in endpoint_data:
+        avg_time = endpoint_data["avg_processing_time"]
+        lines.append(f'http_request_duration_seconds{{method="{method}",path="{path}",quantile="0.5"}} {avg_time}')
+    
+    if "p95_processing_time" in endpoint_data:
+        p95_time = endpoint_data["p95_processing_time"]
+        lines.append(f'http_request_duration_seconds{{method="{method}",path="{path}",quantile="0.95"}} {p95_time}')
+    
+    if "p99_processing_time" in endpoint_data:
+        p99_time = endpoint_data["p99_processing_time"]
+        lines.append(f'http_request_duration_seconds{{method="{method}",path="{path}",quantile="0.99"}} {p99_time}')

@@ -1,0 +1,22 @@
+# Prometheus configuration for scraping supply-graph-ai metrics
+global:
+  scrape_interval: 15s      # How frequently to scrape targets
+  evaluation_interval: 15s  # How frequently to evaluate rules
+  external_labels:
+    cluster: 'local'
+    environment: 'development'
+
+# Scrape configurations
+scrape_configs:
+  # Scrape the supply-graph-ai API metrics endpoint
+  - job_name: 'supply-graph-ai'
+    scrape_interval: 15s
+    metrics_path: '/v1/api/utility/metrics'
+    params:
+      format: ['prometheus']
+    static_configs:
+      - targets: ['ome-api:8001']
+        labels:
+          service: 'supply-graph-ai'
+          instance: 'local'
+

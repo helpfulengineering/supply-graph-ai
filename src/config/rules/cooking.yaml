@@ -1,0 +1,43 @@
+domain: cooking
+version: "1.0.0"
+description: "Capability-centric rules for cooking domain - defines what requirements each capability can satisfy"
+
+metadata:
+  maintainer: "OME Cooking Team"
+  last_updated: "2024-01-01"
+  source: "Culinary terminology and cooking standards"
+
+rules:
+  # Cooking Technique Capabilities
+  sauté_capability:
+    id: "sauté_capability"
+    type: "capability_match"
+    capability: "sauté pan"
+    satisfies_requirements: ["sauté", "saute", "sauted", "sautéed", "pan-fry", "pan fry", "frying", "sautéing"]
+    confidence: 0.95
+    domain: "cooking"
+    description: "Sauté pan can satisfy sautéing and pan-frying requirements"
+    source: "Culinary Arts Institute"
+    tags: ["technique", "cooking", "frying"]
+
+  baking_capability:
+    id: "baking_capability"
+    type: "capability_match"
+    capability: "oven"
+    satisfies_requirements: ["bake", "baking", "oven-baked"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Braising pot can satisfy baking requirements"
+    source: "Culinary Arts Institute"
+    tags: ["technique", "cooking"]
+
+  roasting_capability:
+    id: "roasting_capability"
+    type: "capability_match"
+    capability: "oven"
+    satisfies_requirements: ["roast", "roasted", "roasting", "bake", "baked", "baking", "oven cook", "oven cooking"]
+    confidence: 0.9
+    domain: "cooking"
+    description: "Oven can satisfy roasting and baking requirements"
+    source: "Culinary Arts Institute"
+    tags: ["technique", "cooking", "oven"]

@@ -53,19 +53,50 @@ def get_aws_credentials() -> Dict[str, str]:
     }
 
 def get_gcp_credentials() -> Dict[str, str]:
-    """Get Google Cloud Storage credentials from environment variables"""
+    """Get Google Cloud Storage credentials from environment variables
+    
+    Supports multiple credential methods:
+    1. GCP_CREDENTIALS_JSON: JSON string or file path to service account JSON
+    2. GCP_CREDENTIALS_PATH: Explicit file path to service account JSON
+    3. Application Default Credentials (if neither is set)
+    
+    GCP_PROJECT_ID is optional if it's in the credentials JSON.
+    """
     project_id = os.getenv("GCP_PROJECT_ID")
     credentials_json = os.getenv("GCP_CREDENTIALS_JSON")
+    credentials_path = os.getenv("GCP_CREDENTIALS_PATH")
     
-    if not project_id or not credentials_json:
-        raise MissingCredentialsError(
-            "GCP credentials not found. "
-            "Please set GCP_PROJECT_ID and GCP_CREDENTIALS_JSON environment variables."
-        )
+    # If credentials_path is explicitly set, use it
+    if credentials_path:
+        if not os.path.exists(credentials_path):
+            raise MissingCredentialsError(
+                f"GCP credentials file not found: {credentials_path}"
+            )
+        return {
+            "project_id": project_id,
+            "credentials_path": credentials_path
+        }
     
+    # If credentials_json is set, it could be a JSON string or file path
+    if credentials_json:
+        # Check if it's a file path
+        if os.path.exists(credentials_json):
+            return {
+                "project_id": project_id,
+                "credentials_path": credentials_json
+            }
+        else:
+            # Treat as JSON string
+            return {
+                "project_id": project_id,
+                "credentials_json": credentials_json
+            }
+    
+    # If neither is set, use Application Default Credentials
+    # This works if running on GCP or if gcloud auth application-default login was run
+    logger.info("No explicit GCP credentials found, will use Application Default Credentials")
     return {
-        "project_id": project_id,
-        "credentials_json": credentials_json
+        "project_id": project_id
     }
 
 def create_storage_config(

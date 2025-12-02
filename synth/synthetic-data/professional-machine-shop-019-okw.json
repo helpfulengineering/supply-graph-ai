@@ -1,0 +1,308 @@
+{
+  "id": "3ca5d347-62ab-465b-9e26-b3e094dfcf8e",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "6041",
+      "street": "Brenda Canyon",
+      "city": "West Richardmouth",
+      "region": "Connecticut",
+      "country": "Micronesia",
+      "postcode": "41791"
+    },
+    "gps_coordinates": "61.061604, -32.981492",
+    "directions": "Located behind Wood Ltd",
+    "city": "West Richardmouth",
+    "country": "Micronesia"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Taylor LLC",
+    "location": {
+      "address": {
+        "number": "5731",
+        "street": "Craig Lodge",
+        "city": "New Rachel",
+        "region": "North Carolina",
+        "country": "French Polynesia",
+        "postcode": "31314"
+      },
+      "gps_coordinates": "31.735787, -11.112243",
+      "directions": "Located behind Garcia-Carter",
+      "city": "New Rachel",
+      "country": "French Polynesia"
+    },
+    "contact_person": "Jeffrey Bell",
+    "bio": "Established in 1994, we specialize in Grass-roots scalable matrix",
+    "website": "https://cortez.biz",
+    "languages": [
+      "es",
+      "en"
+    ],
+    "mailing_list": "austinemily@lists.anderson.com",
+    "contact": {
+      "landline": "+1-779-366-5733",
+      "mobile": "+1-679-481-7920",
+      "email": "info@murphy.com",
+      "whatsapp": "+1-790-480-4189"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/andrea37",
+      "other_urls": [
+        "https://terry-king.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Martinez, Simmons and Murphy",
+    "location": {
+      "address": {
+        "number": "4888",
+        "street": "Nicole Ridge",
+        "city": "Port Amyport",
+        "region": "Alaska",
+        "country": "Belarus",
+        "postcode": "79324"
+      },
+      "gps_coordinates": "32.719182, -4.870049",
+      "directions": "Located behind Beltran-Hogan",
+      "city": "Port Amyport",
+      "country": "Belarus"
+    },
+    "contact_person": "Nicole Williams",
+    "bio": "Established in 2000, we specialize in Public-key tangible adapter",
+    "website": "https://palmer.biz",
+    "languages": [
+      "de",
+      "en",
+      "fr"
+    ],
+    "mailing_list": "gonzalezwendy@lists.simpson.com",
+    "contact": {
+      "landline": "+1-247-387-8331",
+      "mobile": "+1-955-889-1633",
+      "email": "info@jones-davis.biz",
+      "whatsapp": "+1-797-340-3333"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/kevin96",
+      "twitter": "@george78",
+      "instagram": "@allenpamela",
+      "other_urls": [
+        "https://parsons.com",
+        "https://kelly.net"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-17:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2004-05-07",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "VF-2",
+      "serial_number": "SN424960",
+      "condition": "Good",
+      "notes": "Equipment notes: Make throughout local leave couple leader find.",
+      "quantity": 3,
+      "throughput": "93 parts/hour",
+      "power_rating": 4060,
+      "maintenance_schedule": "Every 1 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7486",
+              "street": "Kristopher Fort",
+              "city": "Jonesland",
+              "region": "Colorado",
+              "country": "Svalbard & Jan Mayen Islands",
+              "postcode": "18208"
+            },
+            "gps_coordinates": "62.920708, -90.972985",
+            "directions": "Located near Bush Group",
+            "city": "Jonesland",
+            "country": "Svalbard & Jan Mayen Islands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "4223",
+              "street": "Briana Highway",
+              "city": "North Tonya",
+              "region": "Utah",
+              "country": "Samoa",
+              "postcode": "78495"
+            },
+            "gps_coordinates": "66.761394, -19.572077",
+            "directions": "Located behind Weber and Sons",
+            "city": "North Tonya",
+            "country": "Samoa"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8072",
+              "street": "Kathryn Light",
+              "city": "Carpenterbury",
+              "region": "Connecticut",
+              "country": "Sierra Leone",
+              "postcode": "07061"
+            },
+            "gps_coordinates": "30.305016, 4.214942",
+            "directions": "Located behind Jones-Rodriguez",
+            "city": "Carpenterbury",
+            "country": "Sierra Leone"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "6079",
+              "street": "Luna Meadow",
+              "city": "Leestad",
+              "region": "Oklahoma",
+              "country": "Iran",
+              "postcode": "23436"
+            },
+            "gps_coordinates": "68.61365, 9.28541",
+            "directions": "Located near Greene-Stafford",
+            "city": "Leestad",
+            "country": "Iran"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.015mm",
+        "supported_materials": [
+          "Aluminum",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "18 minutes",
+          "cycle_time": "29 minutes",
+          "changeover_time": "18 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 618",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand B",
+      "model": "Model 729",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4942,
+  "storage_capacity": "505 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months",
+  "typical_products": [
+    "Enhanced heuristic hub",
+    "Compatible secondary encoding"
+  ],
+  "human_capacity": {
+    "headcount": 27
+  },
+  "innovation_space": {
+    "staff": 5,
+    "learning_resources": [
+      "Progressive intangible time-frame"
+    ],
+    "services": [
+      "Cloned regional project"
+    ],
+    "footfall": 57,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.203067",
+    "created_by": {
+      "name": "Hoffman LLC",
+      "location": {
+        "address": {
+          "number": "5896",
+          "street": "Ryan Valley",
+          "city": "Port Karenshire",
+          "region": "Illinois",
+          "country": "Niger",
+          "postcode": "82494"
+        },
+        "gps_coordinates": "31.937613, -120.508008",
+        "directions": "Located across from Johnson, Johnson and Smith",
+        "city": "Port Karenshire",
+        "country": "Niger"
+      },
+      "contact_person": "Lisa Contreras",
+      "bio": "Established in 2015, we specialize in Exclusive demand-driven function",
+      "website": "https://marsh.com",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "mailing_list": "james71@lists.knight-williams.net",
+      "contact": {
+        "landline": "+1-708-739-2914",
+        "mobile": "+1-228-965-5120",
+        "email": "info@bell.com",
+        "whatsapp": "+1-560-764-8986"
+      },
+      "social_media": {
+        "twitter": "@amyshaw",
+        "instagram": "@michael00",
+        "other_urls": [
+          "https://graham.com"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

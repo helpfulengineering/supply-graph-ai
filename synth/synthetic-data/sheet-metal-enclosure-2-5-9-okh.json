@@ -1,0 +1,276 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "047cd02d-85ca-4110-a36b-ec53c6335c97",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/josephsummers/sheet-metal-enclosure",
+  "version": "2.5.9",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Latasha Ferguson",
+    "email": "tiffany10@example.com",
+    "affiliation": "Stephens-Barnett",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "shartman"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Set car must option simple table and into.",
+  "intended_use": "Trial form indicate that score issue.",
+  "keywords": [
+    "assembly",
+    "prototype",
+    "gear",
+    "housing",
+    "modular"
+  ],
+  "contact": {
+    "name": "Joseph Maldonado",
+    "email": "rachel13@example.org",
+    "affiliation": "Combs-Warren",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "melinda60"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Catherine Rodriguez",
+      "email": "trevor77@example.com",
+      "affiliation": "Barajas Group",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "imorris"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Odom-Taylor",
+    "url": "https://anderson.org",
+    "email": "contact@andersen.com"
+  },
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-7",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/hendersonchristine/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/ashley86/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/darrenjuarez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/kevin06/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/ggalloway/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/alexis99/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/alejandro81/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/ljames/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/james19/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/fjackson/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/bgarcia/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/rodriguezanna/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Wrench set",
+    "Crimping tool",
+    "Welder",
+    "Punch press",
+    "Pliers",
+    "Shear"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 93.14,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit"
+    ],
+    "outer_dimensions": {
+      "length": 270,
+      "width": 59,
+      "height": 149
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Foot decade evening huge action factor."
+  },
+  "bom": "https://github.com/jordanmikayla/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "a69939ed-e1e6-474c-af0c-492330fe5903",
+      "source": [
+        "https://github.com/david28/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/christopherwilliams/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/sarah34/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/elizabeth33/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 158,
+        "width": 172,
+        "height": 35
+      },
+      "mass": 544.94,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

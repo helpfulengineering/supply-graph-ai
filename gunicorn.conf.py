@@ -5,12 +5,27 @@ import multiprocessing
 import os
 
 # Server socket
-bind = f"0.0.0.0:{os.getenv('API_PORT', '8001')}"
+# Support PORT env var (Cloud Run) and API_PORT (backward compatibility)
+# Cloud Run sets PORT=8080, so we prioritize PORT over API_PORT
+port_env = os.getenv('PORT')
+api_port_env = os.getenv('API_PORT')
+port = port_env or api_port_env or '8001'
+# Ensure port is a string for the bind address
+port = str(port) if port else '8001'
+bind = f"0.0.0.0:{port}"
+
+# Debug output (will appear in Gunicorn startup logs)
+print(f"[Gunicorn Config] PORT env var: {port_env}")
+print(f"[Gunicorn Config] API_PORT env var: {api_port_env}")
+print(f"[Gunicorn Config] Using port: {port}")
+print(f"[Gunicorn Config] Binding to: {bind}")
+
 backlog = 2048
 
 # Worker processes
 workers = int(os.getenv('GUNICORN_WORKERS', multiprocessing.cpu_count() * 2 + 1))
-worker_class = os.getenv('GUNICORN_WORKER_CLASS', 'gevent')
+# Use uvicorn workers for async FastAPI application
+worker_class = os.getenv('GUNICORN_WORKER_CLASS', 'uvicorn.workers.UvicornWorker')
 worker_connections = int(os.getenv('GUNICORN_WORKER_CONNECTIONS', '1000'))
 max_requests = int(os.getenv('GUNICORN_MAX_REQUESTS', '1000'))
 max_requests_jitter = int(os.getenv('GUNICORN_MAX_REQUESTS_JITTER', '100'))
@@ -32,8 +47,10 @@ proc_name = 'open-matching-engine'
 # Server mechanics
 daemon = False
 pidfile = '/tmp/gunicorn.pid'
-user = 'ome'
-group = 'ome'
+# Note: user/group are set in Dockerfile (USER ome), so we don't need to set them here
+# If we're already running as the correct user, Gunicorn will skip privilege dropping
+# user = 'ome'  # Commented out - already running as ome user in container
+# group = 'ome'  # Commented out - already running as ome user in container
 tmp_upload_dir = None
 
 # SSL (if needed)

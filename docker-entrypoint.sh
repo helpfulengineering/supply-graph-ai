@@ -4,17 +4,56 @@ set -e
 # Default values
 MODE=${1:-"api"}
 API_HOST=${API_HOST:-"0.0.0.0"}
-API_PORT=${API_PORT:-"8001"}
+# Support PORT env var (Cloud Run) and API_PORT (backward compatibility)
+API_PORT=${PORT:-${API_PORT:-"8001"}}
 
 # Function to start the API server
 start_api() {
     echo "Starting Open Matching Engine API server..."
     echo "Host: $API_HOST"
     echo "Port: $API_PORT"
-    echo "Environment: ${ENV:-development}"
+    echo "Environment: ${ENVIRONMENT:-${ENV:-development}}"
     
-    # Start the FastAPI server
-    exec python run.py
+    # Determine if we should use Gunicorn (production) or uvicorn (development)
+    ENVIRONMENT=${ENVIRONMENT:-${ENV:-development}}
+    USE_GUNICORN=${USE_GUNICORN:-"auto"}
+    
+    # Auto-detect: use Gunicorn in production, uvicorn in development
+    if [ "$USE_GUNICORN" = "auto" ]; then
+        if [ "$ENVIRONMENT" = "production" ]; then
+            USE_GUNICORN="true"
+        else
+            USE_GUNICORN="false"
+        fi
+    fi
+    
+    if [ "$USE_GUNICORN" = "true" ] || [ "$USE_GUNICORN" = "1" ]; then
+        echo "Starting with Gunicorn (production mode)..."
+        echo "=== Port Configuration Debug ==="
+        echo "PORT env var (from Cloud Run): ${PORT:-<not set>}"
+        echo "API_PORT env var: ${API_PORT:-<not set>}"
+        # Export PORT for gunicorn.conf.py to read (Cloud Run sets PORT=8080)
+        export PORT=${PORT:-${API_PORT:-8001}}
+        echo "Final PORT value: ${PORT}"
+        echo "Gunicorn will bind to: 0.0.0.0:${PORT}"
+        echo "================================"
+        # Use Gunicorn with uvicorn workers for production
+        # Note: bind address is configured in gunicorn.conf.py to use PORT env var
+        exec gunicorn src.core.main:app \
+            --config gunicorn.conf.py \
+            --workers "${GUNICORN_WORKERS:-$(($(nproc) * 2 + 1))}" \
+            --worker-class uvicorn.workers.UvicornWorker \
+            --access-logfile - \
+            --error-logfile - \
+            --log-level "${LOG_LEVEL:-info}" \
+            --timeout "${GUNICORN_TIMEOUT:-120}" \
+            --graceful-timeout 30 \
+            --keep-alive 5
+    else
+        echo "Starting with Uvicorn (development mode)..."
+        # Use uvicorn directly for development
+        exec python run.py
+    fi
 }
 
 # Function to run CLI commands
@@ -54,12 +93,17 @@ show_help() {
     echo "  docker run <image> cli --help"
     echo ""
     echo "Environment Variables:"
-    echo "  API_HOST     API server host (default: 0.0.0.0)"
-    echo "  API_PORT     API server port (default: 8001)"
-    echo "  LOG_LEVEL    Logging level (default: INFO)"
-    echo "  DEBUG        Enable debug mode (default: false)"
-    echo "  CORS_ORIGINS CORS allowed origins (default: *)"
-    echo "  API_KEYS     Comma-separated API keys"
+    echo "  API_HOST          API server host (default: 0.0.0.0)"
+    echo "  API_PORT          API server port (default: 8001)"
+    echo "  PORT              Cloud Run port (overrides API_PORT if set)"
+    echo "  ENVIRONMENT       Environment: development or production (default: development)"
+    echo "  USE_GUNICORN      Use Gunicorn: true/false/auto (default: auto)"
+    echo "  LOG_LEVEL         Logging level (default: INFO)"
+    echo "  DEBUG             Enable debug mode (default: false)"
+    echo "  CORS_ORIGINS      CORS allowed origins (default: *)"
+    echo "  API_KEYS          Comma-separated API keys"
+    echo "  SECRETS_PROVIDER  Secrets provider: env/aws/gcp/azure (default: auto-detect)"
+    echo "  USE_SECRETS_MANAGER  Enable secrets manager: true/false (default: false)"
     echo ""
     echo "For more CLI options, use: docker run <image> cli --help"
 }

@@ -1,0 +1,323 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "25311406-27ee-4d68-ae49-ddbe38490c4f",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/kramerdavid/3d-printed-prosthetic-hand",
+  "version": "2.3.8",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Brett Lee",
+    "email": "terry23@example.com",
+    "affiliation": "Green-Castillo",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "ramosshannon"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Realize general benefit year throw difference probably.",
+  "intended_use": "Consumer serious hospital sister.",
+  "keywords": [
+    "documented",
+    "bracket",
+    "bearing",
+    "fastener",
+    "customizable"
+  ],
+  "contact": {
+    "name": "Samantha Walsh",
+    "email": "omora@example.org",
+    "affiliation": "Gray, Freeman and Stephens",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "cassandra45"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Noah Cortez",
+      "email": "bandrews@example.net",
+      "affiliation": "Wilkinson LLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "wilkinselizabeth"
+        }
+      ]
+    },
+    {
+      "name": "Tanner Snyder",
+      "email": "erikliu@example.com",
+      "affiliation": "Crosby, Wells and Nunez",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "lauratyler"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Washington Group",
+    "url": "https://huynh-cole.info",
+    "email": "contact@quinn-garcia.org"
+  },
+  "development_stage": "prototype",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/greendaniel/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/nicole90/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/njohnson/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/csanchez/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/samuel21/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/anthonyjones/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.4"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/joshuamay/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/staceybrady/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/jrobinson/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/tarahoover/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/balldebra/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/whiteheadchristopher/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Build plate",
+    "Deburring tool",
+    "Crimping tool",
+    "Wrench set",
+    "Cable ties",
+    "Calipers",
+    "Screwdriver set",
+    "3D printer",
+    "Heat gun"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 329.61,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 870.02,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 247.59,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 208.75,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 143,
+      "width": 345,
+      "height": 91
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "20%",
+          "temperature": "233°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Available benefit fast family herself where."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": "Manufacturing notes: Blue bad mean herself reach interest note."
+  },
+  "bom": "https://github.com/fieldsjeffrey/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "a3f974cf-33c0-4938-bc40-26324eb4660f",
+      "source": [
+        "https://github.com/karenharrell/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/martinezelizabeth/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/cduncan/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/jessicadunlap/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": {
+        "length": 92,
+        "width": 120,
+        "height": 7
+      },
+      "mass": 207.56,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

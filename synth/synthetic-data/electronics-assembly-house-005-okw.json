@@ -1,0 +1,213 @@
+{
+  "id": "67b0adfc-ea0c-458c-b945-f915e3b1252b",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "4885",
+      "street": "Warren Vista",
+      "city": "East Jonburgh",
+      "region": "Georgia",
+      "country": "Liechtenstein",
+      "postcode": "11339"
+    },
+    "gps_coordinates": "67.666929, -30.367553",
+    "directions": "Located near Harris, Aguirre and Knight",
+    "city": "East Jonburgh",
+    "country": "Liechtenstein"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Travis, Hoffman and Ortiz",
+    "location": {
+      "address": {
+        "number": "4143",
+        "street": "Sandra Green",
+        "city": "South Brian",
+        "region": "Virginia",
+        "country": "Malta",
+        "postcode": "53810"
+      },
+      "gps_coordinates": "43.032589, -100.909142",
+      "directions": "Located near Cowan PLC",
+      "city": "South Brian",
+      "country": "Malta"
+    },
+    "contact_person": "Vanessa Oconnell",
+    "bio": "Established in 1999, we specialize in Vision-oriented real-time system engine",
+    "website": "https://thomas.net",
+    "languages": [
+      "fr"
+    ],
+    "mailing_list": "lewiswilliam@lists.keller.com",
+    "contact": {
+      "landline": "+1-211-513-5610",
+      "mobile": "+1-510-397-9374",
+      "email": "info@clayton.biz",
+      "whatsapp": "+1-341-715-8906"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/udickerson",
+      "instagram": "@ukrueger",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Hernandez, Moreno and Horton",
+    "location": {
+      "address": {
+        "number": "8390",
+        "street": "Williams Ridges",
+        "city": "New Sandramouth",
+        "region": "Minnesota",
+        "country": "Saint Lucia",
+        "postcode": "48207"
+      },
+      "gps_coordinates": "63.727, -0.683885",
+      "directions": "Located near Frazier, Flores and Atkinson",
+      "city": "New Sandramouth",
+      "country": "Saint Lucia"
+    },
+    "contact_person": "Charles Howard",
+    "bio": "Established in 2000, we specialize in Diverse zero administration protocol",
+    "website": "https://pena.com",
+    "languages": [
+      "en"
+    ],
+    "mailing_list": "jenniferlindsey@lists.ortiz.com",
+    "images": [
+      "images/care.jpg",
+      "images/lot.jpg",
+      "images/product.jpg"
+    ],
+    "contact": {
+      "landline": "+1-938-310-1760",
+      "mobile": "+1-346-588-3897",
+      "email": "info@woods-vega.com",
+      "whatsapp": "+1-463-808-4745"
+    },
+    "social_media": {
+      "twitter": "@vanessapeters",
+      "instagram": "@megan76",
+      "other_urls": [
+        "https://crawford.com",
+        "https://anderson.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "1991-07-10",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 700",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 254",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 424",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 338",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 3793,
+  "storage_capacity": "631 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Progressive grid-enabled pricing structure",
+    "Open-architected client-driven Graphical User Interface",
+    "Reduced foreground Local Area Network",
+    "Seamless foreground moderator"
+  ],
+  "human_capacity": {
+    "headcount": 36
+  },
+  "innovation_space": {
+    "staff": 9,
+    "learning_resources": [
+      "Persistent fault-tolerant structure"
+    ],
+    "services": [
+      "Proactive logistical hub",
+      "Vision-oriented next generation productivity"
+    ],
+    "footfall": 72,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.124366",
+    "created_by": {
+      "name": "Ramos-James",
+      "location": {
+        "address": {
+          "number": "9065",
+          "street": "Lance Hollow",
+          "city": "Stewartberg",
+          "region": "Massachusetts",
+          "country": "Philippines",
+          "postcode": "07002"
+        },
+        "gps_coordinates": "62.369827, -85.596668",
+        "directions": "Located behind Pitts-Griffin",
+        "city": "Stewartberg",
+        "country": "Philippines"
+      },
+      "contact_person": "Margaret Moon",
+      "bio": "Established in 2011, we specialize in Pre-emptive 5thgeneration methodology",
+      "website": "https://miller.info",
+      "languages": [
+        "de",
+        "fr",
+        "es"
+      ],
+      "mailing_list": "joe21@lists.day.biz",
+      "contact": {
+        "landline": "+1-358-586-6588",
+        "mobile": "+1-218-888-1682",
+        "email": "info@fitzpatrick-jones.net",
+        "whatsapp": "+1-955-464-5459"
+      },
+      "social_media": {
+        "other_urls": [
+          "https://lynch.com"
+        ]
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

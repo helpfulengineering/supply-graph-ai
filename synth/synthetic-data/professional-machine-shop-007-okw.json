@@ -1,0 +1,307 @@
+{
+  "id": "52ec5625-81c7-45b4-a18c-8bb2fd5e791c",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "8193",
+      "street": "Green Plaza",
+      "city": "Lake Charles",
+      "region": "Kansas",
+      "country": "Belize",
+      "postcode": "05729"
+    },
+    "gps_coordinates": "50.212523, -53.877437",
+    "directions": "Located behind Hampton-Johnson",
+    "city": "Lake Charles",
+    "country": "Belize"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Hawkins LLC",
+    "location": {
+      "address": {
+        "number": "1394",
+        "street": "Warren Extensions",
+        "city": "Paulbury",
+        "region": "Missouri",
+        "country": "Hungary",
+        "postcode": "08699"
+      },
+      "gps_coordinates": "57.751215, -124.839538",
+      "directions": "Located near Roberts-Roberts",
+      "city": "Paulbury",
+      "country": "Hungary"
+    },
+    "contact_person": "Kristopher Schwartz",
+    "bio": "Established in 1997, we specialize in Devolved bifurcated orchestration",
+    "website": "https://arnold.org",
+    "languages": [
+      "en",
+      "de"
+    ],
+    "mailing_list": "danielgarza@lists.weber.org",
+    "images": [
+      "images/guy.jpg"
+    ],
+    "contact": {
+      "landline": "+1-381-622-4833",
+      "mobile": "+1-528-216-7563",
+      "email": "info@scott.biz",
+      "whatsapp": "+1-572-392-6679"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/thunt",
+      "instagram": "@leonardjames",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Ramos, Walton and Mccarthy",
+    "location": {
+      "address": {
+        "number": "7556",
+        "street": "Caleb River",
+        "city": "Longstad",
+        "region": "Hawaii",
+        "country": "Moldova",
+        "postcode": "15098"
+      },
+      "gps_coordinates": "37.793977, -107.21522",
+      "directions": "Located across from West LLC",
+      "city": "Longstad",
+      "country": "Moldova"
+    },
+    "contact_person": "Miguel Smith",
+    "bio": "Established in 2008, we specialize in Fundamental zero-defect open system",
+    "website": "https://lang.com",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "mailing_list": "parkerjaclyn@lists.coleman.com",
+    "contact": {
+      "landline": "+1-586-439-4976",
+      "mobile": "+1-450-289-2362",
+      "email": "info@logan.com",
+      "whatsapp": "+1-395-760-5007"
+    },
+    "social_media": {
+      "twitter": "@williammora",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2015-12-06",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "DMU 50",
+      "serial_number": "SN445736",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Control old main I continue spend.",
+      "quantity": 4,
+      "throughput": "53 parts/hour",
+      "power_rating": 6767,
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "4516",
+              "street": "Richard Mews",
+              "city": "South Keith",
+              "region": "Nevada",
+              "country": "Sierra Leone",
+              "postcode": "30519"
+            },
+            "gps_coordinates": "57.455923, -80.774956",
+            "directions": "Located near Abbott-Pierce",
+            "city": "South Keith",
+            "country": "Sierra Leone"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8857",
+              "street": "Paul Estate",
+              "city": "Waltermouth",
+              "region": "Mississippi",
+              "country": "Somalia",
+              "postcode": "52846"
+            },
+            "gps_coordinates": "60.552449, 10.214515",
+            "directions": "Located near Johnson and Sons",
+            "city": "Waltermouth",
+            "country": "Somalia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1974",
+              "street": "Miles Isle",
+              "city": "Hansenmouth",
+              "region": "Connecticut",
+              "country": "Solomon Islands",
+              "postcode": "07003"
+            },
+            "gps_coordinates": "68.99366, -0.090046",
+            "directions": "Located across from Martinez Ltd",
+            "city": "Hansenmouth",
+            "country": "Solomon Islands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5175",
+              "street": "James Freeway",
+              "city": "New Evelynview",
+              "region": "Utah",
+              "country": "Sweden",
+              "postcode": "29903"
+            },
+            "gps_coordinates": "51.536748, -121.532287",
+            "directions": "Located near Romero, Barnes and Arroyo",
+            "city": "New Evelynview",
+            "country": "Sweden"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Plastic",
+          "Wood",
+          "Steel",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "40 minutes",
+          "cycle_time": "25 minutes",
+          "changeover_time": "38 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 517",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 709",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 765,
+  "storage_capacity": "814 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "Profit-focused 4thgeneration solution",
+    "Programmable global extranet"
+  ],
+  "human_capacity": {
+    "headcount": 9
+  },
+  "innovation_space": {
+    "staff": 1,
+    "learning_resources": [
+      "Triple-buffered web-enabled protocol",
+      "Polarized human-resource migration",
+      "Upgradable mobile toolset"
+    ],
+    "services": [
+      "Triple-buffered multi-state monitoring"
+    ],
+    "footfall": 43,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:09:40.819752",
+    "created_by": {
+      "name": "Pierce Inc",
+      "location": {
+        "address": {
+          "number": "2436",
+          "street": "Hernandez Meadow",
+          "city": "Haydenport",
+          "region": "Idaho",
+          "country": "Western Sahara",
+          "postcode": "11798"
+        },
+        "gps_coordinates": "36.619438, 15.452152",
+        "directions": "Located behind Nichols-Taylor",
+        "city": "Haydenport",
+        "country": "Western Sahara"
+      },
+      "contact_person": "Chad Orr",
+      "bio": "Established in 2000, we specialize in Future-proofed system-worthy protocol",
+      "website": "https://ponce.org",
+      "languages": [
+        "de"
+      ],
+      "mailing_list": "hannahhall@lists.werner-lee.com",
+      "contact": {
+        "landline": "+1-428-481-5608",
+        "mobile": "+1-401-258-9409",
+        "email": "info@jimenez.com",
+        "whatsapp": "+1-519-966-2536"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/riveraelizabeth",
+        "twitter": "@edward92",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

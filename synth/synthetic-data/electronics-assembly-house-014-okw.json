@@ -1,0 +1,227 @@
+{
+  "id": "bc99d2cd-b1f8-4d58-9f70-5f0048ed2cc8",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "1350",
+      "street": "Miller Port",
+      "city": "Lorichester",
+      "region": "Oklahoma",
+      "country": "Mali",
+      "postcode": "55932"
+    },
+    "gps_coordinates": "25.330193, -43.769099",
+    "directions": "Located across from Romero, Martinez and Thompson",
+    "city": "Lorichester",
+    "country": "Mali"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Rodriguez-Vasquez",
+    "location": {
+      "address": {
+        "number": "1299",
+        "street": "Bruce Orchard",
+        "city": "New Olivia",
+        "region": "Idaho",
+        "country": "Italy",
+        "postcode": "57698"
+      },
+      "gps_coordinates": "56.83491, 15.105863",
+      "directions": "Located behind York-Ray",
+      "city": "New Olivia",
+      "country": "Italy"
+    },
+    "contact_person": "Deborah Roberson",
+    "bio": "Established in 1993, we specialize in Organized multi-state standardization",
+    "website": "https://smith.com",
+    "languages": [
+      "es",
+      "fr"
+    ],
+    "mailing_list": "olee@lists.walker-smith.com",
+    "contact": {
+      "landline": "+1-630-704-8228",
+      "mobile": "+1-240-738-3401",
+      "email": "info@perry.com",
+      "whatsapp": "+1-416-312-4454"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/zfitzgerald",
+      "twitter": "@gturner",
+      "instagram": "@timothy88",
+      "other_urls": [
+        "https://ross-adams.org"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Mcclain and Sons",
+    "location": {
+      "address": {
+        "number": "1601",
+        "street": "Ruiz Bypass",
+        "city": "Karenview",
+        "region": "Indiana",
+        "country": "Turks and Caicos Islands",
+        "postcode": "74075"
+      },
+      "gps_coordinates": "37.542837, -66.238097",
+      "directions": "Located near Riley, Huffman and Wilson",
+      "city": "Karenview",
+      "country": "Turks and Caicos Islands"
+    },
+    "contact_person": "Larry Booker",
+    "bio": "Established in 2000, we specialize in Visionary fresh-thinking service-desk",
+    "website": "https://manning.info",
+    "languages": [
+      "es",
+      "en"
+    ],
+    "mailing_list": "jennifer33@lists.cox-vasquez.net",
+    "images": [
+      "images/lose.jpg",
+      "images/hour.jpg",
+      "images/special.jpg"
+    ],
+    "contact": {
+      "landline": "+1-692-879-4153",
+      "mobile": "+1-875-658-3914",
+      "email": "info@henderson.net",
+      "whatsapp": "+1-346-962-5120"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/paulmendoza",
+      "twitter": "@ccampbell",
+      "other_urls": [
+        "https://wolfe.net",
+        "https://beard.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-18:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "1996-12-20",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 373",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand A",
+      "model": "Model 540",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 115",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Generic",
+      "model": "Model 687",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4492,
+  "storage_capacity": "600 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "loading_dock": true,
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Progressive 5thgeneration toolset"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Guess official three.",
+    "by_products": [
+      "personal",
+      "dinner"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 25
+  },
+  "innovation_space": {
+    "staff": 9,
+    "learning_resources": [
+      "Triple-buffered context-sensitive contingency",
+      "Team-oriented neutral installation",
+      "Reduced empowering benchmark",
+      "Implemented attitude-oriented benchmark",
+      "Compatible zero-defect support"
+    ],
+    "services": [
+      "Persevering 24/7 archive",
+      "Universal systemic frame",
+      "Persevering 24/7 task-force",
+      "Inverse attitude-oriented encryption"
+    ],
+    "footfall": 39
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.173999",
+    "created_by": {
+      "name": "Davis, Young and Johnson",
+      "location": {
+        "address": {
+          "number": "8878",
+          "street": "David Via",
+          "city": "Trevorshire",
+          "region": "New York",
+          "country": "Israel",
+          "postcode": "59722"
+        },
+        "gps_coordinates": "57.841692, -102.427408",
+        "directions": "Located near Pacheco-Davidson",
+        "city": "Trevorshire",
+        "country": "Israel"
+      },
+      "contact_person": "Jeffrey Schwartz",
+      "bio": "Established in 1996, we specialize in Assimilated global encoding",
+      "website": "https://garrett.com",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "mailing_list": "fwhitney@lists.anthony-davis.biz",
+      "contact": {
+        "landline": "+1-349-532-3088",
+        "mobile": "+1-890-589-1245",
+        "email": "info@sullivan.com",
+        "whatsapp": "+1-701-247-7619"
+      },
+      "social_media": {
+        "twitter": "@colecynthia",
+        "other_urls": [
+          "https://johnson-shannon.info",
+          "https://weaver.biz"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

@@ -1,0 +1,89 @@
+name: Docker Build and Test
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  docker-test:
+    name: Test Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: supply-graph-ai:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test Docker image
+        run: |
+          # Start container in background
+          docker run -d \
+            --name test-container \
+            -p 8001:8001 \
+            -e ENVIRONMENT=test \
+            -e LOG_LEVEL=INFO \
+            -e STORAGE_PROVIDER=local \
+            -e LLM_ENABLED=false \
+            supply-graph-ai:test
+
+      - name: Wait for container to be ready
+        run: |
+          timeout=60
+          elapsed=0
+          while [ $elapsed -lt $timeout ]; do
+            if curl -f http://localhost:8001/health > /dev/null 2>&1; then
+              echo "Container is ready"
+              exit 0
+            fi
+            echo "Waiting for container... ($elapsed/$timeout seconds)"
+            sleep 2
+            elapsed=$((elapsed + 2))
+          done
+          echo "Container failed to start within $timeout seconds"
+          docker logs test-container
+          exit 1
+
+      - name: Run health checks
+        run: |
+          # Test basic health endpoint
+          curl -f http://localhost:8001/health
+          
+          # Test liveness probe
+          curl -f http://localhost:8001/health/liveness
+          
+          # Test readiness probe (may fail if dependencies aren't ready, that's ok)
+          curl -f http://localhost:8001/health/readiness || echo "Readiness check returned non-zero (expected in test environment)"
+
+      - name: Test metrics endpoint
+        run: |
+          # Test JSON metrics
+          curl -f http://localhost:8001/v1/api/utility/metrics?format=json
+          
+          # Test Prometheus metrics
+          curl -f http://localhost:8001/v1/api/utility/metrics?format=prometheus
+
+      - name: Check container logs
+        if: failure()
+        run: |
+          echo "=== Container Logs ==="
+          docker logs test-container
+          echo "=== Container Status ==="
+          docker ps -a
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop test-container || true
+          docker rm test-container || true
+

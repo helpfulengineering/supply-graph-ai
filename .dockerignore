@@ -70,6 +70,11 @@ temp_matching_context/
 tests/
 test-data/
 synth/
+*.test.py
+*_test.py
+test_*.py
+pytest.ini
+.pytest_cache/
 
 # Development files
 .env
@@ -105,3 +110,24 @@ docker-compose*.yml
 coverage/
 .pytest_cache/
 .mypy_cache/
+.hypothesis/
+
+# Development and build artifacts
+notes/
+*.bak
+*.backup
+*.orig
+*.rej
+
+# Configuration files that shouldn't be in container
+.env.example
+env.template
+config/llm_config.json.example
+
+# CI/CD (already excluded, but be explicit)
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+Jenkinsfile
