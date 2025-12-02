@@ -9,8 +9,4 @@ from .file_processor import FileProcessor
 from .text_processor import TextProcessor
 from .confidence_calculator import ConfidenceCalculator
 
-__all__ = [
-    'FileProcessor',
-    'TextProcessor', 
-    'ConfidenceCalculator'
-]
+__all__ = ["FileProcessor", "TextProcessor", "ConfidenceCalculator"]

@@ -13,6 +13,7 @@ from uuid import UUID
 
 class APIKey(BaseModel):
     """API Key model for storage"""
+
     key_id: UUID
     key_hash: str  # bcrypt hashed token
     name: str
@@ -27,6 +28,7 @@ class APIKey(BaseModel):
 
 class APIKeyCreate(BaseModel):
     """Request model for creating API key"""
+
     name: str
     description: Optional[str] = None
     permissions: List[str] = Field(default_factory=lambda: ["read"])
@@ -35,6 +37,7 @@ class APIKeyCreate(BaseModel):
 
 class APIKeyResponse(BaseModel):
     """Response model for API key (without hash)"""
+
     key_id: UUID
     name: str
     description: Optional[str] = None
@@ -48,7 +51,7 @@ class APIKeyResponse(BaseModel):
 
 class AuthenticatedUser(BaseModel):
     """Model representing authenticated user/API key"""
+
     key_id: UUID
     name: str
     permissions: List[str]
-

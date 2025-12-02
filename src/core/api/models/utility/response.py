@@ -1,24 +1,32 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any
 
-from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
+from ..base import (
+    SuccessResponse,
+    LLMResponseMixin,
+    ValidationResult as BaseValidationResult,
+)
+
 
 class Domain(BaseModel):
     """Model for domain information"""
+
     # Required fields only
     id: str
     name: str
     description: str
 
+
 class DomainsResponse(SuccessResponse, LLMResponseMixin):
     """Response model for available domains with standardized fields and LLM information"""
+
     # Required fields only
     domains: List[Domain]
-    
+
     # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -26,7 +34,7 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
                     {
                         "id": "manufacturing",
                         "name": "Manufacturing Domain",
-                        "description": "Hardware manufacturing capabilities"
+                        "description": "Hardware manufacturing capabilities",
                     }
                 ],
                 "status": "success",
@@ -38,27 +46,31 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
                 "llm_provider": "anthropic",
                 "llm_cost": 0.001,
                 "data": {},
-                "validation_results": []
+                "validation_results": [],
             }
         }
     )
 
+
 class Context(BaseModel):
     """Model for validation context information"""
+
     # Required fields only
     id: str
     name: str
     description: str
 
+
 class ContextsResponse(SuccessResponse, LLMResponseMixin):
     """Response model for validation contexts with standardized fields and LLM information"""
+
     # Required fields only
     contexts: List[Context]
-    
+
     # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -66,7 +78,7 @@ class ContextsResponse(SuccessResponse, LLMResponseMixin):
                     {
                         "id": "professional",
                         "name": "Professional Manufacturing",
-                        "description": "Commercial-grade production"
+                        "description": "Commercial-grade production",
                     }
                 ],
                 "status": "success",
@@ -78,12 +90,14 @@ class ContextsResponse(SuccessResponse, LLMResponseMixin):
                 "llm_provider": "anthropic",
                 "llm_cost": 0.001,
                 "data": {},
-                "validation_results": []
+                "validation_results": [],
             }
         }
     )
 
+
 class ErrorResponse(BaseModel):
     """Response model for API errors"""
+
     # Required fields first
     error: Dict[str, Any]  # Contains code, message, details

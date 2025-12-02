@@ -34,47 +34,54 @@ logger = logging.getLogger(__name__)
 class LLMGenerationLayer(BaseGenerationLayer):
     """
     LLM Generation Layer using Large Language Models for advanced content analysis.
-    
+
     This layer implements the Enhanced LLM Agent Prompt Engineering Strategy with:
     - Context file management for transparent analysis
     - Schema-aware prompting for accurate field mapping
     - Integration with the LLM service for provider management
     - validation and quality assurance
-    
+
     The layer analyzes project repositories using LLM agents that can:
     - Understand repository structure and content
     - Extract complex fields from documentation and code
     - Generate high-quality OKH manifest fields
     - Provide confidence scores and validation metadata
     """
-    
-    def __init__(self, layer_config: Optional[LayerConfig] = None, llm_service: Optional[LLMService] = None, preserve_context: bool = False):
+
+    def __init__(
+        self,
+        layer_config: Optional[LayerConfig] = None,
+        llm_service: Optional[LLMService] = None,
+        preserve_context: bool = False,
+    ):
         """
         Initialize the LLM Generation Layer.
-        
+
         Args:
             layer_config: Configuration for this layer. If None, uses default configuration.
             llm_service: LLM service instance. If None, creates a new one.
             preserve_context: If True, context files are preserved for debugging instead of cleaned up.
-            
+
         Raises:
             RuntimeError: If LLM layer is not properly configured
         """
         super().__init__(GenerationLayer.LLM, layer_config)
-        
+
         # Initialize LLM service
         self.llm_service = llm_service or self._create_llm_service()
-        
+
         # Context file management
         self.context_dir = Path("temp_context")
         self.context_dir.mkdir(exist_ok=True)
         self.preserve_context = preserve_context
-        
+
         # OKH Schema Reference (from our strategy document)
         self.okh_schema_prompt = self._load_okh_schema_prompt()
-        
-        logger.info(f"LLM Generation Layer initialized with provider: {self.llm_service.config.default_provider}")
-    
+
+        logger.info(
+            f"LLM Generation Layer initialized with provider: {self.llm_service.config.default_provider}"
+        )
+
     def _create_llm_service(self) -> LLMService:
         """Create LLM service (initialization will be done in process method)"""
         try:
@@ -89,18 +96,18 @@ class LLMGenerationLayer(BaseGenerationLayer):
                 enable_fallback=True,
                 max_cost_per_request=2.0,  # Higher cost limit for generation
                 enable_cost_tracking=True,
-                max_concurrent_requests=5
+                max_concurrent_requests=5,
             )
-            
+
             # Create service (don't initialize yet)
             service = LLMService("LLMGenerationLayer", service_config)
-            
+
             return service
-            
+
         except Exception as e:
             logger.error(f"Failed to create LLM service: {e}")
             raise RuntimeError(f"LLM service creation failed: {e}")
-    
+
     def _load_okh_schema_prompt(self) -> str:
         """Load the OKH schema prompt from our strategy document"""
         # This is a simplified version - in production, this would be loaded from the schema strategy
@@ -205,23 +212,23 @@ The OKH manifest is designed to maximize interoperability and discoverability in
 - Dependencies should be complete and specific
 - Documentation links should be functional and relevant
 """
-    
+
     async def process(self, project_data: ProjectData) -> LayerResult:
         """
         Process project data using LLM analysis.
-        
+
         This method implements the Enhanced LLM Agent Prompt Engineering Strategy:
         1. Create temporary context file for analysis
         2. Run LLM analysis with schema-aware prompting
         3. Extract and validate manifest fields
         4. Clean up context file
-        
+
         Args:
             project_data: Raw project data from platform extractor
-            
+
         Returns:
             LayerResult containing extracted fields and metadata
-            
+
         Raises:
             ValueError: If project data is invalid
             RuntimeError: If LLM processing fails
@@ -229,42 +236,44 @@ The OKH manifest is designed to maximize interoperability and discoverability in
         # Validate input
         if not self.validate_project_data(project_data):
             raise ValueError("Invalid project data")
-        
+
         # Create result
         result = self.create_layer_result()
-        
+
         # Create temporary context file
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         context_file = self.context_dir / f"okh_analysis_{timestamp}.md"
-        
+
         try:
             # Log processing start
             self.log_processing_start(project_data)
-            
+
             # Initialize LLM service if not already done
             if self.llm_service.status != ServiceStatus.ACTIVE:
                 await self.llm_service.initialize()
-            
+
             # Initialize context file
             await self._create_context_file(context_file, project_data, result)
-            
+
             # Run LLM analysis
             await self._run_llm_analysis(project_data, context_file, result)
-            
+
             # Log processing end
             self.log_processing_end(result)
-            
+
             return result
-            
+
         except Exception as e:
             self.handle_processing_error(e, result)
             return result
-    
+
         finally:
             # Clean up context file
             await self._cleanup_context_file(context_file)
-    
-    async def _create_context_file(self, context_file: Path, project_data: ProjectData, result: LayerResult):
+
+    async def _create_context_file(
+        self, context_file: Path, project_data: ProjectData, result: LayerResult
+    ):
         """Create and initialize context file with project data"""
         template_data = {
             "repo_name": project_data.metadata.get("name", "Unknown Project"),
@@ -286,9 +295,9 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             "overall_confidence": "To be calculated",
             "field_confidences": "To be calculated",
             "validation_notes": "To be documented",
-            "final_manifest_json": "To be generated"
+            "final_manifest_json": "To be generated",
         }
-        
+
         context_template = """
 # OKH Manifest Generation Analysis
 ## Repository: {repo_name}
@@ -346,49 +355,51 @@ The OKH manifest is designed to maximize interoperability and discoverability in
 ## 6. Final Manifest
 {final_manifest_json}
 """
-        
+
         content = context_template.format(**template_data)
         context_file.write_text(content)
         result.add_log(f"Created context file: {context_file}")
-    
-    async def _run_llm_analysis(self, project_data: ProjectData, context_file: Path, result: LayerResult):
+
+    async def _run_llm_analysis(
+        self, project_data: ProjectData, context_file: Path, result: LayerResult
+    ):
         """Run LLM analysis with context file support"""
         try:
             # Build analysis prompt
             prompt = self._build_analysis_prompt(project_data, context_file)
-            
+
             # Create LLM request config
             config = LLMRequestConfig(
                 max_tokens=4000,
                 temperature=0.1,  # Low temperature for consistent output
-                timeout=60
+                timeout=60,
             )
-            
+
             # Execute LLM request
             response = await self.llm_service.generate(
-                prompt=prompt,
-                request_type=LLMRequestType.GENERATION,
-                config=config
+                prompt=prompt, request_type=LLMRequestType.GENERATION, config=config
             )
-            
+
             if response.status != LLMResponseStatus.SUCCESS:
                 raise RuntimeError(f"LLM generation failed: {response.error_message}")
-            
+
             # Parse response and extract manifest fields
             await self._parse_llm_response(response.content, result)
-            
+
             result.add_log(f"LLM analysis completed successfully")
-            
+
         except Exception as e:
             error_msg = f"LLM analysis failed: {str(e)}"
             result.add_error(error_msg)
             logger.error(error_msg, exc_info=True)
-    
-    def _build_analysis_prompt(self, project_data: ProjectData, context_file: Path) -> str:
+
+    def _build_analysis_prompt(
+        self, project_data: ProjectData, context_file: Path
+    ) -> str:
         """Build the complete analysis prompt with schema reference"""
         # Get project information
         project_info = self._extract_project_info(project_data)
-        
+
         return f"""
 You are an expert OKH (Open Know-How) manifest generator specializing in open-source hardware projects. Your mission is to maximize interoperability and discoverability in the open-source hardware ecosystem.
 
@@ -549,66 +560,75 @@ Use {context_file} as your scratchpad for analysis.
 
 **REMEMBER: The enhanced analysis has already detected BOM files, part files, and software references. Use this data!**
 """
-    
+
     def _extract_project_info(self, project_data: ProjectData) -> Dict[str, Any]:
         """Extract project information for LLM analysis"""
         # Get README content
         readme_content = self._get_readme_content(project_data)
-        
+
         # Get file structure
         file_structure = self._get_file_structure(project_data)
-        
+
         # Get documentation
         documentation = [doc.title for doc in project_data.documentation]
-        
+
         # Analyze files for BOM, parts, and software detection
         bom_files = self._find_bom_files(project_data)
         part_files = self._find_part_files(project_data)
         software_indicators = self._find_software_indicators(project_data)
-        
+
         return {
             "name": project_data.metadata.get("name", "Unknown Project"),
             "url": project_data.url,
-            "platform": project_data.platform.value if project_data.platform else "unknown",
+            "platform": (
+                project_data.platform.value if project_data.platform else "unknown"
+            ),
             "description": project_data.metadata.get("description", ""),
-            "readme_content": readme_content[:3000] if readme_content else None,  # Increased for better analysis
+            "readme_content": (
+                readme_content[:3000] if readme_content else None
+            ),  # Increased for better analysis
             "file_structure": file_structure,
             "documentation": documentation,
             "files_count": len(project_data.files),
             "documentation_count": len(project_data.documentation),
             "bom_files": bom_files,
             "part_files": part_files,
-            "software_indicators": software_indicators
+            "software_indicators": software_indicators,
         }
-    
+
     def _get_readme_content(self, project_data: ProjectData) -> Optional[str]:
         """Get README content from project data"""
         # Use shared utility to find README files
         readme_files = self.find_readme_files(project_data.files)
         if readme_files:
             return readme_files[0].content
-        
+
         # Look in documentation
         for doc in project_data.documentation:
-            if doc.title.lower().startswith('readme'):
+            if doc.title.lower().startswith("readme"):
                 return doc.content
-        
+
         return None
-    
+
     def _get_file_structure(self, project_data: ProjectData) -> List[str]:
         """Get simplified file structure for LLM analysis"""
         structure = []
         for file_info in project_data.files[:50]:  # Limit to first 50 files
             structure.append(file_info.path)
         return structure
-    
+
     def _find_bom_files(self, project_data: ProjectData) -> List[str]:
         """Find BOM-related files in the project"""
         bom_patterns = [
-            'bom', 'bill_of_materials', 'parts_list', 'components',
-            'materials', 'inventory', 'shopping_list'
+            "bom",
+            "bill_of_materials",
+            "parts_list",
+            "components",
+            "materials",
+            "inventory",
+            "shopping_list",
         ]
-        
+
         bom_files = []
         for file_info in project_data.files:
             file_path_lower = file_info.path.lower()
@@ -616,88 +636,118 @@ Use {context_file} as your scratchpad for analysis.
                 if pattern in file_path_lower:
                     bom_files.append(file_info.path)
                     break
-        
+
         return bom_files
-    
+
     def _find_part_files(self, project_data: ProjectData) -> List[str]:
         """Find part-related files (3D models, CAD files, etc.)"""
-        part_extensions = ['.stl', '.step', '.stp', '.obj', '.ply', '.3mf', '.cad', '.dxf']
-        part_keywords = ['part', 'component', 'assembly', 'model', 'design']
-        
+        part_extensions = [
+            ".stl",
+            ".step",
+            ".stp",
+            ".obj",
+            ".ply",
+            ".3mf",
+            ".cad",
+            ".dxf",
+        ]
+        part_keywords = ["part", "component", "assembly", "model", "design"]
+
         part_files = []
         for file_info in project_data.files:
             file_path_lower = file_info.path.lower()
-            
+
             # Check for part file extensions
             if any(file_path_lower.endswith(ext) for ext in part_extensions):
                 part_files.append(file_info.path)
                 continue
-            
+
             # Check for part-related keywords in path
             if any(keyword in file_path_lower for keyword in part_keywords):
                 part_files.append(file_info.path)
-        
+
         return part_files[:20]  # Limit to first 20 part files
-    
+
     def _find_software_indicators(self, project_data: ProjectData) -> Dict[str, Any]:
         """Find software-related indicators in the project"""
         software_keywords = [
-            'code', 'software', 'firmware', 'arduino', 'raspberry', 'pi',
-            'python', 'cpp', 'c++', 'javascript', 'ros', 'linux', 'git'
+            "code",
+            "software",
+            "firmware",
+            "arduino",
+            "raspberry",
+            "pi",
+            "python",
+            "cpp",
+            "c++",
+            "javascript",
+            "ros",
+            "linux",
+            "git",
         ]
-        
+
         software_files = []
         software_references = []
-        
+
         # Check file extensions
-        software_extensions = ['.py', '.cpp', '.c', '.js', '.java', '.ino', '.sh', '.bash']
-        
+        software_extensions = [
+            ".py",
+            ".cpp",
+            ".c",
+            ".js",
+            ".java",
+            ".ino",
+            ".sh",
+            ".bash",
+        ]
+
         for file_info in project_data.files:
             file_path_lower = file_info.path.lower()
-            
+
             # Check for software file extensions
             if any(file_path_lower.endswith(ext) for ext in software_extensions):
                 software_files.append(file_info.path)
-            
+
             # Check for software keywords in path
             if any(keyword in file_path_lower for keyword in software_keywords):
                 software_files.append(file_info.path)
-        
+
         # Check README content for software repository references
         readme_content = self._get_readme_content(project_data)
         if readme_content:
             readme_lower = readme_content.lower()
-            
+
             # Look for repository references
             import re
+
             repo_patterns = [
-                r'code can be found in.*?repository',
-                r'software.*?repository',
-                r'github\.com/[^/\s]+/[^/\s]+',
-                r'git\.com/[^/\s]+/[^/\s]+'
+                r"code can be found in.*?repository",
+                r"software.*?repository",
+                r"github\.com/[^/\s]+/[^/\s]+",
+                r"git\.com/[^/\s]+/[^/\s]+",
             ]
-            
+
             for pattern in repo_patterns:
                 matches = re.findall(pattern, readme_lower)
                 software_references.extend(matches)
-        
+
         return {
             "software_files": software_files[:10],  # Limit to first 10
             "software_references": software_references,
             "has_software_files": len(software_files) > 0,
-            "has_software_references": len(software_references) > 0
+            "has_software_references": len(software_references) > 0,
         }
-    
+
     async def _parse_llm_response(self, response_content: str, result: LayerResult):
         """Parse LLM response and extract manifest fields"""
         try:
             # Try to extract JSON from response with multiple strategies
             manifest_json = self._extract_json_from_response(response_content)
-            
+
             if manifest_json:
                 # Try to parse, with recovery attempts for common issues
                 manifest_data = self._parse_json_with_recovery(manifest_json)
-                
+
                 if manifest_data:
                     # Extract fields from manifest data
                     await self._extract_fields_from_manifest(manifest_data, result)
@@ -707,7 +757,9 @@ Use {context_file} as your scratchpad for analysis.
                         "JSON parsing failed even with recovery attempts, attempting partial field extraction. "
                         f"Extracted JSON (first 500 chars): {manifest_json[:500]}"
                     )
-                    logger.debug(f"Full extracted JSON length: {len(manifest_json)} characters")
+                    logger.debug(
+                        f"Full extracted JSON length: {len(manifest_json)} characters"
+                    )
                     # Try to extract specific fields from the partial JSON string using regex
                     await self._extract_fields_from_partial_json(manifest_json, result)
                     # Also try text extraction as fallback for any missing fields
@@ -715,7 +767,7 @@ Use {context_file} as your scratchpad for analysis.
             else:
                 # No JSON found - try to extract fields from text
                 await self._extract_fields_from_text(response_content, result)
-                
+
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse JSON from LLM response: {e}")
             logger.debug(f"JSON error at line {e.lineno}, column {e.colno}: {e.msg}")
@@ -723,62 +775,62 @@ Use {context_file} as your scratchpad for analysis.
         except Exception as e:
             logger.error(f"Failed to parse LLM response: {e}")
             result.add_error(f"Failed to parse LLM response: {e}")
-    
+
     def _extract_json_from_response(self, response_content: str) -> Optional[str]:
         """
         Extract JSON from LLM response using multiple strategies.
-        
+
         Args:
             response_content: Raw LLM response content
-            
+
         Returns:
             Extracted JSON string or None if no JSON found
         """
         # Strategy 1: Find JSON between first { and last }
-        json_start = response_content.find('{')
-        json_end = response_content.rfind('}')
-        
+        json_start = response_content.find("{")
+        json_end = response_content.rfind("}")
+
         if json_start != -1 and json_end > json_start:
-            extracted = response_content[json_start:json_end + 1]
-            
+            extracted = response_content[json_start : json_end + 1]
+
             # Strategy 2: Try to find JSON block (between code fences or after keywords)
             # Check if we have markdown code blocks
-            code_block_markers = ['```json', '```JSON', '```']
+            code_block_markers = ["```json", "```JSON", "```"]
             for marker in code_block_markers:
                 if marker in response_content:
                     start_idx = response_content.find(marker)
                     if start_idx != -1:
-                        start_idx = response_content.find('\n', start_idx) + 1
-                        end_marker = response_content.find('```', start_idx)
+                        start_idx = response_content.find("\n", start_idx) + 1
+                        end_marker = response_content.find("```", start_idx)
                         if end_marker != -1:
                             block_json = response_content[start_idx:end_marker].strip()
                             # Prefer code block extraction if it looks valid
-                            if '{' in block_json and '}' in block_json:
+                            if "{" in block_json and "}" in block_json:
                                 return block_json
-            
+
             return extracted
-        
+
         # Strategy 3: Look for JSON after common keywords
-        keywords = ['```json', '```JSON', 'JSON:', 'json:', 'manifest:', 'Manifest:']
+        keywords = ["```json", "```JSON", "JSON:", "json:", "manifest:", "Manifest:"]
         for keyword in keywords:
             idx = response_content.find(keyword)
             if idx != -1:
                 # Find the next {
-                json_start = response_content.find('{', idx)
+                json_start = response_content.find("{", idx)
                 if json_start != -1:
-                    json_end = response_content.rfind('}', json_start)
+                    json_end = response_content.rfind("}", json_start)
                     if json_end > json_start:
-                        return response_content[json_start:json_end + 1]
-        
+                        return response_content[json_start : json_end + 1]
+
         return None
-    
+
     def _parse_json_with_recovery(self, json_str: str) -> Optional[Dict[str, Any]]:
         """
         Parse JSON with recovery attempts for common issues.
-        
+
         Args:
             json_str: JSON string to parse
-            
+
         Returns:
             Parsed JSON dict or None if parsing fails
         """
@@ -787,28 +839,28 @@ Use {context_file} as your scratchpad for analysis.
             return json.loads(json_str)
         except json.JSONDecodeError:
             pass
-        
+
         # Recovery attempt 1: Fix trailing commas before } or ]
         try:
             fixed = self._fix_trailing_commas(json_str)
             return json.loads(fixed)
         except json.JSONDecodeError:
             pass
-        
+
         # Recovery attempt 2: Fix missing commas between object properties
         try:
             fixed = self._fix_missing_commas(json_str)
             return json.loads(fixed)
         except json.JSONDecodeError:
             pass
-        
+
         # Recovery attempt 3: Remove comments (// and /* */)
         try:
             fixed = self._remove_json_comments(json_str)
             return json.loads(fixed)
         except json.JSONDecodeError:
             pass
-        
+
         # Recovery attempt 4: Apply multiple fixes in combination
         # This handles cases where JSON has multiple issues (e.g., comments + trailing commas)
         try:
@@ -818,14 +870,14 @@ Use {context_file} as your scratchpad for analysis.
             return json.loads(fixed)
         except json.JSONDecodeError:
             pass
-        
+
         # Recovery attempt 5: Try to extract and parse top-level object only
         try:
             # Sometimes LLM includes extra text - try to extract just the main object
-            json_start = json_str.find('{')
-            json_end = json_str.rfind('}')
+            json_start = json_str.find("{")
+            json_end = json_str.rfind("}")
             if json_start != -1 and json_end > json_start:
-                isolated = json_str[json_start:json_end + 1]
+                isolated = json_str[json_start : json_end + 1]
                 # Apply fixes to isolated JSON too
                 try:
                     return json.loads(isolated)
@@ -836,74 +888,87 @@ Use {context_file} as your scratchpad for analysis.
                     return json.loads(fixed)
         except json.JSONDecodeError:
             pass
-        
+
         # Log the actual JSON string that failed (for debugging)
         logger.warning(
             f"All JSON recovery attempts failed. JSON string (first 1000 chars):\n{json_str[:1000]}"
         )
         logger.debug(f"Full JSON string length: {len(json_str)} characters")
         return None
-    
+
     def _fix_trailing_commas(self, json_str: str) -> str:
         """Fix trailing commas before } or ]"""
         import re
+
         # Remove trailing commas before closing braces/brackets
-        fixed = re.sub(r',(\s*[}\]])', r'\1', json_str)
+        fixed = re.sub(r",(\s*[}\]])", r"\1", json_str)
         return fixed
-    
+
     def _fix_missing_commas(self, json_str: str) -> str:
         """Fix missing commas between object properties and array elements"""
         import re
-        
+
         # Pattern 1: This pattern was too aggressive and caused issues
         # Disabled - Pattern 3 handles missing commas more reliably
         fixed = json_str
-        
+
         # Pattern 2: Missing comma between properties on same line
         # Match: "key": value "next_key": - add comma before "next_key"
-        fixed = re.sub(r'("\s*:\s*[^,}\]]+)\s+("[\w_]+"\s*:)', r'\1,\2', fixed)
-        
+        fixed = re.sub(r'("\s*:\s*[^,}\]]+)\s+("[\w_]+"\s*:)', r"\1,\2", fixed)
+
         # Pattern 3: Missing comma after value before new property (multiline)
         # Match: "key": value\n    "next_key": - add comma at end of first line
-        lines = fixed.split('\n')
+        lines = fixed.split("\n")
         fixed_lines = []
         for i, line in enumerate(lines):
             if i < len(lines) - 1:
                 next_line = lines[i + 1]
-                # If current line has a property (contains :), doesn't end with comma/}/], 
+                # If current line has a property (contains :), doesn't end with comma/}/],
                 # and next line starts with a property (starts with quote followed by colon)
-                if (':' in line and 
-                    not line.rstrip().endswith(',') and 
-                    not line.rstrip().endswith('}') and
-                    not line.rstrip().endswith(']') and
-                    re.match(r'^\s*"[^"]+"\s*:', next_line)):
+                if (
+                    ":" in line
+                    and not line.rstrip().endswith(",")
+                    and not line.rstrip().endswith("}")
+                    and not line.rstrip().endswith("]")
+                    and re.match(r'^\s*"[^"]+"\s*:', next_line)
+                ):
                     # Add comma at end of current line
-                    line = line.rstrip() + ','
+                    line = line.rstrip() + ","
             fixed_lines.append(line)
-        
-        fixed = '\n'.join(fixed_lines)
-        
+
+        fixed = "\n".join(fixed_lines)
+
         # Pattern 4: Missing comma after closing brace/bracket before new property at same level
         # This pattern is disabled as it's too error-prone and causes more issues than it fixes
         # Pattern 3 already handles most missing comma cases between properties
         # The combination of comment removal, trailing comma fixes, and Pattern 3 should be sufficient
-        
+
         return fixed
-    
+
     def _remove_json_comments(self, json_str: str) -> str:
         """Remove JSON comments (// and /* */)"""
         import re
+
         # Remove // comments
-        fixed = re.sub(r'//.*', '', json_str)
+        fixed = re.sub(r"//.*", "", json_str)
         # Remove /* */ comments
-        fixed = re.sub(r'/\*.*?\*/', '', fixed, flags=re.DOTALL)
+        fixed = re.sub(r"/\*.*?\*/", "", fixed, flags=re.DOTALL)
         return fixed
-    
-    async def _extract_fields_from_manifest(self, manifest_data: Dict[str, Any], result: LayerResult):
+
+    async def _extract_fields_from_manifest(
+        self, manifest_data: Dict[str, Any], result: LayerResult
+    ):
         """Extract fields from parsed manifest JSON"""
         # Required fields
-        required_fields = ["title", "version", "license", "licensor", "documentation_language", "function"]
-        
+        required_fields = [
+            "title",
+            "version",
+            "license",
+            "licensor",
+            "documentation_language",
+            "function",
+        ]
+
         for field in required_fields:
             if field in manifest_data:
                 value = manifest_data[field]
@@ -913,12 +978,22 @@ Use {context_file} as your scratchpad for analysis.
                     value,
                     confidence,
                     "llm_generation",
-                    "Generated by LLM analysis"
+                    "Generated by LLM analysis",
                 )
-        
+
         # Optional fields
-        optional_fields = ["description", "keywords", "manufacturing_processes", "materials", "intended_use", "bom", "parts", "sub_parts", "software"]
-        
+        optional_fields = [
+            "description",
+            "keywords",
+            "manufacturing_processes",
+            "materials",
+            "intended_use",
+            "bom",
+            "parts",
+            "sub_parts",
+            "software",
+        ]
+
         for field in optional_fields:
             if field in manifest_data:
                 value = manifest_data[field]
@@ -928,13 +1003,15 @@ Use {context_file} as your scratchpad for analysis.
                     value,
                     confidence,
                     "llm_generation",
-                    "Generated by LLM analysis"
+                    "Generated by LLM analysis",
                 )
-    
-    async def _extract_fields_from_partial_json(self, json_str: str, result: LayerResult):
+
+    async def _extract_fields_from_partial_json(
+        self, json_str: str, result: LayerResult
+    ):
         """Extract fields from partial/invalid JSON using regex patterns"""
         import re
-        
+
         # Extract function field - look for "function": "value"
         # Handle both single-line and multi-line values, escaped quotes, and truncated strings
         # Pattern: "function": "value" where value can contain escaped quotes and newlines
@@ -944,59 +1021,114 @@ Use {context_file} as your scratchpad for analysis.
         if function_match and not result.fields.get("function"):
             function_value = function_match.group(1)
             # Unescape common escape sequences
-            function_value = function_value.replace('\\n', ' ').replace('\\"', '"').replace('\\\\', '\\')
+            function_value = (
+                function_value.replace("\\n", " ")
+                .replace('\\"', '"')
+                .replace("\\\\", "\\")
+            )
             # Clean up whitespace
-            function_value = ' '.join(function_value.split())
+            function_value = " ".join(function_value.split())
             # Only add if it looks reasonable (not a fragment)
-            if len(function_value) > 20 and not any(phrase in function_value.lower() for phrase in ['disclaimed', 'warranty', 'license', 'respect of']):
-                result.add_field("function", function_value, 0.85, "llm_partial_json", "Extracted from partial JSON")
-        
+            if len(function_value) > 20 and not any(
+                phrase in function_value.lower()
+                for phrase in ["disclaimed", "warranty", "license", "respect of"]
+            ):
+                result.add_field(
+                    "function",
+                    function_value,
+                    0.85,
+                    "llm_partial_json",
+                    "Extracted from partial JSON",
+                )
+
         # Extract intended_use field
-        intended_use_pattern = r'"intended_use"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'
+        intended_use_pattern = (
+            r'"intended_use"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'
+        )
         intended_use_match = re.search(intended_use_pattern, json_str, re.DOTALL)
         if intended_use_match and not result.fields.get("intended_use"):
             intended_use_value = intended_use_match.group(1)
             # Unescape common escape sequences
-            intended_use_value = intended_use_value.replace('\\n', ' ').replace('\\"', '"').replace('\\\\', '\\')
+            intended_use_value = (
+                intended_use_value.replace("\\n", " ")
+                .replace('\\"', '"')
+                .replace("\\\\", "\\")
+            )
             # Clean up whitespace
-            intended_use_value = ' '.join(intended_use_value.split())
+            intended_use_value = " ".join(intended_use_value.split())
             # Only add if it looks reasonable
-            if len(intended_use_value) > 20 and not any(phrase in intended_use_value.lower() for phrase in ['windows', 'mac', 'linux', 'disclaimed', 'respect of']):
-                result.add_field("intended_use", intended_use_value, 0.85, "llm_partial_json", "Extracted from partial JSON")
-        
+            if len(intended_use_value) > 20 and not any(
+                phrase in intended_use_value.lower()
+                for phrase in ["windows", "mac", "linux", "disclaimed", "respect of"]
+            ):
+                result.add_field(
+                    "intended_use",
+                    intended_use_value,
+                    0.85,
+                    "llm_partial_json",
+                    "Extracted from partial JSON",
+                )
+
         # Extract description field
         description_pattern = r'"description"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'
         description_match = re.search(description_pattern, json_str, re.DOTALL)
         if description_match and not result.fields.get("description"):
             description_value = description_match.group(1)
             # Unescape common escape sequences
-            description_value = description_value.replace('\\n', ' ').replace('\\"', '"').replace('\\\\', '\\')
+            description_value = (
+                description_value.replace("\\n", " ")
+                .replace('\\"', '"')
+                .replace("\\\\", "\\")
+            )
             # Clean up whitespace
-            description_value = ' '.join(description_value.split())
+            description_value = " ".join(description_value.split())
             if len(description_value) > 30:
-                result.add_field("description", description_value, 0.85, "llm_partial_json", "Extracted from partial JSON")
-    
+                result.add_field(
+                    "description",
+                    description_value,
+                    0.85,
+                    "llm_partial_json",
+                    "Extracted from partial JSON",
+                )
+
     async def _extract_fields_from_text(self, text: str, result: LayerResult):
         """Fallback: extract fields from text response"""
         # Only extract if we don't already have the field from partial JSON extraction
-        lines = text.split('\n')
-        
+        lines = text.split("\n")
+
         for line in lines:
-            if 'title:' in line.lower() and not result.fields.get("title"):
-                title = line.split(':', 1)[1].strip()
-                result.add_field("title", title, 0.7, "llm_text_extraction", "Extracted from text response")
-            elif 'function:' in line.lower() and not result.fields.get("function"):
-                function = line.split(':', 1)[1].strip()
+            if "title:" in line.lower() and not result.fields.get("title"):
+                title = line.split(":", 1)[1].strip()
+                result.add_field(
+                    "title",
+                    title,
+                    0.7,
+                    "llm_text_extraction",
+                    "Extracted from text response",
+                )
+            elif "function:" in line.lower() and not result.fields.get("function"):
+                function = line.split(":", 1)[1].strip()
                 # Only add if it looks reasonable
-                if len(function) > 20 and not any(phrase in function.lower() for phrase in ['disclaimed', 'warranty', 'license']):
-                    result.add_field("function", function, 0.7, "llm_text_extraction", "Extracted from text response")
-    
+                if len(function) > 20 and not any(
+                    phrase in function.lower()
+                    for phrase in ["disclaimed", "warranty", "license"]
+                ):
+                    result.add_field(
+                        "function",
+                        function,
+                        0.7,
+                        "llm_text_extraction",
+                        "Extracted from text response",
+                    )
+
     async def _cleanup_context_file(self, context_file: Path):
         """Remove temporary context file (unless preserve_context is True)"""
         try:
             if context_file.exists():
                 if self.preserve_context:
-                    logger.info(f"Preserving context file for debugging: {context_file}")
+                    logger.info(
+                        f"Preserving context file for debugging: {context_file}"
+                    )
                 else:
                     context_file.unlink()
                     logger.debug(f"Cleaned up context file: {context_file}")

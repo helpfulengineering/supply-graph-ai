@@ -10,7 +10,7 @@ from .request import (
     RuleExportRequest,
     RuleValidateRequest,
     RuleCompareRequest,
-    RuleResetRequest
+    RuleResetRequest,
 )
 from .response import (
     RuleResponse,
@@ -18,7 +18,7 @@ from .response import (
     RuleImportResponse,
     RuleExportResponse,
     RuleValidateResponse,
-    RuleCompareResponse
+    RuleCompareResponse,
 )
 
 __all__ = [
@@ -39,4 +39,3 @@ __all__ = [
     "RuleValidateResponse",
     "RuleCompareResponse",
 ]
-

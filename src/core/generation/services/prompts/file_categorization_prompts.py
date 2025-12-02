@@ -16,7 +16,7 @@ from ....models.okh import DocumentationType
 class FileCategorizationPrompts:
     """
     Structured prompt templates for LLM file categorization.
-    
+
     This class provides comprehensive prompts that include:
     - File metadata (path, extension, directory)
     - Content preview (based on analysis depth)
@@ -24,68 +24,73 @@ class FileCategorizationPrompts:
     - DocumentationType definitions and examples
     - Decision criteria and edge cases
     """
-    
+
     @staticmethod
     def build_categorization_prompt(
         file_info: FileInfo,
         layer1_suggestion: FileCategorizationResult,
         content_preview: str,
-        analysis_depth: AnalysisDepth
+        analysis_depth: AnalysisDepth,
     ) -> str:
         """
         Build structured prompt for file categorization.
-        
+
         Args:
             file_info: File information (path, size, type)
             layer1_suggestion: Layer 1 heuristic suggestion
             content_preview: Content preview based on analysis depth
             analysis_depth: Analysis depth used (Shallow/Medium/Deep)
-            
+
         Returns:
             Complete prompt string for LLM categorization
         """
         file_path = Path(file_info.path)
         filename = file_path.name
-        directory = str(file_path.parent) if file_path.parent != Path('.') else "root"
+        directory = str(file_path.parent) if file_path.parent != Path(".") else "root"
         file_ext = file_path.suffix.lower()
-        
+
         # Build prompt sections
         sections = []
-        
+
         # Section 1: Task Description
         sections.append(FileCategorizationPrompts._build_task_section())
-        
+
         # Section 2: File Information
-        sections.append(FileCategorizationPrompts._build_file_info_section(
-            file_path=file_info.path,
-            filename=filename,
-            directory=directory,
-            file_ext=file_ext,
-            file_size=file_info.size
-        ))
-        
+        sections.append(
+            FileCategorizationPrompts._build_file_info_section(
+                file_path=file_info.path,
+                filename=filename,
+                directory=directory,
+                file_ext=file_ext,
+                file_size=file_info.size,
+            )
+        )
+
         # Section 3: Content Preview
-        sections.append(FileCategorizationPrompts._build_content_section(
-            content_preview=content_preview,
-            analysis_depth=analysis_depth
-        ))
-        
+        sections.append(
+            FileCategorizationPrompts._build_content_section(
+                content_preview=content_preview, analysis_depth=analysis_depth
+            )
+        )
+
         # Section 4: Layer 1 Suggestion
-        sections.append(FileCategorizationPrompts._build_layer1_suggestion_section(
-            layer1_suggestion=layer1_suggestion
-        ))
-        
+        sections.append(
+            FileCategorizationPrompts._build_layer1_suggestion_section(
+                layer1_suggestion=layer1_suggestion
+            )
+        )
+
         # Section 5: DocumentationType Rules
         sections.append(FileCategorizationPrompts._build_documentation_type_rules())
-        
+
         # Section 6: Decision Criteria
         sections.append(FileCategorizationPrompts._build_decision_criteria_section())
-        
+
         # Section 7: Output Format
         sections.append(FileCategorizationPrompts._build_output_format_section())
-        
+
         return "\n\n".join(sections)
-    
+
     @staticmethod
     def _build_task_section() -> str:
         """Build the task description section."""
@@ -94,14 +99,10 @@ class FileCategorizationPrompts:
 You are an expert file categorization specialist for open-source hardware projects. Your task is to categorize files into appropriate DocumentationType categories based on their content, purpose, and context.
 
 Your goal is to ensure files are correctly categorized to maximize interoperability and discoverability in the open-source hardware ecosystem."""
-    
+
     @staticmethod
     def _build_file_info_section(
-        file_path: str,
-        filename: str,
-        directory: str,
-        file_ext: str,
-        file_size: int
+        file_path: str, filename: str, directory: str, file_ext: str, file_size: int
     ) -> str:
         """Build the file information section."""
         return f"""## File Information
@@ -111,41 +112,40 @@ Your goal is to ensure files are correctly categorized to maximize interoperabil
 - **Directory**: `{directory}`
 - **Extension**: `{file_ext}` (if any)
 - **Size**: {file_size} bytes"""
-    
+
     @staticmethod
     def _build_content_section(
-        content_preview: str,
-        analysis_depth: AnalysisDepth
+        content_preview: str, analysis_depth: AnalysisDepth
     ) -> str:
         """Build the content preview section."""
         depth_descriptions = {
             AnalysisDepth.SHALLOW: "first 500 characters",
             AnalysisDepth.MEDIUM: "first 2000 characters",
-            AnalysisDepth.DEEP: "full document content"
+            AnalysisDepth.DEEP: "full document content",
         }
-        
+
         depth_desc = depth_descriptions.get(analysis_depth, "content preview")
-        
+
         if not content_preview or not content_preview.strip():
             content_text = "*[No text content available - binary or empty file]*"
         else:
             content_text = f"```\n{content_preview}\n```"
-        
+
         # Build note about analysis depth
         if analysis_depth == AnalysisDepth.DEEP:
             depth_note = "Full document content is provided above."
         else:
             depth_note = f"Only the {depth_desc} are shown. Use this preview to understand the file's purpose and content."
-        
+
         return f"""## Content Preview ({depth_desc})
 
 {content_text}
 
 **Note**: This is a {analysis_depth.value} analysis. {depth_note}"""
-    
+
     @staticmethod
     def _build_layer1_suggestion_section(
-        layer1_suggestion: FileCategorizationResult
+        layer1_suggestion: FileCategorizationResult,
     ) -> str:
         """Build the Layer 1 suggestion section."""
         if layer1_suggestion.excluded:
@@ -155,7 +155,7 @@ Your goal is to ensure files are correctly categorized to maximize interoperabil
 **Reason**: {layer1_suggestion.reason}
 
 **Note**: Layer 1 heuristics suggest this file should be excluded from OKH documentation. Review this decision carefully - only exclude if the file is truly not relevant to OKH documentation (e.g., workflow files, CI/CD configs, raw test data)."""
-        
+
         return f"""## Layer 1 Heuristic Suggestion
 
 **Suggested Type**: `{layer1_suggestion.documentation_type.value}` ({layer1_suggestion.documentation_type.name})
@@ -163,7 +163,7 @@ Your goal is to ensure files are correctly categorized to maximize interoperabil
 **Reason**: {layer1_suggestion.reason}
 
 **Note**: This is a heuristic-based suggestion. Review the file content and context to make the final decision. You may override this suggestion if the content indicates a different category."""
-    
+
     @staticmethod
     def _build_documentation_type_rules() -> str:
         """Build the DocumentationType rules section."""
@@ -292,7 +292,7 @@ Your goal is to ensure files are correctly categorized to maximize interoperabil
 - Academic publications (categorize as PUBLICATIONS)
 - Validation reports (categorize as TECHNICAL_SPECIFICATIONS)
 - Documentation files (categorize appropriately)"""
-    
+
     @staticmethod
     def _build_decision_criteria_section() -> str:
         """Build the decision criteria section."""
@@ -327,7 +327,7 @@ When making your categorization decision, consider:
 - If Layer 1 suggests PUBLICATIONS with confidence >0.8 (e.g., files in `publication/` directory), **DO NOT override** unless it's clearly correspondence (cover letters, responses to reviewers).
 - If Layer 1 suggests DESIGN_FILES with confidence >0.8 (e.g., `.scad` files), **DO NOT override** unless content clearly shows it's not a design file.
 - If Layer 1 suggests exclusion, **DO NOT override** - excluded files should not be categorized."""
-    
+
     @staticmethod
     def _build_output_format_section() -> str:
         """Build the output format section."""

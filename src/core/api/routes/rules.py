@@ -12,10 +12,7 @@ import json
 
 # Import standardized components
 from ..models.base import SuccessResponse
-from ..decorators import (
-    api_endpoint,
-    track_performance
-)
+from ..decorators import api_endpoint, track_performance
 from ..error_handlers import create_success_response
 
 # Import rules models
@@ -24,7 +21,7 @@ from ..models.rules.request import (
     RuleUpdateRequest,
     RuleImportRequest,
     RuleValidateRequest,
-    RuleCompareRequest
+    RuleCompareRequest,
 )
 from ..models.rules.response import (
     RuleResponse,
@@ -32,7 +29,7 @@ from ..models.rules.response import (
     RuleImportResponse,
     RuleExportResponse,
     RuleValidateResponse,
-    RuleCompareResponse
+    RuleCompareResponse,
 )
 
 # Import services
@@ -54,8 +51,8 @@ router = APIRouter(
         401: {"description": "Unauthorized"},
         404: {"description": "Not Found"},
         422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"}
-    }
+        500: {"description": "Internal Server Error"},
+    },
 )
 
 
@@ -99,6 +96,7 @@ async def get_import_export_service() -> ImportExportService:
 
 # Endpoints
 
+
 @router.get("/", response_model=RuleListResponse, summary="List all rules")
 @api_endpoint(success_message="Rules retrieved successfully")
 @track_performance("rules_list")
@@ -106,35 +104,34 @@ async def list_rules(
     domain: Optional[str] = Query(None, description="Filter by domain"),
     tag: Optional[str] = Query(None, description="Filter by tag"),
     include_metadata: bool = Query(False, description="Include metadata"),
-    service: RulesService = Depends(get_rules_service)
+    service: RulesService = Depends(get_rules_service),
 ):
     """List all rules, optionally filtered by domain or tag"""
     try:
         result = await service.list_rules(
-            domain=domain,
-            tag=tag,
-            include_metadata=include_metadata
+            domain=domain, tag=tag, include_metadata=include_metadata
         )
         return create_success_response(
-            message="Rules retrieved successfully",
-            data=result
+            message="Rules retrieved successfully", data=result
         )
     except Exception as e:
         logger.exception("Error listing rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list rules: {str(e)}"
+            detail=f"Failed to list rules: {str(e)}",
         )
 
 
-@router.get("/{domain}/{rule_id}", response_model=RuleResponse, summary="Get a specific rule")
+@router.get(
+    "/{domain}/{rule_id}", response_model=RuleResponse, summary="Get a specific rule"
+)
 @api_endpoint(success_message="Rule retrieved successfully")
 @track_performance("rules_get")
 async def get_rule(
     domain: str = Path(..., description="Domain name"),
     rule_id: str = Path(..., description="Rule ID"),
     include_metadata: bool = Query(False, description="Include metadata"),
-    service: RulesService = Depends(get_rules_service)
+    service: RulesService = Depends(get_rules_service),
 ):
     """Get a specific rule by domain and ID"""
     try:
@@ -142,13 +139,12 @@ async def get_rule(
         if not rule:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Rule '{rule_id}' not found in domain '{domain}'"
+                detail=f"Rule '{rule_id}' not found in domain '{domain}'",
             )
-        
+
         rule_dict = rule.to_dict(include_metadata=include_metadata)
         return create_success_response(
-            message="Rule retrieved successfully",
-            data=rule_dict
+            message="Rule retrieved successfully", data=rule_dict
         )
     except HTTPException:
         raise
@@ -156,46 +152,52 @@ async def get_rule(
         logger.exception("Error getting rule")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get rule: {str(e)}"
+            detail=f"Failed to get rule: {str(e)}",
         )
 
 
-@router.post("/", response_model=RuleResponse, status_code=status.HTTP_201_CREATED, summary="Create a new rule")
+@router.post(
+    "/",
+    response_model=RuleResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new rule",
+)
 @api_endpoint(success_message="Rule created successfully")
 @track_performance("rules_create")
 async def create_rule(
     request: RuleCreateRequest,
     http_request: Request,
-    service: RulesService = Depends(get_rules_service)
+    service: RulesService = Depends(get_rules_service),
 ):
     """Create a new rule"""
     try:
         rule = await service.create_rule(request.rule_data)
         rule_dict = rule.to_dict(include_metadata=False)
         response = create_success_response(
-            message="Rule created successfully",
-            data=rule_dict
+            message="Rule created successfully", data=rule_dict
         )
         # Set status code for 201 Created
         from fastapi.responses import JSONResponse
+
         return JSONResponse(
-            content=response.model_dump(mode='json'),
-            status_code=status.HTTP_201_CREATED
+            content=response.model_dump(mode="json"),
+            status_code=status.HTTP_201_CREATED,
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.exception("Error creating rule")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create rule: {str(e)}"
+            detail=f"Failed to create rule: {str(e)}",
         )
 
 
-@router.put("/{domain}/{rule_id}", response_model=RuleResponse, summary="Update an existing rule")
+@router.put(
+    "/{domain}/{rule_id}",
+    response_model=RuleResponse,
+    summary="Update an existing rule",
+)
 @api_endpoint(success_message="Rule updated successfully")
 @track_performance("rules_update")
 async def update_rule(
@@ -203,82 +205,82 @@ async def update_rule(
     rule_id: str = Path(..., description="Rule ID"),
     request: RuleUpdateRequest = ...,
     http_request: Request = None,
-    service: RulesService = Depends(get_rules_service)
+    service: RulesService = Depends(get_rules_service),
 ):
     """Update an existing rule"""
     try:
         # Ensure rule_id and domain match path parameters
         request.rule_data["id"] = rule_id
         request.rule_data["domain"] = domain
-        
+
         rule = await service.update_rule(domain, rule_id, request.rule_data)
         rule_dict = rule.to_dict(include_metadata=False)
         return create_success_response(
-            message="Rule updated successfully",
-            data=rule_dict
+            message="Rule updated successfully", data=rule_dict
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.exception("Error updating rule")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update rule: {str(e)}"
+            detail=f"Failed to update rule: {str(e)}",
         )
 
 
-@router.delete("/{domain}/{rule_id}", response_model=SuccessResponse, summary="Delete a rule")
+@router.delete(
+    "/{domain}/{rule_id}", response_model=SuccessResponse, summary="Delete a rule"
+)
 @api_endpoint(success_message="Rule deleted successfully")
 @track_performance("rules_delete")
 async def delete_rule(
     domain: str = Path(..., description="Domain name"),
     rule_id: str = Path(..., description="Rule ID"),
     confirm: bool = Query(False, description="Confirmation flag"),
-    service: RulesService = Depends(get_rules_service)
+    service: RulesService = Depends(get_rules_service),
 ):
     """Delete a rule"""
     try:
         if not confirm:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Confirmation required. Set 'confirm=true' to delete."
+                detail="Confirmation required. Set 'confirm=true' to delete.",
             )
-        
+
         result = await service.delete_rule(domain, rule_id)
         if not result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Rule '{rule_id}' not found in domain '{domain}'"
+                detail=f"Rule '{rule_id}' not found in domain '{domain}'",
             )
-        
-        return create_success_response(
-            message="Rule deleted successfully"
-        )
+
+        return create_success_response(message="Rule deleted successfully")
     except HTTPException:
         raise
     except Exception as e:
         logger.exception("Error deleting rule")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete rule: {str(e)}"
+            detail=f"Failed to delete rule: {str(e)}",
         )
 
 
-@router.post("/import", response_model=RuleImportResponse, summary="Import rules from file or reload from filesystem")
+@router.post(
+    "/import",
+    response_model=RuleImportResponse,
+    summary="Import rules from file or reload from filesystem",
+)
 @api_endpoint(success_message="Rules imported successfully")
 @track_performance("rules_import")
 async def import_rules(
     request: RuleImportRequest,
     http_request: Request = None,
     import_export_service: ImportExportService = Depends(get_import_export_service),
-    rules_service: RulesService = Depends(get_rules_service)
+    rules_service: RulesService = Depends(get_rules_service),
 ):
     """
     Import rules from YAML or JSON file content, or reload from filesystem.
-    
+
     If file_content is provided, imports from that content.
     If file_content is omitted, reloads rules from the filesystem (useful when
     files have been modified while the server is running).
@@ -288,102 +290,94 @@ async def import_rules(
         if not request.file_content:
             result = await rules_service.reload_rules(domain=request.domain)
             return create_success_response(
-                message="Rules reloaded successfully from filesystem",
-                data=result
+                message="Rules reloaded successfully from filesystem", data=result
             )
-        
+
         # Otherwise, import from provided file content
         if not request.file_format:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="file_format is required when file_content is provided"
+                detail="file_format is required when file_content is provided",
             )
-        
+
         result = await import_export_service.import_rules(
             file_content=request.file_content,
             file_format=request.file_format,
             domain=request.domain,
             partial_update=request.partial_update,
-            dry_run=request.dry_run
+            dry_run=request.dry_run,
         )
-        
-        message = "Rules imported successfully" if not result.get("dry_run") else "Rules comparison completed"
-        return create_success_response(
-            message=message,
-            data=result
+
+        message = (
+            "Rules imported successfully"
+            if not result.get("dry_run")
+            else "Rules comparison completed"
         )
+        return create_success_response(message=message, data=result)
     except HTTPException:
         raise
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.exception("Error importing/reloading rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to import/reload rules: {str(e)}"
+            detail=f"Failed to import/reload rules: {str(e)}",
         )
 
 
-@router.post("/export", response_model=RuleExportResponse, summary="Export rules to file")
+@router.post(
+    "/export", response_model=RuleExportResponse, summary="Export rules to file"
+)
 @api_endpoint(success_message="Rules exported successfully")
 @track_performance("rules_export")
 async def export_rules(
     domain: Optional[str] = Query(None, description="Export specific domain"),
     format: str = Query("yaml", description="Export format: 'yaml' or 'json'"),
     include_metadata: bool = Query(False, description="Include metadata"),
-    service: ImportExportService = Depends(get_import_export_service)
+    service: ImportExportService = Depends(get_import_export_service),
 ):
     """Export rules to YAML or JSON format"""
     try:
         content, metadata = await service.export_rules(
-            domain=domain,
-            format=format,
-            include_metadata=include_metadata
+            domain=domain, format=format, include_metadata=include_metadata
         )
-        
-        result = {
-            "content": content,
-            **metadata
-        }
-        
+
+        result = {"content": content, **metadata}
+
         return create_success_response(
-            message="Rules exported successfully",
-            data=result
+            message="Rules exported successfully", data=result
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.exception("Error exporting rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to export rules: {str(e)}"
+            detail=f"Failed to export rules: {str(e)}",
         )
 
 
-@router.post("/validate", response_model=RuleValidateResponse, summary="Validate rule file")
+@router.post(
+    "/validate", response_model=RuleValidateResponse, summary="Validate rule file"
+)
 @api_endpoint(success_message="Validation completed")
 @track_performance("rules_validate")
 async def validate_rules(
     request: RuleValidateRequest,
     http_request: Request = None,
-    service: ImportExportService = Depends(get_import_export_service)
+    service: ImportExportService = Depends(get_import_export_service),
 ):
     """Validate rule file content without importing"""
     try:
         # Parse file to get rule set data
-        if request.file_format.lower() == 'yaml':
+        if request.file_format.lower() == "yaml":
             data = yaml.safe_load(request.file_content)
-        elif request.file_format.lower() == 'json':
+        elif request.file_format.lower() == "json":
             data = json.loads(request.file_content)
         else:
             raise ValueError(f"Unsupported file format: {request.file_format}")
-        
+
         # Handle multi-domain format
         if "domains" in data:
             # Validate all domains
@@ -392,7 +386,7 @@ async def validate_rules(
             for dom, domain_data in data["domains"].items():
                 result = await validation_service.validate_rule_set(domain_data)
                 all_results[dom] = result
-            
+
             # Aggregate results
             all_valid = all(r["valid"] for r in all_results.values())
             all_errors = []
@@ -400,64 +394,59 @@ async def validate_rules(
             for dom, result in all_results.items():
                 all_errors.extend([f"{dom}: {e}" for e in result["errors"]])
                 all_warnings.extend([f"{dom}: {w}" for w in result["warnings"]])
-            
+
             result = {
                 "valid": all_valid,
                 "errors": all_errors,
-                "warnings": all_warnings
+                "warnings": all_warnings,
             }
         else:
             # Single domain format
             validation_service = ValidationService()
             result = await validation_service.validate_rule_set(data)
-        
-        return create_success_response(
-            message="Validation completed",
-            data=result
-        )
+
+        return create_success_response(message="Validation completed", data=result)
     except (yaml.YAMLError, json.JSONDecodeError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to parse file: {str(e)}"
+            detail=f"Failed to parse file: {str(e)}",
         )
     except Exception as e:
         logger.exception("Error validating rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to validate rules: {str(e)}"
+            detail=f"Failed to validate rules: {str(e)}",
         )
 
 
-@router.post("/compare", response_model=RuleCompareResponse, summary="Compare rules file with current rules")
+@router.post(
+    "/compare",
+    response_model=RuleCompareResponse,
+    summary="Compare rules file with current rules",
+)
 @api_endpoint(success_message="Comparison completed")
 @track_performance("rules_compare")
 async def compare_rules(
     request: RuleCompareRequest,
     http_request: Request = None,
-    service: ImportExportService = Depends(get_import_export_service)
+    service: ImportExportService = Depends(get_import_export_service),
 ):
     """Compare rules file with current rules (dry-run)"""
     try:
         result = await service.compare_rules(
             file_content=request.file_content,
             file_format=request.file_format,
-            domain=request.domain
+            domain=request.domain,
         )
-        
-        return create_success_response(
-            message="Comparison completed",
-            data=result
-        )
+
+        return create_success_response(message="Comparison completed", data=result)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
         logger.exception("Error comparing rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to compare rules: {str(e)}"
+            detail=f"Failed to compare rules: {str(e)}",
         )
 
 
@@ -466,26 +455,23 @@ async def compare_rules(
 @track_performance("rules_reset")
 async def reset_rules(
     confirm: bool = Query(False, description="Confirmation flag"),
-    service: RulesService = Depends(get_rules_service)
+    service: RulesService = Depends(get_rules_service),
 ):
     """Reset all rules (clear all rule sets)"""
     try:
         if not confirm:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Confirmation required. Set 'confirm=true' to reset all rules."
+                detail="Confirmation required. Set 'confirm=true' to reset all rules.",
             )
-        
+
         await service.reset_rules()
-        return create_success_response(
-            message="Rules reset successfully"
-        )
+        return create_success_response(message="Rules reset successfully")
     except HTTPException:
         raise
     except Exception as e:
         logger.exception("Error resetting rules")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to reset rules: {str(e)}"
+            detail=f"Failed to reset rules: {str(e)}",
         )
-

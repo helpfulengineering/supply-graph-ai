@@ -7,18 +7,25 @@ methods from direct string matching to LLM-enhanced semantic matching.
 
 Layers:
 - Direct: Exact string matching with near-miss detection
-- Heuristic: Rule-based matching using domain knowledge  
+- Heuristic: Rule-based matching using domain knowledge
 - NLP: Natural language processing for semantic understanding
 - LLM: Large language model enhanced matching (optional)
 """
 
-from .base import BaseMatchingLayer, MatchingResult, MatchingMetrics, MatchQuality, MatchMetadata, MatchingLayer
+from .base import (
+    BaseMatchingLayer,
+    MatchingResult,
+    MatchingMetrics,
+    MatchQuality,
+    MatchMetadata,
+    MatchingLayer,
+)
 
 __all__ = [
-    'BaseMatchingLayer',
-    'MatchingResult', 
-    'MatchingMetrics',
-    'MatchQuality',
-    'MatchMetadata',
-    'MatchingLayer'
+    "BaseMatchingLayer",
+    "MatchingResult",
+    "MatchingMetrics",
+    "MatchQuality",
+    "MatchMetadata",
+    "MatchingLayer",
 ]

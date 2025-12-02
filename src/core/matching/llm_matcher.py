@@ -23,7 +23,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 
-from .layers.base import BaseMatchingLayer, MatchingResult, MatchMetadata, MatchQuality, MatchingLayer
+from .layers.base import (
+    BaseMatchingLayer,
+    MatchingResult,
+    MatchMetadata,
+    MatchQuality,
+    MatchingLayer,
+)
 from ..services.base import ServiceStatus
 
 logger = logging.getLogger(__name__)
@@ -32,19 +38,19 @@ logger = logging.getLogger(__name__)
 class LLMMatcher(BaseMatchingLayer):
     """
     LLM Matching Layer using Large Language Models for advanced capability assessment.
-    
+
     This layer leverages LLMs to perform sophisticated matching between requirements
     and capabilities using natural language understanding. It's particularly designed
     for crisis response scenarios where terminology may be non-standardized and
     quick, practical decisions are needed.
-    
+
     The layer analyzes capability compatibility across multiple dimensions:
     - Process compatibility and substitutions
     - Material availability and alternatives
     - Tool/equipment requirements and adaptations
     - Skill/expertise requirements and gaps
     - Scale/capacity considerations and options
-    
+
     Features:
     - Crisis response context awareness
     - Non-standardized terminology handling
@@ -53,59 +59,63 @@ class LLMMatcher(BaseMatchingLayer):
     - Confidence scoring with reasoning
     - Integration with LLM service for provider management
     """
-    
-    def __init__(self, domain: str = "general", llm_service: Optional[Any] = None, 
-                 preserve_context: bool = False):
+
+    def __init__(
+        self,
+        domain: str = "general",
+        llm_service: Optional[Any] = None,
+        preserve_context: bool = False,
+    ):
         """
         Initialize the LLM Matching Layer.
-        
+
         Args:
             domain: The domain this layer operates in (e.g., 'manufacturing', 'cooking')
             llm_service: LLM service instance. If None, creates a new one.
             preserve_context: If True, context files are preserved for debugging instead of cleaned up.
-            
+
         Raises:
             RuntimeError: If LLM layer is not properly configured
         """
         super().__init__(MatchingLayer.LLM, domain)
-        
+
         # Initialize LLM service
         self.llm_service = llm_service or self._create_llm_service()
-        
+
         # Context file management
         self.context_dir = Path("temp_matching_context")
         self.context_dir.mkdir(exist_ok=True)
         self.preserve_context = preserve_context
-        
+
         # Load matching prompt strategy
         self.matching_prompt = self._load_matching_prompt()
-        
+
         logger.info(f"Initialized LLM matching layer for domain: {domain}")
-    
+
     def _create_llm_service(self):
         """Create and configure LLM service for matching operations."""
         try:
             # Lazy import to avoid circular dependencies
             from ..llm.service import LLMService, LLMServiceConfig
             from ..llm.providers.base import LLMProviderType
-            
+
             config = LLMServiceConfig(
                 name="LLMMatchingService",
                 default_provider=LLMProviderType.ANTHROPIC,
                 default_model=None,  # Use centralized config
                 max_retries=3,
                 retry_delay=1.0,
-                timeout=30.0
+                timeout=30.0,
             )
-            
+
             service = LLMService(config)
             logger.info("Created LLM service for matching layer")
             return service
-            
+
         except Exception as e:
             logger.error(f"Failed to create LLM service: {e}")
             raise RuntimeError(f"LLM service creation failed: {e}")
-    
+
     def _load_matching_prompt(self) -> str:
         """Load the matching system prompt."""
         return """
@@ -208,79 +218,85 @@ Provide your analysis in the following JSON format:
 
 Remember: In crisis situations, perfect matches are rare. Focus on practical solutions that can work with available resources and expertise.
 """
-    
-    async def match(self, requirements: List[str], capabilities: List[str]) -> List[MatchingResult]:
+
+    async def match(
+        self, requirements: List[str], capabilities: List[str]
+    ) -> List[MatchingResult]:
         """
         Match requirements to capabilities using LLM analysis.
-        
+
         Args:
             requirements: List of requirement strings to match
             capabilities: List of capability strings to match against
-            
+
         Returns:
             List of MatchingResult objects with detailed metadata
         """
         # Start tracking metrics
         self.start_matching(requirements, capabilities)
-        
+
         try:
             # Validate inputs
             if not self.validate_inputs(requirements, capabilities):
                 self.end_matching(success=False)
                 return []
-            
+
             # Initialize LLM service if needed
             if self.llm_service.status != ServiceStatus.ACTIVE:
                 await self.llm_service.initialize()
-            
+
             results = []
-            
+
             # Match each requirement against each capability
             for requirement in requirements:
                 for capability in capabilities:
                     result = await self._match_single(requirement, capability)
                     results.append(result)
-            
+
             # End metrics tracking
             matches_found = sum(1 for r in results if r.matched)
             self.end_matching(success=True, matches_found=matches_found)
-            
+
             return results
-            
+
         except Exception as e:
             return self.handle_matching_error(e, [])
-    
+
     async def _match_single(self, requirement: str, capability: str) -> MatchingResult:
         """Match a single requirement against a single capability using LLM analysis."""
         start_time = datetime.now()
-        
+
         try:
             # Create context file for this analysis
-            context_file = self.context_dir / f"match_{start_time.strftime('%Y%m%d_%H%M%S_%f')}.md"
-            
+            context_file = (
+                self.context_dir / f"match_{start_time.strftime('%Y%m%d_%H%M%S_%f')}.md"
+            )
+
             # Build analysis prompt
             prompt = self._build_matching_prompt(requirement, capability)
-            
+
             # Run LLM analysis
             analysis_result = await self._run_llm_analysis(prompt, context_file)
-            
+
             # Parse LLM response
             match_data = self._parse_llm_response(analysis_result)
-            
+
             # Create matching result
             result = self._create_matching_result_from_analysis(
                 requirement, capability, match_data, start_time
             )
-            
+
             # Cleanup context file unless preserving
             if not self.preserve_context:
                 self._cleanup_context_file(context_file)
-            
+
             return result
-            
+
         except Exception as e:
-            logger.error(f"LLM matching failed for '{requirement}' vs '{capability}': {e}")
-            
+            logger.error(
+                f"LLM matching failed for '{requirement}' vs '{capability}': {e}"
+            )
+
             # Return no-match result on error
             return self.create_matching_result(
                 requirement=requirement,
@@ -290,15 +306,15 @@ Remember: In crisis situations, perfect matches are rare. Focus on practical sol
                 method="llm_error",
                 reasons=[f"LLM analysis failed: {str(e)}"],
                 quality=MatchQuality.NO_MATCH,
-                processing_time_ms=(datetime.now() - start_time).total_seconds() * 1000
+                processing_time_ms=(datetime.now() - start_time).total_seconds() * 1000,
             )
-    
+
     def _build_matching_prompt(self, requirement: str, capability: str) -> str:
         """Build the complete prompt for LLM matching analysis."""
-        
+
         # Extract domain-specific context
         domain_context = self._get_domain_context()
-        
+
         prompt = f"""
 {self.matching_prompt}
 
@@ -324,12 +340,12 @@ Analyze whether this facility CAN PRODUCE the required item, considering the cri
 
 Provide your analysis in the specified JSON format.
 """
-        
+
         return prompt
-    
+
     def _get_domain_context(self) -> str:
         """Get domain-specific context for the prompt."""
-        
+
         if self.domain == "manufacturing":
             return """
 ### Manufacturing-Specific Considerations
@@ -357,7 +373,7 @@ Provide your analysis in the specified JSON format.
 - **Automated Assembly** → **Manual Assembly** (with more labor)
 - **Continuous Process** → **Batch Process** (with setup time)
 """
-        
+
         elif self.domain == "cooking":
             return """
 ### Cooking-Specific Considerations
@@ -377,7 +393,7 @@ Provide your analysis in the specified JSON format.
 - **Butter** ↔ **Oil** ↔ **Margarine**
 - **Cream** ↔ **Milk** ↔ **Non-dairy alternatives**
 """
-        
+
         else:
             return """
 ### General Considerations
@@ -397,40 +413,42 @@ Provide your analysis in the specified JSON format.
 - Look for multi-purpose tools and equipment
 - Evaluate manual vs automated alternatives
 """
-    
+
     async def _run_llm_analysis(self, prompt: str, context_file: Path) -> str:
         """Run LLM analysis and return the response."""
         try:
             # Lazy import to avoid circular dependencies
             from ..llm.models.requests import LLMRequestConfig, LLMRequestType
             from ..llm.models.responses import LLMResponseStatus
-            
+
             # Create LLM request
             request_config = LLMRequestConfig(
                 temperature=0.2,  # Low temperature for consistent results
                 max_tokens=2000,  # Sufficient for detailed analysis
-                timeout=30
+                timeout=30,
             )
-            
+
             # Call LLM service
             response = await self.llm_service.generate(
                 prompt=prompt,
                 request_type=LLMRequestType.ANALYSIS,
-                config=request_config
+                config=request_config,
             )
-            
+
             if response.status == LLMResponseStatus.SUCCESS:
                 # Write context file for debugging
                 self._write_context_file(context_file, prompt, response.content)
                 return response.content
             else:
                 raise RuntimeError(f"LLM generation failed: {response.error_message}")
-                
+
         except Exception as e:
             logger.error(f"LLM analysis failed: {e}")
             raise RuntimeError(f"LLM analysis failed: {e}")
-    
-    def _write_context_file(self, context_file: Path, prompt: str, response: str) -> None:
+
+    def _write_context_file(
+        self, context_file: Path, prompt: str, response: str
+    ) -> None:
         """Write context file for debugging purposes."""
         try:
             content = f"""# LLM Matching Analysis Context
@@ -452,64 +470,73 @@ This file contains the complete context for the LLM matching analysis.
 The LLM was asked to determine if a facility can produce a required item
 considering crisis response scenarios and non-standardized terminology.
 """
-            
+
             context_file.write_text(content)
             logger.debug(f"Wrote context file: {context_file}")
-            
+
         except Exception as e:
             logger.warning(f"Failed to write context file {context_file}: {e}")
-    
+
     def _parse_llm_response(self, response: str) -> Dict[str, Any]:
         """Parse LLM response and extract matching data."""
         try:
             # Try to extract JSON from response
-            json_start = response.find('{')
-            json_end = response.rfind('}') + 1
-            
+            json_start = response.find("{")
+            json_end = response.rfind("}") + 1
+
             if json_start == -1 or json_end == 0:
                 raise ValueError("No JSON found in response")
-            
+
             json_str = response[json_start:json_end]
             match_data = json.loads(json_str)
-            
+
             # Validate required fields
-            required_fields = ['match_decision', 'confidence_score', 'capability_assessment']
+            required_fields = [
+                "match_decision",
+                "confidence_score",
+                "capability_assessment",
+            ]
             for field in required_fields:
                 if field not in match_data:
                     raise ValueError(f"Missing required field: {field}")
-            
+
             return match_data
-            
+
         except Exception as e:
             logger.error(f"Failed to parse LLM response: {e}")
             logger.debug(f"Response content: {response}")
-            
+
             # Return default no-match data
             return {
-                'match_decision': False,
-                'confidence_score': 0.0,
-                'capability_assessment': {
-                    'process_compatibility': {'score': 0.0, 'analysis': 'Parse error'},
-                    'material_availability': {'score': 0.0, 'analysis': 'Parse error'},
-                    'tool_equipment': {'score': 0.0, 'analysis': 'Parse error'},
-                    'expertise_skills': {'score': 0.0, 'analysis': 'Parse error'},
-                    'scale_capacity': {'score': 0.0, 'analysis': 'Parse error'}
+                "match_decision": False,
+                "confidence_score": 0.0,
+                "capability_assessment": {
+                    "process_compatibility": {"score": 0.0, "analysis": "Parse error"},
+                    "material_availability": {"score": 0.0, "analysis": "Parse error"},
+                    "tool_equipment": {"score": 0.0, "analysis": "Parse error"},
+                    "expertise_skills": {"score": 0.0, "analysis": "Parse error"},
+                    "scale_capacity": {"score": 0.0, "analysis": "Parse error"},
                 },
-                'overall_analysis': f'Failed to parse LLM response: {str(e)}',
-                'key_factors': ['Parse error'],
-                'recommendations': ['Check LLM response format'],
-                'risks': ['Response parsing failed'],
-                'crisis_adaptability': 'Unable to assess due to parse error'
+                "overall_analysis": f"Failed to parse LLM response: {str(e)}",
+                "key_factors": ["Parse error"],
+                "recommendations": ["Check LLM response format"],
+                "risks": ["Response parsing failed"],
+                "crisis_adaptability": "Unable to assess due to parse error",
             }
-    
-    def _create_matching_result_from_analysis(self, requirement: str, capability: str, 
-                                            match_data: Dict[str, Any], start_time: datetime) -> MatchingResult:
+
+    def _create_matching_result_from_analysis(
+        self,
+        requirement: str,
+        capability: str,
+        match_data: Dict[str, Any],
+        start_time: datetime,
+    ) -> MatchingResult:
         """Create MatchingResult from LLM analysis data."""
-        
+
         # Extract basic match information
-        matched = match_data.get('match_decision', False)
-        confidence = float(match_data.get('confidence_score', 0.0))
-        
+        matched = match_data.get("match_decision", False)
+        confidence = float(match_data.get("confidence_score", 0.0))
+
         # Determine match quality based on confidence
         if confidence >= 0.9:
             quality = MatchQuality.SEMANTIC_MATCH
@@ -519,26 +546,28 @@ considering crisis response scenarios and non-standardized terminology.
             quality = MatchQuality.SEMANTIC_MATCH
         else:
             quality = MatchQuality.NO_MATCH
-        
+
         # Build reasons from analysis
         reasons = []
-        if match_data.get('overall_analysis'):
+        if match_data.get("overall_analysis"):
             reasons.append(f"LLM Analysis: {match_data['overall_analysis']}")
-        
-        if match_data.get('key_factors'):
-            reasons.extend([f"Key Factor: {factor}" for factor in match_data['key_factors'][:3]])
-        
+
+        if match_data.get("key_factors"):
+            reasons.extend(
+                [f"Key Factor: {factor}" for factor in match_data["key_factors"][:3]]
+            )
+
         # Add capability assessment details
-        assessment = match_data.get('capability_assessment', {})
+        assessment = match_data.get("capability_assessment", {})
         for category, data in assessment.items():
-            if isinstance(data, dict) and 'score' in data:
-                score = data.get('score', 0.0)
+            if isinstance(data, dict) and "score" in data:
+                score = data.get("score", 0.0)
                 if score > 0.5:
                     reasons.append(f"{category.replace('_', ' ').title()}: {score:.2f}")
-        
+
         # Calculate processing time
         processing_time_ms = (datetime.now() - start_time).total_seconds() * 1000
-        
+
         return self.create_matching_result(
             requirement=requirement,
             capability=capability,
@@ -548,9 +577,9 @@ considering crisis response scenarios and non-standardized terminology.
             reasons=reasons,
             quality=quality,
             processing_time_ms=processing_time_ms,
-            semantic_similarity=confidence
+            semantic_similarity=confidence,
         )
-    
+
     def _cleanup_context_file(self, context_file: Path) -> None:
         """Clean up context file unless preserving for debugging."""
         try:
@@ -559,31 +588,32 @@ considering crisis response scenarios and non-standardized terminology.
                 logger.debug(f"Cleaned up context file: {context_file}")
         except Exception as e:
             logger.warning(f"Failed to cleanup context file {context_file}: {e}")
-    
+
     async def shutdown(self) -> None:
         """Shutdown the LLM matching layer and cleanup resources."""
         try:
             if self.llm_service:
                 await self.llm_service.shutdown()
-            
+
             # Cleanup context directory unless preserving
             if not self.preserve_context and self.context_dir.exists():
                 import shutil
+
                 shutil.rmtree(self.context_dir)
                 logger.info("Cleaned up LLM matching context directory")
-            
+
             logger.info("LLM matching layer shutdown completed")
-            
+
         except Exception as e:
             logger.error(f"Error during LLM matching layer shutdown: {e}")
-    
+
     def get_service_status(self) -> Dict[str, Any]:
         """Get the current status of the LLM service."""
         if not self.llm_service:
             return {"status": "not_initialized", "error": "No LLM service"}
-        
+
         return {
             "status": self.llm_service.status.value,
             "providers": self.llm_service.get_available_providers(),
-            "metrics": self.llm_service.get_service_metrics()
+            "metrics": self.llm_service.get_service_metrics(),
         }

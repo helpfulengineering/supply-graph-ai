@@ -9,37 +9,43 @@ from .llm_config import get_llm_config, is_llm_enabled, validate_llm_config
 # Import secrets manager (lazy import to avoid circular dependencies)
 _secrets_manager = None
 
+
 def _get_secret_or_env(key: str, default: str = None) -> str:
     """Get value from secrets manager or environment variable
-    
+
     This function tries to get the value from the secrets manager first,
     then falls back to environment variables. This allows for cloud secrets
     manager integration while maintaining backward compatibility.
-    
+
     Args:
         key: Configuration key name
         default: Default value if not found
-        
+
     Returns:
         Configuration value or default
     """
     global _secrets_manager
-    
+
     # Try environment variable first (fastest, most common)
     value = os.getenv(key)
     if value is not None:
         return value
-    
+
     # Try secrets manager if enabled
     try:
         if _secrets_manager is None:
             # Lazy import to avoid circular dependencies
             from src.core.utils.secrets_manager import get_secrets_manager
+
             _secrets_manager = get_secrets_manager()
-        
+
         # Only use secrets manager for sensitive values or if explicitly enabled
-        use_secrets_manager = os.getenv("USE_SECRETS_MANAGER", "false").lower() in ("true", "1", "t")
-        
+        use_secrets_manager = os.getenv("USE_SECRETS_MANAGER", "false").lower() in (
+            "true",
+            "1",
+            "t",
+        )
+
         # List of sensitive keys that should use secrets manager
         sensitive_keys = [
             "API_KEYS",
@@ -55,17 +61,19 @@ def _get_secret_or_env(key: str, default: str = None) -> str:
             "LLM_ENCRYPTION_SALT",
             "LLM_ENCRYPTION_PASSWORD",
         ]
-        
+
         if use_secrets_manager or key in sensitive_keys:
             secret_value = _secrets_manager.get_secret(key)
             if secret_value is not None:
                 return secret_value
     except Exception as e:
         # If secrets manager fails, log and continue with env vars
-        if not hasattr(_get_secret_or_env, '_logged_warning'):
-            logger.debug(f"Secrets manager not available or failed: {e}. Using environment variables only.")
+        if not hasattr(_get_secret_or_env, "_logged_warning"):
+            logger.debug(
+                f"Secrets manager not available or failed: {e}. Using environment variables only."
+            )
             _get_secret_or_env._logged_warning = True
-    
+
     return default
 
 
@@ -130,14 +138,20 @@ elif CORS_ORIGINS_ENV.strip() == "*":
     CORS_ORIGINS = ["*"]
 else:
     # Parse comma-separated list of allowed origins
-    CORS_ORIGINS = [origin.strip() for origin in CORS_ORIGINS_ENV.split(",") if origin.strip()]
+    CORS_ORIGINS = [
+        origin.strip() for origin in CORS_ORIGINS_ENV.split(",") if origin.strip()
+    ]
     if not CORS_ORIGINS:
         logger.warning("CORS_ORIGINS is set but empty. No CORS origins allowed.")
 
 # API Keys (backward compatibility - used for environment variable keys)
 # This is a sensitive value, so it will try secrets manager if enabled
 API_KEYS_ENV = _get_secret_or_env("API_KEYS", "")
-API_KEYS = [key.strip() for key in API_KEYS_ENV.split(",") if key.strip()] if API_KEYS_ENV else []
+API_KEYS = (
+    [key.strip() for key in API_KEYS_ENV.split(",") if key.strip()]
+    if API_KEYS_ENV
+    else []
+)
 
 # Validate API keys in production
 if ENVIRONMENT == "production":
@@ -156,8 +170,14 @@ if ENVIRONMENT == "production":
 
 # Authentication Configuration
 AUTH_MODE = _get_secret_or_env("AUTH_MODE", "hybrid")  # "env", "storage", "hybrid"
-AUTH_ENABLE_STORAGE = _get_secret_or_env("AUTH_ENABLE_STORAGE", "true").lower() in ("true", "1", "t")
-AUTH_CACHE_TTL = int(_get_secret_or_env("AUTH_CACHE_TTL", "300"))  # 5 minutes in seconds
+AUTH_ENABLE_STORAGE = _get_secret_or_env("AUTH_ENABLE_STORAGE", "true").lower() in (
+    "true",
+    "1",
+    "t",
+)
+AUTH_CACHE_TTL = int(
+    _get_secret_or_env("AUTH_CACHE_TTL", "300")
+)  # 5 minutes in seconds
 AUTH_KEY_LENGTH = int(_get_secret_or_env("AUTH_KEY_LENGTH", "32"))  # bytes
 
 # Storage Configuration
@@ -167,21 +187,28 @@ except StorageConfigError as e:
     logger.error(f"Failed to load storage configuration: {e}")
     if DEBUG:
         # In debug mode, fall back to local storage
-        STORAGE_CONFIG = StorageConfig(
-            provider="local",
-            bucket_name="storage"
-        )
+        STORAGE_CONFIG = StorageConfig(provider="local", bucket_name="storage")
     else:
         raise
 
 # Cache Configuration
-CACHE_ENABLED = _get_secret_or_env("CACHE_ENABLED", "true").lower() in ("true", "1", "t")
+CACHE_ENABLED = _get_secret_or_env("CACHE_ENABLED", "true").lower() in (
+    "true",
+    "1",
+    "t",
+)
 CACHE_MAX_SIZE = int(_get_secret_or_env("CACHE_MAX_SIZE", "1000"))
 CACHE_CLEANUP_INTERVAL = int(_get_secret_or_env("CACHE_CLEANUP_INTERVAL", "60"))
 
 # Rate Limiting Configuration
-RATE_LIMIT_ENABLED = _get_secret_or_env("RATE_LIMIT_ENABLED", "true").lower() in ("true", "1", "t")
-RATE_LIMIT_CLEANUP_INTERVAL = int(_get_secret_or_env("RATE_LIMIT_CLEANUP_INTERVAL", "60"))
+RATE_LIMIT_ENABLED = _get_secret_or_env("RATE_LIMIT_ENABLED", "true").lower() in (
+    "true",
+    "1",
+    "t",
+)
+RATE_LIMIT_CLEANUP_INTERVAL = int(
+    _get_secret_or_env("RATE_LIMIT_CLEANUP_INTERVAL", "60")
+)
 
 # LLM Configuration
 LLM_CONFIG = get_llm_config()

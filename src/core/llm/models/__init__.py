@@ -12,7 +12,7 @@ from .metrics import LLMMetrics, LLMCostMetrics
 __all__ = [
     "LLMRequest",
     "LLMRequestConfig",
-    "LLMResponse", 
+    "LLMResponse",
     "LLMResponseMetadata",
     "LLMMetrics",
     "LLMCostMetrics",

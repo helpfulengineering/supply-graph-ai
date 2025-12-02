@@ -11,10 +11,7 @@ import socket
 import time
 from typing import Optional
 
-from .base import (
-    CLIContext, SmartCommand, format_llm_output,
-    log_llm_usage
-)
+from .base import CLIContext, SmartCommand, format_llm_output, log_llm_usage
 from .decorators import standard_cli_command
 from ..core.registry.domain_registry import DomainRegistry
 
@@ -23,21 +20,21 @@ from ..core.registry.domain_registry import DomainRegistry
 def system_group():
     """
     System management commands for OME.
-    
+
     These commands help you monitor and manage the OME system,
     including health checks, domain information, server status,
     and system diagnostics.
-    
+
     Examples:
       # Check system health
       ome system health
-      
+
       # List available domains
       ome system domains
-      
+
       # Show detailed system status
       ome system status
-      
+
       # Use LLM for enhanced analysis
       ome system status --use-llm --quality-level professional
     """
@@ -46,11 +43,14 @@ def system_group():
 
 # Helper functions
 
-async def _display_health_results(cli_ctx: CLIContext, result: dict, output_format: str):
+
+async def _display_health_results(
+    cli_ctx: CLIContext, result: dict, output_format: str
+):
     """Display health check results."""
     if result.get("status") == "ok":
         cli_ctx.log("System is healthy", "success")
-        
+
         if output_format == "json":
             output_data = format_llm_output(result, cli_ctx)
             click.echo(output_data)
@@ -58,19 +58,26 @@ async def _display_health_results(cli_ctx: CLIContext, result: dict, output_form
             cli_ctx.log(f"Status: {result['status']}", "info")
             cli_ctx.log(f"Version: {result.get('version', 'Unknown')}", "info")
             cli_ctx.log(f"Mode: {result.get('mode', 'unknown')}", "info")
-            if 'domains' in result:
-                cli_ctx.log(f"Registered domains: {', '.join(result['domains'])}", "info")
+            if "domains" in result:
+                cli_ctx.log(
+                    f"Registered domains: {', '.join(result['domains'])}", "info"
+                )
     else:
-        cli_ctx.log(f"System health check failed: {result.get('error', 'Unknown error')}", "error")
+        cli_ctx.log(
+            f"System health check failed: {result.get('error', 'Unknown error')}",
+            "error",
+        )
         if cli_ctx.verbose:
             output_data = format_llm_output(result, cli_ctx)
             click.echo(output_data)
 
 
-async def _display_domains_results(cli_ctx: CLIContext, result: dict, output_format: str):
+async def _display_domains_results(
+    cli_ctx: CLIContext, result: dict, output_format: str
+):
     """Display domains results."""
     domains = result.get("domains", [])
-    
+
     if output_format == "json":
         output_data = format_llm_output(result, cli_ctx)
         click.echo(output_data)
@@ -78,15 +85,21 @@ async def _display_domains_results(cli_ctx: CLIContext, result: dict, output_for
         if domains:
             cli_ctx.log(f"Found {len(domains)} domains", "success")
             for domain in domains:
-                status_icon = "✅" if domain.get("status", "active") == "active" else "❌"
-                click.echo(f"{status_icon} {domain['id']}: {domain.get('name', 'Unknown')}")
-                if domain.get('description'):
+                status_icon = (
+                    "✅" if domain.get("status", "active") == "active" else "❌"
+                )
+                click.echo(
+                    f"{status_icon} {domain['id']}: {domain.get('name', 'Unknown')}"
+                )
+                if domain.get("description"):
                     click.echo(f"   {domain['description']}")
         else:
             cli_ctx.log("No domains found", "success")
 
 
-async def _display_status_results(cli_ctx: CLIContext, result: dict, output_format: str):
+async def _display_status_results(
+    cli_ctx: CLIContext, result: dict, output_format: str
+):
     """Display system status results."""
     if output_format == "json":
         output_data = format_llm_output(result, cli_ctx)
@@ -96,12 +109,12 @@ async def _display_status_results(cli_ctx: CLIContext, result: dict, output_form
         click.echo(f"Server URL: {result['server_url']}")
         click.echo(f"Mode: {result['mode']}")
         click.echo("")  # Empty line for spacing
-        
+
         health = result.get("health", {})
         click.echo(f"Health Status: {health.get('status', 'unknown')}")
         click.echo(f"Version: {health.get('version', 'unknown')}")
         click.echo("")  # Empty line for spacing
-        
+
         domains = result.get("domains", {}).get("domains", [])
         click.echo(f"Registered Domains ({len(domains)}):")
         for domain in domains:
@@ -112,6 +125,7 @@ async def _display_status_results(cli_ctx: CLIContext, result: dict, output_form
 
 
 # Commands
+
 
 @system_group.command()
 @standard_cli_command(
@@ -146,34 +160,41 @@ async def _display_status_results(cli_ctx: CLIContext, result: dict, output_form
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def health(ctx, verbose: bool, output_format: str, use_llm: bool,
-                llm_provider: str, llm_model: Optional[str],
-                quality_level: str, strict_mode: bool):
+async def health(
+    ctx,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Check system health and status with enhanced LLM support."""
     cli_ctx = ctx.obj
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("system-health")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "System health check")
-        
+
         async def http_health_check():
             """Check health via HTTP API"""
             health_url = f"{cli_ctx.config.server_url}/health"
@@ -190,40 +211,40 @@ async def health(ctx, verbose: bool, output_format: str, use_llm: bool,
                 except Exception as e:
                     cli_ctx.log(f"Health check error: {e}", "debug")
                     raise
-        
+
         async def fallback_health_check():
             """Fallback health check using direct services"""
             cli_ctx.log("Using direct service health check...", "info")
             # Ensure domains are registered
             from .base import ensure_domains_registered
+
             await ensure_domains_registered()
-            
+
             # Try to initialize services to check if they're working
             try:
                 domains = list(DomainRegistry.get_registered_domains())
                 from ..core.version import get_version
+
                 return {
                     "status": "ok",
                     "domains": domains,
                     "version": get_version(),
-                    "mode": "fallback"
+                    "mode": "fallback",
                 }
             except Exception as e:
-                return {
-                    "status": "error",
-                    "error": str(e),
-                    "mode": "fallback"
-                }
-        
+                return {"status": "error", "error": str(e), "mode": "fallback"}
+
         # Execute health check with fallback
         command = SmartCommand(cli_ctx)
-        result = await command.execute_with_fallback(http_health_check, fallback_health_check)
-        
+        result = await command.execute_with_fallback(
+            http_health_check, fallback_health_check
+        )
+
         # Display health results
         await _display_health_results(cli_ctx, result, output_format)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Health check failed: {str(e)}", "error")
         raise
@@ -256,42 +277,49 @@ async def health(ctx, verbose: bool, output_format: str, use_llm: bool,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def domains(ctx, verbose: bool, output_format: str, use_llm: bool,
-                 llm_provider: str, llm_model: Optional[str],
-                 quality_level: str, strict_mode: bool):
+async def domains(
+    ctx,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """List available domains and their status with enhanced LLM support."""
     cli_ctx = ctx.obj
-    
+
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("system-domains")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "Domain listing")
-        
+
         async def http_domains():
             """Get domains via HTTP API"""
             cli_ctx.log("Getting domains via HTTP API...", "info")
             # Use the utility domains endpoint
             response = await cli_ctx.api_client.request("GET", "/api/utility/domains")
             return response
-        
+
         async def fallback_domains():
             """Get domains using direct service calls"""
             cli_ctx.log("Using direct service domain listing...", "info")
@@ -302,21 +330,21 @@ async def domains(ctx, verbose: bool, output_format: str, use_llm: bool,
                         "id": domain,
                         "name": domain.title(),
                         "description": f"{domain.title()} domain",
-                        "status": "active"
+                        "status": "active",
                     }
                     for domain in domains
                 ]
             }
-        
+
         # Execute domain listing with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_domains, fallback_domains)
-        
+
         # Display domains results
         await _display_domains_results(cli_ctx, result, output_format)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Domain listing failed: {str(e)}", "error")
         raise
@@ -355,35 +383,42 @@ async def domains(ctx, verbose: bool, output_format: str, use_llm: bool,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
-                llm_provider: str, llm_model: Optional[str],
-                quality_level: str, strict_mode: bool):
+async def status(
+    ctx,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Show detailed system status with enhanced LLM support."""
     cli_ctx = ctx.obj
-    
+
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("system-status")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "System status check")
-        
+
         async def http_status():
             """Get status via HTTP API"""
             cli_ctx.log("Getting status via HTTP API...", "info")
@@ -391,66 +426,66 @@ async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
                 # Get multiple endpoints for status
                 # Health endpoint is at root level, not under /v1
                 async with httpx.AsyncClient(timeout=cli_ctx.config.timeout) as client:
-                    health_response = await client.get(f"{cli_ctx.config.server_url}/health")
+                    health_response = await client.get(
+                        f"{cli_ctx.config.server_url}/health"
+                    )
                     health_response.raise_for_status()
                     health_data = health_response.json()
-                    
+
                     # Domains endpoint is under /v1/api/utility
-                    domains_response = await cli_ctx.api_client.request("GET", "/api/utility/domains")
-                
+                    domains_response = await cli_ctx.api_client.request(
+                        "GET", "/api/utility/domains"
+                    )
+
                 return {
                     "health": health_data,
                     "domains": domains_response,
                     "server_url": cli_ctx.config.server_url,
-                    "mode": "http"
+                    "mode": "http",
                 }
             except Exception as e:
                 # If HTTP fails, raise an exception to trigger fallback
                 raise Exception(f"HTTP request failed: {e}")
-        
+
         async def fallback_status():
             """Get status using direct service calls"""
             cli_ctx.log("Using direct service status check...", "info")
             domains = list(DomainRegistry.get_registered_domains())
-            
+
             return {
-                "health": {
-                    "status": "ok",
-                    "domains": domains,
-                    "version": "1.0.0"
-                },
+                "health": {"status": "ok", "domains": domains, "version": "1.0.0"},
                 "domains": {
                     "domains": [
                         {
                             "id": domain,
                             "name": domain.title(),
                             "description": f"{domain.title()} domain",
-                            "status": "active"
+                            "status": "active",
                         }
                         for domain in domains
                     ]
                 },
                 "server_url": "N/A (direct mode)",
-                "mode": "fallback"
+                "mode": "fallback",
             }
-        
+
         # Execute status check with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_status, fallback_status)
-        
+
         # Display status results
         await _display_status_results(cli_ctx, result, output_format)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Status check failed: {str(e)}", "error")
         raise
 
 
 @system_group.command()
-@click.option('--port', default=8001, help='Port to check')
-@click.option('--timeout', default=5, help='Connection timeout in seconds')
+@click.option("--port", default=8001, help="Port to check")
+@click.option("--timeout", default=5, help="Connection timeout in seconds")
 @standard_cli_command(
     help_text="""
     Ping the OME server to check connectivity.
@@ -480,74 +515,88 @@ async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-def ping(ctx, port: int, timeout: int,
-         verbose: bool, output_format: str, use_llm: bool,
-         llm_provider: str, llm_model: Optional[str],
-         quality_level: str, strict_mode: bool):
+def ping(
+    ctx,
+    port: int,
+    timeout: int,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Ping the OME server with enhanced LLM support."""
     cli_ctx = ctx.obj
-    
+
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("system-ping")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "Server ping")
-        
-        server_host = cli_ctx.config.server_url.replace('http://', '').replace('https://', '').split(':')[0]
-        
+
+        server_host = (
+            cli_ctx.config.server_url.replace("http://", "")
+            .replace("https://", "")
+            .split(":")[0]
+        )
+
         cli_ctx.log(f"Pinging {server_host}:{port}...", "info")
-        
+
         start_time = time.time()
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(timeout)
         result = sock.connect_ex((server_host, port))
         sock.close()
-        
+
         if result == 0:
             response_time = (time.time() - start_time) * 1000
-            cli_ctx.log(f"Server is reachable (response time: {response_time:.2f}ms)", "success")
-            
+            cli_ctx.log(
+                f"Server is reachable (response time: {response_time:.2f}ms)", "success"
+            )
+
             if output_format == "json":
                 ping_result = {
                     "status": "success",
                     "server": f"{server_host}:{port}",
                     "response_time_ms": response_time,
-                    "timeout": timeout
+                    "timeout": timeout,
                 }
                 output_data = format_llm_output(ping_result, cli_ctx)
                 click.echo(output_data)
         else:
             cli_ctx.log(f"Server is not reachable on {server_host}:{port}", "error")
-            
+
             if output_format == "json":
                 ping_result = {
                     "status": "error",
                     "server": f"{server_host}:{port}",
                     "error": "Connection failed",
-                    "timeout": timeout
+                    "timeout": timeout,
                 }
                 output_data = format_llm_output(ping_result, cli_ctx)
                 click.echo(output_data)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Ping failed: {str(e)}", "error")
         raise
@@ -580,41 +629,49 @@ def ping(ctx, port: int, timeout: int,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-def info(ctx, verbose: bool, output_format: str, use_llm: bool,
-         llm_provider: str, llm_model: Optional[str],
-         quality_level: str, strict_mode: bool):
+def info(
+    ctx,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Show OME system information with enhanced LLM support."""
     cli_ctx = ctx.obj
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("system-info")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "System information")
-        
+
         # Import version info
         try:
             from . import __version__
+
             version = __version__
         except ImportError:
             version = "Unknown"
-        
+
         if output_format == "json":
             info_data = {
                 "cli_version": version,
@@ -623,9 +680,7 @@ def info(ctx, verbose: bool, output_format: str, use_llm: bool,
                 "verbose": cli_ctx.config.verbose,
                 "llm_enabled": cli_ctx.is_llm_enabled(),
                 "llm_config": cli_ctx.llm_config if cli_ctx.is_llm_enabled() else None,
-                "available_commands": [
-                    "package", "okh", "okw", "match", "system"
-                ]
+                "available_commands": ["package", "okh", "okw", "match", "system"],
             }
             output_data = format_llm_output(info_data, cli_ctx)
             click.echo(output_data)
@@ -635,13 +690,21 @@ def info(ctx, verbose: bool, output_format: str, use_llm: bool,
             click.echo(f"Server URL: {cli_ctx.config.server_url}")
             click.echo(f"Timeout: {cli_ctx.config.timeout}s")
             click.echo(f"Verbose Mode: {cli_ctx.config.verbose}")
-            
+
             if cli_ctx.is_llm_enabled():
-                click.echo(f"LLM Provider: {cli_ctx.llm_config.get('llm_provider', 'Unknown')}")
-                click.echo(f"LLM Model: {cli_ctx.llm_config.get('llm_model', 'Default')}")
-                click.echo(f"Quality Level: {cli_ctx.llm_config.get('quality_level', 'Unknown')}")
-                click.echo(f"Strict Mode: {cli_ctx.llm_config.get('strict_mode', False)}")
-            
+                click.echo(
+                    f"LLM Provider: {cli_ctx.llm_config.get('llm_provider', 'Unknown')}"
+                )
+                click.echo(
+                    f"LLM Model: {cli_ctx.llm_config.get('llm_model', 'Default')}"
+                )
+                click.echo(
+                    f"Quality Level: {cli_ctx.llm_config.get('quality_level', 'Unknown')}"
+                )
+                click.echo(
+                    f"Strict Mode: {cli_ctx.llm_config.get('strict_mode', False)}"
+                )
+
             click.echo("")  # Empty line for spacing
             click.echo("Available Commands:")
             click.echo("  package  - Package management (build, push, pull, list)")
@@ -651,9 +714,9 @@ def info(ctx, verbose: bool, output_format: str, use_llm: bool,
             click.echo("  system   - System management")
             click.echo("")  # Empty line for spacing
             cli_ctx.log("For more information, use: ome <command> --help", "info")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Info display failed: {str(e)}", "error")
         raise

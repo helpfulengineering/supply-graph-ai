@@ -9,8 +9,4 @@ from .base import LayerResult
 from .heuristic import HeuristicMatcher
 from ..models import GenerationLayer
 
-__all__ = [
-    'GenerationLayer',
-    'LayerResult', 
-    'HeuristicMatcher'
-]
+__all__ = ["GenerationLayer", "LayerResult", "HeuristicMatcher"]

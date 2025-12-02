@@ -10,7 +10,7 @@ from .okw_validator import ManufacturingOKWValidator
 from .supply_tree_validator import ManufacturingSupplyTreeValidator
 
 __all__ = [
-    'ManufacturingOKHValidator',
-    'ManufacturingOKWValidator', 
-    'ManufacturingSupplyTreeValidator'
+    "ManufacturingOKHValidator",
+    "ManufacturingOKWValidator",
+    "ManufacturingSupplyTreeValidator",
 ]

@@ -23,20 +23,20 @@ from .models import (
     LayerConfig,
     GenerationResult,
     FileInfo,
-    DocumentInfo
+    DocumentInfo,
 )
 
 __all__ = [
-    'PlatformType',
-    'GenerationQuality', 
-    'GenerationLayer',
-    'ProjectData',
-    'FieldGeneration',
-    'GenerationMetadata',
-    'ManifestGeneration',
-    'QualityReport',
-    'LayerConfig',
-    'GenerationResult',
-    'FileInfo',
-    'DocumentInfo'
+    "PlatformType",
+    "GenerationQuality",
+    "GenerationLayer",
+    "ProjectData",
+    "FieldGeneration",
+    "GenerationMetadata",
+    "ManifestGeneration",
+    "QualityReport",
+    "LayerConfig",
+    "GenerationResult",
+    "FileInfo",
+    "DocumentInfo",
 ]

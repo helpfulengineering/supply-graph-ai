@@ -1,13 +1,19 @@
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Dict, List, Optional, Any, TYPE_CHECKING
 
-from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
+from ..base import (
+    SuccessResponse,
+    LLMResponseMixin,
+    ValidationResult as BaseValidationResult,
+)
 
 if TYPE_CHECKING:
     from ....models.supply_trees import SupplyTree
 
+
 class SupplyTreeSummary(BaseModel):
     """Simplified supply tree for API responses (without NetworkX graphs)"""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -15,32 +21,45 @@ class SupplyTreeSummary(BaseModel):
     edge_count: int
     total_cost: Optional[float] = None
     estimated_time: Optional[str] = None
-    facilities: List[str] = Field(default_factory=list, description="List of facility IDs used")
-    
+    facilities: List[str] = Field(
+        default_factory=list, description="List of facility IDs used"
+    )
+
     @classmethod
-    def from_supply_tree(cls, tree: 'SupplyTree') -> 'SupplyTreeSummary':
+    def from_supply_tree(cls, tree: "SupplyTree") -> "SupplyTreeSummary":
         """Create a summary from a full SupplyTree"""
         # Get name and description from metadata or use defaults
-        name = tree.metadata.get('okh_title', f'Supply Tree {str(tree.id)[:8]}')
-        description = tree.metadata.get('description', f'Manufacturing solution for {tree.metadata.get("okh_title", "hardware project")}')
-        
+        name = tree.metadata.get("okh_title", f"Supply Tree {str(tree.id)[:8]}")
+        description = tree.metadata.get(
+            "description",
+            f'Manufacturing solution for {tree.metadata.get("okh_title", "hardware project")}',
+        )
+
         # Calculate node and edge counts from workflows
-        total_nodes = sum(len(workflow.graph.nodes) for workflow in tree.workflows.values())
-        total_edges = sum(len(workflow.graph.edges) for workflow in tree.workflows.values())
-        
+        total_nodes = sum(
+            len(workflow.graph.nodes) for workflow in tree.workflows.values()
+        )
+        total_edges = sum(
+            len(workflow.graph.edges) for workflow in tree.workflows.values()
+        )
+
         return cls(
             id=str(tree.id),
             name=name,
             description=description,
             node_count=total_nodes,
             edge_count=total_edges,
-            total_cost=getattr(tree, 'total_cost', None),
-            estimated_time=getattr(tree, 'estimated_time', None),
-            facilities=[str(facility_id) for facility_id in getattr(tree, 'facilities', [])]
+            total_cost=getattr(tree, "total_cost", None),
+            estimated_time=getattr(tree, "estimated_time", None),
+            facilities=[
+                str(facility_id) for facility_id in getattr(tree, "facilities", [])
+            ],
         )
+
 
 class MatchResponse(SuccessResponse, LLMResponseMixin):
     """Consolidated match response with standardized fields and LLM information"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -55,7 +74,7 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
                         "estimated_time": "2 weeks",
                         "materials_required": ["copper", "plastic", "silicon"],
                         "capabilities_used": ["soldering", "assembly", "testing"],
-                        "match_type": "direct"
+                        "match_type": "direct",
                     }
                 ],
                 "total_solutions": 1,
@@ -63,7 +82,7 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
                 "matching_metrics": {
                     "direct_matches": 1,
                     "heuristic_matches": 0,
-                    "nlp_matches": 0
+                    "nlp_matches": 0,
                 },
                 "validation_results": [],
                 "status": "success",
@@ -73,35 +92,37 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
                 "llm_used": True,
                 "llm_provider": "anthropic",
                 "llm_cost": 0.025,
-                "data": {}
+                "data": {},
             }
         }
     )
-    
+
     # Core response data
     solutions: List[dict] = []
     total_solutions: int = 0
     processing_time: float = 0.0
-    
+
     # Enhanced metadata
     matching_metrics: Optional[dict] = None
     validation_results: Optional[List[BaseValidationResult]] = None
 
+
 class ValidationResult(BaseModel):
     """Response model for validation results"""
+
     # Required fields first
     valid: bool
     confidence: float
-    
+
     # Optional fields after
     issues: List[Dict[str, Any]] = Field(
-        default_factory=list,
-        description="List of validation issues if any"
+        default_factory=list, description="List of validation issues if any"
     )
 
 
 class SimulateResponse(SuccessResponse):
     """Response model for simulation results"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -111,33 +132,43 @@ class SimulateResponse(SuccessResponse):
                 "completion_time": "2023-01-10T15:30:00Z",
                 "critical_path": [
                     {"step": "material_preparation", "duration": "2 days"},
-                    {"step": "assembly", "duration": "5 days"}
+                    {"step": "assembly", "duration": "5 days"},
                 ],
                 "bottlenecks": [
                     {"resource": "CNC Machine", "utilization": 0.95, "impact": "high"}
                 ],
                 "resource_utilization": {
                     "equipment": {"CNC Machine": 0.95, "3D Printer": 0.60},
-                    "labor": {"technicians": 0.80}
-                }
+                    "labor": {"technicians": 0.80},
+                },
             }
         }
     )
-    
+
     # Required fields
-    completion_time: str = Field(..., description="Estimated completion time (ISO format)")
-    
+    completion_time: str = Field(
+        ..., description="Estimated completion time (ISO format)"
+    )
+
     # Optional fields
-    critical_path: List[Dict[str, Any]] = Field(default_factory=list, description="Critical path in the supply tree")
-    bottlenecks: List[Dict[str, Any]] = Field(default_factory=list, description="Identified bottlenecks")
-    resource_utilization: Dict[str, Any] = Field(default_factory=dict, description="Resource utilization metrics")
+    critical_path: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Critical path in the supply tree"
+    )
+    bottlenecks: List[Dict[str, Any]] = Field(
+        default_factory=list, description="Identified bottlenecks"
+    )
+    resource_utilization: Dict[str, Any] = Field(
+        default_factory=dict, description="Resource utilization metrics"
+    )
+
 
 class SimulationResult(BaseModel):
     """Response model for simulation results"""
+
     # Required fields first
     success: bool
     completion_time: str
-    
+
     # Optional fields after
     critical_path: List[Dict[str, Any]] = []
     bottlenecks: List[Dict[str, Any]] = []

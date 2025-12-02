@@ -18,8 +18,11 @@ from ..core.models.okh import OKHManifest
 from ..core.validation.auto_fix import auto_fix_okh_manifest
 from ..core.validation.model_validator import validate_okh_manifest
 from .base import (
-    CLIContext, SmartCommand, format_llm_output,
-    create_llm_request_data, log_llm_usage
+    CLIContext,
+    SmartCommand,
+    format_llm_output,
+    create_llm_request_data,
+    log_llm_usage,
 )
 from .decorators import standard_cli_command
 
@@ -28,21 +31,21 @@ from .decorators import standard_cli_command
 def okh_group():
     """
     OKH (OpenKnowHow) manifest management commands.
-    
+
     These commands help you create, validate, and manage OKH manifests
     for hardware projects, including generation from repositories and
     validation.
-    
+
     Examples:
       # Validate an OKH manifest
       ome okh validate my-project.okh.json
-      
+
       # Generate OKH manifest from GitHub repository
       ome okh generate-from-url https://github.com/user/project
-      
+
       # Create and store a manifest
       ome okh create my-project.okh.json
-      
+
       # Use LLM for enhanced processing
       ome okh validate my-project.okh.json --use-llm --quality-level professional
     """
@@ -51,14 +54,16 @@ def okh_group():
 
 # Helper functions
 
+
 async def _read_manifest_file(file_path: str) -> dict:
     """Read and parse manifest file."""
     manifest_path = Path(file_path)
-    
+
     try:
-        with open(manifest_path, 'r') as f:
-            if manifest_path.suffix.lower() in ['.yaml', '.yml']:
+        with open(manifest_path, "r") as f:
+            if manifest_path.suffix.lower() in [".yaml", ".yml"]:
                 import yaml
+
                 return yaml.safe_load(f)
             else:
                 return json.load(f)
@@ -66,50 +71,54 @@ async def _read_manifest_file(file_path: str) -> dict:
         raise click.ClickException(f"Failed to read manifest file: {str(e)}")
 
 
-async def _display_validation_results(cli_ctx: CLIContext, result: dict, output_format: str):
+async def _display_validation_results(
+    cli_ctx: CLIContext, result: dict, output_format: str
+):
     """Display validation results."""
     validation = result.get("validation", result)
     is_valid = validation.get("is_valid", False)
-    
+
     if is_valid:
         cli_ctx.log("Manifest is valid", "success")
     else:
         cli_ctx.log("Manifest validation failed", "error")
-    
+
     # Display errors
     if validation.get("errors"):
         for error in validation["errors"]:
             cli_ctx.log(f"Error: {error}", "error")
-    
+
     # Display warnings
     if validation.get("warnings"):
         for warning in validation["warnings"]:
             cli_ctx.log(f"Warning: {warning}", "warning")
-    
+
     # Display completeness score
     if validation.get("completeness_score"):
         score = validation["completeness_score"]
         cli_ctx.log(f"Completeness Score: {score:.1%}", "info")
-    
+
     # Format output based on format preference
     if output_format == "json":
         output_data = format_llm_output(result, cli_ctx)
         click.echo(output_data)
 
 
-async def _display_creation_results(cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str):
+async def _display_creation_results(
+    cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str
+):
     """Display creation results."""
     manifest_id = result.get("id") or result.get("manifest", {}).get("id")
-    
+
     if manifest_id:
         cli_ctx.log(f"OKH manifest created with ID: {manifest_id}", "success")
-        
+
         if output:
             # Save result to output file
-            with open(output, 'w') as f:
+            with open(output, "w") as f:
                 json.dump(result, f, indent=2, default=str)
             cli_ctx.log(f"Result saved to {output}", "info")
-        
+
         if output_format == "json":
             output_data = format_llm_output(result, cli_ctx)
             click.echo(output_data)
@@ -122,43 +131,61 @@ def _detect_domain_from_manifest_data(data: Dict[str, Any]) -> str:
     # First check for explicit domain field
     if "domain" in data and data["domain"]:
         return data["domain"]
-    
+
     # Check for cooking indicators
-    cooking_keywords = ["recipe", "cooking", "baking", "ingredient", "food", "meal", "kitchen", "oven", "stove"]
-    content_lower = (data.get("function", "") + " " + data.get("description", "")).lower()
+    cooking_keywords = [
+        "recipe",
+        "cooking",
+        "baking",
+        "ingredient",
+        "food",
+        "meal",
+        "kitchen",
+        "oven",
+        "stove",
+    ]
+    content_lower = (
+        data.get("function", "") + " " + data.get("description", "")
+    ).lower()
     if any(keyword in content_lower for keyword in cooking_keywords):
         return "cooking"
-    
+
     # Check for OKH/manufacturing indicators
-    if "title" in data and "version" in data and ("manufacturing_specs" in data or "manufacturing_processes" in data):
+    if (
+        "title" in data
+        and "version" in data
+        and ("manufacturing_specs" in data or "manufacturing_processes" in data)
+    ):
         return "manufacturing"
-    
+
     # Default to manufacturing for backward compatibility
     return "manufacturing"
 
 
-async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str):
+async def _display_retrieval_results(
+    cli_ctx: CLIContext, result: dict, output: Optional[str], output_format: str
+):
     """Display retrieval results."""
     # Extract manifest data from response
     # The API now returns OKHResponse with fields at top level, not nested in "manifest"
     manifest = result.get("manifest", result)
-    
+
     # If result has top-level fields like "id", "title", etc., use result directly
     if "id" in result and "title" in result:
         manifest = result
     elif "manifest" in result:
         manifest = result["manifest"]
-    
+
     if manifest and manifest.get("id"):
-        manifest_title = manifest.get('title', 'Unknown')
+        manifest_title = manifest.get("title", "Unknown")
         cli_ctx.log(f"Retrieved OKH manifest: {manifest_title}", "success")
-        
+
         # Save to file if output is specified
         if output:
-            with open(output, 'w') as f:
+            with open(output, "w") as f:
                 json.dump(manifest, f, indent=2, default=str)
             cli_ctx.log(f"Manifest saved to {output}", "info")
-        
+
         # Always output full JSON to stdout by default
         # If output_format is explicitly set to something other than json, still output JSON
         # (the format option is mainly for other commands)
@@ -169,11 +196,14 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
 
 # Commands
 
+
 @okh_group.command()
-@click.argument('manifest_file', type=click.Path(exists=True))
-@click.option('--domain', 
-              type=click.Choice(['manufacturing', 'cooking']),
-              help='Domain override (auto-detected from file if not provided)')
+@click.argument("manifest_file", type=click.Path(exists=True))
+@click.option(
+    "--domain",
+    type=click.Choice(["manufacturing", "cooking"]),
+    help="Domain override (auto-detected from file if not provided)",
+)
 @standard_cli_command(
     help_text="""
     Validate an OKH manifest for compliance and completeness.
@@ -210,55 +240,67 @@ async def _display_retrieval_results(cli_ctx: CLIContext, result: dict, output: 
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def validate(ctx, manifest_file: str, domain: Optional[str], quality_level: str, strict_mode: bool,
-                  verbose: bool, output_format: str, use_llm: bool,
-                  llm_provider: str, llm_model: Optional[str]):
+async def validate(
+    ctx,
+    manifest_file: str,
+    domain: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+):
     """Validate an OKH manifest with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-validate")
-    
+
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Read manifest file
         cli_ctx.log("Reading manifest file...", "info")
         manifest_data = await _read_manifest_file(manifest_file)
-        
+
         # Detect or use explicit domain
-        detected_domain = domain or _detect_domain_from_manifest_data(manifest_data) if manifest_data else None
+        detected_domain = (
+            domain or _detect_domain_from_manifest_data(manifest_data)
+            if manifest_data
+            else None
+        )
         if detected_domain:
             cli_ctx.log(f"Using domain: {detected_domain}", "info")
             # Set domain in manifest_data so API can detect it
             if manifest_data and not manifest_data.get("domain"):
                 manifest_data["domain"] = detected_domain
-    
+
         # Create request data with LLM configuration
         # The API expects manifest data wrapped in a 'content' field
-        request_data = create_llm_request_data(cli_ctx, {
-            "validation_context": quality_level,
-            "strict_mode": strict_mode
-        })
+        request_data = create_llm_request_data(
+            cli_ctx, {"validation_context": quality_level, "strict_mode": strict_mode}
+        )
         # Wrap manifest data in 'content' field as expected by API
         request_data["content"] = manifest_data
-        
+
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH validation")
-        
+
         async def http_validate():
             """Validate via HTTP API"""
             cli_ctx.log("Validating via HTTP API...", "info")
@@ -266,36 +308,39 @@ async def validate(ctx, manifest_file: str, domain: Optional[str], quality_level
                 "POST", "/api/okh/validate", json_data=request_data
             )
             return response
-        
+
         async def fallback_validate():
             """Validate using direct service calls"""
             cli_ctx.log("Using direct service validation...", "info")
             # Domains are registered by execute_with_fallback, but ensure here as well for safety
             from .base import ensure_domains_registered
+
             await ensure_domains_registered()
-            
+
             okh_service = await OKHService.get_instance()
             # validate() expects a dict, not an OKHManifest object
-            result = await okh_service.validate(manifest_data, validation_context=quality_level, strict_mode=strict_mode)
+            result = await okh_service.validate(
+                manifest_data, validation_context=quality_level, strict_mode=strict_mode
+            )
             return result
-        
+
         # Execute validation with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_validate, fallback_validate)
-        
+
         # Display validation results
         await _display_validation_results(cli_ctx, result, output_format)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Validation failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.argument('manifest_file', type=click.Path(exists=True))
-@click.option('--output', '-o', help='Output file path')
+@click.argument("manifest_file", type=click.Path(exists=True))
+@click.option("--output", "-o", help="Output file path")
 @standard_cli_command(
     help_text="""
     Create and store an OKH manifest in the system.
@@ -327,47 +372,57 @@ async def validate(ctx, manifest_file: str, domain: Optional[str], quality_level
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def create(ctx, manifest_file: str, output: Optional[str],
-                verbose: bool, output_format: str, use_llm: bool,
-                llm_provider: str, llm_model: Optional[str],
-                quality_level: str, strict_mode: bool):
+async def create(
+    ctx,
+    manifest_file: str,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Create and store an OKH manifest with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-create")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Read manifest file
         cli_ctx.log("Reading manifest file...", "info")
         manifest_data = await _read_manifest_file(manifest_file)
-    
+
         # Create request data with LLM configuration
         # Merge manifest data with LLM config (manifest fields go directly, not wrapped in 'content')
         request_data = create_llm_request_data(cli_ctx, {})
         # Add manifest fields directly to the request
         request_data.update(manifest_data)
-        
+
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH creation")
-        
+
         async def http_create():
             """Create via HTTP API"""
             cli_ctx.log("Creating via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("POST", "/api/okh/create", json_data=request_data)
+            response = await cli_ctx.api_client.request(
+                "POST", "/api/okh/create", json_data=request_data
+            )
             return response
-        
+
         async def fallback_create():
             """Create using direct service calls"""
             cli_ctx.log("Using direct service creation...", "info")
@@ -375,24 +430,24 @@ async def create(ctx, manifest_file: str, output: Optional[str],
             okh_service = await OKHService.get_instance()
             result = await okh_service.create(manifest)
             return result.to_dict()
-        
+
         # Execute creation with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_create, fallback_create)
-        
+
         # Display creation results
         await _display_creation_results(cli_ctx, result, output, output_format)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Creation failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.argument('manifest_id', type=str)
-@click.option('--output', '-o', help='Output file path')
+@click.argument("manifest_id", type=str)
+@click.option("--output", "-o", help="Output file path")
 @standard_cli_command(
     help_text="""
     Retrieve an OKH manifest by ID from the system.
@@ -421,37 +476,47 @@ async def create(ctx, manifest_file: str, output: Optional[str],
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def get(ctx, manifest_id: str, output: Optional[str],
-             verbose: bool, output_format: str, use_llm: bool,
-             llm_provider: str, llm_model: Optional[str],
-             quality_level: str, strict_mode: bool):
+async def get(
+    ctx,
+    manifest_id: str,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Get an OKH manifest by ID with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-get")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH retrieval")
-        
+
         async def http_get():
             """Get via HTTP API"""
             cli_ctx.log("Retrieving via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("GET", f"/api/okh/{manifest_id}")
+            response = await cli_ctx.api_client.request(
+                "GET", f"/api/okh/{manifest_id}"
+            )
             return response
-        
+
         async def fallback_get():
             """Get using direct service calls"""
             cli_ctx.log("Using direct service retrieval...", "info")
@@ -461,23 +526,23 @@ async def get(ctx, manifest_id: str, output: Optional[str],
                 return manifest.to_dict()
             else:
                 raise click.ClickException("Manifest not found")
-        
+
         # Execute retrieval with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_get, fallback_get)
-        
+
         # Display retrieval results
         await _display_retrieval_results(cli_ctx, result, output, output_format)
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Retrieval failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.argument('manifest_file', type=click.Path(exists=True))
+@click.argument("manifest_file", type=click.Path(exists=True))
 @standard_cli_command(
     help_text="""
     Extract requirements from an OKH manifest.
@@ -504,46 +569,53 @@ async def get(ctx, manifest_id: str, output: Optional[str],
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def extract(ctx, manifest_file: str,
-                 verbose: bool, output_format: str, use_llm: bool,
-                 llm_provider: str, llm_model: Optional[str],
-                 quality_level: str, strict_mode: bool):
+async def extract(
+    ctx,
+    manifest_file: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Extract requirements from an OKH manifest with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-extract")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Read manifest file
         cli_ctx.log("Reading manifest file...", "info")
         manifest_data = await _read_manifest_file(manifest_file)
-    
+
         # Create request data with LLM configuration
-        request_data = create_llm_request_data(cli_ctx, {
-            "content": manifest_data
-        })
-        
+        request_data = create_llm_request_data(cli_ctx, {"content": manifest_data})
+
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH extraction")
-        
+
         async def http_extract():
             """Extract via HTTP API"""
             cli_ctx.log("Extracting via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("POST", "/api/okh/extract", json_data=request_data)
+            response = await cli_ctx.api_client.request(
+                "POST", "/api/okh/extract", json_data=request_data
+            )
             return response
-        
+
         async def fallback_extract():
             """Extract using direct service calls"""
             cli_ctx.log("Using direct service extraction...", "info")
@@ -551,36 +623,39 @@ async def extract(ctx, manifest_file: str,
             okh_service = await OKHService.get_instance()
             requirements = await okh_service.extract_requirements(manifest)
             return {"requirements": requirements}
-        
+
         # Execute extraction with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_extract, fallback_extract)
-        
+
         # Display extraction results
         requirements = result.get("requirements", [])
-        
+
         if requirements:
             cli_ctx.log(f"Extracted {len(requirements)} requirements", "success")
-            
+
             if output_format == "json":
                 output_data = format_llm_output(result, cli_ctx)
                 click.echo(output_data)
             else:
                 for i, req in enumerate(requirements, 1):
-                    cli_ctx.log(f"{i}. {req.get('type', 'Unknown')}: {req.get('description', 'No description')}", "info")
+                    cli_ctx.log(
+                        f"{i}. {req.get('type', 'Unknown')}: {req.get('description', 'No description')}",
+                        "info",
+                    )
         else:
             cli_ctx.log("No requirements found in manifest", "info")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Extraction failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.option('--limit', default=10, help='Maximum number of manifests to list')
-@click.option('--offset', default=0, help='Number of manifests to skip')
+@click.option("--limit", default=10, help="Maximum number of manifests to list")
+@click.option("--offset", default=0, help="Number of manifests to skip")
 @standard_cli_command(
     help_text="""
     List stored OKH manifests in the system.
@@ -609,38 +684,48 @@ async def extract(ctx, manifest_file: str,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def list_manifests(ctx, limit: int, offset: int,
-                        verbose: bool, output_format: str, use_llm: bool,
-                        llm_provider: str, llm_model: Optional[str],
-                        quality_level: str, strict_mode: bool):
+async def list_manifests(
+    ctx,
+    limit: int,
+    offset: int,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """List stored OKH manifests with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-list")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH listing")
-        
+
         async def http_list():
             """List via HTTP API"""
             cli_ctx.log("Listing via HTTP API...", "info")
             params = {"limit": limit, "offset": offset}
-            response = await cli_ctx.api_client.request("GET", "/api/okh/", params=params)
+            response = await cli_ctx.api_client.request(
+                "GET", "/api/okh/", params=params
+            )
             return response
-        
+
         async def fallback_list():
             """List using direct service calls"""
             cli_ctx.log("Using direct service listing...", "info")
@@ -648,13 +733,13 @@ async def list_manifests(ctx, limit: int, offset: int,
             manifests = await okh_service.list_manifests(limit=limit, offset=offset)
             return {
                 "manifests": [manifest.to_dict() for manifest in manifests],
-                "total": len(manifests)
+                "total": len(manifests),
             }
-        
+
         # Execute listing with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_list, fallback_list)
-        
+
         # Handle both API response format (PaginatedResponse with 'items') and fallback format (with 'manifests')
         # API response may have nested 'data' field or top-level 'items'
         if "data" in result and isinstance(result["data"], dict):
@@ -667,7 +752,7 @@ async def list_manifests(ctx, limit: int, offset: int,
             manifests = result.get("items", result.get("manifests", []))
             pagination = result.get("pagination", {})
             total = pagination.get("total_items", result.get("total", len(manifests)))
-        
+
         # Display results
         if output_format == "json":
             output_data = format_llm_output(result, cli_ctx)
@@ -677,12 +762,16 @@ async def list_manifests(ctx, limit: int, offset: int,
             if manifests and len(manifests) > 0:
                 click.echo(f"\n📄 Found {total} OKH manifest(s):\n")
                 for i, manifest in enumerate(manifests, 1):
-                    manifest_id = manifest.get('id', 'Unknown')
-                    title = manifest.get('title', 'Unknown')
-                    version = manifest.get('version', 'Unknown')
-                    organization = manifest.get('organization', {})
-                    org_name = organization.get('name', 'Unknown') if isinstance(organization, dict) else str(organization) if organization else 'Unknown'
-                    
+                    manifest_id = manifest.get("id", "Unknown")
+                    title = manifest.get("title", "Unknown")
+                    version = manifest.get("version", "Unknown")
+                    organization = manifest.get("organization", {})
+                    org_name = (
+                        organization.get("name", "Unknown")
+                        if isinstance(organization, dict)
+                        else str(organization) if organization else "Unknown"
+                    )
+
                     click.echo(f"  {i}. {title}")
                     click.echo(f"     Manifest ID: {manifest_id}")
                     click.echo(f"     Version: {version} | Organization: {org_name}")
@@ -691,20 +780,22 @@ async def list_manifests(ctx, limit: int, offset: int,
                 click.echo(f"\nTotal: {total} manifest(s)")
             elif total > 0:
                 # Total indicates there are manifests, but they might be on a different page
-                click.echo(f"\n📄 Found {total} OKH manifest(s) (not shown - may be on a different page)\n")
+                click.echo(
+                    f"\n📄 Found {total} OKH manifest(s) (not shown - may be on a different page)\n"
+                )
             else:
                 click.echo("\nNo OKH manifests found\n")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Listing failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.argument('manifest_id', type=str)
-@click.option('--force', is_flag=True, help='Force deletion without confirmation')
+@click.argument("manifest_id", type=str)
+@click.option("--force", is_flag=True, help="Force deletion without confirmation")
 @standard_cli_command(
     help_text="""
     Delete an OKH manifest from the system.
@@ -733,68 +824,80 @@ async def list_manifests(ctx, limit: int, offset: int,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def delete(ctx, manifest_id: str, force: bool,
-                verbose: bool, output_format: str, use_llm: bool,
-                llm_provider: str, llm_model: Optional[str],
-                quality_level: str, strict_mode: bool):
+async def delete(
+    ctx,
+    manifest_id: str,
+    force: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Delete an OKH manifest with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-delete")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         if not force:
-            if not click.confirm(f"Are you sure you want to delete manifest {manifest_id}?"):
+            if not click.confirm(
+                f"Are you sure you want to delete manifest {manifest_id}?"
+            ):
                 cli_ctx.log("Deletion cancelled", "info")
                 return
-        
+
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH deletion")
-        
+
         async def http_delete():
             """Delete via HTTP API"""
             cli_ctx.log("Deleting via HTTP API...", "info")
-            response = await cli_ctx.api_client.request("DELETE", f"/api/okh/{manifest_id}")
+            response = await cli_ctx.api_client.request(
+                "DELETE", f"/api/okh/{manifest_id}"
+            )
             return response
-        
+
         async def fallback_delete():
             """Delete using direct service calls"""
             cli_ctx.log("Using direct service deletion...", "info")
             okh_service = await OKHService.get_instance()
             success = await okh_service.delete(UUID(manifest_id))
             return {"success": success}
-        
+
         # Execute deletion with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_delete, fallback_delete)
-        
+
         # Display deletion results
         if result.get("success", True):  # HTTP API returns success by default
             cli_ctx.log(f"OKH manifest {manifest_id} deleted successfully", "success")
         else:
             cli_ctx.log(f"Failed to delete OKH manifest {manifest_id}", "error")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Deletion failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.argument('file_path', type=click.Path(exists=True))
+@click.argument("file_path", type=click.Path(exists=True))
 @standard_cli_command(
     help_text="""
     Upload and validate an OKH manifest file.
@@ -823,91 +926,133 @@ async def delete(ctx, manifest_id: str, force: bool,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm: bool,
-                llm_provider: str, llm_model: Optional[str],
-                quality_level: str, strict_mode: bool):
+async def upload(
+    ctx,
+    file_path: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Upload and validate an OKH manifest file with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-upload")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH upload")
-        
+
         async def http_upload():
             """Upload manifest via HTTP API"""
             cli_ctx.log("Uploading via HTTP API...", "info")
-            
+
             # Prepare form data for file upload
             form_data = {
                 "validation_context": quality_level,
-                "description": f"Uploaded OKH manifest with {quality_level} validation"
+                "description": f"Uploaded OKH manifest with {quality_level} validation",
             }
-            
+
             response = await cli_ctx.api_client.upload_file(
-                "POST", 
-                "/api/okh/upload", 
+                "POST",
+                "/api/okh/upload",
                 file_path,
                 file_field_name="okh_file",
-                form_data=form_data
+                form_data=form_data,
             )
             return response
-        
+
         async def fallback_upload():
             """Fallback upload using direct services"""
             cli_ctx.log("Using direct service upload...", "info")
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 content = f.read()
-            
+
             # Parse JSON content to dict, then create manifest
             import json
+
             manifest_data = json.loads(content)
             manifest = OKHManifest.from_dict(manifest_data)
             okh_service = await OKHService.get_instance()
             result = await okh_service.create(manifest)
             return result.to_dict()
-        
+
         # Execute upload with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_upload, fallback_upload)
-        
+
         # Display upload results
         manifest_id = result.get("id") or result.get("manifest", {}).get("id")
-        
+
         if manifest_id:
             cli_ctx.log(f"OKH manifest uploaded with ID: {manifest_id}", "success")
         else:
             cli_ctx.log("Failed to upload OKH manifest", "error")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Upload failed: {str(e)}", "error")
         raise
 
 
 @okh_group.command()
-@click.argument('url', type=str)
-@click.option('--output', '-o', type=click.Path(), help='Output directory for built files (enables BOM export)')
-@click.option('--format', '-f', type=click.Choice(['json', 'yaml', 'okh', 'api']), default='okh', help='Output format: okh (OKH manifest), api (API wrapper), json/yaml (legacy)')
-@click.option('--bom-formats', multiple=True, type=click.Choice(['json', 'md', 'csv', 'components']), default=['json', 'md'], help='BOM export formats (only when --output is specified)')
-@click.option('--unified-bom', is_flag=True, help='Include full BOM in manifest instead of compressed summary (default: compressed summary)')
-@click.option('--no-review', is_flag=True, help='Skip interactive review and generate manifest directly')
-@click.option('--github-token', type=str, help='GitHub personal access token (increases rate limit from 60 to 5,000 requests/hour)')
-@click.option('--clone', is_flag=True, help='Clone repository locally for extraction (faster, more reliable, eliminates API limits)')
+@click.argument("url", type=str)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Output directory for built files (enables BOM export)",
+)
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["json", "yaml", "okh", "api"]),
+    default="okh",
+    help="Output format: okh (OKH manifest), api (API wrapper), json/yaml (legacy)",
+)
+@click.option(
+    "--bom-formats",
+    multiple=True,
+    type=click.Choice(["json", "md", "csv", "components"]),
+    default=["json", "md"],
+    help="BOM export formats (only when --output is specified)",
+)
+@click.option(
+    "--unified-bom",
+    is_flag=True,
+    help="Include full BOM in manifest instead of compressed summary (default: compressed summary)",
+)
+@click.option(
+    "--no-review",
+    is_flag=True,
+    help="Skip interactive review and generate manifest directly",
+)
+@click.option(
+    "--github-token",
+    type=str,
+    help="GitHub personal access token (increases rate limit from 60 to 5,000 requests/hour)",
+)
+@click.option(
+    "--clone",
+    is_flag=True,
+    help="Clone repository locally for extraction (faster, more reliable, eliminates API limits)",
+)
 @standard_cli_command(
     help_text="""
     Generate OKH manifest from repository URL.
@@ -956,76 +1101,98 @@ async def upload(ctx, file_path: str, verbose: bool, output_format: str, use_llm
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=True
+    add_llm_config=True,
 )
 @click.pass_context
-async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats: tuple, 
-                           unified_bom: bool, no_review: bool, github_token: str, clone: bool,
-                           verbose: bool, output_format: str, use_llm: bool,
-                           llm_provider: str, llm_model: Optional[str],
-                           quality_level: str, strict_mode: bool):
+async def generate_from_url(
+    ctx,
+    url: str,
+    output: str,
+    format: str,
+    bom_formats: tuple,
+    unified_bom: bool,
+    no_review: bool,
+    github_token: str,
+    clone: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
     """Generate OKH manifest from repository URL with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-generate-from-url")
-    
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
-        strict_mode=strict_mode
+        strict_mode=strict_mode,
     )
-    
+
     try:
         cli_ctx.log(f"🔍 Analyzing repository: {url}", "info")
-        
+
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH generation from URL")
-        
+
         async def http_generate():
             """Generate via HTTP API"""
             cli_ctx.log("Generating via HTTP API...", "info")
             payload = {"url": url, "skip_review": no_review}
-            response = await cli_ctx.api_client.request("POST", "/api/okh/generate-from-url", json_data=payload)
+            response = await cli_ctx.api_client.request(
+                "POST", "/api/okh/generate-from-url", json_data=payload
+            )
             return response
-        
+
         async def fallback_generate():
             """Generate using direct service calls"""
             cli_ctx.log("Using direct service generation...", "info")
             from ..core.generation.url_router import URLRouter
             from ..core.generation.engine import GenerationEngine
             from ..core.generation.review import ReviewInterface
-            from ..core.generation.models import GenerationResult, PlatformType, LayerConfig
+            from ..core.generation.models import (
+                GenerationResult,
+                PlatformType,
+                LayerConfig,
+            )
             from ..core.generation.platforms.github import GitHubExtractor
             from ..core.generation.platforms.gitlab import GitLabExtractor
-            
+
             # Validate and route URL
             router = URLRouter()
             if not router.validate_url(url):
                 raise ValueError(f"Invalid URL: {url}")
-            
+
             platform = router.detect_platform(url)
             if platform is None:
                 raise ValueError(f"Unsupported platform for URL: {url}")
-            
+
             cli_ctx.log(f"Detected platform: {platform.value}", "info")
-            
+
             # Generate project data from URL
             cli_ctx.log("Fetching project data...", "info")
-            
+
             # Choose extraction method based on clone flag
             use_clone = clone
             if use_clone:
                 cli_ctx.log("Using local Git cloning for extraction...", "info")
                 if not router.supports_local_cloning(url):
-                    cli_ctx.log("Warning: URL doesn't support local cloning, falling back to API extraction", "warning")
+                    cli_ctx.log(
+                        "Warning: URL doesn't support local cloning, falling back to API extraction",
+                        "warning",
+                    )
                     use_clone = False
                 else:
                     generator = router.route_to_local_git_extractor()
                     project_data = await generator.extract_project(url)
-            
+
             if not use_clone:
                 # Get platform-specific generator for API-based extraction
                 if platform == PlatformType.GITHUB:
@@ -1034,35 +1201,41 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
                     generator = GitLabExtractor()
                 else:
                     raise ValueError(f"Unsupported platform: {platform}")
-                
+
                 project_data = await generator.extract_project(url)
-            
+
             # Generate manifest from project data
             config = LayerConfig()
             config.use_bom_normalization = True  # Enable BOM normalization
             engine = GenerationEngine(config=config)
             cli_ctx.log("Generating manifest fields...", "info")
-            
+
             # Pass verbose flag to control file metadata inclusion
-            result = await engine.generate_manifest_async(project_data, include_file_metadata=verbose)
-            
+            result = await engine.generate_manifest_async(
+                project_data, include_file_metadata=verbose
+            )
+
             if not no_review:
                 cli_ctx.log("Starting interactive review...", "info")
                 review_interface = ReviewInterface(result)
                 result = await review_interface.review()
             return result
-        
+
         # Store the raw result for BOM export
         raw_result = await fallback_generate()
-        
+
         # Set unified BOM mode if requested
-        if unified_bom and hasattr(raw_result, 'unified_bom_mode'):
+        if unified_bom and hasattr(raw_result, "unified_bom_mode"):
             raw_result.unified_bom_mode = True
-        
+
         # Convert to appropriate format
-        if format == 'okh':
-            result = raw_result.to_okh_manifest() if hasattr(raw_result, 'to_okh_manifest') else raw_result
-        elif format == 'api':
+        if format == "okh":
+            result = (
+                raw_result.to_okh_manifest()
+                if hasattr(raw_result, "to_okh_manifest")
+                else raw_result
+            )
+        elif format == "api":
             result = {
                 "success": True,
                 "message": "Manifest generated successfully",
@@ -1071,92 +1244,121 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
                     "overall_quality": raw_result.quality_report.overall_quality,
                     "required_fields_complete": raw_result.quality_report.required_fields_complete,
                     "missing_required_fields": raw_result.quality_report.missing_required_fields,
-                    "recommendations": raw_result.quality_report.recommendations
-                }
+                    "recommendations": raw_result.quality_report.recommendations,
+                },
             }
         else:
             result = raw_result.to_dict()
-        
+
         # Handle output
         if output:
             output_path = Path(output)
-            
+
             # Create output directory if it doesn't exist
             output_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Export manifest
             manifest_path = output_path / "manifest.okh.json"
-            if format == 'yaml':
+            if format == "yaml":
                 import yaml
-                with open(manifest_path, 'w') as f:
+
+                with open(manifest_path, "w") as f:
                     yaml.dump(result, f, default_flow_style=False)
             else:
-                with open(manifest_path, 'w') as f:
+                with open(manifest_path, "w") as f:
                     json.dump(result, f, indent=2)
-            
+
             # Export BOM if available, formats specified, and NOT in unified mode
-            if (bom_formats and raw_result and hasattr(raw_result, 'full_bom') and 
-                raw_result.full_bom and not getattr(raw_result, 'unified_bom_mode', False)):
+            if (
+                bom_formats
+                and raw_result
+                and hasattr(raw_result, "full_bom")
+                and raw_result.full_bom
+                and not getattr(raw_result, "unified_bom_mode", False)
+            ):
                 try:
                     # Use the full BOM object from the raw result
                     bom = raw_result.full_bom
-                    
+
                     # Export BOM in specified formats
                     exporter = BuiltDirectoryExporter(output_path)
                     await exporter._export_bom_formats(bom)
-                    
-                    cli_ctx.log(f"✅ Manifest and BOM exported to: {output_path}", "success")
+
+                    cli_ctx.log(
+                        f"✅ Manifest and BOM exported to: {output_path}", "success"
+                    )
                     cli_ctx.log(f"📁 BOM formats: {', '.join(bom_formats)}", "info")
                 except Exception as e:
                     cli_ctx.log(f"⚠️  BOM export failed: {e}", "warning")
                     cli_ctx.log(f"✅ Manifest saved to: {manifest_path}", "success")
             else:
-                if getattr(raw_result, 'unified_bom_mode', False):
-                    cli_ctx.log(f"✅ Unified manifest (with full BOM) saved to: {manifest_path}", "success")
+                if getattr(raw_result, "unified_bom_mode", False):
+                    cli_ctx.log(
+                        f"✅ Unified manifest (with full BOM) saved to: {manifest_path}",
+                        "success",
+                    )
                 else:
                     cli_ctx.log(f"✅ Manifest saved to: {manifest_path}", "success")
         else:
-            if (cli_ctx and cli_ctx.output_format == 'json') or format in ['json', 'api']:
+            if (cli_ctx and cli_ctx.output_format == "json") or format in [
+                "json",
+                "api",
+            ]:
                 output_data = format_llm_output(result, cli_ctx)
                 click.echo(output_data)
             else:
                 # Show summary for OKH format
-                if format == 'okh':
-                    title = result.get('title', 'Unknown')
-                    version = result.get('version', 'Unknown')
-                    quality = result.get('metadata', {}).get('generation_confidence', 0)
-                    missing_fields = result.get('metadata', {}).get('missing_required_fields', [])
-                    
-                    cli_ctx.log(f"✅ Generated OKH manifest for: {title} v{version}", "success")
+                if format == "okh":
+                    title = result.get("title", "Unknown")
+                    version = result.get("version", "Unknown")
+                    quality = result.get("metadata", {}).get("generation_confidence", 0)
+                    missing_fields = result.get("metadata", {}).get(
+                        "missing_required_fields", []
+                    )
+
+                    cli_ctx.log(
+                        f"✅ Generated OKH manifest for: {title} v{version}", "success"
+                    )
                     cli_ctx.log(f"📊 Generation confidence: {quality:.1%}", "info")
-                    
+
                     if missing_fields:
-                        cli_ctx.log(f"⚠️  Missing required fields: {', '.join(missing_fields)}", "warning")
+                        cli_ctx.log(
+                            f"⚠️  Missing required fields: {', '.join(missing_fields)}",
+                            "warning",
+                        )
                 else:
                     # Legacy format summary
-                    title = result.get('title', 'Unknown')
-                    version = result.get('version', 'Unknown')
-                    quality = result.get('quality_report', {}).get('overall_quality', 0)
-                    
-                    cli_ctx.log(f"✅ Generated manifest for: {title} v{version}", "success")
+                    title = result.get("title", "Unknown")
+                    version = result.get("version", "Unknown")
+                    quality = result.get("quality_report", {}).get("overall_quality", 0)
+
+                    cli_ctx.log(
+                        f"✅ Generated manifest for: {title} v{version}", "success"
+                    )
                     cli_ctx.log(f"📊 Quality score: {quality:.1%}", "info")
-                    
-                    if result.get('quality_report', {}).get('missing_required_fields'):
-                        missing = result['quality_report']['missing_required_fields']
-                        cli_ctx.log(f"⚠️  Missing required fields: {', '.join(missing)}", "warning")
-        
+
+                    if result.get("quality_report", {}).get("missing_required_fields"):
+                        missing = result["quality_report"]["missing_required_fields"]
+                        cli_ctx.log(
+                            f"⚠️  Missing required fields: {', '.join(missing)}",
+                            "warning",
+                        )
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"❌ Generation failed: {str(e)}", "error")
         if cli_ctx and cli_ctx.verbose:
             import traceback
+
             click.echo(traceback.format_exc())
         raise
 
 
 @okh_group.command()
-@click.option('--output', '-o', type=click.Path(), help='Output file path for the JSON schema')
+@click.option(
+    "--output", "-o", type=click.Path(), help="Output file path for the JSON schema"
+)
 @standard_cli_command(
     help_text="""
     Export the JSON schema for the OKH (OpenKnowHow) domain model.
@@ -1187,52 +1389,61 @@ async def generate_from_url(ctx, url: str, output: str, format: str, bom_formats
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=False  # Export doesn't need LLM
+    add_llm_config=False,  # Export doesn't need LLM
 )
 @click.pass_context
-async def export(ctx, output: Optional[str], verbose: bool, output_format: str,
-                 use_llm: bool = False, llm_provider: str = 'anthropic',
-                 llm_model: Optional[str] = None, quality_level: str = 'professional',
-                 strict_mode: bool = False):
+async def export(
+    ctx,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
     """Export OKH domain model as JSON schema."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-export")
-    
+
     try:
         cli_ctx.log("Exporting OKH JSON schema...", "info")
-        
+
         async def http_export():
             """Export via HTTP API"""
             cli_ctx.log("Exporting via HTTP API...", "info")
             response = await cli_ctx.api_client.request("GET", "/api/okh/export")
             return response
-        
+
         async def fallback_export():
             """Export using direct schema generation"""
             cli_ctx.log("Using direct schema generation...", "info")
             from ..core.models.okh import OKHManifest
             from ..core.utils.schema_generator import generate_json_schema
-            
+
             schema = generate_json_schema(OKHManifest, title="OKHManifest")
             return {
                 "success": True,
                 "message": "OKH schema exported successfully",
                 "schema": schema,
-                "schema_version": schema.get("$schema", "http://json-schema.org/draft-07/schema#"),
-                "model_name": "OKHManifest"
+                "schema_version": schema.get(
+                    "$schema", "http://json-schema.org/draft-07/schema#"
+                ),
+                "model_name": "OKHManifest",
             }
-        
+
         # Execute export with fallback
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_export, fallback_export)
-        
+
         # Extract schema from result
         schema = result.get("schema", result)
-        
+
         # Save to file if output specified
         if output:
             output_path = Path(output)
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 json.dump(schema, f, indent=2)
             cli_ctx.log(f"✅ Schema exported to: {output_path}", "success")
         else:
@@ -1242,41 +1453,56 @@ async def export(ctx, output: Optional[str], verbose: bool, output_format: str,
                 click.echo(output_data)
             else:
                 cli_ctx.log("✅ OKH JSON Schema exported successfully", "success")
-                cli_ctx.log(f"   Schema Version: {result.get('schema_version', 'N/A')}", "info")
-                cli_ctx.log(f"   Model Name: {result.get('model_name', 'OKHManifest')}", "info")
+                cli_ctx.log(
+                    f"   Schema Version: {result.get('schema_version', 'N/A')}", "info"
+                )
+                cli_ctx.log(
+                    f"   Model Name: {result.get('model_name', 'OKHManifest')}", "info"
+                )
                 cli_ctx.log(f"   Use --output to save to file", "info")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"❌ Export failed: {str(e)}", "error")
         if cli_ctx.verbose:
             import traceback
+
             click.echo(traceback.format_exc())
         raise
 
 
 @okh_group.command()
-@click.argument('project_name', type=str)
-@click.option('--version', default='0.1.0', help='Initial project version (semantic recommended)')
-@click.option('--organization', help='Optional organization name for future packaging alignment')
-@click.option('--template-level', 
-              type=click.Choice(['minimal', 'standard', 'detailed']), 
-              default='standard',
-              help='Amount of guidance in stub docs')
-@click.option('--output-format', 
-              type=click.Choice(['json', 'zip', 'filesystem']), 
-              default='json',
-              help='Output format')
-@click.option('--output-path', 
-              type=click.Path(), 
-              help='Output path (required for filesystem format)')
-@click.option('--include-examples/--no-examples', 
-              default=True,
-              help='Include sample files/content')
-@click.option('--okh-version', 
-              default='OKH-LOSHv1.0',
-              help='OKH schema version tag')
+@click.argument("project_name", type=str)
+@click.option(
+    "--version", default="0.1.0", help="Initial project version (semantic recommended)"
+)
+@click.option(
+    "--organization", help="Optional organization name for future packaging alignment"
+)
+@click.option(
+    "--template-level",
+    type=click.Choice(["minimal", "standard", "detailed"]),
+    default="standard",
+    help="Amount of guidance in stub docs",
+)
+@click.option(
+    "--output-format",
+    type=click.Choice(["json", "zip", "filesystem"]),
+    default="json",
+    help="Output format",
+)
+@click.option(
+    "--output-path",
+    type=click.Path(),
+    help="Output path (required for filesystem format)",
+)
+@click.option(
+    "--include-examples/--no-examples",
+    default=True,
+    help="Include sample files/content",
+)
+@click.option("--okh-version", default="OKH-LOSHv1.0", help="OKH schema version tag")
 @click.pass_context
 @standard_cli_command(
     async_cmd=True,
@@ -1326,21 +1552,32 @@ async def export(ctx, output: Optional[str], verbose: bool, output_format: str,
     - Projects can be stored and retrieved using OME storage services
     
     For more information, see the Scaffolding Guide in the documentation.
-    """
+    """,
 )
-async def scaffold(ctx, project_name: str, version: str, organization: Optional[str], 
-                  template_level: str, output_format: str, output_path: Optional[str],
-                  include_examples: bool, okh_version: str, verbose: bool = False,
-                  use_llm: bool = False, llm_provider: str = 'anthropic', 
-                  llm_model: Optional[str] = None, quality_level: str = 'professional',
-                  strict_mode: bool = False):
+async def scaffold(
+    ctx,
+    project_name: str,
+    version: str,
+    organization: Optional[str],
+    template_level: str,
+    output_format: str,
+    output_path: Optional[str],
+    include_examples: bool,
+    okh_version: str,
+    verbose: bool = False,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
     """Generate an OKH project scaffold with documentation stubs and manifest template."""
     cli_ctx = ctx.obj
-    cli_ctx.start_command_tracking('okh.scaffold')
-    
+    cli_ctx.start_command_tracking("okh.scaffold")
+
     try:
         cli_ctx.log(f"🏗️  Generating OKH project scaffold: {project_name}", "info")
-        
+
         # Prepare request data
         request_data = {
             "project_name": project_name,
@@ -1348,75 +1585,80 @@ async def scaffold(ctx, project_name: str, version: str, organization: Optional[
             "template_level": template_level,
             "output_format": output_format,
             "include_examples": include_examples,
-            "okh_version": okh_version
+            "okh_version": okh_version,
         }
-        
+
         # Add optional fields if provided
         if organization:
             request_data["organization"] = organization
         if output_path:
             request_data["output_path"] = str(output_path)
-        
+
         # Make API request
         data = await cli_ctx.api_client.request(
-            method='POST',
-            endpoint='/api/okh/scaffold',
-            json_data=request_data
+            method="POST", endpoint="/api/okh/scaffold", json_data=request_data
         )
-        
+
         # Display success message
         cli_ctx.log(f"✅ Scaffold generated successfully!", "success")
-        
+
         # Display project information
-        if cli_ctx.output_format == 'json':
+        if cli_ctx.output_format == "json":
             click.echo(json.dumps(data, indent=2))
         else:
             # Display key information
             click.echo(f"\n📁 Project: {data.get('project_name')}")
             click.echo(f"📋 Template Level: {template_level}")
             click.echo(f"📦 Output Format: {output_format}")
-            
+
             # Display structure information
-            structure = data.get('structure', {})
+            structure = data.get("structure", {})
             if structure:
                 project_dir = structure.get(project_name, {})
                 if project_dir:
                     click.echo(f"\n📂 Generated Structure:")
                     _display_structure(project_dir, indent=2)
-            
+
             # Display manifest template information
-            manifest_template = data.get('manifest_template', {})
+            manifest_template = data.get("manifest_template", {})
             if manifest_template:
                 click.echo(f"\n📄 OKH Manifest Template:")
                 click.echo(f"   Title: {manifest_template.get('title', 'N/A')}")
                 click.echo(f"   Version: {manifest_template.get('version', 'N/A')}")
                 click.echo(f"   OKH Version: {manifest_template.get('okhv', 'N/A')}")
-                click.echo(f"   Required Fields: {len([k for k, v in manifest_template.items() if '[REQUIRED]' in str(v)])}")
-            
+                click.echo(
+                    f"   Required Fields: {len([k for k, v in manifest_template.items() if '[REQUIRED]' in str(v)])}"
+                )
+
             # Display output information
-            if output_format == 'zip' and data.get('download_url'):
+            if output_format == "zip" and data.get("download_url"):
                 click.echo(f"\n📥 Download URL: {data.get('download_url')}")
-            elif output_format == 'filesystem' and data.get('filesystem_path'):
+            elif output_format == "filesystem" and data.get("filesystem_path"):
                 click.echo(f"\n📁 Filesystem Path: {data.get('filesystem_path')}")
-            elif output_format == 'json':
+            elif output_format == "json":
                 click.echo(f"\n💡 Use --json flag to see full structure data")
-            
+
             # Display next steps
             click.echo(f"\n🚀 Next Steps:")
             click.echo(f"   1. Customize the generated manifest template")
             click.echo(f"   2. Add your hardware designs and documentation")
             click.echo(f"   3. Use 'ome okh validate' to check OKH compliance")
-            click.echo(f"   4. Use 'ome match requirements' to find manufacturing capabilities")
-            
-            if template_level in ['standard', 'detailed']:
-                click.echo(f"   5. Use 'mkdocs serve' to build professional documentation")
-        
+            click.echo(
+                f"   4. Use 'ome match requirements' to find manufacturing capabilities"
+            )
+
+            if template_level in ["standard", "detailed"]:
+                click.echo(
+                    f"   5. Use 'mkdocs serve' to build professional documentation"
+                )
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"❌ Scaffold generation failed: {str(e)}", "error")
         if cli_ctx and cli_ctx.verbose:
             import traceback
+
             click.echo(traceback.format_exc())
         raise
 
@@ -1424,22 +1666,32 @@ async def scaffold(ctx, project_name: str, version: str, organization: Optional[
 def _display_structure(structure: dict, indent: int = 0) -> None:
     """Display directory structure in a tree-like format."""
     prefix = "  " * indent
-    
+
     for name, content in structure.items():
         if isinstance(content, dict):
             click.echo(f"{prefix}📁 {name}/")
             _display_structure(content, indent + 1)
         else:
             # It's a file
-            icon = "📄" if name.endswith('.md') else "📄"
+            icon = "📄" if name.endswith(".md") else "📄"
             click.echo(f"{prefix}{icon} {name}")
 
 
 @okh_group.command()
-@click.argument('project_path', type=click.Path(exists=True))
-@click.option('--apply', is_flag=True, help='Apply cleanup (by default runs as dry-run only)')
-@click.option('--remove-unmodified-stubs/--keep-unmodified-stubs', default=True, help='Remove unmodified scaffolding stubs')
-@click.option('--remove-empty-directories/--keep-empty-directories', default=True, help='Remove empty directories after cleanup')
+@click.argument("project_path", type=click.Path(exists=True))
+@click.option(
+    "--apply", is_flag=True, help="Apply cleanup (by default runs as dry-run only)"
+)
+@click.option(
+    "--remove-unmodified-stubs/--keep-unmodified-stubs",
+    default=True,
+    help="Remove unmodified scaffolding stubs",
+)
+@click.option(
+    "--remove-empty-directories/--keep-empty-directories",
+    default=True,
+    help="Remove empty directories after cleanup",
+)
 @click.pass_context
 @standard_cli_command(
     async_cmd=True,
@@ -1468,16 +1720,23 @@ def _display_structure(structure: dict, indent: int = 0) -> None:
     handle_errors=True,
     format_output=True,
 )
-async def scaffold_cleanup(ctx, project_path: str, apply: bool,
-                           remove_unmodified_stubs: bool,
-                           remove_empty_directories: bool,
-                           verbose: bool, output_format: str,
-                           use_llm: bool = False, llm_provider: str = 'anthropic',
-                           llm_model: Optional[str] = None, quality_level: str = 'professional',
-                           strict_mode: bool = False):
+async def scaffold_cleanup(
+    ctx,
+    project_path: str,
+    apply: bool,
+    remove_unmodified_stubs: bool,
+    remove_empty_directories: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
     """Cleanup OKH scaffold directory by removing unmodified stubs and empty folders."""
     cli_ctx = ctx.obj
-    cli_ctx.start_command_tracking('okh.scaffold-cleanup')
+    cli_ctx.start_command_tracking("okh.scaffold-cleanup")
 
     try:
         cli_ctx.log(f"🧹 Cleaning OKH scaffold at: {project_path}", "info")
@@ -1490,44 +1749,56 @@ async def scaffold_cleanup(ctx, project_path: str, apply: bool,
         }
 
         data = await cli_ctx.api_client.request(
-            method='POST',
-            endpoint='/api/okh/scaffold/cleanup',
-            json_data=payload
+            method="POST", endpoint="/api/okh/scaffold/cleanup", json_data=payload
         )
 
         # Output
-        if cli_ctx.output_format == 'json':
+        if cli_ctx.output_format == "json":
             click.echo(json.dumps(data, indent=2))
         else:
-            removed_files = data.get('removed_files', [])
-            removed_dirs = data.get('removed_directories', [])
-            bytes_saved = data.get('bytes_saved', 0)
+            removed_files = data.get("removed_files", [])
+            removed_dirs = data.get("removed_directories", [])
+            bytes_saved = data.get("bytes_saved", 0)
             dry_run = payload["dry_run"]
 
-            cli_ctx.log("✅ Dry run completed" if dry_run else "✅ Cleanup completed", "success")
+            cli_ctx.log(
+                "✅ Dry run completed" if dry_run else "✅ Cleanup completed", "success"
+            )
             if removed_files:
-                click.echo(f"\n🗑️  Files to remove ({len(removed_files)}):" if dry_run else f"\n🗑️  Files removed ({len(removed_files)}):")
+                click.echo(
+                    f"\n🗑️  Files to remove ({len(removed_files)}):"
+                    if dry_run
+                    else f"\n🗑️  Files removed ({len(removed_files)}):"
+                )
                 for f in removed_files:
                     click.echo(f"   - {f}")
             if removed_dirs:
-                click.echo(f"\n📁 Empty directories to remove ({len(removed_dirs)}):" if dry_run else f"\n📁 Empty directories removed ({len(removed_dirs)}):")
+                click.echo(
+                    f"\n📁 Empty directories to remove ({len(removed_dirs)}):"
+                    if dry_run
+                    else f"\n📁 Empty directories removed ({len(removed_dirs)}):"
+                )
                 for d in removed_dirs:
                     click.echo(f"   - {d}")
             if not dry_run:
                 click.echo(f"\n💾 Bytes saved: {bytes_saved}")
 
-            warnings = data.get('warnings', [])
+            warnings = data.get("warnings", [])
             if warnings:
                 # Separate broken link warnings from other warnings
-                broken_link_warnings = [w for w in warnings if "Broken link" in w or "broken link" in w.lower()]
+                broken_link_warnings = [
+                    w
+                    for w in warnings
+                    if "Broken link" in w or "broken link" in w.lower()
+                ]
                 other_warnings = [w for w in warnings if w not in broken_link_warnings]
-                
+
                 if broken_link_warnings:
                     click.echo("\n🔗 Broken Link Warnings:")
                     for w in broken_link_warnings:
                         # Style broken link warnings more prominently
                         cli_ctx.log(f"   {w}", "warning")
-                
+
                 if other_warnings:
                     click.echo("\n⚠️  Other Warnings:")
                     for w in other_warnings:
@@ -1538,20 +1809,40 @@ async def scaffold_cleanup(ctx, project_path: str, apply: bool,
         cli_ctx.log(f"❌ Cleanup failed: {str(e)}", "error")
         if cli_ctx and cli_ctx.verbose:
             import traceback
+
             click.echo(traceback.format_exc())
         raise
 
 
 @okh_group.command()
-@click.argument('manifest_file', type=click.Path(exists=True))
-@click.option('--output', '-o', type=click.Path(), help='Output file path (default: overwrites input file)')
-@click.option('--dry-run', is_flag=True, help='Preview fixes without applying them')
-@click.option('--backup', is_flag=True, help='Create backup of original file before fixing')
-@click.option('--confidence-threshold', type=float, default=0.7, help='Minimum confidence to apply a fix (0.0-1.0, default: 0.7)')
-@click.option('--domain', 
-              type=click.Choice(['manufacturing', 'cooking']),
-              help='Domain override (auto-detected from file if not provided)')
-@click.option('--yes', '-y', is_flag=True, help='Automatically confirm all fixes without prompting')
+@click.argument("manifest_file", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Output file path (default: overwrites input file)",
+)
+@click.option("--dry-run", is_flag=True, help="Preview fixes without applying them")
+@click.option(
+    "--backup", is_flag=True, help="Create backup of original file before fixing"
+)
+@click.option(
+    "--confidence-threshold",
+    type=float,
+    default=0.7,
+    help="Minimum confidence to apply a fix (0.0-1.0, default: 0.7)",
+)
+@click.option(
+    "--domain",
+    type=click.Choice(["manufacturing", "cooking"]),
+    help="Domain override (auto-detected from file if not provided)",
+)
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Automatically confirm all fixes without prompting",
+)
 @standard_cli_command(
     help_text="""
     Automatically fix validation warnings and errors in an OKH manifest.
@@ -1591,23 +1882,36 @@ async def scaffold_cleanup(ctx, project_path: str, apply: bool,
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=False  # Auto-fix doesn't use LLM
+    add_llm_config=False,  # Auto-fix doesn't use LLM
 )
 @click.pass_context
-async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, backup: bool,
-              confidence_threshold: float, domain: Optional[str], yes: bool,
-              verbose: bool, output_format: str, quality_level: str, strict_mode: bool,
-              use_llm: bool = False, llm_provider: str = 'anthropic', llm_model: Optional[str] = None):
+async def fix(
+    ctx,
+    manifest_file: str,
+    output: Optional[str],
+    dry_run: bool,
+    backup: bool,
+    confidence_threshold: float,
+    domain: Optional[str],
+    yes: bool,
+    verbose: bool,
+    output_format: str,
+    quality_level: str,
+    strict_mode: bool,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+):
     """Automatically fix validation issues in an OKH manifest."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-fix")
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     try:
         # Read manifest file
         manifest_data = await _read_manifest_file(manifest_file)
-        
+
         # Detect domain if not provided
         detected_domain = domain
         if not detected_domain:
@@ -1617,25 +1921,28 @@ async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, bac
                 detected_domain = "cooking"
             else:
                 detected_domain = "manufacturing"
-        
+
         cli_ctx.log(f"Using domain: {detected_domain}", "info")
-        
+
         # Validate first to get warnings/errors
         cli_ctx.log("Validating manifest...", "info")
         validation_result = validate_okh_manifest(
             manifest_data,
             quality_level=quality_level,
             strict_mode=strict_mode,
-            domain=detected_domain
+            domain=detected_domain,
         )
-        
+
         if not validation_result.warnings and not validation_result.errors:
             cli_ctx.log("✅ No issues found. Manifest is already valid!", "success")
             cli_ctx.end_command_tracking()
             return
-        
-        cli_ctx.log(f"Found {len(validation_result.warnings)} warnings and {len(validation_result.errors)} errors", "info")
-        
+
+        cli_ctx.log(
+            f"Found {len(validation_result.warnings)} warnings and {len(validation_result.errors)} errors",
+            "info",
+        )
+
         # Run auto-fix
         cli_ctx.log("Analyzing fixes...", "info")
         fixed_content, fix_report = auto_fix_okh_manifest(
@@ -1645,9 +1952,9 @@ async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, bac
             strict_mode=strict_mode,
             domain=detected_domain,
             dry_run=dry_run,
-            fix_confidence_threshold=confidence_threshold
+            fix_confidence_threshold=confidence_threshold,
         )
-        
+
         # Display fix report
         cli_ctx.log("\n" + "=" * 70, "info")
         cli_ctx.log("AUTO-FIX REPORT", "info")
@@ -1656,23 +1963,38 @@ async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, bac
         cli_ctx.log(f"Fixes skipped: {len(fix_report.fixes_skipped)}", "info")
         cli_ctx.log(f"Original warnings: {fix_report.original_warnings}", "info")
         cli_ctx.log(f"Remaining warnings: {fix_report.remaining_warnings}", "info")
-        cli_ctx.log(f"Warnings fixed: {fix_report.original_warnings - fix_report.remaining_warnings}", "success")
-        
+        cli_ctx.log(
+            f"Warnings fixed: {fix_report.original_warnings - fix_report.remaining_warnings}",
+            "success",
+        )
+
         if fix_report.fixes_applied:
             cli_ctx.log("\nApplied fixes:", "info")
             for i, fix in enumerate(fix_report.fixes_applied, 1):
                 cli_ctx.log(f"  {i}. [{fix.type}] {fix.description}", "success")
-        
+
         if fix_report.fixes_skipped:
-            cli_ctx.log("\nSkipped fixes (low confidence or require confirmation):", "warning")
+            cli_ctx.log(
+                "\nSkipped fixes (low confidence or require confirmation):", "warning"
+            )
             for i, fix in enumerate(fix_report.fixes_skipped, 1):
-                cli_ctx.log(f"  {i}. [{fix.type}] {fix.description} (confidence: {fix.confidence})", "warning")
-            
+                cli_ctx.log(
+                    f"  {i}. [{fix.type}] {fix.description} (confidence: {fix.confidence})",
+                    "warning",
+                )
+
             # Ask for confirmation on low-confidence fixes
             if not dry_run and not yes and fix_report.fixes_skipped:
-                low_confidence_fixes = [f for f in fix_report.fixes_skipped if f.confidence < confidence_threshold]
+                low_confidence_fixes = [
+                    f
+                    for f in fix_report.fixes_skipped
+                    if f.confidence < confidence_threshold
+                ]
                 if low_confidence_fixes:
-                    cli_ctx.log(f"\n⚠️  {len(low_confidence_fixes)} fixes require confirmation (confidence < {confidence_threshold})", "warning")
+                    cli_ctx.log(
+                        f"\n⚠️  {len(low_confidence_fixes)} fixes require confirmation (confidence < {confidence_threshold})",
+                        "warning",
+                    )
                     if click.confirm("Apply low-confidence fixes?"):
                         # Apply only the skipped fixes to the already-fixed content
                         # We need to re-validate first to get updated warnings
@@ -1680,7 +2002,7 @@ async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, bac
                             fixed_content,
                             quality_level=quality_level,
                             strict_mode=strict_mode,
-                            domain=detected_domain
+                            domain=detected_domain,
                         )
                         # Re-run auto-fix on the already-fixed content with lower threshold
                         fixed_content, additional_fix_report = auto_fix_okh_manifest(
@@ -1690,52 +2012,66 @@ async def fix(ctx, manifest_file: str, output: Optional[str], dry_run: bool, bac
                             strict_mode=strict_mode,
                             domain=detected_domain,
                             dry_run=False,
-                            fix_confidence_threshold=0.5  # Lower threshold for user-confirmed fixes
+                            fix_confidence_threshold=0.5,  # Lower threshold for user-confirmed fixes
                         )
                         # Update the fix report with additional fixes
                         additional_count = len(additional_fix_report.fixes_applied)
-                        fix_report.fixes_applied.extend(additional_fix_report.fixes_applied)
+                        fix_report.fixes_applied.extend(
+                            additional_fix_report.fixes_applied
+                        )
                         fix_report.fixes_skipped = additional_fix_report.fixes_skipped
-                        fix_report.remaining_warnings = additional_fix_report.remaining_warnings
-                        fix_report.remaining_errors = additional_fix_report.remaining_errors
-                        cli_ctx.log(f"Applied {additional_count} additional fixes", "success")
-        
+                        fix_report.remaining_warnings = (
+                            additional_fix_report.remaining_warnings
+                        )
+                        fix_report.remaining_errors = (
+                            additional_fix_report.remaining_errors
+                        )
+                        cli_ctx.log(
+                            f"Applied {additional_count} additional fixes", "success"
+                        )
+
         if dry_run:
             cli_ctx.log("\n🔍 DRY-RUN MODE: No changes were made", "info")
             cli_ctx.log("Run without --dry-run to apply fixes", "info")
         else:
             # Determine output file
             output_file = output or manifest_file
-            
+
             # Create backup if requested
             if backup and output_file == manifest_file:
                 backup_file = f"{manifest_file}.backup"
                 import shutil
+
                 shutil.copy2(manifest_file, backup_file)
                 cli_ctx.log(f"Created backup: {backup_file}", "info")
-            
+
             # Write fixed content
             output_path = Path(output_file)
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 json.dump(fixed_content, f, indent=2, ensure_ascii=False)
-            
+
             cli_ctx.log(f"\n✅ Fixed manifest saved to: {output_file}", "success")
-            
+
             # Re-validate to show final state
             final_validation = validate_okh_manifest(
                 fixed_content,
                 quality_level=quality_level,
                 strict_mode=strict_mode,
-                domain=detected_domain
+                domain=detected_domain,
             )
-            
+
             if final_validation.warnings or final_validation.errors:
-                cli_ctx.log(f"\n⚠️  Remaining issues: {len(final_validation.warnings)} warnings, {len(final_validation.errors)} errors", "warning")
+                cli_ctx.log(
+                    f"\n⚠️  Remaining issues: {len(final_validation.warnings)} warnings, {len(final_validation.errors)} errors",
+                    "warning",
+                )
             else:
-                cli_ctx.log("\n✅ All issues resolved! Manifest is now valid.", "success")
-        
+                cli_ctx.log(
+                    "\n✅ All issues resolved! Manifest is now valid.", "success"
+                )
+
         cli_ctx.end_command_tracking()
-        
+
     except Exception as e:
         cli_ctx.log(f"Fix failed: {str(e)}", "error")
         raise

@@ -18,8 +18,8 @@ from .github import GitHubExtractor
 from .gitlab import GitLabExtractor
 
 __all__ = [
-    'ProjectExtractor',
-    'ExtractionMetrics', 
-    'GitHubExtractor',
-    'GitLabExtractor'
+    "ProjectExtractor",
+    "ExtractionMetrics",
+    "GitHubExtractor",
+    "GitLabExtractor",
 ]

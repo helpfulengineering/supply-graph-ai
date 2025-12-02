@@ -28,7 +28,7 @@ from .layers.base import (
     MatchMetadata,
     MatchQuality,
     MatchingLayer,
-    MatchingMetrics
+    MatchingMetrics,
 )
 
 from .capability_rules import (
@@ -38,7 +38,7 @@ from .capability_rules import (
     CapabilityMatcher,
     CapabilityMatchResult,
     RuleType,
-    RuleDirection
+    RuleDirection,
 )
 
 # Factory functions for global instances
@@ -46,35 +46,32 @@ from .capability_rules import (
     get_rule_manager,
     get_capability_matcher,
     create_rule_manager,
-    create_capability_matcher
+    create_capability_matcher,
 )
 
 __all__ = [
     # Base matching components
-    'MatchingResult',
-    'MatchMetadata',
-    'MatchQuality',
-    'MatchingLayer',
-    'MatchingMetrics',
-    
+    "MatchingResult",
+    "MatchMetadata",
+    "MatchQuality",
+    "MatchingLayer",
+    "MatchingMetrics",
     # Matching layer implementations
-    'DirectMatcher',
-    'HeuristicMatcher',
-    'NLPMatcher',
-    'LLMMatcher',
-    
+    "DirectMatcher",
+    "HeuristicMatcher",
+    "NLPMatcher",
+    "LLMMatcher",
     # Capability rules components
-    'CapabilityRule',
-    'CapabilityRuleSet',
-    'CapabilityRuleManager',
-    'CapabilityMatcher',
-    'CapabilityMatchResult',
-    'RuleType',
-    'RuleDirection',
-    
+    "CapabilityRule",
+    "CapabilityRuleSet",
+    "CapabilityRuleManager",
+    "CapabilityMatcher",
+    "CapabilityMatchResult",
+    "RuleType",
+    "RuleDirection",
     # Factory functions
-    'get_rule_manager',
-    'get_capability_matcher',
-    'create_rule_manager',
-    'create_capability_matcher'
+    "get_rule_manager",
+    "get_capability_matcher",
+    "create_rule_manager",
+    "create_capability_matcher",
 ]

@@ -3,10 +3,16 @@ from typing import Dict, List, Optional, Any
 from uuid import UUID
 
 # Import base classes for enhanced functionality
-from ..base import SuccessResponse, LLMResponseMixin, ValidationResult as BaseValidationResult
+from ..base import (
+    SuccessResponse,
+    LLMResponseMixin,
+    ValidationResult as BaseValidationResult,
+)
+
 
 class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
     """Consolidated supply tree response with standardized fields and LLM information"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -31,11 +37,11 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
                 "llm_used": True,
                 "llm_provider": "anthropic",
                 "llm_cost": 0.025,
-                "data": {}
+                "data": {},
             }
         }
     )
-    
+
     # Required fields first
     id: UUID
     facility_id: UUID
@@ -43,7 +49,7 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
     okh_reference: str
     confidence_score: float
     creation_time: str
-    
+
     # Optional fields after
     estimated_cost: Optional[float] = None
     estimated_time: Optional[str] = None
@@ -51,54 +57,67 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
     capabilities_used: List[str] = []
     match_type: str = "unknown"
     metadata: Dict[str, Any] = {}
-    
+
     # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
 
+
 # Keep the old class name for backward compatibility
 SimplifiedSupplyTreeResponse = SupplyTreeResponse
 
+
 class OptimizationMetrics(BaseModel):
     """Response model for optimization metrics"""
+
     # All optional fields
     cost: Optional[float] = None
     time: Optional[str] = None
 
+
 class SupplyTreeOptimizationResponse(SupplyTreeResponse):
     """Response model for optimized supply tree"""
+
     # Additional required field in this subclass
     optimization_metrics: OptimizationMetrics
 
+
 class ValidationIssue(BaseModel):
     """Model for validation issues"""
+
     # Required fields first
     type: str  # "error", "warning", "info"
     message: str
-    
+
     # Optional fields after
     path: Optional[str] = None
     component: Optional[str] = None
 
+
 class ValidationResult(BaseModel):
     """Response model for validation results"""
+
     # Required fields first
     valid: bool
     confidence: float
-    
+
     # Optional fields after
     issues: List[Dict[str, Any]] = []
 
+
 class SupplyTreeListResponse(BaseModel):
     """Response model for listing supply trees"""
+
     # Required fields first
     results: List[SupplyTreeResponse]
     total: int
     page: int
     page_size: int
 
+
 class SuccessResponse(BaseModel):
     """Response model for successful operations"""
+
     # Required fields only
     success: bool
     message: str

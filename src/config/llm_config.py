@@ -27,6 +27,7 @@ DEFAULT_ENCRYPTION_PASSWORD = "default_password"
 
 class LLMProvider(Enum):
     """Supported LLM providers"""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
@@ -38,6 +39,7 @@ class LLMProvider(Enum):
 
 class LLMStatus(Enum):
     """Status of LLM configuration"""
+
     CONFIGURED = "configured"
     NOT_CONFIGURED = "not_configured"
     INVALID = "invalid"
@@ -47,6 +49,7 @@ class LLMStatus(Enum):
 @dataclass
 class LLMModelConfig:
     """Configuration for a specific LLM model"""
+
     name: str
     provider: LLMProvider
     max_tokens: int = 4096
@@ -58,7 +61,7 @@ class LLMModelConfig:
     retry_attempts: int = 3
     cost_per_token: Optional[float] = None
     description: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
@@ -72,13 +75,14 @@ class LLMModelConfig:
             "timeout_seconds": self.timeout_seconds,
             "retry_attempts": self.retry_attempts,
             "cost_per_token": self.cost_per_token,
-            "description": self.description
+            "description": self.description,
         }
 
 
 @dataclass
 class LLMProviderConfig:
     """Configuration for an LLM provider"""
+
     provider: LLMProvider
     api_key: Optional[str] = None
     api_base_url: Optional[str] = None
@@ -92,7 +96,7 @@ class LLMProviderConfig:
     rate_limit_tokens_per_minute: int = 150000
     custom_headers: Dict[str, str] = field(default_factory=dict)
     enabled: bool = True
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary (excluding sensitive data)"""
         return {
@@ -108,13 +112,14 @@ class LLMProviderConfig:
             "rate_limit_tokens_per_minute": self.rate_limit_tokens_per_minute,
             "custom_headers": self.custom_headers,
             "enabled": self.enabled,
-            "has_api_key": self.api_key is not None
+            "has_api_key": self.api_key is not None,
         }
 
 
 @dataclass
 class LLMConfig:
     """Main LLM configuration"""
+
     enabled: bool = False
     default_provider: Optional[LLMProvider] = None
     default_model: Optional[str] = None
@@ -128,12 +133,14 @@ class LLMConfig:
     request_timeout_seconds: int = 60
     providers: Dict[LLMProvider, LLMProviderConfig] = field(default_factory=dict)
     models: Dict[str, LLMModelConfig] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary (excluding sensitive data)"""
         return {
             "enabled": self.enabled,
-            "default_provider": self.default_provider.value if self.default_provider else None,
+            "default_provider": (
+                self.default_provider.value if self.default_provider else None
+            ),
             "default_model": self.default_model,
             "fallback_enabled": self.fallback_enabled,
             "cost_tracking_enabled": self.cost_tracking_enabled,
@@ -143,18 +150,20 @@ class LLMConfig:
             "cache_ttl_seconds": self.cache_ttl_seconds,
             "max_concurrent_requests": self.max_concurrent_requests,
             "request_timeout_seconds": self.request_timeout_seconds,
-            "providers": {p.value: config.to_dict() for p, config in self.providers.items()},
-            "models": {name: model.to_dict() for name, model in self.models.items()}
+            "providers": {
+                p.value: config.to_dict() for p, config in self.providers.items()
+            },
+            "models": {name: model.to_dict() for name, model in self.models.items()},
         }
 
 
 class CredentialManager:
     """Secure credential management for LLM providers"""
-    
+
     def __init__(self, encryption_key: Optional[str] = None):
         """
         Initialize credential manager.
-        
+
         Args:
             encryption_key: Optional encryption key. If not provided, will use environment variable
                           or generate a new one (not recommended for production)
@@ -162,30 +171,38 @@ class CredentialManager:
         self.encryption_key = encryption_key or os.getenv("LLM_ENCRYPTION_KEY")
         self._fernet = None
         self._initialize_encryption()
-    
+
     def _initialize_encryption(self):
         """Initialize encryption for credential storage"""
         if self.encryption_key:
             # Use provided key (must be valid Fernet key format)
             try:
                 # Try to decode as base64 to validate format
-                key = self.encryption_key.encode() if isinstance(self.encryption_key, str) else self.encryption_key
+                key = (
+                    self.encryption_key.encode()
+                    if isinstance(self.encryption_key, str)
+                    else self.encryption_key
+                )
                 # Validate it's a valid Fernet key by attempting to create Fernet instance
                 # This will raise ValueError if invalid
                 Fernet(key)
             except (ValueError, TypeError):
                 # If not valid Fernet key, treat as raw key and encode
-                key = self.encryption_key.encode() if isinstance(self.encryption_key, str) else self.encryption_key
+                key = (
+                    self.encryption_key.encode()
+                    if isinstance(self.encryption_key, str)
+                    else self.encryption_key
+                )
         else:
             # Generate key from environment or create new one
             # Check if we're in production mode
             environment = os.getenv("ENVIRONMENT", "development").lower()
             is_production = environment == "production"
-            
+
             # Get encryption credentials from environment
             salt_env = os.getenv("LLM_ENCRYPTION_SALT")
             password_env = os.getenv("LLM_ENCRYPTION_PASSWORD")
-            
+
             # In production, require explicit configuration
             if is_production:
                 if not salt_env or not password_env:
@@ -193,23 +210,26 @@ class CredentialManager:
                         "LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD must be set in production. "
                         "These are required for secure credential encryption."
                     )
-                if salt_env == DEFAULT_ENCRYPTION_SALT or password_env == DEFAULT_ENCRYPTION_PASSWORD:
+                if (
+                    salt_env == DEFAULT_ENCRYPTION_SALT
+                    or password_env == DEFAULT_ENCRYPTION_PASSWORD
+                ):
                     raise ValueError(
                         "Default encryption credentials cannot be used in production. "
                         "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD to secure values."
                     )
-            
+
             # Use provided values or defaults (with warning in development)
             # Note: Default values are only used in development mode and are rejected in production
             salt = (salt_env or DEFAULT_ENCRYPTION_SALT).encode()
             password = (password_env or DEFAULT_ENCRYPTION_PASSWORD).encode()
-            
+
             if not is_production and (not salt_env or not password_env):
                 logger.warning(
                     "Using default encryption credentials. This is insecure for production. "
                     "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD environment variables."
                 )
-            
+
             kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
                 length=32,
@@ -217,30 +237,36 @@ class CredentialManager:
                 iterations=100000,
             )
             key = base64.urlsafe_b64encode(kdf.derive(password))
-        
+
         self._fernet = Fernet(key)
-    
+
     def encrypt_credential(self, credential: str) -> str:
         """Encrypt a credential"""
         if not self._fernet:
             raise RuntimeError("Encryption not initialized")
         return self._fernet.encrypt(credential.encode()).decode()
-    
+
     def decrypt_credential(self, encrypted_credential: str) -> str:
         """Decrypt a credential"""
         if not self._fernet:
             raise RuntimeError("Encryption not initialized")
         return self._fernet.decrypt(encrypted_credential.encode()).decode()
-    
-    def store_credential(self, provider: LLMProvider, credential_type: str, credential: str) -> str:
+
+    def store_credential(
+        self, provider: LLMProvider, credential_type: str, credential: str
+    ) -> str:
         """Store an encrypted credential"""
         encrypted = self.encrypt_credential(credential)
         # In a real implementation, this would store to a secure credential store
         # For now, we'll just return the encrypted value
-        logger.info(f"Stored encrypted credential for {provider.value}:{credential_type}")
+        logger.info(
+            f"Stored encrypted credential for {provider.value}:{credential_type}"
+        )
         return encrypted
-    
-    def retrieve_credential(self, provider: LLMProvider, credential_type: str) -> Optional[str]:
+
+    def retrieve_credential(
+        self, provider: LLMProvider, credential_type: str
+    ) -> Optional[str]:
         """Retrieve and decrypt a credential"""
         # In a real implementation, this would retrieve from a secure credential store
         # For now, we'll return None to indicate no stored credential
@@ -250,11 +276,11 @@ class CredentialManager:
 
 class LLMConfigManager:
     """Manager for LLM configuration"""
-    
+
     def __init__(self, config_file: Optional[Path] = None):
         """
         Initialize LLM configuration manager.
-        
+
         Args:
             config_file: Optional path to configuration file
         """
@@ -262,36 +288,52 @@ class LLMConfigManager:
         self.credential_manager = CredentialManager()
         self.config = LLMConfig()
         self._load_config()
-    
+
     def _load_config(self):
         """Load configuration from file and environment"""
         # Load from file if it exists
         if self.config_file.exists():
             try:
-                with open(self.config_file, 'r') as f:
+                with open(self.config_file, "r") as f:
                     config_data = json.load(f)
                 self._load_from_dict(config_data)
                 logger.info(f"Loaded LLM configuration from {self.config_file}")
             except Exception as e:
                 logger.warning(f"Failed to load LLM config from file: {e}")
-        
+
         # Override with environment variables
         self._load_from_environment()
-    
+
     def _load_from_dict(self, config_data: Dict[str, Any]):
         """Load configuration from dictionary"""
         self.config.enabled = config_data.get("enabled", False)
-        self.config.default_provider = LLMProvider(config_data["default_provider"]) if config_data.get("default_provider") else None
+        self.config.default_provider = (
+            LLMProvider(config_data["default_provider"])
+            if config_data.get("default_provider")
+            else None
+        )
         self.config.default_model = config_data.get("default_model")
         self.config.fallback_enabled = config_data.get("fallback_enabled", True)
-        self.config.cost_tracking_enabled = config_data.get("cost_tracking_enabled", True)
-        self.config.usage_analytics_enabled = config_data.get("usage_analytics_enabled", True)
-        self.config.prompt_caching_enabled = config_data.get("prompt_caching_enabled", True)
-        self.config.response_caching_enabled = config_data.get("response_caching_enabled", False)
+        self.config.cost_tracking_enabled = config_data.get(
+            "cost_tracking_enabled", True
+        )
+        self.config.usage_analytics_enabled = config_data.get(
+            "usage_analytics_enabled", True
+        )
+        self.config.prompt_caching_enabled = config_data.get(
+            "prompt_caching_enabled", True
+        )
+        self.config.response_caching_enabled = config_data.get(
+            "response_caching_enabled", False
+        )
         self.config.cache_ttl_seconds = config_data.get("cache_ttl_seconds", 3600)
-        self.config.max_concurrent_requests = config_data.get("max_concurrent_requests", 10)
-        self.config.request_timeout_seconds = config_data.get("request_timeout_seconds", 60)
-        
+        self.config.max_concurrent_requests = config_data.get(
+            "max_concurrent_requests", 10
+        )
+        self.config.request_timeout_seconds = config_data.get(
+            "request_timeout_seconds", 60
+        )
+
         # Load providers
         for provider_name, provider_data in config_data.get("providers", {}).items():
             provider = LLMProvider(provider_name)
@@ -304,12 +346,16 @@ class LLMConfigManager:
                 version=provider_data.get("version"),
                 timeout_seconds=provider_data.get("timeout_seconds", 30),
                 max_retries=provider_data.get("max_retries", 3),
-                rate_limit_requests_per_minute=provider_data.get("rate_limit_requests_per_minute", 60),
-                rate_limit_tokens_per_minute=provider_data.get("rate_limit_tokens_per_minute", 150000),
+                rate_limit_requests_per_minute=provider_data.get(
+                    "rate_limit_requests_per_minute", 60
+                ),
+                rate_limit_tokens_per_minute=provider_data.get(
+                    "rate_limit_tokens_per_minute", 150000
+                ),
                 custom_headers=provider_data.get("custom_headers", {}),
-                enabled=provider_data.get("enabled", True)
+                enabled=provider_data.get("enabled", True),
             )
-        
+
         # Load models
         for model_name, model_data in config_data.get("models", {}).items():
             self.config.models[model_name] = LLMModelConfig(
@@ -323,76 +369,90 @@ class LLMConfigManager:
                 timeout_seconds=model_data.get("timeout_seconds", 30),
                 retry_attempts=model_data.get("retry_attempts", 3),
                 cost_per_token=model_data.get("cost_per_token"),
-                description=model_data.get("description")
+                description=model_data.get("description"),
             )
-    
+
     def _load_from_environment(self):
         """Load configuration from environment variables"""
         # Global LLM settings
         if os.getenv("LLM_ENABLED"):
             self.config.enabled = os.getenv("LLM_ENABLED").lower() in ("true", "1", "t")
-        
+
         if os.getenv("LLM_DEFAULT_PROVIDER"):
             try:
-                self.config.default_provider = LLMProvider(os.getenv("LLM_DEFAULT_PROVIDER"))
+                self.config.default_provider = LLMProvider(
+                    os.getenv("LLM_DEFAULT_PROVIDER")
+                )
             except ValueError:
-                logger.warning(f"Invalid LLM provider: {os.getenv('LLM_DEFAULT_PROVIDER')}")
-        
+                logger.warning(
+                    f"Invalid LLM provider: {os.getenv('LLM_DEFAULT_PROVIDER')}"
+                )
+
         if os.getenv("LLM_DEFAULT_MODEL"):
             self.config.default_model = os.getenv("LLM_DEFAULT_MODEL")
-        
+
         # Provider-specific settings
         for provider in LLMProvider:
             provider_name = provider.value.upper()
-            
+
             # API Key
             api_key = os.getenv(f"{provider_name}_API_KEY")
             if api_key:
                 if provider not in self.config.providers:
-                    self.config.providers[provider] = LLMProviderConfig(provider=provider)
+                    self.config.providers[provider] = LLMProviderConfig(
+                        provider=provider
+                    )
                 self.config.providers[provider].api_key = api_key
-            
+
             # Base URL
             api_base_url = os.getenv(f"{provider_name}_API_BASE_URL")
             if api_base_url:
                 if provider not in self.config.providers:
-                    self.config.providers[provider] = LLMProviderConfig(provider=provider)
+                    self.config.providers[provider] = LLMProviderConfig(
+                        provider=provider
+                    )
                 self.config.providers[provider].api_base_url = api_base_url
-            
+
             # Organization ID (for OpenAI)
             if provider == LLMProvider.OPENAI:
                 org_id = os.getenv("OPENAI_ORGANIZATION_ID")
                 if org_id:
                     if provider not in self.config.providers:
-                        self.config.providers[provider] = LLMProviderConfig(provider=provider)
+                        self.config.providers[provider] = LLMProviderConfig(
+                            provider=provider
+                        )
                     self.config.providers[provider].organization_id = org_id
-    
+
     def get_provider_config(self, provider: LLMProvider) -> Optional[LLMProviderConfig]:
         """Get configuration for a specific provider"""
         return self.config.providers.get(provider)
-    
+
     def get_model_config(self, model_name: str) -> Optional[LLMModelConfig]:
         """Get configuration for a specific model"""
         return self.config.models.get(model_name)
-    
+
     def is_provider_configured(self, provider: LLMProvider) -> bool:
         """Check if a provider is properly configured"""
         provider_config = self.get_provider_config(provider)
         if not provider_config or not provider_config.enabled:
             return False
-        
+
         # Check if API key is available
         if provider_config.api_key:
             return True
-        
+
         # Check environment variables as fallback
         provider_name = provider.value.upper()
         return os.getenv(f"{provider_name}_API_KEY") is not None
-    
+
     def get_available_providers(self) -> List[LLMProvider]:
         """Get list of available (configured) providers"""
-        return [provider for provider in LLMProvider if self.is_provider_configured(provider)]
-    
+        return [
+            provider
+            for provider in LLMProvider
+            if self.is_provider_configured(provider)
+        ]
+
     def get_available_models(self) -> List[str]:
         """Get list of available models"""
         available_models = []
@@ -400,7 +460,7 @@ class LLMConfigManager:
             if self.is_provider_configured(model_config.provider):
                 available_models.append(model_name)
         return available_models
-    
+
     def validate_config(self) -> Dict[str, Any]:
         """Validate the current configuration"""
         validation_result = {
@@ -408,60 +468,72 @@ class LLMConfigManager:
             "errors": [],
             "warnings": [],
             "providers": {},
-            "models": {}
+            "models": {},
         }
-        
+
         # Check if LLM is enabled
         if not self.config.enabled:
             validation_result["warnings"].append("LLM integration is disabled")
-        
+
         # Validate providers
         for provider in LLMProvider:
             provider_config = self.get_provider_config(provider)
             provider_status = {
                 "configured": self.is_provider_configured(provider),
                 "enabled": provider_config.enabled if provider_config else False,
-                "has_api_key": bool(provider_config.api_key if provider_config else False),
-                "errors": []
+                "has_api_key": bool(
+                    provider_config.api_key if provider_config else False
+                ),
+                "errors": [],
             }
-            
+
             if provider_config and provider_config.enabled:
-                if not provider_config.api_key and not os.getenv(f"{provider.value.upper()}_API_KEY"):
+                if not provider_config.api_key and not os.getenv(
+                    f"{provider.value.upper()}_API_KEY"
+                ):
                     provider_status["errors"].append("No API key configured")
-                    validation_result["errors"].append(f"{provider.value}: No API key configured")
-            
+                    validation_result["errors"].append(
+                        f"{provider.value}: No API key configured"
+                    )
+
             validation_result["providers"][provider.value] = provider_status
-        
+
         # Validate models
         for model_name, model_config in self.config.models.items():
             model_status = {
                 "configured": True,
-                "provider_available": self.is_provider_configured(model_config.provider),
-                "errors": []
+                "provider_available": self.is_provider_configured(
+                    model_config.provider
+                ),
+                "errors": [],
             }
-            
+
             if not model_status["provider_available"]:
-                model_status["errors"].append(f"Provider {model_config.provider.value} not configured")
-                validation_result["errors"].append(f"Model {model_name}: Provider not configured")
-            
+                model_status["errors"].append(
+                    f"Provider {model_config.provider.value} not configured"
+                )
+                validation_result["errors"].append(
+                    f"Model {model_name}: Provider not configured"
+                )
+
             validation_result["models"][model_name] = model_status
-        
+
         # Overall validation
         if validation_result["errors"]:
             validation_result["valid"] = False
-        
+
         return validation_result
-    
+
     def save_config(self):
         """Save configuration to file"""
         try:
             # Ensure directory exists
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Save configuration (excluding sensitive data)
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, "w") as f:
                 json.dump(self.config.to_dict(), f, indent=2)
-            
+
             logger.info(f"Saved LLM configuration to {self.config_file}")
         except Exception as e:
             logger.error(f"Failed to save LLM configuration: {e}")

@@ -12,12 +12,7 @@ All services inherit from BaseService to ensure consistent patterns for:
 - LLM integration preparation
 """
 
-from .base import (
-    BaseService,
-    ServiceConfig,
-    ServiceMetrics,
-    ServiceStatus
-)
+from .base import BaseService, ServiceConfig, ServiceMetrics, ServiceStatus
 
 from .okh_service import OKHService
 from .okw_service import OKWService
@@ -29,15 +24,14 @@ from .service_registry import ServiceRegistry
 __all__ = [
     # Base classes
     "BaseService",
-    "ServiceConfig", 
+    "ServiceConfig",
     "ServiceMetrics",
     "ServiceStatus",
-    
     # Concrete services
     "OKHService",
-    "OKWService", 
+    "OKWService",
     "MatchingService",
     "StorageService",
     "PackageService",
-    "ServiceRegistry"
+    "ServiceRegistry",
 ]

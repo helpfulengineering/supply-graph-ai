@@ -13,7 +13,11 @@ from pathlib import Path
 
 from .base import CLIContext
 from .decorators import standard_cli_command
-from ..config.storage_config import StorageConfig, create_storage_config, StorageConfigError
+from ..config.storage_config import (
+    StorageConfig,
+    create_storage_config,
+    StorageConfigError,
+)
 from ..core.storage.organizer import StorageOrganizer
 from ..core.services.storage_service import StorageService
 from ..core.utils.logging import get_logger
@@ -25,14 +29,14 @@ logger = get_logger(__name__)
 def storage_group():
     """
     Storage management commands for OME.
-    
+
     These commands help you set up and manage storage systems,
     including directory structure creation and data population.
-    
+
     Examples:
       # Setup storage structure for GCS
       ome storage setup --provider gcs --bucket my-bucket --region us-central1
-      
+
       # Populate storage with synthetic data
       ome storage populate --provider gcs --bucket my-bucket
     """
@@ -40,26 +44,24 @@ def storage_group():
 
 
 @storage_group.command()
-@click.option('--provider', 
-              type=click.Choice(['local', 'gcs', 'azure_blob', 'aws_s3']),
-              default='local',
-              help='Storage provider to use')
-@click.option('--bucket', 'bucket_name',
-              help='Bucket/container name (required for cloud providers)')
-@click.option('--region',
-              help='Region/location for cloud providers')
-@click.option('--credentials-json',
-              help='Path to credentials JSON file (for GCP)')
-@click.option('--project-id',
-              help='GCP project ID (for GCS)')
-@click.option('--account-name',
-              help='Azure storage account name')
-@click.option('--account-key',
-              help='Azure storage account key')
-@click.option('--access-key',
-              help='AWS access key ID')
-@click.option('--secret-key',
-              help='AWS secret access key')
+@click.option(
+    "--provider",
+    type=click.Choice(["local", "gcs", "azure_blob", "aws_s3"]),
+    default="local",
+    help="Storage provider to use",
+)
+@click.option(
+    "--bucket",
+    "bucket_name",
+    help="Bucket/container name (required for cloud providers)",
+)
+@click.option("--region", help="Region/location for cloud providers")
+@click.option("--credentials-json", help="Path to credentials JSON file (for GCP)")
+@click.option("--project-id", help="GCP project ID (for GCS)")
+@click.option("--account-name", help="Azure storage account name")
+@click.option("--account-key", help="Azure storage account key")
+@click.option("--access-key", help="AWS access key ID")
+@click.option("--secret-key", help="AWS secret access key")
 @standard_cli_command(
     help_text="""
     Set up the directory structure in a storage system.
@@ -95,28 +97,39 @@ def storage_group():
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=False
+    add_llm_config=False,
 )
 @click.pass_context
-async def setup(ctx, provider: str, bucket_name: Optional[str], region: Optional[str],
-                credentials_json: Optional[str], project_id: Optional[str],
-                account_name: Optional[str], account_key: Optional[str],
-                access_key: Optional[str], secret_key: Optional[str],
-                verbose: bool, output_format: str,
-                use_llm: bool = False, llm_provider: str = 'anthropic',
-                llm_model: Optional[str] = None, quality_level: str = 'professional',
-                strict_mode: bool = False):
+async def setup(
+    ctx,
+    provider: str,
+    bucket_name: Optional[str],
+    region: Optional[str],
+    credentials_json: Optional[str],
+    project_id: Optional[str],
+    account_name: Optional[str],
+    account_key: Optional[str],
+    access_key: Optional[str],
+    secret_key: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
     """Set up the directory structure in a storage system."""
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("storage-setup")
-    
+
     try:
         # Build credentials dict based on provider
         credentials: Dict[str, str] = {}
-        
+
         if provider == "gcs":
             if credentials_json:
                 if os.path.exists(credentials_json):
@@ -137,51 +150,53 @@ async def setup(ctx, provider: str, bucket_name: Optional[str], region: Optional
                 credentials["secret_key"] = secret_key
             if region:
                 credentials["region"] = region
-        
+
         # Create storage config
         if credentials:
             storage_config = StorageConfig(
                 provider=provider,
                 bucket_name=bucket_name or "storage",
                 region=region,
-                credentials=credentials
+                credentials=credentials,
             )
         else:
             storage_config = create_storage_config(provider, bucket_name, region)
-        
+
         cli_ctx.log(f"Setting up storage structure for {provider}...", "info")
         cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
         if region:
             cli_ctx.log(f"Region: {region}", "info")
-        
+
         # Initialize storage service
         storage_service = await StorageService.get_instance()
         await storage_service.configure(storage_config)
-        
+
         # Create organizer and setup structure
         organizer = StorageOrganizer(storage_service.manager)
         result = await organizer.create_directory_structure()
-        
+
         if output_format == "json":
             output_data = {
                 "status": "success",
                 "provider": provider,
                 "bucket": storage_config.bucket_name,
                 "region": region,
-                "directories_created": result['total_created'],
-                "directories": result['created_directories']
+                "directories_created": result["total_created"],
+                "directories": result["created_directories"],
             }
             click.echo(json.dumps(output_data, indent=2))
         else:
-            cli_ctx.log("✅ Storage directory structure created successfully!", "success")
+            cli_ctx.log(
+                "✅ Storage directory structure created successfully!", "success"
+            )
             cli_ctx.log(f"Provider: {provider}", "info")
             cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
             cli_ctx.log(f"Created {result['total_created']} directories:", "info")
-            for directory in result['created_directories']:
+            for directory in result["created_directories"]:
                 click.echo(f"  - {directory}")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except StorageConfigError as e:
         cli_ctx.log(f"❌ Configuration error: {e}", "error")
         raise
@@ -191,28 +206,28 @@ async def setup(ctx, provider: str, bucket_name: Optional[str], region: Optional
 
 
 @storage_group.command()
-@click.option('--provider', 
-              type=click.Choice(['local', 'gcs', 'azure_blob', 'aws_s3']),
-              default='local',
-              help='Storage provider to use')
-@click.option('--bucket', 'bucket_name',
-              help='Bucket/container name (required for cloud providers)')
-@click.option('--region',
-              help='Region/location for cloud providers')
-@click.option('--data-dir',
-              help='Path to synthetic data directory (defaults to synth/synthetic-data/)')
-@click.option('--credentials-json',
-              help='Path to credentials JSON file (for GCP)')
-@click.option('--project-id',
-              help='GCP project ID (for GCS)')
-@click.option('--account-name',
-              help='Azure storage account name')
-@click.option('--account-key',
-              help='Azure storage account key')
-@click.option('--access-key',
-              help='AWS access key ID')
-@click.option('--secret-key',
-              help='AWS secret access key')
+@click.option(
+    "--provider",
+    type=click.Choice(["local", "gcs", "azure_blob", "aws_s3"]),
+    default="local",
+    help="Storage provider to use",
+)
+@click.option(
+    "--bucket",
+    "bucket_name",
+    help="Bucket/container name (required for cloud providers)",
+)
+@click.option("--region", help="Region/location for cloud providers")
+@click.option(
+    "--data-dir",
+    help="Path to synthetic data directory (defaults to synth/synthetic-data/)",
+)
+@click.option("--credentials-json", help="Path to credentials JSON file (for GCP)")
+@click.option("--project-id", help="GCP project ID (for GCS)")
+@click.option("--account-name", help="Azure storage account name")
+@click.option("--account-key", help="Azure storage account key")
+@click.option("--access-key", help="AWS access key ID")
+@click.option("--secret-key", help="AWS secret access key")
 @standard_cli_command(
     help_text="""
     Populate storage with synthetic data from synth/synthetic-data/.
@@ -241,28 +256,40 @@ async def setup(ctx, provider: str, bucket_name: Optional[str], region: Optional
     track_performance=True,
     handle_errors=True,
     format_output=True,
-    add_llm_config=False
+    add_llm_config=False,
 )
 @click.pass_context
-async def populate(ctx, provider: str, bucket_name: Optional[str], region: Optional[str],
-                   data_dir: Optional[str], credentials_json: Optional[str],
-                   project_id: Optional[str], account_name: Optional[str],
-                   account_key: Optional[str], access_key: Optional[str],
-                   secret_key: Optional[str], verbose: bool, output_format: str,
-                   use_llm: bool = False, llm_provider: str = 'anthropic',
-                   llm_model: Optional[str] = None, quality_level: str = 'professional',
-                   strict_mode: bool = False):
+async def populate(
+    ctx,
+    provider: str,
+    bucket_name: Optional[str],
+    region: Optional[str],
+    data_dir: Optional[str],
+    credentials_json: Optional[str],
+    project_id: Optional[str],
+    account_name: Optional[str],
+    account_key: Optional[str],
+    access_key: Optional[str],
+    secret_key: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
     """Populate storage with synthetic data."""
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
     cli_ctx.config.verbose = verbose
-    
+
     cli_ctx.start_command_tracking("storage-populate")
-    
+
     try:
         # Build credentials dict based on provider
         credentials: Dict[str, str] = {}
-        
+
         if provider == "gcs":
             if credentials_json:
                 if os.path.exists(credentials_json):
@@ -283,18 +310,18 @@ async def populate(ctx, provider: str, bucket_name: Optional[str], region: Optio
                 credentials["secret_key"] = secret_key
             if region:
                 credentials["region"] = region
-        
+
         # Create storage config
         if credentials:
             storage_config = StorageConfig(
                 provider=provider,
                 bucket_name=bucket_name or "storage",
                 region=region,
-                credentials=credentials
+                credentials=credentials,
             )
         else:
             storage_config = create_storage_config(provider, bucket_name, region)
-        
+
         # Determine data directory
         if data_dir is None:
             # Default to synth/synthetic-data/ relative to project root
@@ -306,54 +333,60 @@ async def populate(ctx, provider: str, bucket_name: Optional[str], region: Optio
             data_dir = project_root / "synth" / "synthetic-data"
         else:
             data_dir = Path(data_dir)
-        
+
         if not data_dir.exists():
             raise FileNotFoundError(f"Synthetic data directory not found: {data_dir}")
-        
-        cli_ctx.log(f"Populating storage with synthetic data from {data_dir}...", "info")
+
+        cli_ctx.log(
+            f"Populating storage with synthetic data from {data_dir}...", "info"
+        )
         cli_ctx.log(f"Provider: {provider}", "info")
         cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
-        
+
         # Initialize storage service
         storage_service = await StorageService.get_instance()
         await storage_service.configure(storage_config)
-        
+
         # Create organizer
         organizer = StorageOrganizer(storage_service.manager)
-        
+
         # Load and store files
         okh_files = list(data_dir.glob("*okh*.json"))
         okw_files = list(data_dir.glob("*okw*.json"))
-        
+
         stored_files = []
         errors = []
-        
+
         for file_path in okh_files:
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     manifest_data = json.load(f)
-                
+
                 stored_path = await organizer.store_okh_manifest(manifest_data)
                 stored_files.append(("OKH", file_path.name, stored_path))
-                cli_ctx.log(f"  ✅ Stored OKH: {file_path.name} -> {stored_path}", "success")
+                cli_ctx.log(
+                    f"  ✅ Stored OKH: {file_path.name} -> {stored_path}", "success"
+                )
             except Exception as e:
                 error_msg = f"Failed to store {file_path.name}: {e}"
                 errors.append(error_msg)
                 cli_ctx.log(f"  ❌ {error_msg}", "error")
-        
+
         for file_path in okw_files:
             try:
-                with open(file_path, 'r', encoding='utf-8') as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     facility_data = json.load(f)
-                
+
                 stored_path = await organizer.store_okw_facility(facility_data)
                 stored_files.append(("OKW", file_path.name, stored_path))
-                cli_ctx.log(f"  ✅ Stored OKW: {file_path.name} -> {stored_path}", "success")
+                cli_ctx.log(
+                    f"  ✅ Stored OKW: {file_path.name} -> {stored_path}", "success"
+                )
             except Exception as e:
                 error_msg = f"Failed to store {file_path.name}: {e}"
                 errors.append(error_msg)
                 cli_ctx.log(f"  ❌ {error_msg}", "error")
-        
+
         if output_format == "json":
             output_data = {
                 "status": "success" if not errors else "partial",
@@ -366,19 +399,27 @@ async def populate(ctx, provider: str, bucket_name: Optional[str], region: Optio
                     {"type": f[0], "source": f[1], "destination": f[2]}
                     for f in stored_files
                 ],
-                "errors": errors
+                "errors": errors,
             }
             click.echo(json.dumps(output_data, indent=2))
         else:
             if stored_files:
-                cli_ctx.log(f"✅ Populated {len(stored_files)} files into storage", "success")
-                cli_ctx.log(f"  OKH files: {len([f for f in stored_files if f[0] == 'OKH'])}", "info")
-                cli_ctx.log(f"  OKW files: {len([f for f in stored_files if f[0] == 'OKW'])}", "info")
+                cli_ctx.log(
+                    f"✅ Populated {len(stored_files)} files into storage", "success"
+                )
+                cli_ctx.log(
+                    f"  OKH files: {len([f for f in stored_files if f[0] == 'OKH'])}",
+                    "info",
+                )
+                cli_ctx.log(
+                    f"  OKW files: {len([f for f in stored_files if f[0] == 'OKW'])}",
+                    "info",
+                )
             if errors:
                 cli_ctx.log(f"⚠️  {len(errors)} errors occurred", "warning")
-        
+
         cli_ctx.end_command_tracking()
-        
+
     except FileNotFoundError as e:
         cli_ctx.log(f"❌ {e}", "error")
         raise
@@ -388,4 +429,3 @@ async def populate(ctx, provider: str, bucket_name: Optional[str], region: Optio
     except Exception as e:
         cli_ctx.log(f"❌ Failed to populate storage: {e}", "error")
         raise
-

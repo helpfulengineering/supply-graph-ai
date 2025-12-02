@@ -21,4 +21,3 @@ def get_version() -> str:
 def get_version_tuple() -> tuple:
     """Get version as a tuple (major, minor, patch)."""
     return (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
-

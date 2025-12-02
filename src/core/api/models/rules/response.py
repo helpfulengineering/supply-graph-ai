@@ -12,6 +12,7 @@ from ..base import SuccessResponse, APIStatus
 
 class RuleResponse(SuccessResponse):
     """Response containing a single rule"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -24,17 +25,18 @@ class RuleResponse(SuccessResponse):
                     "capability": "cnc machining",
                     "satisfies_requirements": ["milling", "machining"],
                     "confidence": 0.95,
-                    "domain": "manufacturing"
-                }
+                    "domain": "manufacturing",
+                },
             }
         }
     )
-    
+
     data: Dict[str, Any] = Field(..., description="Rule data")
 
 
 class RuleListResponse(SuccessResponse):
     """Response containing a list of rules"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -46,21 +48,22 @@ class RuleListResponse(SuccessResponse):
                         {
                             "id": "rule1",
                             "capability": "cnc machining",
-                            "domain": "manufacturing"
+                            "domain": "manufacturing",
                         }
                     ],
                     "total": 42,
-                    "domains": ["manufacturing", "cooking"]
-                }
+                    "domains": ["manufacturing", "cooking"],
+                },
             }
         }
     )
-    
+
     data: Dict[str, Any] = Field(..., description="Rules data with metadata")
 
 
 class RuleImportResponse(SuccessResponse):
     """Response from rule import operation"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -71,17 +74,18 @@ class RuleImportResponse(SuccessResponse):
                     "imported_rules": 10,
                     "updated_rules": 2,
                     "errors": [],
-                    "dry_run": False
-                }
+                    "dry_run": False,
+                },
             }
         }
     )
-    
+
     data: Dict[str, Any] = Field(..., description="Import results")
 
 
 class RuleExportResponse(SuccessResponse):
     """Response from rule export operation"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -92,37 +96,35 @@ class RuleExportResponse(SuccessResponse):
                     "content": "domain: manufacturing\n...",
                     "format": "yaml",
                     "domain": "manufacturing",
-                    "rule_count": 15
-                }
+                    "rule_count": 15,
+                },
             }
         }
     )
-    
+
     data: Dict[str, Any] = Field(..., description="Export data")
 
 
 class RuleValidateResponse(SuccessResponse):
     """Response from rule validation"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "status": "success",
                 "message": "Validation completed",
                 "timestamp": "2024-01-01T12:00:00Z",
-                "data": {
-                    "valid": True,
-                    "errors": [],
-                    "warnings": []
-                }
+                "data": {"valid": True, "errors": [], "warnings": []},
             }
         }
     )
-    
+
     data: Dict[str, Any] = Field(..., description="Validation results")
 
 
 class RuleCompareResponse(SuccessResponse):
     """Response from rule comparison (dry-run)"""
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
@@ -133,17 +135,16 @@ class RuleCompareResponse(SuccessResponse):
                     "changes": {
                         "added": ["new_rule_1", "new_rule_2"],
                         "updated": ["existing_rule_1"],
-                        "deleted": []
+                        "deleted": [],
                     },
                     "summary": {
                         "total_added": 2,
                         "total_updated": 1,
-                        "total_deleted": 0
-                    }
-                }
+                        "total_deleted": 0,
+                    },
+                },
             }
         }
     )
-    
-    data: Dict[str, Any] = Field(..., description="Comparison results")
 
+    data: Dict[str, Any] = Field(..., description="Comparison results")

@@ -7,6 +7,4 @@ and request/response validation.
 
 from .error_handler import ValidationErrorHandler
 
-__all__ = [
-    'ValidationErrorHandler'
-]
+__all__ = ["ValidationErrorHandler"]

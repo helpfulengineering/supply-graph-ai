@@ -29,11 +29,12 @@ from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class ServiceStatus(Enum):
     """Status of a service instance."""
+
     UNINITIALIZED = "uninitialized"
     INITIALIZING = "initializing"
     ACTIVE = "active"
@@ -45,6 +46,7 @@ class ServiceStatus(Enum):
 @dataclass
 class ServiceMetrics:
     """Metrics for tracking service performance and usage."""
+
     start_time: datetime
     end_time: Optional[datetime] = None
     total_requests: int = 0
@@ -80,17 +82,20 @@ class ServiceMetrics:
             "failed_requests": self.failed_requests,
             "errors": self.errors,
             "average_response_time_ms": self.average_response_time_ms,
-            "last_request_time": self.last_request_time.isoformat() if self.last_request_time else None,
+            "last_request_time": (
+                self.last_request_time.isoformat() if self.last_request_time else None
+            ),
             "configuration_changes": self.configuration_changes,
             "initialization_time_ms": self.initialization_time_ms,
             "uptime_seconds": self.uptime.total_seconds() if self.uptime else None,
-            "success_rate": self.success_rate
+            "success_rate": self.success_rate,
         }
 
 
 @dataclass
 class ServiceConfig:
     """Base configuration for services."""
+
     name: str
     version: str = "1.0.0"
     enabled: bool = True
@@ -114,11 +119,11 @@ class ServiceConfig:
             "log_level": self.log_level,
             "metrics_enabled": self.metrics_enabled,
             "llm_integration_enabled": self.llm_integration_enabled,
-            "custom_settings": self.custom_settings
+            "custom_settings": self.custom_settings,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'ServiceConfig':
+    def from_dict(cls, data: Dict[str, Any]) -> "ServiceConfig":
         """Create configuration from dictionary."""
         return cls(**data)
 
@@ -139,7 +144,7 @@ class BaseService(ABC, Generic[T]):
     required abstract methods.
     """
 
-    _instances: Dict[str, 'BaseService'] = {}
+    _instances: Dict[str, "BaseService"] = {}
     _initialization_locks: Dict[str, asyncio.Lock] = {}
 
     def __init__(self, service_name: str, config: Optional[ServiceConfig] = None):
@@ -165,7 +170,7 @@ class BaseService(ABC, Generic[T]):
         cls,
         service_name: Optional[str] = None,
         config: Optional[ServiceConfig] = None,
-        **kwargs
+        **kwargs,
     ) -> T:
         """
         Get singleton instance of the service.
@@ -216,13 +221,17 @@ class BaseService(ABC, Generic[T]):
                 self.metrics.initialization_time_ms = init_time.total_seconds() * 1000
 
             self.status = ServiceStatus.ACTIVE
-            self.logger.info(f"{self.service_name} service initialized successfully "
-                           f"in {self.metrics.initialization_time_ms:.2f}ms")
+            self.logger.info(
+                f"{self.service_name} service initialized successfully "
+                f"in {self.metrics.initialization_time_ms:.2f}ms"
+            )
 
         except Exception as e:
             self.status = ServiceStatus.ERROR
             self.metrics.errors.append(f"Initialization failed: {str(e)}")
-            self.logger.error(f"Failed to initialize {self.service_name} service: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed to initialize {self.service_name} service: {e}", exc_info=True
+            )
             raise
 
     @abstractmethod
@@ -265,7 +274,9 @@ class BaseService(ABC, Generic[T]):
             self.status = ServiceStatus.SHUTDOWN
             self.logger.info(f"{self.service_name} service shutdown complete")
         except Exception as e:
-            self.logger.error(f"Error during {self.service_name} service shutdown: {e}", exc_info=True)
+            self.logger.error(
+                f"Error during {self.service_name} service shutdown: {e}", exc_info=True
+            )
             raise
 
     async def cleanup(self) -> None:
@@ -277,13 +288,15 @@ class BaseService(ABC, Generic[T]):
         """
         # Close any HTTP clients or other resources
         for dependency_name, dependency in self._dependencies.items():
-            if hasattr(dependency, 'cleanup'):
+            if hasattr(dependency, "cleanup"):
                 try:
                     await dependency.cleanup()
                     self.logger.debug(f"Cleaned up dependency: {dependency_name}")
                 except Exception as e:
-                    self.logger.warning(f"Error cleaning up dependency {dependency_name}: {e}")
-            elif hasattr(dependency, 'close'):
+                    self.logger.warning(
+                        f"Error cleaning up dependency {dependency_name}: {e}"
+                    )
+            elif hasattr(dependency, "close"):
                 try:
                     if asyncio.iscoroutinefunction(dependency.close):
                         await dependency.close()
@@ -291,7 +304,9 @@ class BaseService(ABC, Generic[T]):
                         dependency.close()
                     self.logger.debug(f"Closed dependency: {dependency_name}")
                 except Exception as e:
-                    self.logger.warning(f"Error closing dependency {dependency_name}: {e}")
+                    self.logger.warning(
+                        f"Error closing dependency {dependency_name}: {e}"
+                    )
 
     def add_dependency(self, name: str, dependency: Any) -> None:
         """Add a dependency to the service."""
@@ -310,11 +325,13 @@ class BaseService(ABC, Generic[T]):
         self.config = new_config
         self.metrics.configuration_changes += 1
         self.logger.info(f"Updated configuration for {self.service_name}")
-        
+
         # Call service-specific config update
         self.on_config_updated(old_config, new_config)
 
-    def on_config_updated(self, old_config: ServiceConfig, new_config: ServiceConfig) -> None:
+    def on_config_updated(
+        self, old_config: ServiceConfig, new_config: ServiceConfig
+    ) -> None:
         """
         Handle configuration updates.
 
@@ -338,7 +355,9 @@ class BaseService(ABC, Generic[T]):
         except Exception as e:
             self.metrics.failed_requests += 1
             self.metrics.errors.append(f"{request_name}: {str(e)}")
-            self.logger.error(f"Failed {request_name} in {self.service_name}: {e}", exc_info=True)
+            self.logger.error(
+                f"Failed {request_name} in {self.service_name}: {e}", exc_info=True
+            )
             raise
         finally:
             # Update average response time
@@ -348,8 +367,12 @@ class BaseService(ABC, Generic[T]):
                 self.metrics.average_response_time_ms = response_time
             else:
                 # Calculate running average
-                total_time = self.metrics.average_response_time_ms * (self.metrics.total_requests - 1)
-                self.metrics.average_response_time_ms = (total_time + response_time) / self.metrics.total_requests
+                total_time = self.metrics.average_response_time_ms * (
+                    self.metrics.total_requests - 1
+                )
+                self.metrics.average_response_time_ms = (
+                    total_time + response_time
+                ) / self.metrics.total_requests
 
     def get_metrics(self) -> ServiceMetrics:
         """Get current service metrics."""
@@ -369,12 +392,14 @@ class BaseService(ABC, Generic[T]):
             "service_name": self.service_name,
             "status": self.status.value,
             "healthy": self.is_healthy(),
-            "uptime_seconds": self.metrics.uptime.total_seconds() if self.metrics.uptime else None,
+            "uptime_seconds": (
+                self.metrics.uptime.total_seconds() if self.metrics.uptime else None
+            ),
             "total_requests": self.metrics.total_requests,
             "success_rate": self.metrics.success_rate,
             "average_response_time_ms": self.metrics.average_response_time_ms,
             "error_count": len(self.metrics.errors),
-            "configuration": self.config.to_dict()
+            "configuration": self.config.to_dict(),
         }
 
     # LLM Integration Preparation
@@ -410,7 +435,7 @@ class BaseService(ABC, Generic[T]):
         """
         if not self.is_llm_enabled():
             raise RuntimeError(f"LLM integration not enabled for {self.service_name}")
-        
+
         # Default implementation - should be overridden by concrete services
         return {"error": "LLM integration not implemented"}
 

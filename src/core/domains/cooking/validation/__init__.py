@@ -8,7 +8,4 @@ that integrate with the new validation framework.
 from .recipe_validator import CookingRecipeValidator
 from .kitchen_validator import CookingKitchenValidator
 
-__all__ = [
-    'CookingRecipeValidator',
-    'CookingKitchenValidator'
-]
+__all__ = ["CookingRecipeValidator", "CookingKitchenValidator"]

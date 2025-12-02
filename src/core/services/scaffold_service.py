@@ -43,6 +43,7 @@ class ScaffoldOptions:
         include_examples: Whether to include sample files/content.
         okh_version: OKH schema version tag written into manifest stub.
     """
+
     project_name: str
     version: str = "0.1.0"
     organization: Optional[str] = None
@@ -65,6 +66,7 @@ class ScaffoldResult:
         download_url: If output_format == zip, storage URL (future integration).
         warnings: Non-fatal issues encountered during generation.
     """
+
     project_name: str
     structure: Dict[str, Any]
     manifest_template: Dict[str, Any]
@@ -141,13 +143,17 @@ class ScaffoldService:
     def _validate_options(self, options: ScaffoldOptions) -> None:
         """Validate input options and raise ValueError for invalid inputs."""
         if options.template_level not in ("minimal", "standard", "detailed"):
-            raise ValueError("template_level must be one of: minimal, standard, detailed")
+            raise ValueError(
+                "template_level must be one of: minimal, standard, detailed"
+            )
 
         if options.output_format not in ("json", "zip", "filesystem"):
             raise ValueError("output_format must be one of: json, zip, filesystem")
 
         if options.output_format == "filesystem" and not options.output_path:
-            raise ValueError("output_path is required when output_format is 'filesystem'")
+            raise ValueError(
+                "output_path is required when output_format is 'filesystem'"
+            )
 
         if not options.project_name or options.project_name.strip() == "":
             raise ValueError("project_name is required")
@@ -158,10 +164,12 @@ class ScaffoldService:
         safe = project_name.strip().lower()
         safe = "-".join(part for part in safe.replace("_", "-").split())
         # Collapse multiple consecutive hyphens to a single hyphen
-        safe = re.sub(r'-+', '-', safe)
+        safe = re.sub(r"-+", "-", safe)
         return safe
 
-    def _create_directory_blueprint(self, project_root: str, options: ScaffoldOptions) -> Dict[str, Any]:
+    def _create_directory_blueprint(
+        self, project_root: str, options: ScaffoldOptions
+    ) -> Dict[str, Any]:
         """Return a nested dict representing the project directory structure.
 
         The blueprint format uses dictionaries for directories and string values
@@ -174,10 +182,10 @@ class ScaffoldService:
         return {
             project_root: {
                 "okh-manifest.json": "{}",  # will be replaced with manifest_template when materializing
-                "README.md": "",            # root entrypoint
-                "LICENSE": "",              # license stub
-                "CONTRIBUTING.md": "",      # contributing guide
-                "mkdocs.yml": "",           # mkdocs config
+                "README.md": "",  # root entrypoint
+                "LICENSE": "",  # license stub
+                "CONTRIBUTING.md": "",  # contributing guide
+                "mkdocs.yml": "",  # mkdocs config
                 "design-files": {
                     "index.md": "",
                 },
@@ -254,40 +262,81 @@ class ScaffoldService:
 
         # Build template based on template level
         template = {}
-        
+
         # Required fields (always present)
-        required_fields = ["title", "version", "license", "licensor", "documentation_language", "function"]
+        required_fields = [
+            "title",
+            "version",
+            "license",
+            "licensor",
+            "documentation_language",
+            "function",
+        ]
         for field_name in required_fields:
             if field_name in field_info:
-                template[field_name] = self._generate_field_template(field_name, field_info[field_name], options, required=True)
+                template[field_name] = self._generate_field_template(
+                    field_name, field_info[field_name], options, required=True
+                )
 
         # Optional fields (based on template level)
         optional_fields = [
-            "description", "intended_use", "keywords", "project_link", "health_safety_notice",
-            "contact", "contributors", "organization", "image", "version_date", "readme",
-            "contribution_guide", "development_stage", "attestation", "technology_readiness_level",
-            "documentation_readiness_level", "manufacturing_files", "documentation_home",
-            "archive_download", "design_files", "making_instructions", "operating_instructions",
-            "tool_list", "manufacturing_processes", "materials", "manufacturing_specs",
-            "bom", "standards_used", "cpc_patent_class", "tsdc", "parts", "derivative_of",
-            "variant_of", "sub_parts", "software", "metadata"
+            "description",
+            "intended_use",
+            "keywords",
+            "project_link",
+            "health_safety_notice",
+            "contact",
+            "contributors",
+            "organization",
+            "image",
+            "version_date",
+            "readme",
+            "contribution_guide",
+            "development_stage",
+            "attestation",
+            "technology_readiness_level",
+            "documentation_readiness_level",
+            "manufacturing_files",
+            "documentation_home",
+            "archive_download",
+            "design_files",
+            "making_instructions",
+            "operating_instructions",
+            "tool_list",
+            "manufacturing_processes",
+            "materials",
+            "manufacturing_specs",
+            "bom",
+            "standards_used",
+            "cpc_patent_class",
+            "tsdc",
+            "parts",
+            "derivative_of",
+            "variant_of",
+            "sub_parts",
+            "software",
+            "metadata",
         ]
 
         # Include optional fields based on template level
         if options.template_level in ("standard", "detailed"):
             for field_name in optional_fields:
                 if field_name in field_info:
-                    template[field_name] = self._generate_field_template(field_name, field_info[field_name], options, required=False)
+                    template[field_name] = self._generate_field_template(
+                        field_name, field_info[field_name], options, required=False
+                    )
 
         # Set OKH version
         template["okhv"] = options.okh_version
 
         return template
 
-    def _generate_field_template(self, field_name: str, field_info, options: ScaffoldOptions, required: bool) -> Any:
+    def _generate_field_template(
+        self, field_name: str, field_info, options: ScaffoldOptions, required: bool
+    ) -> Any:
         """Generate template value for a specific field based on its type and template level."""
         field_type = field_info.type
-        
+
         # Handle special cases first
         if field_name == "title":
             return options.project_name
@@ -298,13 +347,17 @@ class ScaffoldService:
         elif field_name == "license":
             return {
                 "hardware": self._get_placeholder("SPDX license ID", required, options),
-                "documentation": self._get_placeholder("SPDX license ID", required, options),
-                "software": self._get_placeholder("SPDX license ID", False, options)
+                "documentation": self._get_placeholder(
+                    "SPDX license ID", required, options
+                ),
+                "software": self._get_placeholder("SPDX license ID", False, options),
             }
         elif field_name == "licensor":
             return self._get_placeholder("Name or Person object", required, options)
         elif field_name == "function":
-            return self._get_placeholder("Brief functional description", required, options)
+            return self._get_placeholder(
+                "Brief functional description", required, options
+            )
 
         # Handle collection types
         if hasattr(field_type, "__origin__"):
@@ -320,7 +373,9 @@ class ScaffoldService:
             args = field_type.__args__
             non_none_types = [t for t in args if t is not type(None)]
             if non_none_types:
-                return self._get_placeholder(f"Value of type {non_none_types[0].__name__}", required, options)
+                return self._get_placeholder(
+                    f"Value of type {non_none_types[0].__name__}", required, options
+                )
 
         # Handle basic types
         if field_type == str:
@@ -335,7 +390,9 @@ class ScaffoldService:
         # Default fallback
         return self._get_placeholder(f"Value of type {field_type}", required, options)
 
-    def _get_placeholder(self, description: str, required: bool, options: ScaffoldOptions) -> str:
+    def _get_placeholder(
+        self, description: str, required: bool, options: ScaffoldOptions
+    ) -> str:
         """Generate appropriate placeholder text based on template level."""
         if options.template_level == "minimal":
             return f"[{description}]"
@@ -347,7 +404,9 @@ class ScaffoldService:
             return f"[{req_text}: {description}]"
 
     # -------- Stub Documents Injection --------
-    def _inject_stub_documents(self, structure: Dict[str, Any], options: ScaffoldOptions) -> None:
+    def _inject_stub_documents(
+        self, structure: Dict[str, Any], options: ScaffoldOptions
+    ) -> None:
         """Populate blueprint with content stubs based on template_level.
 
         Walk the nested dict and fill known files with templated content. This
@@ -369,18 +428,48 @@ class ScaffoldService:
                 node = node[part]
             node[filename] = content
 
-        setf(("design-files",), "index.md", self._template_index("Design Files", options))
-        setf(("manufacturing-files",), "index.md", self._template_index("Manufacturing Files", options))
+        setf(
+            ("design-files",), "index.md", self._template_index("Design Files", options)
+        )
+        setf(
+            ("manufacturing-files",),
+            "index.md",
+            self._template_index("Manufacturing Files", options),
+        )
         setf(("bom",), "index.md", self._template_bom_index(options))
         setf(("bom",), "bom.csv", self._template_bom_csv(options))
         setf(("bom",), "bom.md", self._template_bom_md(options))
-        setf(("making-instructions",), "index.md", self._template_index("Making Instructions", options))
-        setf(("making-instructions",), "assembly-guide.md", self._template_assembly_guide(options))
-        setf(("operating-instructions",), "index.md", self._template_index("Operating Instructions", options))
-        setf(("technical-specifications",), "index.md", self._template_index("Technical Specifications", options))
-        setf(("risk-assessment",), "index.md", self._template_index("Risk Assessment", options))
+        setf(
+            ("making-instructions",),
+            "index.md",
+            self._template_index("Making Instructions", options),
+        )
+        setf(
+            ("making-instructions",),
+            "assembly-guide.md",
+            self._template_assembly_guide(options),
+        )
+        setf(
+            ("operating-instructions",),
+            "index.md",
+            self._template_index("Operating Instructions", options),
+        )
+        setf(
+            ("technical-specifications",),
+            "index.md",
+            self._template_index("Technical Specifications", options),
+        )
+        setf(
+            ("risk-assessment",),
+            "index.md",
+            self._template_index("Risk Assessment", options),
+        )
         setf(("software",), "index.md", self._template_index("Software", options))
-        setf(("making-instructions",), "index.md", self._template_index("Making Instructions", options))
+        setf(
+            ("making-instructions",),
+            "index.md",
+            self._template_index("Making Instructions", options),
+        )
         setf(("schematics",), "index.md", self._template_index("Schematics", options))
         setf(("parts",), "index.md", self._template_index("Parts", options))
 
@@ -391,19 +480,75 @@ class ScaffoldService:
         setf(("docs",), "manufacturing.md", self._template_manufacturing_docs(options))
         setf(("docs",), "assembly.md", self._template_assembly_docs(options))
         setf(("docs",), "maintenance.md", self._template_maintenance_docs(options))
-        
+
         # Section bridge pages (docs/sections/*.md) - link to actual OKH directories
-        setf(("docs", "sections"), "bom.md", self._template_section_bridge("Bill of Materials", "bom", options))
-        setf(("docs", "sections"), "making-instructions.md", self._template_section_bridge("Making Instructions", "making-instructions", options))
-        setf(("docs", "sections"), "operating-instructions.md", self._template_section_bridge("Operating Instructions", "operating-instructions", options))
-        setf(("docs", "sections"), "design-files.md", self._template_section_bridge("Design Files", "design-files", options))
-        setf(("docs", "sections"), "manufacturing-files.md", self._template_section_bridge("Manufacturing Files", "manufacturing-files", options))
-        setf(("docs", "sections"), "software.md", self._template_section_bridge("Software", "software", options))
-        setf(("docs", "sections"), "schematics.md", self._template_section_bridge("Schematics", "schematics", options))
-        setf(("docs", "sections"), "parts.md", self._template_section_bridge("Parts", "parts", options))
-        setf(("docs", "sections"), "making-instructions.md", self._template_section_bridge("Making Instructions", "making-instructions", options))
-        setf(("docs", "sections"), "technical-specifications.md", self._template_section_bridge("Technical Specifications", "technical-specifications", options))
-        setf(("docs", "sections"), "risk-assessment.md", self._template_section_bridge("Risk Assessment", "risk-assessment", options))
+        setf(
+            ("docs", "sections"),
+            "bom.md",
+            self._template_section_bridge("Bill of Materials", "bom", options),
+        )
+        setf(
+            ("docs", "sections"),
+            "making-instructions.md",
+            self._template_section_bridge(
+                "Making Instructions", "making-instructions", options
+            ),
+        )
+        setf(
+            ("docs", "sections"),
+            "operating-instructions.md",
+            self._template_section_bridge(
+                "Operating Instructions", "operating-instructions", options
+            ),
+        )
+        setf(
+            ("docs", "sections"),
+            "design-files.md",
+            self._template_section_bridge("Design Files", "design-files", options),
+        )
+        setf(
+            ("docs", "sections"),
+            "manufacturing-files.md",
+            self._template_section_bridge(
+                "Manufacturing Files", "manufacturing-files", options
+            ),
+        )
+        setf(
+            ("docs", "sections"),
+            "software.md",
+            self._template_section_bridge("Software", "software", options),
+        )
+        setf(
+            ("docs", "sections"),
+            "schematics.md",
+            self._template_section_bridge("Schematics", "schematics", options),
+        )
+        setf(
+            ("docs", "sections"),
+            "parts.md",
+            self._template_section_bridge("Parts", "parts", options),
+        )
+        setf(
+            ("docs", "sections"),
+            "making-instructions.md",
+            self._template_section_bridge(
+                "Making Instructions", "making-instructions", options
+            ),
+        )
+        setf(
+            ("docs", "sections"),
+            "technical-specifications.md",
+            self._template_section_bridge(
+                "Technical Specifications", "technical-specifications", options
+            ),
+        )
+        setf(
+            ("docs", "sections"),
+            "risk-assessment.md",
+            self._template_section_bridge(
+                "Risk Assessment", "risk-assessment", options
+            ),
+        )
 
     # -------- Templates (first pass, lightweight) --------
     def _template_readme(self, options: ScaffoldOptions) -> str:
@@ -478,10 +623,10 @@ class ScaffoldService:
 
     def _template_mkdocs_yaml(self, project_root: str) -> str:
         """Generate mkdocs.yml template.
-        
+
         Uses default docs_dir (docs/) with navigation paths relative to docs_dir.
         Files in docs/ use simple paths like 'index.md'.
-        
+
         Section directories (bom/, making-instructions/, etc.) are accessible via
         bridge pages in docs/sections/ that link to the actual OKH directories.
         This preserves OKH structure while enabling full MkDocs navigation.
@@ -499,11 +644,9 @@ class ScaffoldService:
             ("Technical Specifications", "sections/technical-specifications.md"),
             ("Risk Assessment", "sections/risk-assessment.md"),
         ]
-        
-        section_nav = "\n".join(
-            f"    - {name}: {path}" for name, path in sections
-        )
-        
+
+        section_nav = "\n".join(f"    - {name}: {path}" for name, path in sections)
+
         return (
             "site_name: " + project_root + "\n"
             "nav:\n"
@@ -513,14 +656,13 @@ class ScaffoldService:
             "  - Manufacturing: manufacturing.md\n"
             "  - Assembly: assembly.md\n"
             "  - Maintenance: maintenance.md\n"
-            "  - Project Sections:\n"
-            + section_nav + "\n"
+            "  - Project Sections:\n" + section_nav + "\n"
         )
 
     def _template_index(self, title: str, options: ScaffoldOptions) -> str:
         """Generate index template based on template level."""
         back_link = "\n[← Back to Documentation](../docs/index.md)\n"
-        
+
         if options.template_level == "minimal":
             return f"# {title}\n{back_link}[Add {title.lower()} documentation]"
         elif options.template_level == "standard":
@@ -558,7 +700,7 @@ class ScaffoldService:
     def _template_bom_index(self, options: ScaffoldOptions) -> str:
         """Generate BOM index template based on template level."""
         back_link = "\n[← Back to Documentation](../docs/index.md)\n"
-        
+
         if options.template_level == "minimal":
             return f"# Bill of Materials (BOM){back_link}[Add BOM documentation]"
         elif options.template_level == "standard":
@@ -672,7 +814,7 @@ class ScaffoldService:
             "# Assembly Guide\n\n"
             "Provide step-by-step assembly instructions with images as needed."
         )
-        
+
         if options.template_level in ("standard", "detailed"):
             cross_refs = (
                 "\n## Related Documentation\n\n"
@@ -681,7 +823,7 @@ class ScaffoldService:
                 "- [Making Instructions Index](../making-instructions/index.md) - All making instructions\n"
             )
             return base_content + cross_refs
-        
+
         return base_content
 
     def _template_docs_home(self, options: ScaffoldOptions) -> str:
@@ -699,17 +841,17 @@ class ScaffoldService:
             ("Technical Specifications", "technical-specifications"),
             ("Risk Assessment", "risk-assessment"),
         ]
-        
+
         section_links = "\n".join(
             f"- [{name}](../{dir_name}/index.md)" for name, dir_name in sections
         )
-        
+
         base_content = (
             "# Documentation\n\n"
             "Welcome to the project documentation. Use the navigation to explore.\n\n"
             "## Project Sections\n\n"
         )
-        
+
         return base_content + section_links + "\n"
 
     def _template_getting_started(self, options: ScaffoldOptions) -> str:
@@ -720,7 +862,7 @@ class ScaffoldService:
             "2. Serve docs locally: `mkdocs serve`\n"
             "3. Edit `okh-manifest.json` to define your project per OKH.\n"
         )
-        
+
         if options.template_level in ("standard", "detailed"):
             cross_refs = (
                 "\n## Related Sections\n\n"
@@ -729,7 +871,7 @@ class ScaffoldService:
                 "- [Operating Instructions](../operating-instructions/index.md) - Understand how to use it\n"
             )
             return base_content + cross_refs
-        
+
         return base_content
 
     def _template_development(self, options: ScaffoldOptions) -> str:
@@ -738,7 +880,7 @@ class ScaffoldService:
             "# Development Guide\n\n"
             "Describe development workflows, testing, and contribution practices."
         )
-        
+
         if options.template_level in ("standard", "detailed"):
             cross_refs = (
                 "\n## Related Sections\n\n"
@@ -747,16 +889,16 @@ class ScaffoldService:
                 "- [Schematics](../schematics/index.md) - Electrical schematics\n"
             )
             return base_content + cross_refs
-        
+
         return base_content
-    
+
     def _template_assembly_docs(self, options: ScaffoldOptions) -> str:
         """Generate docs/assembly.md template with cross-references to making-instructions."""
         base_content = (
             "# Assembly\n\n"
             "Documentation about the assembly process for this project.\n"
         )
-        
+
         if options.template_level == "minimal":
             return base_content + "\n[Add assembly documentation]"
         elif options.template_level == "standard":
@@ -779,14 +921,14 @@ class ScaffoldService:
                 "- [Parts](../parts/index.md) - Part-specific documentation and files\n"
             )
             return base_content + cross_refs
-    
+
     def _template_manufacturing_docs(self, options: ScaffoldOptions) -> str:
         """Generate docs/manufacturing.md template with cross-references to manufacturing sections."""
         base_content = (
             "# Manufacturing\n\n"
             "Documentation about manufacturing processes for this project.\n"
         )
-        
+
         if options.template_level == "minimal":
             return base_content + "\n[Add manufacturing documentation]"
         elif options.template_level == "standard":
@@ -813,14 +955,14 @@ class ScaffoldService:
                 "- [Parts](../parts/index.md) - Part-specific manufacturing documentation\n"
             )
             return base_content + cross_refs
-    
+
     def _template_maintenance_docs(self, options: ScaffoldOptions) -> str:
         """Generate docs/maintenance.md template with cross-references to operating instructions."""
         base_content = (
             "# Maintenance\n\n"
             "Documentation about maintaining and servicing this project.\n"
         )
-        
+
         if options.template_level == "minimal":
             return base_content + "\n[Add maintenance documentation]"
         elif options.template_level == "standard":
@@ -841,21 +983,20 @@ class ScaffoldService:
                 "- [Schematics](../schematics/index.md) - Electrical schematics for troubleshooting\n"
             )
             return base_content + cross_refs
-    
-    def _template_section_bridge(self, section_name: str, section_dir: str, options: ScaffoldOptions) -> str:
+
+    def _template_section_bridge(
+        self, section_name: str, section_dir: str, options: ScaffoldOptions
+    ) -> str:
         """Generate bridge page in docs/sections/ that links to actual OKH section directory.
-        
+
         These pages serve as entry points in MkDocs navigation while preserving
         the OKH structure (section directories remain at project root).
         """
         # Path from docs/sections/*.md to project root section directory
         link_path = f"../../{section_dir}/index.md"
-        
+
         if options.template_level == "minimal":
-            return (
-                f"# {section_name}\n\n"
-                f"[View {section_name}]({link_path})\n"
-            )
+            return f"# {section_name}\n\n" f"[View {section_name}]({link_path})\n"
         elif options.template_level == "standard":
             return (
                 f"# {section_name}\n\n"
@@ -885,7 +1026,12 @@ class ScaffoldService:
             )
 
     # -------- Materializers (stubs; implemented in later passes) --------
-    def _write_filesystem(self, structure: Dict[str, Any], options: ScaffoldOptions, manifest_template: Dict[str, Any]) -> str:
+    def _write_filesystem(
+        self,
+        structure: Dict[str, Any],
+        options: ScaffoldOptions,
+        manifest_template: Dict[str, Any],
+    ) -> str:
         """Write the blueprint to the filesystem and return the absolute path.
 
         Rules:
@@ -894,6 +1040,7 @@ class ScaffoldService:
         - Write `okh-manifest.json` using the provided manifest_template
         """
         import json
+
         base = Path(options.output_path).expanduser().resolve()
         if not base.exists():
             base.mkdir(parents=True, exist_ok=True)
@@ -929,7 +1076,12 @@ class ScaffoldService:
 
         return str(project_root_path)
 
-    async def _create_and_store_zip(self, structure: Dict[str, Any], options: ScaffoldOptions, manifest_template: Dict[str, Any]) -> str:
+    async def _create_and_store_zip(
+        self,
+        structure: Dict[str, Any],
+        options: ScaffoldOptions,
+        manifest_template: Dict[str, Any],
+    ) -> str:
         """Create a ZIP archive for the scaffold and return a file URL.
 
         Behavior:
@@ -954,13 +1106,18 @@ class ScaffoldService:
         # Build in-memory zip
         buffer = io.BytesIO()
         with ZipFile(buffer, "w", ZIP_DEFLATED) as zf:
+
             def add_node(node: Any, prefix: str) -> None:
                 if isinstance(node, dict):
                     for name, child in node.items():
                         child_path = f"{prefix}{name}"
                         if isinstance(child, dict):
                             # Ensure directory entry exists (optional in ZIP)
-                            dir_entry = child_path if child_path.endswith("/") else child_path + "/"
+                            dir_entry = (
+                                child_path
+                                if child_path.endswith("/")
+                                else child_path + "/"
+                            )
                             zf.writestr(dir_entry, "")
                             add_node(child, dir_entry)
                         else:
@@ -976,7 +1133,11 @@ class ScaffoldService:
             add_node(project_root_node, f"{project_root_name}/")
 
         # Persist to disk
-        base_dir = Path(options.output_path).expanduser().resolve() if options.output_path else Path(tempfile.gettempdir()) / "ome-scaffolds"
+        base_dir = (
+            Path(options.output_path).expanduser().resolve()
+            if options.output_path
+            else Path(tempfile.gettempdir()) / "ome-scaffolds"
+        )
         base_dir.mkdir(parents=True, exist_ok=True)
 
         timestamp = int(time.time())
@@ -988,5 +1149,3 @@ class ScaffoldService:
             f.write(buffer.getvalue())
 
         return zip_path.as_uri()
-
-
