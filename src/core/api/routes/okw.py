@@ -331,16 +331,36 @@ async def search_okw(
                 }
             }
             
-            results.append({
-                "id": str(facility.id),
-                "name": facility.name,
-                "location": location_dict,
-                "facility_status": facility.facility_status,
-                "access_type": facility.access_type,
-                "manufacturing_processes": facility.manufacturing_processes,
-                "equipment": facility.equipment,
-                "typical_materials": facility.typical_materials
-            })
+            # Convert facility_status and access_type to strings if they're enums
+            facility_status_str = facility.facility_status.value if hasattr(facility.facility_status, 'value') else str(facility.facility_status)
+            access_type_str = facility.access_type.value if hasattr(facility.access_type, 'value') else str(facility.access_type)
+            
+            # Create OKWResponse object with all required fields
+            okw_response = OKWResponse(
+                status=APIStatus.SUCCESS,
+                message="OKW facility retrieved successfully",
+                id=facility.id,
+                name=facility.name,
+                location=location_dict,
+                facility_status=facility_status_str,
+                access_type=access_type_str,
+                manufacturing_processes=facility.manufacturing_processes or [],
+                equipment=[eq.to_dict() if hasattr(eq, 'to_dict') else eq for eq in facility.equipment] if facility.equipment else [],
+                typical_materials=[mat.to_dict() if hasattr(mat, 'to_dict') else mat for mat in facility.typical_materials] if facility.typical_materials else [],
+                owner=facility.owner.to_dict() if facility.owner and hasattr(facility.owner, 'to_dict') else None,
+                contact=facility.contact.to_dict() if facility.contact and hasattr(facility.contact, 'to_dict') else None,
+                description=facility.description,
+                opening_hours=facility.opening_hours,
+                date_founded=facility.date_founded.isoformat() if facility.date_founded else None,
+                wheelchair_accessibility=facility.wheelchair_accessibility,
+                typical_batch_size=str(facility.typical_batch_size) if facility.typical_batch_size else None,
+                floor_size=facility.floor_size,
+                storage_capacity=facility.storage_capacity,
+                certifications=facility.certifications or [],
+                domain=facility.domain
+            )
+            
+            results.append(okw_response)
         
         return OKWListResponse(
             results=results,
@@ -353,6 +373,23 @@ async def search_okw(
         logger.error(f"Error searching OKW facilities: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error searching OKW facilities: {str(e)}")
 
+@router.get(
+    "/schema",
+    response_model=OKWExportResponse,
+    summary="Get OKW JSON Schema",
+    description="""
+    Get the JSON schema for the OKW (OpenKnowWhere) domain model in canonical format.
+    
+    This endpoint generates a JSON schema that represents the complete structure
+    of the ManufacturingFacility dataclass, including all fields, types, and constraints.
+    
+    **Features:**
+    - Canonical JSON Schema format (draft-07)
+    - Complete type definitions
+    - Required field specifications
+    - Nested object schemas
+    """
+)
 @router.get(
     "/export",
     response_model=OKWExportResponse,
@@ -395,7 +432,7 @@ async def export_okw_schema(
         return OKWExportResponse(
             success=True,
             message="OKW schema exported successfully",
-            schema=schema,
+            json_schema=schema,
             schema_version=schema.get("$schema", "http://json-schema.org/draft-07/schema#"),
             model_name="ManufacturingFacility"
         )

@@ -1,0 +1,308 @@
+{
+  "id": "ee16e6f4-6357-42a3-9c4c-46c0202e521f",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "1915",
+      "street": "Stone Isle",
+      "city": "Port Chelseamouth",
+      "region": "Kansas",
+      "country": "Denmark",
+      "postcode": "99069"
+    },
+    "gps_coordinates": "34.19253, -38.276185",
+    "directions": "Located across from Russell-Hayes",
+    "city": "Port Chelseamouth",
+    "country": "Denmark"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Jefferson-Forbes",
+    "location": {
+      "address": {
+        "number": "722",
+        "street": "Anthony Track",
+        "city": "Everettton",
+        "region": "Wisconsin",
+        "country": "Turks and Caicos Islands",
+        "postcode": "14281"
+      },
+      "gps_coordinates": "65.232362, -26.034694",
+      "directions": "Located across from Giles LLC",
+      "city": "Everettton",
+      "country": "Turks and Caicos Islands"
+    },
+    "contact_person": "Kristin Pierce",
+    "bio": "Established in 1995, we specialize in Synchronized leadingedge contingency",
+    "website": "https://moore.com",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "mailing_list": "ybriggs@lists.ibarra.com",
+    "contact": {
+      "landline": "+1-344-857-4180",
+      "mobile": "+1-848-488-3656",
+      "email": "info@mcguire-daniel.biz",
+      "whatsapp": "+1-250-813-5103"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Boyle PLC",
+    "location": {
+      "address": {
+        "number": "6114",
+        "street": "Lee Ridge",
+        "city": "Johntown",
+        "region": "Virginia",
+        "country": "British Virgin Islands",
+        "postcode": "63282"
+      },
+      "gps_coordinates": "56.843033, -85.959935",
+      "directions": "Located behind Phillips-Wright",
+      "city": "Johntown",
+      "country": "British Virgin Islands"
+    },
+    "contact_person": "David Cunningham",
+    "bio": "Established in 2002, we specialize in Team-oriented eco-centric collaboration",
+    "website": "https://spence.com",
+    "languages": [
+      "de",
+      "fr",
+      "en"
+    ],
+    "mailing_list": "aaron10@lists.daniels.com",
+    "contact": {
+      "landline": "+1-614-267-5778",
+      "mobile": "+1-672-355-1776",
+      "email": "info@young.com",
+      "whatsapp": "+1-406-979-7736"
+    },
+    "social_media": {
+      "twitter": "@knightjerry",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-22:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "1991-09-12",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "DMU 50",
+      "serial_number": "SN966579",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Those close voice job.",
+      "quantity": 5,
+      "throughput": "56 parts/hour",
+      "power_rating": 3539,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "7540",
+              "street": "Peter Orchard",
+              "city": "Port Jennifer",
+              "region": "South Dakota",
+              "country": "Israel",
+              "postcode": "80431"
+            },
+            "gps_coordinates": "42.58043, -124.468345",
+            "directions": "Located behind Powell-Jackson",
+            "city": "Port Jennifer",
+            "country": "Israel"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1844",
+              "street": "Heather Crossroad",
+              "city": "North Anthonyfort",
+              "region": "Utah",
+              "country": "Guernsey",
+              "postcode": "36868"
+            },
+            "gps_coordinates": "45.782524, 23.847211",
+            "directions": "Located across from Garcia LLC",
+            "city": "North Anthonyfort",
+            "country": "Guernsey"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8824",
+              "street": "Jesus Isle",
+              "city": "New Regina",
+              "region": "Massachusetts",
+              "country": "Tuvalu",
+              "postcode": "68613"
+            },
+            "gps_coordinates": "58.389126, -85.467573",
+            "directions": "Located across from Allen, Lee and Perez",
+            "city": "New Regina",
+            "country": "Tuvalu"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1257",
+              "street": "Spencer Streets",
+              "city": "Gonzalezfurt",
+              "region": "Florida",
+              "country": "New Zealand",
+              "postcode": "51987"
+            },
+            "gps_coordinates": "59.827822, -43.379711",
+            "directions": "Located near Garcia, Stanley and Reed",
+            "city": "Gonzalezfurt",
+            "country": "New Zealand"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Wood",
+          "Plastic",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "111 minutes",
+          "cycle_time": "37 minutes",
+          "changeover_time": "11 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 971",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 740",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1030,
+  "storage_capacity": "737 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Decentralized tertiary superstructure",
+    "Future-proofed regional firmware",
+    "Profound interactive support",
+    "Distributed upward-trending array",
+    "Balanced transitional pricing structure"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Coach past film success.",
+    "by_products": [
+      "attorney"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 11
+  },
+  "innovation_space": {
+    "learning_resources": [
+      "Seamless foreground contingency",
+      "Fundamental bifurcated leverage"
+    ],
+    "services": [
+      "Compatible incremental artificial intelligence"
+    ],
+    "footfall": 51
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.191241",
+    "created_by": {
+      "name": "Salas Group",
+      "location": {
+        "address": {
+          "number": "6150",
+          "street": "Ferguson Stream",
+          "city": "Whitneymouth",
+          "region": "Nevada",
+          "country": "Holy See (Vatican City State)",
+          "postcode": "17441"
+        },
+        "gps_coordinates": "37.33368, -43.467736",
+        "directions": "Located near Franklin-Jones",
+        "city": "Whitneymouth",
+        "country": "Holy See (Vatican City State)"
+      },
+      "contact_person": "Lindsay Graves",
+      "bio": "Established in 2017, we specialize in Multi-channeled demand-driven capacity",
+      "website": "https://mercer.biz",
+      "languages": [
+        "en"
+      ],
+      "mailing_list": "watkinsbruce@lists.tucker-walker.net",
+      "contact": {
+        "landline": "+1-538-699-9089",
+        "mobile": "+1-238-708-3752",
+        "email": "info@watson.net",
+        "whatsapp": "+1-279-983-3632"
+      },
+      "social_media": {
+        "twitter": "@ssmith",
+        "instagram": "@michellecraig",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

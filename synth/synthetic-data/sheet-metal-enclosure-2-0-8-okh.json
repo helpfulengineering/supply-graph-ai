@@ -1,0 +1,385 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "69a7fa2d-2ab5-46ac-996a-efbb2a5d8a46",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/iellis/sheet-metal-enclosure",
+  "version": "2.0.8",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Thomas Bernard",
+    "email": "fuenteschelsea@example.net",
+    "affiliation": "Phillips-Briggs",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "rodriguezbrittney"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for From daughter stage American set with lose.",
+  "intended_use": "Development to develop care site deep.",
+  "keywords": [
+    "customizable",
+    "assembly",
+    "reproducible",
+    "bracket",
+    "gear"
+  ],
+  "contact": {
+    "name": "Sarah Acosta",
+    "email": "williamskaren@example.com",
+    "affiliation": "Johnson-Herman",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "billnichols"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Gary Shah",
+      "email": "brownjoseph@example.com",
+      "affiliation": "Macias LLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "danagraham"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Brooks-Johnson",
+    "url": "https://young.biz",
+    "email": "contact@sloan.info"
+  },
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/meghanramirez/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/ronald29/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/katherinebuchanan/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/amy47/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/collierstephen/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/ylee/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/operry/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/gravesjustin/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/martinezvictoria/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/thomas84/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/nadkins/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/heather15/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.0"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Wrench set",
+    "Crimping tool",
+    "Welder",
+    "Sheet metal brake",
+    "Pliers",
+    "Screwdriver set",
+    "Grinder",
+    "Drill press"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 426.39,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 298.44,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 497.89,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 638.94,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 113,
+      "width": 277,
+      "height": 24
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Experience involve lead watch."
+  },
+  "bom": "https://github.com/woodjessica/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "3d7c3310-d6dc-4fd5-af26-755ec09ab7d3",
+      "source": [
+        "https://github.com/davenportmary/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/lopezsusan/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/jessicawilson/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/cassandra83/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": {
+        "length": 190,
+        "width": 101,
+        "height": 73
+      },
+      "mass": 718.65,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "f1c5681b-f442-4cad-b52b-a076a0159a28",
+      "source": [
+        "https://github.com/kim22/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/dperez/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/melissaosborne/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/walkertammy/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 138,
+        "width": 130,
+        "height": 77
+      },
+      "mass": 29.8,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "b270d876-1bba-4f11-a468-f80096ea6131",
+      "source": [
+        "https://github.com/moniquesmith/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/anita01/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/costadenise/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/ryan85/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 32,
+        "width": 82,
+        "height": 78
+      },
+      "mass": 273.57,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "55334695-1c3c-4862-9cc9-bd405e5c4597",
+      "source": [
+        "https://github.com/chelseasmith/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/martinvincent/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/scott55/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/tracy39/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 65,
+        "width": 14,
+        "height": 99
+      },
+      "mass": 544.24,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,334 @@
+{
+  "id": "064a391e-0533-4252-a0da-e8ba83da82ef",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "8609",
+      "street": "Burton Estate",
+      "city": "West Richardtown",
+      "region": "Kentucky",
+      "country": "San Marino",
+      "postcode": "17877"
+    },
+    "gps_coordinates": "49.297922, -8.003609",
+    "directions": "Located near Martin, Valentine and Boone",
+    "city": "West Richardtown",
+    "country": "San Marino"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Johnson, Gardner and Flores",
+    "location": {
+      "address": {
+        "number": "8695",
+        "street": "Wagner Burgs",
+        "city": "Martinezberg",
+        "region": "North Dakota",
+        "country": "Svalbard & Jan Mayen Islands",
+        "postcode": "67255"
+      },
+      "gps_coordinates": "26.872853, 22.541932",
+      "directions": "Located near Hood, Parker and Arnold",
+      "city": "Martinezberg",
+      "country": "Svalbard & Jan Mayen Islands"
+    },
+    "contact_person": "Dylan Calhoun",
+    "bio": "Established in 2001, we specialize in Grass-roots intermediate middleware",
+    "website": "https://rivera.com",
+    "languages": [
+      "es"
+    ],
+    "mailing_list": "john09@lists.small.info",
+    "images": [
+      "images/sound.jpg"
+    ],
+    "contact": {
+      "landline": "+1-806-401-9553",
+      "mobile": "+1-781-752-5161",
+      "email": "info@farrell.net",
+      "whatsapp": "+1-386-345-5762"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/jack94",
+      "other_urls": [
+        "https://williams.net",
+        "https://burke-lamb.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Clark LLC",
+    "location": {
+      "address": {
+        "number": "7003",
+        "street": "Robinson Manor",
+        "city": "Jacksonchester",
+        "region": "Michigan",
+        "country": "Saint Lucia",
+        "postcode": "80184"
+      },
+      "gps_coordinates": "42.294402, -42.727868",
+      "directions": "Located behind Carr Ltd",
+      "city": "Jacksonchester",
+      "country": "Saint Lucia"
+    },
+    "contact_person": "Kathleen Lyons",
+    "bio": "Established in 1993, we specialize in Intuitive leadingedge Internet solution",
+    "website": "https://hines.com",
+    "languages": [
+      "de",
+      "fr",
+      "en"
+    ],
+    "mailing_list": "howardrebecca@lists.vasquez-baker.org",
+    "images": [
+      "images/certain.jpg",
+      "images/child.jpg",
+      "images/deal.jpg"
+    ],
+    "contact": {
+      "landline": "+1-329-639-2590",
+      "mobile": "+1-688-803-2800",
+      "email": "info@white.com",
+      "whatsapp": "+1-865-253-7374"
+    },
+    "social_media": {
+      "twitter": "@vanessa10",
+      "instagram": "@michaelramirez",
+      "other_urls": [
+        "https://curry-nichols.info",
+        "https://scott.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-20:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2005-10-04",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "VTC-20",
+      "serial_number": "SN810226",
+      "condition": "Good",
+      "notes": "Equipment notes: Spring force data list strong executive allow.",
+      "quantity": 1,
+      "throughput": "25 parts/hour",
+      "power_rating": 4511,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2368",
+              "street": "Jones Forge",
+              "city": "South Elizabethborough",
+              "region": "North Carolina",
+              "country": "Colombia",
+              "postcode": "44222"
+            },
+            "gps_coordinates": "52.587138, -103.290716",
+            "directions": "Located near Crawford Inc",
+            "city": "South Elizabethborough",
+            "country": "Colombia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "212",
+              "street": "Walters Pines",
+              "city": "New Rebecca",
+              "region": "North Dakota",
+              "country": "Aruba",
+              "postcode": "74267"
+            },
+            "gps_coordinates": "51.915982, 8.411599",
+            "directions": "Located across from Baker Ltd",
+            "city": "New Rebecca",
+            "country": "Aruba"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5399",
+              "street": "Christopher Knolls",
+              "city": "South Sherrifurt",
+              "region": "South Dakota",
+              "country": "Bolivia",
+              "postcode": "16881"
+            },
+            "gps_coordinates": "45.618194, -3.266352",
+            "directions": "Located across from Wilson Group",
+            "city": "South Sherrifurt",
+            "country": "Bolivia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8102",
+              "street": "Flores Expressway",
+              "city": "Amandatown",
+              "region": "Alabama",
+              "country": "Jamaica",
+              "postcode": "31998"
+            },
+            "gps_coordinates": "54.511916, 5.612676",
+            "directions": "Located behind Matthews-Wilson",
+            "city": "Amandatown",
+            "country": "Jamaica"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Wood",
+          "Aluminum",
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "32 minutes",
+          "cycle_time": "27 minutes",
+          "changeover_time": "15 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 723",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand B",
+      "model": "Model 673",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1504,
+  "storage_capacity": "976 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "Visionary scalable firmware",
+    "Seamless content-based system engine"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "school",
+      "and"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 42
+  },
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "Seamless hybrid forecast",
+      "Up-sized optimizing customer loyalty"
+    ],
+    "services": [
+      "Managed composite frame",
+      "De-engineered solution-oriented architecture",
+      "Intuitive systematic encoding",
+      "Monitored zero-defect product",
+      "Multi-channeled eco-centric service-desk"
+    ],
+    "footfall": 99,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:09:40.822631",
+    "created_by": {
+      "name": "Bryant, Smith and Weaver",
+      "location": {
+        "address": {
+          "number": "5213",
+          "street": "Angela Stravenue",
+          "city": "Kaitlinhaven",
+          "region": "Iowa",
+          "country": "Tonga",
+          "postcode": "34392"
+        },
+        "gps_coordinates": "29.748574, 37.291137",
+        "directions": "Located behind Ortiz, Wright and Brady",
+        "city": "Kaitlinhaven",
+        "country": "Tonga"
+      },
+      "contact_person": "David Perkins",
+      "bio": "Established in 1996, we specialize in Proactive secondary productivity",
+      "website": "https://lambert.info",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "mailing_list": "wellsjames@lists.williams.com",
+      "images": [
+        "images/stay.jpg"
+      ],
+      "contact": {
+        "landline": "+1-766-398-4831",
+        "mobile": "+1-312-352-9343",
+        "email": "info@rivera.net",
+        "whatsapp": "+1-963-803-6901"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/qgardner",
+        "twitter": "@ktorres",
+        "other_urls": [
+          "https://mendez.com",
+          "https://bradford.com"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

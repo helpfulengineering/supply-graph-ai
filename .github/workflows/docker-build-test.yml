@@ -68,10 +68,10 @@ jobs:
       - name: Test metrics endpoint
         run: |
           # Test JSON metrics
-          curl -f http://localhost:8001/api/utility/metrics?format=json
+          curl -f http://localhost:8001/v1/api/utility/metrics?format=json
           
           # Test Prometheus metrics
-          curl -f http://localhost:8001/api/utility/metrics?format=prometheus
+          curl -f http://localhost:8001/v1/api/utility/metrics?format=prometheus
 
       - name: Check container logs
         if: failure()

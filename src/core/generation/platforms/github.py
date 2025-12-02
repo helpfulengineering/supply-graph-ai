@@ -73,7 +73,25 @@ class GitHubExtractor(ProjectExtractor):
                 GitHubExtractor._auth_message_printed = True
         
         # Caching configuration
-        self.cache_dir = Path(cache_dir) if cache_dir else Path.home() / ".cache" / "supply-graph-ai" / "github"
+        # Use provided cache_dir, or environment variable, or fall back to /tmp in containers
+        if cache_dir:
+            self.cache_dir = Path(cache_dir)
+        else:
+            cache_dir_env = os.getenv("CACHE_DIR")
+            if cache_dir_env:
+                self.cache_dir = Path(cache_dir_env) / "supply-graph-ai" / "github"
+            else:
+                # Try home directory first, fall back to /tmp if home doesn't exist (e.g., in containers)
+                try:
+                    home_dir = Path.home()
+                    if home_dir.exists():
+                        self.cache_dir = home_dir / ".cache" / "supply-graph-ai" / "github"
+                    else:
+                        self.cache_dir = Path("/tmp") / ".cache" / "supply-graph-ai" / "github"
+                except (RuntimeError, OSError):
+                    # If Path.home() fails (e.g., no home directory), use /tmp
+                    self.cache_dir = Path("/tmp") / ".cache" / "supply-graph-ai" / "github"
+        
         self.cache_dir.mkdir(parents=True, exist_ok=True)
     
     def _load_github_token_from_env(self) -> Optional[str]:

@@ -471,7 +471,7 @@ async def status(ctx, verbose: bool, output_format: str, use_llm: bool,
       ome system ping
       
       # Ping specific port with custom timeout
-      ome system ping --port 8080 --timeout 10
+      ome system ping --port 8001 --timeout 10
       
       # Use LLM for enhanced analysis
       ome system ping --use-llm

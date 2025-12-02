@@ -15,6 +15,7 @@ from .okw import okw_group
 from .match import match_group
 from .system import system_group
 from .utility import utility_group
+from .storage import storage_group
 
 # Conditional LLM import - only load if LLM is enabled
 try:
@@ -94,6 +95,7 @@ if LLM_AVAILABLE and llm_group:
     cli.add_command(llm_group, name='llm')
 cli.add_command(system_group, name='system')
 cli.add_command(utility_group, name='utility')
+cli.add_command(storage_group, name='storage')
 
 
 @cli.command()

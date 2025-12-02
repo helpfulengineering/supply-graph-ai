@@ -1,0 +1,390 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "5c8e5be8-848c-4f8a-a9cb-3158a867e423",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/walkerjuan/sheet-metal-enclosure",
+  "version": "1.7.1",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Andrew Hobbs",
+    "email": "derekburns@example.org",
+    "affiliation": "Rose Ltd",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "davidvelazquez"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for About score enjoy happy major structure meet across.",
+  "intended_use": "Run challenge tell surface better training.",
+  "keywords": [
+    "prototype",
+    "documented",
+    "mount",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Alexander Henderson",
+    "email": "alejandromartinez@example.org",
+    "affiliation": "Smith-Moreno",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "lvelez"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Catherine Wilson MD",
+      "email": "pgill@example.net",
+      "affiliation": "Rogers, Yates and Stanley",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "garrettjennings"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Tanner-Moran",
+    "url": "https://preston.com",
+    "email": "contact@sullivan.org"
+  },
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/david58/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/dadams/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/unelson/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/jodicooper/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/katie20/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/pagevincent/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/andrew97/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/davidlowery/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/susan02/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/frank55/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/moralesjeffrey/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/ronaldevans/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.8"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Pliers",
+    "Heat shrink",
+    "Welder",
+    "Punch press",
+    "Wrench set",
+    "Screwdriver set",
+    "Grinder"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 95.81,
+      "unit": "m²",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 935.7,
+      "unit": "kg",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 252.08,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 267,
+      "width": 87,
+      "height": 39
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Both computer drive of."
+  },
+  "bom": "https://github.com/hunterjonathan/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "ff653925-893b-4722-90dc-58445b257237",
+      "source": [
+        "https://github.com/krystalking/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/katherinewright/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/elizabethgreen/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/crystal25/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 77,
+        "width": 68,
+        "height": 25
+      },
+      "mass": 841.71,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "6613a212-04ef-4ec9-b57c-052c4b401da9",
+      "source": [
+        "https://github.com/blakehall/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/lisacooley/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/peterbridges/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/andrew77/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 190,
+        "width": 156,
+        "height": 76
+      },
+      "mass": 952.79,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "cafc3c3b-9c6d-4f6b-af6c-977c956ee11c",
+      "source": [
+        "https://github.com/fcarter/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/ewatson/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/aprilmorse/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/bobby09/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": {
+        "length": 87,
+        "width": 182,
+        "height": 87
+      },
+      "mass": 407.96,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "bd619788-e3ee-4c6e-8bf7-8d5f261e7b1b",
+      "source": [
+        "https://github.com/joshuaelliott/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/angela52/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/lorrainehansen/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/pmonroe/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 88,
+        "width": 17,
+        "height": 92
+      },
+      "mass": 717.27,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "12d24fd6-b891-4387-8dc6-fef5ff7d92ac",
+      "source": [
+        "https://github.com/patricia18/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/haley79/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/josephmiller/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/nealwilliam/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 31,
+        "width": 93,
+        "height": 16
+      },
+      "mass": 40.69,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,536 @@
+{
+  "id": "f8e1d1e0-545a-48e6-b3e8-547216e48d12",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "9555",
+      "street": "Willie Common",
+      "city": "Lewisbury",
+      "region": "Delaware",
+      "country": "Congo",
+      "postcode": "81257"
+    },
+    "gps_coordinates": "49.711196, -83.720783",
+    "directions": "Located behind Simmons, Diaz and Ray",
+    "city": "Lewisbury",
+    "country": "Congo"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Woodard-Hughes",
+    "location": {
+      "address": {
+        "number": "8573",
+        "street": "Jenna Club",
+        "city": "Amandaview",
+        "region": "Wisconsin",
+        "country": "China",
+        "postcode": "62016"
+      },
+      "gps_coordinates": "43.684502, -120.879264",
+      "directions": "Located across from Howard LLC",
+      "city": "Amandaview",
+      "country": "China"
+    },
+    "contact_person": "Jodi Buckley",
+    "bio": "Established in 2014, we specialize in Innovative well-modulated adapter",
+    "website": "https://lopez-gonzalez.com",
+    "languages": [
+      "de",
+      "en"
+    ],
+    "mailing_list": "shawkatherine@lists.king.info",
+    "contact": {
+      "landline": "+1-609-493-7662",
+      "mobile": "+1-909-655-3959",
+      "email": "info@berg.com",
+      "whatsapp": "+1-478-990-3075"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://riley.biz",
+        "https://tanner.info"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Weaver Group",
+    "location": {
+      "address": {
+        "number": "5784",
+        "street": "Daniel Center",
+        "city": "East Jennifer",
+        "region": "Oregon",
+        "country": "Hong Kong",
+        "postcode": "87230"
+      },
+      "gps_coordinates": "42.469174, -56.494752",
+      "directions": "Located behind Benitez and Sons",
+      "city": "East Jennifer",
+      "country": "Hong Kong"
+    },
+    "contact_person": "Jessica Lara",
+    "bio": "Established in 1998, we specialize in Persistent 24/7 architecture",
+    "website": "https://payne.com",
+    "languages": [
+      "de"
+    ],
+    "mailing_list": "nhendrix@lists.faulkner-dean.net",
+    "images": [
+      "images/officer.jpg",
+      "images/force.jpg"
+    ],
+    "contact": {
+      "landline": "+1-612-945-8300",
+      "mobile": "+1-880-849-1244",
+      "email": "info@wise.com",
+      "whatsapp": "+1-521-623-7394"
+    },
+    "social_media": {
+      "twitter": "@hansenalexander",
+      "instagram": "@martincruz",
+      "other_urls": [
+        "https://hernandez-miller.com",
+        "https://harris-roberson.net"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-19:00",
+  "description": "Public makerspace with basic fabrication equipment",
+  "date_founded": "2009-03-19",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "Ender 3",
+      "serial_number": "SN998837",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Off letter small consumer anything trip develop.",
+      "quantity": 3,
+      "throughput": "64 parts/hour",
+      "power_rating": 8940,
+      "maintenance_schedule": "Every 6 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3079",
+              "street": "Mcfarland Haven",
+              "city": "Barneschester",
+              "region": "Idaho",
+              "country": "Central African Republic",
+              "postcode": "35580"
+            },
+            "gps_coordinates": "40.655264, 18.379299",
+            "directions": "Located behind Robles Inc",
+            "city": "Barneschester",
+            "country": "Central African Republic"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5513",
+              "street": "Paul Rapids",
+              "city": "South Kiara",
+              "region": "Pennsylvania",
+              "country": "British Virgin Islands",
+              "postcode": "49164"
+            },
+            "gps_coordinates": "66.739209, -64.355301",
+            "directions": "Located behind Miller PLC",
+            "city": "South Kiara",
+            "country": "British Virgin Islands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3345",
+              "street": "Tran Trace",
+              "city": "New Amanda",
+              "region": "Texas",
+              "country": "Antarctica (the territory South of 60 deg S)",
+              "postcode": "47404"
+            },
+            "gps_coordinates": "43.57801, 22.381534",
+            "directions": "Located behind Johnson-Schultz",
+            "city": "New Amanda",
+            "country": "Antarctica (the territory South of 60 deg S)"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "1157",
+              "street": "Howell Bypass",
+              "city": "Larsonburgh",
+              "region": "Florida",
+              "country": "Kyrgyz Republic",
+              "postcode": "61824"
+            },
+            "gps_coordinates": "28.976258, 17.172796",
+            "directions": "Located near Smith Ltd",
+            "city": "Larsonburgh",
+            "country": "Kyrgyz Republic"
+          }
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.8,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "PLA",
+          "PETG",
+          "TPU"
+        ],
+        "process_parameters": {
+          "setup_time": "37 minutes",
+          "cycle_time": "6 minutes",
+          "changeover_time": "38 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "Fusion Pro",
+      "serial_number": "SN102441",
+      "condition": "Good",
+      "notes": "Equipment notes: Better under at stop though.",
+      "quantity": 4,
+      "throughput": "66 parts/hour",
+      "power_rating": 5568,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3091",
+              "street": "Zachary Rapid",
+              "city": "North Brian",
+              "region": "South Dakota",
+              "country": "Myanmar",
+              "postcode": "69095"
+            },
+            "gps_coordinates": "29.57151, -98.008737",
+            "directions": "Located near Walls, Fowler and Harris",
+            "city": "North Brian",
+            "country": "Myanmar"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9731",
+              "street": "James Orchard",
+              "city": "Butlerville",
+              "region": "Rhode Island",
+              "country": "Nauru",
+              "postcode": "01045"
+            },
+            "gps_coordinates": "50.781183, -119.918107",
+            "directions": "Located across from Owens-Williams",
+            "city": "Butlerville",
+            "country": "Nauru"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "652",
+              "street": "Bradley Flats",
+              "city": "Veronicafort",
+              "region": "Connecticut",
+              "country": "Burkina Faso",
+              "postcode": "83705"
+            },
+            "gps_coordinates": "30.860483, -38.1728",
+            "directions": "Located near Moody, Contreras and Cunningham",
+            "city": "Veronicafort",
+            "country": "Burkina Faso"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6782",
+              "street": "Troy Bridge",
+              "city": "Madisonmouth",
+              "region": "Rhode Island",
+              "country": "Maldives",
+              "postcode": "36127"
+            },
+            "gps_coordinates": "59.058465, -76.774621",
+            "directions": "Located near Nelson Ltd",
+            "city": "Madisonmouth",
+            "country": "Maldives"
+          }
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Wood",
+          "Acrylic"
+        ],
+        "process_parameters": {
+          "setup_time": "65 minutes",
+          "cycle_time": "52 minutes",
+          "changeover_time": "22 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Onefinity",
+      "model": "XXL",
+      "serial_number": "SN123113",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Current hotel collection resource card recent.",
+      "quantity": 5,
+      "throughput": "5 parts/hour",
+      "power_rating": 8564,
+      "maintenance_schedule": "Every 9 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "664",
+              "street": "Robert Glens",
+              "city": "Charlesmouth",
+              "region": "Louisiana",
+              "country": "Peru",
+              "postcode": "30813"
+            },
+            "gps_coordinates": "47.299683, 34.218528",
+            "directions": "Located across from Wright, Knight and Wells",
+            "city": "Charlesmouth",
+            "country": "Peru"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5379",
+              "street": "Wheeler Mews",
+              "city": "Anthonybury",
+              "region": "Michigan",
+              "country": "Saint Barthelemy",
+              "postcode": "36216"
+            },
+            "gps_coordinates": "69.816443, -0.500573",
+            "directions": "Located across from Luna-Reed",
+            "city": "Anthonybury",
+            "country": "Saint Barthelemy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "1643",
+              "street": "Fields Lane",
+              "city": "Boydview",
+              "region": "Tennessee",
+              "country": "Moldova",
+              "postcode": "96301"
+            },
+            "gps_coordinates": "54.632326, -91.183188",
+            "directions": "Located near Brewer LLC",
+            "city": "Boydview",
+            "country": "Moldova"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5677",
+              "street": "Rodriguez Ville",
+              "city": "East Michaelton",
+              "region": "North Dakota",
+              "country": "Heard Island and McDonald Islands",
+              "postcode": "34070"
+            },
+            "gps_coordinates": "56.527254, -5.442991",
+            "directions": "Located near Arnold and Sons",
+            "city": "East Michaelton",
+            "country": "Heard Island and McDonald Islands"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 1200,
+      "detailed_capabilities": {
+        "tolerance": "±0.1mm",
+        "spindle_speed": "5000-24000 RPM",
+        "feed_rate": "100-5000 mm/min",
+        "tool_diameter": "0.5-25mm",
+        "cutting_depth": "0.1-50mm",
+        "tolerance_range": "±0.1mm",
+        "supported_materials": [
+          "Foam",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "41 minutes",
+          "cycle_time": "38 minutes",
+          "changeover_time": "38 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1628,
+  "storage_capacity": "551 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Basic Safety"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Triple-buffered secondary adapter",
+    "Horizontal tertiary migration"
+  ],
+  "human_capacity": {
+    "headcount": 11
+  },
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "User-friendly stable challenge",
+      "Sharable tertiary monitoring",
+      "Managed fresh-thinking methodology",
+      "Automated zero tolerance open architecture",
+      "Cross-platform intermediate data-warehouse"
+    ],
+    "services": [
+      "Compatible uniform groupware",
+      "Fundamental eco-centric instruction set",
+      "Right-sized well-modulated paradigm",
+      "Horizontal human-resource frame",
+      "Automated national function"
+    ],
+    "footfall": 29
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.142654",
+    "created_by": {
+      "name": "Miller Group",
+      "location": {
+        "address": {
+          "number": "1914",
+          "street": "Gabrielle Isle",
+          "city": "Lyonsbury",
+          "region": "Nevada",
+          "country": "Palestinian Territory",
+          "postcode": "86824"
+        },
+        "gps_coordinates": "56.218665, -48.787046",
+        "directions": "Located across from Cole, Mcdaniel and Ball",
+        "city": "Lyonsbury",
+        "country": "Palestinian Territory"
+      },
+      "contact_person": "Samantha Lee",
+      "bio": "Established in 2006, we specialize in Synergistic dedicated architecture",
+      "website": "https://evans-warren.com",
+      "languages": [
+        "de",
+        "fr",
+        "en"
+      ],
+      "mailing_list": "hailey93@lists.martin.net",
+      "contact": {
+        "landline": "+1-536-263-7658",
+        "mobile": "+1-355-489-2457",
+        "email": "info@humphrey.com",
+        "whatsapp": "+1-629-744-1495"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/williamsedward",
+        "twitter": "@fhogan",
+        "instagram": "@qwarren",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

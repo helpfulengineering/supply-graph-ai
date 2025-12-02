@@ -67,6 +67,26 @@ async def lifespan(app: FastAPI):
         storage_service = await StorageService.get_instance()
         await storage_service.configure(settings.STORAGE_CONFIG)
         
+        # Ensure directory structure exists (lazy initialization)
+        # This allows the application to self-bootstrap on first run
+        try:
+            from ..storage.organizer import StorageOrganizer
+            organizer = StorageOrganizer(storage_service.manager)
+            # Check if structure exists by looking for a known placeholder
+            try:
+                await storage_service.manager.get_object("okh/manifests/.gitkeep")
+                logger.debug("Storage directory structure already exists")
+            except FileNotFoundError:
+                logger.info("Storage directory structure not found, creating it...")
+                result = await organizer.create_directory_structure()
+                logger.info(f"Created {result['total_created']} directories in storage")
+        except Exception as e:
+            # Log but don't fail startup - directory structure is not critical
+            logger.warning(
+                f"Failed to ensure directory structure exists: {e}. Continuing startup...",
+                exc_info=True  # Include full traceback for debugging
+            )
+        
         # Initialize authentication service
         logger.info("Initializing authentication service")
         await AuthenticationService.get_instance()

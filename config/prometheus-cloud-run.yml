@@ -1,0 +1,34 @@
+# Prometheus configuration for scraping supply-graph-ai metrics from Cloud Run
+# This config can be used with Prometheus running locally, in GKE, or as a Cloud Run service
+
+global:
+  scrape_interval: 15s      # How frequently to scrape targets
+  evaluation_interval: 15s  # How frequently to evaluate rules
+  external_labels:
+    environment: 'cloud-run'
+    project: 'supply-graph-ai'
+
+# Scrape configurations
+scrape_configs:
+  # Scrape the supply-graph-ai API metrics endpoint on Cloud Run
+  - job_name: 'supply-graph-ai-cloud-run'
+    scrape_interval: 15s
+    metrics_path: '/v1/api/utility/metrics'
+    params:
+      format: ['prometheus']
+    scheme: 'https'  # Cloud Run uses HTTPS
+    static_configs:
+      # Target Cloud Run service URL (without https://)
+      # This will be substituted by the entrypoint script if TARGET_SERVICE_URL is set
+      - targets: ['supply-graph-ai-1085931013579.us-west1.run.app']
+        labels:
+          service: 'supply-graph-ai'
+          environment: 'cloud-run'
+          region: 'us-west1'
+    # Optional: Add authentication if your Cloud Run service requires it
+    # basic_auth:
+    #   username: 'your-username'
+    #   password: 'your-password'
+    # Or use bearer token:
+    # bearer_token: 'your-bearer-token'
+

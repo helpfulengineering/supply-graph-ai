@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Path, Depends, Request, status, HTTPException, Response
+from fastapi import APIRouter, Path, Query, Depends, Request, status, HTTPException, Response
 from typing import Optional, List, Any
 from datetime import datetime
 
@@ -152,7 +152,7 @@ async def get_domains(
         )
 
 @router.get(
-    "/contexts/{domain}", 
+    "/contexts", 
     response_model=ContextsResponse,
     summary="List Validation Contexts",
     description="""
@@ -173,7 +173,7 @@ async def get_domains(
     track_costs=True
 )
 async def get_contexts(
-    domain: str = Path(..., title="The domain to get contexts for"),
+    domain: str = Query(..., title="The domain to get contexts for", description="Domain name (e.g., 'manufacturing', 'cooking')"),
     filter_params: ContextFilterRequest = Depends(),
     http_request: Request = None
 ):

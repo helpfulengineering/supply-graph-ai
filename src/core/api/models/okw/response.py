@@ -111,7 +111,7 @@ class OKWExportResponse(BaseModel):
     # Required fields first
     success: bool
     message: str
-    schema: Dict[str, Any]
+    json_schema: Dict[str, Any]  # Renamed from 'schema' to avoid shadowing BaseModel.schema
     
     # Optional fields after
     schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"

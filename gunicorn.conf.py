@@ -6,8 +6,20 @@ import os
 
 # Server socket
 # Support PORT env var (Cloud Run) and API_PORT (backward compatibility)
-port = os.getenv('PORT') or os.getenv('API_PORT', '8001')
+# Cloud Run sets PORT=8080, so we prioritize PORT over API_PORT
+port_env = os.getenv('PORT')
+api_port_env = os.getenv('API_PORT')
+port = port_env or api_port_env or '8001'
+# Ensure port is a string for the bind address
+port = str(port) if port else '8001'
 bind = f"0.0.0.0:{port}"
+
+# Debug output (will appear in Gunicorn startup logs)
+print(f"[Gunicorn Config] PORT env var: {port_env}")
+print(f"[Gunicorn Config] API_PORT env var: {api_port_env}")
+print(f"[Gunicorn Config] Using port: {port}")
+print(f"[Gunicorn Config] Binding to: {bind}")
+
 backlog = 2048
 
 # Worker processes
@@ -35,8 +47,10 @@ proc_name = 'open-matching-engine'
 # Server mechanics
 daemon = False
 pidfile = '/tmp/gunicorn.pid'
-user = 'ome'
-group = 'ome'
+# Note: user/group are set in Dockerfile (USER ome), so we don't need to set them here
+# If we're already running as the correct user, Gunicorn will skip privilege dropping
+# user = 'ome'  # Commented out - already running as ome user in container
+# group = 'ome'  # Commented out - already running as ome user in container
 tmp_upload_dir = None
 
 # SSL (if needed)

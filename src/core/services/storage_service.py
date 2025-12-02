@@ -181,6 +181,10 @@ class StorageService:
         
         try:
             async for obj in self.manager.list_objects(prefix="supply-trees/"):
+                # Skip .gitkeep and other non-JSON files
+                if not obj["key"].endswith('.json'):
+                    continue
+                
                 if offset and count < offset:
                     count += 1
                     continue

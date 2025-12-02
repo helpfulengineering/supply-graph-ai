@@ -1,0 +1,333 @@
+{
+  "id": "aabaec6c-f5c1-415c-9efb-461c14a9dd20",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "5372",
+      "street": "Brown Court",
+      "city": "Martineztown",
+      "region": "Pennsylvania",
+      "country": "Anguilla",
+      "postcode": "72602"
+    },
+    "gps_coordinates": "54.774189, -37.827771",
+    "directions": "Located behind Charles Inc",
+    "city": "Martineztown",
+    "country": "Anguilla"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Hayes-Jenkins",
+    "location": {
+      "address": {
+        "number": "9127",
+        "street": "Christopher Stream",
+        "city": "Morganview",
+        "region": "Louisiana",
+        "country": "Burkina Faso",
+        "postcode": "35890"
+      },
+      "gps_coordinates": "53.489526, -1.962239",
+      "directions": "Located behind Roy Group",
+      "city": "Morganview",
+      "country": "Burkina Faso"
+    },
+    "contact_person": "Rodney Black",
+    "bio": "Established in 1991, we specialize in Vision-oriented methodical function",
+    "website": "https://reyes.com",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "mailing_list": "youngricardo@lists.hammond-rogers.info",
+    "images": [
+      "images/forward.jpg",
+      "images/hour.jpg",
+      "images/role.jpg"
+    ],
+    "contact": {
+      "landline": "+1-233-459-7212",
+      "mobile": "+1-956-661-6149",
+      "email": "info@smith.biz",
+      "whatsapp": "+1-704-974-9384"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/sburns",
+      "twitter": "@dylan88",
+      "instagram": "@rosejulia",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Mccoy Group",
+    "location": {
+      "address": {
+        "number": "1992",
+        "street": "Jose Hill",
+        "city": "South Pamelaborough",
+        "region": "Michigan",
+        "country": "Northern Mariana Islands",
+        "postcode": "38312"
+      },
+      "gps_coordinates": "46.271354, -80.118546",
+      "directions": "Located near Ortiz LLC",
+      "city": "South Pamelaborough",
+      "country": "Northern Mariana Islands"
+    },
+    "contact_person": "Mrs. Megan Obrien",
+    "bio": "Established in 1994, we specialize in Reduced regional policy",
+    "website": "https://hess.com",
+    "languages": [
+      "es"
+    ],
+    "mailing_list": "katrina63@lists.hernandez-le.info",
+    "images": [
+      "images/election.jpg",
+      "images/reveal.jpg",
+      "images/spring.jpg"
+    ],
+    "contact": {
+      "landline": "+1-416-530-9326",
+      "mobile": "+1-936-340-5932",
+      "email": "info@perez-king.com",
+      "whatsapp": "+1-979-840-3323"
+    },
+    "social_media": {
+      "twitter": "@jeremiah65",
+      "other_urls": [
+        "https://raymond.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-18:00",
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "2012-08-28",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "VTC-20",
+      "serial_number": "SN834948",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Agent cause director special project imagine opportunity tend.",
+      "quantity": 1,
+      "throughput": "59 parts/hour",
+      "power_rating": 3065,
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "6490",
+              "street": "Harrison Highway",
+              "city": "Bergville",
+              "region": "North Carolina",
+              "country": "Brazil",
+              "postcode": "76709"
+            },
+            "gps_coordinates": "65.502243, -8.542004",
+            "directions": "Located across from Riley, Hardy and Henson",
+            "city": "Bergville",
+            "country": "Brazil"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8921",
+              "street": "Rios Heights",
+              "city": "Donaldsonburgh",
+              "region": "Oregon",
+              "country": "Albania",
+              "postcode": "60330"
+            },
+            "gps_coordinates": "65.550312, -28.665817",
+            "directions": "Located behind Long Ltd",
+            "city": "Donaldsonburgh",
+            "country": "Albania"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1890",
+              "street": "Charles Park",
+              "city": "Andradeborough",
+              "region": "New Jersey",
+              "country": "Japan",
+              "postcode": "02308"
+            },
+            "gps_coordinates": "48.846447, -89.789186",
+            "directions": "Located behind Williams Group",
+            "city": "Andradeborough",
+            "country": "Japan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9142",
+              "street": "Garcia Hill",
+              "city": "New Davidbury",
+              "region": "Nebraska",
+              "country": "Oman",
+              "postcode": "28559"
+            },
+            "gps_coordinates": "34.073817, -55.408966",
+            "directions": "Located across from Willis-Richards",
+            "city": "New Davidbury",
+            "country": "Oman"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Wood",
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "104 minutes",
+          "cycle_time": "14 minutes",
+          "changeover_time": "36 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 603",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 914",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 418",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 2421,
+  "storage_capacity": "807 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Implemented zero-defect implementation",
+    "Secured client-driven hierarchy",
+    "Automated tertiary Graphical User Interface",
+    "Operative background firmware",
+    "Extended logistical portal"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Both there avoid reduce or million."
+  },
+  "human_capacity": {
+    "headcount": 30
+  },
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "Streamlined didactic time-frame",
+      "Synergized didactic algorithm",
+      "Versatile heuristic migration"
+    ],
+    "services": [
+      "Optional directional moderator",
+      "Re-contextualized homogeneous superstructure",
+      "Mandatory clear-thinking data-warehouse",
+      "Upgradable systemic workforce"
+    ],
+    "footfall": 18
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:09:40.805538",
+    "created_by": {
+      "name": "Franklin-Parrish",
+      "location": {
+        "address": {
+          "number": "5213",
+          "street": "Martin Cove",
+          "city": "Parkermouth",
+          "region": "Oklahoma",
+          "country": "Samoa",
+          "postcode": "37035"
+        },
+        "gps_coordinates": "40.004252, -48.207508",
+        "directions": "Located across from Nunez, Brown and Evans",
+        "city": "Parkermouth",
+        "country": "Samoa"
+      },
+      "contact_person": "Rebecca Miles",
+      "bio": "Established in 1993, we specialize in Horizontal background hardware",
+      "website": "https://nelson-smith.com",
+      "languages": [
+        "en"
+      ],
+      "mailing_list": "johnsonchristopher@lists.mcmahon.biz",
+      "contact": {
+        "landline": "+1-418-531-1435",
+        "mobile": "+1-247-237-1154",
+        "email": "info@meyers.info",
+        "whatsapp": "+1-867-657-7188"
+      },
+      "social_media": {
+        "instagram": "@brownstephanie",
+        "other_urls": [
+          "https://smith.com"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

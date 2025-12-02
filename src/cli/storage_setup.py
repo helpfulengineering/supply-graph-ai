@@ -5,9 +5,13 @@ This module provides CLI commands for setting up and managing the storage system
 """
 
 import asyncio
+import json
+import os
+from pathlib import Path
+from typing import Optional, Dict, Any
 from uuid import uuid4
 
-from ..config.storage_config import create_storage_config
+from ..config.storage_config import StorageConfig, create_storage_config, StorageConfigError
 from ..core.storage.manager import StorageManager
 from ..core.storage.organizer import StorageOrganizer
 from ..core.storage.smart_discovery import SmartFileDiscovery
@@ -17,11 +21,32 @@ from src.core.utils.logging import get_logger
 
 logger = get_logger(__name__)
 
-async def setup_storage_structure():
-    """Set up the organized directory structure in storage"""
+async def setup_storage_structure(
+    provider: str = "local",
+    bucket_name: Optional[str] = None,
+    region: Optional[str] = None,
+    credentials: Optional[Dict[str, str]] = None
+):
+    """Set up the organized directory structure in storage
+    
+    Args:
+        provider: Storage provider (local, gcs, azure_blob, aws_s3)
+        bucket_name: Bucket/container name (required for cloud providers)
+        region: Region/location for cloud providers
+        credentials: Optional credentials dict (if not using env vars)
+    """
     try:
-        # Initialize storage service with local storage
-        storage_config = create_storage_config("local", "storage")
+        # Create storage config
+        if credentials:
+            storage_config = StorageConfig(
+                provider=provider,
+                bucket_name=bucket_name or "storage",
+                region=region,
+                credentials=credentials
+            )
+        else:
+            storage_config = create_storage_config(provider, bucket_name, region)
+        
         storage_service = await StorageService.get_instance()
         await storage_service.configure(storage_config)
         
@@ -32,6 +57,8 @@ async def setup_storage_structure():
         result = await organizer.create_directory_structure()
         
         print("✅ Storage directory structure created successfully!")
+        print(f"Provider: {provider}")
+        print(f"Bucket: {storage_config.bucket_name}")
         print(f"Created {result['total_created']} directories:")
         for directory in result['created_directories']:
             print(f"  - {directory}")
@@ -71,6 +98,97 @@ async def test_smart_discovery():
     except Exception as e:
         logger.error(f"Failed to test smart discovery: {e}")
         print(f"❌ Failed to test smart discovery: {e}")
+        raise
+
+async def populate_synthetic_data(
+    provider: str = "local",
+    bucket_name: Optional[str] = None,
+    region: Optional[str] = None,
+    credentials: Optional[Dict[str, str]] = None,
+    data_dir: Optional[str] = None
+):
+    """Populate storage with synthetic data from synth/synthetic-data/
+    
+    Args:
+        provider: Storage provider (local, gcs, azure_blob, aws_s3)
+        bucket_name: Bucket/container name (required for cloud providers)
+        region: Region/location for cloud providers
+        credentials: Optional credentials dict (if not using env vars)
+        data_dir: Path to synthetic data directory (defaults to synth/synthetic-data/)
+    """
+    try:
+        # Create storage config
+        if credentials:
+            storage_config = StorageConfig(
+                provider=provider,
+                bucket_name=bucket_name or "storage",
+                region=region,
+                credentials=credentials
+            )
+        else:
+            storage_config = create_storage_config(provider, bucket_name, region)
+        
+        storage_service = await StorageService.get_instance()
+        await storage_service.configure(storage_config)
+        
+        # Create organizer
+        organizer = StorageOrganizer(storage_service.manager)
+        
+        # Determine data directory
+        if data_dir is None:
+            # Default to synth/synthetic-data/ relative to project root
+            project_root = Path(__file__).parent.parent.parent.parent
+            data_dir = project_root / "synth" / "synthetic-data"
+        else:
+            data_dir = Path(data_dir)
+        
+        if not data_dir.exists():
+            raise FileNotFoundError(f"Synthetic data directory not found: {data_dir}")
+        
+        print(f"📝 Populating storage with synthetic data from {data_dir}...")
+        
+        # Load and store OKH files
+        okh_files = list(data_dir.glob("*okh*.json"))
+        okw_files = list(data_dir.glob("*okw*.json"))
+        
+        stored_files = []
+        
+        for file_path in okh_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    manifest_data = json.load(f)
+                
+                # Store using organizer
+                stored_path = await organizer.store_okh_manifest(manifest_data)
+                stored_files.append(("OKH", file_path.name, stored_path))
+                print(f"  ✅ Stored OKH: {file_path.name} -> {stored_path}")
+            except Exception as e:
+                logger.error(f"Failed to store {file_path.name}: {e}")
+                print(f"  ❌ Failed to store {file_path.name}: {e}")
+        
+        for file_path in okw_files:
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    facility_data = json.load(f)
+                
+                # Store using organizer
+                stored_path = await organizer.store_okw_facility(facility_data)
+                stored_files.append(("OKW", file_path.name, stored_path))
+                print(f"  ✅ Stored OKW: {file_path.name} -> {stored_path}")
+            except Exception as e:
+                logger.error(f"Failed to store {file_path.name}: {e}")
+                print(f"  ❌ Failed to store {file_path.name}: {e}")
+        
+        print(f"\n✅ Populated {len(stored_files)} files into storage")
+        return {
+            "stored_files": stored_files,
+            "okh_count": len([f for f in stored_files if f[0] == "OKH"]),
+            "okw_count": len([f for f in stored_files if f[0] == "OKW"])
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to populate synthetic data: {e}")
+        print(f"❌ Failed to populate synthetic data: {e}")
         raise
 
 async def create_sample_data():

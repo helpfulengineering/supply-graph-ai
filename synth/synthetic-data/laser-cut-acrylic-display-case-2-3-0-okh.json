@@ -1,0 +1,287 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "aabeded5-87d0-4ae9-8f16-9c72a0927327",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/jaredgregory/laser-cut-acrylic-display-case",
+  "version": "2.3.0",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Yvette Lopez",
+    "email": "barrettjesse@example.com",
+    "affiliation": "Davidson, Harris and Carey",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jonathanross"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Affect eye personal figure.",
+  "intended_use": "Yet sister focus your inside.",
+  "keywords": [
+    "modular",
+    "customizable",
+    "housing",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Harry King",
+    "email": "ogreen@example.net",
+    "affiliation": "Brooks Ltd",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "robersonashley"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Trevor Ortega",
+      "email": "todd06@example.net",
+      "affiliation": "Kelley, Fisher and Myers",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "mirandadavis"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Taylor-Silva",
+    "url": "https://doyle.com",
+    "email": "contact@willis.com"
+  },
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/carly30/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/robertsonscott/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/mmartinez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.8"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/danielshah/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/steven24/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/vmendoza/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/perezjeanette/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/anthonyblack/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/lindsay97/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/james37/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/tony41/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/cassandramack/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.8"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Wrench set",
+    "Exhaust system",
+    "Crimping tool",
+    "Air assist",
+    "Pliers",
+    "Screwdriver set",
+    "Focus lens"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 558.98,
+      "unit": "m²",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 204.91,
+      "unit": "m²",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 875.66,
+      "unit": "m²",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 105,
+      "width": 218,
+      "height": 138
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "23W",
+          "speed": "219 mm/min",
+          "passes": 1
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Time building field question popular."
+      }
+    ],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Employee close find raise require current."
+  },
+  "bom": "https://github.com/nicole66/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "598c5369-fc04-40ec-afba-a6c1b3a6e741",
+      "source": [
+        "https://github.com/tward/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/phillipsbrandon/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/paulrodriguez/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/jthomas/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 71,
+        "width": 91,
+        "height": 37
+      },
+      "mass": 970.97,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

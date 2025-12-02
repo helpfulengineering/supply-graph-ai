@@ -29,10 +29,18 @@ start_api() {
     
     if [ "$USE_GUNICORN" = "true" ] || [ "$USE_GUNICORN" = "1" ]; then
         echo "Starting with Gunicorn (production mode)..."
+        echo "=== Port Configuration Debug ==="
+        echo "PORT env var (from Cloud Run): ${PORT:-<not set>}"
+        echo "API_PORT env var: ${API_PORT:-<not set>}"
+        # Export PORT for gunicorn.conf.py to read (Cloud Run sets PORT=8080)
+        export PORT=${PORT:-${API_PORT:-8001}}
+        echo "Final PORT value: ${PORT}"
+        echo "Gunicorn will bind to: 0.0.0.0:${PORT}"
+        echo "================================"
         # Use Gunicorn with uvicorn workers for production
+        # Note: bind address is configured in gunicorn.conf.py to use PORT env var
         exec gunicorn src.core.main:app \
             --config gunicorn.conf.py \
-            --bind "${API_HOST}:${API_PORT}" \
             --workers "${GUNICORN_WORKERS:-$(($(nproc) * 2 + 1))}" \
             --worker-class uvicorn.workers.UvicornWorker \
             --access-logfile - \

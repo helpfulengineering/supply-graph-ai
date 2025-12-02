@@ -1,0 +1,335 @@
+{
+  "id": "715632d1-314a-46e0-b86f-3e70ce0bd600",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "5722",
+      "street": "Rodriguez Underpass",
+      "city": "Hornville",
+      "region": "New Mexico",
+      "country": "Greenland",
+      "postcode": "26509"
+    },
+    "gps_coordinates": "52.794266, 29.041988",
+    "directions": "Located across from Watson-Montgomery",
+    "city": "Hornville",
+    "country": "Greenland"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Pena Ltd",
+    "location": {
+      "address": {
+        "number": "6784",
+        "street": "Durham Vista",
+        "city": "Alyssaborough",
+        "region": "New York",
+        "country": "Bahrain",
+        "postcode": "74823"
+      },
+      "gps_coordinates": "39.099095, -14.237418",
+      "directions": "Located behind Harris and Sons",
+      "city": "Alyssaborough",
+      "country": "Bahrain"
+    },
+    "contact_person": "Lisa Ruiz",
+    "bio": "Established in 2013, we specialize in Profound real-time superstructure",
+    "website": "https://tran-garrett.org",
+    "languages": [
+      "en"
+    ],
+    "mailing_list": "tward@lists.herman-bennett.com",
+    "images": [
+      "images/administration.jpg",
+      "images/including.jpg",
+      "images/international.jpg"
+    ],
+    "contact": {
+      "landline": "+1-416-689-7747",
+      "mobile": "+1-417-620-5556",
+      "email": "info@garza.info",
+      "whatsapp": "+1-229-807-9121"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/gomezjennifer",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Jackson PLC",
+    "location": {
+      "address": {
+        "number": "8741",
+        "street": "Rita Junctions",
+        "city": "Melindafort",
+        "region": "South Carolina",
+        "country": "Slovakia (Slovak Republic)",
+        "postcode": "91675"
+      },
+      "gps_coordinates": "43.378924, 17.913932",
+      "directions": "Located behind Clark Inc",
+      "city": "Melindafort",
+      "country": "Slovakia (Slovak Republic)"
+    },
+    "contact_person": "Bonnie Hall",
+    "bio": "Established in 2009, we specialize in Progressive static budgetary management",
+    "website": "https://chapman.com",
+    "languages": [
+      "en",
+      "fr",
+      "es"
+    ],
+    "mailing_list": "vanderson@lists.ellison.com",
+    "images": [
+      "images/job.jpg"
+    ],
+    "contact": {
+      "landline": "+1-636-508-9737",
+      "mobile": "+1-939-264-6537",
+      "email": "info@may.com",
+      "whatsapp": "+1-905-204-4485"
+    },
+    "social_media": {
+      "twitter": "@sarah37",
+      "instagram": "@bradfordmichele",
+      "other_urls": [
+        "https://anderson.com",
+        "https://meyer-cole.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-19:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "1992-09-13",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "PCNC 440",
+      "serial_number": "SN371681",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Consumer similar address give former experience bed.",
+      "quantity": 3,
+      "throughput": "42 parts/hour",
+      "power_rating": 2378,
+      "maintenance_schedule": "Every 6 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "941",
+              "street": "Katrina Glens",
+              "city": "New Alisonside",
+              "region": "Wisconsin",
+              "country": "Vietnam",
+              "postcode": "13698"
+            },
+            "gps_coordinates": "49.625757, 27.81427",
+            "directions": "Located behind Garcia-Weber",
+            "city": "New Alisonside",
+            "country": "Vietnam"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1451",
+              "street": "Kathleen Oval",
+              "city": "New Jessicachester",
+              "region": "Wisconsin",
+              "country": "Paraguay",
+              "postcode": "66214"
+            },
+            "gps_coordinates": "67.576244, 35.768713",
+            "directions": "Located near Brown-Lucas",
+            "city": "New Jessicachester",
+            "country": "Paraguay"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3792",
+              "street": "Richardson Pine",
+              "city": "New Christopherville",
+              "region": "Colorado",
+              "country": "South Africa",
+              "postcode": "92303"
+            },
+            "gps_coordinates": "53.550032, 28.368786",
+            "directions": "Located near Macias LLC",
+            "city": "New Christopherville",
+            "country": "South Africa"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "849",
+              "street": "Colleen Ford",
+              "city": "West Kevinport",
+              "region": "Vermont",
+              "country": "Italy",
+              "postcode": "87821"
+            },
+            "gps_coordinates": "69.12375, -43.290485",
+            "directions": "Located across from Cox Ltd",
+            "city": "West Kevinport",
+            "country": "Italy"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Steel",
+          "Plastic",
+          "Wood",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "119 minutes",
+          "cycle_time": "15 minutes",
+          "changeover_time": "32 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 686",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Generic",
+      "model": "Model 218",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2435,
+  "storage_capacity": "593 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "loading_dock": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Upgradable transitional initiative",
+    "Multi-lateral optimizing migration",
+    "Enterprise-wide mission-critical attitude",
+    "Expanded cohesive structure"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "allow",
+      "side",
+      "whether"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 32
+  },
+  "innovation_space": {
+    "staff": 9,
+    "learning_resources": [
+      "Face-to-face zero administration software",
+      "Team-oriented content-based challenge",
+      "Centralized systematic structure"
+    ],
+    "services": [
+      "Cross-platform scalable ability",
+      "Realigned local service-desk",
+      "Open-source content-based toolset",
+      "Realigned value-added forecast"
+    ],
+    "footfall": 22,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:08:23.147515",
+    "created_by": {
+      "name": "Webb-Hill",
+      "location": {
+        "address": {
+          "number": "6412",
+          "street": "Jones Alley",
+          "city": "New Diana",
+          "region": "Maryland",
+          "country": "Mexico",
+          "postcode": "07900"
+        },
+        "gps_coordinates": "40.881073, 31.904222",
+        "directions": "Located near Nash, Lewis and Marshall",
+        "city": "New Diana",
+        "country": "Mexico"
+      },
+      "contact_person": "Regina Pierce",
+      "bio": "Established in 2011, we specialize in Realigned human-resource focus group",
+      "website": "https://alvarez.biz",
+      "languages": [
+        "es",
+        "en"
+      ],
+      "mailing_list": "zburns@lists.moon.com",
+      "images": [
+        "images/fly.jpg",
+        "images/bill.jpg"
+      ],
+      "contact": {
+        "landline": "+1-934-683-3977",
+        "mobile": "+1-968-277-8188",
+        "email": "info@mcbride.org",
+        "whatsapp": "+1-896-306-3647"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/kthompson",
+        "twitter": "@gomezmark",
+        "instagram": "@gpalmer",
+        "other_urls": [
+          "https://brown.com"
+        ]
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

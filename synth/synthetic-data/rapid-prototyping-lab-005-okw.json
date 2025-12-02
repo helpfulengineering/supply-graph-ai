@@ -1,0 +1,431 @@
+{
+  "id": "1cbf633a-bac9-4ccf-9841-1cbbd5b7eb6b",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "258",
+      "street": "Zachary Valley",
+      "city": "Antoniohaven",
+      "region": "Georgia",
+      "country": "Algeria",
+      "postcode": "47618"
+    },
+    "gps_coordinates": "66.756366, 32.25778",
+    "directions": "Located across from Clarke, Kelly and Williams",
+    "city": "Antoniohaven",
+    "country": "Algeria"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Elliott-Ryan",
+    "location": {
+      "address": {
+        "number": "6379",
+        "street": "Chad Crest",
+        "city": "Smithfort",
+        "region": "Iowa",
+        "country": "Afghanistan",
+        "postcode": "08784"
+      },
+      "gps_coordinates": "63.425845, 30.278168",
+      "directions": "Located near Fisher, Lamb and Cole",
+      "city": "Smithfort",
+      "country": "Afghanistan"
+    },
+    "contact_person": "Anne Davenport",
+    "bio": "Established in 2008, we specialize in Customer-focused 6thgeneration website",
+    "website": "https://hernandez.org",
+    "languages": [
+      "fr",
+      "en",
+      "es"
+    ],
+    "mailing_list": "johnreese@lists.chambers-tran.com",
+    "images": [
+      "images/history.jpg",
+      "images/drive.jpg"
+    ],
+    "contact": {
+      "landline": "+1-541-808-5490",
+      "mobile": "+1-852-820-6678",
+      "email": "info@brown.com",
+      "whatsapp": "+1-728-390-2468"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://myers.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Brady, Camacho and Mitchell",
+    "location": {
+      "address": {
+        "number": "4795",
+        "street": "Baxter Circle",
+        "city": "West Gwendolyn",
+        "region": "Hawaii",
+        "country": "Slovakia (Slovak Republic)",
+        "postcode": "76054"
+      },
+      "gps_coordinates": "31.96743, -80.864108",
+      "directions": "Located across from Snyder Group",
+      "city": "West Gwendolyn",
+      "country": "Slovakia (Slovak Republic)"
+    },
+    "contact_person": "Lance Miller",
+    "bio": "Established in 2012, we specialize in Total coherent implementation",
+    "website": "https://barron.com",
+    "languages": [
+      "en",
+      "de",
+      "fr"
+    ],
+    "mailing_list": "ofreeman@lists.dixon.org",
+    "contact": {
+      "landline": "+1-366-298-5975",
+      "mobile": "+1-473-731-4597",
+      "email": "info@franklin-davis.org",
+      "whatsapp": "+1-954-332-2228"
+    },
+    "social_media": {
+      "twitter": "@luis88",
+      "other_urls": [
+        "https://crawford-gates.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-19:00",
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "2004-06-27",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Ultimaker",
+      "model": "i3 MK3S+",
+      "serial_number": "SN921842",
+      "condition": "Good",
+      "notes": "Equipment notes: Throughout get buy mind sea according.",
+      "quantity": 2,
+      "throughput": "32 parts/hour",
+      "power_rating": 1749,
+      "maintenance_schedule": "Every 5 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2893",
+              "street": "Bobby Lights",
+              "city": "Brandonview",
+              "region": "Alaska",
+              "country": "Cocos (Keeling) Islands",
+              "postcode": "73347"
+            },
+            "gps_coordinates": "32.420886, -49.725339",
+            "directions": "Located behind Jensen-Cummings",
+            "city": "Brandonview",
+            "country": "Cocos (Keeling) Islands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8078",
+              "street": "Samantha Well",
+              "city": "West Stephanie",
+              "region": "Nebraska",
+              "country": "Iraq",
+              "postcode": "80070"
+            },
+            "gps_coordinates": "61.870579, -53.583382",
+            "directions": "Located behind Guerrero LLC",
+            "city": "West Stephanie",
+            "country": "Iraq"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3135",
+              "street": "Jones Bypass",
+              "city": "Jenniferland",
+              "region": "North Carolina",
+              "country": "Anguilla",
+              "postcode": "83509"
+            },
+            "gps_coordinates": "49.675157, -111.286553",
+            "directions": "Located across from Sullivan PLC",
+            "city": "Jenniferland",
+            "country": "Anguilla"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3164",
+              "street": "Gates Path",
+              "city": "New Kathryn",
+              "region": "Utah",
+              "country": "Montserrat",
+              "postcode": "05629"
+            },
+            "gps_coordinates": "28.806977, -66.648647",
+            "directions": "Located near King, Mason and Scott",
+            "city": "New Kathryn",
+            "country": "Montserrat"
+          }
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.8,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "ABS",
+          "PLA",
+          "PETG",
+          "TPU"
+        ],
+        "process_parameters": {
+          "setup_time": "58 minutes",
+          "cycle_time": "12 minutes",
+          "changeover_time": "37 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 158",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VTC-20",
+      "serial_number": "SN553948",
+      "condition": "Excellent",
+      "notes": "Equipment notes: State officer outside exist concern good.",
+      "quantity": 3,
+      "throughput": "20 parts/hour",
+      "power_rating": 9331,
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4867",
+              "street": "Gomez Plains",
+              "city": "South Tamara",
+              "region": "New Jersey",
+              "country": "Philippines",
+              "postcode": "88742"
+            },
+            "gps_coordinates": "40.476982, -85.286751",
+            "directions": "Located behind Copeland-Doyle",
+            "city": "South Tamara",
+            "country": "Philippines"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5444",
+              "street": "Jason Courts",
+              "city": "Bradfordmouth",
+              "region": "Colorado",
+              "country": "United Kingdom",
+              "postcode": "29028"
+            },
+            "gps_coordinates": "32.104742, -96.58893",
+            "directions": "Located near Gonzales, Ramirez and Miller",
+            "city": "Bradfordmouth",
+            "country": "United Kingdom"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8152",
+              "street": "Garza Estates",
+              "city": "Tatetown",
+              "region": "Michigan",
+              "country": "Turkey",
+              "postcode": "33506"
+            },
+            "gps_coordinates": "59.990913, -117.843478",
+            "directions": "Located behind Clark Group",
+            "city": "Tatetown",
+            "country": "Turkey"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4592",
+              "street": "Fitzgerald Roads",
+              "city": "Sanchezstad",
+              "region": "Rhode Island",
+              "country": "Marshall Islands",
+              "postcode": "60413"
+            },
+            "gps_coordinates": "37.128757, 37.099543",
+            "directions": "Located across from Smith, White and Gordon",
+            "city": "Sanchezstad",
+            "country": "Marshall Islands"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Steel",
+          "Wood"
+        ],
+        "process_parameters": {
+          "setup_time": "17 minutes",
+          "cycle_time": "17 minutes",
+          "changeover_time": "24 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 724,
+  "storage_capacity": "387 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Research Grade"
+  ],
+  "backup_generator": true,
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Advanced methodical functionalities",
+    "Synergized 24/7 model",
+    "Open-architected high-level circuit"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "foot",
+      "listen",
+      "season"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 43
+  },
+  "innovation_space": {
+    "staff": 3,
+    "services": [
+      "Adaptive systemic methodology",
+      "Adaptive next generation portal",
+      "Distributed 24hour project",
+      "Triple-buffered bandwidth-monitored workforce"
+    ],
+    "footfall": 39,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2025-11-29T22:09:40.812405",
+    "created_by": {
+      "name": "Bond, Tate and Johnson",
+      "location": {
+        "address": {
+          "number": "6009",
+          "street": "Donald Viaduct",
+          "city": "West Andrea",
+          "region": "New Hampshire",
+          "country": "Costa Rica",
+          "postcode": "19663"
+        },
+        "gps_coordinates": "61.880835, -71.48328",
+        "directions": "Located across from Braun-Hunter",
+        "city": "West Andrea",
+        "country": "Costa Rica"
+      },
+      "contact_person": "Katelyn Benson",
+      "bio": "Established in 2018, we specialize in Front-line human-resource groupware",
+      "website": "https://coleman.info",
+      "languages": [
+        "de",
+        "fr"
+      ],
+      "mailing_list": "emily36@lists.wall.org",
+      "images": [
+        "images/seem.jpg"
+      ],
+      "contact": {
+        "landline": "+1-913-640-1748",
+        "mobile": "+1-645-606-8542",
+        "email": "info@wood.com",
+        "whatsapp": "+1-744-933-7853"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/abigail30",
+        "other_urls": [
+          "https://guerrero-leach.info"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}
