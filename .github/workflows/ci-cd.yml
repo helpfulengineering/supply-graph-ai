@@ -313,6 +313,8 @@ jobs:
           
           # Check if secrets exist and build secrets list conditionally
           SECRETS_LIST=""
+          ENV_VARS="ENVIRONMENT=production"
+          
           if gcloud secrets describe api-keys --project="${PROJECT_ID}" &>/dev/null; then
             echo "Found api-keys secret, including in deployment"
             SECRETS_LIST="API_KEYS=api-keys:latest"
@@ -329,6 +331,35 @@ jobs:
             fi
           else
             echo "llm-encryption-key secret not found, skipping (optional)"
+          fi
+          
+          # Check for LLM encryption credentials (required in production)
+          if gcloud secrets describe llm-encryption-salt --project="${PROJECT_ID}" &>/dev/null; then
+            echo "Found llm-encryption-salt secret, including in deployment"
+            if [ -n "${SECRETS_LIST}" ]; then
+              SECRETS_LIST="${SECRETS_LIST},LLM_ENCRYPTION_SALT=llm-encryption-salt:latest"
+            else
+              SECRETS_LIST="LLM_ENCRYPTION_SALT=llm-encryption-salt:latest"
+            fi
+          else
+            echo "llm-encryption-salt secret not found, will generate secure value"
+            # Generate a secure random salt (32 bytes, base64 encoded)
+            LLM_SALT=$(openssl rand -base64 32)
+            ENV_VARS="${ENV_VARS},LLM_ENCRYPTION_SALT=${LLM_SALT}"
+          fi
+          
+          if gcloud secrets describe llm-encryption-password --project="${PROJECT_ID}" &>/dev/null; then
+            echo "Found llm-encryption-password secret, including in deployment"
+            if [ -n "${SECRETS_LIST}" ]; then
+              SECRETS_LIST="${SECRETS_LIST},LLM_ENCRYPTION_PASSWORD=llm-encryption-password:latest"
+            else
+              SECRETS_LIST="LLM_ENCRYPTION_PASSWORD=llm-encryption-password:latest"
+            fi
+          else
+            echo "llm-encryption-password secret not found, will generate secure value"
+            # Generate a secure random password (32 bytes, base64 encoded)
+            LLM_PASSWORD=$(openssl rand -base64 32)
+            ENV_VARS="${ENV_VARS},LLM_ENCRYPTION_PASSWORD=${LLM_PASSWORD}"
           fi
           
           # Build deployment command with conditional secrets
@@ -359,7 +390,7 @@ jobs:
             "--region" "${{ env.GCP_REGION }}"
             "--platform" "managed"
             "--no-allow-unauthenticated"
-            "--set-env-vars" "ENVIRONMENT=production"
+            "--set-env-vars" "${ENV_VARS}"
           )
           
           # Handle secrets: replace entire secrets configuration
