@@ -416,7 +416,56 @@ jobs:
           )
           
           echo "Deploying with command: gcloud run deploy ${DEPLOY_ARGS[*]}"
-          gcloud run deploy "${DEPLOY_ARGS[@]}"
+          echo "Environment variables being set: ${ENV_VARS}"
+          echo ""
+          echo "Note: If deployment fails, check Cloud Run logs for startup errors"
+          echo ""
+          
+          # Deploy the service and capture output
+          DEPLOY_STDOUT=$(gcloud run deploy "${DEPLOY_ARGS[@]}" 2>&1)
+          DEPLOY_EXIT_CODE=$?
+          
+          if [ ${DEPLOY_EXIT_CODE} -ne 0 ]; then
+            echo "Error: Deployment failed with exit code ${DEPLOY_EXIT_CODE}"
+            echo "Deployment output:"
+            echo "${DEPLOY_STDOUT}"
+            echo ""
+            echo "Checking service status..."
+            gcloud run services describe supply-graph-ai \
+              --region="${{ env.GCP_REGION }}" \
+              --project="${PROJECT_ID}" \
+              --format="yaml(status)" || true
+            exit 1
+          fi
+          
+          echo "Deployment output:"
+          echo "${DEPLOY_STDOUT}"
+          echo ""
+          
+          # Get the service URL after successful deployment
+          echo "Getting service URL..."
+          DEPLOY_OUTPUT=$(gcloud run services describe supply-graph-ai \
+            --region="${{ env.GCP_REGION }}" \
+            --project="${PROJECT_ID}" \
+            --format="value(status.url)" 2>/dev/null || echo "")
+          
+          if [ -z "${DEPLOY_OUTPUT}" ]; then
+            echo "Warning: Could not get URL from service describe, trying service list..."
+            DEPLOY_OUTPUT=$(gcloud run services list \
+              --filter="metadata.name=supply-graph-ai" \
+              --region="${{ env.GCP_REGION }}" \
+              --project="${PROJECT_ID}" \
+              --format="value(status.url)" 2>/dev/null || echo "")
+          fi
+          
+          if [ -n "${DEPLOY_OUTPUT}" ]; then
+            echo "✅ Service deployed successfully. URL: ${DEPLOY_OUTPUT}"
+            echo "url=${DEPLOY_OUTPUT}" >> $GITHUB_OUTPUT
+          else
+            echo "Error: Could not determine service URL after deployment"
+            echo "This might indicate the deployment didn't complete successfully"
+            exit 1
+          fi
 
       - name: Run smoke tests
         run: |
