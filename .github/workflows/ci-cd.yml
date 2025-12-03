@@ -442,15 +442,23 @@ jobs:
           echo "${DEPLOY_STDOUT}"
           echo ""
           
-          # Get the service URL after successful deployment
-          echo "Getting service URL..."
-          DEPLOY_OUTPUT=$(gcloud run services describe supply-graph-ai \
-            --region="${{ env.GCP_REGION }}" \
-            --project="${PROJECT_ID}" \
-            --format="value(status.url)" 2>/dev/null || echo "")
+          # Extract the service URL from the deployment output
+          # The deployment output contains "Service URL: https://..."
+          # Use sed to extract the URL (more portable than grep -oP)
+          DEPLOY_OUTPUT=$(echo "${DEPLOY_STDOUT}" | grep "Service URL:" | sed -n 's/.*Service URL: \(https:\/\/[^[:space:]]*\).*/\1/p' || echo "")
           
+          # Fallback: Get the service URL from service describe
           if [ -z "${DEPLOY_OUTPUT}" ]; then
-            echo "Warning: Could not get URL from service describe, trying service list..."
+            echo "Extracting URL from deployment output failed, trying service describe..."
+            DEPLOY_OUTPUT=$(gcloud run services describe supply-graph-ai \
+              --region="${{ env.GCP_REGION }}" \
+              --project="${PROJECT_ID}" \
+              --format="value(status.url)" 2>/dev/null || echo "")
+          fi
+          
+          # Another fallback: Try service list
+          if [ -z "${DEPLOY_OUTPUT}" ]; then
+            echo "Service describe failed, trying service list..."
             DEPLOY_OUTPUT=$(gcloud run services list \
               --filter="metadata.name=supply-graph-ai" \
               --region="${{ env.GCP_REGION }}" \
@@ -468,8 +476,56 @@ jobs:
           fi
 
       - name: Run smoke tests
+        env:
+          PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
         run: |
           SERVICE_URL=${{ steps.deploy.outputs.url }}
-          curl -f ${SERVICE_URL}/health || exit 1
-          curl -f ${SERVICE_URL}/health/readiness || exit 1
+          if [ -z "${SERVICE_URL}" ]; then
+            echo "Error: SERVICE_URL is empty"
+            exit 1
+          fi
+          
+          echo "Running smoke tests against: ${SERVICE_URL}"
+          
+          # Get an identity token for authenticated requests
+          # Since the service uses --no-allow-unauthenticated, we need to authenticate
+          echo "Getting identity token..."
+          IDENTITY_TOKEN=$(gcloud auth print-identity-token 2>&1)
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to get identity token"
+            echo "${IDENTITY_TOKEN}"
+            exit 1
+          fi
+          
+          echo "Testing /health endpoint..."
+          HTTP_CODE=$(curl -s -o /tmp/health_response.txt -w "%{http_code}" \
+            -H "Authorization: Bearer ${IDENTITY_TOKEN}" \
+            ${SERVICE_URL}/health)
+          
+          if [ "${HTTP_CODE}" -eq "200" ]; then
+            echo "✅ /health endpoint returned 200"
+            cat /tmp/health_response.txt
+          else
+            echo "❌ /health endpoint returned ${HTTP_CODE}"
+            cat /tmp/health_response.txt
+            exit 1
+          fi
+          
+          echo ""
+          echo "Testing /health/readiness endpoint..."
+          HTTP_CODE=$(curl -s -o /tmp/readiness_response.txt -w "%{http_code}" \
+            -H "Authorization: Bearer ${IDENTITY_TOKEN}" \
+            ${SERVICE_URL}/health/readiness)
+          
+          if [ "${HTTP_CODE}" -eq "200" ]; then
+            echo "✅ /health/readiness endpoint returned 200"
+            cat /tmp/readiness_response.txt
+          else
+            echo "❌ /health/readiness endpoint returned ${HTTP_CODE}"
+            cat /tmp/readiness_response.txt
+            exit 1
+          fi
+          
+          echo ""
+          echo "✅ All smoke tests passed"
 
