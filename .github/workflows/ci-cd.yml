@@ -12,6 +12,10 @@ env:
   PYTHON_VERSION: '3.11'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  GCP_PROJECT_ID: nathan-playground-368310
+  GCP_REGION: us-west1
+  AR_REGISTRY: us-west1-docker.pkg.dev
+  AR_REPOSITORY: cloud-run-source-deploy
 
 jobs:
   # Linting and code quality checks
@@ -105,18 +109,37 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Authenticate to Google Cloud
+        if: github.event_name != 'pull_request'
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_PRODUCTION }}
+
+      - name: Set up Cloud SDK
+        if: github.event_name != 'pull_request'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        if: github.event_name != 'pull_request'
+        env:
+          GCP_REGION: ${{ env.GCP_REGION }}
+        run: |
+          gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev --quiet
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.AR_REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPOSITORY }}/supply-graph-ai
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -136,6 +159,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64,linux/arm64
+
+      - name: Verify Artifact Registry push
+        if: github.event_name != 'pull_request'
+        env:
+          GCP_REGION: ${{ env.GCP_REGION }}
+          GCP_PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
+          AR_REGISTRY: ${{ env.AR_REGISTRY }}
+          AR_REPOSITORY: ${{ env.AR_REPOSITORY }}
+        run: |
+          echo "Verifying images were pushed to Artifact Registry..."
+          gcloud artifacts docker images list ${AR_REGISTRY}/${GCP_PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai --limit=10 || echo "No images found yet"
 
   # Security scanning
   security:
@@ -207,17 +241,71 @@ jobs:
 
       - name: Deploy to Cloud Run
         id: deploy
+        env:
+          PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
+          SA_EMAIL: supply-graph-ai@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+          AR_REGISTRY: ${{ env.AR_REGISTRY }}
+          AR_REPOSITORY: ${{ env.AR_REPOSITORY }}
         run: |
           # Determine image tag
+          # For main branch, the build step creates a "latest" tag
           if [ "${{ github.event_name }}" == "release" ]; then
             IMAGE_TAG="${{ github.event.release.tag_name }}"
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            IMAGE_TAG="latest"
           else
             IMAGE_TAG="main"
           fi
           
+          # Use Artifact Registry image (Cloud Run doesn't support GHCR)
+          AR_IMAGE="${AR_REGISTRY}/${PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai:${IMAGE_TAG}"
+          
+          echo "=== Deployment Configuration ==="
+          echo "IMAGE_TAG: ${IMAGE_TAG}"
+          echo "AR_REGISTRY: ${AR_REGISTRY}"
+          echo "PROJECT_ID: ${PROJECT_ID}"
+          echo "AR_REPOSITORY: ${AR_REPOSITORY}"
+          echo "AR_IMAGE: ${AR_IMAGE}"
+          echo "================================"
+          
+          echo "Verifying image exists..."
+          gcloud artifacts docker images describe ${AR_IMAGE} || {
+            echo "ERROR: Image ${AR_IMAGE} not found in Artifact Registry"
+            echo "Trying with 'latest' tag instead..."
+            AR_IMAGE_LATEST="${AR_REGISTRY}/${PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai:latest"
+            gcloud artifacts docker images describe ${AR_IMAGE_LATEST} && {
+              echo "Found image with 'latest' tag, using that instead"
+              AR_IMAGE=${AR_IMAGE_LATEST}
+            } || {
+              echo "Available images in repository:"
+              gcloud artifacts docker images list ${AR_REGISTRY}/${PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai || true
+              exit 1
+            }
+          }
+          
+          echo "Deploying with image: ${AR_IMAGE}"
+          echo "Full deployment command will use: --image ${AR_IMAGE}"
+          
+          # Check current service configuration (if it exists)
+          echo "Checking current service configuration..."
+          CURRENT_IMAGE=$(gcloud run services describe supply-graph-ai \
+            --region="${{ env.GCP_REGION }}" \
+            --format="value(spec.template.spec.containers[0].image)" 2>/dev/null || echo "")
+          if [ -n "${CURRENT_IMAGE}" ]; then
+            echo "Current service image: ${CURRENT_IMAGE}"
+          else
+            echo "Service does not exist yet"
+          fi
+          
+          # Deploy with explicit image override (image flag must be provided)
+          # Using explicit variable to ensure it's set correctly
+          IMAGE_TO_DEPLOY="${AR_IMAGE}"
+          echo "Final image to deploy: ${IMAGE_TO_DEPLOY}"
+          
           gcloud run deploy supply-graph-ai \
-            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG} \
-            --region us-central1 \
+            --image "${IMAGE_TO_DEPLOY}" \
+            --service-account "${SA_EMAIL}" \
+            --region "${{ env.GCP_REGION }}" \
             --platform managed \
             --no-allow-unauthenticated \
             --set-env-vars ENVIRONMENT=production \
