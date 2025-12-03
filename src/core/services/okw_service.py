@@ -71,7 +71,7 @@ class OKWService(BaseService["OKWService"]):
                 facility = ManufacturingFacility.from_dict(facility_data)
 
             # Store in storage with proper naming convention
-            if self.storage:
+            if self.storage and self.storage.manager:
                 # Generate filename based on facility name and ID (similar to synthetic data)
                 # Use okw/facilities/ prefix to match SmartFileDiscovery expectations
                 safe_name = "".join(

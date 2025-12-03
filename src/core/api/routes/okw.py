@@ -161,13 +161,29 @@ async def create_okw(
             }
         )
 
+        # Convert enum values to strings
+        facility_status_str = (
+            facility.facility_status.value
+            if hasattr(facility.facility_status, "value")
+            else str(facility.facility_status)
+        )
+        access_type_str = (
+            facility.access_type.value
+            if hasattr(facility.access_type, "value")
+            else str(facility.access_type)
+        )
+
         facility_dict = {
             "id": str(facility.id),
             "name": facility.name,
             "location": location_dict,
-            "facility_status": facility.facility_status,
-            "access_type": facility.access_type,
-            "manufacturing_processes": facility.manufacturing_processes,
+            "facility_status": facility_status_str,
+            "access_type": access_type_str,
+            "manufacturing_processes": (
+                list(facility.manufacturing_processes)
+                if facility.manufacturing_processes
+                else []
+            ),
             "equipment": (
                 [eq.to_dict() for eq in facility.equipment]
                 if facility.equipment
@@ -183,9 +199,15 @@ async def create_okw(
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
 
-        # Create enhanced response
+        # Create enhanced response matching OKWResponse structure
+        from ...models.base import APIStatus
+        
         response_data = {
-            "facility": facility_dict,
+            **facility_dict,  # Include all facility fields directly
+            "status": APIStatus.SUCCESS,
+            "message": "OKW facility created successfully",
+            "timestamp": datetime.now(),
+            "request_id": request_id,
             "processing_time": processing_time,
             "validation_results": await _validate_okw_result(facility_dict, request_id),
         }

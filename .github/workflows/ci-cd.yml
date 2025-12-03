@@ -529,3 +529,39 @@ jobs:
           echo ""
           echo "✅ All smoke tests passed"
 
+      - name: Run comprehensive E2E tests
+        env:
+          PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
+          SERVICE_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          if [ -z "${SERVICE_URL}" ]; then
+            echo "Error: SERVICE_URL is empty"
+            exit 1
+          fi
+          
+          echo "Running comprehensive E2E tests against: ${SERVICE_URL}"
+          
+          # Get an identity token for authenticated requests
+          echo "Getting identity token..."
+          IDENTITY_TOKEN=$(gcloud auth print-identity-token 2>&1)
+          if [ $? -ne 0 ]; then
+            echo "Error: Failed to get identity token"
+            echo "${IDENTITY_TOKEN}"
+            exit 1
+          fi
+          
+          # Install Python dependencies for pytest
+          python -m pip install --upgrade pip
+          pip install pytest requests
+          
+          # Run Python E2E tests
+          echo "Running Python E2E test suite..."
+          export IDENTITY_TOKEN="${IDENTITY_TOKEN}"
+          export USE_AUTH="true"
+          pytest tests/integration/test_cloud_run_e2e.py -v --tb=short || {
+            echo "❌ E2E tests failed"
+            exit 1
+          }
+          
+          echo "✅ All E2E tests passed"
+

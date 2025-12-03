@@ -656,14 +656,18 @@ class OKHManifest:
             "data_source",
             "domain",
         ]:
-            if field in data:
-                setattr(instance, field, data[field])
+            if field in data and data[field] is not None:
+                # For list fields, ensure they're not None (use empty list instead)
+                if field in ["tool_list", "manufacturing_processes", "tsdc", "sub_parts", "keywords"]:
+                    setattr(instance, field, data[field] if isinstance(data[field], list) else [])
+                else:
+                    setattr(instance, field, data[field])
 
         # Handle complex fields
         if "contact" in data:
             instance.contact = cls._parse_person(data["contact"])
 
-        if "contributors" in data:
+        if "contributors" in data and data["contributors"] is not None:
             instance.contributors = [cls._parse_person(c) for c in data["contributors"]]
 
         if "organization" in data:
@@ -685,7 +689,7 @@ class OKHManifest:
             "technical_specifications",
             "publications",
         ]:
-            if doc_field in data:
+            if doc_field in data and data[doc_field] is not None:
                 doc_list = []
                 for doc_data in data[doc_field]:
                     doc_type = DocumentationType(
@@ -701,7 +705,7 @@ class OKHManifest:
                 setattr(instance, doc_field, doc_list)
 
         # Handle materials
-        if "materials" in data:
+        if "materials" in data and data["materials"] is not None:
             instance.materials = []
             for mat_data in data["materials"]:
                 if isinstance(mat_data, str):
@@ -751,7 +755,7 @@ class OKHManifest:
             instance.manufacturing_specs = specs
 
         # Handle parts
-        if "parts" in data:
+        if "parts" in data and data["parts"] is not None:
             instance.parts = []
             for part_data in data["parts"]:
                 part = PartSpec(
@@ -771,7 +775,7 @@ class OKHManifest:
                 instance.parts.append(part)
 
         # Handle standards
-        if "standards_used" in data:
+        if "standards_used" in data and data["standards_used"] is not None:
             instance.standards_used = []
             for std_data in data["standards_used"]:
                 std = Standard(
@@ -783,7 +787,7 @@ class OKHManifest:
                 instance.standards_used.append(std)
 
         # Handle software
-        if "software" in data:
+        if "software" in data and data["software"] is not None:
             instance.software = []
             for sw_data in data["software"]:
                 sw = Software(

@@ -147,9 +147,15 @@ async def create_okh(
         processing_time = (datetime.now() - start_time).total_seconds()
 
         # Create enhanced response using the proper OKHResponse structure
+        from ...models.base import APIStatus
+        
         result_dict = result.to_dict() if hasattr(result, "to_dict") else result
         response_data = {
             **result_dict,  # Include all OKHResponse fields
+            "status": APIStatus.SUCCESS,
+            "message": "OKH manifest created successfully",
+            "timestamp": datetime.now(),
+            "request_id": request_id,
             "processing_time": processing_time,
             "validation_results": await _validate_okh_result(result, request_id),
         }
