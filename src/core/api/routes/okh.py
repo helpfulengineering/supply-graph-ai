@@ -148,7 +148,7 @@ async def create_okh(
 
         # Create enhanced response using the proper OKHResponse structure
         from ...models.base import APIStatus
-        
+
         result_dict = result.to_dict() if hasattr(result, "to_dict") else result
         response_data = {
             **result_dict,  # Include all OKHResponse fields

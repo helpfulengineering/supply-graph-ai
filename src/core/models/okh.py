@@ -658,8 +658,18 @@ class OKHManifest:
         ]:
             if field in data and data[field] is not None:
                 # For list fields, ensure they're not None (use empty list instead)
-                if field in ["tool_list", "manufacturing_processes", "tsdc", "sub_parts", "keywords"]:
-                    setattr(instance, field, data[field] if isinstance(data[field], list) else [])
+                if field in [
+                    "tool_list",
+                    "manufacturing_processes",
+                    "tsdc",
+                    "sub_parts",
+                    "keywords",
+                ]:
+                    setattr(
+                        instance,
+                        field,
+                        data[field] if isinstance(data[field], list) else [],
+                    )
                 else:
                     setattr(instance, field, data[field])
 

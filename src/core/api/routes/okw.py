@@ -201,7 +201,7 @@ async def create_okw(
 
         # Create enhanced response matching OKWResponse structure
         from ...models.base import APIStatus
-        
+
         response_data = {
             **facility_dict,  # Include all facility fields directly
             "status": APIStatus.SUCCESS,
