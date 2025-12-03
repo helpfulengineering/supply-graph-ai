@@ -293,28 +293,99 @@ jobs:
             --format="value(spec.template.spec.containers[0].image)" 2>/dev/null || echo "")
           if [ -n "${CURRENT_IMAGE}" ]; then
             echo "Current service image: ${CURRENT_IMAGE}"
+            echo "Checking current service secrets..."
+            gcloud run services describe supply-graph-ai \
+              --region="${{ env.GCP_REGION }}" \
+              --format="yaml(spec.template.spec.containers[0].env)" 2>/dev/null | grep -A 5 "secretKeyRef" || echo "No secrets currently configured"
           else
             echo "Service does not exist yet"
           fi
+          
+          echo ""
+          echo "Checking for secrets in Secret Manager..."
+          echo "Available secrets:"
+          gcloud secrets list --project="${PROJECT_ID}" --format="table(name)" 2>/dev/null || echo "Could not list secrets"
           
           # Deploy with explicit image override (image flag must be provided)
           # Using explicit variable to ensure it's set correctly
           IMAGE_TO_DEPLOY="${AR_IMAGE}"
           echo "Final image to deploy: ${IMAGE_TO_DEPLOY}"
           
-          gcloud run deploy supply-graph-ai \
-            --image "${IMAGE_TO_DEPLOY}" \
-            --service-account "${SA_EMAIL}" \
-            --region "${{ env.GCP_REGION }}" \
-            --platform managed \
-            --no-allow-unauthenticated \
-            --set-env-vars ENVIRONMENT=production \
-            --set-secrets API_KEYS=api-keys:latest,LLM_ENCRYPTION_KEY=llm-encryption-key:latest \
-            --memory 1Gi \
-            --cpu 2 \
-            --timeout 300 \
-            --max-instances 100 \
-            --min-instances 1
+          # Check if secrets exist and build secrets list conditionally
+          SECRETS_LIST=""
+          if gcloud secrets describe api-keys --project="${PROJECT_ID}" &>/dev/null; then
+            echo "Found api-keys secret, including in deployment"
+            SECRETS_LIST="API_KEYS=api-keys:latest"
+          else
+            echo "api-keys secret not found, skipping (optional)"
+          fi
+          
+          if gcloud secrets describe llm-encryption-key --project="${PROJECT_ID}" &>/dev/null; then
+            echo "Found llm-encryption-key secret, including in deployment"
+            if [ -n "${SECRETS_LIST}" ]; then
+              SECRETS_LIST="${SECRETS_LIST},LLM_ENCRYPTION_KEY=llm-encryption-key:latest"
+            else
+              SECRETS_LIST="LLM_ENCRYPTION_KEY=llm-encryption-key:latest"
+            fi
+          else
+            echo "llm-encryption-key secret not found, skipping (optional)"
+          fi
+          
+          # Build deployment command with conditional secrets
+          # If secrets don't exist but service has them configured, we need to clear them
+          echo "Executing deployment command..."
+          
+          # Check if service exists and has secrets configured that don't exist in Secret Manager
+          SERVICE_HAS_INVALID_SECRETS=false
+          if gcloud run services describe supply-graph-ai --region="${{ env.GCP_REGION }}" &>/dev/null; then
+            # Check if service has api-keys or llm-encryption-key configured
+            if gcloud run services describe supply-graph-ai \
+              --region="${{ env.GCP_REGION }}" \
+              --format="value(spec.template.spec.containers[0].env)" | grep -q "api-keys\|llm-encryption-key"; then
+              # Check if these secrets actually exist
+              if ! gcloud secrets describe api-keys --project="${PROJECT_ID}" &>/dev/null || \
+                 ! gcloud secrets describe llm-encryption-key --project="${PROJECT_ID}" &>/dev/null; then
+                SERVICE_HAS_INVALID_SECRETS=true
+                echo "Service has secrets configured that don't exist in Secret Manager. Will clear them."
+              fi
+            fi
+          fi
+          
+          # Build base deployment command
+          DEPLOY_ARGS=(
+            "supply-graph-ai"
+            "--image" "${IMAGE_TO_DEPLOY}"
+            "--service-account" "${SA_EMAIL}"
+            "--region" "${{ env.GCP_REGION }}"
+            "--platform" "managed"
+            "--no-allow-unauthenticated"
+            "--set-env-vars" "ENVIRONMENT=production"
+          )
+          
+          # Handle secrets: replace entire secrets configuration
+          # The service has api-keys and llm-encryption-key configured but they don't exist
+          # Use --update-secrets to replace all secrets with only the valid ones
+          if [ -n "${SECRETS_LIST}" ]; then
+            # Update secrets - this replaces all existing secrets with only the valid ones
+            DEPLOY_ARGS+=("--update-secrets" "${SECRETS_LIST}")
+            echo "Updating secrets configuration with valid secrets: ${SECRETS_LIST}"
+          elif [ "${SERVICE_HAS_INVALID_SECRETS}" = "true" ]; then
+            # No valid secrets exist, but service has invalid ones - clear all secrets
+            DEPLOY_ARGS+=("--clear-secrets")
+            echo "Clearing all secrets (none exist in Secret Manager)"
+          fi
+          
+          # Add remaining deployment options
+          DEPLOY_ARGS+=(
+            "--memory" "1Gi"
+            "--cpu" "2"
+            "--timeout" "300"
+            "--max-instances" "100"
+            "--min-instances" "1"
+          )
+          
+          echo "Deploying with command: gcloud run deploy ${DEPLOY_ARGS[*]}"
+          gcloud run deploy "${DEPLOY_ARGS[@]}"
 
       - name: Run smoke tests
         run: |
