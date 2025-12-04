@@ -219,7 +219,7 @@ docker-compose -f docker-compose.prod.yml up -d
      --region us-central1 \
      --allow-unauthenticated \
      --port 8001 \
-     --memory 2Gi \
+     --memory 4Gi \
      --cpu 2 \
      --max-instances 10 \
      --set-env-vars="API_KEYS=your-api-key,STORAGE_PROVIDER=gcp_storage"

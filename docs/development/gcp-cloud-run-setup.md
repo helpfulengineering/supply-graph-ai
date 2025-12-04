@@ -694,6 +694,9 @@ gcloud run deploy supply-graph-ai \
     --image ${IMAGE_TAG} \
     --service-account ${SA_EMAIL} \
     --region ${REGION} \
+    --memory 4Gi \
+    --cpu 2 \
+    --timeout 300 \
     --set-env-vars="STORAGE_PROVIDER=gcs,GCP_STORAGE_BUCKET=${BUCKET_NAME},GCP_PROJECT_ID=${PROJECT_ID},USE_SECRETS_MANAGER=true,SECRETS_PROVIDER=gcp" \
     --allow-unauthenticated  # or use --no-allow-unauthenticated for authenticated access
 
@@ -702,6 +705,9 @@ gcloud run deploy supply-graph-ai \
     --source . \
     --service-account ${SA_EMAIL} \
     --region ${REGION} \
+    --memory 4Gi \
+    --cpu 2 \
+    --timeout 300 \
     --set-env-vars="STORAGE_PROVIDER=gcs,GCP_STORAGE_BUCKET=${BUCKET_NAME},GCP_PROJECT_ID=${PROJECT_ID},USE_SECRETS_MANAGER=true,SECRETS_PROVIDER=gcp" \
     --allow-unauthenticated
 ```
@@ -742,7 +748,7 @@ spec:
         resources:
           limits:
             cpu: "2"
-            memory: "2Gi"
+            memory: "4Gi"
 ```
 
 ## Service Account Configuration
