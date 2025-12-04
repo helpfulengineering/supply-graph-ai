@@ -323,7 +323,7 @@ async def get_okh(
             "request_id": request_id,
             "timestamp": datetime.now(),
         }
-        
+
         # Use model_validate to handle any type conversions or extra fields gracefully
         return OKHResponse.model_validate(response_data)
     except HTTPException:
