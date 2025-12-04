@@ -240,12 +240,26 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     request_id = getattr(request.state, "request_id", None)
     error_response = api_error_handler.handle_validation_error(exc, request_id)
 
-    logger.warning(
+    # Log at INFO level to ensure it appears in Cloud Logging
+    logger.info(
         f"Validation error in {request.method} {request.url}: {len(exc.errors())} error(s)",
         extra={
             "request_id": request_id,
             "errors": exc.errors(),
             "path": str(request.url.path),
+            "error_count": len(exc.errors()),
+        },
+    )
+    
+    # Also log at warning level with full details
+    logger.warning(
+        f"Request validation failed: {len(exc.errors())} error(s)",
+        extra={
+            "request_id": request_id,
+            "errors": exc.errors(),
+            "path": str(request.url.path),
+            "method": request.method,
+            "error_count": len(exc.errors()),
         },
     )
 
@@ -262,12 +276,28 @@ async def http_exception_handler(
     request_id = getattr(request.state, "request_id", None)
     error_response = api_error_handler.handle_http_exception(exc, request_id)
 
-    logger.warning(
+    # Log at INFO level to ensure it appears in Cloud Logging
+    # Include full details for debugging
+    logger.info(
         f"HTTP error in {request.method} {request.url}: {exc.status_code} - {exc.detail}",
         extra={
             "request_id": request_id,
             "status_code": exc.status_code,
             "path": str(request.url.path),
+            "error_detail": str(exc.detail),
+            "error_type": type(exc).__name__,
+        },
+    )
+    
+    # Also log at warning level for visibility
+    logger.warning(
+        f"HTTP {exc.status_code} error: {exc.detail}",
+        extra={
+            "request_id": request_id,
+            "status_code": exc.status_code,
+            "path": str(request.url.path),
+            "method": request.method,
+            "error_detail": str(exc.detail),
         },
     )
 
@@ -363,3 +393,4 @@ def create_success_response(
         data=data or {},
         metadata=metadata or {},
     )
+

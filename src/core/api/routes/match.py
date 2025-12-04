@@ -165,6 +165,10 @@ async def match_requirements_to_capabilities(
             )
 
             if not okh_manifest:
+                # This should only happen if _extract_okh_manifest returns None
+                # which means none of okh_manifest, okh_id, or okh_url were provided
+                # (or okh_id/okh_url were provided but the resource wasn't found - 
+                #  those cases now raise 404 in _extract_okh_manifest)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Must provide either okh_manifest, okh_id, or okh_url",
@@ -1005,6 +1009,19 @@ async def _extract_okh_manifest(
 ) -> Optional[OKHManifest]:
     """Extract OKH manifest from request."""
     try:
+        # Debug logging to understand why okh_id might be None
+        logger.info(
+            f"Extracting OKH manifest from request",
+            extra={
+                "request_id": request_id,
+                "has_okh_manifest": request.okh_manifest is not None,
+                "has_okh_id": request.okh_id is not None,
+                "okh_id_value": str(request.okh_id) if request.okh_id else None,
+                "has_okh_url": request.okh_url is not None,
+                "okh_url_value": request.okh_url,
+            },
+        )
+        
         if request.okh_manifest:
             # If it's already an OKHManifest object, return it directly
             if isinstance(request.okh_manifest, OKHManifest):
@@ -1012,13 +1029,69 @@ async def _extract_okh_manifest(
             # Otherwise, convert from dictionary
             return OKHManifest.from_dict(request.okh_manifest)
         elif request.okh_id:
-            return await okh_service.get(str(request.okh_id))
+            logger.info(
+                f"Loading OKH manifest by ID: {request.okh_id}",
+                extra={"request_id": request_id, "okh_id": str(request.okh_id)},
+            )
+            okh_manifest = await okh_service.get(str(request.okh_id))
+            if okh_manifest is None:
+                logger.warning(
+                    f"OKH manifest with ID {request.okh_id} not found in storage",
+                    extra={"request_id": request_id, "okh_id": str(request.okh_id)},
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"OKH manifest with ID {request.okh_id} not found in storage",
+                )
+            return okh_manifest
         elif request.okh_url:
+            logger.info(
+                f"Fetching OKH manifest from URL: {request.okh_url}",
+                extra={"request_id": request_id, "okh_url": request.okh_url},
+            )
+            try:
+                okh_manifest = await okh_service.fetch_from_url(request.okh_url)
+                if okh_manifest is None:
+                    logger.warning(
+                        f"Failed to fetch OKH manifest from URL: {request.okh_url}",
+                        extra={"request_id": request_id, "okh_url": request.okh_url},
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Failed to fetch OKH manifest from URL: {request.okh_url}",
+                    )
+                return okh_manifest
+            except ValueError as e:
+                # fetch_from_url raises ValueError if it fails
+                logger.warning(
+                    f"Error fetching OKH manifest from URL: {str(e)}",
+                    extra={"request_id": request_id, "okh_url": request.okh_url, "error": str(e)},
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Failed to fetch OKH manifest from URL: {request.okh_url}. {str(e)}",
+                )
+            logger.info(
+                f"Fetching OKH manifest from URL: {request.okh_url}",
+                extra={"request_id": request_id, "okh_url": request.okh_url},
+            )
             return await okh_service.fetch_from_url(request.okh_url)
         else:
+            logger.warning(
+                f"No OKH input provided (okh_manifest, okh_id, or okh_url)",
+                extra={
+                    "request_id": request_id,
+                    "okh_manifest": request.okh_manifest,
+                    "okh_id": request.okh_id,
+                    "okh_url": request.okh_url,
+                },
+            )
             return None
+    except HTTPException:
+        # Re-raise HTTP exceptions (like 404) as-is - don't wrap them
+        raise
     except Exception as e:
-        # Use standardized error handler
+        # Use standardized error handler for other exceptions
         error_response = create_error_response(
             error=e,
             status_code=status.HTTP_400_BAD_REQUEST,

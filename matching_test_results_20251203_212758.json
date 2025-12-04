@@ -1,0 +1,235 @@
+{
+  "test_config": {
+    "service_url": "https://supply-graph-ai-1085931013579.us-west1.run.app",
+    "storage_bucket": "supply-graph-ai-storage",
+    "okh_files_tested": 20,
+    "okw_files_available": 26
+  },
+  "results": [
+    {
+      "okh_file": "okh/manifests/5129c35f-ce87-4369-831e-7bad8e3838ff.json",
+      "okh_id": "5129c35f-ce87-4369-831e-7bad8e3838ff",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/25311406-27ee-4d68-ae49-ddbe38490c4f.json",
+      "okh_id": "25311406-27ee-4d68-ae49-ddbe38490c4f",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/2ea0e07f-a8cd-4d7c-b0ba-01a5ce593e3a.json",
+      "okh_id": "2ea0e07f-a8cd-4d7c-b0ba-01a5ce593e3a",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/1fd409ee-b919-4c10-987e-ab9bfac6635d.json",
+      "okh_id": "1fd409ee-b919-4c10-987e-ab9bfac6635d",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/1ade95bf-410e-4dbd-8556-7c02d1f8cbb9.json",
+      "okh_id": "1ade95bf-410e-4dbd-8556-7c02d1f8cbb9",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/2953a098-5f97-4a1a-ba7a-3c2d6bf55a70.json",
+      "okh_id": "2953a098-5f97-4a1a-ba7a-3c2d6bf55a70",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/46c28aea-f3c3-416e-8d26-cc74e4fb9826.json",
+      "okh_id": "46c28aea-f3c3-416e-8d26-cc74e4fb9826",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/4c2e377f-2898-4f6e-8295-002a6f82fe0d.json",
+      "okh_id": "4c2e377f-2898-4f6e-8295-002a6f82fe0d",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/cded40c4-a65e-4b0b-bbba-1df57be40137.json",
+      "okh_id": "cded40c4-a65e-4b0b-bbba-1df57be40137",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/053b711e-f799-4f2c-83d0-fc8bf2e0ac29.json",
+      "okh_id": "053b711e-f799-4f2c-83d0-fc8bf2e0ac29",
+      "match_result": {
+        "status_code": 400,
+        "response": {
+          "detail": "Must provide either okh_manifest, okh_id, or okh_url"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/addd453a-fa76-4fbb-8c66-641e89734319.json",
+      "okh_id": "addd453a-fa76-4fbb-8c66-641e89734319",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/bc726da4-fda7-4919-ae48-ea4f64a4add2.json",
+      "okh_id": "bc726da4-fda7-4919-ae48-ea4f64a4add2",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/c688d638-05df-4449-9c5c-b5555cf669ed.json",
+      "okh_id": "c688d638-05df-4449-9c5c-b5555cf669ed",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/80e66bec-5983-4b42-a32c-7c5ad61b164b.json",
+      "okh_id": "80e66bec-5983-4b42-a32c-7c5ad61b164b",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/8f6e89e1-7093-4b82-b3ff-9392e2a2b6e4.json",
+      "okh_id": "8f6e89e1-7093-4b82-b3ff-9392e2a2b6e4",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/b8b1a560-df9f-40ad-bc09-312ae5d83292.json",
+      "okh_id": "b8b1a560-df9f-40ad-bc09-312ae5d83292",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/f1709274-a223-420c-89ef-7d661de676c2.json",
+      "okh_id": "f1709274-a223-420c-89ef-7d661de676c2",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/1978a6ad-61a0-42c6-9f57-727815d9835d.json",
+      "okh_id": "1978a6ad-61a0-42c6-9f57-727815d9835d",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/5c18152c-5a6d-4744-af87-f987bf487dad.json",
+      "okh_id": "5c18152c-5a6d-4744-af87-f987bf487dad",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    },
+    {
+      "okh_file": "okh/manifests/655f897b-29eb-426b-b1f0-bfb0c58a543d.json",
+      "okh_id": "655f897b-29eb-426b-b1f0-bfb0c58a543d",
+      "match_result": {
+        "status_code": 500,
+        "response": {
+          "error": "\n<html><head>\n<meta http-equiv=\"content-type\" content=\"text/html;charset=utf-8\">\n<title>500 Server Error</title>\n</head>\n<body text=#000000 bgcolor=#ffffff>\n<h1>Error: Server Error</h1>\n<h2>The server encountered an error and could not complete your request.<p>Please try again in 30 seconds.</h2>\n<h2></h2>\n</body></html>\n"
+        },
+        "success": false
+      }
+    }
+  ],
+  "summary": {
+    "total_matches": 0,
+    "successful_requests": 0,
+    "failed_requests": 20
+  }
+}
