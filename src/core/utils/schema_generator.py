@@ -102,7 +102,12 @@ def _normalize_schema(schema: Dict[str, Any], dataclass_type: Type) -> Dict[str,
                 )
 
     # Handle definitions/defs for nested types
-    if "definitions" in schema:
+    # Pydantic v2 uses "$defs", v1 used "definitions"
+    if "$defs" in schema:
+        for def_name, def_schema in schema["$defs"].items():
+            if isinstance(def_schema, dict):
+                schema["$defs"][def_name] = _normalize_property_schema(def_schema)
+    elif "definitions" in schema:
         for def_name, def_schema in schema["definitions"].items():
             if isinstance(def_schema, dict):
                 schema["definitions"][def_name] = _normalize_property_schema(def_schema)
