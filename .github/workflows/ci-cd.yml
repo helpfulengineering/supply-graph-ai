@@ -552,7 +552,7 @@ jobs:
           
           # Install Python dependencies for pytest
           python -m pip install --upgrade pip
-          pip install pytest requests
+          pip install pytest pytest-asyncio requests
           
           # Run Python E2E tests
           echo "Running Python E2E test suite..."
