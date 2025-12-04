@@ -313,7 +313,7 @@ jobs:
           
           # Check if secrets exist and build secrets list conditionally
           SECRETS_LIST=""
-          ENV_VARS="ENVIRONMENT=production"
+          ENV_VARS="ENVIRONMENT=production,STORAGE_PROVIDER=gcs,GCP_STORAGE_BUCKET=supply-graph-ai-storage"
           
           if gcloud secrets describe api-keys --project="${PROJECT_ID}" &>/dev/null; then
             echo "Found api-keys secret, including in deployment"
