@@ -167,7 +167,7 @@ async def match_requirements_to_capabilities(
             if not okh_manifest:
                 # This should only happen if _extract_okh_manifest returns None
                 # which means none of okh_manifest, okh_id, or okh_url were provided
-                # (or okh_id/okh_url were provided but the resource wasn't found - 
+                # (or okh_id/okh_url were provided but the resource wasn't found -
                 #  those cases now raise 404 in _extract_okh_manifest)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -1021,7 +1021,7 @@ async def _extract_okh_manifest(
                 "okh_url_value": request.okh_url,
             },
         )
-        
+
         if request.okh_manifest:
             # If it's already an OKHManifest object, return it directly
             if isinstance(request.okh_manifest, OKHManifest):
@@ -1065,7 +1065,11 @@ async def _extract_okh_manifest(
                 # fetch_from_url raises ValueError if it fails
                 logger.warning(
                     f"Error fetching OKH manifest from URL: {str(e)}",
-                    extra={"request_id": request_id, "okh_url": request.okh_url, "error": str(e)},
+                    extra={
+                        "request_id": request_id,
+                        "okh_url": request.okh_url,
+                        "error": str(e),
+                    },
                 )
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,

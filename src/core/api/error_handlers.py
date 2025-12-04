@@ -250,7 +250,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "error_count": len(exc.errors()),
         },
     )
-    
+
     # Also log at warning level with full details
     logger.warning(
         f"Request validation failed: {len(exc.errors())} error(s)",
@@ -288,7 +288,7 @@ async def http_exception_handler(
             "error_type": type(exc).__name__,
         },
     )
-    
+
     # Also log at warning level for visibility
     logger.warning(
         f"HTTP {exc.status_code} error: {exc.detail}",
@@ -393,4 +393,3 @@ def create_success_response(
         data=data or {},
         metadata=metadata or {},
     )
-
