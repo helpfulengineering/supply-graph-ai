@@ -315,21 +315,45 @@ async def get_okh(
         manifest_dict = result.to_dict()
 
         # Construct OKHResponse with required SuccessResponse fields
-        return OKHResponse(
-            status=APIStatus.SUCCESS,
-            message="OKH manifest retrieved successfully",
-            request_id=request_id,
+        # Use model_validate for more robust construction that handles type conversions
+        response_data = {
             **manifest_dict,
-        )
+            "status": APIStatus.SUCCESS,
+            "message": "OKH manifest retrieved successfully",
+            "request_id": request_id,
+            "timestamp": datetime.now(),
+        }
+        
+        # Use model_validate to handle any type conversions or extra fields gracefully
+        return OKHResponse.model_validate(response_data)
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except ValueError as e:
         # Handle invalid parameters
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:
-        # Log unexpected errors
-        logger.error(f"Error retrieving OKH manifest {id}: {str(e)}")
+        # Log unexpected errors with full traceback
+        logger.error(
+            f"Error retrieving OKH manifest {id}: {str(e)}",
+            exc_info=True,
+            extra={
+                "request_id": request_id,
+                "okh_id": str(id),
+                "error": str(e),
+                "error_type": type(e).__name__,
+            },
+        )
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected error occurred while retrieving the OKH manifest",
+            detail=error_response.model_dump(mode="json"),
         )
 
 
