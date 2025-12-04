@@ -200,7 +200,7 @@ async def create_okw(
         processing_time = (datetime.now() - start_time).total_seconds()
 
         # Create enhanced response matching OKWResponse structure
-        from ...models.base import APIStatus
+        # APIStatus is already imported at the top of the file
 
         response_data = {
             **facility_dict,  # Include all facility fields directly

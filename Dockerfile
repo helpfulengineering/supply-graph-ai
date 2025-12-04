@@ -78,8 +78,9 @@ USER ome
 EXPOSE 8001
 
 # Health check
+# Use shell form to allow variable expansion for PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-8001}/health || exit 1
+    CMD sh -c 'curl -f http://localhost:${PORT:-8001}/health || exit 1'
 
 # Set entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
