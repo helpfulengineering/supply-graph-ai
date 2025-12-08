@@ -1,0 +1,59 @@
+# Example deployment configuration
+# Copy this file to deployment.yaml and customize for your environment
+
+provider: gcp  # gcp, aws, azure, digitalocean, etc.
+environment: production
+# Region format is provider-specific:
+#   GCP: us-west1, us-east1, europe-west1 (format: location-number)
+#   AWS: us-west-1, us-east-1, eu-west-1 (format: location-direction-number)
+#   Azure: westus, eastus, westeurope (format: directionlocation)
+region: us-west1  # GCP format - adjust for your provider
+
+# Common settings shared across all providers
+service:
+  name: supply-graph-ai
+  image: ghcr.io/helpfulengineering/supply-graph-ai:latest
+  port: 8080
+  memory: 4Gi  # Required for NLP matching operations
+  cpu: 2
+  min_instances: 1
+  max_instances: 100
+  timeout: 300  # 5 minutes for long-running matching operations
+  
+  # Environment variables
+  environment_vars:
+    ENVIRONMENT: production
+    STORAGE_PROVIDER: gcs
+    GCP_STORAGE_BUCKET: supply-graph-ai-storage
+    GCP_PROJECT_ID: your-project-id
+    USE_SECRETS_MANAGER: "true"
+    SECRETS_PROVIDER: gcp
+  
+  # Secrets (provider-specific format)
+  secrets:
+    API_KEYS: api-keys:latest
+    LLM_ENCRYPTION_KEY: llm-encryption-key:latest
+  
+  # Labels/tags
+  labels:
+    app: supply-graph-ai
+    environment: production
+
+# Provider-specific settings
+providers:
+  gcp:
+    project_id: your-project-id
+    service_account: supply-graph-ai@${project_id}.iam.gserviceaccount.com
+    artifact_registry: us-west1-docker.pkg.dev/${project_id}/cloud-run-source-deploy
+  
+  aws:
+    cluster: supply-graph-ai-cluster
+    task_definition: supply-graph-ai-task
+    ecr_repository: supply-graph-ai
+    region: us-east-1
+  
+  azure:
+    resource_group: supply-graph-ai-rg
+    container_registry: supplygraphai.azurecr.io
+    subscription_id: your-subscription-id
+
