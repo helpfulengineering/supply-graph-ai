@@ -1,0 +1,109 @@
+{
+  "id": "f35264fd-5f4a-4d83-bdb0-1d4e0bf48b1c",
+  "name": "CNC Machining Facility 1",
+  "location": {
+    "address": {
+      "number": "419",
+      "street": "Landry Lane",
+      "city": "Pageport",
+      "region": "Illinois",
+      "country": "Saint Helena",
+      "postcode": "34579"
+    },
+    "gps_coordinates": "50.130234, 3.840465",
+    "directions": "Located across from Lane Group",
+    "city": "Pageport",
+    "country": "Saint Helena"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Mason, Young and Moran",
+    "website": "https://garcia.com",
+    "mailing_list": "steven13@lists.mitchell-smith.com",
+    "contact": {
+      "landline": "+1-606-590-2759"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/patrickbarnes",
+      "other_urls": [
+        "https://richmond.com",
+        "https://chavez-russell.com"
+      ]
+    }
+  },
+  "description": "Specialized in CNC milling and turning operations",
+  "date_founded": "2007-07-25",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "PCNC 440",
+      "serial_number": "SN892646",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Business increase hard act perhaps strong what.",
+      "throughput": "39 parts/hour",
+      "power_rating": 3421,
+      "maintenance_schedule": "Every 1 months",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4721",
+              "street": "Kara Mission",
+              "city": "Port Stacyside",
+              "region": "North Carolina",
+              "country": "Korea",
+              "postcode": "10104"
+            },
+            "gps_coordinates": "42.274846, 28.348615",
+            "directions": "Located across from Hoffman, Williams and Hernandez",
+            "city": "Port Stacyside",
+            "country": "Korea"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 400
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 867",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "https://en.wikipedia.org/wiki/Deburring",
+    "https://en.wikipedia.org/wiki/Surface_finish"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "loading_dock": true
+}

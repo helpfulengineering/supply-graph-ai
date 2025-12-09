@@ -1,0 +1,128 @@
+{
+  "id": "953597ef-f327-4d01-9063-9373df6e1bbb",
+  "name": "Sheet Metal Fabrication Facility 1",
+  "location": {
+    "address": {
+      "number": "1689",
+      "street": "Bautista Spurs",
+      "city": "Jakeshire",
+      "region": "Kentucky",
+      "country": "Chile",
+      "postcode": "63666"
+    },
+    "gps_coordinates": "65.619887, -109.740081",
+    "city": "Jakeshire",
+    "country": "Chile"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Alvarado, Olsen and Saunders",
+    "location": {
+      "address": {
+        "number": "4545",
+        "street": "Weaver Causeway",
+        "city": "Smithtown",
+        "region": "South Carolina",
+        "country": "Kazakhstan",
+        "postcode": "51022"
+      },
+      "gps_coordinates": "42.337799, -16.217951",
+      "city": "Smithtown",
+      "country": "Kazakhstan"
+    },
+    "contact_person": "Alicia Fernandez",
+    "bio": "Established in 2004, we specialize in Advanced 24hour Internet solution",
+    "website": "https://carter.com",
+    "languages": [
+      "en"
+    ],
+    "contact": {
+      "email": "info@chang-oliver.net",
+      "whatsapp": "+1-216-663-6208"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/robert32",
+      "instagram": "@mariemorgan",
+      "other_urls": [
+        "https://smith.biz"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Guerrero, Wilkinson and Mitchell",
+    "location": {
+      "address": {
+        "number": "7741",
+        "street": "Glenda Roads",
+        "city": "Lake Hannahfort",
+        "region": "New Jersey",
+        "country": "Sri Lanka",
+        "postcode": "18009"
+      },
+      "gps_coordinates": "65.643245, -5.598043",
+      "directions": "Located across from Rodriguez-King",
+      "city": "Lake Hannahfort",
+      "country": "Sri Lanka"
+    },
+    "contact_person": "Lauren Gray",
+    "bio": "Established in 2016, we specialize in Upgradable zero administration project",
+    "website": "https://tran-lynch.com",
+    "languages": [
+      "de"
+    ],
+    "images": [
+      "images/dark.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-659-708-4207",
+      "whatsapp": "+1-943-259-8236"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in sheet metal forming and fabrication",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 188",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Shear",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Shear",
+      "make": "Generic",
+      "model": "Model 290",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Punch_press",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Punch_press",
+      "make": "Generic",
+      "model": "Model 289",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_forming",
+    "https://en.wikipedia.org/wiki/Welding",
+    "https://en.wikipedia.org/wiki/Deburring"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "IATF 16949",
+    "ISO 45001",
+    "AS9100"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "typical_products": [
+    "Managed mobile ability",
+    "Persevering multi-state knowledgebase",
+    "Triple-buffered clear-thinking knowledgebase"
+  ]
+}

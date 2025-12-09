@@ -227,3 +227,14 @@ if LLM_ENABLED:
         logger.info("LLM configuration validated successfully")
 else:
     logger.info("LLM integration is disabled")
+
+# Matching Configuration
+# Maximum depth for BOM explosion in nested matching
+# This controls how deep the system will recurse when matching nested components
+# Higher values allow deeper nesting but may impact performance
+MAX_DEPTH = int(_get_secret_or_env("MAX_DEPTH", "5"))
+if MAX_DEPTH < 0 or MAX_DEPTH > 10:
+    logger.warning(
+        f"MAX_DEPTH ({MAX_DEPTH}) is outside recommended range (0-10). "
+        "Consider using a value between 1-5 for optimal performance."
+    )

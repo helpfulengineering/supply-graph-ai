@@ -1,0 +1,73 @@
+{
+  "id": "3faa47af-2d3e-473b-ad31-414e8a9de2eb",
+  "name": "PCB Fabrication Facility 2",
+  "location": {
+    "address": {
+      "number": "7492",
+      "street": "Martinez Track",
+      "city": "East Jeffreyfurt",
+      "region": "Idaho",
+      "country": "Uganda",
+      "postcode": "66871"
+    },
+    "gps_coordinates": "25.770575, -79.9511",
+    "city": "East Jeffreyfurt",
+    "country": "Uganda"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 6:00-18:00",
+  "description": "Specialized in printed circuit board fabrication and prototyping",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/PCB_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/PCB_printer",
+      "make": "Brand A",
+      "model": "Model 237",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Etching_tank",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Etching_tank",
+      "make": "Brand A",
+      "model": "Model 217",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Drilling_machine",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Drilling_machine",
+      "make": "Brand A",
+      "model": "Model 809",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 227",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Printed_circuit_board",
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2014,
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001:2015",
+    "IPC-J-STD-001"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Down-sized context-sensitive moratorium",
+    "Compatible value-added ability",
+    "Optimized modular focus group",
+    "Phased demand-driven budgetary management",
+    "Devolved asymmetric success"
+  ]
+}

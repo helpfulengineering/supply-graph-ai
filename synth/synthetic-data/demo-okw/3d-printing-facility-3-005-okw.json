@@ -1,0 +1,105 @@
+{
+  "id": "e81c60f8-c07f-4395-9999-367c5b9bbb3d",
+  "name": "3D Printing Facility 3",
+  "location": {
+    "address": {
+      "number": "503",
+      "street": "Jenkins Common",
+      "city": "West Thomasmouth",
+      "region": "Kentucky",
+      "country": "Slovakia (Slovak Republic)",
+      "postcode": "82522"
+    },
+    "gps_coordinates": "46.027796, -119.954007",
+    "city": "West Thomasmouth",
+    "country": "Slovakia (Slovak Republic)"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Specialized in additive manufacturing and rapid prototyping",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "Form 3",
+      "condition": "Good",
+      "power_rating": 5985,
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4827",
+              "street": "Ronald Spur",
+              "city": "East Laura",
+              "region": "Colorado",
+              "country": "Philippines",
+              "postcode": "06049"
+            },
+            "gps_coordinates": "59.086756, -103.593027",
+            "city": "East Laura",
+            "country": "Philippines"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "6837",
+              "street": "Michael Mission",
+              "city": "Hannahchester",
+              "region": "Washington",
+              "country": "Russian Federation",
+              "postcode": "42089"
+            },
+            "gps_coordinates": "64.116332, -40.212434",
+            "city": "Hannahchester",
+            "country": "Russian Federation"
+          }
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 910",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+    "https://en.wikipedia.org/wiki/Post-processing"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1433,
+  "typical_materials": [],
+  "certifications": [
+    "First Aid Training",
+    "Basic Safety Training"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Triple-buffered content-based array",
+    "Total tertiary flexibility"
+  ]
+}

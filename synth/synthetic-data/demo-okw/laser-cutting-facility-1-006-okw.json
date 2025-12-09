@@ -1,0 +1,147 @@
+{
+  "id": "71959683-9a7e-436d-a947-a6209e98b80e",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "8221",
+      "street": "Stacey Common",
+      "city": "West Richard",
+      "region": "Arkansas",
+      "country": "Oman",
+      "postcode": "08358"
+    },
+    "gps_coordinates": "33.672975, -98.074811",
+    "city": "West Richard",
+    "country": "Oman"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Fisher Ltd",
+    "contact_person": "Jennifer Parker",
+    "website": "https://young.com",
+    "mailing_list": "carolyn02@lists.rogers-cunningham.com",
+    "contact": {
+      "email": "info@hughes.com",
+      "whatsapp": "+1-916-449-4003"
+    },
+    "social_media": {
+      "twitter": "@rodgersnichole",
+      "instagram": "@mriley",
+      "other_urls": [
+        "https://nielsen.net",
+        "https://young-anderson.biz"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Scott, Moreno and Lewis",
+    "location": {
+      "address": {
+        "number": "7632",
+        "street": "Christina Stravenue",
+        "city": "South Leeburgh",
+        "region": "Oklahoma",
+        "country": "Angola",
+        "postcode": "06832"
+      },
+      "gps_coordinates": "45.401425, -88.646612",
+      "city": "South Leeburgh",
+      "country": "Angola"
+    },
+    "contact_person": "Robert Richards",
+    "bio": "Established in 2009, we specialize in Intuitive stable alliance",
+    "website": "https://sanders.com",
+    "languages": [
+      "es",
+      "fr",
+      "en"
+    ],
+    "contact": {
+      "landline": "+1-250-430-2827"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-21:00",
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2004-06-07",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Epilog",
+      "model": "LS-1630",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Provide item drug standard.",
+      "quantity": 3,
+      "throughput": "99 parts/hour",
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Premium",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "supplier_location": {
+            "address": {
+              "number": "4530",
+              "street": "Jeremy Mews",
+              "city": "Craigfurt",
+              "region": "North Carolina",
+              "country": "Argentina",
+              "postcode": "75875"
+            },
+            "gps_coordinates": "34.360215, -77.784198",
+            "city": "Craigfurt",
+            "country": "Argentina"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9910",
+              "street": "Mary Ridge",
+              "city": "North Teresabury",
+              "region": "Minnesota",
+              "country": "Tonga",
+              "postcode": "13099"
+            },
+            "gps_coordinates": "55.783209, -14.036488",
+            "city": "North Teresabury",
+            "country": "Tonga"
+          }
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 300
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2304,
+  "storage_capacity": "669 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "typical_products": [
+    "Multi-layered methodical success",
+    "User-friendly motivating customer loyalty",
+    "Virtual background matrices",
+    "Synchronized bi-directional frame"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "id": "ca9c2086-cbf3-401d-b017-fd59e20a77b5",
+  "name": "CNC Machining Facility 3",
+  "location": {
+    "address": {
+      "number": "3113",
+      "street": "Good Villages",
+      "city": "South Brenda",
+      "region": "Connecticut",
+      "country": "Ghana",
+      "postcode": "08383"
+    },
+    "gps_coordinates": "58.017714, -40.699669",
+    "directions": "Located near Waller, Wright and Sheppard",
+    "city": "South Brenda",
+    "country": "Ghana"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Perez, Ross and Benson",
+    "location": {
+      "address": {
+        "number": "3596",
+        "street": "Miller Rue",
+        "city": "Port Anthonyburgh",
+        "region": "Indiana",
+        "country": "India",
+        "postcode": "35311"
+      },
+      "gps_coordinates": "33.937816, -69.240882",
+      "directions": "Located behind Moss, Payne and Phillips",
+      "city": "Port Anthonyburgh",
+      "country": "India"
+    },
+    "contact_person": "Kristin Ramirez",
+    "website": "https://doyle.biz",
+    "mailing_list": "xmclean@lists.cortez-noble.net",
+    "contact": {
+      "email": "info@wheeler-mccoy.com"
+    },
+    "social_media": {
+      "twitter": "@jwilcox",
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in CNC milling and turning operations",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VF-2",
+      "condition": "Needs Maintenance",
+      "quantity": 3,
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8907",
+              "street": "Daniel Pines",
+              "city": "Meganview",
+              "region": "Illinois",
+              "country": "Bahrain",
+              "postcode": "72449"
+            },
+            "gps_coordinates": "37.209739, 27.674063",
+            "directions": "Located across from Allen PLC",
+            "city": "Meganview",
+            "country": "Bahrain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "2435",
+              "street": "Conner Shoals",
+              "city": "Leeville",
+              "region": "South Dakota",
+              "country": "French Polynesia",
+              "postcode": "62148"
+            },
+            "gps_coordinates": "46.453331, -23.961355",
+            "directions": "Located near Downs-Oliver",
+            "city": "Leeville",
+            "country": "French Polynesia"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 162",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "https://en.wikipedia.org/wiki/Deburring",
+    "https://en.wikipedia.org/wiki/Surface_finish"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "storage_capacity": "540 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "OHSAS 18001",
+    "AS9100",
+    "NADCAP"
+  ]
+}

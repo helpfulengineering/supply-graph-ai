@@ -1,0 +1,172 @@
+{
+  "id": "b2f94307-2ad8-4a5f-bcd1-ffcaf9ee0412",
+  "name": "Precision Machining Facility 2",
+  "location": {
+    "address": {
+      "number": "783",
+      "street": "Amy Springs",
+      "city": "Tiffanymouth",
+      "region": "Virginia",
+      "country": "Italy",
+      "postcode": "84969"
+    },
+    "gps_coordinates": "29.872768, -66.348557",
+    "city": "Tiffanymouth",
+    "country": "Italy"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Ingram Inc",
+    "location": {
+      "address": {
+        "number": "5266",
+        "street": "James Trace",
+        "city": "Williamport",
+        "region": "Michigan",
+        "country": "Ukraine",
+        "postcode": "85264"
+      },
+      "gps_coordinates": "55.740827, -69.69254",
+      "directions": "Located across from Hudson and Sons",
+      "city": "Williamport",
+      "country": "Ukraine"
+    },
+    "website": "https://smith.com",
+    "languages": [
+      "fr",
+      "en",
+      "de"
+    ],
+    "mailing_list": "swalker@lists.anderson.com",
+    "contact": {
+      "landline": "+1-569-981-4506",
+      "whatsapp": "+1-435-514-1411"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in high-precision machining operations",
+  "date_founded": "2004-03-11",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VF-2",
+      "condition": "Excellent",
+      "power_rating": 5824,
+      "maintenance_schedule": "Every 11 months",
+      "usage_levels": "Medium",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5327",
+              "street": "Kathryn Plaza",
+              "city": "West Theresahaven",
+              "region": "South Carolina",
+              "country": "El Salvador",
+              "postcode": "41838"
+            },
+            "gps_coordinates": "66.89621, -18.661621",
+            "directions": "Located behind Sellers, Rivera and Mitchell",
+            "city": "West Theresahaven",
+            "country": "El Salvador"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "872",
+              "street": "James Lights",
+              "city": "Port Mary",
+              "region": "Wisconsin",
+              "country": "Jamaica",
+              "postcode": "51935"
+            },
+            "gps_coordinates": "37.399831, -63.284609",
+            "city": "Port Mary",
+            "country": "Jamaica"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "4358",
+              "street": "Christopher Station",
+              "city": "Patriciafort",
+              "region": "South Carolina",
+              "country": "Ghana",
+              "postcode": "98795"
+            },
+            "gps_coordinates": "64.242251, -89.670921",
+            "city": "Patriciafort",
+            "country": "Ghana"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 308",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 501",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CMM",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CMM",
+      "make": "Brand A",
+      "model": "Model 242",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "https://en.wikipedia.org/wiki/Deburring",
+    "https://en.wikipedia.org/wiki/Surface_finish",
+    "https://en.wikipedia.org/wiki/Quality_control"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1231,
+  "typical_materials": [],
+  "certifications": [
+    "OHSAS 18001",
+    "ISO 14001"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Optional exuding pricing structure",
+    "Stand-alone motivating focus group"
+  ]
+}

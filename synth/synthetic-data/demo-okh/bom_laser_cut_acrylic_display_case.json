@@ -1,0 +1,79 @@
+{
+  "id": "f16402ac-d0e0-4df7-84c7-1f3328e2e47c",
+  "name": "Laser Cut Acrylic Display Case BOM",
+  "components": [
+    {
+      "id": "10706cd8-26df-4565-8bf9-a0ad2ab69671",
+      "name": "Linked Component",
+      "quantity": 2.03,
+      "unit": "units",
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    },
+    {
+      "id": "d5100e10-dc84-4603-ab76-51516fc4f535",
+      "name": "Referenced Assembly",
+      "quantity": 3.91,
+      "unit": "units",
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "c289ae86-c8f1-4976-b4c8-c08744b36c6b"
+      }
+    },
+    {
+      "id": "066e4625-c688-4775-9b6f-b018129d3511",
+      "name": "Referenced Part",
+      "quantity": 2.13,
+      "unit": "units",
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "76ab92b1-7136-497e-8639-7635cf8ff031"
+      }
+    },
+    {
+      "id": "9f5e7949-8283-49fa-b057-5f52818cda3f",
+      "name": "Referenced Part",
+      "quantity": 2.68,
+      "unit": "units",
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "f592b483-8285-4eb1-aa2c-c68c0803038c"
+      }
+    }
+  ],
+  "metadata": {
+    "max_depth": 3,
+    "has_references": true,
+    "generated": true
+  }
+}

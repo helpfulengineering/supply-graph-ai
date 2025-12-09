@@ -33,6 +33,7 @@ from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
+from src.config.settings import MAX_DEPTH
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -211,80 +212,133 @@ async def match_requirements_to_capabilities(
                 },
             )
 
-        # 4. Perform matching with enhanced options
-        matching_results = await _perform_enhanced_matching(
-            matching_service,
-            requirements_data,
-            facilities,
-            request,
-            request_id,
-            domain=domain,
-        )
+        # 4. Determine depth (default to 0 for single-level matching)
+        max_depth = request.max_depth if request.max_depth is not None else 0
 
-        # 5. Process and format results
-        solutions = await _process_matching_results(
-            matching_results, request, request_id, domain=domain
-        )
+        # 5. Optional auto-detection for manufacturing domain
+        if (
+            request.auto_detect_depth
+            and max_depth == 0
+            and domain == "manufacturing"
+            and isinstance(requirements_data, OKHManifest)
+        ):
+            if _has_nested_components(requirements_data):
+                max_depth = MAX_DEPTH  # Use configured default depth for auto-detection
+                logger.info(
+                    f"Auto-detected nested components, using max_depth={MAX_DEPTH}",
+                    extra={"request_id": request_id, "max_depth": MAX_DEPTH},
+                )
 
-        # 5. Calculate processing metrics
-        processing_time = (datetime.now() - start_time).total_seconds()
+        # 6. Route to appropriate matching method based on depth
+        if max_depth > 0 and domain == "manufacturing":
+            # Nested matching (manufacturing domain only for now)
+            if not isinstance(requirements_data, OKHManifest):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Nested matching requires OKH manifest for manufacturing domain",
+                )
 
-        # 6. Create enhanced response
-        validation_results = await _validate_results(solutions, request_id)
-        # Convert ValidationResult objects to dicts for JSON serialization
-        validation_results_dicts = [
-            result.model_dump() if hasattr(result, "model_dump") else result
-            for result in validation_results
-        ]
+            solution = await matching_service.match_with_nested_components(
+                okh_manifest=requirements_data,
+                facilities=facilities,
+                max_depth=max_depth,
+                domain=domain,
+                okh_service=okh_service,
+            )
 
-        response_data = {
-            "solutions": solutions,
-            "total_solutions": len(solutions),
-            "processing_time": processing_time,
-            "matching_metrics": {
-                "direct_matches": len(
-                    [
-                        s
-                        for s in solutions
-                        if s.get("tree", {}).get("match_type") == "direct"
-                    ]
-                ),
-                "heuristic_matches": len(
-                    [
-                        s
-                        for s in solutions
-                        if s.get("tree", {}).get("match_type") == "heuristic"
-                    ]
-                ),
-                "nlp_matches": len(
-                    [
-                        s
-                        for s in solutions
-                        if s.get("tree", {}).get("match_type") == "nlp"
-                    ]
-                ),
-                "llm_matches": len(
-                    [
-                        s
-                        for s in solutions
-                        if s.get("tree", {}).get("match_type") == "llm"
-                    ]
-                ),
-            },
-            "validation_results": validation_results_dicts,
-        }
+            # Format nested response
+            processing_time = (datetime.now() - start_time).total_seconds()
+            response_data = _format_nested_response(
+                solution, request, request_id, processing_time
+            )
 
-        logger.info(
-            f"Enhanced matching completed: {len(solutions)} solutions found",
-            extra={
-                "request_id": request_id,
-                "solutions_count": len(solutions),
+            logger.info(
+                f"Nested matching completed: {len(solution.all_trees)} trees in solution",
+                extra={
+                    "request_id": request_id,
+                    "trees_count": len(solution.all_trees),
+                    "max_depth": max_depth,
+                    "processing_time": processing_time,
+                },
+            )
+
+            return response_data
+        else:
+            # Single-level matching (existing logic)
+            matching_results = await _perform_enhanced_matching(
+                matching_service,
+                requirements_data,
+                facilities,
+                request,
+                request_id,
+                domain=domain,
+            )
+
+            # Process and format results
+            solutions = await _process_matching_results(
+                matching_results, request, request_id, domain=domain
+            )
+
+            # Calculate processing metrics
+            processing_time = (datetime.now() - start_time).total_seconds()
+
+            # Create enhanced response
+            validation_results = await _validate_results(solutions, request_id)
+            # Convert ValidationResult objects to dicts for JSON serialization
+            validation_results_dicts = [
+                result.model_dump() if hasattr(result, "model_dump") else result
+                for result in validation_results
+            ]
+
+            response_data = {
+                "solutions": solutions,
+                "total_solutions": len(solutions),
+                "matching_mode": "single-level",
                 "processing_time": processing_time,
-                "llm_used": request.use_llm,
-            },
-        )
+                "matching_metrics": {
+                    "direct_matches": len(
+                        [
+                            s
+                            for s in solutions
+                            if s.get("tree", {}).get("match_type") == "direct"
+                        ]
+                    ),
+                    "heuristic_matches": len(
+                        [
+                            s
+                            for s in solutions
+                            if s.get("tree", {}).get("match_type") == "heuristic"
+                        ]
+                    ),
+                    "nlp_matches": len(
+                        [
+                            s
+                            for s in solutions
+                            if s.get("tree", {}).get("match_type") == "nlp"
+                        ]
+                    ),
+                    "llm_matches": len(
+                        [
+                            s
+                            for s in solutions
+                            if s.get("tree", {}).get("match_type") == "llm"
+                        ]
+                    ),
+                },
+                "validation_results": validation_results_dicts,
+            }
 
-        return response_data
+            logger.info(
+                f"Enhanced matching completed: {len(solutions)} solutions found",
+                extra={
+                    "request_id": request_id,
+                    "solutions_count": len(solutions),
+                    "processing_time": processing_time,
+                    "llm_used": request.use_llm,
+                },
+            )
+
+            return response_data
 
     except HTTPException:
         # Re-raise HTTP exceptions
@@ -985,6 +1039,50 @@ async def detect_domain_from_input(
 
 
 # Helper functions
+def _has_nested_components(okh_manifest: OKHManifest) -> bool:
+    """Check if OKH manifest has nested components"""
+    # Check for nested components in sub_parts
+    if okh_manifest.sub_parts and len(okh_manifest.sub_parts) > 0:
+        # Check if any sub_parts have nested sub_parts
+        for sub_part in okh_manifest.sub_parts:
+            if isinstance(sub_part, dict) and sub_part.get("sub_parts"):
+                return True
+        return True
+
+    # Check for external BOM with nested structure
+    if okh_manifest.bom:
+        # Could check BOM file for nested components
+        # For now, return False (conservative - requires BOM loading)
+        pass
+
+    return False
+
+
+def _format_nested_response(
+    solution,
+    request: MatchRequest,
+    request_id: Optional[str],
+    processing_time: float,
+) -> dict:
+    """Format nested matching response"""
+    from ..error_handlers import create_success_response
+
+    response_data = {
+        "solution": solution.to_dict(),
+        "matching_mode": "nested",
+        "processing_time": processing_time,
+    }
+
+    if request.include_validation and solution.validation_result:
+        response_data["validation_result"] = solution.validation_result.to_dict()
+
+    return create_success_response(
+        message="Nested matching completed successfully",
+        data=response_data,
+        request_id=request_id,
+    )
+
+
 async def _detect_domain_from_request(request: MatchRequest) -> str:
     """Detect domain from request input"""
     # If domain is explicitly provided, use it

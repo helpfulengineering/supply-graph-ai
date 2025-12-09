@@ -1,0 +1,86 @@
+{
+  "id": "8860da7a-3d8c-4402-a584-196440084c4b",
+  "name": "Sheet Metal Fabrication Facility 2",
+  "location": {
+    "address": {
+      "number": "2721",
+      "street": "Sharon Trail",
+      "city": "Tranville",
+      "region": "Tennessee",
+      "country": "Argentina",
+      "postcode": "26817"
+    },
+    "gps_coordinates": "38.840349, 23.745414",
+    "city": "Tranville",
+    "country": "Argentina"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Carney-Rosario",
+    "location": {
+      "address": {
+        "number": "9149",
+        "street": "Natasha Manors",
+        "city": "Port Jonathanshire",
+        "region": "Minnesota",
+        "country": "Namibia",
+        "postcode": "33665"
+      },
+      "gps_coordinates": "33.717447, -111.901442",
+      "city": "Port Jonathanshire",
+      "country": "Namibia"
+    },
+    "contact_person": "Lonnie Carter",
+    "website": "https://gordon.com",
+    "mailing_list": "wallaceadam@lists.cisneros.com",
+    "contact": {
+      "mobile": "+1-416-715-7985"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in sheet metal forming and fabrication",
+  "date_founded": "2003-07-06",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand A",
+      "model": "Model 904",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Shear",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Shear",
+      "make": "Brand A",
+      "model": "Model 889",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Punch_press",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Punch_press",
+      "make": "Generic",
+      "model": "Model 804",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_forming",
+    "https://en.wikipedia.org/wiki/Welding",
+    "https://en.wikipedia.org/wiki/Deburring"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "typical_products": [
+    "Sharable national Graphic Interface",
+    "Public-key cohesive pricing structure",
+    "Triple-buffered systemic circuit"
+  ]
+}

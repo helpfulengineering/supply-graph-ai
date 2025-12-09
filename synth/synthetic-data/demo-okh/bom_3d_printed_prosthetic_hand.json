@@ -1,0 +1,79 @@
+{
+  "id": "0001f034-c3e0-49b6-9b81-a70c0506ce1e",
+  "name": "3D Printed Prosthetic Hand BOM",
+  "components": [
+    {
+      "id": "65e4b726-533b-4709-9a50-6d088126163b",
+      "name": "Referenced Assembly",
+      "quantity": 3.75,
+      "unit": "pcs",
+      "requirements": {
+        "material": "FR4",
+        "process": "PCB"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "76ab92b1-7136-497e-8639-7635cf8ff031"
+      }
+    },
+    {
+      "id": "876db89c-7b61-412a-b4cf-6065f7960d62",
+      "name": "Referenced Assembly",
+      "quantity": 1.37,
+      "unit": "units",
+      "requirements": {
+        "material": "PLA",
+        "process": "3DP"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "818fdf32-415d-4601-ace2-5afdae8afeed"
+      }
+    },
+    {
+      "id": "f4a7f6a0-e996-4797-9492-36467838f85b",
+      "name": "External Module",
+      "quantity": 3.13,
+      "unit": "units",
+      "requirements": {
+        "material": "Electronic components",
+        "process": "PCB"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    },
+    {
+      "id": "15577b20-3ee3-45bf-86b0-b9e336625a97",
+      "name": "Linked Component",
+      "quantity": 1.27,
+      "unit": "pcs",
+      "requirements": {
+        "material": "FR4",
+        "process": "PCB"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    }
+  ],
+  "metadata": {
+    "max_depth": 3,
+    "has_references": true,
+    "generated": true
+  }
+}

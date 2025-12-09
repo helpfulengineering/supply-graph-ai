@@ -1,0 +1,111 @@
+{
+  "id": "758458be-1509-4964-b51f-30728ebea7a6",
+  "name": "3D Printing Facility 3",
+  "location": {
+    "address": {
+      "number": "7089",
+      "street": "Campbell Prairie",
+      "city": "Leechester",
+      "region": "West Virginia",
+      "country": "Senegal",
+      "postcode": "86452"
+    },
+    "gps_coordinates": "53.258731, 25.286232",
+    "directions": "Located across from Charles-Keller",
+    "city": "Leechester",
+    "country": "Senegal"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 7:00-21:00",
+  "description": "Specialized in additive manufacturing and rapid prototyping",
+  "date_founded": "2019-12-12",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "i3 MK3S+",
+      "serial_number": "SN811931",
+      "condition": "Good",
+      "power_rating": 1714,
+      "maintenance_schedule": "Every 2 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9777",
+              "street": "White Cliffs",
+              "city": "Acevedomouth",
+              "region": "Florida",
+              "country": "Latvia",
+              "postcode": "44824"
+            },
+            "gps_coordinates": "27.476325, -57.697302",
+            "city": "Acevedomouth",
+            "country": "Latvia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1235",
+              "street": "Romero Brooks",
+              "city": "Ramireztown",
+              "region": "Arizona",
+              "country": "Cameroon",
+              "postcode": "06507"
+            },
+            "gps_coordinates": "45.957462, -88.250637",
+            "city": "Ramireztown",
+            "country": "Cameroon"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 566",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+    "https://en.wikipedia.org/wiki/Post-processing"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "Basic Safety Training",
+    "First Aid Training"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Synergized 24/7 task-force",
+    "Seamless regional collaboration"
+  ]
+}

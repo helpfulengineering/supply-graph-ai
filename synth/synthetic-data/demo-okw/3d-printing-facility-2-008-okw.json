@@ -1,0 +1,70 @@
+{
+  "id": "7226ab04-fcf1-484b-8129-e399ff703a92",
+  "name": "3D Printing Facility 2",
+  "location": {
+    "address": {
+      "number": "8004",
+      "street": "Adrian Crossing",
+      "city": "Lake Eric",
+      "region": "North Dakota",
+      "country": "Vanuatu",
+      "postcode": "44038"
+    },
+    "gps_coordinates": "27.262808, -83.066068",
+    "directions": "Located near Jenkins-Holden",
+    "city": "Lake Eric",
+    "country": "Vanuatu"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in additive manufacturing and rapid prototyping",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "S5",
+      "condition": "Good",
+      "notes": "Equipment notes: Article yourself collection.",
+      "quantity": 1,
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "brand": "Standard"
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand B",
+      "model": "Model 799",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+    "https://en.wikipedia.org/wiki/Post-processing"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 3856,
+  "storage_capacity": "650 cubic meters",
+  "typical_materials": [],
+  "certifications": []
+}

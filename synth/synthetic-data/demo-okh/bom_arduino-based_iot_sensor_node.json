@@ -1,0 +1,96 @@
+{
+  "id": "ca0848da-8f61-4ed8-8d63-e20a5e6bfa8f",
+  "name": "Arduino-based IoT Sensor Node BOM",
+  "components": [
+    {
+      "id": "7ad5df96-fefc-4b96-9ce6-8e2c3cb22fa4",
+      "name": "Referenced Part",
+      "quantity": 4.64,
+      "unit": "pcs",
+      "requirements": {
+        "material": "Aluminum 6061",
+        "process": "CNC"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "818fdf32-415d-4601-ace2-5afdae8afeed"
+      }
+    },
+    {
+      "id": "424c1ae2-ec18-495a-809b-6be164aa06d7",
+      "name": "External Module",
+      "quantity": 1.77,
+      "unit": "pcs",
+      "requirements": {
+        "material": "Aluminum 6061",
+        "process": "CNC"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    },
+    {
+      "id": "a286a5e3-5bbe-41a5-a657-58dde9707cab",
+      "name": "Referenced Assembly",
+      "quantity": 3.46,
+      "unit": "pcs",
+      "requirements": {
+        "material": "Anodizing solution",
+        "process": "CNC"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "c289ae86-c8f1-4976-b4c8-c08744b36c6b"
+      }
+    },
+    {
+      "id": "e754350f-e6a6-4ea5-a0e4-037d635a4440",
+      "name": "External Module",
+      "quantity": 3.51,
+      "unit": "units",
+      "requirements": {
+        "material": "Aluminum 6061",
+        "process": "CNC"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "818fdf32-415d-4601-ace2-5afdae8afeed"
+      }
+    },
+    {
+      "id": "d47f5d64-324a-4d75-a7a3-1b11d1ccce3a",
+      "name": "Linked Component",
+      "quantity": 1.04,
+      "unit": "units",
+      "requirements": {
+        "material": "Anodizing solution",
+        "process": "CNC"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "76ab92b1-7136-497e-8639-7635cf8ff031"
+      }
+    }
+  ],
+  "metadata": {
+    "max_depth": 3,
+    "has_references": true,
+    "generated": true
+  }
+}

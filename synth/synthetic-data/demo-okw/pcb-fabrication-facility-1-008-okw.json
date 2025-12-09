@@ -1,0 +1,85 @@
+{
+  "id": "b966c225-cdbb-4d3b-a3d2-e9f70f557c26",
+  "name": "PCB Fabrication Facility 1",
+  "location": {
+    "address": {
+      "number": "5942",
+      "street": "Christopher Manors",
+      "city": "Lake Emilyhaven",
+      "region": "Maine",
+      "country": "Canada",
+      "postcode": "54511"
+    },
+    "gps_coordinates": "61.131124, -45.496894",
+    "directions": "Located across from Dyer-Jones",
+    "city": "Lake Emilyhaven",
+    "country": "Canada"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Davis, Rosales and Black",
+    "bio": "Established in 2011, we specialize in User-friendly 6thgeneration task-force",
+    "images": [
+      "images/image.jpg"
+    ],
+    "contact": {
+      "landline": "+1-767-963-4072",
+      "email": "info@newton-carney.org"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in printed circuit board fabrication and prototyping",
+  "date_founded": "2020-06-06",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/PCB_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/PCB_printer",
+      "make": "Brand B",
+      "model": "Model 373",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Etching_tank",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Etching_tank",
+      "make": "Brand B",
+      "model": "Model 651",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Drilling_machine",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Drilling_machine",
+      "make": "Brand A",
+      "model": "Model 742",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Generic",
+      "model": "Model 345",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Printed_circuit_board",
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1072,
+  "storage_capacity": "181 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "typical_products": [
+    "Profit-focused impactful Graphical User Interface",
+    "Decentralized web-enabled middleware",
+    "Cloned attitude-oriented forecast"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "c27eadca-d568-416c-bcc6-1aaebd36be60",
+  "name": "Clean Room Assembly Facility 1",
+  "location": {
+    "address": {
+      "number": "4905",
+      "street": "Davis Trail",
+      "city": "Port Michael",
+      "region": "Iowa",
+      "country": "Turkmenistan",
+      "postcode": "65013"
+    },
+    "gps_coordinates": "29.640662, 29.425547",
+    "city": "Port Michael",
+    "country": "Turkmenistan"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-22:00",
+  "description": "Specialized in clean room assembly for sensitive components",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Clean_room",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Clean_room",
+      "make": "Brand A",
+      "model": "Model 200",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ESD-safe_workstations",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ESD-safe_workstations",
+      "make": "Generic",
+      "model": "Model 820",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Precision_tools",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Precision_tools",
+      "make": "Brand B",
+      "model": "Model 166",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "https://en.wikipedia.org/wiki/Quality_control",
+    "https://en.wikipedia.org/wiki/Test_equipment"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2868,
+  "typical_materials": [],
+  "certifications": []
+}
