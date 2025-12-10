@@ -14,6 +14,7 @@ from .match import match_group
 from .okh import okh_group
 from .okw import okw_group
 from .package import package_group
+from .solution import solution_group
 from .storage import storage_group
 from .system import system_group
 from .utility import utility_group
@@ -109,6 +110,7 @@ if LLM_AVAILABLE and llm_group:
 cli.add_command(system_group, name="system")
 cli.add_command(utility_group, name="utility")
 cli.add_command(storage_group, name="storage")
+cli.add_command(solution_group, name="solution")
 
 
 @cli.command()

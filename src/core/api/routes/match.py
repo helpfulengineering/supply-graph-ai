@@ -248,8 +248,8 @@ async def match_requirements_to_capabilities(
 
             # Format nested response
             processing_time = (datetime.now() - start_time).total_seconds()
-            response_data = _format_nested_response(
-                solution, request, request_id, processing_time
+            response_data = await _format_nested_response(
+                solution, request, request_id, processing_time, storage_service
             )
 
             logger.info(
@@ -259,6 +259,7 @@ async def match_requirements_to_capabilities(
                     "trees_count": len(solution.all_trees),
                     "max_depth": max_depth,
                     "processing_time": processing_time,
+                    "solution_saved": request.save_solution if request.save_solution else False,
                 },
             )
 
@@ -328,6 +329,54 @@ async def match_requirements_to_capabilities(
                 "validation_results": validation_results_dicts,
             }
 
+            # Auto-save solution if requested (save best solution for single-level)
+            if request.save_solution and storage_service and solutions:
+                try:
+                    # Convert first (best) solution to SupplyTreeSolution
+                    from ...models.supply_trees import SupplyTree, SupplyTreeSolution
+                    
+                    best_solution_dict = solutions[0]
+                    tree_dict = best_solution_dict.get("tree", {})
+                    tree = SupplyTree.from_dict(tree_dict)
+                    
+                    # Create SupplyTreeSolution from single tree
+                    solution = SupplyTreeSolution(
+                        all_trees=[tree],
+                        score=best_solution_dict.get("score", best_solution_dict.get("confidence", 0.0)),
+                        metrics=best_solution_dict.get("metrics", {}),
+                        metadata={
+                            "okh_id": str(request.okh_id) if request.okh_id else None,
+                            "matching_mode": "single-level",
+                        }
+                    )
+                    
+                    solution_id = await storage_service.save_supply_tree_solution(
+                        solution,
+                        ttl_days=request.solution_ttl_days,
+                        tags=request.solution_tags,
+                    )
+                    response_data["solution_id"] = str(solution_id)
+                    logger.info(
+                        f"Single-level solution auto-saved with ID: {solution_id}",
+                        extra={
+                            "request_id": request_id,
+                            "solution_id": str(solution_id),
+                            "ttl_days": request.solution_ttl_days,
+                        },
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Failed to auto-save single-level solution: {str(e)}",
+                        extra={
+                            "request_id": request_id,
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                        },
+                        exc_info=True,
+                    )
+                    # Don't fail the request if save fails
+                    response_data["save_warning"] = f"Solution could not be saved: {str(e)}"
+
             logger.info(
                 f"Enhanced matching completed: {len(solutions)} solutions found",
                 extra={
@@ -335,6 +384,7 @@ async def match_requirements_to_capabilities(
                     "solutions_count": len(solutions),
                     "processing_time": processing_time,
                     "llm_used": request.use_llm,
+                    "solution_saved": request.save_solution if request.save_solution else False,
                 },
             )
 
@@ -1058,23 +1108,161 @@ def _has_nested_components(okh_manifest: OKHManifest) -> bool:
     return False
 
 
-def _format_nested_response(
+async def _format_nested_response(
     solution,
     request: MatchRequest,
     request_id: Optional[str],
     processing_time: float,
+    storage_service: Optional[StorageService] = None,
 ) -> dict:
-    """Format nested matching response"""
+    """Format nested matching response with optional tree filtering"""
     from ..error_handlers import create_success_response
 
+    # Apply tree filtering if any filters are specified
+    filtered_trees = solution.all_trees
+    filters_applied = False
+    
+    # Check if any tree filters are specified
+    # Note: min_confidence is used for solution-level filtering in single-level matching,
+    # but we also apply it at tree-level for nested matching when specified
+    has_tree_filters = any([
+        request.component_id,
+        request.component_name,
+        request.facility_id,
+        request.facility_name,
+        request.depth is not None,
+        request.min_depth is not None,
+        request.max_depth_filter is not None,
+        not request.include_trees,  # include_trees=False is also a filter
+    ])
+    
+    # Apply min_confidence filter if specified (always apply for nested matching)
+    apply_min_confidence = request.min_confidence is not None
+    
+    if has_tree_filters or apply_min_confidence:
+        filters_applied = True
+        filtered_trees = []
+        
+        for tree in solution.all_trees:
+            # Apply component_id filter
+            if request.component_id and tree.component_id != request.component_id:
+                continue
+            
+            # Apply component_name filter
+            if request.component_name and tree.component_name != request.component_name:
+                continue
+            
+            # Apply facility_id filter (need to check if tree has facility_id field)
+            if request.facility_id:
+                # Check if tree has facility_id in metadata or as attribute
+                tree_facility_id = getattr(tree, "facility_id", None)
+                if not tree_facility_id and hasattr(tree, "metadata") and tree.metadata:
+                    tree_facility_id = tree.metadata.get("facility_id")
+                if tree_facility_id and UUID(str(tree_facility_id)) != request.facility_id:
+                    continue
+            
+            # Apply facility_name filter
+            if request.facility_name and tree.facility_name != request.facility_name:
+                continue
+            
+            # Apply depth filters
+            if request.depth is not None and tree.depth != request.depth:
+                continue
+            
+            if request.min_depth is not None and tree.depth < request.min_depth:
+                continue
+            
+            if request.max_depth_filter is not None and tree.depth > request.max_depth_filter:
+                continue
+            
+            # Apply min_confidence filter (tree-level)
+            if apply_min_confidence:
+                if tree.confidence_score < request.min_confidence:
+                    continue
+            
+            # Tree passed all filters
+            filtered_trees.append(tree)
+        
+        logger.info(
+            f"Applied tree filters: {len(filtered_trees)}/{len(solution.all_trees)} trees match",
+            extra={
+                "request_id": request_id,
+                "original_count": len(solution.all_trees),
+                "filtered_count": len(filtered_trees),
+                "filters": {
+                    "component_id": request.component_id,
+                    "component_name": request.component_name,
+                    "facility_id": str(request.facility_id) if request.facility_id else None,
+                    "facility_name": request.facility_name,
+                    "depth": request.depth,
+                    "min_depth": request.min_depth,
+                    "max_depth_filter": request.max_depth_filter,
+                    "min_confidence": request.min_confidence,
+                },
+            },
+        )
+    
+    # Create solution dict with filtered or original trees
+    solution_dict = solution.to_dict()
+    
+    # Handle include_trees flag
+    if not request.include_trees:
+        # Return metadata only (counts, IDs) without full tree objects
+        solution_dict["all_trees"] = []  # Remove full tree data
+        solution_dict["tree_count"] = len(filtered_trees) if filters_applied else len(solution.all_trees)
+        solution_dict["tree_ids"] = [str(tree.id) for tree in (filtered_trees if filters_applied else solution.all_trees)]
+        solution_dict["filtered"] = filters_applied
+    else:
+        # Include full tree data, but use filtered trees if filters were applied
+        if filters_applied:
+            # Create a new solution dict with filtered trees
+            solution_dict["all_trees"] = [tree.to_dict() for tree in filtered_trees]
+            solution_dict["tree_count"] = len(filtered_trees)
+            solution_dict["original_tree_count"] = len(solution.all_trees)
+            solution_dict["filtered"] = True
+        else:
+            # Use original solution dict (already has all_trees)
+            solution_dict["filtered"] = False
+
     response_data = {
-        "solution": solution.to_dict(),
+        "solution": solution_dict,
         "matching_mode": "nested",
         "processing_time": processing_time,
     }
 
     if request.include_validation and solution.validation_result:
         response_data["validation_result"] = solution.validation_result.to_dict()
+
+    # Auto-save solution if requested
+    if request.save_solution and storage_service:
+        try:
+            solution_id = await storage_service.save_supply_tree_solution(
+                solution,
+                ttl_days=request.solution_ttl_days,
+                tags=request.solution_tags,
+            )
+            response_data["solution_id"] = str(solution_id)
+            logger.info(
+                f"Solution auto-saved with ID: {solution_id}",
+                extra={
+                    "request_id": request_id,
+                    "solution_id": str(solution_id),
+                    "ttl_days": request.solution_ttl_days,
+                },
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to auto-save solution: {str(e)}",
+                extra={
+                    "request_id": request_id,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                },
+                exc_info=True,
+            )
+            # Don't fail the request if save fails, just log the error
+            # Optionally add a warning to the response
+            response_data["save_warning"] = f"Solution could not be saved: {str(e)}"
 
     return create_success_response(
         message="Nested matching completed successfully",

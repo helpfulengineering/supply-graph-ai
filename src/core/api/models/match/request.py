@@ -84,6 +84,58 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         True,
         description="Include validation results in response (for nested matching)",
     )
+    
+    # Solution storage options
+    save_solution: Optional[bool] = Field(
+        False,
+        description="Automatically save the solution to storage. Returns solution_id in response.",
+    )
+    solution_ttl_days: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Time-to-live in days for saved solution (default: 30). Only used if save_solution=True.",
+    )
+    solution_tags: Optional[List[str]] = Field(
+        None,
+        description="Tags to apply to saved solution. Only used if save_solution=True.",
+    )
+    
+    # Tree filtering parameters (for nested matching results)
+    include_trees: Optional[bool] = Field(
+        True,
+        description="Include full tree data in response. If False, returns metadata only (tree counts, IDs).",
+    )
+    component_id: Optional[str] = Field(
+        None,
+        description="Filter trees by component ID (for nested matching).",
+    )
+    component_name: Optional[str] = Field(
+        None,
+        description="Filter trees by component name (for nested matching).",
+    )
+    facility_id: Optional[UUID] = Field(
+        None,
+        description="Filter trees by facility ID (for nested matching).",
+    )
+    facility_name: Optional[str] = Field(
+        None,
+        description="Filter trees by facility name (for nested matching).",
+    )
+    depth: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Filter trees by exact depth level (for nested matching).",
+    )
+    min_depth: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Filter trees by minimum depth level (for nested matching).",
+    )
+    max_depth_filter: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Filter trees by maximum depth level (for nested matching). Note: distinct from max_depth which controls BOM explosion depth.",
+    )
 
     # Backward compatibility
     include_workflows: Optional[bool] = False  # Feature flag for workflow inclusion
