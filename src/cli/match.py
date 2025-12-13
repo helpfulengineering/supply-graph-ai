@@ -102,6 +102,27 @@ def match_group():
     ),
 )
 @click.option("--output", "-o", help="Output file path")
+@click.option(
+    "--save-solution",
+    "save_solution",
+    is_flag=True,
+    default=False,
+    help="Automatically save the solution to storage. Returns solution_id in output.",
+)
+@click.option(
+    "--solution-ttl-days",
+    "solution_ttl_days",
+    type=int,
+    default=None,
+    help="Time-to-live in days for saved solution (default: 30). Only used if --save-solution is set.",
+)
+@click.option(
+    "--solution-tags",
+    "solution_tags",
+    type=str,
+    default=None,
+    help="Comma-separated tags to apply to saved solution. Only used if --save-solution is set.",
+)
 @standard_cli_command(
     help_text="""
     Match requirements to capabilities (supports both manufacturing and cooking domains).
@@ -160,6 +181,12 @@ def match_group():
       
       # Save results to file
       ome match requirements my-design.okh.json --output matches.json
+      
+      # Auto-save solution to storage
+      ome match requirements my-design.okh.json --max-depth 3 --save-solution
+      
+      # Auto-save with TTL and tags
+      ome match requirements my-design.okh.json --save-solution --solution-ttl-days 60 --solution-tags "production,test"
     """,
     async_cmd=True,
     track_performance=True,
@@ -190,6 +217,9 @@ async def requirements(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
+    save_solution: bool = False,
+    solution_ttl_days: Optional[int] = None,
+    solution_tags: Optional[str] = None,
 ):
     """Match OKH requirements to OKW capabilities with enhanced LLM support."""
     cli_ctx = ctx.obj
@@ -244,6 +274,14 @@ async def requirements(
             "max_depth": max_depth,
             "auto_detect_depth": auto_detect_depth,
         }
+        
+        # Add solution storage parameters if requested
+        if save_solution:
+            nested_params["save_solution"] = True
+            if solution_ttl_days:
+                nested_params["solution_ttl_days"] = solution_ttl_days
+            if solution_tags:
+                nested_params["solution_tags"] = [tag.strip() for tag in solution_tags.split(",")]
 
         # Create request data based on domain and input type
         if detected_domain == "manufacturing":
@@ -402,17 +440,48 @@ async def requirements(
                         okh_service=okh_service,
                         manifest_path=manifest_path,
                     )
+                    
+                    # Save solution if requested
+                    solution_id = None
+                    if save_solution:
+                        try:
+                            from ..core.services.storage_service import StorageService
+                            from ..config.storage_config import get_default_storage_config
+                            
+                            storage_service = await StorageService.get_instance()
+                            await storage_service.configure(get_default_storage_config())
+                            
+                            # Parse tags if provided
+                            tags_list = None
+                            if solution_tags:
+                                tags_list = [tag.strip() for tag in solution_tags.split(",")]
+                            
+                            # Use default TTL of 30 days if not provided
+                            ttl_days = solution_ttl_days if solution_ttl_days is not None else 30
+                            solution_id = await storage_service.save_supply_tree_solution(
+                                solution,
+                                ttl_days=ttl_days,
+                                tags=tags_list,
+                            )
+                            cli_ctx.log(f"Solution saved to storage with ID: {solution_id}", "info")
+                        except Exception as e:
+                            cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
+                            # Continue without failing the match
+                    
                     # Convert to response format matching API
                     # For nested solutions, count trees, not solutions
                     solution_dict = solution.to_dict()
                     num_trees = len(solution.all_trees) if solution.all_trees else 0
-                    return {
+                    result = {
                         "solutions": [solution_dict],  # Wrap in array for consistency with display logic
                         "solution": solution_dict,  # Also include singular for API compatibility
                         "total_solutions": num_trees,  # Count trees found, not solution count
                         "matching_mode": "nested",
                         "processing_time": 0.0,  # Fallback doesn't track time
                     }
+                    if solution_id:
+                        result["solution_id"] = str(solution_id)
+                    return result
                 else:
                     # Single-level matching
                     results = await matching_service.find_matches_with_manifest(
@@ -437,12 +506,56 @@ async def requirements(
                             results_list, key=lambda x: x.score, reverse=True
                         )[:max_results]
 
+                    # Save solution if requested (save best solution for single-level)
+                    solution_id = None
+                    if save_solution and results_list:
+                        try:
+                            from ..core.services.storage_service import StorageService
+                            from ..core.models.supply_trees import SupplyTree, SupplyTreeSolution
+                            from ..config.storage_config import get_default_storage_config
+                            
+                            storage_service = await StorageService.get_instance()
+                            await storage_service.configure(get_default_storage_config())
+                            
+                            # Convert best result to SupplyTreeSolution
+                            best_result = results_list[0]  # Already sorted by score
+                            tree = SupplyTree.from_dict(best_result.to_dict())
+                            
+                            solution = SupplyTreeSolution(
+                                all_trees=[tree],
+                                score=best_result.score,
+                                metadata={
+                                    "okh_id": str(manifest.id) if hasattr(manifest, 'id') else None,
+                                    "matching_mode": "single-level",
+                                }
+                            )
+                            
+                            # Parse tags if provided
+                            tags_list = None
+                            if solution_tags:
+                                tags_list = [tag.strip() for tag in solution_tags.split(",")]
+                            
+                            # Use default TTL of 30 days if not provided
+                            ttl_days = solution_ttl_days if solution_ttl_days is not None else 30
+                            solution_id = await storage_service.save_supply_tree_solution(
+                                solution,
+                                ttl_days=ttl_days,
+                                tags=tags_list,
+                            )
+                            cli_ctx.log(f"Solution saved to storage with ID: {solution_id}", "info")
+                        except Exception as e:
+                            cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
+                            # Continue without failing the match
+                    
                     if results_list:
-                        return {
+                        result = {
                             "solutions": [r.to_dict() for r in results_list],
                             "total_solutions": len(results_list),
                             "matching_mode": "single-level",
                         }
+                        if solution_id:
+                            result["solution_id"] = str(solution_id)
+                        return result
                     else:
                         return {
                             "solutions": [],
@@ -720,22 +833,21 @@ async def requirements(
         # Process and display results
         await _display_match_results(cli_ctx, result, output, output_format)
 
-        # Cleanup storage service if it was used
-        if detected_domain == "cooking":
-            try:
-                from ..core.services.storage_service import StorageService
-
-                storage_service = await StorageService.get_instance()
-                if storage_service and hasattr(storage_service, "cleanup"):
-                    await storage_service.cleanup()
-            except Exception:
-                pass  # Ignore cleanup errors
-
         cli_ctx.end_command_tracking()
 
     except Exception as e:
         cli_ctx.log(f"Matching failed: {str(e)}", "error")
         raise
+    finally:
+        # Always cleanup resources (storage service, aiohttp sessions, etc.)
+        # This ensures cleanup happens even if there's an error
+        try:
+            cli_ctx.log("Starting cleanup...", "info")
+            await cli_ctx.cleanup()
+            cli_ctx.log("Cleanup completed", "info")
+        except Exception as e:
+            cli_ctx.log(f"Warning during cleanup: {e}", "warning")
+            # Continue - cleanup errors shouldn't fail the command
 
 
 @match_group.command()
@@ -1069,6 +1181,11 @@ async def _display_match_results(
     # Handle both old format (matches) and new format (solutions)
     solutions = result.get("solutions", result.get("matches", []))
     total_solutions = result.get("total_solutions", len(solutions))
+    
+    # Check if solution was saved (from API response or fallback)
+    solution_id = result.get("solution_id")
+    if solution_id:
+        cli_ctx.log(f"✓ Solution saved to storage with ID: {solution_id}", "success")
 
     if total_solutions == 0:
         cli_ctx.log("No matching facilities found", "warning")

@@ -502,9 +502,17 @@ class HeuristicMatcher(BaseGenerationLayer):
             )
             if function_match:
                 # Handle patterns with different numbers of capturing groups
-                if function_match.groups() and len(function_match.groups()) >= 1:
-                    # Use the last group (usually the most descriptive)
-                    function_text = function_match.group(-1).strip()
+                try:
+                    if function_match.groups() and len(function_match.groups()) >= 1:
+                        # Use the last group (usually the most descriptive)
+                        function_text = function_match.group(-1).strip()
+                    else:
+                        # No capturing groups, skip this pattern
+                        continue
+                except (IndexError, AttributeError) as e:
+                    # Handle "no such group" or other regex errors gracefully
+                    logger.debug(f"Regex group access error in function pattern: {e}")
+                    continue
                     # Clean up the text - remove extra whitespace and newlines
                     function_text = re.sub(r"\s+", " ", function_text)
 
@@ -576,11 +584,19 @@ class HeuristicMatcher(BaseGenerationLayer):
             )
             if intended_use_match:
                 # Handle patterns with different numbers of capturing groups
-                if (
-                    intended_use_match.groups()
-                    and len(intended_use_match.groups()) >= 1
-                ):
-                    intended_use_text = intended_use_match.group(1).strip()
+                try:
+                    if (
+                        intended_use_match.groups()
+                        and len(intended_use_match.groups()) >= 1
+                    ):
+                        intended_use_text = intended_use_match.group(1).strip()
+                    else:
+                        # No capturing groups, skip this pattern
+                        continue
+                except (IndexError, AttributeError) as e:
+                    # Handle "no such group" or other regex errors gracefully
+                    logger.debug(f"Regex group access error in intended_use pattern: {e}")
+                    continue
                     # Check if it contains license disclaimer phrases - skip if so
                     if any(
                         phrase in intended_use_text.lower()
@@ -629,19 +645,23 @@ class HeuristicMatcher(BaseGenerationLayer):
         if project_data.url:
             org_match = re.search(r"github\.com/([^/]+)/", project_data.url)
             if org_match:
-                organization = org_match.group(1)
-                confidence = self.calculate_confidence(
-                    "organization",
-                    {"name": organization},
-                    "url_organization_extraction",
-                )
-                result.add_field(
-                    "organization",
-                    {"name": organization},
-                    confidence,
-                    "url_organization_extraction",
-                    f"Extracted from URL: {project_data.url}",
-                )
+                try:
+                    organization = org_match.group(1)
+                    if organization:
+                        confidence = self.calculate_confidence(
+                            "organization",
+                            {"name": organization},
+                            "url_organization_extraction",
+                        )
+                        result.add_field(
+                            "organization",
+                            {"name": organization},
+                            confidence,
+                            "url_organization_extraction",
+                            f"Extracted from URL: {project_data.url}",
+                        )
+                except (IndexError, AttributeError) as e:
+                    logger.debug(f"Error extracting organization from URL: {e}")
 
         # Extract materials from BOM components if available
         materials = self._extract_materials_from_bom(project_data)
@@ -683,7 +703,12 @@ class HeuristicMatcher(BaseGenerationLayer):
         for pattern in tools_patterns:
             tools_match = re.search(pattern, readme_content)
             if tools_match:
-                tools_text = tools_match.group(1).strip()
+                try:
+                    tools_text = tools_match.group(1).strip()
+                except (IndexError, AttributeError) as e:
+                    # Handle "no such group" or other regex errors gracefully
+                    logger.debug(f"Regex group access error in tools pattern: {e}")
+                    continue
                 # Split on common delimiters
                 tools = re.split(r"[,;|\n•\-\*]", tools_text)
                 # Clean up each tool
@@ -819,11 +844,16 @@ class HeuristicMatcher(BaseGenerationLayer):
                 match = re.search(pattern, all_content)
                 if match:
                     # Handle patterns with and without capturing groups
-                    if match.groups() and len(match.groups()) >= 1:
-                        value = match.group(1).strip()
-                    else:
-                        # For patterns without capturing groups, use the full match
-                        value = match.group(0).strip()
+                    try:
+                        if match.groups() and len(match.groups()) >= 1:
+                            value = match.group(1).strip()
+                        else:
+                            # For patterns without capturing groups, use the full match
+                            value = match.group(0).strip()
+                    except (IndexError, AttributeError) as e:
+                        # Handle "no such group" or other regex errors gracefully
+                        logger.debug(f"Regex group access error in content pattern: {e}")
+                        continue
 
                     # Special handling for different fields
                     if field == "keywords":
@@ -884,8 +914,13 @@ class HeuristicMatcher(BaseGenerationLayer):
             # Try to parse quantity and unit
             quantity_match = re.search(r"(\d+(?:\.\d+)?)\s*([a-zA-Z]+)", line)
             if quantity_match:
-                quantity = float(quantity_match.group(1))
-                unit = quantity_match.group(2)
+                try:
+                    quantity = float(quantity_match.group(1))
+                    unit = quantity_match.group(2)
+                except (IndexError, AttributeError, ValueError) as e:
+                    # Handle "no such group" or parsing errors gracefully
+                    logger.debug(f"Error parsing quantity/unit from line: {e}")
+                    continue
 
                 # Extract material name (everything before the quantity)
                 material_name = line[: quantity_match.start()].strip()
@@ -945,9 +980,14 @@ class HeuristicMatcher(BaseGenerationLayer):
                     r"(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?\s*(.+)", line
                 )
                 if quantity_match:
-                    quantity = float(quantity_match.group(1))
-                    unit = quantity_match.group(2) or "pcs"
-                    name = quantity_match.group(3).strip()
+                    try:
+                        quantity = float(quantity_match.group(1))
+                        unit = quantity_match.group(2) or "pcs"
+                        name = quantity_match.group(3).strip()
+                    except (IndexError, AttributeError, ValueError) as e:
+                        # Handle "no such group" or parsing errors gracefully
+                        logger.debug(f"Error parsing BOM line: {e}")
+                        continue
 
                     materials.append(
                         {
@@ -1165,7 +1205,12 @@ class HeuristicMatcher(BaseGenerationLayer):
         for pattern in materials_patterns:
             materials_match = re.search(pattern, readme_content, re.DOTALL)
             if materials_match:
-                materials_text = materials_match.group(1).strip()
+                try:
+                    materials_text = materials_match.group(1).strip()
+                except (IndexError, AttributeError) as e:
+                    # Handle "no such group" or other regex errors gracefully
+                    logger.debug(f"Regex group access error in materials pattern: {e}")
+                    continue
                 # Clean up the text
                 materials_text = re.sub(
                     r"^=+\s*$", "", materials_text, flags=re.MULTILINE

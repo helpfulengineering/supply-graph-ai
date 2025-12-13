@@ -676,21 +676,6 @@ class BOMResolutionService:
                                         "error_type": type(e).__name__
                                     }
                                 )
-                                # Continue with component match even if nested BOM fails
-                    else:
-                        # Reference couldn't be resolved - log warning but continue
-                        logger.warning(
-                            f"Component '{component.name}' has unresolved reference, "
-                            f"will use component data directly for matching",
-                            extra={
-                                "component_id": component.id,
-                                "component_name": component.name,
-                                "reference": component.reference,
-                                "depth": current_depth,
-                                "path": " > ".join(component_path)
-                            }
-                        )
-                        # Component match will proceed with just the component data
                 except Exception as e:
                     logger.warning(
                         f"Error resolving component reference for '{component.name}': {e}. "

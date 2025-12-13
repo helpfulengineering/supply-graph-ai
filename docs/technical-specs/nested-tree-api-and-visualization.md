@@ -2,7 +2,7 @@
 
 ## Progress Summary
 
-**Last Updated**: 2024-12-19
+**Last Updated**: 2025-12-11
 
 ### Completed ✅
 - **Phase 1 - StorageService Integration**: All CRUD operations implemented
@@ -72,13 +72,34 @@
   - `ome solution cleanup` - Complete with dry-run and archive support
   - **Test Coverage**: 12 unit tests (all passing)
 
+- **Phase 3 - Relationship and Dependency Endpoints**: Complete ✅
+  - `GET /api/supply-tree/solution/{id}/dependencies` - Complete with dependency graph, tree details, and summary statistics
+    - Returns dependency graph mapping tree_id → list of dependency tree_ids
+    - Includes full tree details dictionary for visualization
+    - Provides summary statistics (total dependencies, trees with/without deps, averages)
+  - `GET /api/supply-tree/solution/{id}/production-sequence` - Complete with production stages, parallel execution info, and summary
+    - Returns production sequence with stages (topological sort)
+    - Each stage includes detailed tree information
+    - Indicates which stages can be parallelized
+    - Provides summary statistics (total stages, parallelizable stages, averages)
+  - `GET /api/supply-tree/solution/{id}/hierarchy` - Complete with component hierarchy tree, root components, and component details
+    - Returns component hierarchy as a tree structure
+    - Shows parent-child relationships between components
+    - Includes root components list
+    - Provides component details dictionary with all trees per component
+  - **Test Coverage**: 6 unit tests (all passing)
+  - **Example Outputs**: Created in `test-data/` directory with both single-level (238 trees) and nested (3 trees) solution examples
+  - **Documentation**: README created in `test-data/RELATIONSHIP_ENDPOINTS_OUTPUT_README.md` explaining response structures and usage
+
 ### In Progress ⏳
+- Phase 3 - Integration tests for relationship endpoints (pending)
 - Phase 1 - Documentation (pending)
 
 ### Next Steps
-- Implement additional export formats (DOT, Mermaid, CSV)
+- Create integration tests for relationship endpoints
+- Create minimal visualization proof-of-concept using the relationship endpoints
+- Implement additional export formats (DOT, Mermaid, CSV) as needed
 - Create visualization examples and documentation
-- Implement relationship and dependency endpoints (Phase 3)
 
 ## Progress Tracking Checklist
 
@@ -173,12 +194,27 @@
 ### Phase 3: Advanced Features (2 weeks)
 
 #### Relationship and Dependency Endpoints
-- [ ] Implement `GET /api/supply-tree/solution/{id}/dependencies` endpoint
-- [ ] Implement `GET /api/supply-tree/solution/{id}/production-sequence` endpoint
-- [ ] Implement `GET /api/supply-tree/solution/{id}/hierarchy` endpoint
-- [ ] Test dependency graph generation
-- [ ] Test production sequence calculation
-- [ ] Test hierarchy generation
+- [x] Implement `GET /api/supply-tree/solution/{id}/dependencies` endpoint ✅
+  - Returns dependency graph (tree_id → list of dependency tree_ids)
+  - Includes full tree details dictionary for visualization
+  - Provides summary statistics (total dependencies, trees with/without deps, averages)
+- [x] Implement `GET /api/supply-tree/solution/{id}/production-sequence` endpoint ✅
+  - Returns production sequence with stages (topological sort)
+  - Each stage includes detailed tree information
+  - Indicates which stages can be parallelized
+  - Provides summary statistics (total stages, parallelizable stages, averages)
+- [x] Implement `GET /api/supply-tree/solution/{id}/hierarchy` endpoint ✅
+  - Returns component hierarchy as a tree structure
+  - Shows parent-child relationships between components
+  - Includes root components list
+  - Provides component details dictionary with all trees per component
+- [x] Test dependency graph generation ✅ (6 unit tests passing)
+- [x] Test production sequence calculation ✅
+- [x] Test hierarchy generation ✅
+- [x] Create example outputs for documentation ✅
+  - Single-level solution examples (238 trees)
+  - Nested solution examples (3 trees with relationships)
+  - Documentation README in `test-data/RELATIONSHIP_ENDPOINTS_OUTPUT_README.md`
 
 #### Enhanced Export Formats
 - [ ] Implement Excel export (multi-sheet format)
@@ -913,10 +949,15 @@ GET /api/supply-tree/solution/{solution_id}/viz
 9. **Add CLI commands for solution management** (including cleanup commands) ✅
 
 ### Phase 3: Advanced Features (2 weeks)
-1. Implement visualization-optimized export formats
-2. Add component/facility-specific query endpoints
-3. Create production sequence endpoint
-4. Build example visualization scripts/templates
+1. ✅ **Implement relationship and dependency endpoints** ✅
+   - `GET /api/supply-tree/solution/{id}/dependencies` - Complete
+   - `GET /api/supply-tree/solution/{id}/production-sequence` - Complete
+   - `GET /api/supply-tree/solution/{id}/hierarchy` - Complete
+   - Example outputs created in `test-data/` directory
+2. Implement visualization-optimized export formats (DOT, Mermaid, CSV) - **Pending**
+3. ✅ **Add component/facility-specific query endpoints** ✅ (Completed in Phase 2)
+4. ✅ **Create production sequence endpoint** ✅ (Completed above)
+5. Build example visualization scripts/templates - **Pending**
 
 ### Phase 4: Documentation and Examples (1 week)
 1. Create visualization guide with examples

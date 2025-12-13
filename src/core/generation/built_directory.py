@@ -76,9 +76,26 @@ class BuiltDirectoryExporter:
         components_dir.mkdir(exist_ok=True)
 
         for component in bom.components:
-            component_path = components_dir / f"{component.id}.json"
-            with open(component_path, "w") as f:
-                json.dump(component.to_dict(), f, indent=2)
+            # Ensure filename is filesystem-safe (max 255 chars on most filesystems)
+            # Truncate if necessary, keeping .json extension
+            safe_id = component.id
+            max_filename_length = 250  # Conservative limit (255 - 5 for .json)
+            if len(safe_id) > max_filename_length:
+                safe_id = safe_id[:max_filename_length]
+            
+            component_path = components_dir / f"{safe_id}.json"
+            try:
+                with open(component_path, "w") as f:
+                    json.dump(component.to_dict(), f, indent=2)
+            except OSError as e:
+                # Handle filesystem errors (e.g., filename too long, invalid chars)
+                # Fall back to using a hash-based filename
+                import hashlib
+                id_hash = hashlib.md5(component.id.encode()).hexdigest()[:16]
+                safe_id = f"component_{id_hash}"
+                component_path = components_dir / f"{safe_id}.json"
+                with open(component_path, "w") as f:
+                    json.dump(component.to_dict(), f, indent=2)
 
     async def _export_bom_documentation(self, bom: BillOfMaterials):
         """

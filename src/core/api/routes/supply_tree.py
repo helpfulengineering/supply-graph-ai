@@ -1581,6 +1581,409 @@ async def export_supply_tree_solution(
 
 
 @router.get(
+    "/solution/{solution_id}/dependencies",
+    status_code=status.HTTP_200_OK,
+    summary="Get Solution Dependencies",
+    description="""
+    Get the dependency graph for a supply tree solution.
+    
+    Returns:
+    - dependency_graph: Dictionary mapping tree_id -> list of dependency tree_ids
+    - trees: Dictionary mapping tree_id -> tree details (for visualization)
+    - summary: Summary statistics about dependencies
+    
+    The dependency graph shows which SupplyTrees depend on which others,
+    based on parent-child relationships and explicit dependencies.
+    """,
+)
+@api_endpoint(success_message="Dependencies retrieved successfully", include_metrics=True)
+@track_performance("solution_dependencies")
+async def get_solution_dependencies(
+    solution_id: UUID = Path(..., description="Solution ID"),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    """Get dependency graph for a solution"""
+    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+
+    try:
+        # Load solution
+        solution = await _load_solution_from_source(
+            solution_id=solution_id,
+            storage_service=storage_service
+        )
+        
+        # Get dependency graph
+        dependency_graph = solution.get_dependency_graph()
+        
+        # Build tree details dictionary for easy lookup
+        trees_dict = {str(tree.id): tree.to_dict() for tree in solution.all_trees}
+        
+        # Calculate summary statistics
+        total_dependencies = sum(len(deps) for deps in dependency_graph.values())
+        trees_with_deps = len([deps for deps in dependency_graph.values() if deps])
+        trees_without_deps = len(solution.all_trees) - trees_with_deps
+        
+        logger.info(
+            f"Dependencies retrieved for solution {solution_id}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+                "total_trees": len(solution.all_trees),
+                "total_dependencies": total_dependencies,
+            },
+        )
+        
+        return {
+            "dependency_graph": {
+                str(tree_id): [str(dep_id) for dep_id in deps]
+                for tree_id, deps in dependency_graph.items()
+            },
+            "trees": trees_dict,
+            "summary": {
+                "total_trees": len(solution.all_trees),
+                "total_dependencies": total_dependencies,
+                "trees_with_dependencies": trees_with_deps,
+                "trees_without_dependencies": trees_without_deps,
+                "average_dependencies_per_tree": round(total_dependencies / len(solution.all_trees), 2) if solution.all_trees else 0.0,
+            }
+        }
+
+    except FileNotFoundError as e:
+        error_response = create_error_response(
+            error=f"Solution with ID {solution_id} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=request_id,
+            suggestion="Please check the solution ID and try again",
+        )
+        logger.error(
+            f"Solution not found: {solution_id}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump(mode="json"),
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(
+            f"Error retrieving dependencies: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+                "error": str(e),
+                "error_type": type(e).__name__,
+            },
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get(
+    "/solution/{solution_id}/production-sequence",
+    status_code=status.HTTP_200_OK,
+    summary="Get Production Sequence",
+    description="""
+    Get the production sequence for a supply tree solution.
+    
+    Returns:
+    - production_sequence: List of production stages (each stage can be done in parallel)
+    - stages: Detailed stage information with tree details
+    - summary: Summary statistics about the production sequence
+    
+    The production sequence is calculated using topological sort,
+    ensuring dependencies are respected. Trees in the same stage
+    can be produced in parallel.
+    """,
+)
+@api_endpoint(success_message="Production sequence retrieved successfully", include_metrics=True)
+@track_performance("solution_production_sequence")
+async def get_solution_production_sequence(
+    solution_id: UUID = Path(..., description="Solution ID"),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    """Get production sequence for a solution"""
+    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+
+    try:
+        # Load solution
+        solution = await _load_solution_from_source(
+            solution_id=solution_id,
+            storage_service=storage_service
+        )
+        
+        # Get production sequence (list of stages, each stage is a list of SupplyTree objects)
+        assembly_sequence = solution.get_assembly_sequence()
+        
+        # If no production sequence exists, calculate it
+        if not assembly_sequence:
+            # Build dependency graph and calculate sequence
+            dependency_graph = solution.get_dependency_graph()
+            if dependency_graph:
+                sequence_ids = SupplyTreeSolution._calculate_production_sequence(dependency_graph)
+                tree_map = {tree.id: tree for tree in solution.all_trees}
+                assembly_sequence = [
+                    [tree_map[tree_id] for tree_id in stage if tree_id in tree_map]
+                    for stage in sequence_ids
+                ]
+            else:
+                # No dependencies, all trees can be done in parallel
+                assembly_sequence = [solution.all_trees]
+        
+        # Convert to detailed stages with tree information
+        stages = []
+        for stage_idx, stage_trees in enumerate(assembly_sequence):
+            stage_info = {
+                "stage_number": stage_idx + 1,
+                "trees": [tree.to_dict() for tree in stage_trees],
+                "can_parallelize": len(stage_trees) > 1,
+                "tree_count": len(stage_trees),
+            }
+            stages.append(stage_info)
+        
+        # Calculate summary statistics
+        total_stages = len(stages)
+        parallelizable_stages = len([s for s in stages if s["can_parallelize"]])
+        total_trees = sum(s["tree_count"] for s in stages)
+        
+        logger.info(
+            f"Production sequence retrieved for solution {solution_id}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+                "total_stages": total_stages,
+                "total_trees": total_trees,
+            },
+        )
+        
+        return {
+            "production_sequence": [
+                [str(tree.id) for tree in stage]
+                for stage in assembly_sequence
+            ],
+            "stages": stages,
+            "summary": {
+                "total_stages": total_stages,
+                "total_trees": total_trees,
+                "parallelizable_stages": parallelizable_stages,
+                "average_trees_per_stage": round(total_trees / total_stages, 2) if total_stages > 0 else 0.0,
+            }
+        }
+
+    except FileNotFoundError as e:
+        error_response = create_error_response(
+            error=f"Solution with ID {solution_id} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=request_id,
+            suggestion="Please check the solution ID and try again",
+        )
+        logger.error(
+            f"Solution not found: {solution_id}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump(mode="json"),
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(
+            f"Error retrieving production sequence: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+                "error": str(e),
+                "error_type": type(e).__name__,
+            },
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get(
+    "/solution/{solution_id}/hierarchy",
+    status_code=status.HTTP_200_OK,
+    summary="Get Component Hierarchy",
+    description="""
+    Get the component hierarchy for a supply tree solution.
+    
+    Returns:
+    - hierarchy: Tree structure showing parent-child component relationships
+    - root_components: List of root (top-level) components
+    - component_details: Dictionary mapping component_id -> component information
+    
+    The hierarchy shows how components are organized in a tree structure,
+    with parent components containing child components.
+    """,
+)
+@api_endpoint(success_message="Hierarchy retrieved successfully", include_metrics=True)
+@track_performance("solution_hierarchy")
+async def get_solution_hierarchy(
+    solution_id: UUID = Path(..., description="Solution ID"),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    """Get component hierarchy for a solution"""
+    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+
+    try:
+        # Load solution
+        solution = await _load_solution_from_source(
+            solution_id=solution_id,
+            storage_service=storage_service
+        )
+        
+        # Build component hierarchy
+        # Group trees by component_id
+        component_trees = {}
+        for tree in solution.all_trees:
+            comp_id = tree.component_id or tree.component_name or str(tree.id)
+            if comp_id not in component_trees:
+                component_trees[comp_id] = []
+            component_trees[comp_id].append(tree)
+        
+        # Build hierarchy structure
+        hierarchy = []
+        root_components = []
+        component_details = {}
+        
+        # Find root components (no parent_tree_id or parent not in solution)
+        all_tree_ids = {tree.id for tree in solution.all_trees}
+        root_trees = [
+            tree for tree in solution.all_trees
+            if not tree.parent_tree_id or tree.parent_tree_id not in all_tree_ids
+        ]
+        
+        # Build component details
+        for comp_id, trees in component_trees.items():
+            # Get representative tree (first one or highest confidence)
+            rep_tree = max(trees, key=lambda t: t.confidence_score) if trees else None
+            if rep_tree:
+                component_details[comp_id] = {
+                    "component_id": comp_id,
+                    "component_name": rep_tree.component_name or comp_id,
+                    "tree_count": len(trees),
+                    "depth": rep_tree.depth,
+                    "production_stage": rep_tree.production_stage,
+                    "component_path": rep_tree.component_path,
+                    "trees": [tree.to_dict() for tree in trees],
+                }
+        
+        # Build hierarchy tree structure
+        def build_hierarchy_node(tree: SupplyTree) -> dict:
+            """Recursively build hierarchy node"""
+            node = {
+                "component_id": tree.component_id or tree.component_name or str(tree.id),
+                "component_name": tree.component_name or "Unknown",
+                "tree_id": str(tree.id),
+                "depth": tree.depth,
+                "production_stage": tree.production_stage,
+                "children": []
+            }
+            
+            # Find children
+            for child_tree in solution.all_trees:
+                if child_tree.parent_tree_id == tree.id:
+                    node["children"].append(build_hierarchy_node(child_tree))
+            
+            return node
+        
+        # Build hierarchy from root trees
+        for root_tree in root_trees:
+            hierarchy.append(build_hierarchy_node(root_tree))
+            root_components.append({
+                "component_id": root_tree.component_id or root_tree.component_name or str(root_tree.id),
+                "component_name": root_tree.component_name or "Unknown",
+                "tree_id": str(root_tree.id),
+            })
+        
+        logger.info(
+            f"Hierarchy retrieved for solution {solution_id}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+                "total_components": len(component_details),
+                "root_components": len(root_components),
+            },
+        )
+        
+        return {
+            "hierarchy": hierarchy,
+            "root_components": root_components,
+            "component_details": component_details,
+            "summary": {
+                "total_components": len(component_details),
+                "root_components": len(root_components),
+                "total_trees": len(solution.all_trees),
+                "max_depth": max((tree.depth for tree in solution.all_trees), default=0),
+            }
+        }
+
+    except FileNotFoundError as e:
+        error_response = create_error_response(
+            error=f"Solution with ID {solution_id} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=request_id,
+            suggestion="Please check the solution ID and try again",
+        )
+        logger.error(
+            f"Solution not found: {solution_id}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+            },
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump(mode="json"),
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(
+            f"Error retrieving hierarchy: {str(e)}",
+            extra={
+                "request_id": request_id,
+                "solution_id": str(solution_id),
+                "error": str(e),
+                "error_type": type(e).__name__,
+            },
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get(
     "/{id}",
     # Note: response_model removed - api_endpoint decorator handles response wrapping
     summary="Get Supply Tree",

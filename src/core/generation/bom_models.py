@@ -937,12 +937,20 @@ class BOMProcessor:
                     # If parsing fails, use default quantity
                     quantity = 1.0
 
-                name = match.group(2).strip()
+                try:
+                    name = match.group(2).strip()
+                except (IndexError, AttributeError) as e:
+                    # Handle "no such group" error gracefully
+                    continue
 
                 # Extract file reference if present
                 file_reference = None
-                if len(match.groups()) >= 3 and match.group(3):
-                    file_reference = match.group(3).strip()
+                try:
+                    if len(match.groups()) >= 3 and match.group(3):
+                        file_reference = match.group(3).strip()
+                except (IndexError, AttributeError):
+                    # Group 3 doesn't exist, that's fine - no file reference
+                    pass
 
                 # Clean up name - remove control characters and non-printable characters
                 name = re.sub(r"[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]", "", name)
@@ -1188,11 +1196,31 @@ class BOMProcessor:
         return None
 
     def _generate_component_id(self, name: str) -> str:
-        """Generate a unique component ID"""
+        """Generate a unique component ID with filesystem-safe length"""
         self._component_id_counter += 1
         # Create a clean ID from the name
         clean_name = re.sub(r"[^\w]", "_", name.lower())
-        return f"{clean_name}_{self._component_id_counter}"
+        
+        # Truncate to ensure filesystem-safe filename length
+        # Most filesystems support 255 chars, but we'll be conservative
+        # Reserve space for counter suffix (e.g., "_123") and ".json" extension
+        max_name_length = 200  # Conservative limit for component name part
+        if len(clean_name) > max_name_length:
+            clean_name = clean_name[:max_name_length]
+        
+        component_id = f"{clean_name}_{self._component_id_counter}"
+        
+        # Final safety check: ensure total ID length is reasonable
+        # (including potential .json extension, max ~240 chars for safety)
+        max_id_length = 240
+        if len(component_id) > max_id_length:
+            # Truncate further, keeping counter suffix
+            counter_suffix = f"_{self._component_id_counter}"
+            available_length = max_id_length - len(counter_suffix)
+            clean_name = clean_name[:available_length]
+            component_id = f"{clean_name}{counter_suffix}"
+        
+        return component_id
 
     def _deduplicate_components(
         self, components: List["Component"]

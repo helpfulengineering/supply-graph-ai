@@ -1273,7 +1273,7 @@ class MatchingService:
                         "unresolved_count": unresolved_count,
                         "total_components": len(component_matches)
                     }
-                )
+            )
             
             logger.info(
                 "BOM exploded into component matches",

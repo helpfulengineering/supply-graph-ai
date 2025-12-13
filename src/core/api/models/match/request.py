@@ -84,7 +84,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         True,
         description="Include validation results in response (for nested matching)",
     )
-    
+
     # Solution storage options
     save_solution: Optional[bool] = Field(
         False,
