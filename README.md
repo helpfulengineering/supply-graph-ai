@@ -100,12 +100,18 @@ Our documentation covers:
 ```markdown
 open-matching-engine/
 ├── docs/                   # Documentation files (MkDocs)
+├── deploy/                 # Cloud agnostic deployment
+├── scripts/                # Utility scripts for dev & testing
 ├── src/                    # Source code
 │   ├── core/               # Core framework components
 │   │   ├── api/            # API endpoints
 │   │   ├── domains/        # Domain implementations
+│   │   ├── errors/         # Centralized error handling
+│   │   ├── generation/     # Create OKH from external project
+│   │   ├── llm/            # LLM service and provider abstraction layer
 │   │   ├── matching/       # Matching Rules Manager
 │   │   ├── models/         # Data models
+│   │   ├── packaging/      # Service for building and storing OKH Packages
 │   │   ├── registry/       # Domain registry
 │   │   ├── services/       # Core services
 │   │   ├── storage/        # Storage service for remote file mgmt
@@ -151,26 +157,3 @@ python run.py
 ```
 
 For container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
-
-
-# Our current working OKH and OKW libraries
-Our current OKH and OKW libraries are implemented as publicly accessible Azure blob containers:
-
-    "Azure_Storage_ServiceName": "${AZURE_STORAGE_SERVICE_NAME}",
-    "Azure_Storage_OKH_ContainerName": "${AZURE_STORAGE_OKH_CONTAINER_NAME:-okh}",
-    "Azure_Storage_OKW_ContainerName": "${AZURE_STORAGE_OKW_CONTAINER_NAME:-okw}"
-
-These OKHs and OKWs are taken from our repo: ${OKH_LIBRARY_REPO_URL:-https://github.com/example/library}.
-
-Example OKW template and OKH extensions are defined here: ${OKF_SCHEMA_REPO_URL:-https://github.com/example/OKF-Schema}
-
-We are currently working with the Internet of Production Alliance (IoPA) to unify these extensions with their official schemas.
-
-**Configuration:**
-Set the following environment variables:
-- `AZURE_STORAGE_SERVICE_NAME`: Azure storage service URL
-- `AZURE_STORAGE_OKH_CONTAINER_NAME`: OKH container name (default: okh)
-- `AZURE_STORAGE_OKW_CONTAINER_NAME`: OKW container name (default: okw)
-- `OKH_LIBRARY_REPO_URL`: Repository URL for OKH library (optional)
-- `OKF_SCHEMA_REPO_URL`: Repository URL for OKF schema (optional)
-
