@@ -82,7 +82,7 @@ class BuiltDirectoryExporter:
             max_filename_length = 250  # Conservative limit (255 - 5 for .json)
             if len(safe_id) > max_filename_length:
                 safe_id = safe_id[:max_filename_length]
-            
+
             component_path = components_dir / f"{safe_id}.json"
             try:
                 with open(component_path, "w") as f:
@@ -91,6 +91,7 @@ class BuiltDirectoryExporter:
                 # Handle filesystem errors (e.g., filename too long, invalid chars)
                 # Fall back to using a hash-based filename
                 import hashlib
+
                 id_hash = hashlib.md5(component.id.encode()).hexdigest()[:16]
                 safe_id = f"component_{id_hash}"
                 component_path = components_dir / f"{safe_id}.json"

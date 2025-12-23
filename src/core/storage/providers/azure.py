@@ -91,116 +91,163 @@ class AzureBlobProvider(StorageProvider):
                         logger.debug(f"Error closing container client: {e}")
                     finally:
                         self._container = None
-                
+
                 # Close blob service client (this closes underlying aiohttp session)
                 if self._client:
-                    logger.info("Closing Azure blob service client (this closes aiohttp session)")
+                    logger.info(
+                        "Closing Azure blob service client (this closes aiohttp session)"
+                    )
                     try:
                         import asyncio
                         import aiohttp
-                        
+
                         # The Azure SDK's BlobServiceClient uses aiohttp internally
                         # The SDK should close the session when we call close(), but sometimes
                         # the event loop closes before the async close completes
-                        
+
                         # The Azure SDK's BlobServiceClient uses aiohttp internally
                         # We need to find and close the aiohttp session BEFORE closing the client
                         # This ensures the session is closed synchronously, not asynchronously
                         aiohttp_session = None
                         aiohttp_connector = None
-                        
+
                         try:
-                            # Azure SDK structure: 
-                            # BlobServiceClient -> _client (AzureBlobStorage) -> _client (pipeline) 
-                            # -> _client (AsyncPipelineClient) -> _pipeline (AsyncPipeline) 
+                            # Azure SDK structure:
+                            # BlobServiceClient -> _client (AzureBlobStorage) -> _client (pipeline)
+                            # -> _client (AsyncPipelineClient) -> _pipeline (AsyncPipeline)
                             # -> _transport (AioHttpTransport) -> session (aiohttp.ClientSession)
-                            logger.debug("Attempting to find aiohttp session in Azure client")
-                            if hasattr(self._client, '_client'):
+                            logger.debug(
+                                "Attempting to find aiohttp session in Azure client"
+                            )
+                            if hasattr(self._client, "_client"):
                                 pipeline = self._client._client
-                                logger.debug(f"Found pipeline: {type(pipeline).__name__}")
-                                if hasattr(pipeline, '_client'):
+                                logger.debug(
+                                    f"Found pipeline: {type(pipeline).__name__}"
+                                )
+                                if hasattr(pipeline, "_client"):
                                     http_client = pipeline._client
-                                    logger.debug(f"Found HTTP client: {type(http_client).__name__}")
-                                    
+                                    logger.debug(
+                                        f"Found HTTP client: {type(http_client).__name__}"
+                                    )
+
                                     # Access the transport through the pipeline
-                                    if hasattr(http_client, '_pipeline'):
+                                    if hasattr(http_client, "_pipeline"):
                                         azure_pipeline = http_client._pipeline
-                                        logger.debug(f"Found Azure pipeline: {type(azure_pipeline).__name__}")
-                                        if hasattr(azure_pipeline, '_transport'):
+                                        logger.debug(
+                                            f"Found Azure pipeline: {type(azure_pipeline).__name__}"
+                                        )
+                                        if hasattr(azure_pipeline, "_transport"):
                                             transport = azure_pipeline._transport
-                                            logger.debug(f"Found transport: {type(transport).__name__}")
-                                            
+                                            logger.debug(
+                                                f"Found transport: {type(transport).__name__}"
+                                            )
+
                                             # AioHttpTransport has a 'session' attribute (not '_session')
-                                            if hasattr(transport, 'session'):
+                                            if hasattr(transport, "session"):
                                                 potential_session = transport.session
-                                                logger.debug(f"Found potential session: {type(potential_session).__name__}")
-                                                if isinstance(potential_session, aiohttp.ClientSession):
+                                                logger.debug(
+                                                    f"Found potential session: {type(potential_session).__name__}"
+                                                )
+                                                if isinstance(
+                                                    potential_session,
+                                                    aiohttp.ClientSession,
+                                                ):
                                                     aiohttp_session = potential_session
-                                                    logger.info(f"Found aiohttp session in Azure transport: {aiohttp_session}, closed={aiohttp_session.closed}")
-                                            
+                                                    logger.info(
+                                                        f"Found aiohttp session in Azure transport: {aiohttp_session}, closed={aiohttp_session.closed}"
+                                                    )
+
                                             # Also check for connector through the session
-                                            if aiohttp_session and hasattr(aiohttp_session, '_connector'):
-                                                aiohttp_connector = aiohttp_session._connector
-                                                logger.info(f"Found aiohttp connector: {aiohttp_connector}, closed={aiohttp_connector.closed if hasattr(aiohttp_connector, 'closed') else 'N/A'}")
+                                            if aiohttp_session and hasattr(
+                                                aiohttp_session, "_connector"
+                                            ):
+                                                aiohttp_connector = (
+                                                    aiohttp_session._connector
+                                                )
+                                                logger.info(
+                                                    f"Found aiohttp connector: {aiohttp_connector}, closed={aiohttp_connector.closed if hasattr(aiohttp_connector, 'closed') else 'N/A'}"
+                                                )
                                             else:
-                                                logger.warning("aiohttp session found but no connector attribute")
+                                                logger.warning(
+                                                    "aiohttp session found but no connector attribute"
+                                                )
                                         else:
-                                            logger.warning("Azure pipeline has no _transport attribute")
+                                            logger.warning(
+                                                "Azure pipeline has no _transport attribute"
+                                            )
                                     else:
-                                        logger.warning("HTTP client has no _pipeline attribute")
+                                        logger.warning(
+                                            "HTTP client has no _pipeline attribute"
+                                        )
                                 else:
                                     logger.warning("Pipeline has no _client attribute")
                             else:
-                                logger.warning("BlobServiceClient has no _client attribute")
+                                logger.warning(
+                                    "BlobServiceClient has no _client attribute"
+                                )
                         except Exception as e:
-                            logger.warning(f"Could not find aiohttp session in Azure client: {e}", exc_info=True)
-                        
+                            logger.warning(
+                                f"Could not find aiohttp session in Azure client: {e}",
+                                exc_info=True,
+                            )
+
                         # Close the transport FIRST - this is the proper way to close the aiohttp session
                         # The transport's close() method is async and will properly close the session
                         # Following the pattern from Azure SDK documentation and web search results
                         transport_to_close = None
                         try:
-                            if hasattr(self._client, '_client'):
+                            if hasattr(self._client, "_client"):
                                 pipeline = self._client._client
-                                if hasattr(pipeline, '_client'):
+                                if hasattr(pipeline, "_client"):
                                     http_client = pipeline._client
-                                    if hasattr(http_client, '_pipeline'):
+                                    if hasattr(http_client, "_pipeline"):
                                         azure_pipeline = http_client._pipeline
-                                        if hasattr(azure_pipeline, '_transport'):
-                                            transport_to_close = azure_pipeline._transport
+                                        if hasattr(azure_pipeline, "_transport"):
+                                            transport_to_close = (
+                                                azure_pipeline._transport
+                                            )
                         except Exception as e:
                             logger.debug(f"Could not find transport to close: {e}")
-                        
-                        if transport_to_close and hasattr(transport_to_close, 'close'):
+
+                        if transport_to_close and hasattr(transport_to_close, "close"):
                             try:
-                                logger.info("Closing Azure transport (this will close the aiohttp session)")
+                                logger.info(
+                                    "Closing Azure transport (this will close the aiohttp session)"
+                                )
                                 await transport_to_close.close()
                                 logger.debug("Azure transport closed successfully")
                                 # Wait a bit for the session to fully close
                                 await asyncio.sleep(0.1)
                             except Exception as e:
                                 logger.warning(f"Error closing transport: {e}")
-                        
+
                         # Also try to close the session directly if we found it and transport close didn't work
                         # This is a fallback in case the transport close didn't fully close the session
                         if aiohttp_session and not aiohttp_session.closed:
-                            logger.info(f"Session still open after transport close, closing directly (session={aiohttp_session}, closed={aiohttp_session.closed})")
+                            logger.info(
+                                f"Session still open after transport close, closing directly (session={aiohttp_session}, closed={aiohttp_session.closed})"
+                            )
                             try:
                                 # Close connector first if we found it (TCPConnector.close() is async)
                                 if aiohttp_connector and not aiohttp_connector.closed:
                                     logger.debug("Closing aiohttp connector")
                                     import inspect
-                                    if inspect.iscoroutinefunction(aiohttp_connector.close):
+
+                                    if inspect.iscoroutinefunction(
+                                        aiohttp_connector.close
+                                    ):
                                         await aiohttp_connector.close()
                                     else:
                                         aiohttp_connector.close()
                                     await asyncio.sleep(0.05)
-                                
+
                                 # Close the session (following FileResolver pattern)
                                 logger.debug("Closing aiohttp session directly")
                                 await aiohttp_session.close()
-                                logger.debug(f"Session close() called, session.closed={aiohttp_session.closed}")
-                                
+                                logger.debug(
+                                    f"Session close() called, session.closed={aiohttp_session.closed}"
+                                )
+
                                 # Wait for the session to actually close
                                 max_wait = 1.0  # 1 second max wait
                                 wait_interval = 0.05
@@ -208,19 +255,27 @@ class AzureBlobProvider(StorageProvider):
                                 while not aiohttp_session.closed and waited < max_wait:
                                     await asyncio.sleep(wait_interval)
                                     waited += wait_interval
-                                
+
                                 if aiohttp_session.closed:
                                     logger.info("aiohttp session closed successfully")
                                 else:
-                                    logger.warning(f"aiohttp session did not close within timeout (waited {waited}s, closed={aiohttp_session.closed})")
-                                    
+                                    logger.warning(
+                                        f"aiohttp session did not close within timeout (waited {waited}s, closed={aiohttp_session.closed})"
+                                    )
+
                             except Exception as e:
-                                logger.warning(f"Error closing aiohttp session: {e}", exc_info=True)
+                                logger.warning(
+                                    f"Error closing aiohttp session: {e}", exc_info=True
+                                )
                         elif aiohttp_session:
-                            logger.debug(f"aiohttp session already closed: {aiohttp_session}")
+                            logger.debug(
+                                f"aiohttp session already closed: {aiohttp_session}"
+                            )
                         else:
-                            logger.debug("No aiohttp session found - transport close should have handled it")
-                        
+                            logger.debug(
+                                "No aiohttp session found - transport close should have handled it"
+                            )
+
                         # Now close the blob service client
                         # Following the pattern from Azure OpenAI provider: ensure close() completes fully
                         # The Azure SDK's close() is async and should close the internal aiohttp session
@@ -228,22 +283,28 @@ class AzureBlobProvider(StorageProvider):
                         try:
                             # Use asyncio.wait_for to ensure close completes within a reasonable time
                             await asyncio.wait_for(self._client.close(), timeout=2.0)
-                            logger.debug("BlobServiceClient.close() completed successfully")
+                            logger.debug(
+                                "BlobServiceClient.close() completed successfully"
+                            )
                         except asyncio.TimeoutError:
-                            logger.warning("BlobServiceClient.close() timed out, but continuing")
+                            logger.warning(
+                                "BlobServiceClient.close() timed out, but continuing"
+                            )
                         except Exception as e:
-                            logger.warning(f"Error during BlobServiceClient.close(): {e}")
-                        
+                            logger.warning(
+                                f"Error during BlobServiceClient.close(): {e}"
+                            )
+
                         # Additional wait to ensure all async cleanup operations complete
                         # This is important because the Azure SDK uses aiohttp internally,
                         # and the session close is async and might need time to propagate
                         await asyncio.sleep(0.3)
-                        
+
                     except Exception as e:
                         logger.warning(f"Error closing blob service client: {e}")
                     finally:
                         self._client = None
-                
+
                 self._connected = False
                 logger.info("Disconnected from Azure Blob Storage")
             except Exception as e:

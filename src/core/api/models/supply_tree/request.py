@@ -88,34 +88,28 @@ class SupplyTreeValidateRequest(BaseModel):
 
 class SolutionLoadRequest(BaseAPIRequest):
     """Request model for loading a supply tree solution from multiple sources"""
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "source": "storage",
-                "solution_id": "12345678-1234-1234-1234-123456789012"
+                "solution_id": "12345678-1234-1234-1234-123456789012",
             }
         }
     )
-    
-    source: str = Field(
-        ...,
-        description="Source type: 'storage', 'file', or 'inline'"
-    )
+
+    source: str = Field(..., description="Source type: 'storage', 'file', or 'inline'")
     solution_id: Optional[UUID] = Field(
-        None,
-        description="Solution ID (required if source='storage')"
+        None, description="Solution ID (required if source='storage')"
     )
     file_path: Optional[str] = Field(
-        None,
-        description="Path to local solution file (required if source='file')"
+        None, description="Path to local solution file (required if source='file')"
     )
     solution: Optional[Dict[str, Any]] = Field(
-        None,
-        description="Inline solution data (required if source='inline')"
+        None, description="Inline solution data (required if source='inline')"
     )
-    
-    @model_validator(mode='after')
+
+    @model_validator(mode="after")
     def validate_source_requirements(self):
         """Validate that required fields are present based on source"""
         if self.source == "storage":
@@ -128,50 +122,43 @@ class SolutionLoadRequest(BaseAPIRequest):
             if not self.solution:
                 raise ValueError("solution is required when source='inline'")
         else:
-            raise ValueError(f"Invalid source: {self.source}. Must be 'storage', 'file', or 'inline'")
-        
+            raise ValueError(
+                f"Invalid source: {self.source}. Must be 'storage', 'file', or 'inline'"
+            )
+
         return self
 
 
 class CleanupStaleSolutionsRequest(BaseAPIRequest):
     """Request model for cleaning up stale solutions"""
-    
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "dry_run": True,
                 "max_age_days": 45,
-                "before_date": "2024-01-01T00:00:00"
+                "before_date": "2024-01-01T00:00:00",
             }
         }
     )
-    
+
     dry_run: bool = Field(
         default=True,
-        description="If True, preview what would be deleted without actually deleting"
+        description="If True, preview what would be deleted without actually deleting",
     )
     max_age_days: Optional[int] = Field(
-        None,
-        description="Delete solutions older than N days"
+        None, description="Delete solutions older than N days"
     )
     before_date: Optional[str] = Field(
-        None,
-        description="Delete solutions created before this date (ISO format)"
+        None, description="Delete solutions created before this date (ISO format)"
     )
 
 
 class ExtendSolutionTTLRequest(BaseAPIRequest):
     """Request model for extending solution TTL"""
-    
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "additional_days": 30
-            }
-        }
-    )
-    
+
+    model_config = ConfigDict(json_schema_extra={"example": {"additional_days": 30}})
+
     additional_days: int = Field(
-        default=30,
-        description="Number of days to add to expiration time"
+        default=30, description="Number of days to add to expiration time"
     )

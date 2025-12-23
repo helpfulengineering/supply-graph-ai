@@ -1172,7 +1172,7 @@ class MatchingService:
 
         # 5. Default to manufacturing for backward compatibility
         return "manufacturing"
-    
+
     async def match_with_nested_components(
         self,
         okh_manifest: OKHManifest,
@@ -1180,11 +1180,11 @@ class MatchingService:
         max_depth: Optional[int] = None,
         domain: str = "manufacturing",
         okh_service: Optional[OKHService] = None,
-        manifest_path: Optional[str] = None
+        manifest_path: Optional[str] = None,
     ) -> SupplyTreeSolution:
         """
         Match OKH with nested components across multiple facilities.
-        
+
         Algorithm:
         1. Resolve BOM and explode into component matches
         2. Sort components by depth (deepest first)
@@ -1196,47 +1196,49 @@ class MatchingService:
         5. Calculate production sequence
         6. Validate solution
         7. Return SupplyTreeSolution
-        
+
         Args:
             okh_manifest: OKH manifest to match
             facilities: List of manufacturing facilities
             max_depth: Maximum nesting depth (default: 5)
             domain: Domain for matching (default: "manufacturing")
             okh_service: OKHService instance for resolving references (optional)
-            
+
         Returns:
             SupplyTreeSolution with all matched components (nested if multiple trees)
         """
         await self.ensure_initialized()
-        
+
         # Use configured default if max_depth not provided
         if max_depth is None:
             max_depth = MAX_DEPTH
-        
+
         # Use provided okh_service or self.okh_service
         service = okh_service or self.okh_service
-        
+
         logger.info(
             "Matching nested components",
             extra={
                 "okh_id": str(okh_manifest.id),
                 "facility_count": len(facilities),
                 "max_depth": max_depth,
-                "domain": domain
-            }
+                "domain": domain,
+            },
         )
-        
+
         try:
             # Step 1: Resolve BOM and explode into component matches (with graceful fallbacks)
             bom_resolver = BOMResolutionService(service)
             # Pass manifest_path to resolve_bom for external BOM file resolution
-            bom = await bom_resolver.resolve_bom(okh_manifest, service, manifest_path=manifest_path)
-            
+            bom = await bom_resolver.resolve_bom(
+                okh_manifest, service, manifest_path=manifest_path
+            )
+
             if not bom.components:
                 logger.warning(
                     "No components found in BOM - cannot perform nested matching. "
                     "Falling back to single-level matching.",
-                    extra={"okh_id": str(okh_manifest.id)}
+                    extra={"okh_id": str(okh_manifest.id)},
                 )
                 # Return empty solution with helpful message
                 return SupplyTreeSolution.from_nested_trees(
@@ -1248,22 +1250,21 @@ class MatchingService:
                     metadata={
                         "matching_mode": "nested",
                         "warning": "No components found in BOM for nested matching",
-                        "suggestion": "Try single-level matching (max_depth=0) or ensure BOM has components"
-                    }
+                        "suggestion": "Try single-level matching (max_depth=0) or ensure BOM has components",
+                    },
                 )
-            
+
             component_matches = await bom_resolver.explode_bom(
-                bom,
-                service,
-                max_depth=max_depth
+                bom, service, max_depth=max_depth
             )
-            
+
             # Count components with unresolved references
             unresolved_count = sum(
-                1 for m in component_matches 
+                1
+                for m in component_matches
                 if m.okh_manifest is None and m.component.reference
             )
-            
+
             if unresolved_count > 0:
                 logger.warning(
                     f"Found {unresolved_count} component(s) with unresolved references. "
@@ -1271,34 +1272,38 @@ class MatchingService:
                     extra={
                         "okh_id": str(okh_manifest.id),
                         "unresolved_count": unresolved_count,
-                        "total_components": len(component_matches)
-                    }
-            )
-            
+                        "total_components": len(component_matches),
+                    },
+                )
+
             logger.info(
                 "BOM exploded into component matches",
                 extra={
                     "component_count": len(component_matches),
-                    "max_depth_found": max([m.depth for m in component_matches]) if component_matches else 0,
-                    "unresolved_references": unresolved_count
-                }
+                    "max_depth_found": (
+                        max([m.depth for m in component_matches])
+                        if component_matches
+                        else 0
+                    ),
+                    "unresolved_references": unresolved_count,
+                },
             )
-            
+
             # Step 2: Sort by depth (deepest first) for dependency order
             component_matches.sort(key=lambda x: -x.depth)
-            
+
             # Step 3: Match each component to facilities (best-effort matching)
             component_supply_trees: Dict[str, List[SupplyTree]] = {}
             unmatched_components = []
             matched_components = []
-            
+
             for component_match in component_matches:
                 component = component_match.component
-                
+
                 # Determine which OKH to use for matching
                 # If component has a reference, use that OKH; otherwise use the root OKH
                 manifest = component_match.okh_manifest or okh_manifest
-                
+
                 try:
                     # Match component to facilities (component-level matching logic)
                     component_trees = await self._match_component_to_facilities(
@@ -1306,22 +1311,28 @@ class MatchingService:
                         component_match=component_match,
                         manifest=manifest,
                         facilities=facilities,
-                        domain=domain
+                        domain=domain,
                     )
-                    
+
                     component_supply_trees[component.id] = component_trees
                     component_match.supply_trees = component_trees
                     component_match.matched = len(component_trees) > 0
-                    
+
                     if component_match.matched:
                         matched_components.append(component.name)
                     else:
-                        unmatched_components.append({
-                            "name": component.name,
-                            "id": component.id,
-                            "depth": component_match.depth,
-                            "path": " > ".join(component_match.path) if component_match.path else component.name
-                        })
+                        unmatched_components.append(
+                            {
+                                "name": component.name,
+                                "id": component.id,
+                                "depth": component_match.depth,
+                                "path": (
+                                    " > ".join(component_match.path)
+                                    if component_match.path
+                                    else component.name
+                                ),
+                            }
+                        )
                 except Exception as e:
                     logger.warning(
                         f"Error matching component '{component.name}' to facilities: {e}. "
@@ -1330,41 +1341,48 @@ class MatchingService:
                             "component_id": component.id,
                             "component_name": component.name,
                             "depth": component_match.depth,
-                            "error_type": type(e).__name__
+                            "error_type": type(e).__name__,
+                        },
+                    )
+                    unmatched_components.append(
+                        {
+                            "name": component.name,
+                            "id": component.id,
+                            "depth": component_match.depth,
+                            "path": (
+                                " > ".join(component_match.path)
+                                if component_match.path
+                                else component.name
+                            ),
+                            "error": str(e),
                         }
                     )
-                    unmatched_components.append({
-                        "name": component.name,
-                        "id": component.id,
-                        "depth": component_match.depth,
-                        "path": " > ".join(component_match.path) if component_match.path else component.name,
-                        "error": str(e)
-                    })
                     # Continue with other components
                     component_supply_trees[component.id] = []
                     component_match.matched = False
-                
+
                 # Link to parent if exists (enhanced parent-child linking)
                 if component_match.parent_component_id:
                     self._link_parent_child_relationships(
                         component_match=component_match,
                         component_trees=component_trees,
-                        component_supply_trees=component_supply_trees
+                        component_supply_trees=component_supply_trees,
                     )
-            
+
             # Step 4: Build solution
             all_trees = []
             for trees in component_supply_trees.values():
                 all_trees.extend(trees)
-            
-            root_trees = [
-                tree for tree in all_trees 
-                if tree.depth == 0
-            ]
-            
+
+            root_trees = [tree for tree in all_trees if tree.depth == 0]
+
             # Calculate average score
-            avg_score = sum(tree.confidence_score for tree in all_trees) / len(all_trees) if all_trees else 0.0
-            
+            avg_score = (
+                sum(tree.confidence_score for tree in all_trees) / len(all_trees)
+                if all_trees
+                else 0.0
+            )
+
             # Use factory method for nested solutions
             solution = SupplyTreeSolution.from_nested_trees(
                 all_trees=all_trees,
@@ -1374,7 +1392,7 @@ class MatchingService:
                 metrics={
                     "facility_count": len(facilities),
                     "component_count": len(component_matches),
-                    "total_trees": len(all_trees)
+                    "total_trees": len(all_trees),
                 },
                 metadata={
                     "okh_id": str(okh_manifest.id),
@@ -1385,23 +1403,31 @@ class MatchingService:
                     "component_count": len(component_matches),
                     "matched_components": len(matched_components),
                     "unmatched_components": len(unmatched_components),
-                    "warnings": [] if not unmatched_components else [
-                        f"{len(unmatched_components)} component(s) could not be matched to facilities"
-                    ]
-                }
+                    "warnings": (
+                        []
+                        if not unmatched_components
+                        else [
+                            f"{len(unmatched_components)} component(s) could not be matched to facilities"
+                        ]
+                    ),
+                },
             )
-            
+
             logger.info(
                 "Nested component matching completed",
                 extra={
                     "total_trees": len(all_trees),
                     "root_trees": len(root_trees),
-                    "is_valid": solution.validation_result.is_valid if solution.validation_result else False
-                }
+                    "is_valid": (
+                        solution.validation_result.is_valid
+                        if solution.validation_result
+                        else False
+                    ),
+                },
             )
-            
+
             return solution
-            
+
         except Exception as e:
             error_msg = (
                 f"Nested matching encountered an error: {str(e)}. "
@@ -1413,9 +1439,9 @@ class MatchingService:
                 extra={
                     "okh_id": str(okh_manifest.id),
                     "error": str(e),
-                    "error_type": type(e).__name__
+                    "error_type": type(e).__name__,
                 },
-                exc_info=True
+                exc_info=True,
             )
             # Return a partial solution with error information rather than failing completely
             return SupplyTreeSolution.from_nested_trees(
@@ -1428,17 +1454,17 @@ class MatchingService:
                     "matching_mode": "nested",
                     "error": str(e),
                     "error_type": type(e).__name__,
-                    "suggestion": "Try single-level matching (max_depth=0) or check BOM data availability"
-                }
+                    "suggestion": "Try single-level matching (max_depth=0) or check BOM data availability",
+                },
             )
-    
+
     def _tsdc_to_process_uri(self, tsdc_code: str) -> str:
         """
         Convert TSDC code to manufacturing process URI.
-        
+
         Args:
             tsdc_code: TSDC code (e.g., "3DP", "PCB", "CNC")
-            
+
         Returns:
             Process URI (Wikipedia URL format)
         """
@@ -1450,39 +1476,40 @@ class MatchingService:
             "SHEET": "https://en.wikipedia.org/wiki/Sheet_metal_forming",
             "ASSEMBLY": "https://en.wikipedia.org/wiki/Assembly_line",
         }
-        return tsdc_mapping.get(tsdc_code.upper(), f"https://en.wikipedia.org/wiki/{tsdc_code}")
-    
+        return tsdc_mapping.get(
+            tsdc_code.upper(), f"https://en.wikipedia.org/wiki/{tsdc_code}"
+        )
+
     def _create_component_manifest(
-        self,
-        base_manifest: OKHManifest,
-        component: Component
+        self, base_manifest: OKHManifest, component: Component
     ) -> OKHManifest:
         """
         Create a component-specific manifest with component's process requirements.
-        
+
         This allows component-level matching using the component's specific processes
         rather than the root manifest's processes.
-        
+
         Args:
             base_manifest: Base OKH manifest
             component: Component with specific requirements
-            
+
         Returns:
             Modified OKHManifest with component-specific processes
         """
         # Start with a copy of the base manifest
         import copy
+
         component_manifest = copy.deepcopy(base_manifest)
-        
+
         # Extract component processes and convert to URIs
         component_processes = []
-        
+
         # Get processes from component requirements (may be strings like "3DP", "PCB")
         component_requirements = component.requirements or {}
         req_processes = component_requirements.get("process", [])
         if isinstance(req_processes, str):
             req_processes = [req_processes]
-        
+
         # Convert process strings to URIs (handle both TSDC codes and existing URIs)
         for process in req_processes:
             # If it's already a URI, use it as-is
@@ -1494,7 +1521,7 @@ class MatchingService:
                 process_uri = self._tsdc_to_process_uri(process)
                 if process_uri not in component_processes:
                     component_processes.append(process_uri)
-        
+
         # Convert TSDC codes from metadata to process URIs
         if component.metadata and "tsdc" in component.metadata:
             tsdc_codes = component.metadata.get("tsdc", [])
@@ -1503,7 +1530,7 @@ class MatchingService:
                     process_uri = self._tsdc_to_process_uri(tsdc_code)
                     if process_uri not in component_processes:
                         component_processes.append(process_uri)
-        
+
         # If we found component-specific processes, use them
         # Otherwise, fall back to base manifest processes
         if component_processes:
@@ -1513,13 +1540,13 @@ class MatchingService:
                 extra={
                     "component_id": component.id,
                     "component_name": component.name,
-                    "processes": component_processes
-                }
+                    "processes": component_processes,
+                },
             )
         # If no component processes found, use base manifest processes (existing behavior)
-        
+
         return component_manifest
-    
+
     async def _match_component_to_facilities(
         self,
         component: Component,
@@ -1527,17 +1554,17 @@ class MatchingService:
         manifest: OKHManifest,
         facilities: List[ManufacturingFacility],
         domain: str,
-        min_confidence: float = 0.0
+        min_confidence: float = 0.0,
     ) -> List[SupplyTree]:
         """
         Match a component to facilities with component-specific logic.
-        
+
         This method implements component-level matching by:
         1. Creating a component-specific manifest with component's process requirements
         2. Generating SupplyTrees for matching facilities using component processes
         3. Applying confidence thresholds
         4. Enhancing trees with component information
-        
+
         Args:
             component: Component to match
             component_match: ComponentMatch object with metadata
@@ -1545,15 +1572,15 @@ class MatchingService:
             facilities: List of facilities to match against
             domain: Domain for matching
             min_confidence: Minimum confidence threshold (default: 0.0, accept all)
-            
+
         Returns:
             List of SupplyTrees for this component
         """
         component_trees = []
-        
+
         # Create component-specific manifest with component's process requirements
         component_manifest = self._create_component_manifest(manifest, component)
-        
+
         logger.info(
             f"Matching component '{component.name}' to {len(facilities)} facilities",
             extra={
@@ -1561,21 +1588,19 @@ class MatchingService:
                 "component_name": component.name,
                 "component_processes": component_manifest.manufacturing_processes,
                 "facility_count": len(facilities),
-                "base_manifest_processes": manifest.manufacturing_processes
-            }
+                "base_manifest_processes": manifest.manufacturing_processes,
+            },
         )
-        
+
         # Match component to each facility
         for facility in facilities:
             try:
                 # Generate supply tree using component-specific manifest
                 # This ensures we match based on component's processes, not root manifest's
                 tree = await self._generate_supply_tree(
-                    component_manifest,
-                    facility,
-                    domain
+                    component_manifest, facility, domain
                 )
-                
+
                 logger.debug(
                     f"Generated tree for component '{component.name}' at facility '{facility.name}': "
                     f"confidence={tree.confidence_score}",
@@ -1585,10 +1610,10 @@ class MatchingService:
                         "facility_id": str(facility.id),
                         "facility_name": facility.name,
                         "confidence": tree.confidence_score,
-                        "min_confidence": min_confidence
-                    }
+                        "min_confidence": min_confidence,
+                    },
                 )
-                
+
                 # Apply confidence threshold
                 if tree.confidence_score < min_confidence:
                     logger.debug(
@@ -1598,11 +1623,11 @@ class MatchingService:
                             "component_id": component.id,
                             "facility_id": str(facility.id),
                             "confidence": tree.confidence_score,
-                            "threshold": min_confidence
-                        }
+                            "threshold": min_confidence,
+                        },
                     )
                     continue
-                
+
                 # Enhance tree with component information
                 tree.component_id = component.id
                 tree.component_name = component.name
@@ -1611,56 +1636,55 @@ class MatchingService:
                 tree.depth = component_match.depth
                 tree.component_path = component_match.path
                 tree.production_stage = (
-                    "component" if component_match.depth > 0 
-                    else "final"
+                    "component" if component_match.depth > 0 else "final"
                 )
-                
+
                 # Add component-specific metadata
                 if component.requirements:
                     tree.metadata["component_requirements"] = component.requirements
                 if component.metadata:
                     tree.metadata["component_metadata"] = component.metadata
-                
+
                 component_trees.append(tree)
-                
+
                 logger.debug(
                     f"Matched component {component.name} to facility {facility.name}",
                     extra={
                         "component_id": component.id,
                         "facility_id": str(facility.id),
                         "confidence": tree.confidence_score,
-                        "depth": component_match.depth
-                    }
+                        "depth": component_match.depth,
+                    },
                 )
-                
+
             except Exception as e:
                 logger.warning(
                     f"Failed to generate supply tree for component {component.name} at facility {facility.name}: {e}",
                     extra={
                         "component_id": component.id,
                         "facility_id": str(facility.id),
-                        "error": str(e)
-                    }
+                        "error": str(e),
+                    },
                 )
                 continue
-        
+
         return component_trees
-    
+
     def _link_parent_child_relationships(
         self,
         component_match: ComponentMatch,
         component_trees: List[SupplyTree],
-        component_supply_trees: Dict[str, List[SupplyTree]]
+        component_supply_trees: Dict[str, List[SupplyTree]],
     ) -> None:
         """
         Link parent-child relationships between SupplyTrees.
-        
+
         This method implements enhanced parent-child linking that:
         1. Links child trees to parent trees
         2. Updates parent's child_tree_ids and depends_on lists
         3. Updates child's required_by list
         4. Handles cases where a component depends on multiple parents
-        
+
         Args:
             component_match: ComponentMatch for the child component
             component_trees: List of SupplyTrees for the child component
@@ -1669,45 +1693,44 @@ class MatchingService:
         parent_component_id = component_match.parent_component_id
         if not parent_component_id:
             return
-        
+
         # Get parent trees
         parent_trees = component_supply_trees.get(parent_component_id, [])
-        
+
         if not parent_trees:
             logger.debug(
                 f"Parent component {parent_component_id} has no trees, skipping linking",
                 extra={
                     "child_component_id": component_match.component.id,
-                    "parent_component_id": parent_component_id
-                }
+                    "parent_component_id": parent_component_id,
+                },
             )
             return
-        
+
         # Link each child tree to each parent tree
         for parent_tree in parent_trees:
             for child_tree in component_trees:
                 # Set parent reference on child
                 child_tree.parent_tree_id = parent_tree.id
-                
+
                 # Update parent's child list (avoid duplicates)
                 if child_tree.id not in parent_tree.child_tree_ids:
                     parent_tree.child_tree_ids.append(child_tree.id)
-                
+
                 # Update parent's dependencies (child must be completed before parent)
                 if child_tree.id not in parent_tree.depends_on:
                     parent_tree.depends_on.append(child_tree.id)
-                
+
                 # Update child's required_by list (parent depends on child)
                 if parent_tree.id not in child_tree.required_by:
                     child_tree.required_by.append(parent_tree.id)
-                
+
                 logger.debug(
                     f"Linked child tree {child_tree.id} to parent tree {parent_tree.id}",
                     extra={
                         "child_component": component_match.component.name,
                         "parent_component_id": parent_component_id,
                         "child_tree_id": str(child_tree.id),
-                        "parent_tree_id": str(parent_tree.id)
-                    }
+                        "parent_tree_id": str(parent_tree.id),
+                    },
                 )
-    

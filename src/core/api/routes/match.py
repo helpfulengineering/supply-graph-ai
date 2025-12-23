@@ -259,7 +259,9 @@ async def match_requirements_to_capabilities(
                     "trees_count": len(solution.all_trees),
                     "max_depth": max_depth,
                     "processing_time": processing_time,
-                    "solution_saved": request.save_solution if request.save_solution else False,
+                    "solution_saved": (
+                        request.save_solution if request.save_solution else False
+                    ),
                 },
             )
 
@@ -334,22 +336,24 @@ async def match_requirements_to_capabilities(
                 try:
                     # Convert first (best) solution to SupplyTreeSolution
                     from ...models.supply_trees import SupplyTree, SupplyTreeSolution
-                    
+
                     best_solution_dict = solutions[0]
                     tree_dict = best_solution_dict.get("tree", {})
                     tree = SupplyTree.from_dict(tree_dict)
-                    
+
                     # Create SupplyTreeSolution from single tree
                     solution = SupplyTreeSolution(
                         all_trees=[tree],
-                        score=best_solution_dict.get("score", best_solution_dict.get("confidence", 0.0)),
+                        score=best_solution_dict.get(
+                            "score", best_solution_dict.get("confidence", 0.0)
+                        ),
                         metrics=best_solution_dict.get("metrics", {}),
                         metadata={
                             "okh_id": str(request.okh_id) if request.okh_id else None,
                             "matching_mode": "single-level",
-                        }
+                        },
                     )
-                    
+
                     solution_id = await storage_service.save_supply_tree_solution(
                         solution,
                         ttl_days=request.solution_ttl_days,
@@ -375,7 +379,9 @@ async def match_requirements_to_capabilities(
                         exc_info=True,
                     )
                     # Don't fail the request if save fails
-                    response_data["save_warning"] = f"Solution could not be saved: {str(e)}"
+                    response_data["save_warning"] = (
+                        f"Solution could not be saved: {str(e)}"
+                    )
 
             logger.info(
                 f"Enhanced matching completed: {len(solutions)} solutions found",
@@ -384,7 +390,9 @@ async def match_requirements_to_capabilities(
                     "solutions_count": len(solutions),
                     "processing_time": processing_time,
                     "llm_used": request.use_llm,
-                    "solution_saved": request.save_solution if request.save_solution else False,
+                    "solution_saved": (
+                        request.save_solution if request.save_solution else False
+                    ),
                 },
             )
 
@@ -1121,68 +1129,76 @@ async def _format_nested_response(
     # Apply tree filtering if any filters are specified
     filtered_trees = solution.all_trees
     filters_applied = False
-    
+
     # Check if any tree filters are specified
     # Note: min_confidence is used for solution-level filtering in single-level matching,
     # but we also apply it at tree-level for nested matching when specified
-    has_tree_filters = any([
-        request.component_id,
-        request.component_name,
-        request.facility_id,
-        request.facility_name,
-        request.depth is not None,
-        request.min_depth is not None,
-        request.max_depth_filter is not None,
-        not request.include_trees,  # include_trees=False is also a filter
-    ])
-    
+    has_tree_filters = any(
+        [
+            request.component_id,
+            request.component_name,
+            request.facility_id,
+            request.facility_name,
+            request.depth is not None,
+            request.min_depth is not None,
+            request.max_depth_filter is not None,
+            not request.include_trees,  # include_trees=False is also a filter
+        ]
+    )
+
     # Apply min_confidence filter if specified (always apply for nested matching)
     apply_min_confidence = request.min_confidence is not None
-    
+
     if has_tree_filters or apply_min_confidence:
         filters_applied = True
         filtered_trees = []
-        
+
         for tree in solution.all_trees:
             # Apply component_id filter
             if request.component_id and tree.component_id != request.component_id:
                 continue
-            
+
             # Apply component_name filter
             if request.component_name and tree.component_name != request.component_name:
                 continue
-            
+
             # Apply facility_id filter (need to check if tree has facility_id field)
             if request.facility_id:
                 # Check if tree has facility_id in metadata or as attribute
                 tree_facility_id = getattr(tree, "facility_id", None)
                 if not tree_facility_id and hasattr(tree, "metadata") and tree.metadata:
                     tree_facility_id = tree.metadata.get("facility_id")
-                if tree_facility_id and UUID(str(tree_facility_id)) != request.facility_id:
+                if (
+                    tree_facility_id
+                    and UUID(str(tree_facility_id)) != request.facility_id
+                ):
                     continue
-            
+
             # Apply facility_name filter
             if request.facility_name and tree.facility_name != request.facility_name:
                 continue
-            
+
             # Apply depth filters
             if request.depth is not None and tree.depth != request.depth:
                 continue
-            
+
             if request.min_depth is not None and tree.depth < request.min_depth:
                 continue
-            
-            if request.max_depth_filter is not None and tree.depth > request.max_depth_filter:
+
+            if (
+                request.max_depth_filter is not None
+                and tree.depth > request.max_depth_filter
+            ):
                 continue
-            
+
             # Apply min_confidence filter (tree-level)
             if apply_min_confidence:
                 if tree.confidence_score < request.min_confidence:
                     continue
-            
+
             # Tree passed all filters
             filtered_trees.append(tree)
-        
+
         logger.info(
             f"Applied tree filters: {len(filtered_trees)}/{len(solution.all_trees)} trees match",
             extra={
@@ -1192,7 +1208,9 @@ async def _format_nested_response(
                 "filters": {
                     "component_id": request.component_id,
                     "component_name": request.component_name,
-                    "facility_id": str(request.facility_id) if request.facility_id else None,
+                    "facility_id": (
+                        str(request.facility_id) if request.facility_id else None
+                    ),
                     "facility_name": request.facility_name,
                     "depth": request.depth,
                     "min_depth": request.min_depth,
@@ -1201,16 +1219,21 @@ async def _format_nested_response(
                 },
             },
         )
-    
+
     # Create solution dict with filtered or original trees
     solution_dict = solution.to_dict()
-    
+
     # Handle include_trees flag
     if not request.include_trees:
         # Return metadata only (counts, IDs) without full tree objects
         solution_dict["all_trees"] = []  # Remove full tree data
-        solution_dict["tree_count"] = len(filtered_trees) if filters_applied else len(solution.all_trees)
-        solution_dict["tree_ids"] = [str(tree.id) for tree in (filtered_trees if filters_applied else solution.all_trees)]
+        solution_dict["tree_count"] = (
+            len(filtered_trees) if filters_applied else len(solution.all_trees)
+        )
+        solution_dict["tree_ids"] = [
+            str(tree.id)
+            for tree in (filtered_trees if filters_applied else solution.all_trees)
+        ]
         solution_dict["filtered"] = filters_applied
     else:
         # Include full tree data, but use filtered trees if filters were applied

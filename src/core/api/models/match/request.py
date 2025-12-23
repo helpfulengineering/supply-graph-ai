@@ -69,7 +69,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
             "Default: 0 (single-level matching for backward compatibility)"
         ),
     )
-    
+
     # Optional: Auto-detect if nested matching is needed
     auto_detect_depth: Optional[bool] = Field(
         False,
@@ -79,7 +79,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
             "when nested components detected."
         ),
     )
-    
+
     include_validation: Optional[bool] = Field(
         True,
         description="Include validation results in response (for nested matching)",
@@ -99,7 +99,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         None,
         description="Tags to apply to saved solution. Only used if save_solution=True.",
     )
-    
+
     # Tree filtering parameters (for nested matching results)
     include_trees: Optional[bool] = Field(
         True,

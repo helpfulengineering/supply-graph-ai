@@ -42,8 +42,29 @@ jobs:
           flake8 src/ deploy/ --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 src/ deploy/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: Check code formatting with black
-        run: black --check src/ deploy/
+      - name: Format code with black
+        run: |
+          echo "Formatting code with black..."
+          black src/ deploy/
+          
+          echo "Checking if formatting changed any files..."
+          if ! git diff --quiet src/ deploy/; then
+            echo "❌ Code formatting issues found!"
+            echo ""
+            echo "The following files were reformatted:"
+            git diff --name-only src/ deploy/
+            echo ""
+            echo "Please run the following command locally and commit the changes:"
+            echo "  black src/ deploy/"
+            echo "  git add src/ deploy/"
+            echo "  git commit -m 'chore: format code with black'"
+            echo ""
+            echo "Diff:"
+            git diff src/ deploy/ | head -100
+            exit 1
+          else
+            echo "✅ All code is properly formatted"
+          fi
 
       - name: Check import sorting with isort
         run: isort --profile black --check-only src/ deploy/

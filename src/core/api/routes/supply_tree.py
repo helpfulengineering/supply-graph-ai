@@ -289,21 +289,29 @@ async def create_supply_tree(
 @api_endpoint(success_message="Solutions retrieved successfully", include_metrics=True)
 @track_performance("solutions_list")
 async def list_supply_tree_solutions(
-    limit: Optional[int] = Query(None, description="Maximum number of solutions to return"),
+    limit: Optional[int] = Query(
+        None, description="Maximum number of solutions to return"
+    ),
     offset: Optional[int] = Query(None, description="Number of solutions to skip"),
     okh_id: Optional[UUID] = Query(None, description="Filter by OKH ID"),
     matching_mode: Optional[str] = Query(None, description="Filter by matching mode"),
     sort_by: str = Query("created_at", description="Field to sort by"),
     sort_order: str = Query("desc", description="Sort order (asc/desc)"),
-    min_age_days: Optional[int] = Query(None, description="Filter by minimum age in days"),
-    max_age_days: Optional[int] = Query(None, description="Filter by maximum age in days"),
+    min_age_days: Optional[int] = Query(
+        None, description="Filter by minimum age in days"
+    ),
+    max_age_days: Optional[int] = Query(
+        None, description="Filter by maximum age in days"
+    ),
     include_stale: bool = Query(True, description="Include stale solutions"),
     only_stale: bool = Query(False, description="Only return stale solutions"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """List supply tree solutions with optional filtering and sorting"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         solutions = await storage_service.list_supply_tree_solutions(
@@ -318,7 +326,7 @@ async def list_supply_tree_solutions(
             include_stale=include_stale,
             only_stale=only_stale,
         )
-        
+
         logger.info(
             f"Solutions listed",
             extra={
@@ -329,10 +337,10 @@ async def list_supply_tree_solutions(
                     "matching_mode": matching_mode,
                     "sort_by": sort_by,
                     "sort_order": sort_order,
-                }
+                },
             },
         )
-        
+
         return solutions
 
     except Exception as e:
@@ -375,12 +383,14 @@ async def get_supply_tree_solution(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get a supply tree solution by ID"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         solution = await storage_service.load_supply_tree_solution(solution_id)
         solution_dict = solution.to_dict()
-        
+
         logger.info(
             f"Solution retrieved: {solution_id}",
             extra={
@@ -389,7 +399,7 @@ async def get_supply_tree_solution(
                 "tree_count": len(solution.all_trees),
             },
         )
-        
+
         return solution_dict
 
     except FileNotFoundError as e:
@@ -451,11 +461,13 @@ async def delete_supply_tree_solution(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Delete a supply tree solution by ID"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         deleted = await storage_service.delete_supply_tree_solution(solution_id)
-        
+
         if not deleted:
             error_response = create_error_response(
                 error=f"Solution with ID {solution_id} not found",
@@ -474,7 +486,7 @@ async def delete_supply_tree_solution(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=error_response.model_dump(mode="json"),
             )
-        
+
         logger.info(
             f"Solution deleted: {solution_id}",
             extra={
@@ -482,7 +494,7 @@ async def delete_supply_tree_solution(
                 "solution_id": str(solution_id),
             },
         )
-        
+
         return {"deleted": True, "solution_id": str(solution_id)}
 
     except HTTPException:
@@ -524,23 +536,27 @@ async def delete_supply_tree_solution(
 @track_performance("solution_staleness_check")
 async def get_solution_staleness(
     solution_id: UUID = Path(..., description="Solution ID"),
-    max_age_days: Optional[int] = Query(None, description="Optional maximum age in days for staleness check"),
+    max_age_days: Optional[int] = Query(
+        None, description="Optional maximum age in days for staleness check"
+    ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Check if a solution is stale"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Check staleness
         is_stale, staleness_reason = await storage_service.is_solution_stale(
             solution_id, max_age_days=max_age_days
         )
-        
+
         # Get age
         age = await storage_service.get_solution_age(solution_id)
         age_days = age.days
-        
+
         logger.info(
             f"Staleness check for solution {solution_id}",
             extra={
@@ -551,7 +567,7 @@ async def get_solution_staleness(
                 "age_days": age_days,
             },
         )
-        
+
         return {
             "is_stale": is_stale,
             "staleness_reason": staleness_reason,
@@ -618,22 +634,25 @@ async def cleanup_stale_solutions(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Cleanup stale solutions"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Parse before_date if provided
         before_date = None
         if request.before_date:
             from datetime import datetime
+
             before_date = datetime.fromisoformat(request.before_date)
-        
+
         # Perform cleanup
         result = await storage_service.cleanup_stale_solutions(
             max_age_days=request.max_age_days,
             before_date=before_date,
             dry_run=request.dry_run,
         )
-        
+
         logger.info(
             f"Cleanup completed: {result['deleted_count']} solutions {'would be' if request.dry_run else ''} deleted",
             extra={
@@ -642,7 +661,7 @@ async def cleanup_stale_solutions(
                 "dry_run": request.dry_run,
             },
         )
-        
+
         return result
 
     except Exception as e:
@@ -681,24 +700,28 @@ async def cleanup_stale_solutions(
 @track_performance("solution_extend_ttl")
 async def extend_solution_ttl(
     solution_id: UUID = Path(..., description="Solution ID"),
-    request: Optional[ExtendSolutionTTLRequest] = Body(None, description="TTL extension request"),
+    request: Optional[ExtendSolutionTTLRequest] = Body(
+        None, description="TTL extension request"
+    ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Extend solution TTL"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Get additional_days from request body or use default
         additional_days = 30
         if request:
             additional_days = request.additional_days
-        
+
         # Extend TTL
         extended = await storage_service.extend_solution_ttl(
             solution_id, additional_days=additional_days
         )
-        
+
         if not extended:
             error_response = create_error_response(
                 error=f"Solution with ID {solution_id} not found",
@@ -717,7 +740,7 @@ async def extend_solution_ttl(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=error_response.model_dump(mode="json"),
             )
-        
+
         logger.info(
             f"TTL extended for solution {solution_id} by {additional_days} days",
             extra={
@@ -726,7 +749,7 @@ async def extend_solution_ttl(
                 "additional_days": additional_days,
             },
         )
-        
+
         return {
             "extended": True,
             "solution_id": str(solution_id),
@@ -775,17 +798,21 @@ async def save_supply_tree_solution(
     solution_id: UUID = Path(..., description="Solution ID"),
     solution: dict = Body(..., description="Solution data to save"),
     ttl_days: Optional[int] = Body(None, description="Time-to-live in days"),
-    tags: Optional[List[str]] = Body(None, description="Tags to associate with solution"),
+    tags: Optional[List[str]] = Body(
+        None, description="Tags to associate with solution"
+    ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Save a supply tree solution to storage"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Convert dict to SupplyTreeSolution
         from ...models.supply_trees import SupplyTreeSolution
-        
+
         # Handle both wrapped and direct formats
         if "solution" in solution:
             solution_obj = SupplyTreeSolution.from_dict(solution["solution"])
@@ -802,7 +829,7 @@ async def save_supply_tree_solution(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=error_response.model_dump(mode="json"),
             )
-        
+
         # Save solution
         saved_id = await storage_service.save_supply_tree_solution(
             solution_obj,
@@ -810,7 +837,7 @@ async def save_supply_tree_solution(
             ttl_days=ttl_days,
             tags=tags,
         )
-        
+
         logger.info(
             f"Solution saved: {saved_id}",
             extra={
@@ -820,7 +847,7 @@ async def save_supply_tree_solution(
                 "ttl_days": ttl_days,
             },
         )
-        
+
         return {"solution_id": str(saved_id), "saved": True}
 
     except HTTPException:
@@ -867,7 +894,9 @@ async def save_supply_tree_solution(
     - Solution metadata
     """,
 )
-@api_endpoint(success_message="Solution summary retrieved successfully", include_metrics=True)
+@api_endpoint(
+    success_message="Solution summary retrieved successfully", include_metrics=True
+)
 @track_performance("solution_summary")
 async def get_solution_summary(
     solution_id: UUID = Path(..., description="Solution ID (for storage loading)"),
@@ -875,18 +904,19 @@ async def get_solution_summary(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get summary statistics for a supply tree solution"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution using multi-source helper (from storage)
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
 
         # Calculate summary statistics
         total_trees = len(solution.all_trees)
-        
+
         # Count unique components
         component_ids = set()
         component_names = {}
@@ -894,53 +924,73 @@ async def get_solution_summary(
             if tree.component_id:
                 component_ids.add(tree.component_id)
             if tree.component_name:
-                component_names[tree.component_id or tree.component_name] = tree.component_name
-        
-        total_components = len(component_ids) if component_ids else len(set(
-            tree.component_name for tree in solution.all_trees if tree.component_name
-        ))
-        
+                component_names[tree.component_id or tree.component_name] = (
+                    tree.component_name
+                )
+
+        total_components = (
+            len(component_ids)
+            if component_ids
+            else len(
+                set(
+                    tree.component_name
+                    for tree in solution.all_trees
+                    if tree.component_name
+                )
+            )
+        )
+
         # Count unique facilities
-        facilities = set(tree.facility_name for tree in solution.all_trees if tree.facility_name)
+        facilities = set(
+            tree.facility_name for tree in solution.all_trees if tree.facility_name
+        )
         total_facilities = len(facilities)
-        
+
         # Calculate average confidence
         if solution.all_trees:
-            avg_confidence = sum(tree.confidence_score for tree in solution.all_trees) / len(solution.all_trees)
+            avg_confidence = sum(
+                tree.confidence_score for tree in solution.all_trees
+            ) / len(solution.all_trees)
         else:
             avg_confidence = solution.score
-        
+
         # Component distribution
         component_distribution = []
         component_counts = {}
         for tree in solution.all_trees:
             comp_id = tree.component_id or tree.component_name or "unknown"
             component_counts[comp_id] = component_counts.get(comp_id, 0) + 1
-        
+
         for comp_id, count in component_counts.items():
-            component_distribution.append({
-                "component_id": comp_id,
-                "component_name": next(
-                    (tree.component_name for tree in solution.all_trees 
-                     if (tree.component_id or tree.component_name) == comp_id),
-                    comp_id
-                ),
-                "count": count
-            })
-        
+            component_distribution.append(
+                {
+                    "component_id": comp_id,
+                    "component_name": next(
+                        (
+                            tree.component_name
+                            for tree in solution.all_trees
+                            if (tree.component_id or tree.component_name) == comp_id
+                        ),
+                        comp_id,
+                    ),
+                    "count": count,
+                }
+            )
+
         # Facility distribution
         facility_distribution = []
         facility_counts = {}
         for tree in solution.all_trees:
             if tree.facility_name:
-                facility_counts[tree.facility_name] = facility_counts.get(tree.facility_name, 0) + 1
-        
+                facility_counts[tree.facility_name] = (
+                    facility_counts.get(tree.facility_name, 0) + 1
+                )
+
         for facility_name, count in facility_counts.items():
-            facility_distribution.append({
-                "facility_name": facility_name,
-                "count": count
-            })
-        
+            facility_distribution.append(
+                {"facility_name": facility_name, "count": count}
+            )
+
         # Build summary response
         summary = {
             "id": str(solution_id),
@@ -958,7 +1008,7 @@ async def get_solution_summary(
             "time_estimate": solution.total_estimated_time,
             "is_nested": solution.is_nested,
         }
-        
+
         logger.info(
             f"Solution summary retrieved for {solution_id}",
             extra={
@@ -967,11 +1017,15 @@ async def get_solution_summary(
                 "total_trees": total_trees,
             },
         )
-        
+
         return summary
 
     except Exception as e:
-        error_status = status.HTTP_404_NOT_FOUND if "not found" in str(e).lower() else status.HTTP_500_INTERNAL_SERVER_ERROR
+        error_status = (
+            status.HTTP_404_NOT_FOUND
+            if "not found" in str(e).lower()
+            else status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
         error_response = create_error_response(
             error=e,
             status_code=error_status,
@@ -1020,7 +1074,9 @@ async def load_supply_tree_solution(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Load a supply tree solution from storage, file, or inline data."""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution using multi-source helper
@@ -1028,27 +1084,33 @@ async def load_supply_tree_solution(
             solution_id=request.solution_id,
             file_path=request.file_path,
             solution_data=request.solution,
-            storage_service=storage_service if request.source == "storage" else None
+            storage_service=storage_service if request.source == "storage" else None,
         )
-        
+
         # Convert solution to dict for response
         solution_dict = solution.to_dict()
-        
+
         logger.info(
             f"Solution loaded successfully from {request.source}",
             extra={
                 "request_id": request_id,
                 "source": request.source,
-                "solution_id": str(request.solution_id) if request.solution_id else None,
+                "solution_id": (
+                    str(request.solution_id) if request.solution_id else None
+                ),
                 "file_path": request.file_path,
                 "tree_count": len(solution.all_trees),
             },
         )
-        
+
         return solution_dict
 
     except (FileNotFoundError, ValueError) as e:
-        error_status = status.HTTP_404_NOT_FOUND if isinstance(e, FileNotFoundError) else status.HTTP_400_BAD_REQUEST
+        error_status = (
+            status.HTTP_404_NOT_FOUND
+            if isinstance(e, FileNotFoundError)
+            else status.HTTP_400_BAD_REQUEST
+        )
         error_response = create_error_response(
             error=str(e),
             status_code=error_status,
@@ -1116,59 +1178,81 @@ async def get_solution_trees(
     component_id: Optional[str] = Query(None, description="Filter by component ID"),
     component_name: Optional[str] = Query(None, description="Filter by component name"),
     facility_name: Optional[str] = Query(None, description="Filter by facility name"),
-    okw_reference: Optional[str] = Query(None, description="Filter by OKW reference (facility ID)"),
+    okw_reference: Optional[str] = Query(
+        None, description="Filter by OKW reference (facility ID)"
+    ),
     depth: Optional[int] = Query(None, description="Filter by exact depth"),
     min_depth: Optional[int] = Query(None, description="Filter by minimum depth"),
     max_depth: Optional[int] = Query(None, description="Filter by maximum depth"),
-    min_confidence: Optional[float] = Query(None, description="Filter by minimum confidence score"),
-    production_stage: Optional[str] = Query(None, description="Filter by production stage"),
+    min_confidence: Optional[float] = Query(
+        None, description="Filter by minimum confidence score"
+    ),
+    production_stage: Optional[str] = Query(
+        None, description="Filter by production stage"
+    ),
     limit: Optional[int] = Query(None, description="Maximum number of trees to return"),
     offset: Optional[int] = Query(None, description="Number of trees to skip"),
-    sort_by: Optional[str] = Query("confidence_score", description="Field to sort by (confidence_score, depth, facility_name)"),
+    sort_by: Optional[str] = Query(
+        "confidence_score",
+        description="Field to sort by (confidence_score, depth, facility_name)",
+    ),
     sort_order: str = Query("desc", description="Sort order (asc/desc)"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get trees from a solution with optional filtering"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
-        
+
         # Filter trees
         filtered_trees = solution.all_trees
-        
+
         if component_id:
-            filtered_trees = [t for t in filtered_trees if t.component_id == component_id]
-        
+            filtered_trees = [
+                t for t in filtered_trees if t.component_id == component_id
+            ]
+
         if component_name:
-            filtered_trees = [t for t in filtered_trees if t.component_name == component_name]
-        
+            filtered_trees = [
+                t for t in filtered_trees if t.component_name == component_name
+            ]
+
         if facility_name:
-            filtered_trees = [t for t in filtered_trees if t.facility_name == facility_name]
-        
+            filtered_trees = [
+                t for t in filtered_trees if t.facility_name == facility_name
+            ]
+
         if okw_reference:
-            filtered_trees = [t for t in filtered_trees if t.okw_reference == okw_reference]
-        
+            filtered_trees = [
+                t for t in filtered_trees if t.okw_reference == okw_reference
+            ]
+
         if depth is not None:
             filtered_trees = [t for t in filtered_trees if t.depth == depth]
-        
+
         if min_depth is not None:
             filtered_trees = [t for t in filtered_trees if t.depth >= min_depth]
-        
+
         if max_depth is not None:
             filtered_trees = [t for t in filtered_trees if t.depth <= max_depth]
-        
+
         if min_confidence is not None:
-            filtered_trees = [t for t in filtered_trees if t.confidence_score >= min_confidence]
-        
+            filtered_trees = [
+                t for t in filtered_trees if t.confidence_score >= min_confidence
+            ]
+
         if production_stage:
-            filtered_trees = [t for t in filtered_trees if t.production_stage == production_stage]
-        
+            filtered_trees = [
+                t for t in filtered_trees if t.production_stage == production_stage
+            ]
+
         # Sort trees
         reverse_order = sort_order.lower() == "desc"
         if sort_by == "confidence_score":
@@ -1176,18 +1260,20 @@ async def get_solution_trees(
         elif sort_by == "depth":
             filtered_trees.sort(key=lambda t: t.depth, reverse=reverse_order)
         elif sort_by == "facility_name":
-            filtered_trees.sort(key=lambda t: t.facility_name or "", reverse=reverse_order)
-        
+            filtered_trees.sort(
+                key=lambda t: t.facility_name or "", reverse=reverse_order
+            )
+
         # Apply pagination
         total_count = len(filtered_trees)
         if offset:
             filtered_trees = filtered_trees[offset:]
         if limit:
             filtered_trees = filtered_trees[:limit]
-        
+
         # Convert to dicts
         trees_data = [tree.to_dict() for tree in filtered_trees]
-        
+
         logger.info(
             f"Trees retrieved for solution {solution_id}",
             extra={
@@ -1201,10 +1287,10 @@ async def get_solution_trees(
                     "facility_name": facility_name,
                     "depth": depth,
                     "min_confidence": min_confidence,
-                }
+                },
             },
         )
-        
+
         return {
             "trees": trees_data,
             "total_count": total_count,
@@ -1219,7 +1305,7 @@ async def get_solution_trees(
                 "max_depth": max_depth,
                 "min_confidence": min_confidence,
                 "production_stage": production_stage,
-            }
+            },
         }
 
     except FileNotFoundError as e:
@@ -1274,7 +1360,9 @@ async def get_solution_trees(
     parent/child relationships if available.
     """,
 )
-@api_endpoint(success_message="Component trees retrieved successfully", include_metrics=True)
+@api_endpoint(
+    success_message="Component trees retrieved successfully", include_metrics=True
+)
 @track_performance("component_trees")
 async def get_component_trees(
     solution_id: UUID = Path(..., description="Solution ID"),
@@ -1283,21 +1371,24 @@ async def get_component_trees(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get all trees for a specific component"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
-        
+
         # Filter trees by component_id
-        component_trees = [t for t in solution.all_trees if t.component_id == component_id]
-        
+        component_trees = [
+            t for t in solution.all_trees if t.component_id == component_id
+        ]
+
         # Convert to dicts
         trees_data = [tree.to_dict() for tree in component_trees]
-        
+
         logger.info(
             f"Component trees retrieved for solution {solution_id}, component {component_id}",
             extra={
@@ -1307,7 +1398,7 @@ async def get_component_trees(
                 "tree_count": len(trees_data),
             },
         )
-        
+
         return {
             "component_id": component_id,
             "trees": trees_data,
@@ -1370,33 +1461,39 @@ async def get_component_trees(
     Useful for understanding facility workload and capacity planning.
     """,
 )
-@api_endpoint(success_message="Facility trees retrieved successfully", include_metrics=True)
+@api_endpoint(
+    success_message="Facility trees retrieved successfully", include_metrics=True
+)
 @track_performance("facility_trees")
 async def get_facility_trees(
     solution_id: UUID = Path(..., description="Solution ID"),
-    facility_id: str = Path(..., description="Facility ID (okw_reference or facility_name)"),
+    facility_id: str = Path(
+        ..., description="Facility ID (okw_reference or facility_name)"
+    ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get all trees for a specific facility"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
-        
+
         # Filter trees by facility (try okw_reference first, then facility_name)
         facility_trees = [
-            t for t in solution.all_trees
+            t
+            for t in solution.all_trees
             if (t.okw_reference == facility_id or t.facility_name == facility_id)
         ]
-        
+
         # Convert to dicts
         trees_data = [tree.to_dict() for tree in facility_trees]
-        
+
         logger.info(
             f"Facility trees retrieved for solution {solution_id}, facility {facility_id}",
             extra={
@@ -1406,7 +1503,7 @@ async def get_facility_trees(
                 "tree_count": len(trees_data),
             },
         )
-        
+
         return {
             "facility_id": facility_id,
             "trees": trees_data,
@@ -1480,7 +1577,9 @@ async def export_supply_tree_solution(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Export a supply tree solution in the requested format."""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Validate format
@@ -1500,11 +1599,14 @@ async def export_supply_tree_solution(
         # Load solution using multi-source helper (from storage)
         try:
             solution = await _load_solution_from_source(
-                solution_id=solution_id,
-                storage_service=storage_service
+                solution_id=solution_id, storage_service=storage_service
             )
         except (FileNotFoundError, ValueError) as e:
-            error_status = status.HTTP_404_NOT_FOUND if isinstance(e, FileNotFoundError) else status.HTTP_400_BAD_REQUEST
+            error_status = (
+                status.HTTP_404_NOT_FOUND
+                if isinstance(e, FileNotFoundError)
+                else status.HTTP_400_BAD_REQUEST
+            )
             error_response = create_error_response(
                 error=str(e),
                 status_code=error_status,
@@ -1596,7 +1698,9 @@ async def export_supply_tree_solution(
     based on parent-child relationships and explicit dependencies.
     """,
 )
-@api_endpoint(success_message="Dependencies retrieved successfully", include_metrics=True)
+@api_endpoint(
+    success_message="Dependencies retrieved successfully", include_metrics=True
+)
 @track_performance("solution_dependencies")
 async def get_solution_dependencies(
     solution_id: UUID = Path(..., description="Solution ID"),
@@ -1604,26 +1708,27 @@ async def get_solution_dependencies(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get dependency graph for a solution"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
-        
+
         # Get dependency graph
         dependency_graph = solution.get_dependency_graph()
-        
+
         # Build tree details dictionary for easy lookup
         trees_dict = {str(tree.id): tree.to_dict() for tree in solution.all_trees}
-        
+
         # Calculate summary statistics
         total_dependencies = sum(len(deps) for deps in dependency_graph.values())
         trees_with_deps = len([deps for deps in dependency_graph.values() if deps])
         trees_without_deps = len(solution.all_trees) - trees_with_deps
-        
+
         logger.info(
             f"Dependencies retrieved for solution {solution_id}",
             extra={
@@ -1633,7 +1738,7 @@ async def get_solution_dependencies(
                 "total_dependencies": total_dependencies,
             },
         )
-        
+
         return {
             "dependency_graph": {
                 str(tree_id): [str(dep_id) for dep_id in deps]
@@ -1645,8 +1750,12 @@ async def get_solution_dependencies(
                 "total_dependencies": total_dependencies,
                 "trees_with_dependencies": trees_with_deps,
                 "trees_without_dependencies": trees_without_deps,
-                "average_dependencies_per_tree": round(total_dependencies / len(solution.all_trees), 2) if solution.all_trees else 0.0,
-            }
+                "average_dependencies_per_tree": (
+                    round(total_dependencies / len(solution.all_trees), 2)
+                    if solution.all_trees
+                    else 0.0
+                ),
+            },
         }
 
     except FileNotFoundError as e:
@@ -1707,7 +1816,9 @@ async def get_solution_dependencies(
     can be produced in parallel.
     """,
 )
-@api_endpoint(success_message="Production sequence retrieved successfully", include_metrics=True)
+@api_endpoint(
+    success_message="Production sequence retrieved successfully", include_metrics=True
+)
 @track_performance("solution_production_sequence")
 async def get_solution_production_sequence(
     solution_id: UUID = Path(..., description="Solution ID"),
@@ -1715,24 +1826,27 @@ async def get_solution_production_sequence(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get production sequence for a solution"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
-        
+
         # Get production sequence (list of stages, each stage is a list of SupplyTree objects)
         assembly_sequence = solution.get_assembly_sequence()
-        
+
         # If no production sequence exists, calculate it
         if not assembly_sequence:
             # Build dependency graph and calculate sequence
             dependency_graph = solution.get_dependency_graph()
             if dependency_graph:
-                sequence_ids = SupplyTreeSolution._calculate_production_sequence(dependency_graph)
+                sequence_ids = SupplyTreeSolution._calculate_production_sequence(
+                    dependency_graph
+                )
                 tree_map = {tree.id: tree for tree in solution.all_trees}
                 assembly_sequence = [
                     [tree_map[tree_id] for tree_id in stage if tree_id in tree_map]
@@ -1741,7 +1855,7 @@ async def get_solution_production_sequence(
             else:
                 # No dependencies, all trees can be done in parallel
                 assembly_sequence = [solution.all_trees]
-        
+
         # Convert to detailed stages with tree information
         stages = []
         for stage_idx, stage_trees in enumerate(assembly_sequence):
@@ -1752,12 +1866,12 @@ async def get_solution_production_sequence(
                 "tree_count": len(stage_trees),
             }
             stages.append(stage_info)
-        
+
         # Calculate summary statistics
         total_stages = len(stages)
         parallelizable_stages = len([s for s in stages if s["can_parallelize"]])
         total_trees = sum(s["tree_count"] for s in stages)
-        
+
         logger.info(
             f"Production sequence retrieved for solution {solution_id}",
             extra={
@@ -1767,19 +1881,20 @@ async def get_solution_production_sequence(
                 "total_trees": total_trees,
             },
         )
-        
+
         return {
             "production_sequence": [
-                [str(tree.id) for tree in stage]
-                for stage in assembly_sequence
+                [str(tree.id) for tree in stage] for stage in assembly_sequence
             ],
             "stages": stages,
             "summary": {
                 "total_stages": total_stages,
                 "total_trees": total_trees,
                 "parallelizable_stages": parallelizable_stages,
-                "average_trees_per_stage": round(total_trees / total_stages, 2) if total_stages > 0 else 0.0,
-            }
+                "average_trees_per_stage": (
+                    round(total_trees / total_stages, 2) if total_stages > 0 else 0.0
+                ),
+            },
         }
 
     except FileNotFoundError as e:
@@ -1847,15 +1962,16 @@ async def get_solution_hierarchy(
     storage_service: StorageService = Depends(get_storage_service),
 ):
     """Get component hierarchy for a solution"""
-    request_id = getattr(http_request.state, "request_id", None) if http_request else None
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
 
     try:
         # Load solution
         solution = await _load_solution_from_source(
-            solution_id=solution_id,
-            storage_service=storage_service
+            solution_id=solution_id, storage_service=storage_service
         )
-        
+
         # Build component hierarchy
         # Group trees by component_id
         component_trees = {}
@@ -1864,19 +1980,20 @@ async def get_solution_hierarchy(
             if comp_id not in component_trees:
                 component_trees[comp_id] = []
             component_trees[comp_id].append(tree)
-        
+
         # Build hierarchy structure
         hierarchy = []
         root_components = []
         component_details = {}
-        
+
         # Find root components (no parent_tree_id or parent not in solution)
         all_tree_ids = {tree.id for tree in solution.all_trees}
         root_trees = [
-            tree for tree in solution.all_trees
+            tree
+            for tree in solution.all_trees
             if not tree.parent_tree_id or tree.parent_tree_id not in all_tree_ids
         ]
-        
+
         # Build component details
         for comp_id, trees in component_trees.items():
             # Get representative tree (first one or highest confidence)
@@ -1891,35 +2008,41 @@ async def get_solution_hierarchy(
                     "component_path": rep_tree.component_path,
                     "trees": [tree.to_dict() for tree in trees],
                 }
-        
+
         # Build hierarchy tree structure
         def build_hierarchy_node(tree: SupplyTree) -> dict:
             """Recursively build hierarchy node"""
             node = {
-                "component_id": tree.component_id or tree.component_name or str(tree.id),
+                "component_id": tree.component_id
+                or tree.component_name
+                or str(tree.id),
                 "component_name": tree.component_name or "Unknown",
                 "tree_id": str(tree.id),
                 "depth": tree.depth,
                 "production_stage": tree.production_stage,
-                "children": []
+                "children": [],
             }
-            
+
             # Find children
             for child_tree in solution.all_trees:
                 if child_tree.parent_tree_id == tree.id:
                     node["children"].append(build_hierarchy_node(child_tree))
-            
+
             return node
-        
+
         # Build hierarchy from root trees
         for root_tree in root_trees:
             hierarchy.append(build_hierarchy_node(root_tree))
-            root_components.append({
-                "component_id": root_tree.component_id or root_tree.component_name or str(root_tree.id),
-                "component_name": root_tree.component_name or "Unknown",
-                "tree_id": str(root_tree.id),
-            })
-        
+            root_components.append(
+                {
+                    "component_id": root_tree.component_id
+                    or root_tree.component_name
+                    or str(root_tree.id),
+                    "component_name": root_tree.component_name or "Unknown",
+                    "tree_id": str(root_tree.id),
+                }
+            )
+
         logger.info(
             f"Hierarchy retrieved for solution {solution_id}",
             extra={
@@ -1929,7 +2052,7 @@ async def get_solution_hierarchy(
                 "root_components": len(root_components),
             },
         )
-        
+
         return {
             "hierarchy": hierarchy,
             "root_components": root_components,
@@ -1938,8 +2061,10 @@ async def get_solution_hierarchy(
                 "total_components": len(component_details),
                 "root_components": len(root_components),
                 "total_trees": len(solution.all_trees),
-                "max_depth": max((tree.depth for tree in solution.all_trees), default=0),
-            }
+                "max_depth": max(
+                    (tree.depth for tree in solution.all_trees), default=0
+                ),
+            },
         }
 
     except FileNotFoundError as e:
@@ -3270,9 +3395,11 @@ def _solution_to_graphml(solution) -> str:
     graphml += '  <key id="production_stage" for="node" attr.name="production_stage" attr.type="string"/>\n'
     graphml += '  <key id="estimated_cost" for="node" attr.name="estimated_cost" attr.type="double"/>\n'
     graphml += '  <key id="estimated_time" for="node" attr.name="estimated_time" attr.type="string"/>\n'
-    
+
     # Define edge attributes
-    graphml += '  <key id="edge_type" for="edge" attr.name="edge_type" attr.type="string"/>\n'
+    graphml += (
+        '  <key id="edge_type" for="edge" attr.name="edge_type" attr.type="string"/>\n'
+    )
 
     # Create graph
     graphml += '  <graph id="supply_tree_solution" edgedefault="directed">\n'
@@ -3288,7 +3415,7 @@ def _solution_to_graphml(solution) -> str:
         node_counter += 1
 
         graphml += f'    <node id="{node_id}">\n'
-        
+
         # Add node attributes
         if tree.component_name:
             graphml += f'      <data key="component_name">{_escape_xml(str(tree.component_name))}</data>\n'
@@ -3298,16 +3425,20 @@ def _solution_to_graphml(solution) -> str:
             graphml += f'      <data key="facility_name">{_escape_xml(str(tree.facility_name))}</data>\n'
         if tree.okh_reference:
             graphml += f'      <data key="okh_reference">{_escape_xml(str(tree.okh_reference))}</data>\n'
-        graphml += f'      <data key="confidence_score">{tree.confidence_score}</data>\n'
+        graphml += (
+            f'      <data key="confidence_score">{tree.confidence_score}</data>\n'
+        )
         graphml += f'      <data key="depth">{tree.depth}</data>\n'
         if tree.production_stage:
             graphml += f'      <data key="production_stage">{_escape_xml(str(tree.production_stage))}</data>\n'
         if tree.estimated_cost is not None:
-            graphml += f'      <data key="estimated_cost">{tree.estimated_cost}</data>\n'
+            graphml += (
+                f'      <data key="estimated_cost">{tree.estimated_cost}</data>\n'
+            )
         if tree.estimated_time:
             graphml += f'      <data key="estimated_time">{_escape_xml(str(tree.estimated_time))}</data>\n'
-        
-        graphml += '    </node>\n'
+
+        graphml += "    </node>\n"
 
     # Create edges for parent-child relationships
     edge_counter = 0
@@ -3324,7 +3455,7 @@ def _solution_to_graphml(solution) -> str:
                 edge_counter += 1
                 graphml += f'    <edge id="{edge_id}" source="{source_node_id}" target="{target_node_id}">\n'
                 graphml += '      <data key="edge_type">parent-child</data>\n'
-                graphml += '    </edge>\n'
+                graphml += "    </edge>\n"
 
         # Dependency edges (depends_on relationships)
         for dep_id in tree.depends_on:
@@ -3334,7 +3465,7 @@ def _solution_to_graphml(solution) -> str:
                 edge_counter += 1
                 graphml += f'    <edge id="{edge_id}" source="{target_node_id}" target="{source_node_id}">\n'
                 graphml += '      <data key="edge_type">depends_on</data>\n'
-                graphml += '    </edge>\n'
+                graphml += "    </edge>\n"
 
     graphml += "  </graph>\n"
     graphml += "</graphml>"
@@ -3363,21 +3494,21 @@ async def _load_solution_from_source(
 ) -> SupplyTreeSolution:
     """
     Load solution from storage, file, or inline data.
-    
+
     Priority order:
     1. Storage (if solution_id and storage_service provided)
     2. Local file (if file_path provided)
     3. Inline JSON (if solution_data provided)
-    
+
     Args:
         solution_id: UUID of solution in storage
         file_path: Path to local JSON file
         solution_data: Inline solution data (dict)
         storage_service: StorageService instance for loading from storage
-        
+
     Returns:
         SupplyTreeSolution object
-        
+
     Raises:
         ValueError: If no source provided or invalid format
         FileNotFoundError: If file_path doesn't exist
@@ -3385,23 +3516,25 @@ async def _load_solution_from_source(
     # Priority 1: Load from storage
     if solution_id and storage_service:
         return await storage_service.load_supply_tree_solution(solution_id)
-    
+
     # Priority 2: Load from local file
     if file_path:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"Solution file not found: {file_path}")
-        
-        with open(file_path, 'r') as f:
+
+        with open(file_path, "r") as f:
             data = json.load(f)
-        
+
         # Handle both full response format and solution-only format
         if "solution" in data:
             return SupplyTreeSolution.from_dict(data["solution"])
         elif "all_trees" in data:
             return SupplyTreeSolution.from_dict(data)
         else:
-            raise ValueError("Invalid solution file format: must contain 'solution' or 'all_trees' key")
-    
+            raise ValueError(
+                "Invalid solution file format: must contain 'solution' or 'all_trees' key"
+            )
+
     # Priority 3: Use inline data
     if solution_data:
         # Handle both wrapped and direct formats
@@ -3410,7 +3543,9 @@ async def _load_solution_from_source(
         elif "all_trees" in solution_data:
             return SupplyTreeSolution.from_dict(solution_data)
         else:
-            raise ValueError("Invalid solution data format: must contain 'solution' or 'all_trees' key")
-    
+            raise ValueError(
+                "Invalid solution data format: must contain 'solution' or 'all_trees' key"
+            )
+
     # No source provided
     raise ValueError("Must provide solution_id, file_path, or solution_data")

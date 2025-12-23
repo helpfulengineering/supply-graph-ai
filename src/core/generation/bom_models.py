@@ -1200,16 +1200,16 @@ class BOMProcessor:
         self._component_id_counter += 1
         # Create a clean ID from the name
         clean_name = re.sub(r"[^\w]", "_", name.lower())
-        
+
         # Truncate to ensure filesystem-safe filename length
         # Most filesystems support 255 chars, but we'll be conservative
         # Reserve space for counter suffix (e.g., "_123") and ".json" extension
         max_name_length = 200  # Conservative limit for component name part
         if len(clean_name) > max_name_length:
             clean_name = clean_name[:max_name_length]
-        
+
         component_id = f"{clean_name}_{self._component_id_counter}"
-        
+
         # Final safety check: ensure total ID length is reasonable
         # (including potential .json extension, max ~240 chars for safety)
         max_id_length = 240
@@ -1219,7 +1219,7 @@ class BOMProcessor:
             available_length = max_id_length - len(counter_suffix)
             clean_name = clean_name[:available_length]
             component_id = f"{clean_name}{counter_suffix}"
-        
+
         return component_id
 
     def _deduplicate_components(

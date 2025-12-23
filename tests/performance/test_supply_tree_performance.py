@@ -197,7 +197,7 @@ class TestSupplyTreePerformance:
         start_time = time.time()
         solutions = []
         for i, tree in enumerate(trees):
-            solution = SupplyTreeSolution(
+            solution = SupplyTreeSolution.from_single_tree(
                 tree=tree,
                 score=0.8 + (i % 20) * 0.01,
                 metrics={
@@ -259,7 +259,7 @@ class TestSupplyTreePerformance:
                 }
             )
             
-            solution = SupplyTreeSolution(
+            solution = SupplyTreeSolution.from_single_tree(
                 tree=tree,
                 score=0.7 + (i % 30) * 0.01,
                 metrics={

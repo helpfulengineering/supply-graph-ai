@@ -58,14 +58,16 @@ class FileResolver:
             logger.debug("FileResolver.cleanup() called but already cleaned up")
             return  # Already cleaned up
         self._cleanup_called = True
-        
+
         if self.session:
-            logger.debug(f"Cleaning up FileResolver session (closed={self.session.closed})")
+            logger.debug(
+                f"Cleaning up FileResolver session (closed={self.session.closed})"
+            )
             try:
                 # Close the session and wait for it to complete
                 if not self.session.closed:
                     # Close the connector first to prevent new connections
-                    if hasattr(self.session, '_connector') and self.session._connector:
+                    if hasattr(self.session, "_connector") and self.session._connector:
                         try:
                             # Close the connector to stop accepting new connections
                             if not self.session._connector.closed:
@@ -73,7 +75,7 @@ class FileResolver:
                                 self.session._connector.close()
                         except Exception as e:
                             logger.warning(f"Error closing connector: {e}")
-                    
+
                     # Now close the session (this will also close the connector)
                     logger.debug("Closing aiohttp session")
                     await self.session.close()
@@ -88,14 +90,16 @@ class FileResolver:
         else:
             logger.debug("FileResolver.cleanup() called but no session to clean up")
         self._semaphore = None
-    
+
     def __del__(self):
         """Destructor to warn if cleanup wasn't called"""
         if self.session and not self._cleanup_called:
             # This shouldn't happen in normal operation, but log a warning
             # Note: We can't close the session here since __del__ can't be async
             # The session will be closed by aiohttp's garbage collection, but it will warn
-            logger.debug("FileResolver was destroyed without cleanup() being called. Session will be closed by GC.")
+            logger.debug(
+                "FileResolver was destroyed without cleanup() being called. Session will be closed by GC."
+            )
 
     async def resolve_and_download(
         self,

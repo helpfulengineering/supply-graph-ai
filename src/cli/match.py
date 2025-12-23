@@ -274,14 +274,16 @@ async def requirements(
             "max_depth": max_depth,
             "auto_detect_depth": auto_detect_depth,
         }
-        
+
         # Add solution storage parameters if requested
         if save_solution:
             nested_params["save_solution"] = True
             if solution_ttl_days:
                 nested_params["solution_ttl_days"] = solution_ttl_days
             if solution_tags:
-                nested_params["solution_tags"] = [tag.strip() for tag in solution_tags.split(",")]
+                nested_params["solution_tags"] = [
+                    tag.strip() for tag in solution_tags.split(",")
+                ]
 
         # Create request data based on domain and input type
         if detected_domain == "manufacturing":
@@ -346,7 +348,7 @@ async def requirements(
                 import httpx
 
                 raise httpx.ConnectError("Use fallback for local facility file")
-            
+
             # If nested matching with local file, use fallback (BOM file resolution needs manifest path)
             if max_depth > 0 and not is_url:
                 cli_ctx.log(
@@ -354,7 +356,10 @@ async def requirements(
                     "info",
                 )
                 import httpx
-                raise httpx.ConnectError("Use fallback for nested matching with local file")
+
+                raise httpx.ConnectError(
+                    "Use fallback for nested matching with local file"
+                )
 
             cli_ctx.log("Attempting HTTP API matching...", "info")
             try:
@@ -440,40 +445,57 @@ async def requirements(
                         okh_service=okh_service,
                         manifest_path=manifest_path,
                     )
-                    
+
                     # Save solution if requested
                     solution_id = None
                     if save_solution:
                         try:
                             from ..core.services.storage_service import StorageService
-                            from ..config.storage_config import get_default_storage_config
-                            
+                            from ..config.storage_config import (
+                                get_default_storage_config,
+                            )
+
                             storage_service = await StorageService.get_instance()
-                            await storage_service.configure(get_default_storage_config())
-                            
+                            await storage_service.configure(
+                                get_default_storage_config()
+                            )
+
                             # Parse tags if provided
                             tags_list = None
                             if solution_tags:
-                                tags_list = [tag.strip() for tag in solution_tags.split(",")]
-                            
+                                tags_list = [
+                                    tag.strip() for tag in solution_tags.split(",")
+                                ]
+
                             # Use default TTL of 30 days if not provided
-                            ttl_days = solution_ttl_days if solution_ttl_days is not None else 30
-                            solution_id = await storage_service.save_supply_tree_solution(
-                                solution,
-                                ttl_days=ttl_days,
-                                tags=tags_list,
+                            ttl_days = (
+                                solution_ttl_days
+                                if solution_ttl_days is not None
+                                else 30
                             )
-                            cli_ctx.log(f"Solution saved to storage with ID: {solution_id}", "info")
+                            solution_id = (
+                                await storage_service.save_supply_tree_solution(
+                                    solution,
+                                    ttl_days=ttl_days,
+                                    tags=tags_list,
+                                )
+                            )
+                            cli_ctx.log(
+                                f"Solution saved to storage with ID: {solution_id}",
+                                "info",
+                            )
                         except Exception as e:
                             cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
                             # Continue without failing the match
-                    
+
                     # Convert to response format matching API
                     # For nested solutions, count trees, not solutions
                     solution_dict = solution.to_dict()
                     num_trees = len(solution.all_trees) if solution.all_trees else 0
                     result = {
-                        "solutions": [solution_dict],  # Wrap in array for consistency with display logic
+                        "solutions": [
+                            solution_dict
+                        ],  # Wrap in array for consistency with display logic
                         "solution": solution_dict,  # Also include singular for API compatibility
                         "total_solutions": num_trees,  # Count trees found, not solution count
                         "matching_mode": "nested",
@@ -511,42 +533,64 @@ async def requirements(
                     if save_solution and results_list:
                         try:
                             from ..core.services.storage_service import StorageService
-                            from ..core.models.supply_trees import SupplyTree, SupplyTreeSolution
-                            from ..config.storage_config import get_default_storage_config
-                            
+                            from ..core.models.supply_trees import (
+                                SupplyTree,
+                                SupplyTreeSolution,
+                            )
+                            from ..config.storage_config import (
+                                get_default_storage_config,
+                            )
+
                             storage_service = await StorageService.get_instance()
-                            await storage_service.configure(get_default_storage_config())
-                            
+                            await storage_service.configure(
+                                get_default_storage_config()
+                            )
+
                             # Convert best result to SupplyTreeSolution
                             best_result = results_list[0]  # Already sorted by score
                             tree = SupplyTree.from_dict(best_result.to_dict())
-                            
+
                             solution = SupplyTreeSolution(
                                 all_trees=[tree],
                                 score=best_result.score,
                                 metadata={
-                                    "okh_id": str(manifest.id) if hasattr(manifest, 'id') else None,
+                                    "okh_id": (
+                                        str(manifest.id)
+                                        if hasattr(manifest, "id")
+                                        else None
+                                    ),
                                     "matching_mode": "single-level",
-                                }
+                                },
                             )
-                            
+
                             # Parse tags if provided
                             tags_list = None
                             if solution_tags:
-                                tags_list = [tag.strip() for tag in solution_tags.split(",")]
-                            
+                                tags_list = [
+                                    tag.strip() for tag in solution_tags.split(",")
+                                ]
+
                             # Use default TTL of 30 days if not provided
-                            ttl_days = solution_ttl_days if solution_ttl_days is not None else 30
-                            solution_id = await storage_service.save_supply_tree_solution(
-                                solution,
-                                ttl_days=ttl_days,
-                                tags=tags_list,
+                            ttl_days = (
+                                solution_ttl_days
+                                if solution_ttl_days is not None
+                                else 30
                             )
-                            cli_ctx.log(f"Solution saved to storage with ID: {solution_id}", "info")
+                            solution_id = (
+                                await storage_service.save_supply_tree_solution(
+                                    solution,
+                                    ttl_days=ttl_days,
+                                    tags=tags_list,
+                                )
+                            )
+                            cli_ctx.log(
+                                f"Solution saved to storage with ID: {solution_id}",
+                                "info",
+                            )
                         except Exception as e:
                             cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
                             # Continue without failing the match
-                    
+
                     if results_list:
                         result = {
                             "solutions": [r.to_dict() for r in results_list],
@@ -1181,7 +1225,7 @@ async def _display_match_results(
     # Handle both old format (matches) and new format (solutions)
     solutions = result.get("solutions", result.get("matches", []))
     total_solutions = result.get("total_solutions", len(solutions))
-    
+
     # Check if solution was saved (from API response or fallback)
     solution_id = result.get("solution_id")
     if solution_id:

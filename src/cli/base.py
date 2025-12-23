@@ -384,19 +384,25 @@ class CLIContext:
 
             # Clean up all singleton services that might have been created
             services_to_cleanup = []
-            
+
             # PackageService - may have FileResolver with aiohttp sessions
             try:
                 from ..core.services.package_service import PackageService
+
                 package_service = PackageService._instance
                 if package_service:
                     if self.verbose:
-                        self.log(f"Found PackageService instance: {package_service}", "debug")
+                        self.log(
+                            f"Found PackageService instance: {package_service}", "debug"
+                        )
                     if hasattr(package_service, "cleanup"):
                         services_to_cleanup.append(("PackageService", package_service))
                     else:
                         if self.verbose:
-                            self.log("PackageService found but has no cleanup method", "warning")
+                            self.log(
+                                "PackageService found but has no cleanup method",
+                                "warning",
+                            )
                 else:
                     if self.verbose:
                         self.log("No PackageService instance found", "debug")
@@ -408,27 +414,34 @@ class CLIContext:
             # OKHService - may have dependencies with aiohttp sessions
             try:
                 from ..core.services.okh_service import OKHService
+
                 # OKHService uses BaseService which tracks instances
                 if hasattr(OKHService, "_instances"):
                     for service_name, service_instance in OKHService._instances.items():
                         if hasattr(service_instance, "cleanup"):
-                            services_to_cleanup.append((f"OKHService({service_name})", service_instance))
+                            services_to_cleanup.append(
+                                (f"OKHService({service_name})", service_instance)
+                            )
             except Exception:
                 pass
 
             # OKWService - may have dependencies
             try:
                 from ..core.services.okw_service import OKWService
+
                 if hasattr(OKWService, "_instances"):
                     for service_name, service_instance in OKWService._instances.items():
                         if hasattr(service_instance, "cleanup"):
-                            services_to_cleanup.append((f"OKWService({service_name})", service_instance))
+                            services_to_cleanup.append(
+                                (f"OKWService({service_name})", service_instance)
+                            )
             except Exception:
                 pass
 
             # MatchingService - singleton
             try:
                 from ..core.services.matching_service import MatchingService
+
                 matching_service = MatchingService._instance
                 if matching_service and hasattr(matching_service, "cleanup"):
                     services_to_cleanup.append(("MatchingService", matching_service))
@@ -438,15 +451,22 @@ class CLIContext:
             # StorageService - singleton
             try:
                 from ..core.services.storage_service import StorageService
+
                 storage_service = StorageService._instance
                 if storage_service:
                     if self.verbose:
-                        self.log(f"Found StorageService instance (configured={storage_service._configured})", "debug")
+                        self.log(
+                            f"Found StorageService instance (configured={storage_service._configured})",
+                            "debug",
+                        )
                     if hasattr(storage_service, "cleanup"):
                         services_to_cleanup.append(("StorageService", storage_service))
                     else:
                         if self.verbose:
-                            self.log("StorageService found but has no cleanup method", "warning")
+                            self.log(
+                                "StorageService found but has no cleanup method",
+                                "warning",
+                            )
                 else:
                     if self.verbose:
                         self.log("No StorageService instance found", "debug")
@@ -462,8 +482,12 @@ class CLIContext:
             ):
                 package_service = self.service_fallback._services["package_service"]
                 if package_service and hasattr(package_service, "cleanup"):
-                    if ("PackageService", package_service) not in [(n, s) for n, s in services_to_cleanup]:
-                        services_to_cleanup.append(("PackageService (fallback)", package_service))
+                    if ("PackageService", package_service) not in [
+                        (n, s) for n, s in services_to_cleanup
+                    ]:
+                        services_to_cleanup.append(
+                            ("PackageService (fallback)", package_service)
+                        )
 
             # Clean up all services
             for service_name, service in services_to_cleanup:
@@ -474,20 +498,25 @@ class CLIContext:
                     await service.cleanup()
                     # Small delay to let cleanup operations complete
                     import asyncio
+
                     await asyncio.sleep(0.05)
                 except Exception as e:
                     if self.verbose:
-                        self.log(f"Warning: Error cleaning up {service_name}: {e}", "warning")
+                        self.log(
+                            f"Warning: Error cleaning up {service_name}: {e}", "warning"
+                        )
 
             # Give a delay to allow any pending operations to complete
             # This is important for aiohttp sessions to close properly
             # Azure storage provider needs extra time for aiohttp sessions to close
             import asyncio
+
             await asyncio.sleep(0.5)  # Increased wait time
-            
+
             # Force garbage collection to find any unreferenced sessions
             try:
                 import gc
+
                 gc.collect()
                 # Small additional delay to let GC'd sessions close
                 await asyncio.sleep(0.2)

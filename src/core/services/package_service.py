@@ -58,7 +58,9 @@ class PackageService:
                     await self.package_builder.file_resolver.cleanup()
                     logger.debug("FileResolver cleanup completed")
                 except Exception as e:
-                    logger.warning(f"Error cleaning up FileResolver: {e}", exc_info=True)
+                    logger.warning(
+                        f"Error cleaning up FileResolver: {e}", exc_info=True
+                    )
             else:
                 logger.debug("No PackageBuilder or FileResolver to clean up")
         except Exception as e:

@@ -595,7 +595,9 @@ class HeuristicMatcher(BaseGenerationLayer):
                         continue
                 except (IndexError, AttributeError) as e:
                     # Handle "no such group" or other regex errors gracefully
-                    logger.debug(f"Regex group access error in intended_use pattern: {e}")
+                    logger.debug(
+                        f"Regex group access error in intended_use pattern: {e}"
+                    )
                     continue
                     # Check if it contains license disclaimer phrases - skip if so
                     if any(
@@ -852,7 +854,9 @@ class HeuristicMatcher(BaseGenerationLayer):
                             value = match.group(0).strip()
                     except (IndexError, AttributeError) as e:
                         # Handle "no such group" or other regex errors gracefully
-                        logger.debug(f"Regex group access error in content pattern: {e}")
+                        logger.debug(
+                            f"Regex group access error in content pattern: {e}"
+                        )
                         continue
 
                     # Special handling for different fields

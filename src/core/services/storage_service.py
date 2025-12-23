@@ -278,7 +278,9 @@ class StorageService:
             "component_count": (
                 len(solution.component_mapping) if solution.component_mapping else 0
             ),
-            "facility_count": len(set(tree.facility_name for tree in solution.all_trees)),
+            "facility_count": len(
+                set(tree.facility_name for tree in solution.all_trees)
+            ),
             "score": solution.score,
             "created_at": now.isoformat(),
             "updated_at": now.isoformat(),
@@ -331,7 +333,7 @@ class StorageService:
     ) -> List[Dict[str, Any]]:
         """
         List supply tree solutions with optional filtering and sorting.
-        
+
         Args:
             limit: Maximum number of solutions to return
             offset: Number of solutions to skip
@@ -343,7 +345,7 @@ class StorageService:
             max_age_days: Filter by maximum age in days
             include_stale: Include stale solutions (default: True)
             only_stale: Only return stale solutions (default: False)
-            
+
         Returns:
             List of solution metadata dictionaries
         """
@@ -370,7 +372,10 @@ class StorageService:
                     if okh_id and metadata_dict.get("okh_id") != str(okh_id):
                         continue
 
-                    if matching_mode and metadata_dict.get("matching_mode") != matching_mode:
+                    if (
+                        matching_mode
+                        and metadata_dict.get("matching_mode") != matching_mode
+                    ):
                         continue
 
                     # Calculate age for filtering
@@ -391,7 +396,7 @@ class StorageService:
                     if only_stale or not include_stale:
                         solution_id = UUID(metadata_dict.get("id"))
                         is_stale, _ = await self.is_solution_stale(solution_id)
-                        
+
                         if only_stale and not is_stale:
                             continue
                         if not include_stale and is_stale:
@@ -416,7 +421,7 @@ class StorageService:
                         "age_days": age_days,
                     }
                     solutions.append(solution_data)
-                    
+
                 except Exception as e:
                     logger.error(
                         f"Failed to load solution metadata from {obj['key']}: {e}"
@@ -427,29 +432,35 @@ class StorageService:
             reverse = sort_order.lower() == "desc"
             if sort_by == "created_at":
                 solutions.sort(
-                    key=lambda x: datetime.fromisoformat(x.get("created_at", "")) if x.get("created_at") else datetime.min,
-                    reverse=reverse
+                    key=lambda x: (
+                        datetime.fromisoformat(x.get("created_at", ""))
+                        if x.get("created_at")
+                        else datetime.min
+                    ),
+                    reverse=reverse,
                 )
             elif sort_by == "updated_at":
                 solutions.sort(
-                    key=lambda x: datetime.fromisoformat(x.get("updated_at", "")) if x.get("updated_at") else datetime.min,
-                    reverse=reverse
+                    key=lambda x: (
+                        datetime.fromisoformat(x.get("updated_at", ""))
+                        if x.get("updated_at")
+                        else datetime.min
+                    ),
+                    reverse=reverse,
                 )
             elif sort_by == "expires_at":
                 solutions.sort(
-                    key=lambda x: datetime.fromisoformat(x.get("expires_at", "")) if x.get("expires_at") else datetime.max,
-                    reverse=reverse
+                    key=lambda x: (
+                        datetime.fromisoformat(x.get("expires_at", ""))
+                        if x.get("expires_at")
+                        else datetime.max
+                    ),
+                    reverse=reverse,
                 )
             elif sort_by == "score":
-                solutions.sort(
-                    key=lambda x: x.get("score", 0.0),
-                    reverse=reverse
-                )
+                solutions.sort(key=lambda x: x.get("score", 0.0), reverse=reverse)
             elif sort_by == "age_days":
-                solutions.sort(
-                    key=lambda x: x.get("age_days", 0),
-                    reverse=reverse
-                )
+                solutions.sort(key=lambda x: x.get("age_days", 0), reverse=reverse)
 
             # Apply pagination after sorting
             if offset:
@@ -482,54 +493,52 @@ class StorageService:
         return solution_deleted or metadata_deleted
 
     async def is_solution_stale(
-        self,
-        solution_id: UUID,
-        max_age_days: Optional[int] = None
+        self, solution_id: UUID, max_age_days: Optional[int] = None
     ) -> Tuple[bool, Optional[str]]:
         """
         Check if solution is stale.
-        
+
         Args:
             solution_id: The solution ID to check
             max_age_days: Optional maximum age in days (overrides default TTL check)
-            
+
         Returns:
             Tuple of (is_stale: bool, reason: Optional[str])
             Reasons: "expired", "too_old_{age}_days", "exceeded_ttl_{ttl}_days", "check_failed"
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
-        
+
         try:
             data = await self.manager.get_object(metadata_key)
             metadata = json.loads(data.decode("utf-8"))
-            
+
             now = datetime.now()
             created_at = datetime.fromisoformat(metadata.get("created_at"))
             expires_at_str = metadata.get("expires_at")
-            
+
             # Check explicit expiration
             if expires_at_str:
                 expires_at = datetime.fromisoformat(expires_at_str)
                 if now > expires_at:
                     return (True, "expired")
-            
+
             # Check age-based staleness
             age_days = (now - created_at).days
-            
+
             # Check max_age_days if provided
             if max_age_days and age_days > max_age_days:
                 return (True, f"too_old_{age_days}_days")
-            
+
             # Check default TTL
             ttl_days = metadata.get("ttl_days", 30)
             if age_days > ttl_days:
                 return (True, f"exceeded_ttl_{ttl_days}_days")
-            
+
             return (False, None)
-            
+
         except Exception as e:
             logger.error(f"Failed to check staleness for solution {solution_id}: {e}")
             return (True, "check_failed")
@@ -537,18 +546,18 @@ class StorageService:
     async def get_solution_age(self, solution_id: UUID) -> timedelta:
         """
         Get age of solution.
-        
+
         Args:
             solution_id: The solution ID to check
-            
+
         Returns:
             timedelta representing the age of the solution
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
-        
+
         try:
             data = await self.manager.get_object(metadata_key)
             metadata = json.loads(data.decode("utf-8"))
@@ -559,74 +568,78 @@ class StorageService:
             raise
 
     async def get_stale_solutions(
-        self,
-        max_age_days: Optional[int] = None,
-        before_date: Optional[datetime] = None
+        self, max_age_days: Optional[int] = None, before_date: Optional[datetime] = None
     ) -> List[UUID]:
         """
         Get list of stale solution IDs.
-        
+
         Args:
             max_age_days: Optional maximum age in days for staleness check
             before_date: Optional date filter - only return solutions created before this date
-            
+
         Returns:
             List of UUIDs for stale solutions
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         stale_solutions = []
-        
+
         try:
-            async for obj in self.manager.list_objects(prefix="supply-tree-solutions/metadata/"):
+            async for obj in self.manager.list_objects(
+                prefix="supply-tree-solutions/metadata/"
+            ):
                 if not obj["key"].endswith(".json"):
                     continue
-                
+
                 try:
                     # Extract solution ID from key
                     key = obj["key"]
                     solution_id_str = key.split("/")[-1].replace(".json", "")
                     solution_id = UUID(solution_id_str)
-                    
+
                     # Check if solution is stale
-                    is_stale, _ = await self.is_solution_stale(solution_id, max_age_days)
-                    
+                    is_stale, _ = await self.is_solution_stale(
+                        solution_id, max_age_days
+                    )
+
                     if is_stale:
                         # Check before_date filter if provided
                         if before_date:
                             data = await self.manager.get_object(key)
                             metadata = json.loads(data.decode("utf-8"))
-                            created_at = datetime.fromisoformat(metadata.get("created_at"))
+                            created_at = datetime.fromisoformat(
+                                metadata.get("created_at")
+                            )
                             if created_at >= before_date:
                                 continue
-                        
+
                         stale_solutions.append(solution_id)
-                        
+
                 except Exception as e:
                     logger.error(f"Failed to check staleness for {obj['key']}: {e}")
                     continue
-                    
+
         except Exception as e:
             logger.error(f"Error iterating over solutions: {e}", exc_info=True)
             raise
-        
+
         return stale_solutions
 
     async def cleanup_stale_solutions(
         self,
         max_age_days: Optional[int] = None,
         before_date: Optional[datetime] = None,
-        dry_run: bool = True
+        dry_run: bool = True,
     ) -> Dict[str, Any]:
         """
         Remove stale solutions from storage.
-        
+
         Args:
             max_age_days: Optional maximum age in days for staleness check
             before_date: Optional date filter - only delete solutions created before this date
             dry_run: If True, return preview without deleting (default: True)
-            
+
         Returns:
             Dict with:
             - deleted_count: Number of solutions deleted (or would be deleted in dry_run)
@@ -636,13 +649,13 @@ class StorageService:
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         stale_ids = await self.get_stale_solutions(max_age_days, before_date)
-        
+
         deleted_count = 0
         freed_space = 0
         deleted_ids = []
-        
+
         for solution_id in stale_ids:
             if not dry_run:
                 # Get size before deletion
@@ -653,7 +666,7 @@ class StorageService:
                 except Exception:
                     # If we can't get the size, continue anyway
                     pass
-                
+
                 # Delete solution
                 if await self.delete_supply_tree_solution(solution_id):
                     deleted_count += 1
@@ -661,38 +674,36 @@ class StorageService:
             else:
                 # Dry run - just add to list
                 deleted_ids.append(str(solution_id))
-        
+
         return {
             "deleted_count": deleted_count if not dry_run else len(deleted_ids),
             "freed_space": freed_space,
             "deleted_ids": deleted_ids,
-            "dry_run": dry_run
+            "dry_run": dry_run,
         }
 
     async def extend_solution_ttl(
-        self,
-        solution_id: UUID,
-        additional_days: int = 30
+        self, solution_id: UUID, additional_days: int = 30
     ) -> bool:
         """
         Extend solution expiration time.
-        
+
         Args:
             solution_id: The solution ID to extend
             additional_days: Number of days to add to expiration (default: 30)
-            
+
         Returns:
             True if successful, False otherwise
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
-        
+
         try:
             data = await self.manager.get_object(metadata_key)
             metadata = json.loads(data.decode("utf-8"))
-            
+
             # Update expiration
             expires_at_str = metadata.get("expires_at")
             if expires_at_str:
@@ -703,36 +714,34 @@ class StorageService:
                 created_at = datetime.fromisoformat(metadata.get("created_at"))
                 current_ttl = metadata.get("ttl_days", 30)
                 new_expires = created_at + timedelta(days=current_ttl + additional_days)
-            
+
             metadata["expires_at"] = new_expires.isoformat()
             metadata["updated_at"] = datetime.now().isoformat()
             metadata["ttl_days"] = metadata.get("ttl_days", 30) + additional_days
-            
+
             # Save updated metadata
             await self.manager.put_object(
                 key=metadata_key,
                 data=json.dumps(metadata).encode("utf-8"),
                 content_type="application/json",
             )
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to extend TTL for solution {solution_id}: {e}")
             return False
 
     async def archive_stale_solutions(
-        self,
-        max_age_days: Optional[int] = None,
-        archive_prefix: str = "archived/"
+        self, max_age_days: Optional[int] = None, archive_prefix: str = "archived/"
     ) -> Dict[str, Any]:
         """
         Move stale solutions to archive instead of deleting.
-        
+
         Args:
             max_age_days: Optional maximum age in days for staleness check
             archive_prefix: Prefix for archived solutions (default: "archived/")
-            
+
         Returns:
             Dict with:
             - archived_count: Number of solutions archived
@@ -740,78 +749,79 @@ class StorageService:
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         stale_ids = await self.get_stale_solutions(max_age_days)
-        
+
         archived_count = 0
         archived_ids = []
-        
+
         for solution_id in stale_ids:
             try:
                 solution_key = f"supply-tree-solutions/{solution_id}.json"
                 metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
-                
+
                 # Archive solution file
-                archived_solution_key = f"{archive_prefix}supply-tree-solutions/{solution_id}.json"
+                archived_solution_key = (
+                    f"{archive_prefix}supply-tree-solutions/{solution_id}.json"
+                )
                 await self.manager.copy_object(solution_key, archived_solution_key)
-                
+
                 # Archive metadata file
-                archived_metadata_key = f"{archive_prefix}supply-tree-solutions/metadata/{solution_id}.json"
+                archived_metadata_key = (
+                    f"{archive_prefix}supply-tree-solutions/metadata/{solution_id}.json"
+                )
                 await self.manager.copy_object(metadata_key, archived_metadata_key)
-                
+
                 # Delete original files
                 await self.manager.delete_object(solution_key)
                 await self.manager.delete_object(metadata_key)
-                
+
                 archived_count += 1
                 archived_ids.append(str(solution_id))
-                
+
             except Exception as e:
                 logger.error(f"Failed to archive solution {solution_id}: {e}")
                 continue
-        
-        return {
-            "archived_count": archived_count,
-            "archived_ids": archived_ids
-        }
+
+        return {"archived_count": archived_count, "archived_ids": archived_ids}
 
     async def load_supply_tree_solution_with_metadata(
         self,
         solution_id: UUID,
         validate_freshness: bool = True,
-        auto_refresh: bool = False
+        auto_refresh: bool = False,
     ) -> Tuple[Any, Dict[str, Any]]:
         """
         Load solution with optional freshness validation.
-        
+
         Args:
             solution_id: The solution ID to load
             validate_freshness: If True, check staleness and include metadata (default: True)
             auto_refresh: If True, automatically extend TTL if stale (default: False)
-            
+
         Returns:
             Tuple of (solution: SupplyTreeSolution, metadata: Dict[str, Any])
             Metadata includes: is_stale, staleness_reason, age_days, expires_at, refresh_recommended
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
-        
+
         # Load the solution
         solution = await self.load_supply_tree_solution(solution_id)
-        
+
         metadata = {}
-        
+
         if validate_freshness:
             try:
                 is_stale, reason = await self.is_solution_stale(solution_id)
                 age = await self.get_solution_age(solution_id)
-                
+
                 # Load metadata for expiration info
                 metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
                 try:
                     data = await self.manager.get_object(metadata_key)
                     meta = json.loads(data.decode("utf-8"))
-                    
+
                     metadata = {
                         "is_stale": is_stale,
                         "staleness_reason": reason,
@@ -819,14 +829,14 @@ class StorageService:
                         "expires_at": meta.get("expires_at"),
                         "refresh_recommended": is_stale,
                     }
-                    
+
                     # Auto-refresh if requested and stale
                     if auto_refresh and is_stale:
                         await self.extend_solution_ttl(solution_id)
                         metadata["auto_refreshed"] = True
                         metadata["is_stale"] = False
                         metadata["refresh_recommended"] = False
-                        
+
                 except Exception as e:
                     logger.warning(f"Failed to load metadata for staleness check: {e}")
                     metadata = {
@@ -835,11 +845,13 @@ class StorageService:
                         "age_days": age.days,
                         "refresh_recommended": is_stale,
                     }
-                    
+
             except Exception as e:
-                logger.warning(f"Failed to validate freshness for solution {solution_id}: {e}")
+                logger.warning(
+                    f"Failed to validate freshness for solution {solution_id}: {e}"
+                )
                 # Return solution anyway, with empty metadata
-        
+
         return (solution, metadata)
 
     async def create_backup(self, name: Optional[str] = None) -> Dict[str, Any]:

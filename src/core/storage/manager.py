@@ -163,13 +163,14 @@ class StorageManager:
                 elif hasattr(self._provider, "disconnect"):
                     logger.debug("Calling provider.disconnect()")
                     await self._provider.disconnect()
-                
+
                 # Give extra time for Azure provider to close aiohttp sessions
                 if self.config.provider == "azure_blob":
                     import asyncio
+
                     logger.debug("Waiting for Azure provider cleanup to complete...")
                     await asyncio.sleep(0.5)  # Extra wait for Azure aiohttp sessions
-                
+
             self._connected = False
             logger.info("Storage Manager cleanup completed")
         except Exception as e:
