@@ -40,6 +40,9 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install spaCy language model (required for NLP matching)
+python -m spacy download en_core_web_md
 ```
 
 ## Documentation

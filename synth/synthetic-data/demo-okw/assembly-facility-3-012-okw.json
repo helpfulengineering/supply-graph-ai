@@ -1,0 +1,50 @@
+{
+  "id": "77f8d07c-d656-4a6d-919d-df91203fdb2a",
+  "name": "Assembly Facility 3",
+  "location": {
+    "address": {
+      "number": "8933",
+      "street": "Chelsea Skyway",
+      "city": "Coopermouth",
+      "region": "Massachusetts",
+      "country": "Spain",
+      "postcode": "70416"
+    },
+    "gps_coordinates": "44.821638, -79.935215",
+    "directions": "Located near Wu PLC",
+    "city": "Coopermouth",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 9:00-17:00",
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2008-02-19",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
+      "make": "Brand A",
+      "model": "Model 345",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 815",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "https://en.wikipedia.org/wiki/Quality_control",
+    "https://en.wikipedia.org/wiki/Packaging_and_labeling"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "storage_capacity": "197 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true
+}

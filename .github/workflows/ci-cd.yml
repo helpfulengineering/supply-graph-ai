@@ -39,18 +39,44 @@ jobs:
 
       - name: Run flake8
         run: |
-          flake8 src/ --count --select=E9,F63,F7,F8Gi --show-source --statistics
-          flake8 src/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          flake8 src/ deploy/ --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 src/ deploy/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Check code formatting with black
-        run: black --check src/
+        run: black --check src/ deploy/
 
       - name: Check import sorting with isort
-        run: isort --profile black --check-only src/
+        run: isort --profile black --check-only src/ deploy/
 
       - name: Type checking with mypy
         run: |
-          mypy src/ --ignore-missing-imports || true
+          mypy src/ deploy/ --ignore-missing-imports || true
+
+      - name: Check repository maps are up to date
+        run: |
+          echo "Generating repository maps..."
+          python scripts/generate_aider_map.py
+          python scripts/generate_sourcegraph_map.py
+          
+          echo "Checking if maps need to be updated..."
+          if ! git diff --quiet .repo-map-aider.md .repo-map-sourcegraph.md; then
+            echo "❌ Repository maps are out of date!"
+            echo ""
+            echo "The following files have changed:"
+            git diff --name-only .repo-map-aider.md .repo-map-sourcegraph.md
+            echo ""
+            echo "Please run the following commands locally and commit the changes:"
+            echo "  python scripts/generate_aider_map.py"
+            echo "  python scripts/generate_sourcegraph_map.py"
+            echo "  git add .repo-map-aider.md .repo-map-sourcegraph.md"
+            echo "  git commit -m 'chore: update repository maps'"
+            echo ""
+            echo "Diff:"
+            git diff .repo-map-aider.md .repo-map-sourcegraph.md
+            exit 1
+          else
+            echo "✅ Repository maps are up to date"
+          fi
 
   # Unit and integration tests
   test:

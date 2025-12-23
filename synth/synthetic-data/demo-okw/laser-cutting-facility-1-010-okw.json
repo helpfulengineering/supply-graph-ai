@@ -1,0 +1,111 @@
+{
+  "id": "8a8dd875-da7f-45d7-87bb-b19037508a75",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "2772",
+      "street": "Mark Club",
+      "city": "Hudsonmouth",
+      "region": "Missouri",
+      "country": "Armenia",
+      "postcode": "28448"
+    },
+    "gps_coordinates": "28.88318, -33.810694",
+    "city": "Hudsonmouth",
+    "country": "Armenia"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Gonzalez-Faulkner",
+    "mailing_list": "longlaura@lists.bradford.biz",
+    "contact": {
+      "email": "info@ramirez.biz",
+      "whatsapp": "+1-590-439-7912"
+    },
+    "social_media": {
+      "twitter": "@sabrina43",
+      "other_urls": [
+        "https://ramsey.info",
+        "https://mills-morris.com"
+      ]
+    }
+  },
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2016-01-23",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "Fusion Pro",
+      "condition": "Good",
+      "quantity": 3,
+      "throughput": "89 parts/hour",
+      "maintenance_schedule": "Every 6 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2889",
+              "street": "Castaneda Park",
+              "city": "West Katherine",
+              "region": "New Hampshire",
+              "country": "Slovenia",
+              "postcode": "77356"
+            },
+            "gps_coordinates": "63.532031, -80.708322",
+            "city": "West Katherine",
+            "country": "Slovenia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "8141",
+              "street": "Castillo Dale",
+              "city": "Justinchester",
+              "region": "Louisiana",
+              "country": "Nigeria",
+              "postcode": "61487"
+            },
+            "gps_coordinates": "51.991898, -75.19233",
+            "directions": "Located across from Trevino, Phillips and Goodwin",
+            "city": "Justinchester",
+            "country": "Nigeria"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 900
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 3235,
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "First Aid Training",
+    "Basic Safety Training"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 3 months"
+}

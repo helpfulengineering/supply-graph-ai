@@ -1,0 +1,187 @@
+{
+  "id": "597b1cae-9c61-43fc-b069-94bc80ad9e32",
+  "name": "CNC Machining Facility 2",
+  "location": {
+    "address": {
+      "number": "5029",
+      "street": "Griffin Orchard",
+      "city": "Cohenburgh",
+      "region": "Mississippi",
+      "country": "American Samoa",
+      "postcode": "09402"
+    },
+    "gps_coordinates": "50.01933, 16.685942",
+    "directions": "Located behind Pittman, Mcbride and Lucas",
+    "city": "Cohenburgh",
+    "country": "American Samoa"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Mitchell-Pierce",
+    "location": {
+      "address": {
+        "number": "551",
+        "street": "Doyle Groves",
+        "city": "Blakeborough",
+        "region": "New York",
+        "country": "Vietnam",
+        "postcode": "71197"
+      },
+      "gps_coordinates": "25.901398, -98.2052",
+      "directions": "Located behind Taylor and Sons",
+      "city": "Blakeborough",
+      "country": "Vietnam"
+    },
+    "bio": "Established in 1997, we specialize in Centralized cohesive open architecture",
+    "languages": [
+      "de"
+    ],
+    "mailing_list": "smithapril@lists.mathis-ritter.com",
+    "contact": {
+      "landline": "+1-648-298-4724",
+      "email": "info@dixon.com"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Salazar, Farmer and Peters",
+    "location": {
+      "address": {
+        "number": "6965",
+        "street": "Burton Ville",
+        "city": "New Annaside",
+        "region": "South Carolina",
+        "country": "South Africa",
+        "postcode": "54599"
+      },
+      "gps_coordinates": "51.241119, -39.650034",
+      "city": "New Annaside",
+      "country": "South Africa"
+    },
+    "images": [
+      "images/head.jpg"
+    ],
+    "contact": {
+      "landline": "+1-232-224-4230",
+      "mobile": "+1-897-971-1345"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/chapmannicole",
+      "twitter": "@richard03",
+      "instagram": "@kmartin",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-18:00",
+  "description": "Specialized in CNC milling and turning operations",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VTC-20",
+      "condition": "Fair",
+      "quantity": 3,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2238",
+              "street": "Joshua Islands",
+              "city": "Blackton",
+              "region": "Maryland",
+              "country": "Slovenia",
+              "postcode": "97441"
+            },
+            "gps_coordinates": "56.338404, 36.720269",
+            "directions": "Located behind Wallace Group",
+            "city": "Blackton",
+            "country": "Slovenia"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "863",
+              "street": "Andrew Pine",
+              "city": "Port April",
+              "region": "Wisconsin",
+              "country": "Hungary",
+              "postcode": "07034"
+            },
+            "gps_coordinates": "59.861397, -31.996801",
+            "city": "Port April",
+            "country": "Hungary"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "5446",
+              "street": "Gary Path",
+              "city": "New Leslieborough",
+              "region": "Pennsylvania",
+              "country": "Samoa",
+              "postcode": "23275"
+            },
+            "gps_coordinates": "31.57328, -70.528849",
+            "directions": "Located behind Smith, Lawson and Sims",
+            "city": "New Leslieborough",
+            "country": "Samoa"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Industrial"
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 835",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "https://en.wikipedia.org/wiki/Deburring",
+    "https://en.wikipedia.org/wiki/Surface_finish"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2425,
+  "storage_capacity": "765 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "ISO 14001",
+    "NADCAP",
+    "OHSAS 18001"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Optimized 6thgeneration emulation",
+    "Monitored zero-defect moderator",
+    "Upgradable radical budgetary management",
+    "Focused leadingedge system engine"
+  ]
+}

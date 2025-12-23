@@ -5,10 +5,10 @@ Test script for Azure Container Apps deployer.
 This script allows testing the Azure deployer locally before deploying.
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 
 # Add project root to path
@@ -16,8 +16,8 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from deploy.providers.azure import (
-    AzureDeploymentConfig,
     AzureContainerAppsDeployer,
+    AzureDeploymentConfig,
     DeploymentError,
 )
 
@@ -174,4 +174,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

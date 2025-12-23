@@ -5,17 +5,21 @@ Manual deployment script for GCP Cloud Run.
 This script uses the GCP deployer to deploy the service manually.
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from deploy.providers.gcp import GCPDeploymentConfig, GCPCloudRunDeployer, DeploymentError
+from deploy.providers.gcp import (
+    DeploymentError,
+    GCPCloudRunDeployer,
+    GCPDeploymentConfig,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -97,11 +101,15 @@ def main():
     # Use environment variable if project-id not provided
     project_id = args.project_id or os.getenv("GCP_PROJECT_ID")
     if not project_id:
-        print("❌ Error: --project-id is required or set GCP_PROJECT_ID environment variable")
+        print(
+            "❌ Error: --project-id is required or set GCP_PROJECT_ID environment variable"
+        )
         return 1
 
     # Build service account email
-    service_account = args.service_account or f"supply-graph-ai@{project_id}.iam.gserviceaccount.com"
+    service_account = (
+        args.service_account or f"supply-graph-ai@{project_id}.iam.gserviceaccount.com"
+    )
 
     print("=" * 80)
     print("GCP Cloud Run Deployment")
@@ -173,4 +181,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

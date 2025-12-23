@@ -1,0 +1,165 @@
+{
+  "id": "176905e0-c097-4308-9d29-8e93032781fb",
+  "name": "Precision Machining Facility 1",
+  "location": {
+    "address": {
+      "number": "1666",
+      "street": "Christopher Plains",
+      "city": "Robertville",
+      "region": "Indiana",
+      "country": "Mongolia",
+      "postcode": "62342"
+    },
+    "gps_coordinates": "26.223294, -0.930371",
+    "directions": "Located near Hansen, Hickman and Murillo",
+    "city": "Robertville",
+    "country": "Mongolia"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Gilbert, Zimmerman and Butler",
+    "website": "https://henderson.com",
+    "contact": {
+      "mobile": "+1-775-938-4776",
+      "whatsapp": "+1-619-733-2177"
+    },
+    "social_media": {
+      "twitter": "@harperrobin",
+      "instagram": "@anthonyphillips",
+      "other_urls": [
+        "https://luna.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-21:00",
+  "description": "Specialized in high-precision machining operations",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "PCNC 440",
+      "serial_number": "SN634978",
+      "condition": "Good",
+      "quantity": 2,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9868",
+              "street": "Stacy Fall",
+              "city": "West Bonnie",
+              "region": "Alaska",
+              "country": "Bosnia and Herzegovina",
+              "postcode": "47294"
+            },
+            "gps_coordinates": "39.273078, -39.525675",
+            "city": "West Bonnie",
+            "country": "Bosnia and Herzegovina"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9529",
+              "street": "Rush Fords",
+              "city": "Austinburgh",
+              "region": "New Mexico",
+              "country": "Burundi",
+              "postcode": "16870"
+            },
+            "gps_coordinates": "43.468864, -63.877797",
+            "directions": "Located behind King and Sons",
+            "city": "Austinburgh",
+            "country": "Burundi"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "4620",
+              "street": "Sheri Well",
+              "city": "Lake Jeffrey",
+              "region": "Delaware",
+              "country": "Swaziland",
+              "postcode": "48621"
+            },
+            "gps_coordinates": "45.638032, -13.304365",
+            "city": "Lake Jeffrey",
+            "country": "Swaziland"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "6078",
+              "street": "Padilla Isle",
+              "city": "Lake Amy",
+              "region": "Illinois",
+              "country": "Lithuania",
+              "postcode": "46848"
+            },
+            "gps_coordinates": "54.401812, -60.473675",
+            "directions": "Located behind Anderson, West and Gonzalez",
+            "city": "Lake Amy",
+            "country": "Lithuania"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 740",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 568",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CMM",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CMM",
+      "make": "Brand B",
+      "model": "Model 487",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "https://en.wikipedia.org/wiki/Deburring",
+    "https://en.wikipedia.org/wiki/Surface_finish",
+    "https://en.wikipedia.org/wiki/Quality_control"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "OHSAS 18001",
+    "AS9100"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Multi-lateral exuding array",
+    "Total human-resource leverage",
+    "Integrated multi-state system engine",
+    "Function-based upward-trending ability"
+  ]
+}

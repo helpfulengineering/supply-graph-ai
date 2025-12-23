@@ -1,0 +1,96 @@
+{
+  "id": "ab6d32c9-7f00-4b7c-a936-75a14ead4b70",
+  "name": "Assembly Facility 2",
+  "location": {
+    "address": {
+      "number": "1302",
+      "street": "Walsh Stravenue",
+      "city": "North Xavier",
+      "region": "Vermont",
+      "country": "Ukraine",
+      "postcode": "46908"
+    },
+    "gps_coordinates": "28.023038, 27.128723",
+    "city": "North Xavier",
+    "country": "Ukraine"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Sampson Group",
+    "location": {
+      "address": {
+        "number": "2896",
+        "street": "Edwards Points",
+        "city": "West Jontown",
+        "region": "Vermont",
+        "country": "British Indian Ocean Territory (Chagos Archipelago)",
+        "postcode": "32643"
+      },
+      "gps_coordinates": "28.285413, -92.53988",
+      "directions": "Located behind Carter-Hunter",
+      "city": "West Jontown",
+      "country": "British Indian Ocean Territory (Chagos Archipelago)"
+    },
+    "contact_person": "Kim Buchanan",
+    "bio": "Established in 2009, we specialize in Future-proofed 24hour access",
+    "website": "https://lopez-johnson.com",
+    "languages": [
+      "fr",
+      "es",
+      "de"
+    ],
+    "contact": {
+      "landline": "+1-594-494-1983",
+      "email": "info@smith.org"
+    },
+    "social_media": {
+      "twitter": "@megan91",
+      "instagram": "@michaeladams",
+      "other_urls": [
+        "https://harvey.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-18:00",
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2016-06-17",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
+      "make": "Generic",
+      "model": "Model 295",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Generic",
+      "model": "Model 104",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "https://en.wikipedia.org/wiki/Quality_control",
+    "https://en.wikipedia.org/wiki/Packaging_and_labeling"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2595,
+  "typical_materials": [],
+  "certifications": [
+    "AS9100",
+    "OHSAS 18001",
+    "NADCAP",
+    "ISO 9001:2015"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 5 months",
+  "typical_products": [
+    "Organized radical concept"
+  ]
+}

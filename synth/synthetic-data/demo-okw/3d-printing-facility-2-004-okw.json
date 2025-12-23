@@ -1,0 +1,114 @@
+{
+  "id": "bf6bbcb1-0ead-4924-81c0-58597cc89ced",
+  "name": "3D Printing Facility 2",
+  "location": {
+    "address": {
+      "number": "223",
+      "street": "Castillo Lodge",
+      "city": "Port Samanthafurt",
+      "region": "Nebraska",
+      "country": "Guatemala",
+      "postcode": "04164"
+    },
+    "gps_coordinates": "45.661499, 4.109854",
+    "city": "Port Samanthafurt",
+    "country": "Guatemala"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in additive manufacturing and rapid prototyping",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Ultimaker",
+      "model": "Form 3",
+      "serial_number": "SN600336",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Money air hope step near look budget.",
+      "power_rating": 7903,
+      "maintenance_schedule": "Every 10 months",
+      "usage_levels": "Low",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2867",
+              "street": "Clay Road",
+              "city": "New Hannahfort",
+              "region": "Washington",
+              "country": "Turkmenistan",
+              "postcode": "48467"
+            },
+            "gps_coordinates": "53.117701, -32.308448",
+            "directions": "Located across from Smith LLC",
+            "city": "New Hannahfort",
+            "country": "Turkmenistan"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7527",
+              "street": "Evans Pass",
+              "city": "Bennettchester",
+              "region": "Missouri",
+              "country": "Liechtenstein",
+              "postcode": "57281"
+            },
+            "gps_coordinates": "61.904278, -13.51254",
+            "city": "Bennettchester",
+            "country": "Liechtenstein"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "4940",
+              "street": "Flores Port",
+              "city": "Ryanchester",
+              "region": "Indiana",
+              "country": "Marshall Islands",
+              "postcode": "20504"
+            },
+            "gps_coordinates": "59.646202, 12.889313",
+            "city": "Ryanchester",
+            "country": "Marshall Islands"
+          }
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 772",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+    "https://en.wikipedia.org/wiki/Post-processing"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4927,
+  "storage_capacity": "904 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months"
+}

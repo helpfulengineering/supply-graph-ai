@@ -4,9 +4,9 @@ Base deployer interface for cloud-agnostic deployment.
 All provider-specific deployers must implement this interface.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
 import logging
+from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 
 from .config import BaseDeploymentConfig
 
@@ -25,7 +25,9 @@ class BaseDeployer(ABC):
         """
         self.config = config
         self.config.validate()
-        logger.info(f"Initialized {self.__class__.__name__} for provider {config.provider.value}")
+        logger.info(
+            f"Initialized {self.__class__.__name__} for provider {config.provider.value}"
+        )
 
     @abstractmethod
     def setup(self) -> None:
@@ -122,4 +124,3 @@ class BaseDeployer(ABC):
             DeploymentConfigError: If configuration is invalid
         """
         self.config.validate()
-

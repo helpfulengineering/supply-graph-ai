@@ -1,0 +1,109 @@
+{
+  "id": "1e3f01c7-5757-44c7-894d-72b090391b72",
+  "name": "Assembly Facility 1",
+  "location": {
+    "address": {
+      "number": "7694",
+      "street": "Moore Orchard",
+      "city": "New Nicole",
+      "region": "Hawaii",
+      "country": "Angola",
+      "postcode": "74565"
+    },
+    "gps_coordinates": "34.314299, -8.244346",
+    "city": "New Nicole",
+    "country": "Angola"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Martin, Livingston and Klein",
+    "location": {
+      "address": {
+        "number": "8436",
+        "street": "Miller Crossroad",
+        "city": "Jasonfurt",
+        "region": "Missouri",
+        "country": "India",
+        "postcode": "98403"
+      },
+      "gps_coordinates": "58.899537, -29.876491",
+      "directions": "Located across from Sampson, Jarvis and Carter",
+      "city": "Jasonfurt",
+      "country": "India"
+    },
+    "contact_person": "Rachel Brewer",
+    "website": "https://cunningham-lewis.com",
+    "languages": [
+      "fr",
+      "de"
+    ],
+    "mailing_list": "robin70@lists.murray.biz",
+    "contact": {
+      "landline": "+1-569-467-9735",
+      "mobile": "+1-578-449-7726"
+    },
+    "social_media": {
+      "twitter": "@phamdenise",
+      "other_urls": [
+        "https://evans-lawson.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Kent-Jones",
+    "location": {
+      "address": {
+        "number": "7959",
+        "street": "Christopher Cliffs",
+        "city": "Ballardton",
+        "region": "New Hampshire",
+        "country": "Maldives",
+        "postcode": "77744"
+      },
+      "gps_coordinates": "35.421921, -69.161363",
+      "city": "Ballardton",
+      "country": "Maldives"
+    },
+    "website": "https://west.biz",
+    "mailing_list": "jaredfrench@lists.rubio.info",
+    "contact": {
+      "landline": "+1-442-621-4539",
+      "email": "info@hawkins.com"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
+      "make": "Brand A",
+      "model": "Model 263",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 824",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "https://en.wikipedia.org/wiki/Quality_control",
+    "https://en.wikipedia.org/wiki/Packaging_and_labeling"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4607,
+  "storage_capacity": "408 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 6 months"
+}

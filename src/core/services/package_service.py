@@ -48,10 +48,24 @@ class PackageService:
 
     async def cleanup(self) -> None:
         """Clean up resources"""
-        if self.package_builder and self.package_builder.file_resolver:
-            await self.package_builder.file_resolver.cleanup()
-        self._initialized = False
-        logger.info("Package service cleaned up")
+        logger.debug("PackageService.cleanup() called")
+        try:
+            if self.package_builder and self.package_builder.file_resolver:
+                logger.debug("Cleaning up PackageBuilder's FileResolver")
+                # Always call cleanup on FileResolver, even if session wasn't initialized
+                # This ensures any aiohttp sessions are properly closed
+                try:
+                    await self.package_builder.file_resolver.cleanup()
+                    logger.debug("FileResolver cleanup completed")
+                except Exception as e:
+                    logger.warning(f"Error cleaning up FileResolver: {e}", exc_info=True)
+            else:
+                logger.debug("No PackageBuilder or FileResolver to clean up")
+        except Exception as e:
+            logger.warning(f"Error during PackageService cleanup: {e}", exc_info=True)
+        finally:
+            self._initialized = False
+            logger.info("Package service cleaned up")
 
     async def ensure_initialized(self) -> None:
         """Ensure service is initialized"""

@@ -1,0 +1,96 @@
+{
+  "id": "aa18347a-230a-449d-8d4d-42f3bd7df23b",
+  "name": "Sheet Metal Enclosure BOM",
+  "components": [
+    {
+      "id": "b0d61dce-95ad-4963-84f8-7e016f49e503",
+      "name": "Linked Component",
+      "quantity": 2.9,
+      "unit": "units",
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    },
+    {
+      "id": "fa77e45f-eff7-403c-ac8b-646c50e68c77",
+      "name": "Referenced Assembly",
+      "quantity": 4.44,
+      "unit": "pcs",
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "818fdf32-415d-4601-ace2-5afdae8afeed"
+      }
+    },
+    {
+      "id": "abdf454a-700d-498b-8b9a-3456106dd6ed",
+      "name": "Referenced Assembly",
+      "quantity": 3.98,
+      "unit": "units",
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    },
+    {
+      "id": "b9bf3ee1-8139-4cf2-a17a-96b34c2d8522",
+      "name": "Referenced Assembly",
+      "quantity": 4.59,
+      "unit": "units",
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "c289ae86-c8f1-4976-b4c8-c08744b36c6b"
+      }
+    },
+    {
+      "id": "dd98d4ca-8768-4225-a336-3a4ab73a02f2",
+      "name": "Referenced Part",
+      "quantity": 1.61,
+      "unit": "units",
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER"
+      },
+      "metadata": {
+        "generated": true,
+        "has_reference": true
+      },
+      "reference": {
+        "okh_id": "a8b31e16-ab92-46ab-bc29-33af3d2a825a"
+      }
+    }
+  ],
+  "metadata": {
+    "max_depth": 3,
+    "has_references": true,
+    "generated": true
+  }
+}

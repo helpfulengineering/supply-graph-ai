@@ -1,0 +1,370 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "102aec23-557f-4551-9b13-0bffc680be13",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/fburns/laser-cut-acrylic-display-case",
+  "version": "3.3.6",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Timothy Hughes",
+    "email": "kmullins@example.net",
+    "affiliation": "Mitchell-Anderson",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "evansraymond"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for While mention officer keep rather heavy.",
+  "intended_use": "Cut visit than almost.",
+  "keywords": [
+    "prototype",
+    "bracket",
+    "gear",
+    "modular",
+    "shaft"
+  ],
+  "contact": {
+    "name": "Anthony Ramos",
+    "email": "justinturner@example.net",
+    "affiliation": "Cruz Inc",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "john45"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Nathaniel Preston",
+      "email": "jason64@example.org",
+      "affiliation": "Mcgrath Ltd",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "richardsashley"
+        }
+      ]
+    },
+    {
+      "name": "Thomas Lowe",
+      "email": "keythomas@example.com",
+      "affiliation": "Brown Inc",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "qaguilar"
+        }
+      ]
+    },
+    {
+      "name": "Jamie Cooper",
+      "email": "michael16@example.org",
+      "affiliation": "Reed, Martinez and Hall",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "whitechristine"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Palmer, Todd and Hughes",
+    "url": "https://lopez.com",
+    "email": "contact@wilson.net"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-3",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/vangkelly/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/traceywhite/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/hrice/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/gregorythompson/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/louis35/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/redwards/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/joe10/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/jennacollins/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/jessicajones/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/nathan43/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/asmith/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/moorejessica/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.8"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Pliers",
+    "Focus lens",
+    "Wrench set",
+    "Exhaust system",
+    "Laser cutter",
+    "Heat shrink",
+    "Material guides",
+    "Cable ties",
+    "Crimping tool"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 55.89,
+      "unit": "kg",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 125.25,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 279.66,
+      "unit": "kg",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 314,
+      "width": 275,
+      "height": 124
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "54W",
+          "speed": "893 mm/min",
+          "passes": 1
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Else stock message pattern."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": "Manufacturing notes: Provide maintain able authority better these mouth work."
+  },
+  "bom": {
+    "id": "f16402ac-d0e0-4df7-84c7-1f3328e2e47c",
+    "name": "Laser Cut Acrylic Display Case BOM",
+    "external_file": "bom_laser_cut_acrylic_display_case.json",
+    "metadata": {
+      "max_depth": 3,
+      "has_references": true,
+      "generated": true
+    }
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "0fff3800-5cf0-47cb-9470-d24e71356635",
+      "source": [
+        "https://github.com/luisbarrett/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/lucas75/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/timothyjenkins/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/ilewis/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 195,
+        "width": 22,
+        "height": 24
+      },
+      "mass": 740.45,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "f0433e6f-726e-4047-af60-4abcdba5e0da",
+      "source": [
+        "https://github.com/anthonyjohnson/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/donnacraig/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/courtney55/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/brett48/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 102,
+        "width": 25,
+        "height": 9
+      },
+      "mass": 249.2,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "fdef9f47-95dc-4df8-828c-88d5b44de92d",
+      "source": [
+        "https://github.com/theresa14/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/rodriguezkeith/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/sabrina34/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/trujillolydia/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": {
+        "length": 39,
+        "width": 131,
+        "height": 86
+      },
+      "mass": 979.14,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

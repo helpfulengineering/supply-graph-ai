@@ -4,10 +4,10 @@ Azure Container Apps deployment implementation.
 This module provides the Azure Container Apps deployer that implements BaseDeployer.
 """
 
-import subprocess
-import logging
 import json
-from typing import Dict, Any, Optional, List, Tuple
+import logging
+import subprocess
+from typing import Any, Dict, List, Optional, Tuple
 
 from ...base.deployer import BaseDeployer
 from .config import AzureDeploymentConfig
@@ -32,7 +32,9 @@ class AzureContainerAppsDeployer(BaseDeployer):
             config: Azure deployment configuration
         """
         if not isinstance(config, AzureDeploymentConfig):
-            raise ValueError("AzureContainerAppsDeployer requires AzureDeploymentConfig")
+            raise ValueError(
+                "AzureContainerAppsDeployer requires AzureDeploymentConfig"
+            )
         super().__init__(config)
         self.config: AzureDeploymentConfig = config
 
@@ -131,7 +133,9 @@ class AzureContainerAppsDeployer(BaseDeployer):
 
         This creates the resource group and container app environment if they don't exist.
         """
-        logger.info(f"Setting up Azure resources for resource group: {self.resource_group}")
+        logger.info(
+            f"Setting up Azure resources for resource group: {self.resource_group}"
+        )
 
         # Set subscription
         self._run_az_command(
@@ -190,7 +194,9 @@ class AzureContainerAppsDeployer(BaseDeployer):
             )
 
             if exit_code != 0:
-                logger.info(f"Creating container app environment: {self.container_app_env}")
+                logger.info(
+                    f"Creating container app environment: {self.container_app_env}"
+                )
                 self._run_az_command(
                     [
                         "az",
@@ -206,7 +212,9 @@ class AzureContainerAppsDeployer(BaseDeployer):
                     ],
                     check=True,
                 )
-                logger.info(f"Created container app environment: {self.container_app_env}")
+                logger.info(
+                    f"Created container app environment: {self.container_app_env}"
+                )
 
     def deploy(self) -> str:
         """
@@ -410,9 +418,14 @@ class AzureContainerAppsDeployer(BaseDeployer):
             app_data = json.loads(stdout)
             return {
                 "exists": True,
-                "status": app_data.get("properties", {}).get("provisioningState", "unknown"),
+                "status": app_data.get("properties", {}).get(
+                    "provisioningState", "unknown"
+                ),
                 "url": self.get_service_url(name),
-                "replicas": app_data.get("properties", {}).get("template", {}).get("scale", {}).get("minReplicas", 0),
+                "replicas": app_data.get("properties", {})
+                .get("template", {})
+                .get("scale", {})
+                .get("minReplicas", 0),
             }
         except json.JSONDecodeError:
             return {
@@ -420,4 +433,3 @@ class AzureContainerAppsDeployer(BaseDeployer):
                 "status": "unknown",
                 "raw_output": stdout,
             }
-

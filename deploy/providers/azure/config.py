@@ -5,13 +5,13 @@ Extends BaseDeploymentConfig with Azure-specific defaults and validation.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from ...base.config import (
     BaseDeploymentConfig,
+    DeploymentConfigError,
     DeploymentProvider,
     ServiceConfig,
-    DeploymentConfigError,
 )
 
 
@@ -47,7 +47,7 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
 
         Azure regions use format: {direction}{location}
         Examples: eastus, westus, westeurope, southeastasia
-        
+
         Note: This is a basic format check. For production, you might want
         to validate against a list of actual Azure regions.
         """
@@ -98,7 +98,9 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
         service_data = data.get("service", {})
         service = ServiceConfig(
             name=service_data.get("name", "supply-graph-ai"),
-            image=service_data.get("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            image=service_data.get(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             port=service_data.get("port", 8080),
             memory=service_data.get("memory", "4Gi"),
             cpu=service_data.get("cpu", 2),
@@ -130,7 +132,7 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
         subscription_id: str,
         region: Optional[str] = None,
         service_name: str = "supply-graph-ai",
-        **kwargs
+        **kwargs,
     ) -> "AzureDeploymentConfig":
         """
         Create Azure config with sensible defaults.
@@ -148,7 +150,9 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
         # Extract service config kwargs
         service_kwargs = {
             "name": service_name,
-            "image": kwargs.pop("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            "image": kwargs.pop(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             "port": kwargs.pop("port", 8080),
             "memory": kwargs.pop("memory", "4Gi"),
             "cpu": kwargs.pop("cpu", 2),
@@ -184,4 +188,3 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
             )
 
         return cls(**config_kwargs)
-

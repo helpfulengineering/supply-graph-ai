@@ -4,13 +4,13 @@ GCP Cloud Run deployment implementation.
 This module provides the GCP Cloud Run deployer that implements BaseDeployer.
 """
 
-import subprocess
+import base64
+import json
 import logging
 import re
-import json
 import secrets
-import base64
-from typing import Dict, Any, Optional, List, Tuple
+import subprocess
+from typing import Any, Dict, List, Optional, Tuple
 
 from ...base.deployer import BaseDeployer
 from .config import GCPDeploymentConfig
@@ -72,7 +72,9 @@ class GCPCloudRunDeployer(BaseDeployer):
                 )
             return result.returncode, result.stdout, result.stderr
         except FileNotFoundError:
-            raise DeploymentError("gcloud CLI not found. Please install Google Cloud SDK.")
+            raise DeploymentError(
+                "gcloud CLI not found. Please install Google Cloud SDK."
+            )
         except Exception as e:
             raise DeploymentError(f"Error running gcloud command: {e}")
 
@@ -161,14 +163,22 @@ class GCPCloudRunDeployer(BaseDeployer):
                 secrets_list.append(f"{env_var_name}={secret_ref}")
                 logger.info(f"Found secret '{secret_name}', including in deployment")
             else:
-                logger.warning(f"Secret '{secret_name}' not found, will generate secure value")
+                logger.warning(
+                    f"Secret '{secret_name}' not found, will generate secure value"
+                )
                 # Generate secure random value for missing secrets
                 if "salt" in secret_name.lower():
-                    generated_env_vars[env_var_name] = self._generate_secure_random_value(32)
+                    generated_env_vars[env_var_name] = (
+                        self._generate_secure_random_value(32)
+                    )
                 elif "password" in secret_name.lower():
-                    generated_env_vars[env_var_name] = self._generate_secure_random_value(32)
+                    generated_env_vars[env_var_name] = (
+                        self._generate_secure_random_value(32)
+                    )
                 else:
-                    generated_env_vars[env_var_name] = self._generate_secure_random_value(32)
+                    generated_env_vars[env_var_name] = (
+                        self._generate_secure_random_value(32)
+                    )
 
         secrets_list_str = ",".join(secrets_list) if secrets_list else ""
         return secrets_list_str, generated_env_vars
@@ -254,7 +264,9 @@ class GCPCloudRunDeployer(BaseDeployer):
         if generated_env_vars:
             # Add generated env vars to the string
             generated_str = ",".join(f"{k}={v}" for k, v in generated_env_vars.items())
-            env_vars_str = f"{env_vars_str},{generated_str}" if env_vars_str else generated_str
+            env_vars_str = (
+                f"{env_vars_str},{generated_str}" if env_vars_str else generated_str
+            )
 
         # Check if service has invalid secrets configured
         service_has_invalid_secrets = False
@@ -266,7 +278,9 @@ class GCPCloudRunDeployer(BaseDeployer):
                     secret_name, _ = secret_ref.split(":", 1)
                 else:
                     secret_name = secret_ref
-                if env_var_name in current_secrets and not self._check_secret_exists(secret_name):
+                if env_var_name in current_secrets and not self._check_secret_exists(
+                    secret_name
+                ):
                     service_has_invalid_secrets = True
                     break
 
@@ -477,4 +491,3 @@ class GCPCloudRunDeployer(BaseDeployer):
                 "status": "unknown",
                 "raw_output": stdout,
             }
-

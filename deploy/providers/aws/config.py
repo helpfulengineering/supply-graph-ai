@@ -5,13 +5,13 @@ Extends BaseDeploymentConfig with AWS-specific defaults and validation.
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from ...base.config import (
     BaseDeploymentConfig,
+    DeploymentConfigError,
     DeploymentProvider,
     ServiceConfig,
-    DeploymentConfigError,
 )
 
 
@@ -47,7 +47,7 @@ class AWSDeploymentConfig(BaseDeploymentConfig):
 
         AWS regions use format: {location}-{direction}-{number}
         Examples: us-east-1, us-west-2, eu-west-1, ap-southeast-1
-        
+
         Note: This is a basic format check. For production, you might want
         to validate against a list of actual AWS regions.
         """
@@ -95,7 +95,9 @@ class AWSDeploymentConfig(BaseDeploymentConfig):
         service_data = data.get("service", {})
         service = ServiceConfig(
             name=service_data.get("name", "supply-graph-ai"),
-            image=service_data.get("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            image=service_data.get(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             port=service_data.get("port", 8080),
             memory=service_data.get("memory", "4Gi"),
             cpu=service_data.get("cpu", 2),
@@ -125,7 +127,7 @@ class AWSDeploymentConfig(BaseDeploymentConfig):
         cls,
         region: Optional[str] = None,
         service_name: str = "supply-graph-ai",
-        **kwargs
+        **kwargs,
     ) -> "AWSDeploymentConfig":
         """
         Create AWS config with sensible defaults.
@@ -141,7 +143,9 @@ class AWSDeploymentConfig(BaseDeploymentConfig):
         # Extract service config kwargs
         service_kwargs = {
             "name": service_name,
-            "image": kwargs.pop("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            "image": kwargs.pop(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             "port": kwargs.pop("port", 8080),
             "memory": kwargs.pop("memory", "4Gi"),
             "cpu": kwargs.pop("cpu", 2),
@@ -173,4 +177,3 @@ class AWSDeploymentConfig(BaseDeploymentConfig):
             )
 
         return cls(**config_kwargs)
-

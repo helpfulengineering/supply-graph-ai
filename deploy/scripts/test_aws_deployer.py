@@ -5,17 +5,21 @@ Test script for AWS ECS Fargate deployer.
 This script allows testing the AWS deployer locally before deploying.
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from deploy.providers.aws import AWSDeploymentConfig, AWSFargateDeployer, DeploymentError
+from deploy.providers.aws import (
+    AWSDeploymentConfig,
+    AWSFargateDeployer,
+    DeploymentError,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -95,9 +99,18 @@ def main():
     if not args.image:
         # Try to get account ID
         import subprocess
+
         try:
             account_id = subprocess.check_output(
-                ["aws", "sts", "get-caller-identity", "--query", "Account", "--output", "text"],
+                [
+                    "aws",
+                    "sts",
+                    "get-caller-identity",
+                    "--query",
+                    "Account",
+                    "--output",
+                    "text",
+                ],
                 text=True,
             ).strip()
             args.image = f"{account_id}.dkr.ecr.{args.region}.amazonaws.com/{args.ecr_repository}:latest"
@@ -106,7 +119,9 @@ def main():
             print(f"⚠️  Could not get AWS account ID, using placeholder: {args.image}")
 
     if not args.execution_role_arn:
-        print("❌ Error: --execution-role-arn is required or set AWS_ECS_EXECUTION_ROLE_ARN env var")
+        print(
+            "❌ Error: --execution-role-arn is required or set AWS_ECS_EXECUTION_ROLE_ARN env var"
+        )
         return 1
 
     print("=" * 80)
@@ -183,4 +198,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

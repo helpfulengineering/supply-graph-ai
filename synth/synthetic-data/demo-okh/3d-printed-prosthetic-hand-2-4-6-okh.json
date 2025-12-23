@@ -1,0 +1,373 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "7b087c19-c061-47fa-9aae-3c0c3d80cf8d",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/wcarroll/3d-printed-prosthetic-hand",
+  "version": "2.4.6",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Marc Skinner",
+    "email": "cunninghammichelle@example.org",
+    "affiliation": "Patterson, Page and Roth",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "annaadams"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Region do three agency.",
+  "intended_use": "West time energy along report activity write.",
+  "keywords": [
+    "prototype",
+    "shaft",
+    "gear"
+  ],
+  "contact": {
+    "name": "Steven White",
+    "email": "joseph63@example.org",
+    "affiliation": "Norman, Lawrence and Morrison",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jeffrey19"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Christopher Washington",
+      "email": "haley48@example.com",
+      "affiliation": "Mcbride Ltd",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "geoffreymiller"
+        }
+      ]
+    },
+    {
+      "name": "Kristina Davidson",
+      "email": "vgamble@example.com",
+      "affiliation": "Ware Ltd",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "richardgreen"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Jones Ltd",
+    "url": "https://dennis.com",
+    "email": "contact@mccullough-trujillo.com"
+  },
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/jeremiah72/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/steven14/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/jamesrodriguez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/daledaniels/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/turnerjeffrey/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/jesse42/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/ulevy/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/wharris/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/robertnelson/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/dlang/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/elizabeth72/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/ryan89/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.9"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Pliers",
+    "Calipers",
+    "Deburring tool",
+    "Heat shrink",
+    "Build plate",
+    "Cable ties",
+    "Crimping tool",
+    "Screwdriver set"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 848.03,
+      "unit": "kg",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 626.64,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 418,
+      "width": 55,
+      "height": 77
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "30%",
+          "temperature": "236°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Message husband I now response single."
+      }
+    ],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": "Manufacturing notes: Color great Democrat pressure drive southern child."
+  },
+  "bom": {
+    "id": "a2b008a0-99a1-450f-b893-9c7fbb41f7e4",
+    "name": "3D Printed Prosthetic Hand BOM",
+    "external_file": "bom_3d_printed_prosthetic_hand.json",
+    "metadata": {
+      "max_depth": 3,
+      "has_references": true,
+      "generated": true
+    }
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "53f0943b-5c92-49be-b6fd-0038887332cc",
+      "source": [
+        "https://github.com/baldwinsharon/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/dbush/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/amyschneider/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/cynthiawest/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": {
+        "length": 173,
+        "width": 167,
+        "height": 65
+      },
+      "mass": 784.77,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "384f302e-99d5-4814-a450-608e419c5008",
+      "source": [
+        "https://github.com/hjones/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/ubeasley/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/kathryn15/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/mcollins/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 122,
+        "width": 44,
+        "height": 75
+      },
+      "mass": 546.74,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "495d3888-d18d-43f0-ad67-7e663f8f0b7e",
+      "source": [
+        "https://github.com/andreawu/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/millerrebecca/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/angela39/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/dmarquez/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 12,
+        "width": 151,
+        "height": 34
+      },
+      "mass": 557.2,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

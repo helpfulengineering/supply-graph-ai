@@ -4,10 +4,10 @@ AWS ECS Fargate deployment implementation.
 This module provides the AWS ECS Fargate deployer that implements BaseDeployer.
 """
 
-import subprocess
-import logging
 import json
-from typing import Dict, Any, Optional, List, Tuple
+import logging
+import subprocess
+from typing import Any, Dict, List, Optional, Tuple
 
 from ...base.deployer import BaseDeployer
 from .config import AWSDeploymentConfig
@@ -46,7 +46,9 @@ class AWSFargateDeployer(BaseDeployer):
         self.task_role_arn = self.config.provider_config.get("task_role_arn")
         self.subnets = self.config.provider_config.get("subnets", [])
         self.security_groups = self.config.provider_config.get("security_groups", [])
-        self.assign_public_ip = self.config.provider_config.get("assign_public_ip", "ENABLED")
+        self.assign_public_ip = self.config.provider_config.get(
+            "assign_public_ip", "ENABLED"
+        )
 
     def _run_aws_command(
         self, command: List[str], check: bool = True, capture_output: bool = True
@@ -140,7 +142,8 @@ class AWSFargateDeployer(BaseDeployer):
 
         # Build environment variables
         environment = [
-            {"name": k, "value": v} for k, v in self.config.service.environment_vars.items()
+            {"name": k, "value": v}
+            for k, v in self.config.service.environment_vars.items()
         ]
 
         # Build secrets (from AWS Secrets Manager)
@@ -206,8 +209,8 @@ class AWSFargateDeployer(BaseDeployer):
     def _register_task_definition(self, task_def: Dict[str, Any]) -> str:
         """Register task definition and return task definition ARN."""
         # Write task definition to temp file
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
             json.dump(task_def, f, indent=2)
@@ -627,6 +630,9 @@ class AWSFargateDeployer(BaseDeployer):
             "desired_count": service.get("desiredCount", 0),
             "running_count": service.get("runningCount", 0),
             "task_definition": service.get("taskDefinition", ""),
-            "url": self.get_service_url(name) if service.get("status") == "ACTIVE" else None,
+            "url": (
+                self.get_service_url(name)
+                if service.get("status") == "ACTIVE"
+                else None
+            ),
         }
-

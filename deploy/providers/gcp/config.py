@@ -5,13 +5,13 @@ Extends BaseDeploymentConfig with GCP-specific defaults and validation.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from ...base.config import (
     BaseDeploymentConfig,
+    DeploymentConfigError,
     DeploymentProvider,
     ServiceConfig,
-    DeploymentConfigError,
 )
 
 
@@ -47,7 +47,7 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
 
         GCP regions use format: {location}-{number}
         Examples: us-west1, us-east1, europe-west1, asia-southeast1
-        
+
         Note: This is a basic format check. For production, you might want
         to validate against a list of actual GCP regions.
         """
@@ -113,7 +113,9 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
         service_data = data.get("service", {})
         service = ServiceConfig(
             name=service_data.get("name", "supply-graph-ai"),
-            image=service_data.get("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            image=service_data.get(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             port=service_data.get("port", 8080),
             memory=service_data.get("memory", "4Gi"),
             cpu=service_data.get("cpu", 2),
@@ -144,7 +146,7 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
         project_id: str,
         region: Optional[str] = None,
         service_name: str = "supply-graph-ai",
-        **kwargs
+        **kwargs,
     ) -> "GCPDeploymentConfig":
         """
         Create GCP config with sensible defaults.
@@ -161,7 +163,9 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
         # Extract service config kwargs
         service_kwargs = {
             "name": service_name,
-            "image": kwargs.pop("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            "image": kwargs.pop(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             "port": kwargs.pop("port", 8080),
             "memory": kwargs.pop("memory", "4Gi"),
             "cpu": kwargs.pop("cpu", 2),
@@ -196,4 +200,3 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
             )
 
         return cls(**config_kwargs)
-

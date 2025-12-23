@@ -81,7 +81,48 @@ def match_group():
 @click.option(
     "--max-results", type=int, default=10, help="Maximum number of results to return"
 )
+@click.option(
+    "--max-depth",
+    type=int,
+    default=0,
+    help=(
+        "Maximum depth for BOM explosion. "
+        "0 = single-level matching (default), "
+        "> 0 = nested matching with specified depth"
+    ),
+)
+@click.option(
+    "--auto-detect-depth",
+    "auto_detect_depth",
+    is_flag=True,
+    default=False,
+    help=(
+        "Auto-detect if nested matching is needed based on OKH structure. "
+        "If nested components detected and max_depth=0, uses configured default depth"
+    ),
+)
 @click.option("--output", "-o", help="Output file path")
+@click.option(
+    "--save-solution",
+    "save_solution",
+    is_flag=True,
+    default=False,
+    help="Automatically save the solution to storage. Returns solution_id in output.",
+)
+@click.option(
+    "--solution-ttl-days",
+    "solution_ttl_days",
+    type=int,
+    default=None,
+    help="Time-to-live in days for saved solution (default: 30). Only used if --save-solution is set.",
+)
+@click.option(
+    "--solution-tags",
+    "solution_tags",
+    type=str,
+    default=None,
+    help="Comma-separated tags to apply to saved solution. Only used if --save-solution is set.",
+)
 @standard_cli_command(
     help_text="""
     Match requirements to capabilities (supports both manufacturing and cooking domains).
@@ -132,8 +173,20 @@ def match_group():
       # Use LLM for enhanced matching
       ome match requirements my-design.okh.json --use-llm --quality-level professional
       
+      # Nested matching with custom depth
+      ome match requirements my-design.okh.json --max-depth 5
+      
+      # Auto-detect nested matching
+      ome match requirements my-design.okh.json --auto-detect-depth
+      
       # Save results to file
       ome match requirements my-design.okh.json --output matches.json
+      
+      # Auto-save solution to storage
+      ome match requirements my-design.okh.json --max-depth 3 --save-solution
+      
+      # Auto-save with TTL and tags
+      ome match requirements my-design.okh.json --save-solution --solution-ttl-days 60 --solution-tags "production,test"
     """,
     async_cmd=True,
     track_performance=True,
@@ -154,6 +207,8 @@ async def requirements(
     materials: Optional[str],
     min_confidence: float,
     max_results: int,
+    max_depth: int,
+    auto_detect_depth: bool,
     output: Optional[str],
     verbose: bool,
     output_format: str,
@@ -162,6 +217,9 @@ async def requirements(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
+    save_solution: bool = False,
+    solution_ttl_days: Optional[int] = None,
+    solution_tags: Optional[str] = None,
 ):
     """Match OKH requirements to OKW capabilities with enhanced LLM support."""
     cli_ctx = ctx.obj
@@ -211,28 +269,62 @@ async def requirements(
             max_results,
         )
 
+        # Add nested matching parameters
+        nested_params = {
+            "max_depth": max_depth,
+            "auto_detect_depth": auto_detect_depth,
+        }
+        
+        # Add solution storage parameters if requested
+        if save_solution:
+            nested_params["save_solution"] = True
+            if solution_ttl_days:
+                nested_params["solution_ttl_days"] = solution_ttl_days
+            if solution_tags:
+                nested_params["solution_tags"] = [tag.strip() for tag in solution_tags.split(",")]
+
         # Create request data based on domain and input type
         if detected_domain == "manufacturing":
             if is_url:
                 request_data = create_llm_request_data(
                     cli_ctx,
-                    {"okh_url": input_file, "domain": detected_domain, **filters},
+                    {
+                        "okh_url": input_file,
+                        "domain": detected_domain,
+                        **filters,
+                        **nested_params,
+                    },
                 )
             else:
                 request_data = create_llm_request_data(
                     cli_ctx,
-                    {"okh_manifest": input_data, "domain": detected_domain, **filters},
+                    {
+                        "okh_manifest": input_data,
+                        "domain": detected_domain,
+                        **filters,
+                        **nested_params,
+                    },
                 )
         elif detected_domain == "cooking":
             if is_url:
                 request_data = create_llm_request_data(
                     cli_ctx,
-                    {"recipe_url": input_file, "domain": detected_domain, **filters},
+                    {
+                        "recipe_url": input_file,
+                        "domain": detected_domain,
+                        **filters,
+                        **nested_params,
+                    },
                 )
             else:
                 request_data = create_llm_request_data(
                     cli_ctx,
-                    {"recipe": input_data, "domain": detected_domain, **filters},
+                    {
+                        "recipe": input_data,
+                        "domain": detected_domain,
+                        **filters,
+                        **nested_params,
+                    },
                 )
         else:
             raise click.ClickException(f"Unsupported domain: {detected_domain}")
@@ -254,6 +346,15 @@ async def requirements(
                 import httpx
 
                 raise httpx.ConnectError("Use fallback for local facility file")
+            
+            # If nested matching with local file, use fallback (BOM file resolution needs manifest path)
+            if max_depth > 0 and not is_url:
+                cli_ctx.log(
+                    "Nested matching with local file - using fallback for BOM file resolution",
+                    "info",
+                )
+                import httpx
+                raise httpx.ConnectError("Use fallback for nested matching with local file")
 
             cli_ctx.log("Attempting HTTP API matching...", "info")
             try:
@@ -308,39 +409,160 @@ async def requirements(
                 # Apply additional filters that aren't supported by okw_service.list()
                 # (e.g., capabilities, materials would need more complex matching logic)
 
-                results = await matching_service.find_matches_with_manifest(
-                    manifest, facilities, explicit_domain=detected_domain
-                )
+                # Determine matching mode based on max_depth
+                # Use configured default if auto_detect_depth is enabled
+                effective_max_depth = max_depth
+                if auto_detect_depth and max_depth == 0:
+                    # Check if manifest has nested components
+                    from ..core.api.routes.match import _has_nested_components
+                    from src.config.settings import MAX_DEPTH
 
-                # Convert Set to List
-                results_list = list(results)
+                    if _has_nested_components(manifest):
+                        effective_max_depth = MAX_DEPTH
+                        cli_ctx.log(
+                            f"Auto-detected nested components, using max_depth={MAX_DEPTH}",
+                            "info",
+                        )
 
-                # Apply min_confidence filter if provided
-                min_confidence = filters.get("min_confidence", 0.0)
-                if min_confidence > 0.0:
-                    results_list = [
-                        r for r in results_list if r.score >= min_confidence
-                    ]
+                # Perform matching (nested or single-level)
+                if effective_max_depth > 0:
+                    # Nested matching
+                    from ..core.services.okh_service import OKHService
 
-                # Apply max_results limit if provided
-                max_results = filters.get("max_results")
-                if max_results and max_results > 0:
-                    # Sort by score (descending) before limiting
-                    results_list = sorted(
-                        results_list, key=lambda x: x.score, reverse=True
-                    )[:max_results]
-
-                if results_list:
-                    return {
-                        "solutions": [r.to_dict() for r in results_list],
-                        "total_solutions": len(results_list),
+                    okh_service = await OKHService.get_instance()
+                    # Pass manifest path for BOM file resolution
+                    manifest_path = input_file if not is_url else None
+                    solution = await matching_service.match_with_nested_components(
+                        okh_manifest=manifest,
+                        facilities=facilities,
+                        max_depth=effective_max_depth,
+                        domain=detected_domain,
+                        okh_service=okh_service,
+                        manifest_path=manifest_path,
+                    )
+                    
+                    # Save solution if requested
+                    solution_id = None
+                    if save_solution:
+                        try:
+                            from ..core.services.storage_service import StorageService
+                            from ..config.storage_config import get_default_storage_config
+                            
+                            storage_service = await StorageService.get_instance()
+                            await storage_service.configure(get_default_storage_config())
+                            
+                            # Parse tags if provided
+                            tags_list = None
+                            if solution_tags:
+                                tags_list = [tag.strip() for tag in solution_tags.split(",")]
+                            
+                            # Use default TTL of 30 days if not provided
+                            ttl_days = solution_ttl_days if solution_ttl_days is not None else 30
+                            solution_id = await storage_service.save_supply_tree_solution(
+                                solution,
+                                ttl_days=ttl_days,
+                                tags=tags_list,
+                            )
+                            cli_ctx.log(f"Solution saved to storage with ID: {solution_id}", "info")
+                        except Exception as e:
+                            cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
+                            # Continue without failing the match
+                    
+                    # Convert to response format matching API
+                    # For nested solutions, count trees, not solutions
+                    solution_dict = solution.to_dict()
+                    num_trees = len(solution.all_trees) if solution.all_trees else 0
+                    result = {
+                        "solutions": [solution_dict],  # Wrap in array for consistency with display logic
+                        "solution": solution_dict,  # Also include singular for API compatibility
+                        "total_solutions": num_trees,  # Count trees found, not solution count
+                        "matching_mode": "nested",
+                        "processing_time": 0.0,  # Fallback doesn't track time
                     }
+                    if solution_id:
+                        result["solution_id"] = str(solution_id)
+                    return result
                 else:
-                    return {
-                        "solutions": [],
-                        "total_solutions": 0,
-                        "message": "No matching facilities found",
-                    }
+                    # Single-level matching
+                    results = await matching_service.find_matches_with_manifest(
+                        manifest, facilities, explicit_domain=detected_domain
+                    )
+
+                    # Convert Set to List
+                    results_list = list(results)
+
+                    # Apply min_confidence filter if provided
+                    min_confidence = filters.get("min_confidence", 0.0)
+                    if min_confidence > 0.0:
+                        results_list = [
+                            r for r in results_list if r.score >= min_confidence
+                        ]
+
+                    # Apply max_results limit if provided
+                    max_results = filters.get("max_results")
+                    if max_results and max_results > 0:
+                        # Sort by score (descending) before limiting
+                        results_list = sorted(
+                            results_list, key=lambda x: x.score, reverse=True
+                        )[:max_results]
+
+                    # Save solution if requested (save best solution for single-level)
+                    solution_id = None
+                    if save_solution and results_list:
+                        try:
+                            from ..core.services.storage_service import StorageService
+                            from ..core.models.supply_trees import SupplyTree, SupplyTreeSolution
+                            from ..config.storage_config import get_default_storage_config
+                            
+                            storage_service = await StorageService.get_instance()
+                            await storage_service.configure(get_default_storage_config())
+                            
+                            # Convert best result to SupplyTreeSolution
+                            best_result = results_list[0]  # Already sorted by score
+                            tree = SupplyTree.from_dict(best_result.to_dict())
+                            
+                            solution = SupplyTreeSolution(
+                                all_trees=[tree],
+                                score=best_result.score,
+                                metadata={
+                                    "okh_id": str(manifest.id) if hasattr(manifest, 'id') else None,
+                                    "matching_mode": "single-level",
+                                }
+                            )
+                            
+                            # Parse tags if provided
+                            tags_list = None
+                            if solution_tags:
+                                tags_list = [tag.strip() for tag in solution_tags.split(",")]
+                            
+                            # Use default TTL of 30 days if not provided
+                            ttl_days = solution_ttl_days if solution_ttl_days is not None else 30
+                            solution_id = await storage_service.save_supply_tree_solution(
+                                solution,
+                                ttl_days=ttl_days,
+                                tags=tags_list,
+                            )
+                            cli_ctx.log(f"Solution saved to storage with ID: {solution_id}", "info")
+                        except Exception as e:
+                            cli_ctx.log(f"Failed to save solution: {str(e)}", "warning")
+                            # Continue without failing the match
+                    
+                    if results_list:
+                        result = {
+                            "solutions": [r.to_dict() for r in results_list],
+                            "total_solutions": len(results_list),
+                            "matching_mode": "single-level",
+                        }
+                        if solution_id:
+                            result["solution_id"] = str(solution_id)
+                        return result
+                    else:
+                        return {
+                            "solutions": [],
+                            "total_solutions": 0,
+                            "matching_mode": "single-level",
+                            "message": "No matching facilities found",
+                        }
             elif detected_domain == "cooking":
                 # Use cooking domain extractor and matcher
                 from ..config.storage_config import get_default_storage_config
@@ -611,22 +833,21 @@ async def requirements(
         # Process and display results
         await _display_match_results(cli_ctx, result, output, output_format)
 
-        # Cleanup storage service if it was used
-        if detected_domain == "cooking":
-            try:
-                from ..core.services.storage_service import StorageService
-
-                storage_service = await StorageService.get_instance()
-                if storage_service and hasattr(storage_service, "cleanup"):
-                    await storage_service.cleanup()
-            except Exception:
-                pass  # Ignore cleanup errors
-
         cli_ctx.end_command_tracking()
 
     except Exception as e:
         cli_ctx.log(f"Matching failed: {str(e)}", "error")
         raise
+    finally:
+        # Always cleanup resources (storage service, aiohttp sessions, etc.)
+        # This ensures cleanup happens even if there's an error
+        try:
+            cli_ctx.log("Starting cleanup...", "info")
+            await cli_ctx.cleanup()
+            cli_ctx.log("Cleanup completed", "info")
+        except Exception as e:
+            cli_ctx.log(f"Warning during cleanup: {e}", "warning")
+            # Continue - cleanup errors shouldn't fail the command
 
 
 @match_group.command()
@@ -960,6 +1181,11 @@ async def _display_match_results(
     # Handle both old format (matches) and new format (solutions)
     solutions = result.get("solutions", result.get("matches", []))
     total_solutions = result.get("total_solutions", len(solutions))
+    
+    # Check if solution was saved (from API response or fallback)
+    solution_id = result.get("solution_id")
+    if solution_id:
+        cli_ctx.log(f"✓ Solution saved to storage with ID: {solution_id}", "success")
 
     if total_solutions == 0:
         cli_ctx.log("No matching facilities found", "warning")

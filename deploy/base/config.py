@@ -5,8 +5,8 @@ Provides common configuration structures and validation for all deployment provi
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional, List
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class DeploymentProvider(str, Enum):
@@ -60,7 +60,9 @@ class ServiceConfig:
                 f"max_instances ({self.max_instances}) must be >= min_instances ({self.min_instances})"
             )
         if self.timeout < 1:
-            raise DeploymentConfigError(f"Timeout must be at least 1 second, got {self.timeout}")
+            raise DeploymentConfigError(
+                f"Timeout must be at least 1 second, got {self.timeout}"
+            )
 
 
 @dataclass
@@ -70,10 +72,12 @@ class BaseDeploymentConfig:
     provider: DeploymentProvider
     environment: str = "production"
     region: Optional[str] = None  # Provider-specific format, no default
-    service: ServiceConfig = field(default_factory=lambda: ServiceConfig(
-        name="supply-graph-ai",
-        image="ghcr.io/helpfulengineering/supply-graph-ai:latest"
-    ))
+    service: ServiceConfig = field(
+        default_factory=lambda: ServiceConfig(
+            name="supply-graph-ai",
+            image="ghcr.io/helpfulengineering/supply-graph-ai:latest",
+        )
+    )
     provider_config: Dict[str, Any] = field(default_factory=dict)
 
     def validate(self) -> None:
@@ -99,7 +103,9 @@ class BaseDeploymentConfig:
         service_data = data.get("service", {})
         service = ServiceConfig(
             name=service_data.get("name", "supply-graph-ai"),
-            image=service_data.get("image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"),
+            image=service_data.get(
+                "image", "ghcr.io/helpfulengineering/supply-graph-ai:latest"
+            ),
             port=service_data.get("port", 8080),
             memory=service_data.get("memory", "4Gi"),
             cpu=service_data.get("cpu", 2),
@@ -147,4 +153,3 @@ class BaseDeploymentConfig:
                 self.provider.value: self.provider_config,
             },
         }
-

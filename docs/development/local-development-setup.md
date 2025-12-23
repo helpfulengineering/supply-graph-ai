@@ -71,19 +71,31 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-#### Step 4: Create Logs Directory (if needed)
+#### Step 4: Install spaCy Models
+The NLP matching functionality requires spaCy language models. Install the recommended model:
+```bash
+# Install the medium model with word vectors (recommended)
+python -m spacy download en_core_web_md
+
+# Optional: Install larger model for better accuracy (requires more disk space)
+# python -m spacy download en_core_web_lg
+```
+
+**Note**: The system will automatically fall back to `en_core_web_sm` if the preferred models are not available, but the medium model (`en_core_web_md`) provides better semantic similarity matching with word vectors.
+
+#### Step 5: Create Logs Directory (if needed)
 ```bash
 mkdir -p logs
 ```
 
-#### Step 5: Start the Server
+#### Step 6: Start the Server
 ```bash
 python run.py
 ```
 
 The server will start on **http://localhost:8001**
 
-#### Step 6: Verify Installation
+#### Step 7: Verify Installation
 - Open your browser to: **http://localhost:8001/docs**
 - You should see the FastAPI interactive documentation
 - Health check: **http://localhost:8001/health**
@@ -301,6 +313,25 @@ source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+#### 2a. spaCy Model Not Found
+If you see warnings about spaCy models not being found:
+```bash
+# Verify spaCy is installed
+python -c "import spacy; print(spacy.__version__)"
+
+# Check available models
+python -m spacy info
+
+# Install the recommended model
+python -m spacy download en_core_web_md
+```
+
+**Symptoms**: You may see warnings like:
+- `spaCy model 'en_core_web_md' not found, trying next...`
+- `[W007] The model you're using has no word vectors loaded`
+
+**Solution**: Install the spaCy model as shown above. The system will work with `en_core_web_sm` (installed by default), but `en_core_web_md` provides better semantic matching.
 
 #### 3. Node.js Dependencies Issues
 ```bash

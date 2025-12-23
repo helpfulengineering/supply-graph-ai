@@ -23,6 +23,7 @@ class FileResolver:
         self.download_options = download_options or DownloadOptions()
         self.session: Optional[aiohttp.ClientSession] = None
         self._semaphore: Optional[asyncio.Semaphore] = None
+        self._cleanup_called = False
 
     async def __aenter__(self):
         """Async context manager entry"""
@@ -37,7 +38,12 @@ class FileResolver:
         """Initialize the file resolver with HTTP session"""
         if self.session is None:
             timeout = aiohttp.ClientTimeout(total=self.download_options.timeout_seconds)
-            connector = aiohttp.TCPConnector(limit=max_concurrent)
+            # Use a connector that will be properly closed
+            connector = aiohttp.TCPConnector(
+                limit=max_concurrent,
+                force_close=True,  # Force close connections when done
+                enable_cleanup_closed=True,  # Enable cleanup of closed connections
+            )
 
             self.session = aiohttp.ClientSession(
                 timeout=timeout,
@@ -48,10 +54,48 @@ class FileResolver:
 
     async def cleanup(self):
         """Clean up resources"""
+        if self._cleanup_called:
+            logger.debug("FileResolver.cleanup() called but already cleaned up")
+            return  # Already cleaned up
+        self._cleanup_called = True
+        
         if self.session:
-            await self.session.close()
-            self.session = None
+            logger.debug(f"Cleaning up FileResolver session (closed={self.session.closed})")
+            try:
+                # Close the session and wait for it to complete
+                if not self.session.closed:
+                    # Close the connector first to prevent new connections
+                    if hasattr(self.session, '_connector') and self.session._connector:
+                        try:
+                            # Close the connector to stop accepting new connections
+                            if not self.session._connector.closed:
+                                logger.debug("Closing aiohttp connector")
+                                self.session._connector.close()
+                        except Exception as e:
+                            logger.warning(f"Error closing connector: {e}")
+                    
+                    # Now close the session (this will also close the connector)
+                    logger.debug("Closing aiohttp session")
+                    await self.session.close()
+                    logger.debug("aiohttp session closed successfully")
+            except Exception as e:
+                # Log but don't fail on cleanup errors
+                # This can happen if the event loop is closing
+                logger.warning(f"Error closing aiohttp session: {e}", exc_info=True)
+            finally:
+                self.session = None
+                logger.debug("FileResolver cleanup complete")
+        else:
+            logger.debug("FileResolver.cleanup() called but no session to clean up")
         self._semaphore = None
+    
+    def __del__(self):
+        """Destructor to warn if cleanup wasn't called"""
+        if self.session and not self._cleanup_called:
+            # This shouldn't happen in normal operation, but log a warning
+            # Note: We can't close the session here since __del__ can't be async
+            # The session will be closed by aiohttp's garbage collection, but it will warn
+            logger.debug("FileResolver was destroyed without cleanup() being called. Session will be closed by GC.")
 
     async def resolve_and_download(
         self,

@@ -1,0 +1,103 @@
+{
+  "id": "36591160-1235-4929-bebb-0429215b49a0",
+  "name": "Sheet Metal Fabrication Facility 2",
+  "location": {
+    "address": {
+      "number": "8371",
+      "street": "Fitzgerald Fork",
+      "city": "West Shawn",
+      "region": "Hawaii",
+      "country": "Central African Republic",
+      "postcode": "10725"
+    },
+    "gps_coordinates": "56.822575, -119.139167",
+    "city": "West Shawn",
+    "country": "Central African Republic"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Sawyer, Lambert and Armstrong",
+    "location": {
+      "address": {
+        "number": "9980",
+        "street": "David Port",
+        "city": "Josephborough",
+        "region": "Maryland",
+        "country": "Kuwait",
+        "postcode": "23316"
+      },
+      "gps_coordinates": "63.795759, -102.491766",
+      "directions": "Located near Herman-Collins",
+      "city": "Josephborough",
+      "country": "Kuwait"
+    },
+    "website": "https://farrell-phillips.net",
+    "contact": {
+      "landline": "+1-775-705-7438",
+      "mobile": "+1-244-811-6933",
+      "email": "info@mcmahon.org"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Long-Smith",
+    "website": "https://hansen.com",
+    "languages": [
+      "en",
+      "de",
+      "fr"
+    ],
+    "mailing_list": "tammie66@lists.delgado.com",
+    "contact": {
+      "landline": "+1-691-206-6018",
+      "whatsapp": "+1-290-472-7849"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/daniel12",
+      "twitter": "@anthonytrujillo",
+      "instagram": "@briana65",
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in sheet metal forming and fabrication",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 150",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Shear",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Shear",
+      "make": "Brand B",
+      "model": "Model 770",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Punch_press",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Punch_press",
+      "make": "Generic",
+      "model": "Model 980",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_forming",
+    "https://en.wikipedia.org/wiki/Welding",
+    "https://en.wikipedia.org/wiki/Deburring"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "typical_products": [
+    "Synergistic directional installation",
+    "Networked context-sensitive installation",
+    "Optional eco-centric data-warehouse"
+  ]
+}

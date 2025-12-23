@@ -16,7 +16,7 @@ import os
 import random
 import sys
 from datetime import date, datetime
-from typing import Dict, List, Union, Any
+from typing import Dict, List, Union, Any, Optional
 
 from faker import Faker
 
@@ -28,6 +28,7 @@ from core.models.okh import (
     ProcessRequirement, ManufacturingSpec, Standard, PartSpec,
     DocumentationType
 )
+from core.models.bom import BillOfMaterials, Component
 from core.models.okw import (
     ManufacturingFacility, Equipment, Location, Address, Agent,
     Contact, SocialMedia, CircularEconomy, HumanCapacity, InnovationSpace,
@@ -345,6 +346,228 @@ class OKHGenerator(SyntheticDataGenerator):
     def generate_bom_reference(self, template: Dict) -> str:
         """Generate bill of materials reference"""
         return f"https://github.com/{self.faker.user_name()}/project/raw/main/docs/bom_{template['title'].lower().replace(' ', '_')}.csv"
+    
+    def generate_nested_component(
+        self, 
+        template: Dict, 
+        current_depth: int = 0, 
+        max_depth: int = 2,
+        parent_name: Optional[str] = None
+    ) -> Component:
+        """Generate a component with optional nested sub-components"""
+        from uuid import uuid4
+        
+        # Component names based on depth
+        if current_depth == 0:
+            component_names = ["Main Assembly", "Primary Module", "Core Component", "Base Unit"]
+        elif current_depth == 1:
+            component_names = ["Sub-Assembly", "Secondary Module", "Support Component", "Auxiliary Unit"]
+        else:
+            component_names = ["Sub-Component", "Tertiary Module", "Detail Part", "Element"]
+        
+        component_name = random.choice(component_names)
+        if parent_name:
+            component_name = f"{parent_name} - {component_name}"
+        
+        # Select material and process based on template
+        material = random.choice(template["materials"]) if template["materials"] else "PLA"
+        tsdc = random.choice(template["tsdc"]) if template["tsdc"] else "3DP"
+        
+        # Generate component
+        component = Component(
+            id=str(uuid4()),
+            name=component_name,
+            quantity=round(random.uniform(1, 10), 2),
+            unit=random.choice(["pcs", "units", "items"]),
+            requirements={
+                "material": material,
+                "process": tsdc,
+                "tolerance": f"±{random.choice([0.1, 0.2, 0.5])}mm" if tsdc in ["CNC", "SHEET"] else None
+            },
+            metadata={
+                "depth": current_depth,
+                "generated": True
+            }
+        )
+        
+        # Add nested sub-components if not at max depth
+        # For testing, ensure we always nest at least once if not at max depth
+        if current_depth < max_depth:
+            # Always nest at least one component for testing purposes
+            num_sub_components = random.randint(1, 3)
+            for _ in range(num_sub_components):
+                sub_component = self.generate_nested_component(
+                    template,
+                    current_depth + 1,
+                    max_depth,
+                    component_name
+                )
+                component.sub_components.append(sub_component)
+        
+        return component
+    
+    def generate_component_with_reference(
+        self,
+        template: Dict,
+        referenced_manifests: Optional[List[OKHManifest]] = None
+    ) -> Component:
+        """Generate a component that references another OKH manifest"""
+        from uuid import uuid4
+        
+        component_name = random.choice([
+            "Referenced Assembly", "External Module", "Linked Component", "Referenced Part"
+        ])
+        
+        component = Component(
+            id=str(uuid4()),
+            name=component_name,
+            quantity=round(random.uniform(1, 5), 2),
+            unit=random.choice(["pcs", "units"]),
+            requirements={
+                "material": random.choice(template["materials"]) if template["materials"] else "PLA",
+                "process": random.choice(template["tsdc"]) if template["tsdc"] else "3DP"
+            },
+            metadata={
+                "generated": True,
+                "has_reference": True
+            }
+        )
+        
+        # Add reference to another OKH manifest if available
+        if referenced_manifests and len(referenced_manifests) > 0:
+            referenced = random.choice(referenced_manifests)
+            # Use OKH ID as reference
+            component.reference = {
+                "okh_id": str(referenced.id)
+            }
+        
+        return component
+    
+    def generate_nested_bom(
+        self,
+        template: Dict,
+        manifest_title: Optional[str] = None,
+        max_depth: int = 2,
+        include_references: bool = False,
+        referenced_manifests: Optional[List[OKHManifest]] = None
+    ) -> BillOfMaterials:
+        """Generate a BOM with nested components"""
+        from uuid import uuid4
+        
+        # Use manifest title if provided, otherwise use template title
+        title = manifest_title or template['title']
+        bom_name = f"{title} BOM"
+        components = []
+        
+        # Generate top-level components
+        num_top_level = random.randint(2, 5)
+        for i in range(num_top_level):
+            # If references are requested and available, use them for some components
+            if include_references and referenced_manifests and i < len(referenced_manifests):
+                # Use referenced component for first few components
+                component = self.generate_component_with_reference(template, referenced_manifests)
+            else:
+                component = self.generate_nested_component(template, current_depth=0, max_depth=max_depth)
+            components.append(component)
+        
+        return BillOfMaterials(
+            id=str(uuid4()),
+            name=bom_name,
+            components=components,
+            metadata={
+                "max_depth": max_depth,
+                "has_references": include_references,
+                "generated": True
+            }
+        )
+    
+    def generate_okh_manifest_with_nesting(
+        self,
+        max_depth: int = 2,
+        use_external_bom: bool = False,
+        bom_output_dir: Optional[str] = None,
+        include_references: bool = False,
+        referenced_manifests: Optional[List[OKHManifest]] = None
+    ) -> OKHManifest:
+        """Generate an OKH manifest with nested components in BOM"""
+        template = random.choice(self.hardware_templates)
+        
+        # Generate base manifest (reuse existing method)
+        manifest = self.generate_okh_manifest()
+        
+        # Clear any existing BOM reference to avoid conflicts
+        manifest.bom = None
+        
+        # Generate nested BOM (use manifest title for BOM name)
+        bom = self.generate_nested_bom(
+            template,
+            manifest_title=manifest.title,
+            max_depth=max_depth,
+            include_references=include_references,
+            referenced_manifests=referenced_manifests
+        )
+        
+        if use_external_bom and bom_output_dir:
+            # Save BOM as external file
+            os.makedirs(bom_output_dir, exist_ok=True)
+            bom_filename = f"bom_{manifest.title.lower().replace(' ', '_')}.json"
+            bom_path = os.path.join(bom_output_dir, bom_filename)
+            
+            with open(bom_path, 'w', encoding='utf-8') as f:
+                json.dump(bom.to_dict(), f, indent=2, ensure_ascii=False, default=str)
+            
+            # Set BOM reference in manifest
+            manifest.bom = {
+                "id": bom.id,
+                "name": bom.name,
+                "external_file": bom_filename,
+                "metadata": bom.metadata
+            }
+        else:
+            # Embed BOM in manifest using parts and sub_parts
+            # Convert BOM components to parts and sub_parts
+            manifest.parts = []
+            manifest.sub_parts = []
+            
+            def convert_component_to_sub_part(comp: Component) -> Dict:
+                """Recursively convert Component to sub_part dict"""
+                sub_part = {
+                    "name": comp.name,
+                    "quantity": comp.quantity,
+                    "unit": comp.unit,
+                    "reference": comp.reference,
+                    "requirements": comp.requirements,
+                    "metadata": comp.metadata
+                }
+                # Handle nested sub-components recursively
+                if comp.sub_components:
+                    sub_part["sub_parts"] = [
+                        convert_component_to_sub_part(nested)
+                        for nested in comp.sub_components
+                    ]
+                return sub_part
+            
+            for component in bom.components:
+                # If component has a reference, add it directly to sub_parts
+                if component.reference:
+                    sub_part = convert_component_to_sub_part(component)
+                    manifest.sub_parts.append(sub_part)
+                else:
+                    # Convert top-level component to PartSpec
+                    part = PartSpec(
+                        name=component.name,
+                        tsdc=[component.requirements.get("process", "3DP")],
+                        material=component.requirements.get("material", "PLA")
+                    )
+                    manifest.parts.append(part)
+                    
+                    # Convert sub-components to sub_parts (recursively)
+                    if component.sub_components:
+                        for sub_comp in component.sub_components:
+                            sub_part = convert_component_to_sub_part(sub_comp)
+                            manifest.sub_parts.append(sub_part)
+        
+        return manifest
     
     def generate_quality_instructions(self, template: Dict) -> List[DocumentRef]:
         """Generate quality control instruction documents"""
@@ -774,6 +997,116 @@ class OKWGenerator(SyntheticDataGenerator):
                 "ISO 9001:2015",
                 "RoHS Compliance"
             ]
+        }
+        
+        # Specialized facility templates for coordinated generation
+        self.specialized_templates = {
+            "PCB": {
+                "name_prefix": "PCB Fabrication Facility",
+                "description": "Specialized in printed circuit board fabrication and prototyping",
+                "equipment_types": ["PCB printer", "Etching tank", "Drilling machine", "AOI"],
+                "related_processes": ["3DP"], 
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "electronics"
+            },
+            "CNC": {
+                "name_prefix": "CNC Machining Facility",
+                "description": "Specialized in CNC milling and turning operations",
+                "equipment_types": ["CNC mill", "CNC lathe"],
+                "related_processes": ["Deburring", "Surface Finishing"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "machining"
+            },
+            "3DP": {
+                "name_prefix": "3D Printing Facility",
+                "description": "Specialized in additive manufacturing and rapid prototyping",
+                "equipment_types": ["3D printer", "SLA printer"],
+                "related_processes": ["Post-processing"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.MEMBERSHIP,
+                "certification_type": "makerspace"
+            },
+            "LASER": {
+                "name_prefix": "Laser Cutting Facility",
+                "description": "Specialized in laser cutting and engraving services",
+                "equipment_types": ["Laser cutter"],
+                "related_processes": [], 
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.MEMBERSHIP,
+                "certification_type": "makerspace"
+            },
+            "SHEET": {
+                "name_prefix": "Sheet Metal Fabrication Facility",
+                "description": "Specialized in sheet metal forming and fabrication",
+                "equipment_types": ["Sheet metal brake", "Shear", "Punch press"],
+                "related_processes": ["Welding", "Deburring"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "industrial"
+            },
+            "Assembly": {
+                "name_prefix": "Assembly Facility",
+                "description": "Specialized in product assembly and integration",
+                "equipment_types": ["Assembly station", "Testing equipment"],
+                "related_processes": ["Quality Control", "Packaging"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "professional"
+            },
+            "Electronics Assembly": {
+                "name_prefix": "Electronics Assembly Facility",
+                "description": "Specialized in PCB assembly and electronics manufacturing",
+                "equipment_types": ["Pick and place", "Reflow oven", "AOI", "ICT"],
+                "related_processes": ["Testing", "Quality Control"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "electronics"
+            },
+            "Precision Machining": {
+                "name_prefix": "Precision Machining Facility",
+                "description": "Specialized in high-precision machining operations",
+                "equipment_types": ["CNC mill", "CNC lathe", "Surface grinder", "CMM"],
+                "related_processes": ["Deburring", "Surface Finishing", "Quality Control"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "professional"
+            },
+            "Clean Room Assembly": {
+                "name_prefix": "Clean Room Assembly Facility",
+                "description": "Specialized in clean room assembly for sensitive components",
+                "equipment_types": ["Clean room", "ESD-safe workstations", "Precision tools"],
+                "related_processes": ["Quality Control", "Testing"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "industrial"
+            }
+        }
+        
+        # Process name to Wikipedia URL mapping
+        self.process_mapping = {
+            "PCB": "Printed_circuit_board",
+            "CNC": "Machining",
+            "3DP": "Fused_filament_fabrication",
+            "3D Printing": "Fused_filament_fabrication",
+            "FDM": "Fused_filament_fabrication",
+            "SLA": "Stereolithography",
+            "LASER": "Laser_cutting",
+            "Laser Cutting": "Laser_cutting",
+            "SHEET": "Sheet_metal_forming",
+            "Sheet Metal": "Sheet_metal_forming",
+            "Assembly": "Assembly_line",
+            "Electronics Assembly": "Electronics_manufacturing",
+            "Precision Machining": "Machining",
+            "Clean Room Assembly": "Assembly_line",
+            "Testing": "Test_equipment",
+            "Deburring": "Deburring",
+            "Surface Finishing": "Surface_finish",
+            "Quality Control": "Quality_control",
+            "Packaging": "Packaging_and_labeling",
+            "Post-processing": "Post-processing",
+            "Welding": "Welding"
         }
         
         # Capacity metrics templates
@@ -1371,6 +1704,180 @@ class OKWGenerator(SyntheticDataGenerator):
             )
             
         return facility
+    
+    def _process_to_url(self, process: str) -> str:
+        """Convert process name to Wikipedia URL"""
+        process_key = self.process_mapping.get(process, process.replace(" ", "_"))
+        return f"https://en.wikipedia.org/wiki/{process_key}"
+    
+    def generate_specialized_facility(
+        self,
+        specialization: str,
+        facility_index: int = 1,
+        location: Optional[Location] = None
+    ) -> ManufacturingFacility:
+        """
+        Generate a facility specialized in a specific process.
+        
+        Args:
+            specialization: Process specialization (e.g., "PCB", "CNC", "3DP")
+            facility_index: Index for naming (e.g., "PCB Fabrication Facility 1")
+            location: Optional location (if None, generates a new one)
+            
+        Returns:
+            ManufacturingFacility specialized in the given process
+        """
+        if specialization not in self.specialized_templates:
+            raise ValueError(f"Unknown specialization: {specialization}")
+        
+        template = self.specialized_templates[specialization]
+        
+        # Generate facility name
+        facility_name = f"{template['name_prefix']} {facility_index}"
+        
+        # Generate location if not provided (ensures geographic diversity)
+        if location is None:
+            location = self.generate_location()
+        
+        # Generate facility with specialization
+        facility = ManufacturingFacility(
+            name=facility_name,
+            location=location,
+            facility_status=FacilityStatus.ACTIVE,
+            access_type=template["access_type"],
+            description=template["description"]
+        )
+        
+        # Add optional fields
+        if self.should_include_field():
+            facility.owner = self.generate_agent()
+            
+        if self.should_include_field():
+            facility.contact = self.generate_agent()
+            
+        if self.should_include_field():
+            facility.opening_hours = f"Mon-Fri: {random.randint(6, 9)}:00-{random.randint(17, 22)}:00"
+            
+        if self.should_include_field():
+            facility.date_founded = date(random.randint(1990, 2020), random.randint(1, 12), random.randint(1, 28))
+        
+        # Add equipment for primary process
+        for equipment_type in template["equipment_types"]:
+            facility.equipment.append(self.generate_equipment(equipment_type))
+        
+        # Set manufacturing processes (primary + related only)
+        facility.manufacturing_processes = [
+            self._process_to_url(specialization)
+        ]
+        for related in template["related_processes"]:
+            facility.manufacturing_processes.append(self._process_to_url(related))
+        
+        # Set batch size
+        facility.typical_batch_size = template["batch_size"]
+        
+        # Add certification details
+        if self.should_include_field():
+            cert_details = self.generate_certification_details(template["certification_type"])
+            facility.certifications = [cert["name"] for cert in cert_details]
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["certification_details"] = cert_details
+        
+        # Add capacity metrics
+        if self.should_include_field():
+            capacity_metrics = self.generate_capacity_metrics(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["capacity_metrics"] = capacity_metrics
+        
+        # Add material inventory
+        if self.should_include_field():
+            material_inventory = self.generate_material_inventory(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["material_inventory"] = material_inventory
+        
+        # Add quality systems
+        if self.should_include_field():
+            quality_systems = self.generate_quality_systems(template["certification_type"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["quality_systems"] = quality_systems
+        
+        # Add process parameters
+        if self.should_include_field():
+            process_parameters = self.generate_process_parameters(template["equipment_types"])
+            if not hasattr(facility, 'metadata'):
+                facility.metadata = {}
+            facility.metadata["process_parameters"] = process_parameters
+        
+        # Add facility properties
+        if self.should_include_field():
+            facility.floor_size = random.randint(100, 5000)
+            
+        if self.should_include_field():
+            facility.storage_capacity = f"{random.randint(10, 1000)} cubic meters"
+        
+        # Add boolean properties
+        facility.backup_generator = random.choice([True, False]) if self.should_include_field() else False
+        facility.uninterrupted_power_supply = random.choice([True, False]) if self.should_include_field() else False
+        facility.road_access = random.choice([True, False]) if self.should_include_field() else True
+        facility.loading_dock = random.choice([True, False]) if self.should_include_field() else False
+        
+        if self.should_include_field():
+            facility.maintenance_schedule = f"Every {random.randint(1, 6)} months"
+            
+        if self.should_include_field():
+            facility.typical_products = [self.faker.catch_phrase() for _ in range(random.randint(1, 5))]
+        
+        return facility
+    
+    def generate_coordinated_facilities(
+        self,
+        required_processes: Dict[str, int],
+        ensure_geographic_diversity: bool = True
+    ) -> List[ManufacturingFacility]:
+        """
+        Generate a coordinated set of specialized facilities.
+        
+        Args:
+            required_processes: Dict mapping process names to counts (e.g., {"PCB": 3, "CNC": 3})
+            ensure_geographic_diversity: If True, ensures facilities are in different locations
+            
+        Returns:
+            List of ManufacturingFacility objects
+        """
+        facilities = []
+        used_locations = set() if ensure_geographic_diversity else None
+        
+        for process, count in required_processes.items():
+            for i in range(1, count + 1):
+                # Generate location with diversity
+                location = None
+                if ensure_geographic_diversity:
+                    # Generate unique locations
+                    max_attempts = 50
+                    for attempt in range(max_attempts):
+                        loc = self.generate_location()
+                        loc_key = (loc.address.city, loc.address.country)
+                        if loc_key not in used_locations:
+                            used_locations.add(loc_key)
+                            location = loc
+                            break
+                    # If we couldn't find a unique location, use the last one
+                    if location is None:
+                        location = self.generate_location()
+                else:
+                    location = None  # Will be generated in generate_specialized_facility
+                
+                facility = self.generate_specialized_facility(
+                    specialization=process,
+                    facility_index=i,
+                    location=location
+                )
+                facilities.append(facility)
+        
+        return facilities
 
 class RecipeGenerator(SyntheticDataGenerator):
     """Generator for Cooking domain recipes"""
@@ -1546,6 +2053,149 @@ class KitchenGenerator(SyntheticDataGenerator):
         return kitchen
 
 
+def analyze_okh_process_requirements(okh_manifests: List[OKHManifest]) -> Dict[str, int]:
+    """
+    Analyze OKH manifests to extract all unique process requirements.
+    
+    Returns a dictionary mapping process names to recommended facility counts.
+    Each process gets at least 2 facilities (for redundancy), with more for
+    commonly used processes.
+    
+    Args:
+        okh_manifests: List of OKHManifest objects to analyze
+        
+    Returns:
+        Dict mapping process names to facility counts (e.g., {"PCB": 3, "CNC": 3})
+    """
+    all_processes = set()
+    
+    # Process name normalization mapping
+    process_normalization = {
+        "PCB": "PCB",
+        "Printed_circuit_board": "PCB",
+        "Printed circuit board": "PCB",
+        "CNC": "CNC",
+        "Machining": "CNC",
+        "CNC Machining": "CNC",
+        "3DP": "3DP",
+        "3D Printing": "3DP",
+        "Fused_filament_fabrication": "3DP",
+        "FDM": "3DP",
+        "SLA": "3DP",
+        "LASER": "LASER",
+        "Laser Cutting": "LASER",
+        "Laser_cutting": "LASER",
+        "SHEET": "SHEET",
+        "Sheet Metal": "SHEET",
+        "Sheet_metal_forming": "SHEET",
+        "Assembly": "Assembly",
+        "Assembly_line": "Assembly",
+        "Electronics Assembly": "Electronics Assembly",
+        "Electronics_manufacturing": "Electronics Assembly",
+        "Precision Machining": "Precision Machining",
+        "Clean Room Assembly": "Clean Room Assembly",
+    }
+    
+    def normalize_process(process: str) -> Optional[str]:
+        """Normalize a process name to a standard key"""
+        # Try direct match
+        if process in process_normalization:
+            return process_normalization[process]
+        
+        # Try case-insensitive match
+        process_lower = process.lower()
+        for key, value in process_normalization.items():
+            if key.lower() == process_lower:
+                return value
+        
+        # Try partial match (e.g., "PCB Fabrication" -> "PCB")
+        for key, value in process_normalization.items():
+            if key.lower() in process_lower or process_lower in key.lower():
+                return value
+        
+        # If no match, return None (will be skipped)
+        return None
+    
+    # Extract processes from each OKH manifest
+    for okh in okh_manifests:
+        # From manifest manufacturing_processes
+        if okh.manufacturing_processes:
+            for process in okh.manufacturing_processes:
+                normalized = normalize_process(process)
+                if normalized:
+                    all_processes.add(normalized)
+        
+        # From parts (tsdc field)
+        if okh.parts:
+            for part in okh.parts:
+                if part.tsdc:
+                    for tsdc in part.tsdc:
+                        normalized = normalize_process(tsdc)
+                        if normalized:
+                            all_processes.add(normalized)
+        
+        # From sub_parts (if present)
+        if okh.sub_parts:
+            for sub_part in okh.sub_parts:
+                if isinstance(sub_part, dict):
+                    # Check for tsdc in sub_part
+                    if "tsdc" in sub_part and sub_part["tsdc"]:
+                        tsdc_list = sub_part["tsdc"]
+                        if isinstance(tsdc_list, list):
+                            for tsdc in tsdc_list:
+                                normalized = normalize_process(tsdc)
+                                if normalized:
+                                    all_processes.add(normalized)
+                        elif isinstance(tsdc_list, str):
+                            normalized = normalize_process(tsdc_list)
+                            if normalized:
+                                all_processes.add(normalized)
+    
+    # Count process frequency to determine facility counts
+    process_counts = {}
+    for okh in okh_manifests:
+        processes_in_okh = set()
+        
+        # Collect all processes from this OKH
+        if okh.manufacturing_processes:
+            for process in okh.manufacturing_processes:
+                normalized = normalize_process(process)
+                if normalized:
+                    processes_in_okh.add(normalized)
+        
+        if okh.parts:
+            for part in okh.parts:
+                if part.tsdc:
+                    for tsdc in part.tsdc:
+                        normalized = normalize_process(tsdc)
+                        if normalized:
+                            processes_in_okh.add(normalized)
+        
+        # Count how many OKHs use each process
+        for process in processes_in_okh:
+            process_counts[process] = process_counts.get(process, 0) + 1
+    
+    # Determine facility counts based on frequency
+    # Minimum 2 facilities per process (redundancy)
+    # More facilities for commonly used processes
+    facility_plan = {}
+    total_okhs = len(okh_manifests)
+    
+    for process in all_processes:
+        count = process_counts.get(process, 0)
+        if count == 0:
+            # Process found but not counted (shouldn't happen, but be safe)
+            facility_plan[process] = 2
+        elif count <= total_okhs * 0.3:  # Used in <30% of OKHs
+            facility_plan[process] = 2
+        elif count <= total_okhs * 0.6:  # Used in 30-60% of OKHs
+            facility_plan[process] = 3
+        else:  # Used in >60% of OKHs
+            facility_plan[process] = 4
+    
+    return facility_plan
+
+
 def validate_record(record: Union[OKHManifest, ManufacturingFacility, Dict]) -> bool:
     """Validate a generated record"""
     try:
@@ -1628,6 +2278,26 @@ def main():
     parser.add_argument("--match", action="store_true", 
                        help="Generate matched pairs (okh+okw or recipe+kitchen)")
     
+    # Nested component generation options (for OKH manifests)
+    parser.add_argument("--nested", action="store_true",
+                       help="Generate OKH manifests with nested components in BOM")
+    parser.add_argument("--max-depth", type=int, default=2,
+                       help="Maximum nesting depth for nested components (default: 2, only used with --nested)")
+    parser.add_argument("--use-external-bom", action="store_true",
+                       help="Use external BOM files instead of embedding BOM in manifest (only used with --nested)")
+    parser.add_argument("--include-references", action="store_true",
+                       help="Include component references to other OKH manifests (only used with --nested)")
+    parser.add_argument("--referenced-manifests-count", type=int, default=3,
+                       help="Number of referenced OKH manifests to generate for component references (default: 3, only used with --include-references)")
+    
+    # Specialized facility generation options
+    parser.add_argument("--specialized", action="store_true",
+                       help="Generate specialized facilities (only for --type okw). Facilities will specialize in specific processes.")
+    parser.add_argument("--okh-files", type=str, nargs="+",
+                       help="List of OKH manifest file paths to analyze for process requirements (used with --specialized)")
+    parser.add_argument("--process-plan", type=str,
+                       help="JSON file path with process plan dict (e.g., '{\"PCB\": 3, \"CNC\": 3}'). Overrides OKH analysis.")
+    
     args = parser.parse_args()
     
     # Validate type based on domain
@@ -1644,7 +2314,8 @@ def main():
     else:
         complexity = args.complexity
     
-    print(f"Generating {args.count} {args.type.upper()} records for {args.domain} domain with {complexity} complexity...")
+    if not args.nested:  # Only print default message if not using nested generation
+        print(f"Generating {args.count} {args.type.upper()} records for {args.domain} domain with {complexity} complexity...")
     
     # Handle matched pair generation
     if args.match:
@@ -1657,6 +2328,10 @@ def main():
             
             generated_count = 0
             failed_count = 0
+            
+            # Note: nested options are not supported with --match currently
+            if args.nested:
+                parser.error("--nested option is not supported with --match. Use --nested without --match to generate nested OKH manifests.")
             
             for i in range(args.count):
                 try:
@@ -1759,27 +2434,156 @@ def main():
             print(f"Output directory: {args.output_dir}")
             return
     
+    # Validate nested options
+    if args.nested and args.type != "okh":
+        parser.error("--nested option can only be used with --type okh")
+    if args.use_external_bom and not args.nested:
+        parser.error("--use-external-bom requires --nested option")
+    if args.include_references and not args.nested:
+        parser.error("--include-references requires --nested option")
+    
+    # Validate specialized option
+    if args.specialized and args.type != "okw":
+        parser.error("--specialized option can only be used with --type okw")
+    
     # Regular single-type generation
     if args.domain == "manufacturing":
         if args.type == "okh":
             generator = OKHGenerator(complexity)
         else:  # okw
             generator = OKWGenerator(complexity)
+            
+            # Handle specialized facility generation
+            if args.specialized:
+                # Determine process plan
+                required_processes = {}
+                
+                if args.process_plan:
+                    # Load from JSON file
+                    with open(args.process_plan, 'r') as f:
+                        required_processes = json.load(f)
+                    print(f"Loaded process plan from {args.process_plan}: {required_processes}")
+                elif args.okh_files:
+                    # Analyze OKH files
+                    print(f"Analyzing {len(args.okh_files)} OKH files for process requirements...")
+                    okh_manifests = []
+                    for okh_file in args.okh_files:
+                        try:
+                            with open(okh_file, 'r') as f:
+                                okh_data = json.load(f)
+                                okh_manifest = OKHManifest.from_dict(okh_data)
+                                okh_manifests.append(okh_manifest)
+                        except Exception as e:
+                            print(f"Warning: Could not load OKH file {okh_file}: {e}")
+                            continue
+                    
+                    if okh_manifests:
+                        required_processes = analyze_okh_process_requirements(okh_manifests)
+                        print(f"Analyzed process requirements: {required_processes}")
+                    else:
+                        print("Warning: No valid OKH files found. Using default process plan.")
+                        required_processes = {
+                            "PCB": 3,
+                            "CNC": 3,
+                            "3DP": 3,
+                            "LASER": 2,
+                            "SHEET": 2,
+                            "Assembly": 2,
+                            "Electronics Assembly": 3,
+                            "Precision Machining": 2,
+                            "Clean Room Assembly": 1,
+                        }
+                else:
+                    # Use default process plan
+                    print("Using default process plan for specialized facilities...")
+                    required_processes = {
+                        "PCB": 3,
+                        "CNC": 3,
+                        "3DP": 3,
+                        "LASER": 2,
+                        "SHEET": 2,
+                        "Assembly": 2,
+                        "Electronics Assembly": 3,
+                        "Precision Machining": 2,
+                        "Clean Room Assembly": 1,
+                    }
+                
+                # Generate coordinated specialized facilities
+                total_facilities = sum(required_processes.values())
+                print(f"Generating {total_facilities} specialized facilities with geographic diversity...")
+                facilities = generator.generate_coordinated_facilities(
+                    required_processes,
+                    ensure_geographic_diversity=True
+                )
+                
+                # Save facilities
+                generated_count = 0
+                failed_count = 0
+                
+                for i, facility in enumerate(facilities, 1):
+                    try:
+                        if args.validate and not validate_record(facility):
+                            print(f"Warning: Facility {i} failed validation, skipping...")
+                            failed_count += 1
+                            continue
+                        
+                        filepath = save_record(facility, args.output_dir, i)
+                        print(f"Generated: {filepath} ({facility.name})")
+                        generated_count += 1
+                    except Exception as e:
+                        print(f"Error saving facility {i}: {e}")
+                        failed_count += 1
+                
+                print(f"\nGeneration complete!")
+                print(f"Successfully generated: {generated_count} specialized facilities")
+                print(f"Failed: {failed_count} facilities")
+                print(f"Output directory: {args.output_dir}")
+                return
     else:  # cooking
         if args.type == "recipe":
             generator = RecipeGenerator(complexity)
         else:  # kitchen
             generator = KitchenGenerator(complexity)
     
+    # Prepare referenced manifests if needed
+    referenced_manifests = None
+    if args.nested and args.include_references and args.type == "okh":
+        print(f"Generating {args.referenced_manifests_count} referenced OKH manifests for component references...")
+        referenced_manifests = [
+            generator.generate_okh_manifest() 
+            for _ in range(args.referenced_manifests_count)
+        ]
+        print(f"Generated {len(referenced_manifests)} referenced manifests")
+    
     generated_count = 0
     failed_count = 0
+    
+    # Update generation message if nested
+    if args.nested:
+        nested_info = f" with nested components (max_depth={args.max_depth}"
+        if args.use_external_bom:
+            nested_info += ", external BOM"
+        if args.include_references:
+            nested_info += ", with references"
+        nested_info += ")"
+        print(f"Generating {args.count} {args.type.upper()} records{nested_info}...")
     
     for i in range(args.count):
         try:
             # Generate record
             if args.domain == "manufacturing":
                 if args.type == "okh":
-                    record = generator.generate_okh_manifest()
+                    if args.nested:
+                        # Generate nested OKH manifest
+                        record = generator.generate_okh_manifest_with_nesting(
+                            max_depth=args.max_depth,
+                            use_external_bom=args.use_external_bom,
+                            bom_output_dir=args.output_dir if args.use_external_bom else None,
+                            include_references=args.include_references,
+                            referenced_manifests=referenced_manifests
+                        )
+                    else:
+                        record = generator.generate_okh_manifest()
                 else:
                     record = generator.generate_manufacturing_facility()
             else:  # cooking

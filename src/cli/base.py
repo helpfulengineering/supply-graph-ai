@@ -377,53 +377,122 @@ class CLIContext:
     async def cleanup(self):
         """Clean up resources"""
         try:
+            # Always log cleanup start (not just in verbose mode) for debugging
+            logger.info("CLIContext.cleanup() called")
             if self.verbose:
                 self.log("Starting cleanup...", "info")
 
-            # Clean up package service if it exists
+            # Clean up all singleton services that might have been created
+            services_to_cleanup = []
+            
+            # PackageService - may have FileResolver with aiohttp sessions
+            try:
+                from ..core.services.package_service import PackageService
+                package_service = PackageService._instance
+                if package_service:
+                    if self.verbose:
+                        self.log(f"Found PackageService instance: {package_service}", "debug")
+                    if hasattr(package_service, "cleanup"):
+                        services_to_cleanup.append(("PackageService", package_service))
+                    else:
+                        if self.verbose:
+                            self.log("PackageService found but has no cleanup method", "warning")
+                else:
+                    if self.verbose:
+                        self.log("No PackageService instance found", "debug")
+            except Exception as e:
+                if self.verbose:
+                    self.log(f"Error checking PackageService: {e}", "debug")
+                pass  # Service not used or not available
+
+            # OKHService - may have dependencies with aiohttp sessions
+            try:
+                from ..core.services.okh_service import OKHService
+                # OKHService uses BaseService which tracks instances
+                if hasattr(OKHService, "_instances"):
+                    for service_name, service_instance in OKHService._instances.items():
+                        if hasattr(service_instance, "cleanup"):
+                            services_to_cleanup.append((f"OKHService({service_name})", service_instance))
+            except Exception:
+                pass
+
+            # OKWService - may have dependencies
+            try:
+                from ..core.services.okw_service import OKWService
+                if hasattr(OKWService, "_instances"):
+                    for service_name, service_instance in OKWService._instances.items():
+                        if hasattr(service_instance, "cleanup"):
+                            services_to_cleanup.append((f"OKWService({service_name})", service_instance))
+            except Exception:
+                pass
+
+            # MatchingService - singleton
+            try:
+                from ..core.services.matching_service import MatchingService
+                matching_service = MatchingService._instance
+                if matching_service and hasattr(matching_service, "cleanup"):
+                    services_to_cleanup.append(("MatchingService", matching_service))
+            except Exception:
+                pass
+
+            # StorageService - singleton
+            try:
+                from ..core.services.storage_service import StorageService
+                storage_service = StorageService._instance
+                if storage_service:
+                    if self.verbose:
+                        self.log(f"Found StorageService instance (configured={storage_service._configured})", "debug")
+                    if hasattr(storage_service, "cleanup"):
+                        services_to_cleanup.append(("StorageService", storage_service))
+                    else:
+                        if self.verbose:
+                            self.log("StorageService found but has no cleanup method", "warning")
+                else:
+                    if self.verbose:
+                        self.log("No StorageService instance found", "debug")
+            except Exception as e:
+                if self.verbose:
+                    self.log(f"Error checking StorageService: {e}", "debug")
+                pass
+
+            # Clean up package service from service_fallback if it exists
             if (
                 hasattr(self.service_fallback, "_services")
                 and "package_service" in self.service_fallback._services
             ):
                 package_service = self.service_fallback._services["package_service"]
-                if hasattr(package_service, "cleanup"):
+                if package_service and hasattr(package_service, "cleanup"):
+                    if ("PackageService", package_service) not in [(n, s) for n, s in services_to_cleanup]:
+                        services_to_cleanup.append(("PackageService (fallback)", package_service))
+
+            # Clean up all services
+            for service_name, service in services_to_cleanup:
+                try:
                     if self.verbose:
-                        self.log("Cleaning up package service...", "info")
-                    await package_service.cleanup()
+                        self.log(f"Cleaning up {service_name}...", "info")
+                    # Ensure cleanup completes before moving on
+                    await service.cleanup()
+                    # Small delay to let cleanup operations complete
+                    import asyncio
+                    await asyncio.sleep(0.05)
+                except Exception as e:
+                    if self.verbose:
+                        self.log(f"Warning: Error cleaning up {service_name}: {e}", "warning")
 
-            # Clean up storage service - handle singleton properly
-            storage_service = None
-            if (
-                hasattr(self.service_fallback, "_services")
-                and "storage_service" in self.service_fallback._services
-            ):
-                storage_service = self.service_fallback._services["storage_service"]
-            else:
-                # Clean up singleton instance if it exists
-                try:
-                    storage_service = await StorageService.get_instance()
-                except:
-                    pass  # No instance exists
-
-            if storage_service and hasattr(storage_service, "cleanup"):
-                if self.verbose:
-                    self.log("Cleaning up storage service...", "info")
-                await storage_service.cleanup()
-
-                # Give a small delay to allow any pending operations to complete
-                import asyncio
-
-                await asyncio.sleep(0.1)
-
-                # Force cleanup of any remaining aiohttp sessions
-                try:
-                    import aiohttp
-
-                    # Close all aiohttp sessions that might be lingering
-                    if hasattr(aiohttp, "_connector_cleanup"):
-                        aiohttp._connector_cleanup()
-                except:
-                    pass  # Ignore any errors in aiohttp cleanup
+            # Give a delay to allow any pending operations to complete
+            # This is important for aiohttp sessions to close properly
+            # Azure storage provider needs extra time for aiohttp sessions to close
+            import asyncio
+            await asyncio.sleep(0.5)  # Increased wait time
+            
+            # Force garbage collection to find any unreferenced sessions
+            try:
+                import gc
+                gc.collect()
+                # Small additional delay to let GC'd sessions close
+                await asyncio.sleep(0.2)
+            except Exception:
+                pass  # Ignore any errors in final cleanup
 
             if self.verbose:
                 self.log("Cleanup completed", "info")

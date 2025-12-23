@@ -5,17 +5,21 @@ Test script for GCP Cloud Run deployer.
 This script allows testing the GCP deployer locally before integrating into CI/CD.
 """
 
-import os
-import sys
 import argparse
 import logging
+import os
+import sys
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from deploy.providers.gcp import GCPDeploymentConfig, GCPCloudRunDeployer, DeploymentError
+from deploy.providers.gcp import (
+    DeploymentError,
+    GCPCloudRunDeployer,
+    GCPDeploymentConfig,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -108,7 +112,9 @@ def test_secret_handling(deployer):
             print(f"   Generated vars: {list(generated_env_vars.keys())}")
     except Exception as e:
         print(f"⚠️  Secret handling test: {e}")
-        print("   (This is expected if gcloud is not configured or secrets don't exist)")
+        print(
+            "   (This is expected if gcloud is not configured or secrets don't exist)"
+        )
 
 
 def test_env_vars_building(deployer):
@@ -124,7 +130,11 @@ def test_env_vars_building(deployer):
     try:
         env_vars_str = deployer._build_env_vars_string()
         print("✅ Environment variables string built successfully")
-        print(f"   Env vars string: {env_vars_str[:100]}..." if len(env_vars_str) > 100 else f"   Env vars string: {env_vars_str}")
+        print(
+            f"   Env vars string: {env_vars_str[:100]}..."
+            if len(env_vars_str) > 100
+            else f"   Env vars string: {env_vars_str}"
+        )
     except Exception as e:
         print(f"❌ Environment variables building failed: {e}")
         import traceback
@@ -250,7 +260,9 @@ def main():
         # Try to construct from environment or use example
         ar_registry = os.getenv("AR_REGISTRY", "us-west1-docker.pkg.dev")
         ar_repository = os.getenv("AR_REPOSITORY", "cloud-run-source-deploy")
-        args.image = f"{ar_registry}/{args.project_id}/{ar_repository}/supply-graph-ai:latest"
+        args.image = (
+            f"{ar_registry}/{args.project_id}/{ar_repository}/supply-graph-ai:latest"
+        )
 
     # Test 1: Configuration
     config = test_config_creation()
@@ -297,4 +309,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

@@ -57,6 +57,86 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
     min_confidence: Optional[float] = 0.3  # Relaxed default to show more matches
     max_results: Optional[int] = 10
 
+    # Unified depth-based matching control
+    max_depth: Optional[int] = Field(
+        0,  # Default: single-level matching (backward compatible)
+        ge=0,
+        le=10,
+        description=(
+            "Maximum depth for BOM explosion. "
+            "0 = single-level matching (no nesting), "
+            "> 0 = nested matching with specified depth. "
+            "Default: 0 (single-level matching for backward compatibility)"
+        ),
+    )
+    
+    # Optional: Auto-detect if nested matching is needed
+    auto_detect_depth: Optional[bool] = Field(
+        False,
+        description=(
+            "Auto-detect if nested matching is needed based on OKH structure. "
+            "If True and max_depth=0, will use configured default depth (from MAX_DEPTH config) "
+            "when nested components detected."
+        ),
+    )
+    
+    include_validation: Optional[bool] = Field(
+        True,
+        description="Include validation results in response (for nested matching)",
+    )
+
+    # Solution storage options
+    save_solution: Optional[bool] = Field(
+        False,
+        description="Automatically save the solution to storage. Returns solution_id in response.",
+    )
+    solution_ttl_days: Optional[int] = Field(
+        None,
+        ge=1,
+        description="Time-to-live in days for saved solution (default: 30). Only used if save_solution=True.",
+    )
+    solution_tags: Optional[List[str]] = Field(
+        None,
+        description="Tags to apply to saved solution. Only used if save_solution=True.",
+    )
+    
+    # Tree filtering parameters (for nested matching results)
+    include_trees: Optional[bool] = Field(
+        True,
+        description="Include full tree data in response. If False, returns metadata only (tree counts, IDs).",
+    )
+    component_id: Optional[str] = Field(
+        None,
+        description="Filter trees by component ID (for nested matching).",
+    )
+    component_name: Optional[str] = Field(
+        None,
+        description="Filter trees by component name (for nested matching).",
+    )
+    facility_id: Optional[UUID] = Field(
+        None,
+        description="Filter trees by facility ID (for nested matching).",
+    )
+    facility_name: Optional[str] = Field(
+        None,
+        description="Filter trees by facility name (for nested matching).",
+    )
+    depth: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Filter trees by exact depth level (for nested matching).",
+    )
+    min_depth: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Filter trees by minimum depth level (for nested matching).",
+    )
+    max_depth_filter: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Filter trees by maximum depth level (for nested matching). Note: distinct from max_depth which controls BOM explosion depth.",
+    )
+
     # Backward compatibility
     include_workflows: Optional[bool] = False  # Feature flag for workflow inclusion
 
@@ -96,6 +176,9 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
                 "min_capacity": 100,
                 "location_coords": {"lat": 37.7749, "lng": -122.4194},
                 "include_workflows": False,
+                "max_depth": 0,  # 0 = single-level, > 0 = nested matching
+                "auto_detect_depth": False,
+                "include_validation": True,
                 "use_llm": True,
                 "llm_provider": "anthropic",
                 "llm_model": "claude-sonnet-4-5",

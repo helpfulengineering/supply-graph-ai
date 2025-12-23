@@ -154,10 +154,25 @@ class StorageManager:
     async def cleanup(self) -> None:
         """Clean up resources and close connections"""
         try:
-            if self._provider and hasattr(self._provider, "cleanup"):
-                await self._provider.cleanup()
+            if self._provider:
+                logger.info(f"Cleaning up storage provider: {self.config.provider}")
+                # Try cleanup() first, then disconnect() as fallback
+                if hasattr(self._provider, "cleanup"):
+                    logger.debug("Calling provider.cleanup()")
+                    await self._provider.cleanup()
+                elif hasattr(self._provider, "disconnect"):
+                    logger.debug("Calling provider.disconnect()")
+                    await self._provider.disconnect()
+                
+                # Give extra time for Azure provider to close aiohttp sessions
+                if self.config.provider == "azure_blob":
+                    import asyncio
+                    logger.debug("Waiting for Azure provider cleanup to complete...")
+                    await asyncio.sleep(0.5)  # Extra wait for Azure aiohttp sessions
+                
             self._connected = False
             logger.info("Storage Manager cleanup completed")
         except Exception as e:
-            logger.error(f"Error during Storage Manager cleanup: {e}")
-            raise
+            logger.warning(f"Error during Storage Manager cleanup: {e}")
+            # Don't raise - continue with cleanup
+            self._connected = False

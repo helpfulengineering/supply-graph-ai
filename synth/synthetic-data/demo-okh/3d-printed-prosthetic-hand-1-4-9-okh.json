@@ -1,0 +1,374 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "3cd461c9-ee2a-4f85-825e-5e48f19a9764",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/tylerveronica/3d-printed-prosthetic-hand",
+  "version": "1.4.9",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Jessica Walsh",
+    "email": "bryan11@example.net",
+    "affiliation": "May-Williams",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "qhess"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Response less personal father themselves candidate.",
+  "intended_use": "Manage share heart.",
+  "keywords": [
+    "customizable",
+    "bracket"
+  ],
+  "contact": {
+    "name": "Alejandro Torres",
+    "email": "qwilson@example.org",
+    "affiliation": "Herman Inc",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "nathan63"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Jason Watson",
+      "email": "pblankenship@example.com",
+      "affiliation": "Warren, Johnson and Decker",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "watkinsjason"
+        }
+      ]
+    },
+    {
+      "name": "Spencer Padilla",
+      "email": "kwilliams@example.com",
+      "affiliation": "Zuniga PLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "richardatkins"
+        }
+      ]
+    },
+    {
+      "name": "Kaitlyn Vance",
+      "email": "william22@example.net",
+      "affiliation": "Obrien, Miller and Hawkins",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "woodsmelissa"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Kemp Ltd",
+    "url": "https://little-chapman.com",
+    "email": "contact@christian.net"
+  },
+  "development_stage": "prototype",
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/nicole86/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/matthewssteven/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/karen82/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/caroljohnson/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/markharrell/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/travis42/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/sroberts/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/atkinsedward/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/amberwilliams/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/susanflores/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/christopher55/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.4"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/qevans/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.9"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Pliers",
+    "Filament",
+    "3D printer",
+    "Calipers",
+    "Wrench set",
+    "Deburring tool",
+    "Heat shrink",
+    "Build plate",
+    "Cable ties",
+    "Screwdriver set"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 883.04,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 980.83,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 470,
+      "width": 150,
+      "height": 63
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "30%",
+          "temperature": "249°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Deal change shake religious."
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Paper image wife fish might cut couple."
+  },
+  "bom": {
+    "id": "c1724090-5511-4a63-b55b-e9afc8716533",
+    "name": "3D Printed Prosthetic Hand BOM",
+    "external_file": "bom_3d_printed_prosthetic_hand.json",
+    "metadata": {
+      "max_depth": 3,
+      "has_references": true,
+      "generated": true
+    }
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "2a70b735-457e-4e29-9222-f93479e76e38",
+      "source": [
+        "https://github.com/whitetara/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/iwilliams/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/richard16/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/kevinjohnson/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 35,
+        "width": 164,
+        "height": 11
+      },
+      "mass": 361.73,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "4b12a53b-1e08-4876-9d26-c5ef0916cb5e",
+      "source": [
+        "https://github.com/gfisher/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/rgarrison/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/franklinmary/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/vhill/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 14,
+        "width": 134,
+        "height": 31
+      },
+      "mass": 529.91,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "9e4a63f8-fe0f-4f68-b9a9-7842eda30342",
+      "source": [
+        "https://github.com/michael74/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/conwayjonathan/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/seth51/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/kbrock/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 114,
+        "width": 179,
+        "height": 40
+      },
+      "mass": 482.52,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}
