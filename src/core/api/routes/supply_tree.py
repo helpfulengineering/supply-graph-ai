@@ -44,7 +44,6 @@ from ..models.supply_tree.request import (
     SupplyTreeValidateRequest,
 )
 
-
 logger = get_logger(__name__)
 
 

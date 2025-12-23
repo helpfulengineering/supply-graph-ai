@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional, Set
 from uuid import UUID
 
+from src.config.settings import MAX_DEPTH
+
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..matching.capability_rules import CapabilityMatcher, CapabilityRuleManager
@@ -10,11 +12,10 @@ from ..models.component_match import ComponentMatch
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..models.supply_trees import SupplyTree, SupplyTreeSolution
-from ..services.bom_resolution_service import BOMResolutionService
 from ..registry.domain_registry import DomainRegistry
+from ..services.bom_resolution_service import BOMResolutionService
 from ..services.domain_service import DomainDetector
 from ..utils.logging import get_logger
-from src.config.settings import MAX_DEPTH
 from .okh_service import OKHService
 from .okw_service import OKWService
 

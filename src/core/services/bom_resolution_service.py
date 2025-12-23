@@ -13,12 +13,13 @@ from uuid import UUID, uuid4
 
 import yaml
 
+from src.config.settings import MAX_DEPTH
+
 from ..models.bom import BillOfMaterials, Component
 from ..models.component_match import ComponentMatch
 from ..models.okh import OKHManifest, PartSpec
 from ..services.okh_service import OKHService
 from ..utils.logging import get_logger
-from src.config.settings import MAX_DEPTH
 
 logger = get_logger(__name__)
 

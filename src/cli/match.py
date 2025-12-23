@@ -419,8 +419,9 @@ async def requirements(
                 effective_max_depth = max_depth
                 if auto_detect_depth and max_depth == 0:
                     # Check if manifest has nested components
-                    from ..core.api.routes.match import _has_nested_components
                     from src.config.settings import MAX_DEPTH
+
+                    from ..core.api.routes.match import _has_nested_components
 
                     if _has_nested_components(manifest):
                         effective_max_depth = MAX_DEPTH
@@ -450,10 +451,10 @@ async def requirements(
                     solution_id = None
                     if save_solution:
                         try:
-                            from ..core.services.storage_service import StorageService
                             from ..config.storage_config import (
                                 get_default_storage_config,
                             )
+                            from ..core.services.storage_service import StorageService
 
                             storage_service = await StorageService.get_instance()
                             await storage_service.configure(
@@ -532,14 +533,14 @@ async def requirements(
                     solution_id = None
                     if save_solution and results_list:
                         try:
-                            from ..core.services.storage_service import StorageService
+                            from ..config.storage_config import (
+                                get_default_storage_config,
+                            )
                             from ..core.models.supply_trees import (
                                 SupplyTree,
                                 SupplyTreeSolution,
                             )
-                            from ..config.storage_config import (
-                                get_default_storage_config,
-                            )
+                            from ..core.services.storage_service import StorageService
 
                             storage_service = await StorageService.get_instance()
                             await storage_service.configure(

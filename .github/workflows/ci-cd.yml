@@ -66,8 +66,29 @@ jobs:
             echo "✅ All code is properly formatted"
           fi
 
-      - name: Check import sorting with isort
-        run: isort --profile black --check-only src/ deploy/
+      - name: Format imports with isort
+        run: |
+          echo "Formatting imports with isort..."
+          isort --profile black src/ deploy/
+          
+          echo "Checking if import formatting changed any files..."
+          if ! git diff --quiet src/ deploy/; then
+            echo "❌ Import sorting issues found!"
+            echo ""
+            echo "The following files were reformatted:"
+            git diff --name-only src/ deploy/
+            echo ""
+            echo "Please run the following command locally and commit the changes:"
+            echo "  isort --profile black src/ deploy/"
+            echo "  git add src/ deploy/"
+            echo "  git commit -m 'chore: format imports with isort'"
+            echo ""
+            echo "Diff:"
+            git diff src/ deploy/ | head -100
+            exit 1
+          else
+            echo "✅ All imports are properly sorted"
+          fi
 
       - name: Type checking with mypy
         run: |

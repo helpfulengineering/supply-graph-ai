@@ -99,12 +99,12 @@ class AzureBlobProvider(StorageProvider):
                     )
                     try:
                         import asyncio
+
                         import aiohttp
 
                         # The Azure SDK's BlobServiceClient uses aiohttp internally
                         # The SDK should close the session when we call close(), but sometimes
                         # the event loop closes before the async close completes
-
                         # The Azure SDK's BlobServiceClient uses aiohttp internally
                         # We need to find and close the aiohttp session BEFORE closing the client
                         # This ensures the session is closed synchronously, not asynchronously

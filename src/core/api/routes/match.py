@@ -24,6 +24,8 @@ from fastapi import (
     status,
 )
 
+from src.config.settings import MAX_DEPTH
+
 from ...models.okh import OKHManifest
 from ...models.okw import ManufacturingFacility
 from ...registry.domain_registry import DomainRegistry
@@ -33,7 +35,6 @@ from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
-from src.config.settings import MAX_DEPTH
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
