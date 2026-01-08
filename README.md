@@ -9,25 +9,47 @@ The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designe
 
 ### Installation
 
-#### Option 1: Docker (Recommended)
+#### Option 1: Docker Compose (Recommended - Simplest)
+
+Docker Compose is the recommended way to run the OHM server. It handles all dependencies, configuration, and provides a consistent environment.
 
 ```bash
 # Clone the repository
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
-# Copy environment template
+# Copy environment template and customize (optional)
 cp env.template .env
-# Edit .env with your configuration
+# Edit .env with your configuration if needed
+# Most defaults work for local development
 
 # Start the API server
 docker-compose up ohm-api
+
+# Or run in detached mode (background)
+docker-compose up -d ohm-api
+
+# View logs
+docker-compose logs -f ohm-api
+
+# Stop the server
+docker-compose down
 
 # Access the API documentation at:
 # http://localhost:8001/docs
 ```
 
-#### Option 2: Local Development (Recommended)
+**Docker Compose Benefits:**
+- ✅ Consistent environment across all machines
+- ✅ Automatic dependency management
+- ✅ Easy volume management for storage and logs
+- ✅ Built-in health checks
+- ✅ Simple scaling and service management
+- ✅ No need to install Python dependencies locally
+
+#### Option 2: Local Development (For Active Development)
+
+Use this option if you need to modify code frequently and want hot-reload without rebuilding Docker images.
 
 ```bash
 # Clone the repository
@@ -47,8 +69,11 @@ pip install -e .
 # Verify installation
 ohm --help
 
-# Start the API server
+# Start the API server with hot-reload
 python run.py
+
+# Or use uvicorn directly for more control
+uvicorn src.core.main:app --reload --host 0.0.0.0 --port 8001
 
 # Or use the CLI directly
 ohm system health

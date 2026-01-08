@@ -47,6 +47,10 @@ COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
 
 # Copy only necessary application files (respects .dockerignore)
+# Copy package configuration first (for pip install)
+COPY pyproject.toml ./
+COPY requirements.txt ./
+
 # Copy source code
 COPY src/ ./src/
 
@@ -55,6 +59,9 @@ COPY config/ ./config/
 
 # Copy entrypoint and other necessary files
 COPY docker-entrypoint.sh gunicorn.conf.py run.py ./
+
+# Install the package in editable mode (creates 'ohm' command)
+RUN pip install --no-cache-dir -e .
 
 # Download spaCy model (required for NLP processing)
 RUN python -m spacy download en_core_web_md

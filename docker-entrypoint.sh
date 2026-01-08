@@ -51,8 +51,13 @@ start_api() {
             --keep-alive 5
     else
         echo "Starting with Uvicorn (development mode)..."
-        # Use uvicorn directly for development
-        exec python run.py
+        # Use uvicorn directly for development (with auto-reload)
+        # The installed package ensures proper module resolution
+        exec uvicorn src.core.main:app \
+            --host "$API_HOST" \
+            --port "$API_PORT" \
+            --reload \
+            --reload-dir src
     fi
 }
 
