@@ -129,14 +129,6 @@ flowchart TD
     A3 --> F2
     F1 & F2 --> F3
 
-    classDef pipeline fill:#e1f5fe,stroke:#01579b
-    classDef layer fill:#fff3e0,stroke:#ef6c00
-    classDef storage fill:#f3e5f5,stroke:#4a148c
-    classDef cache fill:#e8f5e9,stroke:#1b5e20
-    classDef feedback fill:#fff8e1,stroke:#ff6f00
-    classDef output fill:#f1f8e9,stroke:#33691e
-    classDef action fill:#fce4ec,stroke:#880e4f
-    classDef domain fill:#e3f2fd,stroke:#0277bd
     
     class inputs,preproc,extraction,matching pipeline
     class ext_layers,match_layers layer

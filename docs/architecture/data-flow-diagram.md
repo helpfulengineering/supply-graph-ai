@@ -63,11 +63,6 @@ flowchart TD
 
     %% Feedback Loop
     R2 -->|Feedback Integration| D1
-
-    classDef input fill:#e3f2fd,stroke:#1565c0
-    classDef extract fill:#fff3e0,stroke:#ef6c00
-    classDef match fill:#f3e5f5,stroke:#6a1b9a
-    classDef result fill:#e8f5e9,stroke:#2e7d32
     
     class D1,D2 input
     class E1,E2,EL1,EL2,EL3,EL4,ER1 extract
