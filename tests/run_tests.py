@@ -2,7 +2,7 @@ from harness import TestHarness, TestSuite
 import argparse
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run OME API tests")
+    parser = argparse.ArgumentParser(description="Run OHM API tests")
     parser.add_argument("--url", type=str, default="http://localhost:8001", 
                         help="Base URL for API")
     args = parser.parse_args()

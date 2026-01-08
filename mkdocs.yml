@@ -1,4 +1,4 @@
-site_name: "Open Matching Engine (OME) Docs"
+site_name: "Open Hardware Manager (OHM) Docs"
 theme:
   name: material
   palette:

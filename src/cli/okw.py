@@ -1,5 +1,5 @@
 """
-OKW (OpenKnowWhere) commands for OME CLI
+OKW (OpenKnowWhere) commands for OHM CLI
 
 This module provides commands for managing OKW facilities including
 creation, validation, listing, and matching operations.

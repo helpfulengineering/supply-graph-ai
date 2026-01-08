@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) implements a service architecture built around the `BaseService` pattern, providing standardized service management, lifecycle handling, performance tracking, and LLM integration support. This architecture ensures consistency, maintainability, and enterprise-grade capabilities across all services.
+The Open Hardware Manager (OHM) implements a service architecture built around the `BaseService` pattern, providing standardized service management, lifecycle handling, performance tracking, and LLM integration support. This architecture ensures consistency, maintainability, and enterprise-grade capabilities across all services.
 
 ## Architecture Principles
 
@@ -409,7 +409,7 @@ performance = await service.get_performance_summary()
 Services use a error hierarchy:
 
 ```python
-class ServiceError(OMEError):
+class ServiceError(OHMError):
     """Base service error."""
     pass
 
@@ -671,7 +671,7 @@ async def test_service_integration(self):
 
 ## Conclusion
 
-The OME service architecture provides a robust, standardized foundation for building scalable, maintainable services. The BaseService pattern ensures consistency across all services while providing features for monitoring, error handling, and LLM integration.
+The OHM service architecture provides a robust, standardized foundation for building scalable, maintainable services. The BaseService pattern ensures consistency across all services while providing features for monitoring, error handling, and LLM integration.
 
 Key benefits of this architecture:
 
@@ -682,4 +682,4 @@ Key benefits of this architecture:
 - **Scalability**: Designed for horizontal scaling and load distribution
 - **LLM Ready**: Prepared for LLM integration
 
-This architecture forms the foundation for the OME system's service layer and provides a solid base for future enhancements and LLM integration.
+This architecture forms the foundation for the OHM system's service layer and provides a solid base for future enhancements and LLM integration.

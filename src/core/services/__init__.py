@@ -1,5 +1,5 @@
 """
-Core services module for the Open Matching Engine (OME).
+Core services module for the Open Hardware Manager (OHM).
 
 This module provides standardized service classes and utilities for managing
 OKH manifests, OKW facilities, matching operations, and other core functionality.

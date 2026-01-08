@@ -1,5 +1,5 @@
 """
-LLM Request Models for the Open Matching Engine.
+LLM Request Models for the Open Hardware Manager.
 
 This module provides data models for LLM requests and configuration.
 """

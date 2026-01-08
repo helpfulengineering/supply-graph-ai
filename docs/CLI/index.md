@@ -1,16 +1,16 @@
-# Open Matching Engine (OME) CLI Documentation
+# Open Hardware Manager (OHM) CLI Documentation
 
 ## Overview
 
-The Open Matching Engine (OME) Command Line Interface provides a set of tools for managing OKH packages, OKW facilities, matching operations, and system administration. The CLI supports both HTTP API mode (when connected to a server) and fallback mode (direct service calls).
+The Open Hardware Manager (OHM) Command Line Interface provides a set of tools for managing OKH packages, OKW facilities, matching operations, and system administration. The CLI supports both HTTP API mode (when connected to a server) and fallback mode (direct service calls).
 
 
 ## Documentation Structure
 
-This directory contains documentation for the OME CLI:
+This directory contains documentation for the OHM CLI:
 
 - **📖 [Main Documentation](index.md)** - Complete CLI reference with all commands, options, and examples
-- **🚀 [Quick Start Guide](quick-start.md)** - Get up and running with the OME CLI in 5 minutes
+- **🚀 [Quick Start Guide](quick-start.md)** - Get up and running with the OHM CLI in 5 minutes
 - **💡 [Examples](examples.md)** - Practical examples and workflows for common use cases
 - **🏗️ [Architecture](architecture.md)** - Technical architecture and implementation details
 
@@ -27,7 +27,7 @@ This directory contains documentation for the OME CLI:
 
 - Python 3.8+
 - Conda environment `supply-graph-ai` activated
-- OME server running (optional, for HTTP mode)
+- OHM server running (optional, for HTTP mode)
 
 ### Basic Usage
 
@@ -39,22 +39,22 @@ conda activate supply-graph-ai
 cd supply-graph-ai
 
 # Run the CLI
-python ome [COMMAND] [OPTIONS]
+python ohm [COMMAND] [OPTIONS]
 ```
 
 ## Global Options
 
-The OME CLI supports several global options that apply to all commands:
+The OHM CLI supports several global options that apply to all commands:
 
 ```bash
-ome [GLOBAL_OPTIONS] [COMMAND] [COMMAND_OPTIONS]
+ohm [GLOBAL_OPTIONS] [COMMAND] [COMMAND_OPTIONS]
 ```
 
 ### Global Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `--server-url TEXT` | OME server URL | `http://localhost:8001` |
+| `--server-url TEXT` | OHM server URL | `http://localhost:8001` |
 | `--timeout FLOAT` | Request timeout in seconds | `30.0` |
 | `-v, --verbose` | Enable verbose output with execution tracking | `False` |
 | `--json` | Output in JSON format | `False` |
@@ -70,24 +70,24 @@ ome [GLOBAL_OPTIONS] [COMMAND] [COMMAND_OPTIONS]
 
 ```bash
 # Use verbose mode with execution tracking
-ome --verbose system health
+ohm --verbose system health
 
 # Get JSON output
-ome --json package list-packages
+ohm --json package list-packages
 
 # Set custom timeout
-ome --timeout 60 package build manifest.json
+ohm --timeout 60 package build manifest.json
 
 # Use LLM integration for enhanced analysis
-ome --use-llm --llm-provider anthropic --quality-level professional okh validate manifest.json
+ohm --use-llm --llm-provider anthropic --quality-level professional okh validate manifest.json
 
 # Global LLM configuration
-ome --use-llm --quality-level medical --strict-mode system health
+ohm --use-llm --quality-level medical --strict-mode system health
 ```
 
 ## Command Groups
 
-The OME CLI is organized into 7 main command groups with 53 total commands:
+The OHM CLI is organized into 7 main command groups with 53 total commands:
 
 1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching and rules management
 2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management
@@ -105,12 +105,12 @@ The OME CLI is organized into 7 main command groups with 53 total commands:
 
 Manage OKH packages including building, pushing, pulling, and verification. 
 
-### `ome package build`
+### `ohm package build`
 
 Build an OKH package from a manifest file.
 
 ```bash
-ome package build MANIFEST_FILE [OPTIONS]
+ohm package build MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -131,21 +131,21 @@ ome package build MANIFEST_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Build a package from manifest
-ome package build openflexure-microscope.okh.json
+ohm package build openflexure-microscope.okh.json
 
 # Build with LLM enhancement
-ome package build manifest.json --use-llm --llm-provider anthropic --quality-level professional
+ohm package build manifest.json --use-llm --llm-provider anthropic --quality-level professional
 
 # Build with custom options
-ome package build manifest.json --no-design-files --output-dir ./my-packages/
+ohm package build manifest.json --no-design-files --output-dir ./my-packages/
 ```
 
-### `ome package build-from-storage`
+### `ohm package build-from-storage`
 
 Build an OKH package from a stored manifest.
 
 ```bash
-ome package build-from-storage MANIFEST_ID [OPTIONS]
+ohm package build-from-storage MANIFEST_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -157,12 +157,12 @@ ome package build-from-storage MANIFEST_ID [OPTIONS]
 - `--no-manufacturing-files` - Skip downloading manufacturing files
 - `--no-software` - Skip downloading software files
 
-### `ome package list-packages`
+### `ohm package list-packages`
 
 List all built packages.
 
 ```bash
-ome package list-packages
+ohm package list-packages
 ```
 
 **Output:**
@@ -171,36 +171,36 @@ ome package list-packages
 - File count and size
 - Build timestamp
 
-### `ome package verify`
+### `ohm package verify`
 
 Verify a package's integrity.
 
 ```bash
-ome package verify PACKAGE_NAME VERSION
+ohm package verify PACKAGE_NAME VERSION
 ```
 
 **Arguments:**
 - `PACKAGE_NAME` - Package name (e.g., "org/project")
 - `VERSION` - Package version
 
-### `ome package delete`
+### `ohm package delete`
 
 Delete a package.
 
 ```bash
-ome package delete PACKAGE_NAME VERSION
+ohm package delete PACKAGE_NAME VERSION
 ```
 
 **Arguments:**
 - `PACKAGE_NAME` - Package name (e.g., "org/project")
 - `VERSION` - Package version
 
-### `ome package push`
+### `ohm package push`
 
 Push a local package to remote storage.
 
 ```bash
-ome package push PACKAGE_NAME VERSION
+ohm package push PACKAGE_NAME VERSION
 ```
 
 **Arguments:**
@@ -210,15 +210,15 @@ ome package push PACKAGE_NAME VERSION
 **Examples:**
 ```bash
 # Push a package to remote storage
-ome package push community/simple-test-project 1.0.0
+ohm package push community/simple-test-project 1.0.0
 ```
 
-### `ome package pull`
+### `ohm package pull`
 
 Pull a remote package to local storage.
 
 ```bash
-ome package pull PACKAGE_NAME VERSION [OPTIONS]
+ohm package pull PACKAGE_NAME VERSION [OPTIONS]
 ```
 
 **Arguments:**
@@ -231,18 +231,18 @@ ome package pull PACKAGE_NAME VERSION [OPTIONS]
 **Examples:**
 ```bash
 # Pull a package from remote storage
-ome package pull community/simple-test-project 1.0.0
+ohm package pull community/simple-test-project 1.0.0
 
 # Pull to specific directory
-ome package pull org/project 1.0.0 --output-dir ./my-packages/
+ohm package pull org/project 1.0.0 --output-dir ./my-packages/
 ```
 
-### `ome package list-remote`
+### `ohm package list-remote`
 
 List packages available in remote storage.
 
 ```bash
-ome package list-remote
+ohm package list-remote
 ```
 
 **Output:**
@@ -256,12 +256,12 @@ ome package list-remote
 
 Manage OpenKnowHow (OKH) manifests for hardware designs.
 
-### `ome okh validate`
+### `ohm okh validate`
 
 Validate an OKH manifest with domain-aware validation support.
 
 ```bash
-ome okh validate MANIFEST_FILE [OPTIONS]
+ohm okh validate MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -280,21 +280,21 @@ ome okh validate MANIFEST_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Validate manufacturing manifest (auto-detected)
-ome okh validate my-design.okh.json
+ohm okh validate my-design.okh.json
 
 # Validate cooking recipe with explicit domain
-ome okh validate recipe.json --domain cooking --quality-level home
+ohm okh validate recipe.json --domain cooking --quality-level home
 
 # Validate with strict mode
-ome okh validate manifest.json --strict-mode --quality-level professional
+ohm okh validate manifest.json --strict-mode --quality-level professional
 ```
 
-### `ome okh create`
+### `ohm okh create`
 
 Create and store an OKH manifest.
 
 ```bash
-ome okh create MANIFEST_FILE [OPTIONS]
+ohm okh create MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -304,12 +304,12 @@ ome okh create MANIFEST_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome okh get`
+### `ohm okh get`
 
 Get an OKH manifest by ID and display the full JSON to stdout.
 
 ```bash
-ome okh get MANIFEST_ID [OPTIONS]
+ohm okh get MANIFEST_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -327,24 +327,24 @@ ome okh get MANIFEST_ID [OPTIONS]
 **Examples:**
 ```bash
 # Get manifest and display to stdout
-ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd
+ohm okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd
 
 # Get manifest and save to file
-ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd --output manifest.json
+ohm okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd --output manifest.json
 
 # Pipe to another command
-ome okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd | jq '.title'
+ohm okh get 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd | jq '.title'
 ```
 
 **Output:**
 The command outputs the complete manifest JSON to stdout by default, making it easy to pipe to other commands or save to files.
 
-### `ome okh list-manifests`
+### `ohm okh list-manifests`
 
 List stored OKH manifests with detailed information.
 
 ```bash
-ome okh list-manifests [OPTIONS]
+ohm okh list-manifests [OPTIONS]
 ```
 
 **Options:**
@@ -367,13 +367,13 @@ The command displays a numbered list of manifests with:
 **Examples:**
 ```bash
 # List all manifests
-ome okh list-manifests
+ohm okh list-manifests
 
 # List with pagination
-ome okh list-manifests --limit 20 --offset 10
+ohm okh list-manifests --limit 20 --offset 10
 
 # List in JSON format
-ome okh list-manifests --json
+ohm okh list-manifests --json
 ```
 
 **Example Output:**
@@ -387,23 +387,23 @@ ome okh list-manifests --json
 Total: 1 manifest(s)
 ```
 
-### `ome okh delete`
+### `ohm okh delete`
 
 Delete an OKH manifest.
 
 ```bash
-ome okh delete MANIFEST_ID
+ohm okh delete MANIFEST_ID
 ```
 
 **Arguments:**
 - `MANIFEST_ID` - UUID of the manifest
 
-### `ome okh fix`
+### `ohm okh fix`
 
 Automatically fix validation issues in an OKH manifest.
 
 ```bash
-ome okh fix MANIFEST_FILE [OPTIONS]
+ohm okh fix MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -426,19 +426,19 @@ ome okh fix MANIFEST_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Fix manifest issues interactively
-ome okh fix manifest.json
+ohm okh fix manifest.json
 
 # Preview fixes without applying
-ome okh fix manifest.json --dry-run
+ohm okh fix manifest.json --dry-run
 
 # Fix with backup and auto-confirm
-ome okh fix manifest.json --backup --yes
+ohm okh fix manifest.json --backup --yes
 
 # Fix with custom confidence threshold
-ome okh fix manifest.json --confidence-threshold 0.7
+ohm okh fix manifest.json --confidence-threshold 0.7
 
 # Fix cooking domain recipe
-ome okh fix recipe.json --domain cooking
+ohm okh fix recipe.json --domain cooking
 ```
 
 **Output:**
@@ -448,12 +448,12 @@ The command displays a detailed fix report including:
 - Status: complete success, partial success, or failure
 - Detailed list of all fixes (when verbose)
 
-### `ome okh extract`
+### `ohm okh extract`
 
 Extract requirements from an OKH manifest.
 
 ```bash
-ome okh extract MANIFEST_FILE [OPTIONS]
+ohm okh extract MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -463,12 +463,12 @@ ome okh extract MANIFEST_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Extraction quality level
 - `--strict-mode` - Enable strict extraction mode
 
-### `ome okh upload`
+### `ohm okh upload`
 
 Upload and validate an OKH manifest file.
 
 ```bash
-ome okh upload MANIFEST_FILE [OPTIONS]
+ohm okh upload MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -478,12 +478,12 @@ ome okh upload MANIFEST_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome okh scaffold`
+### `ohm okh scaffold`
 
 Generate an OKH-compliant project scaffold with documentation stubs and manifest template.
 
 ```bash
-ome okh scaffold PROJECT_NAME [OPTIONS]
+ohm okh scaffold PROJECT_NAME [OPTIONS]
 ```
 
 **Arguments:**
@@ -522,24 +522,24 @@ The scaffold includes comprehensive linking between documentation sections:
 **Examples:**
 ```bash
 # Generate basic project scaffold
-ome okh scaffold my-awesome-project
+ohm okh scaffold my-awesome-project
 
 # Generate with detailed templates and ZIP output
-ome okh scaffold arduino-sensor --template-level detailed --output-format zip
+ohm okh scaffold arduino-sensor --template-level detailed --output-format zip
 
 # Generate to filesystem with custom organization
-ome okh scaffold microscope-stage --organization "University Lab" --output-format filesystem --output-path ./projects
+ohm okh scaffold microscope-stage --organization "University Lab" --output-format filesystem --output-path ./projects
 
 # Generate minimal scaffold for experienced developers
-ome okh scaffold quick-prototype --template-level minimal --output-format json
+ohm okh scaffold quick-prototype --template-level minimal --output-format json
 ```
 
-### `ome okh scaffold-cleanup`
+### `ohm okh scaffold-cleanup`
 
 Clean and optimize a scaffolded OKH project directory by removing unmodified documentation stubs and empty directories.
 
 ```bash
-ome okh scaffold-cleanup PROJECT_PATH [OPTIONS]
+ohm okh scaffold-cleanup PROJECT_PATH [OPTIONS]
 ```
 
 **Arguments:**
@@ -556,7 +556,7 @@ ome okh scaffold-cleanup PROJECT_PATH [OPTIONS]
 - **Broken Link Detection**: Detects and warns about broken links in remaining markdown files after cleanup
 - **Dry Run Mode**: Preview changes before applying cleanup (default behavior)
 - **Preserves User Content**: Only removes files that exactly match scaffold-generated templates
-- **Empty Directory Cleanup**: Removes directories that become empty after file cleanup
+- **Empty Directory Cleanup**: Removes directories that becohm empty after file cleanup
 
 **Cleanup Behavior:**
 - **Stub Detection**: Files are considered "unmodified stubs" if their content exactly matches the scaffold-generated template (including links and cross-references)
@@ -572,16 +572,16 @@ After removing files, cleanup scans remaining markdown files for links pointing 
 **Examples:**
 ```bash
 # Preview cleanup (dry-run) - see what would be removed
-ome okh scaffold-cleanup ./projects/my-hardware-project
+ohm okh scaffold-cleanup ./projects/my-hardware-project
 
 # Apply cleanup to remove unmodified stubs and empty directories
-ome okh scaffold-cleanup ./projects/my-hardware-project --apply
+ohm okh scaffold-cleanup ./projects/my-hardware-project --apply
 
 # Apply cleanup but keep empty directories
-ome okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-empty-directories
+ohm okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-empty-directories
 
 # Keep unmodified stubs but remove empty directories
-ome okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-unmodified-stubs
+ohm okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-unmodified-stubs
 ```
 
 **Output:**
@@ -617,12 +617,12 @@ ome okh scaffold-cleanup ./projects/my-hardware-project --apply --keep-unmodifie
    ⚠️  Broken link(s) in docs/index.md: ../bom/index.md
 ```
 
-### `ome okh export`
+### `ohm okh export`
 
 Export the JSON schema for the OKH (OpenKnowHow) domain model.
 
 ```bash
-ome okh export [OPTIONS]
+ohm okh export [OPTIONS]
 ```
 
 **Description:**
@@ -642,13 +642,13 @@ The exported schema can be used for:
 **Examples:**
 ```bash
 # Export schema to console
-ome okh export
+ohm okh export
 
 # Export schema to file
-ome okh export --output okh-schema.json
+ohm okh export --output okh-schema.json
 
 # Export with JSON output format
-ome okh export --output okh-schema.json --json
+ohm okh export --output okh-schema.json --json
 ```
 
 ---
@@ -657,12 +657,12 @@ ome okh export --output okh-schema.json --json
 
 Manage OpenKnowWhere (OKW) facilities for manufacturing capabilities.
 
-### `ome okw validate`
+### `ohm okw validate`
 
 Validate an OKW facility.
 
 ```bash
-ome okw validate FACILITY_FILE [OPTIONS]
+ohm okw validate FACILITY_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -672,12 +672,12 @@ ome okw validate FACILITY_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome okw create`
+### `ohm okw create`
 
 Create and store an OKW facility.
 
 ```bash
-ome okw create FACILITY_FILE [OPTIONS]
+ohm okw create FACILITY_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -687,12 +687,12 @@ ome okw create FACILITY_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome okw get`
+### `ohm okw get`
 
 Get an OKW facility by ID and display the full JSON to stdout.
 
 ```bash
-ome okw get FACILITY_ID [OPTIONS]
+ohm okw get FACILITY_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -710,26 +710,26 @@ ome okw get FACILITY_ID [OPTIONS]
 **Examples:**
 ```bash
 # Get facility and display to stdout
-ome okw get 550e8400-e29b-41d4-a716-446655440001
+ohm okw get 550e8400-e29b-41d4-a716-446655440001
 
 # Get facility and save to file
-ome okw get 550e8400-e29b-41d4-a716-446655440001 --output facility.json
+ohm okw get 550e8400-e29b-41d4-a716-446655440001 --output facility.json
 
 # Pipe to another command
-ome okw get 550e8400-e29b-41d4-a716-446655440001 | jq '.name'
+ohm okw get 550e8400-e29b-41d4-a716-446655440001 | jq '.name'
 ```
 
 **Output:**
 The command outputs the complete facility JSON to stdout by default, making it easy to pipe to other commands or save to files.
 
-**Note:** The facility ID must be the full UUID. Use `ome okw list-files` to find facility IDs.
+**Note:** The facility ID must be the full UUID. Use `ohm okw list-files` to find facility IDs.
 
-### `ome okw list-files`
+### `ohm okw list-files`
 
 List OKW files in Azure blob storage with facility IDs.
 
 ```bash
-ome okw list-files [OPTIONS]
+ohm okw list-files [OPTIONS]
 ```
 
 **Options:**
@@ -741,20 +741,20 @@ ome okw list-files [OPTIONS]
 **Output:**
 The command displays a numbered list of OKW files with:
 - File key (storage path)
-- Facility ID (UUID) - required for `ome okw get` command
+- Facility ID (UUID) - required for `ohm okw get` command
 - File size (in KB)
 - Last modified date
 
 **Examples:**
 ```bash
 # List all OKW files
-ome okw list-files
+ohm okw list-files
 
 # List files with specific prefix
-ome okw list-files --prefix okw/facilities/
+ohm okw list-files --prefix okw/facilities/
 
 # Save list to JSON file
-ome okw list-files --output files.json --format json
+ohm okw list-files --output files.json --format json
 ```
 
 **Example Output:**
@@ -768,35 +768,35 @@ ome okw list-files --output files.json --format json
 Total: 4 file(s)
 ```
 
-### `ome okw list-facilities`
+### `ohm okw list-facilities`
 
 List stored OKW facilities.
 
 ```bash
-ome okw list-facilities [OPTIONS]
+ohm okw list-facilities [OPTIONS]
 ```
 
 **Options:**
 - `--limit INTEGER` - Maximum number of results
 - `--offset INTEGER` - Number of results to skip
 
-### `ome okw delete`
+### `ohm okw delete`
 
 Delete an OKW facility.
 
 ```bash
-ome okw delete FACILITY_ID
+ohm okw delete FACILITY_ID
 ```
 
 **Arguments:**
 - `FACILITY_ID` - UUID of the facility
 
-### `ome okw fix`
+### `ohm okw fix`
 
 Automatically fix validation issues in an OKW facility.
 
 ```bash
-ome okw fix FACILITY_FILE [OPTIONS]
+ohm okw fix FACILITY_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -819,19 +819,19 @@ ome okw fix FACILITY_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Fix facility issues interactively
-ome okw fix facility.json
+ohm okw fix facility.json
 
 # Preview fixes without applying
-ome okw fix facility.json --dry-run
+ohm okw fix facility.json --dry-run
 
 # Fix with backup and auto-confirm
-ome okw fix facility.json --backup --yes
+ohm okw fix facility.json --backup --yes
 
 # Fix with custom confidence threshold
-ome okw fix facility.json --confidence-threshold 0.7
+ohm okw fix facility.json --confidence-threshold 0.7
 
 # Fix cooking domain kitchen
-ome okw fix kitchen.json --domain cooking
+ohm okw fix kitchen.json --domain cooking
 ```
 
 **Output:**
@@ -841,12 +841,12 @@ The command displays a detailed fix report including:
 - Status: complete success, partial success, or failure
 - Detailed list of all remaining issues (when verbose)
 
-### `ome okw extract-capabilities`
+### `ohm okw extract-capabilities`
 
 Extract capabilities from an OKW facility.
 
 ```bash
-ome okw extract-capabilities FACILITY_FILE [OPTIONS]
+ohm okw extract-capabilities FACILITY_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -856,12 +856,12 @@ ome okw extract-capabilities FACILITY_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Extraction quality level
 - `--strict-mode` - Enable strict extraction mode
 
-### `ome okw upload`
+### `ohm okw upload`
 
 Upload and validate an OKW facility file.
 
 ```bash
-ome okw upload FACILITY_FILE [OPTIONS]
+ohm okw upload FACILITY_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -871,12 +871,12 @@ ome okw upload FACILITY_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome okw search`
+### `ohm okw search`
 
 Search OKW facilities.
 
 ```bash
-ome okw search [OPTIONS]
+ohm okw search [OPTIONS]
 ```
 
 **Options:**
@@ -889,18 +889,18 @@ ome okw search [OPTIONS]
 **Examples:**
 ```bash
 # Search for facilities with 3D printing capability
-ome okw search --capability "3d-printing"
+ohm okw search --capability "3d-printing"
 
 # Search for facilities in a specific location
-ome okw search --location "San Francisco"
+ohm okw search --location "San Francisco"
 ```
 
-### `ome okw export`
+### `ohm okw export`
 
 Export the JSON schema for the OKW (OpenKnowWhere) domain model.
 
 ```bash
-ome okw export [OPTIONS]
+ohm okw export [OPTIONS]
 ```
 
 **Description:**
@@ -920,13 +920,13 @@ The exported schema can be used for:
 **Examples:**
 ```bash
 # Export schema to console
-ome okw export
+ohm okw export
 
 # Export schema to file
-ome okw export --output okw-schema.json
+ohm okw export --output okw-schema.json
 
 # Export with JSON output format
-ome okw export --output okw-schema.json --json
+ohm okw export --output okw-schema.json --json
 ```
 
 ---
@@ -935,12 +935,12 @@ ome okw export --output okw-schema.json --json
 
 Perform matching operations between requirements and capabilities across multiple domains. Supports both **manufacturing domain** (OKH/OKW) and **cooking domain** (recipe/kitchen).
 
-### `ome match requirements`
+### `ohm match requirements`
 
 Match requirements to capabilities across multiple domains. Supports both **manufacturing domain** (OKH/OKW) and **cooking domain** (recipe/kitchen).
 
 ```bash
-ome match requirements INPUT_FILE [OPTIONS]
+ohm match requirements INPUT_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -978,46 +978,46 @@ You can also explicitly specify the domain using the `--domain` option.
 **Examples:**
 ```bash
 # Match OKH requirements (manufacturing domain)
-ome match requirements my-design.okh.json
+ohm match requirements my-design.okh.json
 
 # Match recipe requirements (cooking domain)
-ome match requirements chocolate-chip-cookies-recipe.json
+ohm match requirements chocolate-chip-cookies-recipe.json
 
 # Match with explicit domain override
-ome match requirements input.json --domain cooking
+ohm match requirements input.json --domain cooking
 
 # Match with local facility file (cooking domain)
-ome match requirements recipe.json --domain cooking --facility-file kitchen.json
+ohm match requirements recipe.json --domain cooking --facility-file kitchen.json
 
 # Match with location filter
-ome match requirements my-design.okh.json --location "San Francisco"
+ohm match requirements my-design.okh.json --location "San Francisco"
 
 # Match with high confidence threshold
-ome match requirements my-design.okh.json --min-confidence 0.9
+ohm match requirements my-design.okh.json --min-confidence 0.9
 
 # Match with LLM enhancement
-ome match requirements my-design.okh.json --use-llm --quality-level professional
+ohm match requirements my-design.okh.json --use-llm --quality-level professional
 
 # Save results to file
-ome match requirements my-design.okh.json --output matches.json
+ohm match requirements my-design.okh.json --output matches.json
 ```
 
 **Output:**
 The command displays matching facilities with:
 - Facility name
-- **Full facility ID (UUID)** - required for `ome okw get` command
+- **Full facility ID (UUID)** - required for `ohm okw get` command
 - Confidence score
 - Match type (manufacturing or cooking)
 - Location (if available)
 
-**Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ome okw get` to retrieve facility details.
+**Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ohm okw get` to retrieve facility details.
 
-### `ome match validate`
+### `ohm match validate`
 
 Validate a match result.
 
 ```bash
-ome match validate MATCH_FILE [OPTIONS]
+ohm match validate MATCH_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1027,12 +1027,12 @@ ome match validate MATCH_FILE [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome match from-file`
+### `ohm match from-file`
 
 Match from file upload.
 
 ```bash
-ome match from-file MANIFEST_FILE [OPTIONS]
+ohm match from-file MANIFEST_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1043,12 +1043,12 @@ ome match from-file MANIFEST_FILE [OPTIONS]
 - `--domain TEXT` - Domain for matching
 - `--context TEXT` - Validation context
 
-### `ome match list-recent`
+### `ohm match list-recent`
 
 List recent matches.
 
 ```bash
-ome match list-recent [OPTIONS]
+ohm match list-recent [OPTIONS]
 ```
 
 **Options:**
@@ -1059,14 +1059,14 @@ ome match list-recent [OPTIONS]
 
 Manage capability-centric heuristic matching rules. These commands allow you to inspect, modify, import, export, and validate the rules used for matching requirements to capabilities.
 
-**Base Command:** `ome match rules`
+**Base Command:** `ohm match rules`
 
-#### `ome match rules list`
+#### `ohm match rules list`
 
 List all matching rules, optionally filtered by domain or tag.
 
 ```bash
-ome match rules list [OPTIONS]
+ohm match rules list [OPTIONS]
 ```
 
 **Options:**
@@ -1080,24 +1080,24 @@ ome match rules list [OPTIONS]
 **Examples:**
 ```bash
 # List all rules
-ome match rules list
+ohm match rules list
 
 # List rules for a specific domain
-ome match rules list --domain cooking
+ohm match rules list --domain cooking
 
 # List rules with a specific tag
-ome match rules list --tag "technique"
+ohm match rules list --tag "technique"
 
 # List rules with metadata
-ome match rules list --include-metadata --json
+ohm match rules list --include-metadata --json
 ```
 
-#### `ome match rules get`
+#### `ohm match rules get`
 
 Get a specific rule by domain and ID.
 
 ```bash
-ome match rules get DOMAIN RULE_ID [OPTIONS]
+ohm match rules get DOMAIN RULE_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -1111,18 +1111,18 @@ ome match rules get DOMAIN RULE_ID [OPTIONS]
 **Examples:**
 ```bash
 # Get a specific rule
-ome match rules get cooking sauté_capability
+ohm match rules get cooking sauté_capability
 
 # Get rule in JSON format
-ome match rules get manufacturing cnc_machining_capability --json
+ohm match rules get manufacturing cnc_machining_capability --json
 ```
 
-#### `ome match rules create`
+#### `ohm match rules create`
 
 Create a new rule from file or interactively.
 
 ```bash
-ome match rules create [OPTIONS]
+ohm match rules create [OPTIONS]
 ```
 
 **Options:**
@@ -1134,13 +1134,13 @@ ome match rules create [OPTIONS]
 **Examples:**
 ```bash
 # Create rule from file
-ome match rules create --file rule.yaml
+ohm match rules create --file rule.yaml
 
 # Create rule interactively
-ome match rules create --interactive
+ohm match rules create --interactive
 
 # Create rule from file with JSON output
-ome match rules create --file rule.json --json
+ohm match rules create --file rule.json --json
 ```
 
 **Interactive Mode:**
@@ -1153,12 +1153,12 @@ When using `--interactive`, the command will prompt for:
 - Description
 - Tags (comma-separated)
 
-#### `ome match rules update`
+#### `ohm match rules update`
 
 Update an existing rule from file or interactively.
 
 ```bash
-ome match rules update DOMAIN RULE_ID [OPTIONS]
+ohm match rules update DOMAIN RULE_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -1174,21 +1174,21 @@ ome match rules update DOMAIN RULE_ID [OPTIONS]
 **Examples:**
 ```bash
 # Update rule from file
-ome match rules update cooking sauté_capability --file updated_rule.yaml
+ohm match rules update cooking sauté_capability --file updated_rule.yaml
 
 # Update rule interactively
-ome match rules update manufacturing cnc_machining_capability --interactive
+ohm match rules update manufacturing cnc_machining_capability --interactive
 ```
 
 **Interactive Mode:**
 Interactive mode shows current values and allows you to update them. Press Enter to keep existing values.
 
-#### `ome match rules delete`
+#### `ohm match rules delete`
 
 Delete a rule.
 
 ```bash
-ome match rules delete DOMAIN RULE_ID [OPTIONS]
+ohm match rules delete DOMAIN RULE_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -1203,18 +1203,18 @@ ome match rules delete DOMAIN RULE_ID [OPTIONS]
 **Examples:**
 ```bash
 # Delete a rule (with confirmation prompt)
-ome match rules delete cooking sauté_capability
+ohm match rules delete cooking sauté_capability
 
 # Delete a rule without confirmation
-ome match rules delete manufacturing cnc_machining_capability --confirm
+ohm match rules delete manufacturing cnc_machining_capability --confirm
 ```
 
-#### `ome match rules import`
+#### `ohm match rules import`
 
 Import rules from YAML or JSON file.
 
 ```bash
-ome match rules import FILE [OPTIONS]
+ohm match rules import FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1231,24 +1231,24 @@ ome match rules import FILE [OPTIONS]
 **Examples:**
 ```bash
 # Import rules from file
-ome match rules import rules.yaml
+ohm match rules import rules.yaml
 
 # Import rules with dry-run (preview changes)
-ome match rules import rules.yaml --dry-run
+ohm match rules import rules.yaml --dry-run
 
 # Import rules for specific domain
-ome match rules import rules.yaml --domain manufacturing
+ohm match rules import rules.yaml --domain manufacturing
 
 # Import rules without partial updates
-ome match rules import rules.yaml --no-partial-update
+ohm match rules import rules.yaml --no-partial-update
 ```
 
-#### `ome match rules export`
+#### `ohm match rules export`
 
 Export rules to YAML or JSON file.
 
 ```bash
-ome match rules export OUTPUT_FILE [OPTIONS]
+ohm match rules export OUTPUT_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1264,24 +1264,24 @@ ome match rules export OUTPUT_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Export all rules to YAML
-ome match rules export rules.yaml
+ohm match rules export rules.yaml
 
 # Export rules to JSON
-ome match rules export rules.json --format json
+ohm match rules export rules.json --format json
 
 # Export specific domain
-ome match rules export cooking_rules.yaml --domain cooking
+ohm match rules export cooking_rules.yaml --domain cooking
 
 # Export with metadata
-ome match rules export rules.yaml --include-metadata
+ohm match rules export rules.yaml --include-metadata
 ```
 
-#### `ome match rules validate`
+#### `ohm match rules validate`
 
 Validate rule file without importing.
 
 ```bash
-ome match rules validate FILE [OPTIONS]
+ohm match rules validate FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1294,10 +1294,10 @@ ome match rules validate FILE [OPTIONS]
 **Examples:**
 ```bash
 # Validate rule file
-ome match rules validate rules.yaml
+ohm match rules validate rules.yaml
 
 # Validate rule file with JSON output
-ome match rules validate rules.json --json
+ohm match rules validate rules.json --json
 ```
 
 **Output:**
@@ -1306,12 +1306,12 @@ The command displays validation results:
 - `errors`: List of validation errors (if any)
 - `warnings`: List of validation warnings (if any)
 
-#### `ome match rules compare`
+#### `ohm match rules compare`
 
 Compare rules file with current rules (dry-run import).
 
 ```bash
-ome match rules compare FILE [OPTIONS]
+ohm match rules compare FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1325,13 +1325,13 @@ ome match rules compare FILE [OPTIONS]
 **Examples:**
 ```bash
 # Compare rules file with current rules
-ome match rules compare rules.yaml
+ohm match rules compare rules.yaml
 
 # Compare rules for specific domain
-ome match rules compare rules.yaml --domain manufacturing
+ohm match rules compare rules.yaml --domain manufacturing
 
 # Compare with JSON output
-ome match rules compare rules.yaml --json
+ohm match rules compare rules.yaml --json
 ```
 
 **Output:**
@@ -1341,12 +1341,12 @@ The command displays comparison results:
 - `deleted`: Rules that would be deleted
 - Summary counts for each category
 
-#### `ome match rules reset`
+#### `ohm match rules reset`
 
 Reset all rules (clear all rule sets).
 
 ```bash
-ome match rules reset [OPTIONS]
+ohm match rules reset [OPTIONS]
 ```
 
 **Options:**
@@ -1357,10 +1357,10 @@ ome match rules reset [OPTIONS]
 **Examples:**
 ```bash
 # Reset all rules (with confirmation prompt)
-ome match rules reset
+ohm match rules reset
 
 # Reset all rules without confirmation
-ome match rules reset --confirm
+ohm match rules reset --confirm
 ```
 
 **Warning:** This command permanently deletes all rules. Use with caution.
@@ -1371,12 +1371,12 @@ ome match rules reset --confirm
 
 Manage LLM operations and AI features for enhanced OKH manifest generation and facility matching.
 
-### `ome llm generate`
+### `ohm llm generate`
 
 Generate content using the LLM service.
 
 ```bash
-ome llm generate PROMPT [OPTIONS]
+ohm llm generate PROMPT [OPTIONS]
 ```
 
 **Arguments:**
@@ -1394,25 +1394,25 @@ ome llm generate PROMPT [OPTIONS]
 **Examples:**
 ```bash
 # Basic generation
-ome llm generate "Analyze this hardware project and generate an OKH manifest"
+ohm llm generate "Analyze this hardware project and generate an OKH manifest"
 
 # With specific provider and model
-ome llm generate "Generate OKH manifest" \
+ohm llm generate "Generate OKH manifest" \
   --provider anthropic \
   --model claude-sonnet-4-5-20250929
 
 # Save to file with JSON format
-ome llm generate "Analyze project" \
+ohm llm generate "Analyze project" \
   --output manifest.json \
   --format json
 ```
 
-### `ome llm generate-okh`
+### `ohm llm generate-okh`
 
 Generate an OKH manifest for a hardware project.
 
 ```bash
-ome llm generate-okh PROJECT_URL [OPTIONS]
+ohm llm generate-okh PROJECT_URL [OPTIONS]
 ```
 
 **Arguments:**
@@ -1432,25 +1432,25 @@ ome llm generate-okh PROJECT_URL [OPTIONS]
 **Examples:**
 ```bash
 # Generate from GitHub URL
-ome llm generate-okh https://github.com/example/iot-sensor
+ohm llm generate-okh https://github.com/example/iot-sensor
 
 # With specific provider
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --provider anthropic \
   --model claude-sonnet-4-5-20250929
 
 # Clone repository for better analysis
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --clone \
   --preserve-context
 ```
 
-### `ome llm match`
+### `ohm llm match`
 
 Use LLM to enhance facility matching.
 
 ```bash
-ome llm match REQUIREMENTS_FILE FACILITIES_FILE [OPTIONS]
+ohm llm match REQUIREMENTS_FILE FACILITIES_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -1470,25 +1470,25 @@ ome llm match REQUIREMENTS_FILE FACILITIES_FILE [OPTIONS]
 **Examples:**
 ```bash
 # Match requirements with facilities
-ome llm match requirements.json facilities.json
+ohm llm match requirements.json facilities.json
 
 # With confidence threshold
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --min-confidence 0.7 \
   --output matches.json
 
 # Table format output
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --format table \
   --min-confidence 0.6
 ```
 
-### `ome llm analyze`
+### `ohm llm analyze`
 
 Analyze a hardware project and extract information.
 
 ```bash
-ome llm analyze PROJECT_URL [OPTIONS]
+ohm llm analyze PROJECT_URL [OPTIONS]
 ```
 
 **Arguments:**
@@ -1508,27 +1508,27 @@ ome llm analyze PROJECT_URL [OPTIONS]
 **Examples:**
 ```bash
 # Basic project analysis
-ome llm analyze https://github.com/example/project
+ohm llm analyze https://github.com/example/project
 
 # Comprehensive analysis
-ome llm analyze https://github.com/example/project \
+ohm llm analyze https://github.com/example/project \
   --include-code \
   --include-docs \
   --output analysis.json \
   --format json
 
 # Markdown report
-ome llm analyze https://github.com/example/project \
+ohm llm analyze https://github.com/example/project \
   --output report.md \
   --format markdown
 ```
 
-### `ome llm providers`
+### `ohm llm providers`
 
 Manage LLM providers and configuration.
 
 ```bash
-ome llm providers [COMMAND]
+ohm llm providers [COMMAND]
 ```
 
 **Subcommands:**
@@ -1540,24 +1540,24 @@ ome llm providers [COMMAND]
 **Examples:**
 ```bash
 # List all providers
-ome llm providers list
+ohm llm providers list
 
 # Show provider status
-ome llm providers status
+ohm llm providers status
 
 # Set active provider
-ome llm providers set anthropic
+ohm llm providers set anthropic
 
 # Test provider connection
-ome llm providers test anthropic
+ohm llm providers test anthropic
 ```
 
-### `ome llm service`
+### `ohm llm service`
 
 Manage LLM service and metrics.
 
 ```bash
-ome llm service [COMMAND]
+ohm llm service [COMMAND]
 ```
 
 **Subcommands:**
@@ -1569,16 +1569,16 @@ ome llm service [COMMAND]
 **Examples:**
 ```bash
 # Show service status
-ome llm service status
+ohm llm service status
 
 # Show usage metrics
-ome llm service metrics
+ohm llm service metrics
 
 # Check health
-ome llm service health
+ohm llm service health
 
 # Reset service
-ome llm service reset
+ohm llm service reset
 ```
 
 ---
@@ -1587,12 +1587,12 @@ ome llm service reset
 
 System administration and monitoring commands. 
 
-### `ome system health`
+### `ohm system health`
 
 Check system health and status.
 
 ```bash
-ome system health
+ohm system health
 ```
 
 **Output:**
@@ -1601,12 +1601,12 @@ ome system health
 - Mode (HTTP/fallback)
 - Registered domains
 
-### `ome system domains`
+### `ohm system domains`
 
 List available domains and their status.
 
 ```bash
-ome system domains
+ohm system domains
 ```
 
 **Output:**
@@ -1614,12 +1614,12 @@ ome system domains
 - Domain descriptions
 - Domain status
 
-### `ome system status`
+### `ohm system status`
 
 Show detailed system status.
 
 ```bash
-ome system status
+ohm system status
 ```
 
 **Output:**
@@ -1628,24 +1628,24 @@ ome system status
 - Domain information
 - Version details
 
-### `ome system ping`
+### `ohm system ping`
 
-Ping the OME server.
+Ping the OHM server.
 
 ```bash
-ome system ping
+ohm system ping
 ```
 
 **Output:**
 - Server response time
 - Connection status
 
-### `ome system info`
+### `ohm system info`
 
-Show OME system information.
+Show OHM system information.
 
 ```bash
-ome system info
+ohm system info
 ```
 
 **Output:**
@@ -1659,12 +1659,12 @@ ome system info
 
 **⚠️ Note**: Supply Tree Commands are not implemented in the current CLI version. These commands are documented for future reference but are not available for use.
 
-### `ome supply-tree create`
+### `ohm supply-tree create`
 
 Create a new supply tree from OKH manifest and OKW facility.
 
 ```bash
-ome supply-tree create OKH_MANIFEST_ID OKW_FACILITY_ID [OPTIONS]
+ohm supply-tree create OKH_MANIFEST_ID OKW_FACILITY_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -1676,23 +1676,23 @@ ome supply-tree create OKH_MANIFEST_ID OKW_FACILITY_ID [OPTIONS]
 - `--quality-level [basic\|standard\|premium]` - Validation quality level
 - `--strict-mode` - Enable strict validation mode
 
-### `ome supply-tree get`
+### `ohm supply-tree get`
 
 Get a supply tree by ID.
 
 ```bash
-ome supply-tree get SUPPLY_TREE_ID
+ohm supply-tree get SUPPLY_TREE_ID
 ```
 
 **Arguments:**
 - `SUPPLY_TREE_ID` - UUID of the supply tree
 
-### `ome supply-tree list`
+### `ohm supply-tree list`
 
 List all supply trees.
 
 ```bash
-ome supply-tree list [OPTIONS]
+ohm supply-tree list [OPTIONS]
 ```
 
 **Options:**
@@ -1700,23 +1700,23 @@ ome supply-tree list [OPTIONS]
 - `--offset INTEGER` - Number of results to skip
 - `--status TEXT` - Filter by status
 
-### `ome supply-tree delete`
+### `ohm supply-tree delete`
 
 Delete a supply tree.
 
 ```bash
-ome supply-tree delete SUPPLY_TREE_ID
+ohm supply-tree delete SUPPLY_TREE_ID
 ```
 
 **Arguments:**
 - `SUPPLY_TREE_ID` - UUID of the supply tree
 
-### `ome supply-tree validate`
+### `ohm supply-tree validate`
 
 Validate a supply tree.
 
 ```bash
-ome supply-tree validate SUPPLY_TREE_ID [OPTIONS]
+ohm supply-tree validate SUPPLY_TREE_ID [OPTIONS]
 ```
 
 **Arguments:**
@@ -1733,12 +1733,12 @@ ome supply-tree validate SUPPLY_TREE_ID [OPTIONS]
 
 Utility operations for domains and contexts.
 
-### `ome utility domains`
+### `ohm utility domains`
 
 List available domains.
 
 ```bash
-ome utility domains [OPTIONS]
+ohm utility domains [OPTIONS]
 ```
 
 **Options:**
@@ -1749,12 +1749,12 @@ ome utility domains [OPTIONS]
 - Domain descriptions
 - Domain status
 
-### `ome utility contexts`
+### `ohm utility contexts`
 
 List validation contexts for a specific domain.
 
 ```bash
-ome utility contexts DOMAIN [OPTIONS]
+ohm utility contexts DOMAIN [OPTIONS]
 ```
 
 **Arguments:**
@@ -1766,18 +1766,18 @@ ome utility contexts DOMAIN [OPTIONS]
 **Examples:**
 ```bash
 # List contexts for manufacturing domain
-ome utility contexts manufacturing
+ohm utility contexts manufacturing
 
 # List contexts for cooking domain
-ome utility contexts cooking
+ohm utility contexts cooking
 ```
 
-### `ome utility metrics`
+### `ohm utility metrics`
 
 Get system metrics including request tracking, performance, and LLM usage.
 
 ```bash
-ome utility metrics [OPTIONS]
+ohm utility metrics [OPTIONS]
 ```
 
 **Description:**
@@ -1797,19 +1797,19 @@ This command provides access to the MetricsTracker data, including:
 **Examples:**
 ```bash
 # Get overall metrics summary
-ome utility metrics
+ohm utility metrics
 
 # Get detailed metrics with all endpoints
-ome utility metrics --no-summary
+ohm utility metrics --no-summary
 
 # Get metrics for a specific endpoint
-ome utility metrics --endpoint "GET /health"
+ohm utility metrics --endpoint "GET /health"
 
 # Get metrics for a specific API endpoint
-ome utility metrics --endpoint "POST /v1/api/match"
+ohm utility metrics --endpoint "POST /v1/api/match"
 
 # Output in JSON format
-ome utility metrics --json
+ohm utility metrics --json
 ```
 
 **Output:**
@@ -1833,17 +1833,17 @@ Human-readable text output with icons and formatting.
 
 ### JSON Format
 ```bash
-ome --json package list-packages
+ohm --json package list-packages
 ```
 
 ### Table Format
 ```bash
-ome --table system domains
+ohm --table system domains
 ```
 
 ### Verbose Mode
 ```bash
-ome --verbose system health
+ohm --verbose system health
 ```
 
 Shows additional debugging information and connection details.
@@ -1868,7 +1868,7 @@ The CLI provides clear error messages and handles various failure scenarios:
 ```bash
 # File not found with helpful suggestion
 ❌ Error: Package community/nonexistent:1.0.0 not found
-   Suggestion: Use 'ome package list-packages' to see available packages
+   Suggestion: Use 'ohm package list-packages' to see available packages
 
 # Server connection failed (falls back to direct mode)
 ⚠️  Server unavailable, using direct service calls...
@@ -1876,7 +1876,7 @@ The CLI provides clear error messages and handles various failure scenarios:
 
 # Validation error with specific guidance
 ❌ Error: Invalid domain 'nonexistent-domain'. Valid domains are: manufacturing, cooking
-   Suggestion: Use 'ome utility domains' to see available domains
+   Suggestion: Use 'ohm utility domains' to see available domains
 
 # LLM configuration error
 ❌ Error: LLM provider 'invalid-provider' not supported
@@ -1891,9 +1891,9 @@ The CLI provides clear error messages and handles various failure scenarios:
 
 When working with matching rules, follow these best practices:
 
-- **Always validate before importing**: Use `ome match rules validate` to check rule files before importing them
-- **Use compare to preview changes**: Use `ome match rules compare` to see what changes will be made before importing
-- **Export rules as backup**: Export rules before making major changes using `ome match rules export`
+- **Always validate before importing**: Use `ohm match rules validate` to check rule files before importing them
+- **Use compare to preview changes**: Use `ohm match rules compare` to see what changes will be made before importing
+- **Export rules as backup**: Export rules before making major changes using `ohm match rules export`
 - **Use interactive mode for complex rules**: Use `--interactive` flag when creating or updating rules to ensure all fields are properly set
 - **Test with dry-run**: Use `--dry-run` flag when importing to preview changes without applying them
 - **Version control rule files**: Keep rule files in version control to track changes over time
@@ -1903,35 +1903,35 @@ When working with matching rules, follow these best practices:
 
 ### 1. Use Verbose Mode for Debugging
 ```bash
-ome --verbose package build manifest.json
+ohm --verbose package build manifest.json
 ```
 
 ### 2. Check System Health First
 ```bash
-ome system health
+ohm system health
 ```
 
 ### 3. Use JSON Output for Scripting
 ```bash
-ome --json package list-packages | jq '.packages[].name'
+ohm --json package list-packages | jq '.packages[].name'
 ```
 
 ### 4. Validate Before Building
 ```bash
-ome okh validate manifest.json
-ome package build manifest.json
+ohm okh validate manifest.json
+ohm package build manifest.json
 ```
 
 ### 5. Use Appropriate Quality Levels
 ```bash
 # For development
-ome okh validate manifest.json --quality-level hobby
+ohm okh validate manifest.json --quality-level hobby
 
 # For production
-ome okh validate manifest.json --quality-level medical --strict-mode
+ohm okh validate manifest.json --quality-level medical --strict-mode
 
 # With LLM enhancement
-ome okh validate manifest.json --use-llm --quality-level professional --strict-mode
+ohm okh validate manifest.json --use-llm --quality-level professional --strict-mode
 ```
 
 ---
@@ -1943,28 +1943,28 @@ ome okh validate manifest.json --use-llm --quality-level professional --strict-m
 #### 1. Server Connection Issues
 ```bash
 # Check if server is running
-ome system health
+ohm system health
 
 # Try with different server URL
-ome --server-url http://localhost:8001 system health
+ohm --server-url http://localhost:8001 system health
 ```
 
 #### 2. Package Build Failures
 ```bash
 # Check manifest validity first
-ome okh validate manifest.json
+ohm okh validate manifest.json
 
 # Use verbose mode for details
-ome --verbose package build manifest.json
+ohm --verbose package build manifest.json
 ```
 
 #### 3. File Download Issues
 ```bash
 # Check network connectivity
-ome system ping
+ohm system ping
 
 # Use fallback mode if server issues
-ome package build manifest.json
+ohm package build manifest.json
 ```
 
 #### 4. Permission Issues
@@ -1981,13 +1981,13 @@ mkdir -p ./packages && chmod 755 ./packages
 
 ```bash
 # Get help for any command
-ome [COMMAND] --help
+ohm [COMMAND] --help
 
 # Get help for command groups
-ome [GROUP] --help
+ohm [GROUP] --help
 
 # Get general help
-ome --help
+ohm --help
 ```
 
 ---
@@ -1998,31 +1998,31 @@ ome --help
 
 ```bash
 # 1. Check system health
-ome system health
+ohm system health
 
 # 2. Validate a manifest (now works in both HTTP and fallback modes)
-ome okh validate openflexure-microscope.okh.json
+ohm okh validate openflexure-microscope.okh.json
 
 # 3. Build a package
-ome package build openflexure-microscope.okh.json
+ohm package build openflexure-microscope.okh.json
 
 # 4. Verify the package
-ome package verify university-of-bath/openflexure-microscope 5.20
+ohm package verify university-of-bath/openflexure-microscope 5.20
 
 # 5. Push to remote storage
-ome package push university-of-bath/openflexure-microscope 5.20
+ohm package push university-of-bath/openflexure-microscope 5.20
 
 # 6. List remote packages
-ome package list-remote
+ohm package list-remote
 
 # 7. Work with OKW facilities (now fully functional)
-ome okw validate facility.okw.json
-ome okw create facility.okw.json
-ome okw list-facilities
+ohm okw validate facility.okw.json
+ohm okw create facility.okw.json
+ohm okw list-facilities
 
 # 8. Perform matching operations (now fully functional)
-ome match requirements openflexure-microscope.okh.json
-ome match domains
+ohm match requirements openflexure-microscope.okh.json
+ohm match domains
 ```
 
 ### Batch Operations
@@ -2030,11 +2030,11 @@ ome match domains
 ```bash
 # Build multiple packages
 for manifest in *.okh.json; do
-    ome package build "$manifest"
+    ohm package build "$manifest"
 done
 
 # List all packages in JSON format
-ome --json package list-packages > packages.json
+ohm --json package list-packages > packages.json
 ```
 
 ### Integration with Scripts
@@ -2042,9 +2042,9 @@ ome --json package list-packages > packages.json
 ```bash
 #!/bin/bash
 # Check if package exists before building
-if ! ome package verify "$PACKAGE_NAME" "$VERSION" 2>/dev/null; then
+if ! ohm package verify "$PACKAGE_NAME" "$VERSION" 2>/dev/null; then
     echo "Building package $PACKAGE_NAME:$VERSION"
-    ome package build "$MANIFEST_FILE"
+    ohm package build "$MANIFEST_FILE"
 else
     echo "Package $PACKAGE_NAME:$VERSION already exists"
 fi
@@ -2067,10 +2067,10 @@ Both modes provide the same functionality and output format.
 
 ```bash
 # Get CLI version
-ome version
+ohm version
 
 # Get system information
-ome system info
+ohm system info
 ```
 
 ---
@@ -2079,11 +2079,11 @@ ome system info
 
 For additional help and support:
 
-1. Check the help system: `ome [COMMAND] --help`
-2. Use verbose mode for debugging: `ome --verbose [COMMAND]`
+1. Check the help system: `ohm [COMMAND] --help`
+2. Use verbose mode for debugging: `ohm --verbose [COMMAND]`
 3. Review error messages for specific guidance
-4. Check system health: `ome system health`
+4. Check system health: `ohm system health`
 
-The OME CLI is designed to be intuitive and provide clear feedback for all operations.
+The OHM CLI is designed to be intuitive and provide clear feedback for all operations.
 
 ---

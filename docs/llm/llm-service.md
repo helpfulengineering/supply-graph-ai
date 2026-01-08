@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LLM Service provides Large Language Model integration for the Open Matching Engine (OME), enabling sophisticated AI-powered generation and matching capabilities. The service supports multiple LLM providers and provides a unified interface for both API and CLI interactions.
+The LLM Service provides Large Language Model integration for the Open Hardware Manager (OHM), enabling sophisticated AI-powered generation and matching capabilities. The service supports multiple LLM providers and provides a unified interface for both API and CLI interactions.
 
 ## Features
 

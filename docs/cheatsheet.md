@@ -1,6 +1,6 @@
-# Open Matching Engine (OME) Capabilities Cheatsheet
+# Open Hardware Manager (OHM) Capabilities Cheatsheet
 
-A quick reference guide for new users to understand the major capabilities of the Open Matching Engine.
+A quick reference guide for new users to understand the major capabilities of the Open Hardware Manager.
 
 ## Capabilities Overview
 

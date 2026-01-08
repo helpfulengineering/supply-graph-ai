@@ -1,5 +1,5 @@
 """
-Ollama LLM Provider for the Open Matching Engine.
+Ollama LLM Provider for the Open Hardware Manager.
 
 This module provides an implementation of the BaseLLMProvider interface
 for local models via Ollama, supporting various open-source models like

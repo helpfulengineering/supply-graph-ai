@@ -1,10 +1,10 @@
-# OME Testing Framework
+# OHM Testing Framework
 
-This directory contains a testing framework for the Open Matching Engine (OME). The framework provides systematic testing capabilities to identify bugs, edge cases, and areas for improvement in the OME matching system.
+This directory contains a testing framework for the Open Hardware Manager (OHM). The framework provides systematic testing capabilities to identify bugs, edge cases, and areas for improvement in the OHM matching system.
 
 ## Overview
 
-The OME Testing Framework consists of several key components:
+The OHM Testing Framework consists of several key components:
 
 1. **Enhanced Synthetic Data Generation** - Generates realistic OKH and OKW files with field coverage
 2. **Test Scenario Generation** - Creates specific test cases for different matching scenarios
@@ -75,7 +75,7 @@ The framework generates several output files:
 
 The core testing infrastructure that:
 - Loads test scenarios from files
-- Executes matching operations through the OME API
+- Executes matching operations through the OHM API
 - Validates responses against expected outcomes
 - Captures detailed results for analysis
 
@@ -213,7 +213,7 @@ The framework provides prioritized recommendations:
 
 ### API Configuration
 
-The framework connects to the OME API. Configure the API URL:
+The framework connects to the OHM API. Configure the API URL:
 
 ```bash
 python tests/run_matching_tests.py --api-url http://localhost:8001 --scenarios ./scenarios
@@ -246,7 +246,7 @@ Error: No scenario files found in ./scenarios
 ```
 Error: Failed to initialize test harness
 ```
-- Verify the OME API is running
+- Verify the OHM API is running
 - Check the API URL is correct
 - Ensure network connectivity
 

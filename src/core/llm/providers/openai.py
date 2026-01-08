@@ -1,5 +1,5 @@
 """
-OpenAI LLM Provider for the Open Matching Engine.
+OpenAI LLM Provider for the Open Hardware Manager.
 
 This module provides an implementation of the BaseLLMProvider interface
 for OpenAI's models, including GPT-3.5, GPT-4, GPT-4-turbo, and other variants.

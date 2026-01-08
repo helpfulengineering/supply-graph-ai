@@ -1,5 +1,5 @@
 """
-Solution management commands for OME CLI
+Solution management commands for OHM CLI
 
 This module provides commands for managing supply tree solutions,
 including save, load, list, delete, check (staleness), extend (TTL), and cleanup.
@@ -20,7 +20,7 @@ from .decorators import standard_cli_command
 @click.group()
 def solution_group():
     """
-    Solution management commands for OME.
+    Solution management commands for OHM.
 
     These commands help you manage supply tree solutions, including
     saving, loading, listing, deleting, checking staleness, extending TTL,

@@ -19,7 +19,7 @@ from ..errors.exceptions import (
     APIError,
     ConfigurationError,
     LLMError,
-    OMEError,
+    OHMError,
     ServiceError,
     ValidationError,
 )
@@ -68,9 +68,9 @@ class APIErrorHandler:
         if isinstance(error, str):
             error_message = error
             error_code = ErrorCode.INTERNAL_ERROR
-        elif isinstance(error, OMEError):
+        elif isinstance(error, OHMError):
             error_message = str(error)
-            error_code = self._map_ome_error_to_code(error)
+            error_code = self._map_ohm_error_to_code(error)
         else:
             error_message = str(error)
             error_code = ErrorCode.INTERNAL_ERROR
@@ -101,8 +101,8 @@ class APIErrorHandler:
             },
         )
 
-    def _map_ome_error_to_code(self, error: OMEError) -> ErrorCode:
-        """Map OME error types to standard error codes."""
+    def _map_ohm_error_to_code(self, error: OHMError) -> ErrorCode:
+        """Map OHM error types to standard error codes."""
         if isinstance(error, ValidationError):
             return ErrorCode.VALIDATION_ERROR
         elif isinstance(error, ServiceError):

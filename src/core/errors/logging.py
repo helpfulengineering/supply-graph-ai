@@ -1,5 +1,5 @@
 """
-Enhanced logging system for the Open Matching Engine
+Enhanced logging system for the Open Hardware Manager
 
 This module provides specialized logging components for LLM operations,
 performance tracking, and audit logging with structured output and monitoring capabilities.
@@ -20,7 +20,7 @@ from .exceptions import ErrorSeverity, LLMError
 
 
 class LogLevel(Enum):
-    """Enhanced log levels for OME"""
+    """Enhanced log levels for OHM"""
 
     TRACE = "trace"
     DEBUG = "debug"
@@ -76,7 +76,7 @@ class LogEntry:
 
 
 class StructuredFormatter(logging.Formatter):
-    """Enhanced structured formatter for OME logging"""
+    """Enhanced structured formatter for OHM logging"""
 
     def __init__(self, include_traceback: bool = True):
         super().__init__()
@@ -543,7 +543,7 @@ def setup_enhanced_logging(
     include_traceback: bool = True,
 ) -> None:
     """
-    Setup enhanced logging configuration for OME.
+    Setup enhanced logging configuration for OHM.
 
     Args:
         level: Logging level

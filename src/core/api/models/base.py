@@ -2,7 +2,7 @@
 Base models for API requests and responses.
 
 This module provides standardized base classes and common models for all API endpoints
-to ensure consistency across the Open Matching Engine API.
+to ensure consistency across the Open Hardware Manager API.
 """
 
 from datetime import datetime
@@ -77,7 +77,7 @@ class BaseAPIRequest(BaseModel):
         json_schema_extra={
             "example": {
                 "request_id": "req_123456789",
-                "client_info": {"user_agent": "OME-Client/1.0", "version": "1.0.0"},
+                "client_info": {"user_agent": "OHM-Client/1.0", "version": "1.0.0"},
                 "quality_level": "professional",
                 "strict_mode": False,
             }

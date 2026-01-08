@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) employs a sophisticated 4-layer matching architecture to accurately and reliably match requirements (specified in formats like OKH) with capabilities (specified in formats like OKW). This document outlines the four distinct matching layers, each with increasing sophistication and computational complexity, all built on a standardized base architecture.
+The Open Hardware Manager (OHM) employs a sophisticated 4-layer matching architecture to accurately and reliably match requirements (specified in formats like OKH) with capabilities (specified in formats like OKW). This document outlines the four distinct matching layers, each with increasing sophistication and computational complexity, all built on a standardized base architecture.
 
 ```mermaid
 flowchart TD
@@ -45,7 +45,7 @@ flowchart TD
     normalizer --> output
 ```
 
-The system processes matching requests through these layers with each layer inheriting from `BaseMatchingLayer` to ensure consistent interfaces, error handling, and result processing. Unlike traditional pipeline architectures that optimize for speed or computational efficiency, the OME prioritizes:
+The system processes matching requests through these layers with each layer inheriting from `BaseMatchingLayer` to ensure consistent interfaces, error handling, and result processing. Unlike traditional pipeline architectures that optimize for speed or computational efficiency, the OHM prioritizes:
 
 1. **Accuracy** - Ensuring matches are correct and appropriate
 2. **Data Quality** - Maintaining rich metadata about matches
@@ -1988,7 +1988,7 @@ class MatchingOrchestrator:
 
 ## Adaptive Pipeline Architecture
 
-The OME employs an adaptive pipeline architecture that can dynamically configure and reconfigure matching pipelines based on context, feedback, and intermediate results. This approach balances accuracy, performance, and resource utilization.
+The OHM employs an adaptive pipeline architecture that can dynamically configure and reconfigure matching pipelines based on context, feedback, and intermediate results. This approach balances accuracy, performance, and resource utilization.
 
 ### Pipeline Factory Pattern
 
@@ -2412,7 +2412,7 @@ pipelines:
 
 ## Feedback Integration
 
-The OME implements a sophisticated feedback mechanism that allows matching layers to learn from and adapt to previous processing results:
+The OHM implements a sophisticated feedback mechanism that allows matching layers to learn from and adapt to previous processing results:
 
 ```python
 class MatchingFeedback:
@@ -2593,7 +2593,7 @@ class AIMLNearMissHandler:
 
 ### Compute Cost and Performance Optimization
 
-The OME includes utilities for monitoring and optimizing compute cost and performance:
+The OHM includes utilities for monitoring and optimizing compute cost and performance:
 
 ```python
 class ComputeResourceManager:
@@ -2708,7 +2708,7 @@ class ComputeResourceManager:
         
         # Calculate total costs for different strategies
         all_layers_cost = (direct_cost + heuristic_cost + nlp_cost + aiml_cost)
-        # OME Matching Layers: Architecture and Implementation
+        # OHM Matching Layers: Architecture and Implementation
 ```
 
 

@@ -123,7 +123,7 @@ class GitLabExtractor(ProjectExtractor):
         self.temp_dir = (
             Path(temp_dir)
             if temp_dir
-            else Path(tempfile.gettempdir()) / "ome_gitlab_clones"
+            else Path(tempfile.gettempdir()) / "ohm_gitlab_clones"
         )
         self.temp_dir.mkdir(parents=True, exist_ok=True)
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Capability-Centric Heuristic Rules System is the second layer in the Open Matching Engine's multi-layered matching approach. It applies rule-based matching using predefined knowledge about what requirements each capability can satisfy, providing a clear and explicit way to handle variations in terminology and domain-specific knowledge.
+The Capability-Centric Heuristic Rules System is the second layer in the Open Hardware Manager's multi-layered matching approach. It applies rule-based matching using predefined knowledge about what requirements each capability can satisfy, providing a clear and explicit way to handle variations in terminology and domain-specific knowledge.
 
 **Rules are now user-configurable** and can be managed via API endpoints or CLI commands. Rules are stored in `src/config/rules/` and can be easily updated, imported, exported, and validated.
 
@@ -159,7 +159,7 @@ version: "1.0.0"
 description: "Capability-centric rules for manufacturing domain - defines what requirements each capability can satisfy"
 
 metadata:
-  maintainer: "OME Manufacturing Team"
+  maintainer: "OHM Manufacturing Team"
   last_updated: "2024-01-01"
   source: "Manufacturing standards and industry terminology"
 
@@ -207,7 +207,7 @@ version: "1.0.0"
 description: "Capability-centric rules for cooking domain - defines what requirements each capability can satisfy"
 
 metadata:
-  maintainer: "OME Cooking Team"
+  maintainer: "OHM Cooking Team"
   last_updated: "2024-01-01"
   source: "Culinary terminology and cooking standards"
 

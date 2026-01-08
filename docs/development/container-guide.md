@@ -1,6 +1,6 @@
 # Container Guide
 
-This guide covers running and deploying the Open Matching Engine (OME) in containerized environments.
+This guide covers running and deploying the Open Hardware Manager (OHM) in containerized environments.
 
 ## Table of Contents
 
@@ -34,7 +34,7 @@ This guide covers running and deploying the Open Matching Engine (OME) in contai
 
 4. **Start the API server:**
    ```bash
-   docker-compose up ome-api
+   docker-compose up ohm-api
    ```
 
 5. **Access the API:**
@@ -163,11 +163,11 @@ Create a `docker-compose.prod.yml`:
 version: '3.8'
 
 services:
-  ome-api:
+  ohm-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: ome-api-prod
+    container_name: ohm-api-prod
     ports:
       - "8001:8001"
     environment:
@@ -182,8 +182,8 @@ services:
       - LLM_PROVIDER=${LLM_PROVIDER}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     volumes:
-      - ome-storage:/app/storage
-      - ome-logs:/app/logs
+      - ohm-storage:/app/storage
+      - ohm-logs:/app/logs
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -193,8 +193,8 @@ services:
       start_period: 40s
 
 volumes:
-  ome-storage:
-  ome-logs:
+  ohm-storage:
+  ohm-logs:
 ```
 
 Deploy with:
@@ -237,7 +237,7 @@ docker-compose -f docker-compose.prod.yml up -d
      "memory": "2048",
      "executionRoleArn": "arn:aws:iam::ACCOUNT:role/ecsTaskExecutionRole",
      "containerDefinitions": [{
-       "name": "ome-api",
+       "name": "ohm-api",
        "image": "ACCOUNT.dkr.ecr.REGION.amazonaws.com/open-matching-engine:latest",
        "portMappings": [{
          "containerPort": 8001,
@@ -264,7 +264,7 @@ docker-compose -f docker-compose.prod.yml up -d
    ```bash
    aws ecs create-service \
      --cluster your-cluster \
-     --service-name ome-api \
+     --service-name ohm-api \
      --task-definition open-matching-engine \
      --desired-count 2 \
      --launch-type FARGATE \
@@ -307,7 +307,7 @@ docker-compose -f docker-compose.prod.yml up -d
 
 3. **Access the application:**
    ```bash
-   kubectl port-forward -n ome service/ome-api-service 8001:80
+   kubectl port-forward -n ohm service/ohm-api-service 8001:80
    ```
 
 ## Monitoring and Logging
@@ -425,7 +425,7 @@ docker run -e DEBUG=true -e LOG_LEVEL=DEBUG open-matching-engine api
 
 2. **Scale horizontally:**
    ```bash
-   docker-compose up --scale ome-api=3
+   docker-compose up --scale ohm-api=3
    ```
 
 ## Best Practices

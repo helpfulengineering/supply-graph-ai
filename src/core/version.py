@@ -1,7 +1,7 @@
 """
-Version information for Open Matching Engine (OME).
+Version information for Open Hardware Manager (OHM).
 
-This module provides a single source of truth for the OME version.
+This module provides a single source of truth for the OHM version.
 Update this value when releasing a new version.
 """
 
@@ -14,7 +14,7 @@ VERSION_PATCH = 0
 
 
 def get_version() -> str:
-    """Get the current OME version."""
+    """Get the current OHM version."""
     return __version__
 
 

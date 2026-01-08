@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) employs a sophisticated 4-layer generation architecture to create high-quality OKH manifests from external project sources like GitHub repositories, GitLab projects, and other platforms. This document outlines the four distinct generation layers, each with increasing sophistication and content understanding capabilities, all built on a standardized base architecture.
+The Open Hardware Manager (OHM) employs a sophisticated 4-layer generation architecture to create high-quality OKH manifests from external project sources like GitHub repositories, GitLab projects, and other platforms. This document outlines the four distinct generation layers, each with increasing sophistication and content understanding capabilities, all built on a standardized base architecture.
 
 ```mermaid
 flowchart TD
@@ -850,7 +850,7 @@ Robust error handling and recovery:
 
 ## Conclusion
 
-The four-layer generation system in the Open Matching Engine provides a sophisticated, extensible approach to creating high-quality OKH manifests from external project sources. The system is built on a solid foundation with standardized interfaces, error handling, and detailed metadata tracking.
+The four-layer generation system in the Open Hardware Manager provides a sophisticated, extensible approach to creating high-quality OKH manifests from external project sources. The system is built on a solid foundation with standardized interfaces, error handling, and detailed metadata tracking.
 
 ### Current Achievements
 
@@ -873,4 +873,4 @@ The four-layer generation system in the Open Matching Engine provides a sophisti
 
 The system is now ready for **Phase 4: LLM Implementation**, which will add the most sophisticated generation capabilities. The solid foundation established in Phases 1-3 provides the perfect base for integrating advanced LLM features while maintaining the reliability and performance characteristics that make the system production-ready.
 
-By leveraging this progressive generation approach, the OME can efficiently create high-quality OKH manifests while maintaining explainability, adaptability, and reliability for various project types and content sources.
+By leveraging this progressive generation approach, the OHM can efficiently create high-quality OKH manifests while maintaining explainability, adaptability, and reliability for various project types and content sources.

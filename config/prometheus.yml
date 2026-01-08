@@ -15,7 +15,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: ['ome-api:8001']
+      - targets: ['ohm-api:8001']
         labels:
           service: 'supply-graph-ai'
           instance: 'local'

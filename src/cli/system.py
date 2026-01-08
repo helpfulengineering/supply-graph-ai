@@ -1,5 +1,5 @@
 """
-System management commands for OME CLI
+System management commands for OHM CLI
 
 This module provides system-level commands including health checks,
 domain information, and server status.
@@ -20,9 +20,9 @@ from .decorators import standard_cli_command
 @click.group()
 def system_group():
     """
-    System management commands for OME.
+    System management commands for OHM.
 
-    These commands help you monitor and manage the OME system,
+    These commands help you monitor and manage the OHM system,
     including health checks, domain information, server status,
     and system diagnostics.
 
@@ -106,7 +106,7 @@ async def _display_status_results(
         output_data = format_llm_output(result, cli_ctx)
         click.echo(output_data)
     else:
-        click.echo("=== OME System Status ===")
+        click.echo("=== OHM System Status ===")
         click.echo(f"Server URL: {result['server_url']}")
         click.echo(f"Mode: {result['mode']}")
         click.echo("")  # Empty line for spacing
@@ -133,7 +133,7 @@ async def _display_status_results(
     help_text="""
     Check system health and status.
     
-    This command performs a health check of the OME system,
+    This command performs a health check of the OHM system,
     including server connectivity, service availability, and domain
     registration status.
     
@@ -257,7 +257,7 @@ async def health(
     List available domains and their status.
     
     This command displays information about all registered domains
-    in the OME system, including their status, capabilities, and
+    in the OHM system, including their status, capabilities, and
     configuration.
     
     When LLM is enabled, domain listing includes:
@@ -489,9 +489,9 @@ async def status(
 @click.option("--timeout", default=5, help="Connection timeout in seconds")
 @standard_cli_command(
     help_text="""
-    Ping the OME server to check connectivity.
+    Ping the OHM server to check connectivity.
     
-    This command tests network connectivity to the OME server
+    This command tests network connectivity to the OHM server
     by attempting to establish a TCP connection and measuring
     response time.
     
@@ -531,7 +531,7 @@ def ping(
     quality_level: str,
     strict_mode: bool,
 ):
-    """Ping the OME server with enhanced LLM support."""
+    """Ping the OHM server with enhanced LLM support."""
     cli_ctx = ctx.obj
 
     # Fix: Update verbose from the command parameter
@@ -606,7 +606,7 @@ def ping(
 @system_group.command()
 @standard_cli_command(
     help_text="""
-    Show OME system information and configuration.
+    Show OHM system information and configuration.
     
     This command displays system information including
     CLI version, server configuration, available commands, and
@@ -643,7 +643,7 @@ def info(
     quality_level: str,
     strict_mode: bool,
 ):
-    """Show OME system information with enhanced LLM support."""
+    """Show OHM system information with enhanced LLM support."""
     cli_ctx = ctx.obj
     # Fix: Update verbose from the command parameter
     cli_ctx.verbose = verbose
@@ -686,7 +686,7 @@ def info(
             output_data = format_llm_output(info_data, cli_ctx)
             click.echo(output_data)
         else:
-            click.echo("=== Open Matching Engine (OME) ===")
+            click.echo("=== Open Hardware Manager (OHM) ===")
             click.echo(f"CLI Version: {version}")
             click.echo(f"Server URL: {cli_ctx.config.server_url}")
             click.echo(f"Timeout: {cli_ctx.config.timeout}s")

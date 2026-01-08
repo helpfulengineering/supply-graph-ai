@@ -3,7 +3,7 @@ version: "1.0.0"
 description: "Capability-centric rules for cooking domain - defines what requirements each capability can satisfy"
 
 metadata:
-  maintainer: "OME Cooking Team"
+  maintainer: "OHM Cooking Team"
   last_updated: "2024-01-01"
   source: "Culinary terminology and cooking standards"
 

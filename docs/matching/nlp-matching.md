@@ -2,7 +2,7 @@
 
 ## Overview
 
-The NLP (Natural Language Processing) Matching layer is Layer 3 in the Open Matching Engine's 4-layer matching architecture. It provides semantic understanding and similarity matching between requirements and capabilities using spaCy-based natural language processing.
+The NLP (Natural Language Processing) Matching layer is Layer 3 in the Open Hardware Manager's 4-layer matching architecture. It provides semantic understanding and similarity matching between requirements and capabilities using spaCy-based natural language processing.
 
 ## Purpose
 

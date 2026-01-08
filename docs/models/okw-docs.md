@@ -479,7 +479,7 @@ restored_facility = ManufacturingFacility.from_dict(facility_dict)
 
 ## Connecting OKW to the Matching Engine
 
-The OKW model is designed to work with the Open Matching Engine by providing detailed capability information that can be matched against OKH requirements. Each facility can be converted to normalized capabilities:
+The OKW model is designed to work with the Open Hardware Manager by providing detailed capability information that can be matched against OKH requirements. Each facility can be converted to normalized capabilities:
 
 ```python
 def convert_to_capabilities(facility: ManufacturingFacility) -> List[Capability]:
@@ -522,4 +522,4 @@ def convert_to_capabilities(facility: ManufacturingFacility) -> List[Capability]
     return capabilities
 ```
 
-When used with the Open Matching Engine, OKW facilities can be matched with OKH requirements to generate valid manufacturing solutions in the form of Supply Trees.
+When used with the Open Hardware Manager, OKW facilities can be matched with OKH requirements to generate valid manufacturing solutions in the form of Supply Trees.

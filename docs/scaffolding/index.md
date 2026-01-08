@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) provides a powerful scaffolding system that generates opinionated, OKH-compliant project structures with documentation stubs. This system helps developers quickly bootstrap new open hardware projects that work seamlessly with the OME ecosystem.
+The Open Hardware Manager (OHM) provides a powerful scaffolding system that generates opinionated, OKH-compliant project structures with documentation stubs. This system helps developers quickly bootstrap new open hardware projects that work seamlessly with the OHM ecosystem.
 
 ## Quick Start
 
@@ -230,14 +230,14 @@ The generated `okh-manifest.json` includes:
 - Use consistent naming across related projects
 - Consider namespace implications
 
-## Integration with OME
+## Integration with OHM
 
-The scaffolded projects are designed to work seamlessly with the OME ecosystem:
+The scaffolded projects are designed to work seamlessly with the OHM ecosystem:
 
-1. **Validation**: Generated manifests can be validated using the OME validation endpoints
+1. **Validation**: Generated manifests can be validated using the OHM validation endpoints
 2. **Matching**: Projects can be used as OKH requirements in matching operations
-3. **Generation**: The structure supports the OME generation workflow
-4. **Storage**: Projects can be stored and retrieved using OME storage services
+3. **Generation**: The structure supports the OHM generation workflow
+4. **Storage**: Projects can be stored and retrieved using OHM storage services
 
 ## Troubleshooting
 
@@ -270,9 +270,9 @@ chmod 755 /path/to/output
 
 1. **Customize**: Update the generated templates with your project-specific information
 2. **Develop**: Add your hardware designs, code, and documentation
-3. **Validate**: Use OME validation endpoints to ensure OKH compliance
+3. **Validate**: Use OHM validation endpoints to ensure OKH compliance
 4. **Publish**: Share your project with the open hardware community
-5. **Integrate**: Use your project in OME matching and generation workflows
+5. **Integrate**: Use your project in OHM matching and generation workflows
 
 ---
 

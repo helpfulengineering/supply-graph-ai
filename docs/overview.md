@@ -1,4 +1,4 @@
-# Open Matching Engine (OME) Overview
+# Open Hardware Manager (OHM) Overview
 
 ## Problem Space
 
@@ -36,22 +36,22 @@ This matching problem is complex due to several factors:
 
 ## Solution Approach
 
-The OME addresses these challenges through a modular, multi-stage approach:
+The OHM addresses these challenges through a modular, multi-stage approach:
 
 ### 1. Component Architecture
 
-OME is built with independent but interoperable components:
+OHM is built with independent but interoperable components:
 
-- **OME.generation**: Converts unstructured input into normalized formats
-- **OME.analysis**: Identifies requirements and capabilities
-- **OME.matching**: Generates and validates manufacturing solutions
-- **OME.packaging**: Builds and stores complete projects
+- **OHM.generation**: Converts unstructured input into normalized formats
+- **OHM.analysis**: Identifies requirements and capabilities
+- **OHM.matching**: Generates and validates manufacturing solutions
+- **OHM.packaging**: Builds and stores complete projects
 
 Each component can be used independently or as part of an integrated pipeline.
 
 ### 2. Supply Trees
 
-At the core of OME is the Supply Tree data structure, which:
+At the core of OHM is the Supply Tree data structure, which:
 
 - Represents complete manufacturing solutions
 - Maps requirements to facility capabilities
@@ -61,7 +61,7 @@ At the core of OME is the Supply Tree data structure, which:
 
 ### 3. Progressive Processing
 
-OME uses increasingly sophisticated processing stages:
+OHM uses increasingly sophisticated processing stages:
 
 #### **Exact Matching**
    - Direct string mapping

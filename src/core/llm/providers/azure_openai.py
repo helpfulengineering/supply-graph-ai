@@ -1,5 +1,5 @@
 """
-Azure OpenAI LLM Provider for the Open Matching Engine.
+Azure OpenAI LLM Provider for the Open Hardware Manager.
 
 This module provides an implementation of the BaseLLMProvider interface
 for Azure OpenAI Service, which provides access to OpenAI models (GPT-3.5, GPT-4, etc.)

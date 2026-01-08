@@ -1,6 +1,6 @@
 # Authentication
 
-The OME API uses Bearer token authentication via the `Authorization` header. This page describes how to authenticate with the API and manage API keys.
+The OHM API uses Bearer token authentication via the `Authorization` header. This page describes how to authenticate with the API and manage API keys.
 
 ## Header Format
 

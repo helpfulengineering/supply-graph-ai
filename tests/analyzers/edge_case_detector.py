@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Edge Case Detector for OME Testing Framework
+Edge Case Detector for OHM Testing Framework
 
 This module identifies problematic patterns, edge cases, and potential bugs
-in the OME matching engine based on test results.
+in the OHM matching engine based on test results.
 
 Usage:
     from analyzers.edge_case_detector import EdgeCaseDetector
@@ -17,7 +17,7 @@ from typing import Dict, List, Set, Any, Tuple
 from datetime import datetime
 
 class EdgeCaseDetector:
-    """Detects edge cases and problematic patterns in OME matching results"""
+    """Detects edge cases and problematic patterns in OHM matching results"""
     
     def __init__(self):
         # Define edge case patterns and their severity levels

@@ -3,7 +3,7 @@ version: "1.0.0"
 description: "Capability-centric rules for manufacturing domain - defines what requirements each capability can satisfy"
 
 metadata:
-  maintainer: "OME Manufacturing Team"
+  maintainer: "OHM Manufacturing Team"
   last_updated: "2024-01-01"
   source: "Industry standards and manufacturing terminology"
 

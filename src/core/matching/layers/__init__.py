@@ -1,5 +1,5 @@
 """
-Matching layers for the Open Matching Engine (OME).
+Matching layers for the Open Hardware Manager (OHM).
 
 This module provides the 4-layer matching architecture that aligns with the
 generation system. Each layer implements progressively sophisticated matching

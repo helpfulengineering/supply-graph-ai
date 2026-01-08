@@ -1,5 +1,5 @@
 """
-Core validation framework for the Open Matching Engine.
+Core validation framework for the Open Hardware Manager.
 
 This package provides a domain-integrated validation system that works
 seamlessly with the existing domain management infrastructure.

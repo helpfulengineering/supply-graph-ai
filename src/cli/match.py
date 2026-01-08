@@ -1,5 +1,5 @@
 """
-Enhanced matching commands for OME CLI with standardized patterns
+Enhanced matching commands for OHM CLI with standardized patterns
 
 This module provides standardized commands for matching OKH requirements with OKW capabilities,
 including LLM integration, enhanced error handling, and consistent output formatting.

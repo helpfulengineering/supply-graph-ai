@@ -1,5 +1,5 @@
 """
-Error handlers for the Open Matching Engine
+Error handlers for the Open Hardware Manager
 
 This module provides specialized error handlers for different types of errors,
 ensuring consistent error handling patterns across all components of the system.
@@ -25,7 +25,7 @@ from .exceptions import (
     LLMError,
     LLMRateLimitError,
     LLMTimeoutError,
-    OMEError,
+    OHMError,
     ServiceError,
 )
 

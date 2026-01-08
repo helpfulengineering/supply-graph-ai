@@ -1,5 +1,5 @@
 """
-Base LLM Provider Interface for the Open Matching Engine.
+Base LLM Provider Interface for the Open Hardware Manager.
 
 This module provides the abstract base class for all LLM providers,
 defining the standardized interface that all providers must implement.

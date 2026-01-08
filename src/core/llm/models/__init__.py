@@ -1,5 +1,5 @@
 """
-LLM Data Models for the Open Matching Engine.
+LLM Data Models for the Open Hardware Manager.
 
 This module provides data models for LLM requests, responses, and configuration.
 All models follow Pydantic patterns for validation and serialization.

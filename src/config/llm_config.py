@@ -1,5 +1,5 @@
 """
-LLM Configuration for the Open Matching Engine
+LLM Configuration for the Open Hardware Manager
 
 This module provides configuration management for LLM providers,
 including authentication, model selection, and provider-specific settings.

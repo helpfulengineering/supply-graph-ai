@@ -1,8 +1,8 @@
-# Open Matching Engine API
+# Open Hardware Manager API
 
 ## Introduction
 
-The Open Matching Engine (OME) API provides programmatic access to match requirements with capabilities across multiple domains and generate valid solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 53 routes across 7 command groups, featuring  error handling, LLM integration support, and production readiness.
+The Open Hardware Manager (OHM) API provides programmatic access to match requirements with capabilities across multiple domains and generate valid solutions represented as Supply Trees. This document outlines the **fully standardized API system** with 53 routes across 7 command groups, featuring  error handling, LLM integration support, and production readiness.
 
 **Supported Domains:**
 - **Manufacturing Domain**: Match OKH requirements with OKW capabilities
@@ -45,7 +45,7 @@ Future versions would be accessible via `/v2`, `/v3`, etc., with the previous ve
 
 ## Storage Integration
 
-The OME API includes  storage integration with Azure Blob Storage:
+The OHM API includes  storage integration with Azure Blob Storage:
 
 ### Azure Blob Storage Features
 - **Automatic OKW Loading**: The `/v1/api/match` endpoint automatically loads all OKW facilities from the configured Azure container
@@ -1761,8 +1761,8 @@ Lists all available domains with their metadata and status.
       "status": "active",
       "supported_input_types": ["okh", "okw"],
       "supported_output_types": ["supply_tree", "manufacturing_plan"],
-      "documentation_url": "https://docs.ome.org/domains/manufacturing",
-      "maintainer": "OME Manufacturing Team"
+      "documentation_url": "https://docs.ohm.org/domains/manufacturing",
+      "maintainer": "OHM Manufacturing Team"
     },
     {
       "name": "cooking",
@@ -1772,8 +1772,8 @@ Lists all available domains with their metadata and status.
       "status": "active",
       "supported_input_types": ["recipe", "kitchen"],
       "supported_output_types": ["cooking_workflow", "meal_plan"],
-      "documentation_url": "https://docs.ome.org/domains/cooking",
-      "maintainer": "OME Cooking Team"
+      "documentation_url": "https://docs.ohm.org/domains/cooking",
+      "maintainer": "OHM Cooking Team"
     }
   ],
   "total_count": 2
@@ -1803,8 +1803,8 @@ Retrieves detailed information about a specific domain.
   "status": "active",
   "supported_input_types": ["okh", "okw"],
   "supported_output_types": ["supply_tree", "manufacturing_plan"],
-  "documentation_url": "https://docs.ome.org/domains/manufacturing",
-  "maintainer": "OME Manufacturing Team",
+  "documentation_url": "https://docs.ohm.org/domains/manufacturing",
+  "maintainer": "OHM Manufacturing Team",
   "type_mappings": {...}
 }
 ```
@@ -2363,7 +2363,7 @@ typical_materials: []
 
 ## Advanced Validation Framework
 
-The OME API includes a  validation framework that provides domain-aware validation with quality levels and  error reporting.
+The OHM API includes a  validation framework that provides domain-aware validation with quality levels and  error reporting.
 
 ### Validation Features
 
@@ -2459,7 +2459,7 @@ async def validate_strict():
 
 ## LLM API Endpoints
 
-The OME API includes LLM (Large Language Model) integration for enhanced OKH manifest generation and facility matching. LLM functionality is primarily integrated into domain-specific endpoints (e.g., `/v1/api/match`, `/v1/api/okh/generate-from-url`) via the `@llm_endpoint` decorator.
+The OHM API includes LLM (Large Language Model) integration for enhanced OKH manifest generation and facility matching. LLM functionality is primarily integrated into domain-specific endpoints (e.g., `/v1/api/match`, `/v1/api/okh/generate-from-url`) via the `@llm_endpoint` decorator.
 
 For direct LLM operations, use the CLI commands (`ome llm generate`, `ome llm generate-okh`). The API provides monitoring and discovery endpoints for LLM service management.
 
@@ -2554,7 +2554,7 @@ For direct LLM operations, use the CLI:
 ## API Documentation & Developer Experience
 
 ### Interactive Documentation
-The OME API provides  interactive documentation:
+The OHM API provides  interactive documentation:
 
 - **Main API Docs**: `http://localhost:8001/docs` - System endpoints and overview
 - **Full API Docs**: `http://localhost:8001/v1/api/docs` - Complete API documentation with all 19 endpoints

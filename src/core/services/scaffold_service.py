@@ -4,7 +4,7 @@ Service for generating OKH-compliant project scaffolds.
 This module provides an opinionated scaffolding system for new open hardware
 projects that conform to the Open Know How (OKH) data model. It is tightly
 coupled to the OKHManifest dataclass so that generated output maps directly
-to fields consumed by the rest of the OME system.
+to fields consumed by the rest of the OHM system.
 
 Multi-pass implementation strategy:
 1) Define public API, core types, and method stubs
@@ -560,7 +560,7 @@ class ScaffoldService:
             return (
                 f"# {options.project_name}\n\n"
                 "Welcome! This project follows the Open Know How (OKH) structure and is\n"
-                "scaffolded for compatibility with the Open Matching Engine (OME).\n\n"
+                "scaffolded for compatibility with the Open Hardware Manager (OHM).\n\n"
                 "## Quick Start\n\n"
                 "1. Edit `okh-manifest.json` to define your project\n"
                 "2. Explore documentation in `docs/` (MkDocs)\n"
@@ -576,7 +576,7 @@ class ScaffoldService:
             return (
                 f"# {options.project_name}\n\n"
                 "Welcome! This project follows the Open Know How (OKH) structure and is\n"
-                "scaffolded for compatibility with the Open Matching Engine (OME).\n\n"
+                "scaffolded for compatibility with the Open Hardware Manager (OHM).\n\n"
                 "## Overview\n\n"
                 "This is an open hardware project that follows the OKH specification for\n"
                 "maximum interoperability and discoverability in the open-source hardware\n"
@@ -601,7 +601,7 @@ class ScaffoldService:
                 "- `parts/` - Part-specific files organized by component\n"
                 "- `docs/` - Comprehensive documentation using MkDocs\n\n"
                 "## Development\n\n"
-                "This project is designed to work seamlessly with the Open Matching Engine.\n"
+                "This project is designed to work seamlessly with the Open Hardware Manager.\n"
                 "The OKH manifest (`okh-manifest.json`) contains all metadata needed for\n"
                 "discovery, matching, and manufacturing coordination.\n\n"
                 "## Contributing\n\n"
@@ -719,7 +719,7 @@ class ScaffoldService:
             return (
                 f"# Bill of Materials (BOM){back_link}"
                 "This directory contains the complete Bill of Materials for the project,\n"
-                "organized for maximum compatibility with the Open Matching Engine.\n\n"
+                "organized for maximum compatibility with the Open Hardware Manager.\n\n"
                 "## File Formats\n\n"
                 "### CSV Format (`bom.csv`)\n"
                 "- Structured tabular data for programmatic processing\n"
@@ -1014,7 +1014,7 @@ class ScaffoldService:
                 f"## Overview\n\n"
                 f"The {section_name.lower()} for this project follow the Open Know How (OKH) specification "
                 f"and are organized in the `{section_dir}/` directory at the project root. This structure "
-                f"ensures compatibility with OKH tooling and the Open Matching Engine.\n\n"
+                f"ensures compatibility with OKH tooling and the Open Hardware Manager.\n\n"
                 f"## Access Section Content\n\n"
                 f"[View {section_name} →]({link_path})\n\n"
                 f"## Location\n\n"
@@ -1137,7 +1137,7 @@ class ScaffoldService:
         base_dir = (
             Path(options.output_path).expanduser().resolve()
             if options.output_path
-            else Path(tempfile.gettempdir()) / "ome-scaffolds"
+            else Path(tempfile.gettempdir()) / "ohm-scaffolds"
         )
         base_dir.mkdir(parents=True, exist_ok=True)
 

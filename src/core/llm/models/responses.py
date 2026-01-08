@@ -1,5 +1,5 @@
 """
-LLM Response Models for the Open Matching Engine.
+LLM Response Models for the Open Hardware Manager.
 
 This module provides data models for LLM responses and metadata.
 """

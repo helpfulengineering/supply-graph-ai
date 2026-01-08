@@ -36,7 +36,7 @@ A complete project structure with:
 2. **Customize**: Fill in the manifest template with your project details
 3. **Document**: Add your hardware designs and documentation
 4. **Build**: Use MkDocs to build professional documentation
-5. **Validate**: Use OME to validate your OKH manifest
+5. **Validate**: Use OHM to validate your OKH manifest
 
 ## Template Levels
 

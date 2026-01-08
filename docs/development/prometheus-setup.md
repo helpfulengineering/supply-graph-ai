@@ -17,7 +17,7 @@ This guide explains how to set up Prometheus to scrape metrics from the supply-g
 
 2. **Start the services**:
    ```bash
-   docker-compose --profile monitoring up -d ome-api prometheus
+   docker-compose --profile monitoring up -d ohm-api prometheus
    ```
 
 3. **Access Prometheus UI**:
@@ -31,14 +31,14 @@ If you encounter Docker volume mount permission issues:
 
 1. **Start the API container**:
    ```bash
-   docker-compose up -d ome-api
+   docker-compose up -d ohm-api
    ```
 
 2. **Run Prometheus with inline config**:
    ```bash
    docker run -d \
-     --name ome-prometheus \
-     --network supply-graph-ai_ome-network \
+     --name ohm-prometheus \
+     --network supply-graph-ai_ohm-network \
      -p 9090:9090 \
      prom/prometheus:latest \
      --config.file=/dev/stdin <<EOF
@@ -47,7 +47,7 @@ If you encounter Docker volume mount permission issues:
    scrape_configs:
      - job_name: 'supply-graph-ai'
        static_configs:
-         - targets: ['ome-api:8001']
+         - targets: ['ohm-api:8001']
            labels:
              service: 'supply-graph-ai'
    EOF
@@ -71,7 +71,7 @@ scrape_configs:
     params:
       format: ['prometheus']
     static_configs:
-      - targets: ['ome-api:8001']
+      - targets: ['ohm-api:8001']
         labels:
           service: 'supply-graph-ai'
           instance: 'local'
@@ -132,13 +132,13 @@ curl 'http://localhost:9090/api/v1/query?query=http_requests_total'
 
 1. **Check if API is running**:
    ```bash
-   docker ps | grep ome-api
+   docker ps | grep ohm-api
    curl http://localhost:8001/health
    ```
 
 2. **Check Prometheus can reach the API**:
    ```bash
-   docker exec ome-prometheus wget -qO- http://ome-api:8001/v1/api/utility/metrics?format=prometheus | head -10
+   docker exec ohm-prometheus wget -qO- http://ohm-api:8001/v1/api/utility/metrics?format=prometheus | head -10
    ```
 
 3. **Check Prometheus logs**:

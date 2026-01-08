@@ -1,8 +1,8 @@
 services:
-  # Open Matching Engine API Server
-  ome-api:
+  # Open Hardware Manager API Server
+  ohm-api:
     build: .
-    container_name: ome-api
+    container_name: ohm-api
     ports:
       - "8001:8001"
     environment:
@@ -13,17 +13,17 @@ services:
       - CORS_ORIGINS=*
       - API_KEYS=dev-api-key-123,test-key-456
       - STORAGE_PROVIDER=local
-      - STORAGE_BUCKET_NAME=ome-storage
+      - STORAGE_BUCKET_NAME=ohm-storage
       - LLM_ENABLED=false
     volumes:
-      - ome-storage:/app/storage
-      - ome-logs:/app/logs
+      - ohm-storage:/app/storage
+      - ohm-logs:/app/logs
       # Optional: Mount local directories for development (may require Docker Desktop permissions)
       # - ./storage:/app/storage
       # - ./logs:/app/logs
       # - ./test-data:/app/test-data
     networks:
-      - ome-network
+      - ohm-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
@@ -35,7 +35,7 @@ services:
   # Prometheus for metrics collection
   prometheus:
     image: prom/prometheus:latest
-    container_name: ome-prometheus
+    container_name: ohm-prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -48,48 +48,48 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
     networks:
-      - ome-network
+      - ohm-network
     depends_on:
-      - ome-api
+      - ohm-api
     restart: unless-stopped
     profiles:
       - monitoring
     # Start with: docker-compose --profile monitoring up prometheus
 
-  # Open Matching Engine CLI (for testing CLI commands)
-  ome-cli:
+  # Open Hardware Manager CLI (for testing CLI commands)
+  ohm-cli:
     build: .
-    container_name: ome-cli
+    container_name: ohm-cli
     environment:
-      - SERVER_URL=http://ome-api:8001
+      - SERVER_URL=http://ohm-api:8001
       - LOG_LEVEL=INFO
       - STORAGE_PROVIDER=local
-      - STORAGE_BUCKET_NAME=ome
+      - STORAGE_BUCKET_NAME=ohm
       - LLM_ENABLED=false
     volumes:
-      - ome-storage:/app/storage
-      - ome-logs:/app/logs
+      - ohm-storage:/app/storage
+      - ohm-logs:/app/logs
       # Optional: Mount local directories for development (may require Docker Desktop permissions)
       # - ./storage:/app/storage
       # - ./logs:/app/logs
       # - ./test-data:/app/test-data
     networks:
-      - ome-network
+      - ohm-network
     depends_on:
-      - ome-api
+      - ohm-api
     profiles:
       - cli
     # This service is only started when explicitly requested
-    # Use: docker-compose --profile cli up ome-cli
+    # Use: docker-compose --profile cli up ohm-cli
 
 networks:
-  ome-network:
+  ohm-network:
     driver: bridge
 
 volumes:
-  ome-storage:
+  ohm-storage:
     driver: local
-  ome-logs:
+  ohm-logs:
     driver: local
   prometheus-data:
     driver: local

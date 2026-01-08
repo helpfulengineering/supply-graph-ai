@@ -1,4 +1,4 @@
-# Open Matching Engine - Developer Guide
+# Open Hardware Manager - Developer Guide
 
 
 ## Table of Contents
@@ -132,7 +132,7 @@ OKH Manifest → Matching Service → Storage Service → OKW Facilities → Sup
 
 ## Domain Management
 
-The Open Matching Engine supports multiple domains through a unified domain management system. This enables the engine to operate across different domains (manufacturing, cooking, etc.) while maintaining consistent behavior.
+The Open Hardware Manager supports multiple domains through a unified domain management system. This enables the engine to operate across different domains (manufacturing, cooking, etc.) while maintaining consistent behavior.
 
 ### Domain System Overview
 

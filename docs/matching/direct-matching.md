@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Direct Matching layer is the first and most fundamental layer in the Open Matching Engine's multi-layered matching approach. It handles exact, case-insensitive string matches between requirements and capabilities, with near-miss detection using Levenshtein distance.
+The Direct Matching layer is the first and most fundamental layer in the Open Hardware Manager's multi-layered matching approach. It handles exact, case-insensitive string matches between requirements and capabilities, with near-miss detection using Levenshtein distance.
 
 ## Purpose
 

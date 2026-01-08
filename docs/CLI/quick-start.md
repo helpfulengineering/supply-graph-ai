@@ -1,4 +1,4 @@
-# OME CLI Quick Start Guide
+# OHM CLI Quick Start Guide
 
 ## Getting Started in 5 Minutes
 
@@ -17,7 +17,7 @@ cd /path/to/supply-graph-ai
 
 ```bash
 # Verify the CLI is working
-ome system health
+ohm system health
 ```
 
 Expected output:
@@ -38,26 +38,26 @@ Expected output:
 
 ```bash
 # See all available command groups
-ome --help
+ohm --help
 
 # See commands in a specific group
-ome package --help
+ohm package --help
 ```
 
 ### 4. Generate Your First Project Scaffold
 
 ```bash
 # Generate a new OKH-compliant project structure
-ome okh scaffold my-awesome-project
+ohm okh scaffold my-awesome-project
 
 # Generate with detailed templates and ZIP output
-ome okh scaffold arduino-sensor --template-level detailed --output-format zip
+ohm okh scaffold arduino-sensor --template-level detailed --output-format zip
 
 # Generate to filesystem with custom organization
-ome okh scaffold microscope-stage --organization "My Lab" --output-format filesystem --output-path ./projects
+ohm okh scaffold microscope-stage --organization "My Lab" --output-format filesystem --output-path ./projects
 
 # Generate minimal scaffold for quick prototyping
-ome okh scaffold quick-prototype --template-level minimal --output-format json
+ohm okh scaffold quick-prototype --template-level minimal --output-format json
 ```
 
 **Output Formats:**
@@ -80,13 +80,13 @@ The scaffold includes comprehensive interlinking between documentation sections:
 
 ```bash
 # Preview cleanup (dry-run)
-ome okh scaffold-cleanup ./projects/my-awesome-project
+ohm okh scaffold-cleanup ./projects/my-awesome-project
 
 # Apply cleanup (remove unmodified stubs and empty directories)
-ome okh scaffold-cleanup ./projects/my-awesome-project --apply
+ohm okh scaffold-cleanup ./projects/my-awesome-project --apply
 
 # Keep empty directories during cleanup
-ome okh scaffold-cleanup ./projects/my-awesome-project --apply --keep-empty-directories
+ohm okh scaffold-cleanup ./projects/my-awesome-project --apply --keep-empty-directories
 ```
 
 Flags:
@@ -100,48 +100,48 @@ Flags:
 
 ```bash
 # Validate a manifest (if you have one)
-ome okh validate your-manifest.okh.json
+ohm okh validate your-manifest.okh.json
 
 # Validate with LLM enhancement
-ome okh validate your-manifest.okh.json --use-llm --quality-level professional
+ohm okh validate your-manifest.okh.json --use-llm --quality-level professional
 
 # Build a package
-ome package build your-manifest.okh.json
+ohm package build your-manifest.okh.json
 
 # Build with LLM analysis
-ome package build your-manifest.okh.json --use-llm --llm-provider anthropic
+ohm package build your-manifest.okh.json --use-llm --llm-provider anthropic
 
 # List built packages
-ome package list-packages
+ohm package list-packages
 ```
 
 ### 6. Test LLM Integration
 
 ```bash
 # Test LLM-enhanced validation
-ome okh validate your-manifest.okh.json --use-llm --quality-level professional
+ohm okh validate your-manifest.okh.json --use-llm --quality-level professional
 
 # Test LLM-powered matching
-ome match requirements your-manifest.okh.json --use-llm --domain manufacturing
+ohm match requirements your-manifest.okh.json --use-llm --domain manufacturing
 
 # Test LLM-enhanced system analysis
-ome system health --use-llm --llm-provider anthropic
+ohm system health --use-llm --llm-provider anthropic
 
 # Test utility commands with LLM
-ome utility contexts manufacturing --use-llm --quality-level professional
+ohm utility contexts manufacturing --use-llm --quality-level professional
 ```
 
 ### 7. Test Remote Operations
 
 ```bash
 # List remote packages
-ome package list-remote
+ohm package list-remote
 
 # Push a package (if you have one built)
-ome package push org/project-name 1.0.0
+ohm package push org/project-name 1.0.0
 
 # Pull a package
-ome package pull org/project-name 1.0.0
+ohm package pull org/project-name 1.0.0
 ```
 
 ## Common Commands
@@ -149,55 +149,55 @@ ome package pull org/project-name 1.0.0
 ### Package Management
 ```bash
 # Build a package
-ome package build manifest.json
+ohm package build manifest.json
 
 # Build with LLM enhancement
-ome package build manifest.json --use-llm --quality-level professional
+ohm package build manifest.json --use-llm --quality-level professional
 
 # List local packages
-ome package list-packages
+ohm package list-packages
 
 # Verify a package
-ome package verify org/project 1.0.0
+ohm package verify org/project 1.0.0
 
 # Verify with LLM analysis
-ome package verify org/project 1.0.0 --use-llm --quality-level professional
+ohm package verify org/project 1.0.0 --use-llm --quality-level professional
 
 # Delete a package
-ome package delete org/project 1.0.0
+ohm package delete org/project 1.0.0
 ```
 
 ### System Information
 ```bash
 # Check health
-ome system health
+ohm system health
 
 # Check health with verbose output
-ome system health --verbose
+ohm system health --verbose
 
 # Check health with LLM analysis
-ome system health --use-llm --quality-level professional
+ohm system health --use-llm --quality-level professional
 
 # List domains
-ome system domains
+ohm system domains
 
 # Get system info
-ome system info
+ohm system info
 ```
 
 ### Validation
 ```bash
 # Validate OKH manifest
-ome okh validate manifest.json
+ohm okh validate manifest.json
 
 # Validate OKH manifest with LLM enhancement
-ome okh validate manifest.json --use-llm --quality-level professional
+ohm okh validate manifest.json --use-llm --quality-level professional
 
 # Validate OKW facility
-ome okw validate facility.json
+ohm okw validate facility.json
 
 # Validate OKW facility with LLM analysis
-ome okw validate facility.json --use-llm --quality-level professional
+ohm okw validate facility.json --use-llm --quality-level professional
 ```
 
 ## Troubleshooting
@@ -215,7 +215,7 @@ If you see connection errors, the CLI will automatically fall back to direct mod
 ls -la your-file.json
 
 # Use absolute paths if needed
-ome package build /full/path/to/manifest.json
+ohm package build /full/path/to/manifest.json
 ```
 
 ### Permission Issues
@@ -230,15 +230,15 @@ chmod 755 packages/
 ### LLM Configuration Issues
 ```bash
 # Check LLM provider configuration
-ome okh validate manifest.json --use-llm --llm-provider anthropic
+ohm okh validate manifest.json --use-llm --llm-provider anthropic
 
 # Test different quality levels
-ome okh validate manifest.json --use-llm --quality-level hobby
-ome okh validate manifest.json --use-llm --quality-level professional
-ome okh validate manifest.json --use-llm --quality-level medical
+ohm okh validate manifest.json --use-llm --quality-level hobby
+ohm okh validate manifest.json --use-llm --quality-level professional
+ohm okh validate manifest.json --use-llm --quality-level medical
 
 # Test strict mode
-ome okh validate manifest.json --use-llm --strict-mode
+ohm okh validate manifest.json --use-llm --strict-mode
 ```
 
 ## Next Steps
@@ -247,18 +247,18 @@ ome okh validate manifest.json --use-llm --strict-mode
 2. **Explore examples**: Try the commands with your own files
 3. **Use verbose mode**: Add `--verbose` for detailed output and execution tracking
 4. **Try LLM integration**: Add `--use-llm` for enhanced analysis
-5. **Check system status**: Use `ome system health` regularly
+5. **Check system status**: Use `ohm system health` regularly
 6. **Test different quality levels**: Try `hobby`, `professional`, and `medical` quality levels
 
 ## Getting Help
 
 ```bash
 # Get help for any command
-ome [COMMAND] --help
+ohm [COMMAND] --help
 
 # Use verbose mode for debugging
-ome --verbose [COMMAND]
+ohm --verbose [COMMAND]
 
 # Check system status
-ome system health
+ohm system health
 ```

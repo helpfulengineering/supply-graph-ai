@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine supports nested and recursive Bill of Materials where any component can potentially be decomposed into sub-components. The complexity emerges dynamically during the matching process based on component availability and matching requirements.
+The Open Hardware Manager supports nested and recursive Bill of Materials where any component can potentially be decomposed into sub-components. The complexity emerges dynamically during the matching process based on component availability and matching requirements.
 
 ## Key Principles
 

@@ -1,6 +1,6 @@
 # LLM Examples
 
-This document provides practical examples of using LLM features in the Open Matching Engine.
+This document provides practical examples of using LLM features in the Open Hardware Manager.
 
 ## Quick Start Examples
 

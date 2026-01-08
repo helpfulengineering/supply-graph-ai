@@ -1,5 +1,5 @@
 """
-Base service classes and utilities for the Open Matching Engine (OME).
+Base service classes and utilities for the Open Hardware Manager (OHM).
 
 This module provides standardized base classes and utilities that all services
 inherit from, ensuring consistent patterns for initialization, error handling,
@@ -130,7 +130,7 @@ class ServiceConfig:
 
 class BaseService(ABC, Generic[T]):
     """
-    Abstract base class for all OME services.
+    Abstract base class for all OHM services.
 
     This class provides a standardized foundation for all services, including:
     - Singleton pattern implementation

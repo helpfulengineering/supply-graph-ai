@@ -1,4 +1,4 @@
-# Gunicorn configuration for Open Matching Engine
+# Gunicorn configuration for Open Hardware Manager
 # This configuration is optimized for production deployment
 
 import multiprocessing
@@ -42,15 +42,15 @@ access_log_format = os.getenv('GUNICORN_ACCESS_LOG_FORMAT',
     '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(D)s')
 
 # Process naming
-proc_name = 'open-matching-engine'
+proc_name = 'open-hardware-manager'
 
 # Server mechanics
 daemon = False
 pidfile = '/tmp/gunicorn.pid'
-# Note: user/group are set in Dockerfile (USER ome), so we don't need to set them here
+# Note: user/group are set in Dockerfile (USER ohm), so we don't need to set them here
 # If we're already running as the correct user, Gunicorn will skip privilege dropping
-# user = 'ome'  # Commented out - already running as ome user in container
-# group = 'ome'  # Commented out - already running as ome user in container
+# user = 'ohm'  # Commented out - already running as ohm user in container
+# group = 'ohm'  # Commented out - already running as ohm user in container
 tmp_upload_dir = None
 
 # SSL (if needed)

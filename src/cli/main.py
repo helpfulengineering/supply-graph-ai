@@ -1,8 +1,8 @@
 """
-Main CLI entry point for Open Matching Engine
+Main CLI entry point for Open Hardware Manager
 
 This module provides the main CLI interface with subcommands for different
-OME operations including package management, OKH/OKW operations, and matching.
+OHM operations including package management, OKH/OKW operations, and matching.
 """
 
 from typing import Optional
@@ -30,7 +30,7 @@ except ImportError:
 
 
 @click.group()
-@click.option("--server-url", default="http://localhost:8001", help="OME server URL")
+@click.option("--server-url", default="http://localhost:8001", help="OHM server URL")
 @click.option("--timeout", default=120.0, type=float, help="Request timeout in seconds")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
 @click.option(
@@ -70,7 +70,7 @@ def cli(
     strict_mode: bool,
 ):
     """
-    Open Matching Engine (OME) Command Line Interface
+    Open Hardware Manager (OHM) Command Line Interface
 
     A CLI for managing OKH packages, OKW facilities, and matching operations.
     """
@@ -115,10 +115,10 @@ cli.add_command(solution_group, name="solution")
 
 @cli.command()
 def version():
-    """Show OME version information"""
+    """Show OHM version information"""
     from . import __version__
 
-    click.echo(f"Open Matching Engine CLI v{__version__}")
+    click.echo(f"Open Hardware Manager CLI v{__version__}")
 
 
 @cli.command()

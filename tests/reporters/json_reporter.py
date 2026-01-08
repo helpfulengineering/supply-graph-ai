@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-JSON Report Generator for OME Testing Framework
+JSON Report Generator for OHM Testing Framework
 
 This module generates JSON reports combining test results,
 field coverage analysis, edge case detection, and match quality analysis.
@@ -26,7 +26,7 @@ from analyzers.edge_case_detector import EdgeCaseDetector
 from analyzers.match_quality import MatchQualityAnalyzer
 
 class JSONReporter:
-    """Generates JSON reports for OME testing"""
+    """Generates JSON reports for OHM testing"""
     
     def __init__(self):
         self.field_analyzer = FieldCoverageAnalyzer()

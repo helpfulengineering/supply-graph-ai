@@ -1,10 +1,10 @@
-# Domain Management in Open Matching Engine
+# Domain Management in Open Hardware Manager
 
-The Open Matching Engine (OME) supports multiple domains through a unified domain management system. This system enables the engine to operate across different domains (such as manufacturing and cooking) while maintaining consistent behavior and providing domain-specific functionality.
+The Open Hardware Manager (OHM) supports multiple domains through a unified domain management system. This system enables the engine to operate across different domains (such as manufacturing and cooking) while maintaining consistent behavior and providing domain-specific functionality.
 
 ## Overview
 
-Domain Management is a critical aspect of the Open Matching Engine (OME) that ensures the system can correctly operate across different domains while maintaining consistent behavior. The domain management system provides:
+Domain Management is a critical aspect of the Open Hardware Manager (OHM) that ensures the system can correctly operate across different domains while maintaining consistent behavior. The domain management system provides:
 
 - **Multi-domain Support**: Seamless operation across different domains
 - **Domain Detection**: Automatic detection of the appropriate domain from input data
@@ -387,10 +387,10 @@ class NormalizedData:
 
 ### 1. Edge Processing: Unstructured Data Ingestion
 
-At the edges where OME consumes semi-structured data, domain detection is critical:
+At the edges where OHM consumes semi-structured data, domain detection is critical:
 
 ```python
-class OME:
+class OHM:
     def process_input(self, input_data: Union[str, Dict], input_type: Optional[str] = None):
         """Process incoming data of unknown domain and format"""
         
@@ -429,7 +429,7 @@ class OME:
 In the core matching engine, domain consistency is enforced:
 
 ```python
-class OMEPipeline:
+class OHMPipeline:
     def process_end_to_end(self, 
                           requirement_data: Union[str, Dict], 
                           capability_data: Union[str, Dict]):
@@ -558,7 +558,7 @@ class DomainDetectionResult:
             if score >= min_score
         ]
 
-class OME:
+class OHM:
     def process_with_fallback(self, data, domain_hint: Optional[str] = None):
         """Process data with domain fallback mechanisms"""
         

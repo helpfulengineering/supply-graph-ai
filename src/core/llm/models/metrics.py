@@ -1,5 +1,5 @@
 """
-LLM Metrics Models for the Open Matching Engine.
+LLM Metrics Models for the Open Hardware Manager.
 
 This module provides data models for LLM metrics and cost tracking.
 """

@@ -1,4 +1,4 @@
-# Open Matching Engine (OME)
+# Open Hardware Manager (OHM)
 
 ## Documentation Contents
 
@@ -71,7 +71,7 @@
 
 # Overview
 
-The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. At its core, OME helps answer the question: "Given a set of requirements, which available capabilities can fulfill them?"
+The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. At its core, OHM helps answer the question: "Given a set of requirements, which available capabilities can fulfill them?"
 
 ## Key Features
 
@@ -88,7 +88,7 @@ The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed
 - Failure handling
 
 ### Multi-Stage Processing
-OME uses sophisticated multi-stage pipelines for both extraction and matching:
+OHM uses sophisticated multi-stage pipelines for both extraction and matching:
 
 1. **Direct** - Exact string matching with near-miss detection
 2. **Heuristic** - Rule-based matching using domain knowledge
@@ -113,7 +113,7 @@ OME uses sophisticated multi-stage pipelines for both extraction and matching:
 ## Getting Started
 
 ### For Users
-If you're looking to use OME:
+If you're looking to use OHM:
 
 1. Start with our [CLI Quick Start Guide](CLI/quick-start.md)
 2. Try the [LLM Quick Start Guide](llm/llm-quick-start.md) for AI-powered features
@@ -122,7 +122,7 @@ If you're looking to use OME:
 5. Review our [API Documentation](api/index.md)
 
 ### For Developers
-If you're developing with OME:
+If you're developing with OHM:
 
 1. Read the [Developer Guide](development/developer-guide.md)
 2. Check the [LLM Service Documentation](llm/llm-service.md) for AI integration

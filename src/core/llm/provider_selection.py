@@ -1,5 +1,5 @@
 """
-LLM Provider Selection Utility for the Open Matching Engine.
+LLM Provider Selection Utility for the Open Hardware Manager.
 
 This module provides an LLM provider selection system that supports:
 - Environment variable configuration

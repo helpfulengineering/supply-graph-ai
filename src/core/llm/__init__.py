@@ -1,5 +1,5 @@
 """
-LLM Provider System for the Open Matching Engine.
+LLM Provider System for the Open Hardware Manager.
 
 This module provides a LLM provider abstraction system that supports
 multiple LLM providers (OpenAI, Anthropic, Google, Azure, Local) with a unified

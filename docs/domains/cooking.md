@@ -2,7 +2,7 @@
 
 ## Overview
 
-The cooking domain serves as our initial proof-of-concept for the Open Matching Engine. It provides a familiar context with clear requirements-to-capabilities matching needs while maintaining enough complexity to validate our core abstractions.
+The cooking domain serves as our initial proof-of-concept for the Open Hardware Manager. It provides a familiar context with clear requirements-to-capabilities matching needs while maintaining enough complexity to validate our core abstractions.
 
 ## Domain Model
 

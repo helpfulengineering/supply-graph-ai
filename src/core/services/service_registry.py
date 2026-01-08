@@ -298,8 +298,8 @@ def register_cooking_domain():
         status=DomainStatus.ACTIVE,
         supported_input_types={"recipe", "kitchen"},
         supported_output_types={"cooking_workflow", "meal_plan"},
-        documentation_url="https://docs.ome.org/domains/cooking",
-        maintainer="OME Cooking Team",
+        documentation_url="https://docs.ohm.org/domains/cooking",
+        maintainer="OHM Cooking Team",
     )
 
     service_registry.register_domain(
@@ -321,8 +321,8 @@ def register_manufacturing_domain():
         status=DomainStatus.ACTIVE,
         supported_input_types={"okh", "okw"},
         supported_output_types={"supply_tree", "manufacturing_plan"},
-        documentation_url="https://docs.ome.org/domains/manufacturing",
-        maintainer="OME Manufacturing Team",
+        documentation_url="https://docs.ohm.org/domains/manufacturing",
+        maintainer="OHM Manufacturing Team",
     )
 
     service_registry.register_domain(

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine (OME) includes a package management system for OpenKnowHow (OKH) manifests. This system allows you to build self-contained packages that include all externally-linked files, similar to how Docker builds container images from Dockerfiles.
+The Open Hardware Manager (OHM) includes a package management system for OpenKnowHow (OKH) manifests. This system allows you to build self-contained packages that include all externally-linked files, similar to how Docker builds container images from Dockerfiles.
 
 ## Package Structure
 
@@ -39,7 +39,7 @@ OKH packages follow a standardized directory structure that organizes all files 
 │       ├── auxiliary/
 │       └── images/
 └── metadata/                 # Package metadata
-    ├── build-info.json       # Build timestamp, OME version, etc.
+    ├── build-info.json       # Build timestamp, OHM version, etc.
     └── file-manifest.json    # Complete file inventory with checksums
 ```
 
@@ -64,7 +64,7 @@ The package would be: `fitzpatrick-knapp-and-jackson/arduino-based-iot-sensor-no
 
 ### Using the CLI
 
-The OME provides a command-line interface for building packages:
+The OHM provides a command-line interface for building packages:
 
 ```bash
 # Build from manifest file
@@ -157,7 +157,7 @@ ome package delete org/project-name 1.2.4 --force
 
 ## Remote Package Management
 
-The OME package management system supports pushing packages to and pulling packages from remote storage, similar to container registries.
+The OHM package management system supports pushing packages to and pulling packages from remote storage, similar to container registries.
 
 ### Pushing Packages
 
@@ -345,7 +345,7 @@ Each built package includes metadata:
   "version": "5.20",
   "okh_manifest_id": "550e8400-e29b-41d4-a716-446655440000",
   "build_timestamp": "2025-10-13T11:06:06.111890",
-  "ome_version": "1.0.0",
+  "ohm_version": "1.0.0",
   "total_files": 15,
   "total_size_bytes": 1053656,
   "build_options": {
@@ -516,14 +516,14 @@ export LOG_LEVEL=DEBUG
 ome package build manifest.json --verbose
 ```
 
-## Integration with OME
+## Integration with OHM
 
-The package management system integrates seamlessly with the Open Matching Engine:
+The package management system integrates seamlessly with the Open Hardware Manager:
 
 - **Storage Integration**: Built packages can be stored using the existing storage service
 - **API Endpoints**: Full REST API for programmatic access
 - **CLI Tools**: Command-line interface for interactive use
-- **Validation**: Built-in validation using OME's validation engine
+- **Validation**: Built-in validation using OHM's validation engine
 
 ## Current Status
 

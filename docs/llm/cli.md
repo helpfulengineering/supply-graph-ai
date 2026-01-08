@@ -1,6 +1,6 @@
 # LLM CLI Commands
 
-This document describes the command-line interface for LLM operations in the Open Matching Engine.
+This document describes the command-line interface for LLM operations in the Open Hardware Manager.
 
 ## Overview
 
@@ -245,10 +245,10 @@ export OPENAI_API_KEY="your_openai_key"
 export GOOGLE_API_KEY="your_google_key"
 
 # Default settings
-export OME_LLM_DEFAULT_PROVIDER="anthropic"
-export OME_LLM_DEFAULT_MODEL="claude-sonnet-4-5-20250929"
-export OME_LLM_MAX_COST_PER_REQUEST="2.0"
-export OME_LLM_TIMEOUT="60"
+export OHM_LLM_DEFAULT_PROVIDER="anthropic"
+export OHM_LLM_DEFAULT_MODEL="claude-sonnet-4-5-20250929"
+export OHM_LLM_MAX_COST_PER_REQUEST="2.0"
+export OHM_LLM_TIMEOUT="60"
 ```
 
 ### Configuration File
@@ -430,7 +430,7 @@ Enable debug output:
 
 ```bash
 # Set debug level
-export OME_LOG_LEVEL=DEBUG
+export OHM_LOG_LEVEL=DEBUG
 
 # Run command with verbose output
 ome llm generate "Test prompt" --verbose

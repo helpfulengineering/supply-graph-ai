@@ -1,5 +1,5 @@
 """
-Standardized CLI decorators for Open Matching Engine
+Standardized CLI decorators for Open Hardware Manager
 
 This module provides decorators for consistent CLI command patterns,
 including LLM integration, error handling, and output formatting.

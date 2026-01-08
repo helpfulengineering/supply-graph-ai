@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Container Test Script for Open Matching Engine
-# This script tests the containerized OME application
+# This script tests the containerized OHM application
 
 set -e
 

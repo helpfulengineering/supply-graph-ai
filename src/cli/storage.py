@@ -1,5 +1,5 @@
 """
-Storage management commands for OME CLI
+Storage management commands for OHM CLI
 
 This module provides commands for setting up and managing storage systems,
 including directory structure creation and data population.
@@ -29,7 +29,7 @@ logger = get_logger(__name__)
 @click.group()
 def storage_group():
     """
-    Storage management commands for OME.
+    Storage management commands for OHM.
 
     These commands help you set up and manage storage systems,
     including directory structure creation and data population.

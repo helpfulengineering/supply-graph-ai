@@ -2,7 +2,7 @@
 
 ## Overview
 
-The manufacturing domain implementation focuses on matching hardware designs specified in OpenKnowHow (OKH) format with manufacturing capabilities documented in OpenKnowWhere (OKW) format. This domain demonstrates the full power of the Open Matching Engine's multi-stage matching approach.
+The manufacturing domain implementation focuses on matching hardware designs specified in OpenKnowHow (OKH) format with manufacturing capabilities documented in OpenKnowWhere (OKW) format. This domain demonstrates the full power of the Open Hardware Manager's multi-stage matching approach.
 
 ## Domain Model
 

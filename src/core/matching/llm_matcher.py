@@ -1,7 +1,7 @@
 """
 LLM Matching Layer Implementation
 
-This module implements the LLM Matching layer for the Open Matching Engine (OME).
+This module implements the LLM Matching layer for the Open Hardware Manager (OHM).
 It provides Large Language Model enhanced matching for complex semantic understanding
 between requirements and capabilities, particularly designed for crisis response scenarios.
 

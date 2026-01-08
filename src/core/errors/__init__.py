@@ -1,9 +1,9 @@
 """
-Core error handling system for the Open Matching Engine
+Core error handling system for the Open Hardware Manager
 
 This module provides a error handling system with standardized
 error types, exception hierarchy, and error handling patterns for all components
-of the OME system, including LLM operations.
+of the OHM system, including LLM operations.
 """
 
 from .exceptions import (  # Base exceptions; LLM-specific exceptions; Service-specific exceptions; API-specific exceptions; Configuration exceptions
@@ -27,7 +27,7 @@ from .exceptions import (  # Base exceptions; LLM-specific exceptions; Service-s
     LLMRateLimitError,
     LLMTimeoutError,
     MatchingError,
-    OMEError,
+    OHMError,
     ServiceError,
     StorageError,
     ValidationError,
@@ -59,7 +59,7 @@ from .metrics import (
 
 __all__ = [
     # Exceptions
-    "OMEError",
+    "OHMError",
     "ConfigurationError",
     "ValidationError",
     "ServiceError",

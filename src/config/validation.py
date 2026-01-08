@@ -1,5 +1,5 @@
 """
-Configuration validation for the Open Matching Engine
+Configuration validation for the Open Hardware Manager
 
 This module provides validation for all configuration components,
 ensuring that the system is properly configured before startup.

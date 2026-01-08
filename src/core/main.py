@@ -116,7 +116,7 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app with lifespan
 app = FastAPI(
-    title="Open Matching Engine API",
+    title="Open Hardware Manager API",
     description="API for matching OKH requirements with OKW capabilities",
     version=get_version(),
     lifespan=lifespan,
@@ -147,7 +147,7 @@ app.add_middleware(
 async def root():
     """Root endpoint with API information."""
     return {
-        "message": "Open Matching Engine API",
+        "message": "Open Hardware Manager API",
         "version": get_version(),
         "docs": {"main": "/docs", "v1": "/v1/docs"},
         "health": "/health",
@@ -248,8 +248,8 @@ async def readiness_check():
 
 # Create a versioned API
 api_v1 = FastAPI(
-    title="Open Matching Engine API v1",
-    description="Version 1 of the Open Matching Engine API",
+    title="Open Hardware Manager API v1",
+    description="Version 1 of the Open Hardware Manager API",
     version=get_version(),
 )
 
@@ -288,8 +288,8 @@ async def register_domain_components():
         status=DomainStatus.ACTIVE,
         supported_input_types={"recipe", "kitchen"},
         supported_output_types={"cooking_workflow", "meal_plan"},
-        documentation_url="https://docs.ome.org/domains/cooking",
-        maintainer="OME Cooking Team",
+        documentation_url="https://docs.ohm.org/domains/cooking",
+        maintainer="OHM Cooking Team",
     )
 
     DomainRegistry.register_domain(
@@ -309,8 +309,8 @@ async def register_domain_components():
         status=DomainStatus.ACTIVE,
         supported_input_types={"okh", "okw"},
         supported_output_types={"supply_tree", "manufacturing_plan"},
-        documentation_url="https://docs.ome.org/domains/manufacturing",
-        maintainer="OME Manufacturing Team",
+        documentation_url="https://docs.ohm.org/domains/manufacturing",
+        maintainer="OHM Manufacturing Team",
     )
 
     DomainRegistry.register_domain(

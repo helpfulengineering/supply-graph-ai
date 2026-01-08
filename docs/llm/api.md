@@ -1,10 +1,10 @@
 # LLM API Reference
 
-This document describes the REST API endpoints for LLM operations in the Open Matching Engine.
+This document describes the REST API endpoints for LLM operations in the Open Hardware Manager.
 
 ## Overview
 
-LLM functionality in OME is primarily integrated into domain-specific endpoints rather than exposed as standalone LLM endpoints. This design keeps LLM as an enhancement to core functionality rather than a separate service.
+LLM functionality in OHM is primarily integrated into domain-specific endpoints rather than exposed as standalone LLM endpoints. This design keeps LLM as an enhancement to core functionality rather than a separate service.
 
 **LLM Integration Points:**
 - **OKH Generation**: `POST /v1/api/okh/generate-from-url` - Uses LLM for intelligent file categorization

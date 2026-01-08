@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Match Quality Analyzer for OME Testing Framework
+Match Quality Analyzer for OHM Testing Framework
 
 This module evaluates the quality and accuracy of matching results,
 analyzing confidence scores, false positives/negatives, and overall
@@ -19,7 +19,7 @@ from datetime import datetime
 import statistics
 
 class MatchQualityAnalyzer:
-    """Analyzes the quality and accuracy of OME matching results"""
+    """Analyzes the quality and accuracy of OHM matching results"""
     
     def __init__(self):
         # Define quality metrics thresholds

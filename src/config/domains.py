@@ -1,5 +1,5 @@
 """
-Domain configuration for the Open Matching Engine
+Domain configuration for the Open Hardware Manager
 
 This module defines the configuration for all supported domains,
 including their metadata, supported types, and component mappings.
@@ -60,8 +60,8 @@ DOMAIN_CONFIGS = {
         status=DomainStatus.ACTIVE,
         supported_input_types={"okh", "okw", "manufacturing_facility"},
         supported_output_types={"supply_tree", "manufacturing_plan", "workflow"},
-        documentation_url="https://docs.ome.org/domains/manufacturing",
-        maintainer="OME Manufacturing Team",
+        documentation_url="https://docs.ohm.org/domains/manufacturing",
+        maintainer="OHM Manufacturing Team",
         component_module="src.core.domains.manufacturing",
     ),
     "cooking": DomainConfig(
@@ -72,8 +72,8 @@ DOMAIN_CONFIGS = {
         status=DomainStatus.ACTIVE,
         supported_input_types={"recipe", "kitchen", "cooking_facility"},
         supported_output_types={"cooking_workflow", "meal_plan", "recipe_workflow"},
-        documentation_url="https://docs.ome.org/domains/cooking",
-        maintainer="OME Cooking Team",
+        documentation_url="https://docs.ohm.org/domains/cooking",
+        maintainer="OHM Cooking Team",
         component_module="src.core.domains.cooking",
     ),
 }

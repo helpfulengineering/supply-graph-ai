@@ -1,6 +1,6 @@
 # LLM Integration
 
-The Open Matching Engine (OME) includes Large Language Model (LLM) integration for OKH manifest generation and facility matching. This section covers configuration, API endpoints, CLI commands, and usage examples.
+The Open Hardware Manager (OHM) includes Large Language Model (LLM) integration for OKH manifest generation and facility matching. This section covers configuration, API endpoints, CLI commands, and usage examples.
 
 ## Overview
 

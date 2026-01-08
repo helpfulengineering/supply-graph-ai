@@ -373,7 +373,7 @@ class PackageRemoteStorage:
                 "build_timestamp": package_metadata.build_timestamp.isoformat(),
                 "total_files": package_metadata.total_files,
                 "total_size_bytes": package_metadata.total_size_bytes,
-                "ome_version": package_metadata.ome_version,
+                "ohm_version": package_metadata.ohm_version,
             }
 
             # Save updated index

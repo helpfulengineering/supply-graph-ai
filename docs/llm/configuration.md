@@ -1,6 +1,6 @@
 # LLM Configuration
 
-This guide covers how to configure LLM providers, set up API keys, and customize LLM behavior in the Open Matching Engine. The system includes intelligent provider selection that automatically chooses the best available provider.
+This guide covers how to configure LLM providers, set up API keys, and customize LLM behavior in the Open Hardware Manager. The system includes intelligent provider selection that automatically chooses the best available provider.
 
 ## Provider Selection System
 

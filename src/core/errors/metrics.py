@@ -1,5 +1,5 @@
 """
-Metrics and monitoring system for the Open Matching Engine
+Metrics and monitoring system for the Open Hardware Manager
 
 This module provides metrics collection for errors,
 performance, and LLM operations with real-time monitoring capabilities.

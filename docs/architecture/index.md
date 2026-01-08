@@ -1,11 +1,11 @@
-# Open Matching Engine Architecture
+# Open Hardware Manager Architecture
 
 ## Core Components
 
-The OME is designed as a set of independent components that can be used individually or composed into complete processing pipelines. Each component has its own well-defined interfaces, storage requirements, and processing capabilities.
+The OHM is designed as a set of independent components that can be used individually or composed into complete processing pipelines. Each component has its own well-defined interfaces, storage requirements, and processing capabilities.
 
 ### 0. Domain Management System
-Provides unified domain management across all OME components, enabling multi-domain operation with consistent behavior.
+Provides unified domain management across all OHM components, enabling multi-domain operation with consistent behavior.
 
 #### Key Features
 - Multi-domain support (manufacturing, cooking, etc.)
@@ -49,7 +49,7 @@ print(f"Detected domain: {result.domain} with confidence: {result.confidence}")
 - Health check results
 - Type mappings and keywords
 
-### 1. OME.extraction
+### 1. OHM.extraction
 Converts unstructured or semi-structured input into normalized, validated formats.
 
 #### Key Features
@@ -74,7 +74,7 @@ result = extractor.process_input(
 - Cache for extraction metadata
 - Feedback storage for extraction quality
 
-### 2. OME.analysis
+### 2. OHM.analysis
 Analyzes structured data to identify requirements, capabilities, and constraints.
 
 #### Key Features
@@ -100,7 +100,7 @@ requirements = analyzer.analyze_design(
 - Analysis metadata
 - Validation contexts
 
-### 3. OME.matching
+### 3. OHM.matching
 Matches requirements to capabilities using multi-stage processing.
 
 #### Key Features
@@ -127,7 +127,7 @@ solutions = matcher.find_matches(
 - Validation results
 - Solution rankings
 
-### 4. OME.routing
+### 4. OHM.routing
 Handles material and workflow routing through manufacturing networks.
 
 #### Key Features
@@ -157,7 +157,7 @@ route = router.optimize_path(
 
 ### Pipeline Configuration
 ```yaml
-# ome-pipeline.yaml
+# ohm-pipeline.yaml
 components:
   extraction:
     enabled: true
@@ -192,7 +192,7 @@ components:
 ```python
 from ome import Pipeline
 
-pipeline = Pipeline.from_config("ome-pipeline.yaml")
+pipeline = Pipeline.from_config("ohm-pipeline.yaml")
 
 # Full pipeline execution
 result = pipeline.process(
@@ -224,25 +224,25 @@ graph TD
         DM4[Domain Services]
     end
 
-    subgraph "OME.extraction"
+    subgraph "OHM.extraction"
         E1[Parser]
         E2[Validator]
         E3[Normalizer]
     end
 
-    subgraph "OME.analysis"
+    subgraph "OHM.analysis"
         A1[Requirements Analyzer]
         A2[Capability Analyzer]
         A3[Context Mapper]
     end
 
-    subgraph "OME.matching"
+    subgraph "OHM.matching"
         M1[Supply Tree Generator]
         M2[Solution Validator]
         M3[Path Optimizer]
     end
 
-    subgraph "OME.routing"
+    subgraph "OHM.routing"
         R1[Resource Allocator]
         R2[Network Router]
         R3[Flow Optimizer]
@@ -314,22 +314,22 @@ Each component provides well-defined extension points:
 - Domain detection algorithms
 - Type mappings and keywords
 
-### OME.extraction
+### OHM.extraction
 - Custom parsers
 - Domain validators
 - Normalization rules
 
-### OME.analysis
+### OHM.analysis
 - Requirement analyzers
 - Capability matchers
 - Context definitions
 
-### OME.matching
+### OHM.matching
 - Matching strategies
 - Validation rules
 - Scoring algorithms
 
-### OME.routing
+### OHM.routing
 - Optimization strategies
 - Resource handlers
 - Network protocols

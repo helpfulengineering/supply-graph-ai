@@ -1,5 +1,5 @@
 """
-OKH (OpenKnowHow) commands for OME CLI
+OKH (OpenKnowHow) commands for OHM CLI
 
 This module provides commands for managing OKH manifests including
 creation, validation, extraction, and storage operations.
@@ -1545,11 +1545,11 @@ async def export(
       ome okh scaffold quick-prototype --template-level minimal --output-format json
     """,
     epilog="""
-    The scaffolded projects are designed to work seamlessly with the OME ecosystem:
+    The scaffolded projects are designed to work seamlessly with the OHM ecosystem:
     - Generated manifests can be validated using 'ome okh validate'
     - Projects can be used as OKH requirements in matching operations
-    - The structure supports the OME generation workflow
-    - Projects can be stored and retrieved using OME storage services
+    - The structure supports the OHM generation workflow
+    - Projects can be stored and retrieved using OHM storage services
     
     For more information, see the Scaffolding Guide in the documentation.
     """,

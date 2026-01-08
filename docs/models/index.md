@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Open Matching Engine uses several interconnected data models to represent requirements, capabilities, and manufacturing solutions. These models form the foundation of our matching system and enable complex validation across different contexts.
+The Open Hardware Manager uses several interconnected data models to represent requirements, capabilities, and manufacturing solutions. These models form the foundation of our matching system and enable complex validation across different contexts.
 
 ## Core Models
 
@@ -70,7 +70,7 @@ class ValidationContext:
 
 ## Component-Specific Models
 
-### OME.extraction Models
+### OHM.extraction Models
 Models for handling unstructured input and producing normalized data:
 ```python
 @dataclass
@@ -82,7 +82,7 @@ class ExtractionResult:
     confidence_scores: Dict[str, float]
 ```
 
-### OME.analysis Models
+### OHM.analysis Models
 Models for requirement and capability analysis:
 ```python
 @dataclass
@@ -94,7 +94,7 @@ class AnalysisResult:
     context_mappings: Dict[str, ContextMap]
 ```
 
-### OME.matching Models
+### OHM.matching Models
 Models for matching solutions and scoring:
 ```python
 @dataclass
@@ -106,7 +106,7 @@ class MatchingSolution:
     alternative_paths: List[AlternativePath]
 ```
 
-### OME.routing Models
+### OHM.routing Models
 Models for material and facility routing:
 ```python
 @dataclass

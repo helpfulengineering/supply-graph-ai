@@ -9,7 +9,7 @@ API_PORT=${PORT:-${API_PORT:-"8001"}}
 
 # Function to start the API server
 start_api() {
-    echo "Starting Open Matching Engine API server..."
+    echo "Starting Open Hardware Manager API server..."
     echo "Host: $API_HOST"
     echo "Port: $API_PORT"
     echo "Environment: ${ENVIRONMENT:-${ENV:-development}}"
@@ -58,21 +58,29 @@ start_api() {
 
 # Function to run CLI commands
 run_cli() {
-    echo "Running Open Matching Engine CLI..."
+    echo "Running Open Hardware Manager CLI..."
     shift  # Remove the first argument (mode)
     
     # If no arguments provided, show help
+    # Use the installed 'ohm' command if available, otherwise fall back to module execution
     if [ $# -eq 0 ]; then
-        exec python -m src.cli.main --help
+        if command -v ohm >/dev/null 2>&1; then
+            exec ohm --help
+        else
+            exec python -m src.cli.main --help
+        fi
     else
-        # Pass all remaining arguments to the CLI
-        exec python -m src.cli.main "$@"
+        if command -v ohm >/dev/null 2>&1; then
+            exec ohm "$@"
+        else
+            exec python -m src.cli.main "$@"
+        fi
     fi
 }
 
 # Function to show help
 show_help() {
-    echo "Open Matching Engine Container"
+    echo "Open Hardware Manager Container"
     echo ""
     echo "Usage:"
     echo "  docker run <image> [api|cli] [options]"

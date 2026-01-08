@@ -1,5 +1,5 @@
 """
-LLM Provider implementations for the Open Matching Engine.
+LLM Provider implementations for the Open Hardware Manager.
 
 This module provides implementations of various LLM providers including
 OpenAI, Anthropic, Google, Azure OpenAI, and local models.

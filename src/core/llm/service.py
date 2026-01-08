@@ -1,5 +1,5 @@
 """
-LLM Service for the Open Matching Engine (OME).
+LLM Service for the Open Hardware Manager (OHM).
 
 This service provides centralized management of LLM providers, including:
 - Provider selection and routing

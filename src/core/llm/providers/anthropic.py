@@ -1,5 +1,5 @@
 """
-Anthropic LLM Provider for the Open Matching Engine.
+Anthropic LLM Provider for the Open Hardware Manager.
 
 This module provides an implementation of the BaseLLMProvider interface
 for Anthropic's Claude models, including Claude-3, Claude-3.5, and other variants.

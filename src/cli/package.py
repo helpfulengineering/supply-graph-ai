@@ -1,5 +1,5 @@
 """
-Package management commands for OME CLI
+Package management commands for OHM CLI
 
 This module provides commands for building, managing, and deploying OKH packages.
 """

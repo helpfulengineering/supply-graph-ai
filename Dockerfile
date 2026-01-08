@@ -68,11 +68,11 @@ RUN chmod +x docker-entrypoint.sh && \
     mv docker-entrypoint.sh /usr/local/bin/
 
 # Create a non-root user for security
-RUN groupadd -r ome && useradd -r -g ome ome && \
-    chown -R ome:ome /app && \
-    chown -R ome:ome /opt/venv
+RUN groupadd -r ohm && useradd -r -g ohm ohm && \
+    chown -R ohm:ohm /app && \
+    chown -R ohm:ohm /opt/venv
 
-USER ome
+USER ohm
 
 # Expose port for API server (Cloud Run will override with PORT env var)
 EXPOSE 8001

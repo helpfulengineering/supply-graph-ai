@@ -1,7 +1,7 @@
 """
 Utility CLI Commands
 
-Commands for utility operations in the Open Matching Engine.
+Commands for utility operations in the Open Hardware Manager.
 """
 
 from typing import Optional
@@ -16,9 +16,9 @@ from .decorators import standard_cli_command
 @click.group()
 def utility_group():
     """
-    Utility commands for OME.
+    Utility commands for OHM.
 
-    These commands provide utility operations for the Open Matching Engine,
+    These commands provide utility operations for the Open Hardware Manager,
     including domain listing, validation context management, system metrics,
     and system information utilities.
 
@@ -266,10 +266,10 @@ async def _display_metrics_results(
 @click.option("--name", help="Filter domains by name")
 @standard_cli_command(
     help_text="""
-    List available domains in the OME system.
+    List available domains in the OHM system.
     
     This command displays information about all registered domains
-    in the OME system, including their status, capabilities, and
+    in the OHM system, including their status, capabilities, and
     configuration.
     
     When LLM is enabled, domain listing includes:
@@ -594,7 +594,7 @@ async def metrics(
                 "warning",
             )
             cli_ctx.log(
-                "Please ensure the OME server is running and accessible.", "info"
+                "Please ensure the OHM server is running and accessible.", "info"
             )
             raise click.ClickException(
                 "Metrics endpoint requires API server connection. "

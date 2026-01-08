@@ -1,5 +1,5 @@
 """
-Base CLI framework for Open Matching Engine
+Base CLI framework for Open Hardware Manager
 
 This module provides the foundation for all CLI commands, including:
 - HTTP client management
@@ -62,8 +62,8 @@ async def ensure_domains_registered():
             status=DomainStatus.ACTIVE,
             supported_input_types={"recipe", "kitchen"},
             supported_output_types={"cooking_workflow", "meal_plan"},
-            documentation_url="https://docs.ome.org/domains/cooking",
-            maintainer="OME Cooking Team",
+            documentation_url="https://docs.ohm.org/domains/cooking",
+            maintainer="OHM Cooking Team",
         )
 
         DomainRegistry.register_domain(
@@ -83,8 +83,8 @@ async def ensure_domains_registered():
             status=DomainStatus.ACTIVE,
             supported_input_types={"okh", "okw"},
             supported_output_types={"supply_tree", "manufacturing_plan"},
-            documentation_url="https://docs.ome.org/domains/manufacturing",
-            maintainer="OME Manufacturing Team",
+            documentation_url="https://docs.ohm.org/domains/manufacturing",
+            maintainer="OHM Manufacturing Team",
         )
 
         DomainRegistry.register_domain(

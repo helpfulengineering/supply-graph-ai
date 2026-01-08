@@ -1,5 +1,5 @@
 """
-Matching system for the Open Matching Engine (OME).
+Matching system for the Open Hardware Manager (OHM).
 
 This module provides a 4-layer matching system that aligns with the generation
 system architecture. The matching system is responsible for matching requirements

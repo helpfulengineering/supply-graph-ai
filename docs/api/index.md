@@ -1,10 +1,10 @@
 # API Documentation
 
-The Open Matching Engine (OME) provides a REST API built on FastAPI with complete standardization, enterprise-grade error handling, and LLM integration support. This section documents the fully standardized API system with 43 routes across 6 command groups, all with testing and production readiness.
+The Open Hardware Manager (OHM) provides a REST API built on FastAPI with complete standardization, enterprise-grade error handling, and LLM integration support. This section documents the fully standardized API system with 43 routes across 6 command groups, all with testing and production readiness.
 
 ## API Architecture Overview
 
-OME uses [FastAPI](https://fastapi.tiangolo.com/) as its web framework.
+OHM uses [FastAPI](https://fastapi.tiangolo.com/) as its web framework.
 
 FastAPI is a modern, fast (high-performance), web framework for building APIs with Python based on standard Python type hints.
 

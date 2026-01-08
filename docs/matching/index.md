@@ -1,6 +1,6 @@
 # Matching System Overview
 
-The Open Matching Engine (OME) employs a multi-layered matching system designed to connect requirements with capabilities across different domains. The matching system is the core intelligence of OME, enabling it to find optimal matches between what users need and what facilities can provide.
+The Open Hardware Manager (OHM) employs a multi-layered matching system designed to connect requirements with capabilities across different domains. The matching system is the core intelligence of OHM, enabling it to find optimal matches between what users need and what facilities can provide.
 
 ## What is the Matching System?
 
@@ -115,11 +115,11 @@ To understand the matching system in detail, explore these documentation section
 
 ## Architecture Integration
 
-The matching system integrates seamlessly with other OME components:
+The matching system integrates seamlessly with other OHM components:
 
 - **Domain Management**: Works with domain-specific extractors, validators, and visualizers
 - **API Layer**: Provides RESTful endpoints for matching operations
 - **Storage System**: Persists match results and maintains matching history
 - **Validation Engine**: Ensures match quality and compliance with domain rules
 
-The matching system is the heart of OME, transforming raw requirements and capabilities into actionable supply chains and workflows that connect the global maker community.
+The matching system is the heart of OHM, transforming raw requirements and capabilities into actionable supply chains and workflows that connect the global maker community.

@@ -113,7 +113,7 @@ class PackageMetadata:
     version: str  # e.g., "1.2.4"
     okh_manifest_id: UUID
     build_timestamp: datetime
-    ome_version: str
+    ohm_version: str
     total_files: int
     total_size_bytes: int
     file_inventory: List[FileInfo]
@@ -127,7 +127,7 @@ class PackageMetadata:
             "version": self.version,
             "okh_manifest_id": str(self.okh_manifest_id),
             "build_timestamp": self.build_timestamp.isoformat(),
-            "ome_version": self.ome_version,
+            "ohm_version": self.ohm_version,
             "total_files": self.total_files,
             "total_size_bytes": self.total_size_bytes,
             "file_inventory": [f.to_dict() for f in self.file_inventory],
@@ -143,7 +143,7 @@ class PackageMetadata:
             version=data["version"],
             okh_manifest_id=UUID(data["okh_manifest_id"]),
             build_timestamp=datetime.fromisoformat(data["build_timestamp"]),
-            ome_version=data["ome_version"],
+            ohm_version=data["ohm_version"],
             total_files=data["total_files"],
             total_size_bytes=data["total_size_bytes"],
             file_inventory=[FileInfo.from_dict(f) for f in data["file_inventory"]],
@@ -179,7 +179,7 @@ class DownloadOptions:
     timeout_seconds: int = 120
     verify_ssl: bool = True
     follow_redirects: bool = True
-    user_agent: str = "OME-Package-Builder/1.0"
+    user_agent: str = "OHM-Package-Builder/1.0"
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""

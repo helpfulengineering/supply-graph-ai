@@ -1,9 +1,9 @@
 """
-Comprehensive exception hierarchy for the Open Matching Engine
+Comprehensive exception hierarchy for the Open Hardware Manager
 
 This module defines a standardized exception hierarchy that provides
 clear error categorization, context, and handling patterns for all
-components of the OME system.
+components of the OHM system.
 """
 
 import traceback
@@ -59,9 +59,9 @@ class ErrorContext:
             self.metadata = {}
 
 
-class OMEError(Exception):
+class OHMError(Exception):
     """
-    Base exception class for all OME errors.
+    Base exception class for all OHM errors.
 
     Provides standardized error handling with context, severity,
     and categorization for consistent error management across
@@ -115,7 +115,7 @@ class OMEError(Exception):
 
 
 # Configuration Errors
-class ConfigurationError(OMEError):
+class ConfigurationError(OHMError):
     """Base class for configuration-related errors"""
 
     def __init__(self, message: str, **kwargs):
@@ -152,7 +152,7 @@ class ConfigPermissionError(ConfigurationError):
 
 
 # Validation Errors
-class ValidationError(OMEError):
+class ValidationError(OHMError):
     """Base class for validation-related errors"""
 
     def __init__(self, message: str, **kwargs):
@@ -160,7 +160,7 @@ class ValidationError(OMEError):
 
 
 # Service Errors
-class ServiceError(OMEError):
+class ServiceError(OHMError):
     """Base class for service-related errors"""
 
     def __init__(self, message: str, service_name: Optional[str] = None, **kwargs):
@@ -216,7 +216,7 @@ class DomainError(ServiceError):
 
 
 # LLM Errors
-class LLMError(OMEError):
+class LLMError(OHMError):
     """Base class for LLM-related errors"""
 
     def __init__(self, message: str, **kwargs):
@@ -286,7 +286,7 @@ class LLMQuotaExceededError(LLMError):
 
 
 # API Errors
-class APIError(OMEError):
+class APIError(OHMError):
     """Base class for API-related errors"""
 
     def __init__(self, message: str, **kwargs):

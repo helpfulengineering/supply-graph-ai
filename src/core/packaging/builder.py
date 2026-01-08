@@ -871,17 +871,17 @@ class PackageBuilder:
         # Calculate total size
         total_size = sum(f.size_bytes for f in file_inventory)
 
-        # Get OME version from version module
+        # Get OHM version from version module
         from ..version import get_version
 
-        ome_version = get_version()
+        ohm_version = get_version()
 
         return PackageMetadata(
             package_name=package_name,
             version=manifest.version,
             okh_manifest_id=manifest.id,
             build_timestamp=datetime.now(),
-            ome_version=ome_version,
+            ohm_version=ohm_version,
             total_files=len(file_inventory),
             total_size_bytes=total_size,
             file_inventory=file_inventory,
@@ -903,7 +903,7 @@ class PackageBuilder:
             "version": metadata.version,
             "okh_manifest_id": str(metadata.okh_manifest_id),
             "build_timestamp": metadata.build_timestamp.isoformat(),
-            "ome_version": metadata.ome_version,
+            "ohm_version": metadata.ohm_version,
             "total_files": metadata.total_files,
             "total_size_bytes": metadata.total_size_bytes,
             "build_options": metadata.build_options.to_dict(),

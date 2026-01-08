@@ -1,5 +1,5 @@
 """
-AWS Bedrock LLM Provider for the Open Matching Engine.
+AWS Bedrock LLM Provider for the Open Hardware Manager.
 
 This module provides an implementation of the BaseLLMProvider interface
 for AWS Bedrock, which provides a unified API to access foundation models

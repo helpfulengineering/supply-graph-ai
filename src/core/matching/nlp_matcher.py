@@ -1,7 +1,7 @@
 """
 NLP Matching Layer Implementation
 
-This module implements the NLP Matching layer for the Open Matching Engine (OME).
+This module implements the NLP Matching layer for the Open Hardware Manager (OHM).
 It provides natural language processing-based matching for semantic understanding
 between requirements and capabilities.
 

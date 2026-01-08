@@ -1,5 +1,5 @@
 """
-CLI module entry point for Open Matching Engine
+CLI module entry point for Open Hardware Manager
 """
 
 from .main import cli

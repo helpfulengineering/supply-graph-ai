@@ -1,5 +1,5 @@
 """
-Google Cloud Vertex AI LLM Provider for the Open Matching Engine.
+Google Cloud Vertex AI LLM Provider for the Open Hardware Manager.
 
 This module provides an implementation of the BaseLLMProvider interface
 for Google Cloud Vertex AI, which provides access to Google's Gemini models

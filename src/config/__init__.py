@@ -1,8 +1,8 @@
 """
-Configuration module for the Open Matching Engine
+Configuration module for the Open Hardware Manager
 
 This module provides configuration management for all aspects
-of the OME system, including LLM providers, storage, domains, and validation.
+of the OHM system, including LLM providers, storage, domains, and validation.
 """
 
 from .domains import (

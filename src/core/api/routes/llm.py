@@ -1,5 +1,5 @@
 """
-LLM API routes for the Open Matching Engine.
+LLM API routes for the Open Hardware Manager.
 
 This module provides API endpoints for LLM service monitoring and discovery.
 """

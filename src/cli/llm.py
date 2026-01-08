@@ -1,5 +1,5 @@
 """
-LLM (Large Language Model) commands for OME CLI
+LLM (Large Language Model) commands for OHM CLI
 
 This module provides commands for LLM operations including content generation,
 OKH manifest generation, facility matching, and provider management.

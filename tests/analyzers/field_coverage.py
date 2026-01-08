@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Field Coverage Analyzer for OME Testing Framework
+Field Coverage Analyzer for OHM Testing Framework
 
 This module analyzes which OKH and OKW fields are being used in the matching
 process and identifies fields that are not being utilized.
@@ -17,7 +17,7 @@ from typing import Dict, List, Set, Any
 from datetime import datetime
 
 class FieldCoverageAnalyzer:
-    """Analyzes field coverage in OME matching results"""
+    """Analyzes field coverage in OHM matching results"""
     
     def __init__(self):
         # Define all possible OKH fields

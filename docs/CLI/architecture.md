@@ -1,8 +1,8 @@
-# OME CLI Architecture
+# OHM CLI Architecture
 
 ## Overview
 
-The OME CLI is built using a modern, standardized architecture that provides both HTTP API integration and direct service access. The system has been completely refactored with LLM integration support, standardized command patterns, and enterprise-grade error handling. This design ensures reliability, flexibility, and consistency across all 36 CLI commands.
+The OHM CLI is built using a modern, standardized architecture that provides both HTTP API integration and direct service access. The system has been completely refactored with LLM integration support, standardized command patterns, and enterprise-grade error handling. This design ensures reliability, flexibility, and consistency across all 36 CLI commands.
 
 ## Architecture Components
 
@@ -109,10 +109,10 @@ The CLI supports LLM integration across all commands:
 
 ```bash
 # Global LLM options
-ome --use-llm --llm-provider anthropic --quality-level professional [COMMAND]
+ohm --use-llm --llm-provider anthropic --quality-level professional [COMMAND]
 
 # Command-specific LLM options
-ome okh validate manifest.json --use-llm --llm-provider openai --strict-mode
+ohm okh validate manifest.json --use-llm --llm-provider openai --strict-mode
 ```
 
 ### Supported LLM Providers
@@ -141,7 +141,7 @@ ome okh validate manifest.json --use-llm --llm-provider openai --strict-mode
 
 ### HTTP Mode (Primary)
 
-When the OME server is available, commands use HTTP API endpoints:
+When the OHM server is available, commands use HTTP API endpoints:
 
 ```python
 async def http_operation():
@@ -194,7 +194,7 @@ This ensures:
 The CLI supports global configuration through command-line options:
 
 ```bash
-ome --server-url https://api.ome.org --timeout 60 --verbose package build manifest.json
+ohm --server-url https://api.ome.org --timeout 60 --verbose package build manifest.json
 ```
 
 ### Configuration Hierarchy
@@ -207,16 +207,16 @@ ome --server-url https://api.ome.org --timeout 60 --verbose package build manife
 
 | Option | Environment Variable | Default | Description |
 |--------|---------------------|---------|-------------|
-| `--server-url` | `OME_SERVER_URL` | `http://localhost:8001` | OME server URL |
-| `--timeout` | `OME_TIMEOUT` | `30.0` | Request timeout in seconds |
-| `--verbose` | `OME_VERBOSE` | `False` | Enable verbose output |
-| `--json` | `OME_JSON` | `False` | JSON output format |
-| `--table` | `OME_TABLE` | `False` | Table output format |
-| `--use-llm` | `OME_USE_LLM` | `False` | Enable LLM integration |
-| `--llm-provider` | `OME_LLM_PROVIDER` | `anthropic` | LLM provider (openai, anthropic, google, azure, local) |
-| `--llm-model` | `OME_LLM_MODEL` | `None` | Specific LLM model to use |
-| `--quality-level` | `OME_QUALITY_LEVEL` | `professional` | Quality level (hobby, professional, medical) |
-| `--strict-mode` | `OME_STRICT_MODE` | `False` | Enable strict validation mode |
+| `--server-url` | `OHM_SERVER_URL` | `http://localhost:8001` | OHM server URL |
+| `--timeout` | `OHM_TIMEOUT` | `30.0` | Request timeout in seconds |
+| `--verbose` | `OHM_VERBOSE` | `False` | Enable verbose output |
+| `--json` | `OHM_JSON` | `False` | JSON output format |
+| `--table` | `OHM_TABLE` | `False` | Table output format |
+| `--use-llm` | `OHM_USE_LLM` | `False` | Enable LLM integration |
+| `--llm-provider` | `OHM_LLM_PROVIDER` | `anthropic` | LLM provider (openai, anthropic, google, azure, local) |
+| `--llm-model` | `OHM_LLM_MODEL` | `None` | Specific LLM model to use |
+| `--quality-level` | `OHM_QUALITY_LEVEL` | `professional` | Quality level (hobby, professional, medical) |
+| `--strict-mode` | `OHM_STRICT_MODE` | `False` | Enable strict validation mode |
 
 ## Error Handling
 
@@ -272,7 +272,7 @@ The CLI provides clear, actionable error messages with helpful suggestions:
 ```bash
 # File not found
 ❌ Error: Package community/nonexistent:1.0.0 not found
-   Suggestion: Use 'ome package list-packages' to see available packages
+   Suggestion: Use 'ohm package list-packages' to see available packages
 
 # Server connection failed (with automatic fallback)
 ⚠️  Server unavailable, using direct service calls...
@@ -280,7 +280,7 @@ The CLI provides clear, actionable error messages with helpful suggestions:
 
 # Validation error with specific guidance
 ❌ Error: Invalid domain 'nonexistent-domain'. Valid domains are: manufacturing, cooking
-   Suggestion: Use 'ome utility domains' to see available domains
+   Suggestion: Use 'ohm utility domains' to see available domains
 
 # LLM configuration error
 ❌ Error: LLM provider 'invalid-provider' not supported
@@ -436,10 +436,10 @@ The CLI can be deployed as a standalone application:
 ```bash
 # Create executable
 pip install pyinstaller
-pyinstaller --onefile ome
+pyinstaller --onefile ohm
 
 # Deploy executable
-./ome system health
+./ohm system health
 ```
 
 ### Container Deployment
@@ -451,7 +451,7 @@ FROM python:3.9-slim
 COPY . /app
 WORKDIR /app
 RUN pip install -r requirements.txt
-ENTRYPOINT ["./ome"]
+ENTRYPOINT ["./ohm"]
 ```
 
 ### CI/CD Integration
@@ -460,13 +460,13 @@ The CLI integrates well with CI/CD pipelines:
 
 ```yaml
 - name: Validate manifests
-  run: ome okh validate *.okh.json
+  run: ohm okh validate *.okh.json
 
 - name: Build packages
-  run: ome package build *.okh.json
+  run: ohm package build *.okh.json
 
 - name: Push to registry
-  run: ome package push org/project $VERSION
+  run: ohm package push org/project $VERSION
 ```
 
 ## Future Enhancements

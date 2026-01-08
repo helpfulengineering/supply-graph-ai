@@ -1,7 +1,7 @@
 """
 Heuristic Matching Layer Implementation
 
-This module implements the Heuristic Matching layer for the Open Matching Engine (OME).
+This module implements the Heuristic Matching layer for the Open Hardware Manager (OHM).
 It provides rule-based matching using domain knowledge stored in capability rules.
 
 This layer is part of the 4-layer matching architecture and inherits from

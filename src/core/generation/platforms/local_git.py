@@ -54,7 +54,7 @@ class LocalGitExtractor(ProjectExtractor):
         """
         super().__init__()
         self.temp_dir = (
-            Path(temp_dir) if temp_dir else Path(tempfile.gettempdir()) / "ome_clones"
+            Path(temp_dir) if temp_dir else Path(tempfile.gettempdir()) / "ohm_clones"
         )
         self.max_file_size = max_file_size
         self.supported_platforms = {PlatformType.GITHUB, PlatformType.GITLAB}

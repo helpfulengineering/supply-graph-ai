@@ -1,8 +1,8 @@
-# Open Matching Engine (OME)
+# Open Hardware Manager (OHM)
 
 ## Overview
 
-The Open Matching Engine (OME) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. The system matches requirements (what needs to be done) with capabilities (what can be done) to create viable solutions.
+The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. The system matches requirements (what needs to be done) with capabilities (what can be done) to create viable solutions.
 
 
 ## Quick Start for Developers
@@ -21,13 +21,40 @@ cp env.template .env
 # Edit .env with your configuration
 
 # Start the API server
-docker-compose up ome-api
+docker-compose up ohm-api
 
 # Access the API documentation at:
 # http://localhost:8001/docs
 ```
 
-#### Option 2: Local Development
+#### Option 2: Local Development (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/helpfulengineering/supply-graph-ai.git
+cd supply-graph-ai
+
+# Create and activate conda environment
+conda create -n supply-graph-ai python=3.10
+conda activate supply-graph-ai
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install the package in editable mode (creates 'ohm' command)
+pip install -e .
+
+# Verify installation
+ohm --help
+
+# Start the API server
+python run.py
+
+# Or use the CLI directly
+ohm system health
+```
+
+#### Option 3: Local Development (Legacy - without package installation)
 
 ```bash
 # Clone the repository
@@ -51,7 +78,7 @@ This README provides a quick start guide and basic project information. For docu
 
 ### Building Documentation Locally
 
-The OME documentation is built using [MkDocs](https://www.mkdocs.org/), a simple static site generator for project documentation.
+The OHM documentation is built using [MkDocs](https://www.mkdocs.org/), a simple static site generator for project documentation.
 
 To build and view the documentation locally:
 
@@ -122,7 +149,9 @@ open-matching-engine/
 ├── synth/                  # synthetic data for development, remove in prod
 ├── tests/                  # Test files for development
 ├── mkdocs.yml              # Documentation configuration
-├── ome                     # Entrypoint for CLI
+├── bin/                    # Development entrypoint scripts
+│   └── ohm                 # Development CLI entrypoint (fallback)
+├── pyproject.toml          # Package configuration (creates 'ohm' command via pip install -e .)
 ├── requirements.txt        # Project dependencies
 └── run.py                  # FastAPI server on uvicorn
 ```
@@ -133,7 +162,7 @@ open-matching-engine/
 
 ```bash
 # Start the API server
-docker-compose up ome-api
+docker-compose up ohm-api
 
 # Or run CLI commands
 docker run --rm \

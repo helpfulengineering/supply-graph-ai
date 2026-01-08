@@ -163,14 +163,14 @@ Use this checklist to quickly verify all setup steps are complete. See detailed 
   # Requires: Application codebase and dependencies installed
   # Requires: gcloud auth application-default login (for local credentials)
   # Note: Does NOT require the API server to be running
-  ome storage populate \
+  ohm storage populate \
     --provider gcs \
     --bucket ${BUCKET_NAME} \
     --region ${REGION} \
     --project-id ${PROJECT_ID}
   
   # Or with explicit credentials
-  ome storage populate \
+  ohm storage populate \
     --provider gcs \
     --bucket ${BUCKET_NAME} \
     --region ${REGION} \
@@ -631,14 +631,14 @@ python scripts/setup_storage.py \
 
 #### Option B: Using the CLI Commands
 
-The CLI commands (`ome storage setup` and `ome storage populate`) can be used without the API server running. They use the application's storage libraries directly:
+The CLI commands (`ohm storage setup` and `ome storage populate`) can be used without the API server running. They use the application's storage libraries directly:
 
 ```bash
 # Activate conda environment
 conda activate supply-graph-ai
 
 # Setup directory structure in GCS
-ome storage setup \
+ohm storage setup \
     --provider gcs \
     --bucket $BUCKET_NAME \
     --region $REGION \

@@ -1,7 +1,7 @@
 """
 Direct Matching Layer Implementation
 
-This module implements the Direct Matching layer for the Open Matching Engine (OME).
+This module implements the Direct Matching layer for the Open Hardware Manager (OHM).
 It provides exact, case-insensitive string matching with detailed metadata tracking
 and confidence scoring for both cooking and manufacturing domains.
 
