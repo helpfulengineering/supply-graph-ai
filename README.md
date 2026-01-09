@@ -79,23 +79,6 @@ uvicorn src.core.main:app --reload --host 0.0.0.0 --port 8001
 ohm system health
 ```
 
-#### Option 3: Local Development (Legacy - without package installation)
-
-```bash
-# Clone the repository
-git clone https://github.com/helpfulengineering/supply-graph-ai.git
-cd supply-graph-ai
-
-# Create and activate a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install spaCy language model (required for NLP matching)
-python -m spacy download en_core_web_md
-```
 
 ## Documentation
 
@@ -150,7 +133,7 @@ Our documentation covers:
 ## Project Structure
 
 ```markdown
-open-matching-engine/
+supply-graph-ai/
 ├── docs/                   # Documentation files (MkDocs)
 ├── deploy/                 # Cloud agnostic deployment
 ├── scripts/                # Utility scripts for dev & testing
