@@ -7,9 +7,11 @@ This module provides tools for verifying Cloud Run deployment accessibility and 
 - `verification.py` - Core verification classes and functions
 - `verify_deployment.py` - Command-line script for Cloud Run verification
 - `verify_local_deployment.py` - Command-line script for local Docker verification
+- `run_pre_demo_check.py` - Automated pre-demo validation script
 - `configure_public_access.py` - Script to configure Cloud Run public access
 - `BACKUP_DEPLOYMENT.md` - Backup deployment runbook
 - `PUBLIC_ACCESS.md` - Public access configuration guide
+- `PRE_DEMO_CHECKLIST.md` - Comprehensive pre-demo validation checklist
 - `README.md` - This file
 
 ## Usage
@@ -123,10 +125,51 @@ python -m demo.infrastructure.verify_local_deployment --url http://localhost:808
 
 See `BACKUP_DEPLOYMENT.md` for detailed setup and troubleshooting.
 
+## Pre-Demo Validation
+
+### Automated Checks
+
+Run the automated pre-demo validation script:
+
+```bash
+python -m demo.infrastructure.run_pre_demo_check
+```
+
+This script checks:
+- Cloud Run accessibility and public access
+- Network latency
+- API endpoint health
+- Match endpoint performance
+- OKH/OKW data availability
+- Local backup deployment readiness
+
+### Manual Checklist
+
+For comprehensive pre-demo validation, use the detailed checklist:
+
+```bash
+# Review the checklist
+cat demo/infrastructure/PRE_DEMO_CHECKLIST.md
+```
+
+The checklist includes:
+- Cloud Run deployment verification
+- Demo data availability checks
+- Backup deployment readiness
+- Network connectivity testing
+- Demo interface configuration
+- Error handling verification
+- Final pre-demo checks (30 minutes before)
+
+**Timeline:**
+- **24 hours before**: Complete all critical items
+- **2 hours before**: Quick verification checks
+- **30 minutes before**: Final spot checks
+
 ## Next Steps
 
-1. ✅ **Task 1.1.3**: Configure public access for demo endpoints (Complete)
-2. ✅ **Task 1.1.4**: Create health check script (Complete)
-3. ✅ **Task 1.2.1-1.2.2**: Review and test local deployment (Complete)
-4. ✅ **Task 1.2.4**: Create backup deployment runbook (Complete)
-5. **Task 1.2.3**: Create demo data loading procedure for local deployment
+1. ✅ **Task 1.1**: Cloud Run verification (Complete)
+2. ✅ **Task 1.2**: Backup deployment setup (Complete, except data loading)
+3. ✅ **Task 1.3**: Pre-demo checklist (Complete)
+4. **Task 1.2.3**: Create demo data loading procedure for local deployment
+5. **Task 2**: Synthetic data preparation

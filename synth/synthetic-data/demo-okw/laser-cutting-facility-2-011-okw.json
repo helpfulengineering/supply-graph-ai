@@ -1,91 +1,94 @@
 {
-  "id": "4fafd2eb-b02f-4299-90d3-795b4f2c1c4b",
+  "id": "23ab7bdb-ea7a-4169-816a-b5d7508a2675",
   "name": "Laser Cutting Facility 2",
   "location": {
     "address": {
-      "number": "3015",
-      "street": "Meza Drive",
-      "city": "Jennifermouth",
-      "region": "Illinois",
-      "country": "Moldova",
-      "postcode": "98685"
+      "number": "6822",
+      "street": "Mullen Port",
+      "city": "Denver",
+      "region": "WY",
+      "country": "US",
+      "postcode": "91676"
     },
-    "gps_coordinates": "27.440473, -16.282892",
-    "city": "Jennifermouth",
-    "country": "Moldova"
+    "gps_coordinates": "39.7392364, -104.984862",
+    "directions": "Located behind Parks PLC",
+    "city": "Denver",
+    "country": "US"
   },
   "facility_status": "Active",
-  "owner": {
-    "name": "Garcia Group",
+  "contact": {
+    "name": "Barton, Winters and Martin",
     "location": {
       "address": {
-        "number": "9033",
-        "street": "Smith Inlet",
-        "city": "North Kristineside",
-        "region": "Wisconsin",
-        "country": "Suriname",
-        "postcode": "46425"
+        "number": "1607",
+        "street": "Rivera Harbor",
+        "city": "Philadelphia",
+        "region": "UT",
+        "country": "US",
+        "postcode": "81790"
       },
-      "gps_coordinates": "61.104519, -56.116125",
-      "city": "North Kristineside",
-      "country": "Suriname"
+      "gps_coordinates": "39.9527237, -75.1635262",
+      "directions": "Located near Griffith PLC",
+      "city": "Philadelphia",
+      "country": "US"
     },
-    "bio": "Established in 2011, we specialize in Polarized reciprocal definition",
     "languages": [
+      "en",
       "de",
-      "es",
-      "fr"
+      "es"
     ],
-    "mailing_list": "johnnelson@lists.wall.com",
+    "mailing_list": "jamesmayer@lists.alvarez-harrison.net",
     "contact": {
-      "email": "info@adams.com"
+      "landline": "+1-400-371-5487"
     },
     "social_media": {
-      "facebook": "https://facebook.com/francisamber",
-      "other_urls": []
+      "facebook": "https://facebook.com/riverasarah",
+      "instagram": "@stephen58",
+      "other_urls": [
+        "https://buck.com"
+      ]
     }
   },
   "description": "Specialized in laser cutting and engraving services",
-  "date_founded": "2001-11-13",
+  "date_founded": "2008-08-24",
   "access_type": "Membership",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
-      "make": "Epilog",
-      "model": "Fusion Pro",
+      "make": "Boss",
+      "model": "Speedy 300",
+      "serial_number": "SN162640",
       "condition": "Good",
-      "notes": "Equipment notes: Bag sign real whether protect only pay.",
-      "quantity": 4,
-      "power_rating": 4952,
-      "maintenance_schedule": "Every 3 months",
-      "usage_levels": "Low",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
       "computer_controlled": true,
       "materials_worked": [
         {
-          "material_type": "https://en.wikipedia.org/wiki/Acrylic"
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Wood",
-          "manufacturer": "Brand B",
           "brand": "Professional"
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Fabric",
-          "manufacturer": "Generic",
-          "brand": "Standard",
           "supplier_location": {
             "address": {
-              "number": "8730",
-              "street": "Kelsey Crest",
-              "city": "Castanedaton",
-              "region": "Alabama",
-              "country": "Montserrat",
-              "postcode": "24690"
+              "number": "146",
+              "street": "Benjamin Spurs",
+              "city": "Los Angeles",
+              "region": "NC",
+              "country": "US",
+              "postcode": "98416"
             },
-            "gps_coordinates": "30.231061, 9.721159",
-            "city": "Castanedaton",
-            "country": "Montserrat"
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located behind Cooper PLC",
+            "city": "Los Angeles",
+            "country": "US"
           }
         },
         {
@@ -93,21 +96,21 @@
           "brand": "Professional",
           "supplier_location": {
             "address": {
-              "number": "9177",
-              "street": "Ronald Glen",
-              "city": "New Mariaview",
-              "region": "Indiana",
-              "country": "Ethiopia",
-              "postcode": "53101"
+              "number": "2942",
+              "street": "Sharon Curve",
+              "city": "Columbus",
+              "region": "NY",
+              "country": "US",
+              "postcode": "31437"
             },
-            "gps_coordinates": "39.579621, -108.660808",
-            "directions": "Located behind Fisher-Miles",
-            "city": "New Mariaview",
-            "country": "Ethiopia"
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "directions": "Located near Colon, Terrell and Atkins",
+            "city": "Columbus",
+            "country": "US"
           }
         }
       ],
-      "laser_power": 100,
+      "laser_power": 60,
       "working_surface": 600
     }
   ],
@@ -115,13 +118,8 @@
     "https://en.wikipedia.org/wiki/Laser_cutting"
   ],
   "typical_batch_size": "0 -- 50 units",
-  "storage_capacity": "491 cubic meters",
+  "floor_size": 725,
   "typical_materials": [],
-  "certifications": [
-    "Basic Safety Training",
-    "First Aid Training"
-  ],
-  "backup_generator": true,
-  "road_access": true,
-  "maintenance_schedule": "Every 4 months"
+  "certifications": [],
+  "road_access": true
 }

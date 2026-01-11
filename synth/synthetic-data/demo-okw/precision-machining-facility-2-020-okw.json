@@ -1,53 +1,54 @@
 {
-  "id": "b2f94307-2ad8-4a5f-bcd1-ffcaf9ee0412",
+  "id": "0b54771c-3763-46e3-b167-bf90f1d67fb1",
   "name": "Precision Machining Facility 2",
   "location": {
     "address": {
-      "number": "783",
-      "street": "Amy Springs",
-      "city": "Tiffanymouth",
-      "region": "Virginia",
-      "country": "Italy",
-      "postcode": "84969"
+      "number": "7925",
+      "street": "Julie Gardens",
+      "city": "Phoenix",
+      "region": "IA",
+      "country": "US",
+      "postcode": "52345"
     },
-    "gps_coordinates": "29.872768, -66.348557",
-    "city": "Tiffanymouth",
-    "country": "Italy"
+    "gps_coordinates": "33.4484367, -112.074141",
+    "city": "Phoenix",
+    "country": "US"
   },
   "facility_status": "Active",
   "contact": {
-    "name": "Ingram Inc",
+    "name": "Turner and Sons",
     "location": {
       "address": {
-        "number": "5266",
-        "street": "James Trace",
-        "city": "Williamport",
-        "region": "Michigan",
-        "country": "Ukraine",
-        "postcode": "85264"
+        "number": "1787",
+        "street": "Alexander Vista",
+        "city": "San Francisco",
+        "region": "IN",
+        "country": "US",
+        "postcode": "76801"
       },
-      "gps_coordinates": "55.740827, -69.69254",
-      "directions": "Located across from Hudson and Sons",
-      "city": "Williamport",
-      "country": "Ukraine"
+      "gps_coordinates": "37.7879363, -122.4075201",
+      "directions": "Located near Hall, Rhodes and Guerra",
+      "city": "San Francisco",
+      "country": "US"
     },
-    "website": "https://smith.com",
-    "languages": [
-      "fr",
-      "en",
-      "de"
-    ],
-    "mailing_list": "swalker@lists.anderson.com",
+    "contact_person": "Cynthia Marshall",
+    "mailing_list": "justinbowen@lists.schultz.org",
     "contact": {
-      "landline": "+1-569-981-4506",
-      "whatsapp": "+1-435-514-1411"
+      "mobile": "+1-721-443-3620",
+      "email": "info@decker-myers.net"
     },
     "social_media": {
-      "other_urls": []
+      "facebook": "https://facebook.com/jeff15",
+      "twitter": "@salaskelly",
+      "instagram": "@bmiller",
+      "other_urls": [
+        "https://may-ayala.com",
+        "https://schultz.biz"
+      ]
     }
   },
+  "opening_hours": "Mon-Fri: 6:00-18:00",
   "description": "Specialized in high-precision machining operations",
-  "date_founded": "2004-03-11",
   "access_type": "Restricted",
   "equipment": [
     {
@@ -56,97 +57,53 @@
       "make": "Haas",
       "model": "VF-2",
       "condition": "Excellent",
-      "power_rating": 5824,
-      "maintenance_schedule": "Every 11 months",
-      "usage_levels": "Medium",
-      "uninterrupted_power_supply": true,
+      "notes": "Equipment notes: Change sit travel college well example.",
+      "quantity": 1,
+      "maintenance_schedule": "Every 5 months",
+      "usage_levels": "High",
       "computer_controlled": true,
       "materials_worked": [
         {
           "material_type": "https://en.wikipedia.org/wiki/Aluminum",
-          "manufacturer": "Brand A",
-          "brand": "Standard",
-          "supplier_location": {
-            "address": {
-              "number": "5327",
-              "street": "Kathryn Plaza",
-              "city": "West Theresahaven",
-              "region": "South Carolina",
-              "country": "El Salvador",
-              "postcode": "41838"
-            },
-            "gps_coordinates": "66.89621, -18.661621",
-            "directions": "Located behind Sellers, Rivera and Mitchell",
-            "city": "West Theresahaven",
-            "country": "El Salvador"
-          }
+          "brand": "Industrial"
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Steel",
-          "manufacturer": "Brand B",
-          "brand": "Industrial",
-          "supplier_location": {
-            "address": {
-              "number": "872",
-              "street": "James Lights",
-              "city": "Port Mary",
-              "region": "Wisconsin",
-              "country": "Jamaica",
-              "postcode": "51935"
-            },
-            "gps_coordinates": "37.399831, -63.284609",
-            "city": "Port Mary",
-            "country": "Jamaica"
-          }
+          "brand": "Industrial"
         },
         {
-          "material_type": "https://en.wikipedia.org/wiki/Plastic"
-        },
-        {
-          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
           "manufacturer": "Brand A",
-          "brand": "Professional",
-          "supplier_location": {
-            "address": {
-              "number": "4358",
-              "street": "Christopher Station",
-              "city": "Patriciafort",
-              "region": "South Carolina",
-              "country": "Ghana",
-              "postcode": "98795"
-            },
-            "gps_coordinates": "64.242251, -89.670921",
-            "city": "Patriciafort",
-            "country": "Ghana"
-          }
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
         }
       ],
       "axes": 3,
-      "working_surface": 800
+      "working_surface": 600
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
-      "make": "Brand A",
-      "model": "Model 308",
-      "condition": "Fair",
-      "computer_controlled": true
+      "make": "Brand B",
+      "model": "Model 794",
+      "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
       "make": "Brand A",
-      "model": "Model 501",
-      "condition": "Excellent",
+      "model": "Model 864",
+      "condition": "Good",
       "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CMM",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CMM",
-      "make": "Brand A",
-      "model": "Model 242",
-      "condition": "Excellent",
-      "computer_controlled": true
+      "make": "Generic",
+      "model": "Model 417",
+      "condition": "Fair"
     }
   ],
   "manufacturing_processes": [
@@ -156,17 +113,21 @@
     "https://en.wikipedia.org/wiki/Quality_control"
   ],
   "typical_batch_size": "0 -- 50 units",
-  "floor_size": 1231,
+  "storage_capacity": "938 cubic meters",
   "typical_materials": [],
   "certifications": [
-    "OHSAS 18001",
-    "ISO 14001"
+    "ISO 14001",
+    "ISO 9001:2015",
+    "NADCAP"
   ],
+  "backup_generator": true,
   "uninterrupted_power_supply": true,
   "road_access": true,
-  "maintenance_schedule": "Every 1 months",
   "typical_products": [
-    "Optional exuding pricing structure",
-    "Stand-alone motivating focus group"
+    "Cross-group asymmetric matrix",
+    "Ergonomic bandwidth-monitored encryption",
+    "Extended coherent benchmark",
+    "Down-sized global utilization",
+    "Polarized hybrid focus group"
   ]
 }

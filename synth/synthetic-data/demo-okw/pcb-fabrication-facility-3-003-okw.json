@@ -1,68 +1,91 @@
 {
-  "id": "85a59e99-9c35-4f4a-8f96-678d298e9ce7",
+  "id": "198058f4-8691-470a-a4bc-8660913dd21a",
   "name": "PCB Fabrication Facility 3",
   "location": {
     "address": {
-      "number": "5076",
-      "street": "Christian Rapids",
-      "city": "Evanborough",
-      "region": "Montana",
-      "country": "Montserrat",
-      "postcode": "62860"
+      "number": "4633",
+      "street": "Thomas Keys",
+      "city": "Los Angeles",
+      "region": "AK",
+      "country": "US",
+      "postcode": "09200"
     },
-    "gps_coordinates": "32.472601, -120.201736",
-    "directions": "Located near Long, Ross and Santiago",
-    "city": "Evanborough",
-    "country": "Montserrat"
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
   },
   "facility_status": "Active",
-  "contact": {
-    "name": "Kane, Rodriguez and Andrews",
-    "bio": "Established in 1994, we specialize in Visionary uniform leverage",
-    "website": "https://harris-atkins.net",
-    "mailing_list": "michael94@lists.anderson.com",
+  "owner": {
+    "name": "Garcia-Johnson",
+    "website": "https://smith.com",
+    "languages": [
+      "en",
+      "fr"
+    ],
+    "mailing_list": "cindy58@lists.trujillo.com",
     "contact": {
-      "landline": "+1-896-758-1954",
-      "mobile": "+1-252-640-1242"
+      "landline": "+1-895-857-2301",
+      "whatsapp": "+1-420-359-9911"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/denise26",
+      "instagram": "@donnawilkinson",
+      "other_urls": [
+        "https://scott.net",
+        "https://edwards.net"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Ellis, Knox and Colon",
+    "website": "https://clark.info",
+    "languages": [
+      "de",
+      "es",
+      "fr"
+    ],
+    "mailing_list": "andrew14@lists.campbell.com",
+    "contact": {
+      "mobile": "+1-945-688-3704",
+      "whatsapp": "+1-645-418-3838"
     },
     "social_media": {
       "other_urls": []
     }
   },
-  "opening_hours": "Mon-Fri: 9:00-21:00",
   "description": "Specialized in printed circuit board fabrication and prototyping",
+  "date_founded": "2013-07-06",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/PCB_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/PCB_printer",
       "make": "Generic",
-      "model": "Model 229",
-      "condition": "Fair",
-      "computer_controlled": true
+      "model": "Model 982",
+      "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Etching_tank",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Etching_tank",
-      "make": "Brand B",
-      "model": "Model 766",
-      "condition": "Excellent"
+      "make": "Brand A",
+      "model": "Model 553",
+      "condition": "Good",
+      "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Drilling_machine",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Drilling_machine",
       "make": "Brand A",
-      "model": "Model 276",
+      "model": "Model 222",
       "condition": "Excellent",
       "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/AOI",
       "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
-      "make": "Brand A",
-      "model": "Model 742",
-      "condition": "Good",
-      "computer_controlled": true
+      "make": "Generic",
+      "model": "Model 435",
+      "condition": "Fair"
     }
   ],
   "manufacturing_processes": [
@@ -70,9 +93,16 @@
     "https://en.wikipedia.org/wiki/Fused_filament_fabrication"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "storage_capacity": "470 cubic meters",
+  "floor_size": 3740,
+  "storage_capacity": "405 cubic meters",
   "typical_materials": [],
-  "certifications": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "RoHS Compliance",
+    "IPC-J-STD-001",
+    "IPC-A-610"
+  ],
   "road_access": true,
+  "loading_dock": true,
   "maintenance_schedule": "Every 6 months"
 }

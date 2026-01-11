@@ -1,98 +1,86 @@
 {
-  "id": "f35264fd-5f4a-4d83-bdb0-1d4e0bf48b1c",
+  "id": "48690658-9066-4977-8e73-148b9789fd9b",
   "name": "CNC Machining Facility 1",
   "location": {
     "address": {
-      "number": "419",
-      "street": "Landry Lane",
-      "city": "Pageport",
-      "region": "Illinois",
-      "country": "Saint Helena",
-      "postcode": "34579"
+      "number": "4344",
+      "street": "Crawford Falls",
+      "city": "Columbus",
+      "region": "DE",
+      "country": "US",
+      "postcode": "74643"
     },
-    "gps_coordinates": "50.130234, 3.840465",
-    "directions": "Located across from Lane Group",
-    "city": "Pageport",
-    "country": "Saint Helena"
+    "gps_coordinates": "39.9622601, -83.0007065",
+    "city": "Columbus",
+    "country": "US"
   },
   "facility_status": "Active",
-  "owner": {
-    "name": "Mason, Young and Moran",
-    "website": "https://garcia.com",
-    "mailing_list": "steven13@lists.mitchell-smith.com",
-    "contact": {
-      "landline": "+1-606-590-2759"
-    },
-    "social_media": {
-      "facebook": "https://facebook.com/patrickbarnes",
-      "other_urls": [
-        "https://richmond.com",
-        "https://chavez-russell.com"
-      ]
-    }
-  },
+  "opening_hours": "Mon-Fri: 6:00-22:00",
   "description": "Specialized in CNC milling and turning operations",
-  "date_founded": "2007-07-25",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
-      "make": "Mazak",
-      "model": "PCNC 440",
-      "serial_number": "SN892646",
-      "condition": "Excellent",
-      "notes": "Equipment notes: Business increase hard act perhaps strong what.",
-      "throughput": "39 parts/hour",
-      "power_rating": 3421,
-      "maintenance_schedule": "Every 1 months",
-      "tolerance_class": "ISO 2768-m",
+      "make": "Haas",
+      "model": "VF-2",
+      "condition": "Fair",
+      "notes": "Equipment notes: Whatever center standard individual yet.",
+      "maintenance_schedule": "Every 9 months",
       "computer_controlled": true,
       "materials_worked": [
         {
           "material_type": "https://en.wikipedia.org/wiki/Aluminum",
-          "manufacturer": "Generic",
-          "brand": "Industrial"
+          "supplier_location": {
+            "address": {
+              "number": "3409",
+              "street": "Gabriel Court",
+              "city": "Columbus",
+              "region": "DC",
+              "country": "US",
+              "postcode": "27677"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "directions": "Located behind Franklin, Gordon and Montoya",
+            "city": "Columbus",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Steel",
-          "manufacturer": "Brand A",
-          "brand": "Professional"
+          "brand": "Standard"
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Plastic",
           "manufacturer": "Brand B",
-          "brand": "Standard"
-        },
-        {
-          "material_type": "https://en.wikipedia.org/wiki/Wood",
-          "manufacturer": "Brand A",
-          "brand": "Standard",
           "supplier_location": {
             "address": {
-              "number": "4721",
-              "street": "Kara Mission",
-              "city": "Port Stacyside",
-              "region": "North Carolina",
-              "country": "Korea",
-              "postcode": "10104"
+              "number": "4958",
+              "street": "Garcia Drives",
+              "city": "Fort Worth",
+              "region": "OR",
+              "country": "US",
+              "postcode": "70398"
             },
-            "gps_coordinates": "42.274846, 28.348615",
-            "directions": "Located across from Hoffman, Williams and Hernandez",
-            "city": "Port Stacyside",
-            "country": "Korea"
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
           }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
         }
       ],
       "axes": 3,
-      "working_surface": 400
+      "working_surface": 800
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
-      "make": "Brand A",
-      "model": "Model 867",
-      "condition": "Good"
+      "make": "Brand B",
+      "model": "Model 886",
+      "condition": "Excellent",
+      "computer_controlled": true
     }
   ],
   "manufacturing_processes": [
@@ -101,9 +89,15 @@
     "https://en.wikipedia.org/wiki/Surface_finish"
   ],
   "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2724,
+  "storage_capacity": "508 cubic meters",
   "typical_materials": [],
   "certifications": [],
-  "uninterrupted_power_supply": true,
   "road_access": true,
-  "loading_dock": true
+  "maintenance_schedule": "Every 4 months",
+  "typical_products": [
+    "Networked heuristic throughput",
+    "Innovative maximized architecture",
+    "Implemented stable Internet solution"
+  ]
 }

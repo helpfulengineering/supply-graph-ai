@@ -1,0 +1,306 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "f51d9dd5-dc11-49dc-ac44-5d25b1ab71bd",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/lucastheresa/arduino-based-iot-sensor-node",
+  "version": "2.1.0",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Ashley Marshall",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "kim70"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "keywords": [
+    "documented",
+    "reproducible",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Cynthia Garza",
+    "email": null,
+    "affiliation": "Morales and Sons",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "kayla72"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Rita Wong",
+      "email": "lrobinson@example.net",
+      "affiliation": "Perez-Knox",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "ubarnes"
+        }
+      ]
+    }
+  ],
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/marie93/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/james42/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/cassandra09/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/hdelacruz/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/tina86/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/romeropatrick/project/raw/main/docs/pcb_assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/ashley65/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Pliers",
+    "Deburring tool",
+    "Nozzle",
+    "Cable ties",
+    "Crimping tool",
+    "Calipers",
+    "Pick and place",
+    "Soldering station",
+    "Wrench set",
+    "Reflow oven",
+    "Build plate",
+    "Screwdriver set",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 972.45,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 686.33,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 133.53,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": "Grade: A"
+    }
+  ],
+  "bom": "https://github.com/allison21/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "IPC-A-610",
+      "publisher": "IPC",
+      "reference": "IPC-A-610",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "standard_title": "FCC Part 15",
+      "publisher": "FCC",
+      "reference": "47 CFR Part 15",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "PCB",
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "261d4fc8-1d73-4de5-96f4-550deaa29d95",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/tracy50/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": {
+        "length": 35,
+        "width": 187,
+        "height": 70
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "33a18054-8f78-45cb-be80-3ec126786c98",
+      "source": [
+        "https://github.com/bmurphy/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/hpoole/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [
+        "https://github.com/hjones/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/zacharyellis/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "FR4",
+      "outer_dimensions": null,
+      "mass": 799.93,
+      "manufacturing_params": {
+        "board_thickness": "0.8mm",
+        "copper_thickness": "35μm"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "77e910b8-2132-47d2-9470-f071f676d383",
+      "source": [
+        "https://github.com/davidrussell/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/latoya12/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/cainrobert/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/collinsmonica/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": {
+        "length": 172,
+        "width": 174,
+        "height": 8
+      },
+      "mass": 947.55,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "24a9154c-dad1-4be5-a3bf-b7af1b899f3d",
+      "source": [
+        "https://github.com/lyonsgregory/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/martinrandall/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/suttonmichelle/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Copper",
+      "outer_dimensions": {
+        "length": 183,
+        "width": 130,
+        "height": 13
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "board_thickness": "0.8mm",
+        "copper_thickness": "35μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,814 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "fda56ad3-b767-4f59-a4a1-0d3b6146f2a4",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/michael48/3d-printed-prosthetic-hand",
+  "version": "1.8.4",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Norman Silva",
+    "email": null,
+    "affiliation": "Leach-Norris",
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Fire expect court leg.",
+  "keywords": [
+    "fastener",
+    "bearing",
+    "documented",
+    "assembly",
+    "modular"
+  ],
+  "organization": {
+    "name": "Mueller, Mathis and Gamble",
+    "url": null,
+    "email": "contact@benjamin.com"
+  },
+  "development_stage": "beta",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/timothy07/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/annasims/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/megan03/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/george16/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/zmorgan/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/odiaz/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/rodriguezjames/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/fdean/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/jameslinda/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.9"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat shrink",
+    "Deburring tool",
+    "Cable ties",
+    "Screwdriver set",
+    "Crimping tool",
+    "Heat gun",
+    "Nozzle",
+    "Build plate",
+    "Calipers",
+    "Wrench set"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 816.1,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 348.93,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 260,
+      "width": 333,
+      "height": 127
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "20%",
+          "temperature": "226°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": "Manufacturing notes: Against trouble billion president."
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Base Unit",
+      "id": "2b27be35-62cd-40c7-bd94-392e1c575f6f",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Aluminum 6061",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "c54d9edd-f0e6-4cfc-937e-4fc6a3db579e",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "24014faf-f3af-4010-9021-707d5c975d11",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "c8215f60-de8b-4b01-91da-3b43eb11301c",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 3.2,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Anodizing solution",
+        "process": "CNC",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Tertiary Module",
+          "quantity": 4.76,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Aluminum 6061",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Tertiary Module - Tertiary Module",
+              "quantity": 2.87,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 4.86,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Anodizing solution",
+        "process": "CNC",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Tertiary Module",
+          "quantity": 8.47,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Element",
+              "quantity": 2.89,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Detail Part",
+          "quantity": 2.6,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 7.5,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Tertiary Module",
+              "quantity": 1.89,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 6.3,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Support Component",
+      "quantity": 5.3,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Cutting fluid",
+        "process": "CNC",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Support Component - Element",
+          "quantity": 9.06,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Support Component - Element - Detail Part",
+              "quantity": 2.54,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Support Component - Element - Element",
+              "quantity": 1.62,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Support Component",
+      "quantity": 6.92,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Cutting fluid",
+        "process": "CNC",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Support Component - Detail Part",
+          "quantity": 5.56,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Support Component - Detail Part - Element",
+              "quantity": 3.46,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Support Component - Detail Part - Tertiary Module",
+              "quantity": 3.56,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Support Component",
+      "quantity": 1.76,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Anodizing solution",
+        "process": "CNC",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Support Component - Detail Part",
+          "quantity": 4.73,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Support Component - Detail Part - Tertiary Module",
+              "quantity": 2.61,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Support Component - Detail Part - Detail Part",
+              "quantity": 6.23,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Support Component - Detail Part - Detail Part",
+              "quantity": 6.08,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Support Component - Element",
+          "quantity": 6.99,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Support Component - Element - Element",
+              "quantity": 6.69,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Support Component - Element - Element",
+              "quantity": 7.88,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Support Component - Element - Sub-Component",
+              "quantity": 7.2,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 1.05,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Aluminum 6061",
+        "process": "CNC",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Tertiary Module",
+          "quantity": 9.04,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Element",
+              "quantity": 4.52,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Element",
+              "quantity": 1.85,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Sub-Component",
+              "quantity": 7.4,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Detail Part",
+          "quantity": 2.62,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Aluminum 6061",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Tertiary Module",
+              "quantity": 8.46,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Tertiary Module",
+              "quantity": 5.93,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

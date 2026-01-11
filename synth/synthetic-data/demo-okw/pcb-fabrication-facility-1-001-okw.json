@@ -1,68 +1,62 @@
 {
-  "id": "9c015c29-4420-412a-a314-9e550b89e0c6",
+  "id": "84ac45d5-d5c6-4fae-bc2a-139e5562e693",
   "name": "PCB Fabrication Facility 1",
   "location": {
     "address": {
-      "number": "8675",
-      "street": "Hannah Square",
-      "city": "Bethanyburgh",
-      "region": "Hawaii",
-      "country": "Greece",
-      "postcode": "77555"
+      "number": "4582",
+      "street": "Buckley Canyon",
+      "city": "Dallas",
+      "region": "PA",
+      "country": "US",
+      "postcode": "57989"
     },
-    "gps_coordinates": "32.159304, -101.541663",
-    "city": "Bethanyburgh",
-    "country": "Greece"
+    "gps_coordinates": "32.7762719, -96.7968559",
+    "city": "Dallas",
+    "country": "US"
   },
   "facility_status": "Active",
   "contact": {
-    "name": "Castro-White",
-    "contact_person": "Shane Griffith",
-    "website": "https://forbes.info",
-    "languages": [
-      "es",
-      "fr"
-    ],
-    "mailing_list": "marie63@lists.richards-walker.biz",
+    "name": "Barajas Ltd",
     "contact": {
-      "whatsapp": "+1-200-393-2486"
+      "mobile": "+1-410-419-9279",
+      "email": "info@rollins.com",
+      "whatsapp": "+1-934-431-9663"
     },
     "social_media": {
       "other_urls": []
     }
   },
   "description": "Specialized in printed circuit board fabrication and prototyping",
-  "date_founded": "2011-09-22",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/PCB_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/PCB_printer",
-      "make": "Brand B",
-      "model": "Model 658",
-      "condition": "Good"
+      "make": "Generic",
+      "model": "Model 346",
+      "condition": "Excellent",
+      "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Etching_tank",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Etching_tank",
-      "make": "Brand B",
-      "model": "Model 883",
+      "make": "Generic",
+      "model": "Model 722",
       "condition": "Excellent"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Drilling_machine",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Drilling_machine",
-      "make": "Generic",
-      "model": "Model 788",
-      "condition": "Fair",
-      "computer_controlled": true
+      "make": "Brand B",
+      "model": "Model 649",
+      "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/AOI",
       "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
-      "make": "Generic",
-      "model": "Model 397",
-      "condition": "Good"
+      "make": "Brand B",
+      "model": "Model 459",
+      "condition": "Excellent"
     }
   ],
   "manufacturing_processes": [
@@ -70,12 +64,15 @@
     "https://en.wikipedia.org/wiki/Fused_filament_fabrication"
   ],
   "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2022,
+  "storage_capacity": "754 cubic meters",
   "typical_materials": [],
-  "certifications": [
-    "ISO 9001:2015",
-    "RoHS Compliance",
-    "IPC-J-STD-001",
-    "IPC-A-610"
-  ],
-  "loading_dock": true
+  "certifications": [],
+  "backup_generator": true,
+  "road_access": true,
+  "typical_products": [
+    "User-friendly 4thgeneration ability",
+    "Inverse mobile solution",
+    "Versatile 3rdgeneration analyzer"
+  ]
 }

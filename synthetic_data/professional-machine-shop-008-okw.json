@@ -1,0 +1,152 @@
+{
+  "id": "46cac02f-12d5-4cda-b89f-39896a9db16f",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "5945",
+      "street": "Andrew Vista",
+      "city": "Denver",
+      "region": "TX",
+      "country": "US",
+      "postcode": "70283"
+    },
+    "gps_coordinates": "39.7392364, -104.984862",
+    "directions": "Located near Holt-Davis",
+    "city": "Denver",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "contact": {
+    "name": "Ramos, White and Calderon",
+    "bio": "Established in 1990, we specialize in Face-to-face responsive collaboration",
+    "languages": [
+      "es",
+      "fr",
+      "en"
+    ],
+    "mailing_list": "rebecca29@lists.chang.com",
+    "images": [
+      "images/ago.jpg",
+      "images/national.jpg"
+    ],
+    "social_media": {
+      "facebook": "https://facebook.com/michelle23",
+      "twitter": "@amanda82",
+      "instagram": "@dlopez",
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-17:00",
+  "description": "Commercial machining facility with precision equipment",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "DMU 50",
+      "condition": "Fair",
+      "notes": "Equipment notes: Economic notice night piece in.",
+      "power_rating": 1552,
+      "maintenance_schedule": "Every 10 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "3499",
+              "street": "Sydney Vista",
+              "city": "Los Angeles",
+              "region": "AZ",
+              "country": "US",
+              "postcode": "73701"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located across from Walters-Taylor",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "3530",
+              "street": "Lauren Oval",
+              "city": "San Antonio",
+              "region": "GU",
+              "country": "US",
+              "postcode": "24666"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.015mm",
+        "supported_materials": [
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "34 minutes",
+          "cycle_time": "5 minutes",
+          "changeover_time": "31 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 787",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand B",
+      "model": "Model 844",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2095,
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "uninterrupted_power_supply": true,
+  "typical_products": [
+    "Adaptive context-sensitive projection",
+    "Phased multimedia knowledgebase",
+    "Proactive demand-driven website",
+    "Visionary 3rdgeneration algorithm",
+    "Innovative zero-defect secured line"
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "id": "2cbc6bf3-e713-4a19-a2f1-883c08a6ada9",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "9522",
+      "street": "Ashley Field",
+      "city": "Chicago",
+      "region": "GU",
+      "country": "US",
+      "postcode": "21941"
+    },
+    "gps_coordinates": "41.8755616, -87.6244212",
+    "directions": "Located across from Brown and Sons",
+    "city": "Chicago",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Henry, Shaw and Watts",
+    "contact_person": "Jonathan Figueroa",
+    "website": "https://rodriguez-nelson.com",
+    "mailing_list": "ricky06@lists.davis-cantu.com",
+    "images": [
+      "images/weight.jpg",
+      "images/improve.jpg"
+    ],
+    "contact": {
+      "landline": "+1-476-693-1312",
+      "mobile": "+1-275-206-8520"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-21:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2017-12-10",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "DMU 50",
+      "condition": "Good",
+      "notes": "Equipment notes: Conference protect wear already item view.",
+      "quantity": 2,
+      "maintenance_schedule": "Every 7 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "supplier_location": {
+            "address": {
+              "number": "9682",
+              "street": "Hayes Gardens",
+              "city": "San Francisco",
+              "region": "CO",
+              "country": "US",
+              "postcode": "45899"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6697",
+              "street": "Robert Roads",
+              "city": "San Francisco",
+              "region": "NC",
+              "country": "US",
+              "postcode": "21407"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "950",
+              "street": "Steele Vista",
+              "city": "San Diego",
+              "region": "AR",
+              "country": "US",
+              "postcode": "89897"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located behind Gomez and Sons",
+            "city": "San Diego",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 400
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 558",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand B",
+      "model": "Model 702",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "innovation_space": {
+    "services": [
+      "Intuitive analyzing success"
+    ],
+    "footfall": 62
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "388213bc-f661-4da7-bb6a-7086d9e8a671",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/annette30/arduino-based-iot-sensor-node",
+  "version": "2.5.7",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Justin Joseph",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "fr",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Four best ready activity.",
+  "intended_use": "Pattern right range party phone house good daughter.",
+  "keywords": [
+    "documented",
+    "gear",
+    "open-source"
+  ],
+  "contact": {
+    "name": "Brian Moore",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Paul Huang",
+      "email": "flewis@example.org",
+      "affiliation": "Johnson-White",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Reid-Smith",
+    "url": "https://edwards-jones.net",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-3",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/oshaw/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/stevensonamanda/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/xmathis/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.2"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/cclark/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.8"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/brobinson/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/jasminsanchez/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/david05/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/danielbrown/project/raw/main/docs/pcb_assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/crogers/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "3D printer",
+    "Deburring tool",
+    "Nozzle",
+    "Pliers",
+    "Crimping tool",
+    "Pick and place",
+    "Heat shrink",
+    "Oscilloscope",
+    "Wrench set",
+    "Reflow oven",
+    "Screwdriver set",
+    "Multimeter"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 674.64,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: B"
+    }
+  ],
+  "bom": "https://github.com/mbrown/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    },
+    {
+      "standard_title": "IPC-A-610",
+      "publisher": "IPC",
+      "reference": "IPC-A-610",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "standard_title": "FCC Part 15",
+      "publisher": "FCC",
+      "reference": "47 CFR Part 15",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "0eb01906-58c1-44e3-ab56-3bca7e291c30",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/robertsrobert/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Copper",
+      "outer_dimensions": {
+        "length": 184,
+        "width": 109,
+        "height": 85
+      },
+      "mass": 792.3,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "a66a6ca2-3ade-41cf-92f4-f64ca87236c5",
+      "source": [
+        "https://github.com/michael92/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/smithchad/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/edwardsnancy/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/riveraernest/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": {
+        "length": 116,
+        "width": 181,
+        "height": 44
+      },
+      "mass": 608.74,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

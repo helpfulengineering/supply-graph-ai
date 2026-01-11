@@ -1,0 +1,342 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "cea8cfda-bf30-473a-a9f3-c403d47de07d",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/richard35/sheet-metal-enclosure",
+  "version": "1.7.3",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Frederick Blair",
+    "email": null,
+    "affiliation": "Graves Group",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "isaiahhansen"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "keywords": [
+    "modular",
+    "shaft",
+    "open-source"
+  ],
+  "contributors": [
+    {
+      "name": "David Conway",
+      "email": null,
+      "affiliation": "Campbell Ltd",
+      "social": []
+    }
+  ],
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/vreyes/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/milessandra/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/bellmichelle/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/johngarcia/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/jeffery81/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/raymondfrancis/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/frederickbass/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Drill press",
+    "Shear",
+    "Grinder"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 384.0,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 666.87,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Main Assembly",
+      "id": "0f356482-83e7-4d67-8030-92d52a3633f8",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "7ecfe8cb-13de-4374-b74a-5829f9619868",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 5.6,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Cables",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Detail Part",
+          "quantity": 2.13,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Screws",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Sub-Assembly",
+      "quantity": 2.42,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Nylon",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Sub-Assembly - Tertiary Module",
+          "quantity": 7.54,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "TPU",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Secondary Module",
+      "quantity": 8.11,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Nylon",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Secondary Module - Detail Part",
+          "quantity": 4.08,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Secondary Module - Sub-Component",
+          "quantity": 8.13,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Secondary Module - Element",
+          "quantity": 9.05,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Screws",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 2.17,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Nylon",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Sub-Component",
+          "quantity": 5.16,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

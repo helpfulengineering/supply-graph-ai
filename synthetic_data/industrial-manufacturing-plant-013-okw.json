@@ -1,0 +1,182 @@
+{
+  "id": "84e579f8-2e24-44c0-a6f4-7be29e633e0d",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "6377",
+      "street": "Eric Gardens",
+      "city": "Philadelphia",
+      "region": "OH",
+      "country": "US",
+      "postcode": "85152"
+    },
+    "gps_coordinates": "39.9527237, -75.1635262",
+    "directions": "Located across from Castillo-Mullins",
+    "city": "Philadelphia",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Fisher, Guzman and Griffin",
+    "website": "https://lee.net",
+    "languages": [
+      "es",
+      "de",
+      "en"
+    ],
+    "images": [
+      "images/type.jpg",
+      "images/remain.jpg"
+    ],
+    "contact": {
+      "landline": "+1-794-847-1984"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://spencer-martin.com",
+        "https://watson.com"
+      ]
+    }
+  },
+  "description": "Large-scale manufacturing facility",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "DMU 50",
+      "serial_number": "SN574621",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Claim ten throughout particularly support.",
+      "throughput": "28 parts/hour",
+      "maintenance_schedule": "Every 11 months",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "2003",
+              "street": "Cook River",
+              "city": "San Francisco",
+              "region": "IA",
+              "country": "US",
+              "postcode": "21465"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "directions": "Located across from Summers, Moore and Gordon",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7361",
+              "street": "Sullivan Brook",
+              "city": "Columbus",
+              "region": "CA",
+              "country": "US",
+              "postcode": "24721"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "directions": "Located near Beard PLC",
+            "city": "Columbus",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "4862",
+              "street": "Foster Vista",
+              "city": "Phoenix",
+              "region": "MO",
+              "country": "US",
+              "postcode": "78525"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located near Bray-Evans",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.015mm",
+        "supported_materials": [
+          "Aluminum",
+          "Wood",
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "33 minutes",
+          "cycle_time": "36 minutes",
+          "changeover_time": "28 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 551",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 789",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 415",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "storage_capacity": "252 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "loading_dock": true,
+  "typical_products": [
+    "Compatible radical capacity",
+    "De-engineered logistical orchestration",
+    "Balanced modular workforce",
+    "Face-to-face stable product"
+  ]
+}

@@ -1,0 +1,836 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "d317f1ca-b0ec-4059-8415-63f3223096e7",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/ijones/laser-cut-acrylic-display-case",
+  "version": "3.3.2",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Amber Woodard",
+    "email": "arice@example.org",
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Return cell policy arrive painting quite.",
+  "keywords": [
+    "mount",
+    "reproducible",
+    "prototype",
+    "gear"
+  ],
+  "organization": {
+    "name": "Lin Ltd",
+    "url": "https://gibson.org",
+    "email": null
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/loganwilliams/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/ronald54/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/bbenjamin/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.4"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/proctornichole/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/alexandermorrison/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Material guides",
+    "Heat shrink",
+    "Cable ties",
+    "Screwdriver set",
+    "Crimping tool",
+    "Air assist",
+    "Pliers",
+    "Cutting bed",
+    "Exhaust system"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "85W",
+          "speed": "502 mm/min",
+          "passes": 1
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Core Component",
+      "id": "74701307-ab85-4f5b-b4db-db54bcd3f6fb",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Aluminum 6061",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "0dd6d173-9542-4c5b-adb7-9c23b03457b3",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Core Component - Sub-Assembly",
+      "quantity": 3.8,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Aluminum 6061",
+        "process": "CNC",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Sub-Assembly - Sub-Component",
+          "quantity": 1.6,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Aluminum 6061",
+            "process": "CNC",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Sub-Component - Element",
+              "quantity": 6.43,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Sub-Component",
+          "quantity": 8.87,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Aluminum 6061",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Sub-Component - Tertiary Module",
+              "quantity": 9.56,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Sub-Assembly - Sub-Component - Detail Part",
+              "quantity": 8.03,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Tertiary Module",
+          "quantity": 8.25,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Tertiary Module - Sub-Component",
+              "quantity": 7.92,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Support Component",
+      "quantity": 2.87,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Aluminum 6061",
+        "process": "CNC",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Support Component - Tertiary Module",
+          "quantity": 6.23,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Element",
+              "quantity": 6.24,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Sub-Component",
+              "quantity": 2.57,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Element",
+              "quantity": 7.74,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Support Component - Tertiary Module",
+          "quantity": 1.06,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Element",
+              "quantity": 3.06,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Detail Part",
+              "quantity": 7.49,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Support Component - Tertiary Module",
+          "quantity": 9.73,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Sub-Component",
+              "quantity": 4.37,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Sub-Component",
+              "quantity": 6.17,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Secondary Module",
+      "quantity": 5.28,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Cutting fluid",
+        "process": "CNC",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Secondary Module - Element",
+          "quantity": 6.1,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Secondary Module - Element - Detail Part",
+              "quantity": 7.14,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Secondary Module - Element - Sub-Component",
+              "quantity": 9.3,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Secondary Module - Element - Element",
+              "quantity": 8.18,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Auxiliary Unit",
+      "quantity": 9.46,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Anodizing solution",
+        "process": "CNC",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Auxiliary Unit - Element",
+          "quantity": 3.43,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Element - Tertiary Module",
+              "quantity": 3.2,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Element - Detail Part",
+              "quantity": 7.22,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Element - Tertiary Module",
+              "quantity": 3.64,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Auxiliary Unit - Element",
+          "quantity": 6.63,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Element - Detail Part",
+              "quantity": 4.07,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Secondary Module",
+      "quantity": 2.52,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Cutting fluid",
+        "process": "CNC",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Secondary Module - Element",
+          "quantity": 9.53,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cutting fluid",
+            "process": "CNC",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Secondary Module - Element - Tertiary Module",
+              "quantity": 7.41,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Secondary Module - Element - Element",
+              "quantity": 8.89,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Secondary Module - Detail Part",
+          "quantity": 7.18,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Secondary Module - Detail Part - Element",
+              "quantity": 4.92,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Secondary Module - Detail Part - Detail Part",
+              "quantity": 4.96,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Aluminum 6061",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Secondary Module - Element",
+          "quantity": 2.44,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Anodizing solution",
+            "process": "CNC",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Secondary Module - Element - Element",
+              "quantity": 5.45,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Cutting fluid",
+                "process": "CNC",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Secondary Module - Element - Tertiary Module",
+              "quantity": 2.23,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Anodizing solution",
+                "process": "CNC",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

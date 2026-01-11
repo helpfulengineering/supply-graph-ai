@@ -1,0 +1,256 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "4be0baa4-9671-4d2d-a003-0d7f4b848ea5",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/christinacollins/laser-cut-acrylic-display-case",
+  "version": "3.4.8",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Scott Simpson",
+    "email": "yshepherd@example.org",
+    "affiliation": "Roberson and Sons",
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Protective display case for electronic components",
+  "keywords": [
+    "reproducible",
+    "modular",
+    "bracket",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Ashley Romero",
+    "email": "ypotts@example.com",
+    "affiliation": "Cooper Group",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "tannerwashington"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Andrew Francis",
+      "email": "watsonian@example.net",
+      "affiliation": "Howell-Peters",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "iflores"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Zuniga Group",
+    "url": null,
+    "email": null
+  },
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/justindoyle/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/harrisonlinda/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/dgonzalez/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/melissa47/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/mglenn/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/alexismckinney/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/rgarcia/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Exhaust system",
+    "Pliers",
+    "Cable ties",
+    "Crimping tool",
+    "Heat shrink",
+    "Wrench set",
+    "Material guides",
+    "Screwdriver set",
+    "Cutting bed",
+    "Laser cutter"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 339.66,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 107.61,
+      "unit": "g",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 59,
+      "width": 309,
+      "height": 155
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "70W",
+          "speed": "723 mm/min",
+          "passes": 1
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Number your maybe else foot attack clear."
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "5a35125c-2eb2-49e8-97ad-f928cfb4ee0c",
+      "source": [
+        "https://github.com/charlene13/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 146,
+        "width": 76,
+        "height": 81
+      },
+      "mass": 276.04,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "e9ce5ec1-5ec3-42d7-8de2-f8b6f3cb60cf",
+      "source": [
+        "https://github.com/hbrown/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/gomezamy/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": 909.07,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "22824d58-d1be-4f39-9d46-0913ef976dc0",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/sandy42/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 171,
+        "width": 73,
+        "height": 84
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

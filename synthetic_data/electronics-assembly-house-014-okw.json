@@ -1,0 +1,118 @@
+{
+  "id": "60337749-53d1-4511-822b-932350c2fde6",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "8271",
+      "street": "Green Motorway",
+      "city": "Jacksonville",
+      "region": "ND",
+      "country": "US",
+      "postcode": "77385"
+    },
+    "gps_coordinates": "30.3321838, -81.655651",
+    "city": "Jacksonville",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 9:00-19:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 637",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 708",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 535",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand A",
+      "model": "Model 459",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 3566,
+  "storage_capacity": "999 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "loading_dock": true,
+  "typical_products": [
+    "Monitored client-driven encoding",
+    "Future-proofed system-worthy extranet"
+  ],
+  "human_capacity": {
+    "headcount": 5
+  },
+  "innovation_space": {
+    "staff": 4,
+    "services": [
+      "Team-oriented homogeneous array",
+      "Persevering stable success",
+      "Robust bandwidth-monitored archive"
+    ],
+    "footfall": 56
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:42:12.482240",
+    "created_by": {
+      "name": "Beard and Sons",
+      "location": {
+        "address": {
+          "number": "2236",
+          "street": "David Junction",
+          "city": "Dallas",
+          "region": "NH",
+          "country": "US",
+          "postcode": "85879"
+        },
+        "gps_coordinates": "32.7762719, -96.7968559",
+        "city": "Dallas",
+        "country": "US"
+      },
+      "contact_person": "Michelle Smith",
+      "languages": [
+        "de"
+      ],
+      "mailing_list": "meyersashley@lists.blackwell.info",
+      "contact": {
+        "whatsapp": "+1-731-916-5926"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

@@ -1,76 +1,37 @@
 {
-  "id": "ab6d32c9-7f00-4b7c-a936-75a14ead4b70",
+  "id": "7c8b9678-472a-4880-9408-b79625aad913",
   "name": "Assembly Facility 2",
   "location": {
     "address": {
-      "number": "1302",
-      "street": "Walsh Stravenue",
-      "city": "North Xavier",
-      "region": "Vermont",
-      "country": "Ukraine",
-      "postcode": "46908"
+      "number": "5525",
+      "street": "Erik Plaza",
+      "city": "San Antonio",
+      "region": "NJ",
+      "country": "US",
+      "postcode": "75609"
     },
-    "gps_coordinates": "28.023038, 27.128723",
-    "city": "North Xavier",
-    "country": "Ukraine"
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "city": "San Antonio",
+    "country": "US"
   },
   "facility_status": "Active",
-  "owner": {
-    "name": "Sampson Group",
-    "location": {
-      "address": {
-        "number": "2896",
-        "street": "Edwards Points",
-        "city": "West Jontown",
-        "region": "Vermont",
-        "country": "British Indian Ocean Territory (Chagos Archipelago)",
-        "postcode": "32643"
-      },
-      "gps_coordinates": "28.285413, -92.53988",
-      "directions": "Located behind Carter-Hunter",
-      "city": "West Jontown",
-      "country": "British Indian Ocean Territory (Chagos Archipelago)"
-    },
-    "contact_person": "Kim Buchanan",
-    "bio": "Established in 2009, we specialize in Future-proofed 24hour access",
-    "website": "https://lopez-johnson.com",
-    "languages": [
-      "fr",
-      "es",
-      "de"
-    ],
-    "contact": {
-      "landline": "+1-594-494-1983",
-      "email": "info@smith.org"
-    },
-    "social_media": {
-      "twitter": "@megan91",
-      "instagram": "@michaeladams",
-      "other_urls": [
-        "https://harvey.com"
-      ]
-    }
-  },
-  "opening_hours": "Mon-Fri: 7:00-18:00",
+  "opening_hours": "Mon-Fri: 6:00-17:00",
   "description": "Specialized in product assembly and integration",
-  "date_founded": "2016-06-17",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
-      "make": "Generic",
-      "model": "Model 295",
-      "condition": "Excellent",
-      "computer_controlled": true
+      "make": "Brand B",
+      "model": "Model 405",
+      "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
-      "make": "Generic",
-      "model": "Model 104",
-      "condition": "Fair",
-      "computer_controlled": true
+      "make": "Brand A",
+      "model": "Model 332",
+      "condition": "Good"
     }
   ],
   "manufacturing_processes": [
@@ -79,18 +40,15 @@
     "https://en.wikipedia.org/wiki/Packaging_and_labeling"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "floor_size": 2595,
   "typical_materials": [],
-  "certifications": [
-    "AS9100",
-    "OHSAS 18001",
-    "NADCAP",
-    "ISO 9001:2015"
-  ],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
   "road_access": true,
   "loading_dock": true,
-  "maintenance_schedule": "Every 5 months",
+  "maintenance_schedule": "Every 1 months",
   "typical_products": [
-    "Organized radical concept"
+    "Synchronized actuating hardware",
+    "Managed even-keeled methodology",
+    "Centralized content-based infrastructure"
   ]
 }

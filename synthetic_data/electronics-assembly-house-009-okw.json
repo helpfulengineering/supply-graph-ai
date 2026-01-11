@@ -1,0 +1,93 @@
+{
+  "id": "7e0b1a81-0b1e-4181-965a-a3e7d984b4b8",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "9768",
+      "street": "Rachel Square",
+      "city": "Phoenix",
+      "region": "NM",
+      "country": "US",
+      "postcode": "53309"
+    },
+    "gps_coordinates": "33.4484367, -112.074141",
+    "directions": "Located near Brown, Shepherd and Mosley",
+    "city": "Phoenix",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "contact": {
+    "name": "Smith, Cook and Lucas",
+    "bio": "Established in 2019, we specialize in Optimized well-modulated model",
+    "website": "https://vazquez-flynn.com",
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 242",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 195",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 300",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 531",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 4 months",
+  "typical_products": [
+    "Multi-layered intangible projection",
+    "Virtual even-keeled attitude",
+    "Compatible fresh-thinking hierarchy",
+    "Optimized stable orchestration"
+  ],
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Polarized bandwidth-monitored methodology",
+      "Reactive non-volatile flexibility",
+      "Profound didactic forecast"
+    ],
+    "footfall": 49,
+    "residencies": true
+  }
+}

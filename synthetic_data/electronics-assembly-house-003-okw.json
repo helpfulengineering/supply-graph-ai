@@ -1,0 +1,134 @@
+{
+  "id": "ce2b30c7-6db2-4fbb-891a-a83974295ea0",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "9653",
+      "street": "Thomas Place",
+      "city": "Jacksonville",
+      "region": "TX",
+      "country": "US",
+      "postcode": "02823"
+    },
+    "gps_coordinates": "30.3321838, -81.655651",
+    "directions": "Located near Gomez, Hurst and Hill",
+    "city": "Jacksonville",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Wilkinson, Allen and Flores",
+    "website": "https://nguyen-lozano.org",
+    "mailing_list": "pdavis@lists.martin-braun.org",
+    "images": [
+      "images/face.jpg"
+    ],
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Jones and Sons",
+    "contact_person": "Ruben Miles",
+    "bio": "Established in 1991, we specialize in Triple-buffered 4thgeneration model",
+    "contact": {
+      "landline": "+1-365-401-3241",
+      "email": "info@swanson.info",
+      "whatsapp": "+1-366-743-1654"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://goodman.com"
+      ]
+    }
+  },
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand A",
+      "model": "Model 412",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand A",
+      "model": "Model 644",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Generic",
+      "model": "Model 895",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Generic",
+      "model": "Model 871",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2948,
+  "storage_capacity": "868 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "loading_dock": true,
+  "typical_products": [
+    "Face-to-face mission-critical alliance",
+    "Synergistic well-modulated functionalities",
+    "User-friendly asymmetric infrastructure",
+    "Open-architected well-modulated infrastructure",
+    "Expanded uniform matrices"
+  ],
+  "circular_economy": {
+    "applies_principles": true
+  },
+  "human_capacity": {
+    "headcount": 28
+  },
+  "innovation_space": {
+    "staff": 6,
+    "learning_resources": [
+      "Decentralized directional encryption",
+      "Realigned executive open architecture",
+      "Total impactful capacity"
+    ],
+    "services": [
+      "Sharable national productivity"
+    ],
+    "footfall": 62
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:41:55.658984",
+    "created_by": {
+      "name": "Porter LLC",
+      "contact_person": "Benjamin Silva",
+      "contact": {
+        "landline": "+1-616-596-6298",
+        "mobile": "+1-847-949-8127",
+        "whatsapp": "+1-697-702-4448"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

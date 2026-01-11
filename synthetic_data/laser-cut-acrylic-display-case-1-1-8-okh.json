@@ -1,0 +1,223 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "c4a05e3e-7e9c-455a-8b2b-21512e59b6b1",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/alee/laser-cut-acrylic-display-case",
+  "version": "1.1.8",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Julie George",
+    "email": null,
+    "affiliation": "Petersen, Gomez and Gilbert",
+    "social": []
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "keywords": [
+    "bracket",
+    "bearing",
+    "documented",
+    "modular",
+    "fastener"
+  ],
+  "organization": {
+    "name": "Curry Group",
+    "url": null,
+    "email": null
+  },
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/henryjeffery/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/stevenrichmond/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/carmencook/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/sbradshaw/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/tannerarthur/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/rodriguezjonathan/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/jeffrey26/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Exhaust system",
+    "Cable ties",
+    "Focus lens",
+    "Wrench set",
+    "Material guides",
+    "Cutting bed",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 663.81,
+      "unit": "m²",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 815.09,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "bom": "https://github.com/william88/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "475df788-bf4a-4bf0-8c4c-2b5820ca67a5",
+      "source": [
+        "https://github.com/shannonmatthews/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/tarapatterson/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 878.53,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "0fc6e57b-b20c-426d-b172-a7f0c46279ec",
+      "source": [],
+      "export": [
+        "https://github.com/lgriffith/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [
+        "https://github.com/ymontgomery/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/gary90/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "4d67cd35-0d19-4912-a0fd-954db13cf362",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/smithmelissa/project/raw/main/docs/base_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 190,
+        "width": 70,
+        "height": 16
+      },
+      "mass": 781.94,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "5cbe9095-8914-4222-b75a-85dc4de163bb",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": 446.59,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

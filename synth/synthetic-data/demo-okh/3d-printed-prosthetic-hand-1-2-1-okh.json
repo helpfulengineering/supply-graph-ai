@@ -1,0 +1,402 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "73357fb9-7a4b-42cb-82e7-2b6cdf2dbe43",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/ltaylor/3d-printed-prosthetic-hand",
+  "version": "1.2.1",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Alexandra Anderson",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "de",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Year off scene middle visit.",
+  "keywords": [
+    "bracket",
+    "shaft",
+    "reproducible",
+    "fastener"
+  ],
+  "contributors": [
+    {
+      "name": "William Peterson",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Andrew Rojas",
+      "email": "henry03@example.org",
+      "affiliation": "Foster-Casey",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "steven67"
+        }
+      ]
+    },
+    {
+      "name": "Ricardo Reed",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "wschwartz"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Herrera-Simpson",
+    "url": "https://price.org",
+    "email": "contact@wilkinson.biz"
+  },
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/james77/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/alexandrazimmerman/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/mtodd/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/joliver/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/lesliegraves/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/amiller/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/adkinsdavid/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/feliciaholmes/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/fwright/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat shrink",
+    "Deburring tool",
+    "3D printer",
+    "Filament",
+    "Cable ties",
+    "Crimping tool",
+    "Nozzle",
+    "Pliers",
+    "Calipers",
+    "Wrench set"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 166.82,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 178.11,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 61.98,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 529.07,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "10%",
+          "temperature": "247°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: South physical lawyer world degree."
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Primary Module",
+      "id": "2e5fae22-4d00-4240-9bcb-8fdea7386c0d",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "f2f701d6-f8e7-4343-92e0-907845fe253d",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 2.89,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Sub-Component",
+          "quantity": 9.07,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Support Component - Sub-Component - Sub-Component",
+              "quantity": 3.76,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Support Component - Sub-Component - Tertiary Module",
+              "quantity": 6.13,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Support Component - Sub-Component - Detail Part",
+              "quantity": 6.81,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Auxiliary Unit",
+      "quantity": 7.86,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Auxiliary Unit - Detail Part",
+          "quantity": 9.38,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Auxiliary Unit - Detail Part - Element",
+              "quantity": 4.26,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

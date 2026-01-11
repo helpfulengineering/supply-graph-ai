@@ -1,0 +1,233 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "c44a89d6-1916-42f1-bae6-8f32f4769535",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/toddboone/3d-printed-prosthetic-hand",
+  "version": "3.4.9",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "George Crane",
+    "email": "bbailey@example.org",
+    "affiliation": "Holmes-Evans",
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Lay top American strategy back beautiful.",
+  "keywords": [
+    "shaft",
+    "customizable",
+    "bracket",
+    "mount"
+  ],
+  "organization": {
+    "name": "Calderon and Sons",
+    "url": "https://peterson-bennett.com",
+    "email": null
+  },
+  "development_stage": "prototype",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/browncharles/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/cpalmer/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/zunigaheidi/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/ryan11/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/ssanchez/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/tina94/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/jamesblake/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Pliers",
+    "3D printer",
+    "Cable ties",
+    "Nozzle",
+    "Crimping tool",
+    "Filament",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 838.89,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "20%",
+          "temperature": "204°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "bom": "https://github.com/dhill/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "ce3e8add-8560-4c21-acd5-89d6bb09a4be",
+      "source": [
+        "https://github.com/meganharris/project/raw/main/models/bracket.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 52,
+        "width": 16,
+        "height": 51
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "41b90dfa-d674-444c-bf90-20a572a73502",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": {
+        "length": 62,
+        "width": 113,
+        "height": 35
+      },
+      "mass": 137.03,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "8ba23383-9e0c-4d1b-bf19-730f8b08f1f8",
+      "source": [
+        "https://github.com/fcortez/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/bruiz/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": {
+        "length": 111,
+        "width": 66,
+        "height": 81
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

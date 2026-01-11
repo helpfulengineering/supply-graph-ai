@@ -1,21 +1,52 @@
 {
-  "id": "3faa47af-2d3e-473b-ad31-414e8a9de2eb",
+  "id": "3e424932-1933-4d9c-9b06-dd913047c5c8",
   "name": "PCB Fabrication Facility 2",
   "location": {
     "address": {
-      "number": "7492",
-      "street": "Martinez Track",
-      "city": "East Jeffreyfurt",
-      "region": "Idaho",
-      "country": "Uganda",
-      "postcode": "66871"
+      "number": "541",
+      "street": "Lloyd Ferry",
+      "city": "Boston",
+      "region": "IA",
+      "country": "US",
+      "postcode": "27537"
     },
-    "gps_coordinates": "25.770575, -79.9511",
-    "city": "East Jeffreyfurt",
-    "country": "Uganda"
+    "gps_coordinates": "42.3588336, -71.0578303",
+    "city": "Boston",
+    "country": "US"
   },
   "facility_status": "Active",
-  "opening_hours": "Mon-Fri: 6:00-18:00",
+  "contact": {
+    "name": "Williams Group",
+    "location": {
+      "address": {
+        "number": "7538",
+        "street": "Jessica Camp",
+        "city": "Indianapolis",
+        "region": "ID",
+        "country": "US",
+        "postcode": "53518"
+      },
+      "gps_coordinates": "39.7683331, -86.1583502",
+      "city": "Indianapolis",
+      "country": "US"
+    },
+    "website": "https://kelly-barker.com",
+    "images": [
+      "images/seek.jpg"
+    ],
+    "contact": {
+      "landline": "+1-914-506-6003"
+    },
+    "social_media": {
+      "twitter": "@april31",
+      "instagram": "@castanedatodd",
+      "other_urls": [
+        "https://roberts.info",
+        "https://rodriguez-davis.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-22:00",
   "description": "Specialized in printed circuit board fabrication and prototyping",
   "access_type": "Restricted",
   "equipment": [
@@ -23,31 +54,30 @@
       "equipment_type": "https://en.wikipedia.org/wiki/PCB_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/PCB_printer",
       "make": "Brand A",
-      "model": "Model 237",
-      "condition": "Excellent",
-      "computer_controlled": true
+      "model": "Model 683",
+      "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Etching_tank",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Etching_tank",
       "make": "Brand A",
-      "model": "Model 217",
-      "condition": "Excellent"
+      "model": "Model 621",
+      "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Drilling_machine",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Drilling_machine",
       "make": "Brand A",
-      "model": "Model 809",
-      "condition": "Fair",
-      "computer_controlled": true
+      "model": "Model 668",
+      "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/AOI",
       "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
       "make": "Brand B",
-      "model": "Model 227",
-      "condition": "Excellent"
+      "model": "Model 578",
+      "condition": "Good",
+      "computer_controlled": true
     }
   ],
   "manufacturing_processes": [
@@ -55,19 +85,13 @@
     "https://en.wikipedia.org/wiki/Fused_filament_fabrication"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "floor_size": 2014,
   "typical_materials": [],
   "certifications": [
+    "RoHS Compliance",
+    "IPC-J-STD-001",
     "IPC-A-610",
-    "ISO 9001:2015",
-    "IPC-J-STD-001"
+    "ISO 9001:2015"
   ],
   "road_access": true,
-  "typical_products": [
-    "Down-sized context-sensitive moratorium",
-    "Compatible value-added ability",
-    "Optimized modular focus group",
-    "Phased demand-driven budgetary management",
-    "Devolved asymmetric success"
-  ]
+  "maintenance_schedule": "Every 1 months"
 }

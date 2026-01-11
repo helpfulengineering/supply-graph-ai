@@ -1,0 +1,488 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "c0456d14-0830-482e-b92e-0f9b24851f68",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/traviskayla/laser-cut-acrylic-display-case",
+  "version": "3.9.3",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Michael Hall",
+    "email": null,
+    "affiliation": "Fisher-Kirby",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jonesmarisa"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Some mention fill financial.",
+  "keywords": [
+    "assembly",
+    "modular"
+  ],
+  "contact": {
+    "name": "Amy Jordan",
+    "email": null,
+    "affiliation": "Arias Group",
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Timothy Ortega",
+      "email": null,
+      "affiliation": "Baker, Matthews and Young",
+      "social": []
+    },
+    {
+      "name": "Sarah Malone",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/nataliephillips/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/hollyvasquez/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/johnsonalyssa/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/bshepard/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/joseph41/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/savannahtaylor/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/melissa34/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/pittmanwesley/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Crimping tool",
+    "Heat shrink",
+    "Cable ties",
+    "Cutting bed",
+    "Focus lens"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 126.21,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 954.27,
+      "unit": "g",
+      "notes": "Grade: A"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Base Unit",
+      "id": "87079171-6f98-4d71-ab6d-c42d0b83a265",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "7d00d906-51af-45a6-9168-2092390bdb29",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "4e4eaa77-1bf5-413b-ad6d-c58441532033",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Base Unit - Auxiliary Unit",
+      "quantity": 1.9,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Steel sheet",
+        "process": "SHEET",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Auxiliary Unit - Tertiary Module",
+          "quantity": 5.36,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Auxiliary Unit - Tertiary Module",
+          "quantity": 3.04,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Auxiliary Unit - Sub-Component",
+          "quantity": 2.54,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 9.67,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Steel sheet",
+        "process": "SHEET",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Element",
+          "quantity": 6.24,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Tertiary Module",
+          "quantity": 2.06,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Paint",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Secondary Module",
+      "quantity": 5.6,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Primer",
+        "process": "SHEET",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Secondary Module - Tertiary Module",
+          "quantity": 8.42,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Sub-Assembly",
+      "quantity": 6.53,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Welding wire",
+        "process": "SHEET",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Sub-Assembly - Element",
+          "quantity": 9.6,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Sub-Assembly - Detail Part",
+          "quantity": 3.4,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 2.89,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Welding wire",
+        "process": "SHEET",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Element",
+          "quantity": 1.97,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Paint",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 7.7,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Steel sheet",
+        "process": "SHEET",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Tertiary Module",
+          "quantity": 3.65,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Support Component - Detail Part",
+          "quantity": 2.74,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

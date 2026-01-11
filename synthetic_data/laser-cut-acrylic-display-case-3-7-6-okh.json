@@ -1,0 +1,263 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "542883d8-ec64-439a-b25a-d81162f47893",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/nicholasbrown/laser-cut-acrylic-display-case",
+  "version": "3.7.6",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Carrie Nguyen",
+    "email": "wintersscott@example.com",
+    "affiliation": "Austin, Delgado and Daniels",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "cynthiawright"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Improve give away hair full.",
+  "keywords": [
+    "open-source",
+    "assembly",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Emily Lopez",
+    "email": "michellebutler@example.org",
+    "affiliation": "Johnson-Bass",
+    "social": []
+  },
+  "organization": {
+    "name": "Gomez-Hayden",
+    "url": "https://gonzalez.net",
+    "email": "contact@mcclure.com"
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/pagedanny/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/jasonsheppard/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Cable ties",
+    "Crimping tool",
+    "Focus lens",
+    "Wrench set",
+    "Material guides",
+    "Screwdriver set",
+    "Cutting bed",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 591.71,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "64W",
+          "speed": "968 mm/min",
+          "passes": 3
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Near student could require son."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": "Manufacturing notes: Until much like four."
+  },
+  "bom": "https://github.com/bfields/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "bf0704d5-5152-4fa8-8b7f-069ba5dbe5cd",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/tmitchell/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/marywells/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": 932.98,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "498c1b1e-2259-4d75-95ce-d03c4cb71265",
+      "source": [
+        "https://github.com/zcarter/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/hardingthomas/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": {
+        "length": 16,
+        "width": 101,
+        "height": 69
+      },
+      "mass": 684.9,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "8d7a2eca-64dd-4196-84e7-41a92172bf15",
+      "source": [],
+      "export": [
+        "https://github.com/sonya23/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 180.29,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "12a57a13-65c0-45f6-a5fa-bfccefb3b73d",
+      "source": [
+        "https://github.com/mckayadriana/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/maryrivera/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/nperry/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/abigail33/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 29,
+        "width": 174,
+        "height": 67
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "dfc7e935-7b90-4bea-93f2-dc813807ce5c",
+      "source": [
+        "https://github.com/wilsonthomas/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/parkjillian/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 46,
+        "width": 185,
+        "height": 58
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,77 @@
+{
+  "id": "d0f5cd29-975c-4575-a741-184dff28ddef",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "2160",
+      "street": "John Street",
+      "city": "Los Angeles",
+      "region": "HI",
+      "country": "US",
+      "postcode": "60152"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "1993-12-08",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Generic",
+      "model": "Model 292",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 907",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 528",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Generic",
+      "model": "Model 676",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4222,
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Organic global capacity",
+    "Automated system-worthy hierarchy"
+  ],
+  "circular_economy": {
+    "applies_principles": true
+  }
+}

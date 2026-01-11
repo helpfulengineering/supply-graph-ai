@@ -1,0 +1,218 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "34593eb3-a47d-4fbf-b251-6e00337c976e",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/ashleymartinez/3d-printed-prosthetic-hand",
+  "version": "1.5.5",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Charles Schultz Jr.",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Peace tough hit radio.",
+  "keywords": [
+    "mount",
+    "bracket",
+    "housing",
+    "open-source"
+  ],
+  "contributors": [
+    {
+      "name": "Christopher Bowers",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Jennifer Schultz MD",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "lesterjessica"
+        }
+      ]
+    }
+  ],
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/todd20/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/igutierrez/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/jenniferrusso/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/lhuang/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/megan22/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/shirleyholloway/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/keith60/project/raw/main/docs/3d_printing_setup_and_parameters.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.4"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/hicksjoanne/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "3D printer",
+    "Deburring tool",
+    "Nozzle",
+    "Cable ties",
+    "Crimping tool",
+    "Calipers",
+    "Pliers",
+    "Wrench set",
+    "Screwdriver set",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 139,
+      "width": 289,
+      "height": 144
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill": "50%",
+          "temperature": "226°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Visit speech ground teach stand four."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": "Manufacturing notes: Enjoy participant work."
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "3f579b65-2803-42ef-8749-176251731c39",
+      "source": [
+        "https://github.com/foxjoseph/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/brian01/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/dcombs/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 20,
+        "width": 123,
+        "height": 80
+      },
+      "mass": 486.73,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

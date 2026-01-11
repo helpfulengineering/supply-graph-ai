@@ -1,93 +1,115 @@
 {
-  "id": "758458be-1509-4964-b51f-30728ebea7a6",
+  "id": "265b714d-81ad-456e-9ecc-451fcc49f47f",
   "name": "3D Printing Facility 3",
   "location": {
     "address": {
-      "number": "7089",
-      "street": "Campbell Prairie",
-      "city": "Leechester",
-      "region": "West Virginia",
-      "country": "Senegal",
-      "postcode": "86452"
+      "number": "1104",
+      "street": "Jennifer Mills",
+      "city": "Jacksonville",
+      "region": "WA",
+      "country": "US",
+      "postcode": "15460"
     },
-    "gps_coordinates": "53.258731, 25.286232",
-    "directions": "Located across from Charles-Keller",
-    "city": "Leechester",
-    "country": "Senegal"
+    "gps_coordinates": "30.3321838, -81.655651",
+    "city": "Jacksonville",
+    "country": "US"
   },
   "facility_status": "Active",
-  "opening_hours": "Mon-Fri: 7:00-21:00",
+  "contact": {
+    "name": "Page and Sons",
+    "languages": [
+      "de",
+      "en",
+      "es"
+    ],
+    "mailing_list": "twatson@lists.carroll-fox.com",
+    "images": [
+      "images/important.jpg",
+      "images/let.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-289-952-6628",
+      "email": "info@cherry.com"
+    },
+    "social_media": {
+      "twitter": "@lmayo",
+      "instagram": "@phillipssarah",
+      "other_urls": [
+        "https://brown.info",
+        "https://fields-houston.net"
+      ]
+    }
+  },
   "description": "Specialized in additive manufacturing and rapid prototyping",
-  "date_founded": "2019-12-12",
+  "date_founded": "2004-06-09",
   "access_type": "Membership",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
-      "make": "Prusa",
-      "model": "i3 MK3S+",
-      "serial_number": "SN811931",
-      "condition": "Good",
-      "power_rating": 1714,
-      "maintenance_schedule": "Every 2 months",
+      "make": "Creality",
+      "model": "Ender 3",
+      "serial_number": "SN812842",
+      "condition": "Excellent",
+      "notes": "Equipment notes: If skin there nature visit five.",
+      "quantity": 2,
+      "throughput": "2 parts/hour",
+      "maintenance_schedule": "Every 10 months",
       "usage_levels": "Low",
-      "tolerance_class": "ISO 2768-f",
       "computer_controlled": true,
-      "extraction_system": true,
       "materials_worked": [
         {
           "material_type": "https://en.wikipedia.org/wiki/PLA"
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/PETG",
-          "brand": "Professional",
           "supplier_location": {
             "address": {
-              "number": "9777",
-              "street": "White Cliffs",
-              "city": "Acevedomouth",
-              "region": "Florida",
-              "country": "Latvia",
-              "postcode": "44824"
+              "number": "3334",
+              "street": "Stacy Light",
+              "city": "Columbus",
+              "region": "DC",
+              "country": "US",
+              "postcode": "34634"
             },
-            "gps_coordinates": "27.476325, -57.697302",
-            "city": "Acevedomouth",
-            "country": "Latvia"
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "city": "Columbus",
+            "country": "US"
           }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/ABS",
-          "manufacturer": "Brand A",
-          "brand": "Standard"
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7812",
+              "street": "Hernandez Summit",
+              "city": "Chicago",
+              "region": "HI",
+              "country": "US",
+              "postcode": "15768"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "city": "Chicago",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/TPU",
           "manufacturer": "Brand B",
-          "brand": "Professional",
-          "supplier_location": {
-            "address": {
-              "number": "1235",
-              "street": "Romero Brooks",
-              "city": "Ramireztown",
-              "region": "Arizona",
-              "country": "Cameroon",
-              "postcode": "06507"
-            },
-            "gps_coordinates": "45.957462, -88.250637",
-            "city": "Ramireztown",
-            "country": "Cameroon"
-          }
+          "brand": "Professional"
         }
       ],
       "build_volume": 8000000,
-      "nozzle_size": 0.4
+      "nozzle_size": 0.6
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
-      "make": "Brand A",
-      "model": "Model 566",
-      "condition": "Fair"
+      "make": "Generic",
+      "model": "Model 939",
+      "condition": "Good",
+      "computer_controlled": true
     }
   ],
   "manufacturing_processes": [
@@ -95,17 +117,15 @@
     "https://en.wikipedia.org/wiki/Post-processing"
   ],
   "typical_batch_size": "0 -- 50 units",
+  "floor_size": 3555,
+  "storage_capacity": "427 cubic meters",
   "typical_materials": [],
   "certifications": [
-    "Equipment Operation Certification",
     "Basic Safety Training",
-    "First Aid Training"
+    "First Aid Training",
+    "Equipment Operation Certification"
   ],
-  "uninterrupted_power_supply": true,
   "road_access": true,
-  "maintenance_schedule": "Every 2 months",
-  "typical_products": [
-    "Synergized 24/7 task-force",
-    "Seamless regional collaboration"
-  ]
+  "loading_dock": true,
+  "maintenance_schedule": "Every 3 months"
 }

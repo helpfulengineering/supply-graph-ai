@@ -1,46 +1,74 @@
 {
-  "id": "c27eadca-d568-416c-bcc6-1aaebd36be60",
+  "id": "a69e945f-401c-4ca3-bd28-cacc1d2791b0",
   "name": "Clean Room Assembly Facility 1",
   "location": {
     "address": {
-      "number": "4905",
-      "street": "Davis Trail",
-      "city": "Port Michael",
-      "region": "Iowa",
-      "country": "Turkmenistan",
-      "postcode": "65013"
+      "number": "2525",
+      "street": "Mullins Plains",
+      "city": "Los Angeles",
+      "region": "OR",
+      "country": "US",
+      "postcode": "30657"
     },
-    "gps_coordinates": "29.640662, 29.425547",
-    "city": "Port Michael",
-    "country": "Turkmenistan"
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
   },
   "facility_status": "Active",
-  "opening_hours": "Mon-Fri: 8:00-22:00",
+  "owner": {
+    "name": "Webb, Lutz and Brooks",
+    "location": {
+      "address": {
+        "number": "9674",
+        "street": "Hall Court",
+        "city": "Fort Worth",
+        "region": "MO",
+        "country": "US",
+        "postcode": "75697"
+      },
+      "gps_coordinates": "32.753177, -97.3327459",
+      "city": "Fort Worth",
+      "country": "US"
+    },
+    "contact_person": "Heather Anderson",
+    "languages": [
+      "fr",
+      "de"
+    ],
+    "mailing_list": "bgrant@lists.taylor-francis.com",
+    "contact": {
+      "landline": "+1-310-376-7701",
+      "email": "info@roman.com",
+      "whatsapp": "+1-804-819-7510"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
   "description": "Specialized in clean room assembly for sensitive components",
+  "date_founded": "2011-07-16",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Clean_room",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Clean_room",
-      "make": "Brand A",
-      "model": "Model 200",
-      "condition": "Excellent"
+      "make": "Generic",
+      "model": "Model 243",
+      "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/ESD-safe_workstations",
       "manufacturing_process": "https://en.wikipedia.org/wiki/ESD-safe_workstations",
-      "make": "Generic",
-      "model": "Model 820",
-      "condition": "Fair",
-      "computer_controlled": true
+      "make": "Brand A",
+      "model": "Model 263",
+      "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Precision_tools",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Precision_tools",
       "make": "Brand B",
-      "model": "Model 166",
-      "condition": "Excellent",
-      "computer_controlled": true
+      "model": "Model 320",
+      "condition": "Fair"
     }
   ],
   "manufacturing_processes": [
@@ -49,7 +77,7 @@
     "https://en.wikipedia.org/wiki/Test_equipment"
   ],
   "typical_batch_size": "0 -- 50 units",
-  "floor_size": 2868,
   "typical_materials": [],
-  "certifications": []
+  "certifications": [],
+  "road_access": true
 }

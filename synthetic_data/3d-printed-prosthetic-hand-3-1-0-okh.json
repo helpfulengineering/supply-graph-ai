@@ -1,0 +1,193 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "345e7d63-c091-43c6-8e21-832b6547bb04",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/sallymitchell/3d-printed-prosthetic-hand",
+  "version": "3.1.0",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Cynthia Lowe",
+    "email": "weberjason@example.net",
+    "affiliation": "Soto-Martin",
+    "social": []
+  },
+  "documentation_language": "fr",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Together him after born protect single.",
+  "keywords": [
+    "modular",
+    "shaft",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Cynthia Hart",
+    "email": "ismith@example.org",
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Donald Newman",
+      "email": null,
+      "affiliation": "Bryan-Simpson",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "hdavies"
+        }
+      ]
+    },
+    {
+      "name": "Diamond Hall",
+      "email": "matthew23@example.net",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Young, Lopez and Thomas",
+    "url": null,
+    "email": null
+  },
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/xmyers/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/rogergaines/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/jacob33/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/kennedypatrick/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/amandacox/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/tcharles/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/davidbennett/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/xgarcia/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Pliers",
+    "3D printer",
+    "Deburring tool",
+    "Nozzle",
+    "Cable ties",
+    "Crimping tool",
+    "Wrench set",
+    "Screwdriver set",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 777.08,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "01c27e4d-0203-4a34-b0bf-b7db7181727b",
+      "source": [
+        "https://github.com/johnsoncarrie/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/keith45/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/millerjames/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": {
+        "length": 185,
+        "width": 81,
+        "height": 94
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}
