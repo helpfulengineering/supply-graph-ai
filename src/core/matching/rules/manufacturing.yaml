@@ -47,7 +47,7 @@ rules:
     id: "additive_manufacturing_capability"
     type: "capability_match"
     capability: "3d printing"
-    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "additive fabrication", "3d printing", "3-d printing"]
+    satisfies_requirements: ["additive manufacturing", "rapid prototyping", "additive fabrication", "3d printing", "3-d printing", "3dp"]
     confidence: 0.95
     domain: "manufacturing"
     description: "3D printing can satisfy additive manufacturing requirements"
@@ -191,6 +191,18 @@ rules:
     source: "Surface Finish Standards"
     tags: ["quality", "surface", "finish"]
 
+  # Post-Processing Capabilities
+  post_processing_capability:
+    id: "post_processing_capability"
+    type: "capability_match"
+    capability: "post-processing"
+    satisfies_requirements: ["post-processing", "post processing", "postprocessing", "finishing", "final processing"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Post-processing can satisfy post-processing requirements"
+    source: "Manufacturing Standards"
+    tags: ["finishing", "post-processing", "quality"]
+
   # Welding Capabilities
   welding_capability:
     id: "welding_capability"
@@ -219,7 +231,7 @@ rules:
     id: "assembly_capability"
     type: "capability_match"
     capability: "assembly"
-    satisfies_requirements: ["assembly", "assembling", "putting together", "component assembly", "final assembly"]
+    satisfies_requirements: ["assembly", "assembling", "putting together", "component assembly", "final assembly", "electronics assembly", "pcb assembly"]
     confidence: 0.9
     domain: "manufacturing"
     description: "Assembly can satisfy assembly requirements"

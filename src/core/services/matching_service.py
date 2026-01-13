@@ -170,7 +170,10 @@ class MatchingService:
 
             logger.info(
                 "Extracted requirements from OKH manifest",
-                extra={"requirement_count": len(requirements)},
+                extra={
+                    "requirement_count": len(requirements),
+                    "requirements": [req.get("process_name", "") if isinstance(req, dict) else str(req) for req in requirements],
+                },
             )
 
             solutions = set()
@@ -205,6 +208,16 @@ class MatchingService:
                     extraction_result.data.content.get("capabilities", [])
                     if extraction_result.data
                     else []
+                )
+
+                logger.info(
+                    f"Extracted capabilities for facility {facility.name}",
+                    extra={
+                        "facility_id": str(facility.id),
+                        "facility_name": facility.name,
+                        "capability_count": len(capabilities),
+                        "capabilities": [cap.get("process_name", "") for cap in capabilities if isinstance(cap, dict)],
+                    },
                 )
 
                 if await self._can_satisfy_requirements(
@@ -252,19 +265,88 @@ class MatchingService:
     ) -> bool:
         """Check if capabilities can satisfy requirements using multi-layered matching"""
         try:
+            # Handle both dict and ProcessRequirement objects
+            req_list = []
             for req in requirements:
+                if isinstance(req, dict):
+                    req_list.append(req)
+                elif hasattr(req, "process_name"):
+                    # Convert ProcessRequirement to dict
+                    req_list.append({
+                        "process_name": req.process_name,
+                        "parameters": getattr(req, "parameters", {}),
+                        "validation_criteria": getattr(req, "validation_criteria", {}),
+                        "required_tools": getattr(req, "required_tools", []),
+                    })
+                else:
+                    logger.warning(f"Unknown requirement type: {type(req)}, value: {req}")
+                    continue
+            
+            # Handle both dict and Capability objects
+            cap_list = []
+            for cap in capabilities:
+                if isinstance(cap, dict):
+                    cap_list.append(cap)
+                elif hasattr(cap, "type") or hasattr(cap, "process_name"):
+                    # Convert Capability to dict
+                    process_name = getattr(cap, "process_name", None) or getattr(cap, "type", "")
+                    cap_list.append({
+                        "process_name": process_name,
+                        "parameters": getattr(cap, "parameters", {}),
+                        "validation_criteria": getattr(cap, "validation_criteria", {}),
+                        "required_tools": getattr(cap, "required_tools", []),
+                    })
+                else:
+                    logger.warning(f"Unknown capability type: {type(cap)}, value: {cap}")
+                    continue
+            
+            # Log input for debugging
+            logger.info(
+                f"Checking if capabilities can satisfy requirements",
+                extra={
+                    "requirement_count": len(req_list),
+                    "capability_count": len(cap_list),
+                    "requirements": [req.get("process_name", "") for req in req_list],
+                    "capabilities": [cap.get("process_name", "") for cap in cap_list],
+                },
+            )
+            
+            if not req_list:
+                logger.warning("No valid requirements to check")
+                return False
+            
+            if not cap_list:
+                logger.warning("No valid capabilities to check against")
+                return False
+            
+            # Check if ALL requirements can be satisfied by the capabilities
+            for req in req_list:
                 req_process = req.get("process_name", "").lower().strip()
                 if not req_process:
+                    logger.debug(f"Skipping empty requirement: {req}")
                     continue
+
+                # Track if this requirement has a match
+                requirement_satisfied = False
+
+                for cap in cap_list:
+                    cap_process = cap.get("process_name", "").lower().strip()
+                    if not cap_process:
+                        logger.debug(f"Skipping empty capability: {cap}")
+                        continue
+
+                # Track if this requirement has a match
+                requirement_satisfied = False
 
                 for cap in capabilities:
                     cap_process = cap.get("process_name", "").lower().strip()
                     if not cap_process:
+                        logger.debug(f"Skipping empty capability: {cap}")
                         continue
 
                     # Try Layer 1: Direct Matching first
                     if await self._direct_match(req_process, cap_process, domain):
-                        logger.debug(
+                        logger.info(
                             "Direct match found",
                             extra={
                                 "requirement_process": req.get("process_name"),
@@ -272,11 +354,12 @@ class MatchingService:
                                 "layer": "direct",
                             },
                         )
-                        return True
+                        requirement_satisfied = True
+                        break  # Found a match for this requirement, move to next requirement
 
                     # Try Layer 2: Heuristic Matching
                     if await self._heuristic_match(req_process, cap_process, domain):
-                        logger.debug(
+                        logger.info(
                             "Heuristic match found",
                             extra={
                                 "requirement_process": req.get("process_name"),
@@ -284,11 +367,12 @@ class MatchingService:
                                 "layer": "heuristic",
                             },
                         )
-                        return True
+                        requirement_satisfied = True
+                        break  # Found a match for this requirement, move to next requirement
 
                     # Try Layer 3: NLP Matching
                     if await self._nlp_match(req_process, cap_process, domain):
-                        logger.debug(
+                        logger.info(
                             "NLP match found",
                             extra={
                                 "requirement_process": req.get("process_name"),
@@ -296,9 +380,24 @@ class MatchingService:
                                 "layer": "nlp",
                             },
                         )
-                        return True
+                        requirement_satisfied = True
+                        break  # Found a match for this requirement, move to next requirement
 
-            return False
+                # If this requirement has no match, the facility cannot satisfy all requirements
+                if not requirement_satisfied:
+                    logger.info(
+                        f"Requirement '{req.get('process_name')}' has no matching capability",
+                        extra={
+                            "requirement_process": req.get("process_name"),
+                            "capability_count": len(cap_list),
+                            "available_capabilities": [cap.get("process_name", "") for cap in cap_list],
+                        },
+                    )
+                    return False
+
+            # All requirements have matches
+            logger.info("All requirements satisfied by capabilities")
+            return True
 
         except Exception as e:
             logger.error(
@@ -412,9 +511,14 @@ class MatchingService:
                 )
                 return False
 
+            # Normalize process names before heuristic matching
+            # Extract process names from URIs if needed
+            req_normalized = self._normalize_process_name(req_process)
+            cap_normalized = self._normalize_process_name(cap_process)
+            
             # Create requirement and capability objects for matching
-            requirements = [{"process_name": req_process}]
-            capabilities = [{"process_name": cap_process}]
+            requirements = [{"process_name": req_normalized}]
+            capabilities = [{"process_name": cap_normalized}]
 
             # Use the capability-centric matcher
             results = await self.capability_matcher.match_requirements_to_capabilities(
@@ -455,20 +559,22 @@ class MatchingService:
     ) -> bool:
         """Layer 3: NLP Matching - Using semantic similarity and natural language understanding"""
         try:
-            # CRITICAL: Do not use NLP matching for process URIs (from TSDC codes)
-            # URIs should only match via direct matching to prevent incorrect matches
-            # (e.g., PCB URI matching 3DP URI through semantic similarity)
+            # Check if either side is a URI
             is_req_uri = isinstance(req_process, str) and (
                 req_process.startswith("http://") or req_process.startswith("https://")
             )
             is_cap_uri = isinstance(cap_process, str) and (
                 cap_process.startswith("http://") or cap_process.startswith("https://")
             )
-            if is_req_uri or is_cap_uri:
-                # CRITICAL: Log at INFO level so it shows up in Cloud Run logs
+            
+            # CRITICAL: Skip NLP matching only if BOTH are URIs
+            # This prevents URI-to-URI false matches (e.g., PCB URI matching 3DP URI)
+            # But allow NLP when one is URI and other is simple name (extract name from URI)
+            if is_req_uri and is_cap_uri:
+                # Both are URIs - skip NLP to prevent false matches
                 logger.info(
-                    f"SKIPPING NLP for URI: req={req_process[:60]}, cap={cap_process[:60]} | "
-                    f"req_is_uri={is_req_uri}, cap_is_uri={is_cap_uri}",
+                    f"SKIPPING NLP for URI-to-URI: req={req_process[:60]}, cap={cap_process[:60]} | "
+                    f"Both are URIs, use direct matching only",
                     extra={
                         "requirement_process": req_process,
                         "capability_process": cap_process,
@@ -477,6 +583,32 @@ class MatchingService:
                     },
                 )
                 return False
+            
+            # If one side is a URI, extract the process name from it for NLP matching
+            req_for_nlp = req_process
+            cap_for_nlp = cap_process
+            
+            if is_req_uri:
+                # Extract process name from requirement URI
+                req_for_nlp = self._normalize_process_name(req_process)
+                logger.debug(
+                    f"Extracted process name from requirement URI: '{req_process}' -> '{req_for_nlp}'",
+                    extra={
+                        "original_requirement": req_process,
+                        "extracted_requirement": req_for_nlp,
+                    },
+                )
+            
+            if is_cap_uri:
+                # Extract process name from capability URI
+                cap_for_nlp = self._normalize_process_name(cap_process)
+                logger.debug(
+                    f"Extracted process name from capability URI: '{cap_process}' -> '{cap_for_nlp}'",
+                    extra={
+                        "original_capability": cap_process,
+                        "extracted_capability": cap_for_nlp,
+                    },
+                )
 
             # Use the NLP matcher for the specified domain
             if domain not in self.nlp_matchers:
@@ -512,8 +644,9 @@ class MatchingService:
             import asyncio
 
             try:
+                # Use extracted/normalized process names for NLP matching
                 results = await asyncio.wait_for(
-                    nlp_matcher.match([req_process], [cap_process]),
+                    nlp_matcher.match([req_for_nlp], [cap_for_nlp]),
                     timeout=0.5,  # 500ms timeout
                 )
             except asyncio.TimeoutError:
@@ -1121,6 +1254,7 @@ class MatchingService:
         - Case normalization: Converts to lowercase
         - Whitespace normalization: Removes extra whitespace
         - Special character handling: Normalizes underscores, hyphens, etc.
+        - Common process name mapping: Maps Wikipedia process names to standard names
 
         Args:
             process_name: The process name to normalize
@@ -1151,7 +1285,47 @@ class MatchingService:
         # Normalize multiple spaces to single space
         normalized = re.sub(r"\s+", " ", normalized)
 
-        return normalized.strip()
+        normalized = normalized.strip()
+        
+        # Map common Wikipedia process names to standard names for better rule matching
+        # This helps match Wikipedia URIs to OKH simple names through rules
+        process_name_mapping = {
+            # 3D Printing variants
+            "fused filament fabrication": "3d printing",
+            "fused deposition modeling": "fdm printing",
+            "stereolithography": "sla printing",
+            "selective laser sintering": "sls printing",
+            "digital light processing": "dlp printing",
+            # Assembly variants
+            "electronics assembly": "assembly",
+            "electronics manufacturing": "assembly",
+            "pcb assembly": "assembly",
+            "component assembly": "assembly",
+            "assembly line": "assembly",
+            # Machining variants
+            "computer numerical control": "cnc machining",
+            "subtractive manufacturing": "cnc machining",
+            "machining": "cnc machining",
+            # Post-processing variants
+            "post processing": "post-processing",
+            "postprocessing": "post-processing",
+            # Other common mappings
+            "printed circuit board": "pcb",
+            "circuit board": "pcb",
+            "pcb fabrication": "pcb",
+            # Surface finishing
+            "surface finish": "surface finishing",
+            "surface treatment": "surface finishing",
+        }
+        
+        # Check if normalized name matches any mapping key (exact or contains)
+        for wiki_name, standard_name in process_name_mapping.items():
+            if wiki_name in normalized or normalized in wiki_name:
+                # Use the standard name for better rule matching
+                normalized = standard_name
+                break
+        
+        return normalized
 
     def _calculate_process_similarity(self, process1: str, process2: str) -> float:
         """

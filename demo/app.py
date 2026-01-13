@@ -9,13 +9,15 @@ import streamlit as st
 import os
 import sys
 import pandas as pd
+import pydeck as pdk
+from typing import Dict, Any
 
 # Add project root to path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from demo.facilities import get_facilities_for_map
+from demo.facilities import get_facilities_for_map, get_facilities_with_full_data, load_facilities_data
 from demo.okh_designs import get_okh_designs_for_selection, get_design_by_id
 from demo.matching import match_facilities
 from demo.results_parser import (
@@ -32,6 +34,7 @@ from demo.results_parser import (
     group_facilities_by_stage,
     get_component_name_for_tree
 )
+from demo.rfq_generator import generate_rfq
 from demo.solution_selectors import SELECTOR_REGISTRY, DEFAULT_SELECTOR
 from demo.facility_deduplication import (
     get_primary_facility_for_component,
@@ -51,6 +54,107 @@ DEFAULT_API_URL = "https://supply-graph-ai-1085931013579.us-west1.run.app"
 API_BASE_URL = os.getenv("CLOUD_RUN_URL", DEFAULT_API_URL).rstrip("/")
 
 
+def _display_facility_details(facility: Dict[str, Any]) -> None:
+    """
+    Display detailed information about a facility in a formatted way.
+    
+    Args:
+        facility: Full facility dictionary from API
+    """
+    # Basic Information
+    st.markdown(f"### {facility.get('name', 'Unknown Facility')}")
+    
+    # Location Information
+    location = facility.get('location', {})
+    if location:
+        col1, col2 = st.columns(2)
+        with col1:
+            if location.get('city'):
+                st.markdown(f"**City:** {location.get('city')}")
+            if location.get('state'):
+                st.markdown(f"**State/Region:** {location.get('state')}")
+        with col2:
+            if location.get('country'):
+                st.markdown(f"**Country:** {location.get('country')}")
+            if location.get('gps_coordinates'):
+                st.markdown(f"**Coordinates:** {location.get('gps_coordinates')}")
+    
+    # Contact Information
+    contact = facility.get('contact', {})
+    if contact:
+        st.markdown("---")
+        st.markdown("**Contact Information:**")
+        if contact.get('email'):
+            st.markdown(f"- **Email:** {contact.get('email')}")
+        if contact.get('phone'):
+            st.markdown(f"- **Phone:** {contact.get('phone')}")
+        if contact.get('name'):
+            st.markdown(f"- **Contact Name:** {contact.get('name')}")
+    
+    # Facility Status
+    if facility.get('facility_status'):
+        st.markdown("---")
+        status = facility.get('facility_status')
+        status_emoji = "✅" if status.lower() == "active" else "⚠️"
+        st.markdown(f"**Status:** {status_emoji} {status}")
+    
+    # Manufacturing Processes
+    manufacturing_processes = facility.get('manufacturing_processes', [])
+    if manufacturing_processes:
+        st.markdown("---")
+        st.markdown("**Manufacturing Processes:**")
+        for process in manufacturing_processes[:5]:  # Show first 5
+            if isinstance(process, str):
+                # Extract process name from Wikipedia URL if present
+                if 'wikipedia.org/wiki/' in process:
+                    process_name = process.split('/wiki/')[-1].replace('_', ' ').title()
+                    st.markdown(f"- {process_name}")
+                else:
+                    st.markdown(f"- {process}")
+        if len(manufacturing_processes) > 5:
+            st.caption(f"... and {len(manufacturing_processes) - 5} more processes")
+    
+    # Equipment
+    equipment = facility.get('equipment', [])
+    if equipment:
+        st.markdown("---")
+        st.markdown("**Equipment:**")
+        for item in equipment[:5]:  # Show first 5
+            if isinstance(item, dict):
+                # Extract equipment name from equipment_type (Wikipedia URL)
+                equipment_type = item.get('equipment_type', '')
+                if equipment_type:
+                    if 'wikipedia.org/wiki/' in equipment_type:
+                        eq_name = equipment_type.split('/wiki/')[-1].replace('_', ' ').title()
+                    else:
+                        eq_name = equipment_type
+                else:
+                    eq_name = 'Unknown Equipment'
+                
+                # Build equipment description with make/model if available
+                make = item.get('make', '')
+                model = item.get('model', '')
+                if make and model:
+                    eq_display = f"{eq_name} ({make} {model})"
+                elif make:
+                    eq_display = f"{eq_name} ({make})"
+                elif model:
+                    eq_display = f"{eq_name} ({model})"
+                else:
+                    eq_display = eq_name
+                
+                # Add condition if available
+                condition = item.get('condition', '')
+                if condition:
+                    eq_display += f" - {condition}"
+                
+                st.markdown(f"- {eq_display}")
+            elif isinstance(item, str):
+                st.markdown(f"- {item}")
+        if len(equipment) > 5:
+            st.caption(f"... and {len(equipment) - 5} more equipment items")
+
+
 def main():
     """Main application entry point."""
     
@@ -60,12 +164,36 @@ def main():
     
     # Map Section
     st.markdown("## Map Visualization")
-    st.markdown("OKW facilities displayed on an interactive map")
+    st.markdown("OKW facilities displayed on an interactive map. Click on a pin to view facility details.")
     
     # Load and display facilities on map
     with st.spinner("Loading facilities from API... This may take a moment."):
         try:
-            facilities_df = get_facilities_for_map()
+            # Load facilities with full data for modal display
+            facilities_df, full_facilities = get_facilities_with_full_data()
+            
+            # Store full facilities in session state for modal access
+            if 'facilities_data' not in st.session_state:
+                st.session_state['facilities_data'] = full_facilities
+            
+            # Create a mapping from facility name to full data for quick lookup
+            facility_lookup = {}
+            facility_by_name = {}  # Simple name-based lookup for location access
+            for facility in full_facilities:
+                name = facility.get('name', 'Unknown')
+                location = facility.get('location', {})
+                city = location.get('city', '')
+                country = location.get('country', '')
+                # Use name + location as key for uniqueness
+                key = f"{name}|{city}|{country}"
+                facility_lookup[key] = facility
+                # Also create simple name-based lookup (use first occurrence if duplicates)
+                if name not in facility_by_name:
+                    facility_by_name[name] = facility
+            
+            # Store lookup in session state
+            st.session_state['facility_lookup'] = facility_lookup
+            st.session_state['facility_by_name'] = facility_by_name
             
             # Debug: Show raw data info
             with st.expander("Debug Info", expanded=False):
@@ -86,7 +214,104 @@ def main():
                 st.markdown("- There was an error loading data (check Debug Info and terminal logs)")
                 st.markdown("- Async loading failed (check for uvloop/nest_asyncio errors)")
             else:
-                st.map(facilities_df[["lat", "lon"]])
+                # Create interactive map with Pydeck
+                # Create a layer for facility markers with custom icons and outlines
+                layer = pdk.Layer(
+                    "ScatterplotLayer",
+                    data=facilities_df,
+                    get_position=["lon", "lat"],
+                    get_color=[200, 30, 0, 200],  # Red fill color with transparency
+                    get_radius=800,  # Radius in meters
+                    pickable=True,  # Enable click events
+                    auto_highlight=True,
+                    radius_min_pixels=6,
+                    radius_max_pixels=18,
+                    stroked=True,  # Enable outline
+                    get_line_color=[255, 255, 255, 255],  # White outline for contrast
+                    line_width_min_pixels=2,  # Thick outline for visibility
+                )
+                
+                # Set initial viewport (center on facilities)
+                if not facilities_df.empty:
+                    view_state = pdk.ViewState(
+                        latitude=facilities_df['lat'].mean(),
+                        longitude=facilities_df['lon'].mean(),
+                        zoom=3,
+                        pitch=0,
+                    )
+                else:
+                    view_state = pdk.ViewState(
+                        latitude=37.7749,
+                        longitude=-122.4194,
+                        zoom=3,
+                        pitch=0,
+                    )
+                
+                # Create the deck with tooltip and visible base map
+                # Use CartoDB's free base map which works without API keys and has good contrast
+                # CartoDB Positron is a light style with visible streets and labels
+                deck = pdk.Deck(
+                    map_style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",  # CartoDB Positron - light, visible, no API key needed
+                    initial_view_state=view_state,
+                    layers=[layer],
+                    tooltip={
+                        "html": "<b>{name}</b><br/>{city}, {country}<br/><i>Select facility below to view details</i>",
+                        "style": {
+                            "color": "white",
+                            "backgroundColor": "rgba(0, 0, 0, 0.8)",
+                            "padding": "8px",
+                            "borderRadius": "4px",
+                        }
+                    },
+                )
+                
+                # Display the map
+                selected_map_object = st.pydeck_chart(deck, width='stretch')
+                
+                # Facility selector for viewing details
+                st.markdown("---")
+                st.markdown("### 📍 View Facility Details")
+                st.caption("Select a facility from the dropdown to view detailed information")
+                
+                # Create facility options for dropdown
+                facility_options = ["Select a facility..."] + [
+                    f"{row['name']} ({row.get('city', 'N/A')}, {row.get('country', 'N/A')})"
+                    for _, row in facilities_df.iterrows()
+                ]
+                
+                selected_facility_label = st.selectbox(
+                    "Choose a facility:",
+                    options=facility_options,
+                    key="facility_selector",
+                    help="Select a facility to view its details"
+                )
+                
+                # Display facility details if one is selected
+                if selected_facility_label and selected_facility_label != "Select a facility...":
+                    # Extract facility name from label
+                    facility_name = selected_facility_label.split(" (")[0]
+                    
+                    # Find matching facility in DataFrame
+                    matching_facility = facilities_df[facilities_df['name'] == facility_name]
+                    
+                    if not matching_facility.empty:
+                        facility_row = matching_facility.iloc[0]
+                        facility_city = facility_row.get('city', '')
+                        facility_country = facility_row.get('country', '')
+                        
+                        # Look up full facility data
+                        lookup_key = f"{facility_name}|{facility_city}|{facility_country}"
+                        full_facility = facility_lookup.get(lookup_key)
+                        
+                        if full_facility:
+                            st.markdown("---")
+                            with st.expander(f"📍 **{facility_name}** - Facility Details", expanded=True):
+                                _display_facility_details(full_facility)
+                        else:
+                            st.warning(f"Full facility data not found for {facility_name}")
+                    else:
+                        st.warning(f"Facility {facility_name} not found in data")
+                
                 st.success(f"✅ Displaying {len(facilities_df)} facilities on map")
                 
                 # Show facility count by status
@@ -134,6 +359,16 @@ def main():
                 selected_design_id = design_options[selected_design_label]
                 selected_design = get_design_by_id(selected_design_id, designs)
                 
+                # Store in session state for RFQ generation
+                st.session_state['selected_design_id'] = selected_design_id
+                if selected_design:
+                    st.session_state['selected_design'] = selected_design
+                
+                # Store selected design ID and design in session state
+                st.session_state['selected_design_id'] = selected_design_id
+                if selected_design:
+                    st.session_state['selected_design'] = selected_design
+                
                 if selected_design:
                     # Display design details
                     st.markdown("### Design Details")
@@ -153,13 +388,17 @@ def main():
                 
                 # Quantity input
                 st.markdown("### Production Quantity")
+                # Get quantity from session state or use default
+                default_quantity = st.session_state.get('quantity', 1)
                 quantity = st.number_input(
                     "Quantity:",
                     min_value=1,
-                    value=1,
+                    value=default_quantity,
                     step=1,
                     help="Number of units to produce"
                 )
+                # Store quantity in session state
+                st.session_state['quantity'] = quantity
                 
                 st.markdown("---")
                 
@@ -313,11 +552,17 @@ def main():
             matching_mode = detect_matching_mode(data)
             
             # Get selected design info for component count
-            selected_design = None
-            if 'selected_design_id' in st.session_state:
+            # First try to get from session state (preferred - faster)
+            selected_design = st.session_state.get('selected_design')
+            
+            # If not in session state, try to get by ID
+            if not selected_design and 'selected_design_id' in st.session_state:
                 # Get designs list
                 designs = get_okh_designs_for_selection()
                 selected_design = get_design_by_id(st.session_state['selected_design_id'], designs)
+                # Store it for next time
+                if selected_design:
+                    st.session_state['selected_design'] = selected_design
             
             # Solution Selection UI (for single-level matching with multiple solutions)
             selector_name = DEFAULT_SELECTOR
@@ -352,6 +597,8 @@ def main():
                     use_deduplication=True,
                     aggregate_score_method='highest'
                 )
+                # Store parsed data for RFQ generation
+                st.session_state['parsed_matching_data'] = parsed
                 solution_score = parsed['solution_score']
                 facility_count = parsed['facility_count']
                 tree_count = parsed['tree_count']
@@ -495,6 +742,8 @@ def main():
                     use_selection=True,
                     selector_name=selector_name
                 )
+                # Store parsed data for RFQ generation
+                st.session_state['parsed_matching_data'] = parsed
                 total_solutions = parsed['total_solutions']
                 facility_count = parsed['facility_count']
                 all_trees = parsed['all_trees']
@@ -609,21 +858,31 @@ def main():
                                         st.markdown("**Dependencies:** None (can start immediately)")
                                 
                                 with col2:
-                                    # Get location from first component's tree
+                                    # Get location from first component's tree, then fallback to facility lookup
+                                    location_info = {}
                                     if components:
                                         primary_tree = components[0].get('tree', {})
                                         location_info = primary_tree.get('metadata', {}).get('facility_location', {})
-                                        if not location_info:
-                                            facility_obj = data.get('solution', {}).get('facility', {})
-                                            location_info = facility_obj.get('location', {}) if facility_obj else {}
-                                        
-                                        city = location_info.get('city', 'N/A')
-                                        country = location_info.get('country', 'N/A')
-                                        st.markdown(f"**Location:** {city}, {country}")
-                                        
-                                        gps = location_info.get('gps_coordinates')
-                                        if gps:
-                                            st.markdown(f"**GPS Coordinates:** {gps}")
+                                    
+                                    # If not in tree metadata, look up from full facility data
+                                    if not location_info or not location_info.get('city'):
+                                        facility_by_name = st.session_state.get('facility_by_name', {})
+                                        facility = facility_by_name.get(facility_name)
+                                        if facility:
+                                            location_info = facility.get('location', {})
+                                    
+                                    # Extract city and country with multiple fallbacks
+                                    city = 'N/A'
+                                    country = 'N/A'
+                                    if location_info:
+                                        city = location_info.get('city') or location_info.get('address', {}).get('city') or 'N/A'
+                                        country = location_info.get('country') or location_info.get('address', {}).get('country') or 'N/A'
+                                    
+                                    st.markdown(f"**Location:** {city}, {country}")
+
+                                    gps = location_info.get('gps_coordinates') if location_info else None
+                                    if gps:
+                                        st.markdown(f"**GPS Coordinates:** {gps}")
                                 
                                 # Show all components this facility produces
                                 st.markdown("**Components Produced by This Facility:**")
@@ -696,37 +955,101 @@ def main():
                         )
                         
                         if stages:  # Only show if we have stages after filtering
-                            st.markdown("#### Production Sequence:")
-                            st.info("📋 **Production Stages**: Facilities in the same stage can work in parallel. Stages must be completed in order.")
-                            st.caption(f"Showing production sequence for selected solution ({len(selected_facility_names) if selected_facility_names else 'all'} facilities)")
+                            st.markdown("#### Production Plan:")
+                            st.info("📋 **Component-Based Production**: Each component can be produced by the facilities listed. Facilities in the same stage can work in parallel.")
+                            st.caption(f"Selected solution: {len(selected_facility_names) if selected_facility_names else 'all'} facilities across {len(stages)} production stage(s)")
+                            
+                            # Reorganize: Group by component instead of by stage
+                            # This makes it easier to see "what facilities can produce X component"
+                            component_to_facilities = {}
                             
                             for stage in stages:
                                 stage_num = stage['stage_number']
                                 trees_in_stage = stage['trees']
                                 
-                                # Deduplicate by facility+component to avoid showing same facility multiple times
-                                seen_combinations = set()
-                                unique_trees = []
                                 for tree in trees_in_stage:
-                                    facility_name = tree.get('facility_name', 'Unknown')
                                     comp_id = tree.get('component_id', '')
                                     comp_name = get_component_name_for_tree(tree, comp_name_map)
-                                    key = (facility_name, comp_id)
+                                    facility_name = tree.get('facility_name', 'Unknown')
+                                    confidence = tree.get('confidence_score', 0)
                                     
-                                    if key not in seen_combinations:
-                                        seen_combinations.add(key)
-                                        unique_trees.append((facility_name, comp_name, tree))
+                                    # Get location info for decision-making
+                                    # Try multiple sources: tree metadata, then lookup from full facility data
+                                    location_info = tree.get('metadata', {}).get('facility_location', {})
+                                    
+                                    # If not in tree metadata, look up from full facility data
+                                    if not location_info or not location_info.get('city'):
+                                        facility_by_name = st.session_state.get('facility_by_name', {})
+                                        facility = facility_by_name.get(facility_name)
+                                        if facility:
+                                            location_info = facility.get('location', {})
+                                    
+                                    # Extract city and country with multiple fallbacks
+                                    city = 'N/A'
+                                    country = 'N/A'
+                                    if location_info:
+                                        # Try direct city field first
+                                        city = location_info.get('city', '')
+                                        # If not found, try nested address structure
+                                        if not city:
+                                            city = location_info.get('address', {}).get('city', '')
+                                        # If still not found, use N/A
+                                        if not city:
+                                            city = 'N/A'
+                                        
+                                        # Same for country
+                                        country = location_info.get('country', '')
+                                        if not country:
+                                            country = location_info.get('address', {}).get('country', '')
+                                        if not country:
+                                            country = 'N/A'
+                                    
+                                    if comp_id not in component_to_facilities:
+                                        component_to_facilities[comp_id] = {
+                                            'name': comp_name,
+                                            'stage': stage_num,
+                                            'facilities': []
+                                        }
+                                    
+                                    # Add facility info
+                                    component_to_facilities[comp_id]['facilities'].append({
+                                        'name': facility_name,
+                                        'city': city,
+                                        'country': country,
+                                        'confidence': confidence,
+                                        'stage': stage_num
+                                    })
+                            
+                            # Display organized by component
+                            for comp_id, comp_info in sorted(component_to_facilities.items(), key=lambda x: (x[1]['stage'], x[1]['name'])):
+                                comp_name = comp_info['name']
+                                stage_num = comp_info['stage']
+                                facilities = comp_info['facilities']
                                 
-                                if unique_trees:
-                                    st.markdown(f"**Stage {stage_num}** ({len(unique_trees)} facility/component pair(s) - can work in parallel):")
+                                # Sort facilities by confidence (best first)
+                                facilities.sort(key=lambda x: x['confidence'], reverse=True)
+                                
+                                # Show component header with stage info
+                                with st.expander(f"🔧 **{comp_name}** (Stage {stage_num}) - {len(facilities)} facility/facilities available", expanded=False):
+                                    st.caption(f"Component ID: `{comp_id}` | Production Stage: {stage_num}")
                                     
-                                    for facility_name, comp_name, tree in unique_trees:
-                                        confidence = tree.get('confidence_score', 0)
-                                        st.markdown(f"  - **{facility_name}** → Producing: **{comp_name}** (Score: {confidence:.2f})")
+                                    # Show facilities in a table-like format for easy scanning
+                                    for idx, facility in enumerate(facilities, 1):
+                                        col1, col2, col3 = st.columns([3, 2, 1])
+                                        with col1:
+                                            st.markdown(f"**{idx}. {facility['name']}**")
+                                        with col2:
+                                            location_str = f"{facility['city']}, {facility['country']}"
+                                            st.markdown(f"📍 {location_str}")
+                                        with col3:
+                                            st.markdown(f"Score: {facility['confidence']:.2f}")
                                     
-                                    if stage_num < len(stages):
-                                        st.markdown("  ↓ *Stage must complete before next stage*")
-                                    st.markdown("")
+                                    if len(facilities) > 1:
+                                        st.caption(f"💡 Multiple facilities available - choose based on location, capacity, or lead time")
+                                    
+                                    # Show stage dependency info
+                                    if stage_num > 1:
+                                        st.info(f"⏱️ Stage {stage_num} - Requires completion of earlier stages first")
                     
                     # Fallback: display facilities without deduplication (if deduplication not available)
                     if not deduplicated_facilities:
@@ -770,13 +1093,23 @@ def main():
                                         else:
                                             st.markdown("**Dependencies:** None (can start immediately)")
                                     with col2:
+                                        # Get location from tree metadata, then fallback to facility lookup
                                         location_info = tree.get('metadata', {}).get('facility_location', {})
-                                        if not location_info:
-                                            facility_obj = data.get('solution', {}).get('facility', {})
-                                            location_info = facility_obj.get('location', {}) if facility_obj else {}
                                         
-                                        city = location_info.get('city', 'N/A')
-                                        country = location_info.get('country', 'N/A')
+                                        # If not in tree metadata, look up from full facility data
+                                        if not location_info or not location_info.get('city'):
+                                            facility_by_name = st.session_state.get('facility_by_name', {})
+                                            facility = facility_by_name.get(facility_name)
+                                            if facility:
+                                                location_info = facility.get('location', {})
+                                        
+                                        # Extract city and country with multiple fallbacks
+                                        city = 'N/A'
+                                        country = 'N/A'
+                                        if location_info:
+                                            city = location_info.get('city') or location_info.get('address', {}).get('city') or 'N/A'
+                                            country = location_info.get('country') or location_info.get('address', {}).get('country') or 'N/A'
+                                        
                                         st.markdown(f"**Location:** {city}, {country}")
                                         
                                         gps = location_info.get('gps_coordinates')
@@ -935,6 +1268,116 @@ def main():
                                             st.markdown(f"- {name}")
                                     else:
                                         st.markdown(f"- {str(mat)}")
+            
+            # RFQ Generation Section
+            if display_facility_count > 0:
+                st.markdown("---")
+                st.markdown("## RFQ Generation")
+                st.markdown("Generate Request for Quotation documents for matched facilities")
+                
+                # Get quantity from session state
+                quantity = st.session_state.get('quantity', 1)
+                
+                # Button to generate RFQs
+                if st.button("📄 Generate RFQs", type="primary", use_container_width=True):
+                    try:
+                        with st.spinner("Generating RFQs... This may take a moment."):
+                            # Get design data from session state (preferred) or re-fetch if needed
+                            selected_design = st.session_state.get('selected_design')
+                            
+                            # If not in session state, try to get by ID
+                            if not selected_design and 'selected_design_id' in st.session_state:
+                                designs = get_okh_designs_for_selection()
+                                selected_design = get_design_by_id(st.session_state['selected_design_id'], designs)
+                                # Store it for next time
+                                if selected_design:
+                                    st.session_state['selected_design'] = selected_design
+                            
+                            if not selected_design:
+                                st.error("⚠️ Design information not available. Please select a design and run matching again.")
+                            else:
+                                # Get full design data (raw OKH manifest)
+                                design_data = selected_design.get('full_design', {})
+                                
+                                # Merge metadata into design_data so RFQ generator has both
+                                # raw OKH fields (title) and processed metadata (name)
+                                if design_data:
+                                    # Ensure name is available (from metadata, not just title)
+                                    if 'name' not in design_data and selected_design.get('name'):
+                                        design_data['name'] = selected_design.get('name')
+                                    # Ensure other metadata fields are available
+                                    if 'function' not in design_data and selected_design.get('function'):
+                                        design_data['function'] = selected_design.get('function')
+                                    if 'description' not in design_data and selected_design.get('description'):
+                                        design_data['description'] = selected_design.get('description')
+                                    if 'version' not in design_data and selected_design.get('version'):
+                                        design_data['version'] = selected_design.get('version')
+                                else:
+                                    # Fallback to metadata only
+                                    design_data = {
+                                        'name': selected_design.get('name', 'Unknown Design'),
+                                        'id': selected_design.get('id', 'N/A'),
+                                        'function': selected_design.get('function', ''),
+                                        'description': selected_design.get('description', ''),
+                                        'version': selected_design.get('version', '')
+                                    }
+                                
+                                # Get parsed data from session state
+                                parsed_data = st.session_state.get('parsed_matching_data')
+                                
+                                # Generate RFQs
+                                rfqs = generate_rfq(
+                                    matching_result=result,
+                                    design_data=design_data,
+                                    quantity=quantity,
+                                    parsed_data=parsed_data
+                                )
+                                
+                                # Store in session state
+                                st.session_state['rfqs'] = rfqs
+                                
+                                st.success(f"✅ Generated {len(rfqs)} RFQ(s)")
+                    except Exception as e:
+                        st.error(f"❌ Error generating RFQs: {str(e)}")
+                        with st.expander("🔍 Error Details"):
+                            import traceback
+                            st.code(traceback.format_exc())
+                
+                # Display RFQs if available
+                if 'rfqs' in st.session_state and st.session_state['rfqs']:
+                    rfqs = st.session_state['rfqs']
+                    
+                    st.markdown(f"### Generated RFQs ({len(rfqs)} facility/facilities)")
+                    st.caption("💡 **Note**: These RFQs are for demonstration purposes. They show how RFQs could be generated from matching results.")
+                    
+                    # Display each RFQ
+                    for idx, rfq_data in enumerate(rfqs, 1):
+                        facility_name = rfq_data['facility_name']
+                        rfq_text = rfq_data['rfq_text']
+                        rfq_quantity = rfq_data['quantity']
+                        components = rfq_data.get('components', [])
+                        
+                        # Create expandable section for each RFQ
+                        title = f"RFQ #{idx}: {facility_name}"
+                        if components:
+                            title += f" ({len(components)} component(s))"
+                        title += f" - Quantity: {rfq_quantity}"
+                        
+                        with st.expander(title, expanded=(idx == 1)):
+                            # Show RFQ text in a code block for easy copy-paste
+                            st.markdown("**RFQ Text:**")
+                            st.code(rfq_text, language=None)
+                            
+                            # Show summary
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.metric("Quantity", rfq_quantity)
+                            with col2:
+                                if components:
+                                    st.metric("Components", len(components))
+                                    st.caption(", ".join(components[:3]))
+                                    if len(components) > 3:
+                                        st.caption(f"... and {len(components) - 3} more")
         else:
             st.warning(f"Matching completed with status: {result.get('status', 'unknown')}")
             if result.get('message'):

@@ -1,0 +1,226 @@
+{
+  "id": "7d87a15d-a0c0-43e5-891a-3dd07e97fd82",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "8087",
+      "street": "Garza Station",
+      "city": "San Jose",
+      "region": "FM",
+      "country": "US",
+      "postcode": "41105"
+    },
+    "gps_coordinates": "37.3361663, -121.890591",
+    "directions": "Located near Hunt Ltd",
+    "city": "San Jose",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 6:00-19:00",
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "2014-12-15",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "Form 3",
+      "serial_number": "SN424002",
+      "condition": "Good",
+      "notes": "Equipment notes: Most believe poor list.",
+      "throughput": "62 parts/hour",
+      "maintenance_schedule": "Every 2 months",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "supplier_location": {
+            "address": {
+              "number": "6807",
+              "street": "Kelley Shoal",
+              "city": "Charlotte",
+              "region": "NE",
+              "country": "US",
+              "postcode": "47063"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2916",
+              "street": "Patterson Stream",
+              "city": "San Antonio",
+              "region": "NY",
+              "country": "US",
+              "postcode": "61101"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "directions": "Located across from Callahan-Adams",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU"
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.6,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "TPU",
+          "ABS"
+        ],
+        "process_parameters": {
+          "setup_time": "60 minutes",
+          "cycle_time": "27 minutes",
+          "changeover_time": "38 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 905",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "PCNC 440",
+      "serial_number": "SN759986",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Run something expert market watch tree by.",
+      "power_rating": 4108,
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "supplier_location": {
+            "address": {
+              "number": "868",
+              "street": "Keith Common",
+              "city": "Charlotte",
+              "region": "WI",
+              "country": "US",
+              "postcode": "72981"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "5852",
+              "street": "Briana Junctions",
+              "city": "Chicago",
+              "region": "ME",
+              "country": "US",
+              "postcode": "69153"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "city": "Chicago",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Wood",
+          "Plastic",
+          "Aluminum",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "56 minutes",
+          "cycle_time": "8 minutes",
+          "changeover_time": "20 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "Research Grade"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "typical_products": [
+    "Operative 3rdgeneration structure",
+    "Down-sized reciprocal strategy",
+    "Exclusive responsive approach",
+    "Distributed responsive system engine"
+  ],
+  "innovation_space": {
+    "staff": 10,
+    "learning_resources": [
+      "Seamless encompassing knowledge user",
+      "Pre-emptive zero tolerance adapter",
+      "Operative intangible artificial intelligence",
+      "Networked mission-critical service-desk",
+      "Seamless asymmetric standardization"
+    ],
+    "services": [
+      "Enterprise-wide transitional service-desk",
+      "Customer-focused incremental hardware",
+      "Fundamental 24/7 system engine",
+      "Upgradable didactic database",
+      "Integrated human-resource alliance"
+    ],
+    "footfall": 71
+  }
+}

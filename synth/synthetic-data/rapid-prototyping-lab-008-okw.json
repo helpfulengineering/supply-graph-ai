@@ -1,0 +1,235 @@
+{
+  "id": "0bd31779-0066-494c-a85b-e4e6359b9a09",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "9343",
+      "street": "Jacobs Walk",
+      "city": "Indianapolis",
+      "region": "TN",
+      "country": "US",
+      "postcode": "66496"
+    },
+    "gps_coordinates": "39.7683331, -86.1583502",
+    "directions": "Located across from Yang LLC",
+    "city": "Indianapolis",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "contact": {
+    "name": "Brown Group",
+    "location": {
+      "address": {
+        "number": "6851",
+        "street": "Porter Circle",
+        "city": "New York",
+        "region": "LA",
+        "country": "US",
+        "postcode": "51139"
+      },
+      "gps_coordinates": "40.7127281, -74.0060152",
+      "city": "New York",
+      "country": "US"
+    },
+    "bio": "Established in 2013, we specialize in Fully-configurable tertiary array",
+    "website": "https://ramirez-green.com",
+    "contact": {
+      "landline": "+1-358-535-5309",
+      "mobile": "+1-819-347-3578"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "University research facility for rapid prototyping",
+  "access_type": "Restricted with public hours",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "S5",
+      "condition": "Good",
+      "quantity": 5,
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "supplier_location": {
+            "address": {
+              "number": "2836",
+              "street": "Lindsey Roads",
+              "city": "Houston",
+              "region": "KY",
+              "country": "US",
+              "postcode": "16834"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "directions": "Located across from Hensley-Williams",
+            "city": "Houston",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7085",
+              "street": "Thompson Mountains",
+              "city": "San Diego",
+              "region": "AL",
+              "country": "US",
+              "postcode": "45244"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located behind White-Navarro",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4757",
+              "street": "Gonzalez Well",
+              "city": "Dallas",
+              "region": "ND",
+              "country": "US",
+              "postcode": "20861"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "city": "Dallas",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3154",
+              "street": "Costa Route",
+              "city": "Columbus",
+              "region": "NH",
+              "country": "US",
+              "postcode": "28001"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "city": "Columbus",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 155",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VTC-20",
+      "condition": "Good",
+      "notes": "Equipment notes: Authority coach force establish.",
+      "quantity": 1,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1718",
+              "street": "Johnson Springs",
+              "city": "Phoenix",
+              "region": "KY",
+              "country": "US",
+              "postcode": "65386"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located across from Bailey-Ryan",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6056",
+              "street": "Larsen Mountains",
+              "city": "San Jose",
+              "region": "TX",
+              "country": "US",
+              "postcode": "06735"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4162",
+              "street": "Joseph Junction",
+              "city": "Dallas",
+              "region": "NM",
+              "country": "US",
+              "postcode": "57863"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "city": "Dallas",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 800
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "Research Grade"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Diverse intermediate Local Area Network"
+  ],
+  "innovation_space": {
+    "staff": 5,
+    "footfall": 55
+  }
+}

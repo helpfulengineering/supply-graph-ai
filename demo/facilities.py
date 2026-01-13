@@ -157,3 +157,18 @@ def get_facilities_for_map() -> pd.DataFrame:
         logger.info(f"Sample location structure: {sample_location}")
     
     return facilities_to_dataframe(facilities)
+
+
+def get_facilities_with_full_data() -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
+    """
+    Load facilities and return both DataFrame and full facility data.
+    
+    Returns:
+        Tuple of (DataFrame for map, List of full facility dictionaries)
+    """
+    facilities = load_facilities_data()
+    df = facilities_to_dataframe(facilities)
+    
+    # Create a mapping from facility name+location to full facility data
+    # This allows us to look up full details when a pin is clicked
+    return df, facilities

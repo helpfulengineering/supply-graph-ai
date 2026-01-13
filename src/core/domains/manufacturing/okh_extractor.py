@@ -155,8 +155,18 @@ class OKHExtractor(BaseExtractor):
         self, parsed_data: Dict
     ) -> NormalizedCapabilities:
         """Extract detailed capabilities from facility data"""
-        # Extract manufacturing processes from equipment
+        # Extract manufacturing processes from top-level field first
         processes = []
+        
+        # Extract from top-level manufacturing_processes field (primary source)
+        if "manufacturing_processes" in parsed_data and parsed_data["manufacturing_processes"]:
+            top_level_processes = parsed_data["manufacturing_processes"]
+            if isinstance(top_level_processes, list):
+                processes.extend(top_level_processes)
+            else:
+                processes.append(top_level_processes)
+        
+        # Also extract manufacturing processes from equipment (secondary source)
         equipment = parsed_data.get("equipment", [])
 
         for eq in equipment:
@@ -164,7 +174,7 @@ class OKHExtractor(BaseExtractor):
                 # Extract from manufacturing_process field
                 if "manufacturing_process" in eq and eq["manufacturing_process"]:
                     processes.append(eq["manufacturing_process"])
-                # Extract from manufacturing_processes field (if it exists)
+                # Extract from manufacturing_processes field (if it exists in equipment)
                 if "manufacturing_processes" in eq and eq["manufacturing_processes"]:
                     if isinstance(eq["manufacturing_processes"], list):
                         processes.extend(eq["manufacturing_processes"])

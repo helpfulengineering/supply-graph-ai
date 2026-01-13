@@ -105,7 +105,8 @@
   ],
   "manufacturing_processes": [
     "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
-    "https://en.wikipedia.org/wiki/Post-processing"
+    "https://en.wikipedia.org/wiki/Post-processing",
+    "https://en.wikipedia.org/wiki/Assembly_line"
   ],
   "typical_batch_size": "0 -- 50 units",
   "storage_capacity": "972 cubic meters",

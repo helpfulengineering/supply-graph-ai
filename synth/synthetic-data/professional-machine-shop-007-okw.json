@@ -1,0 +1,198 @@
+{
+  "id": "d7f5087d-9773-48e4-8cc7-fe7e2cca5713",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "8834",
+      "street": "Michael Streets",
+      "city": "Charlotte",
+      "region": "RI",
+      "country": "US",
+      "postcode": "66109"
+    },
+    "gps_coordinates": "35.2272086, -80.8430827",
+    "city": "Charlotte",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Guerra, Horn and Gonzalez",
+    "location": {
+      "address": {
+        "number": "5313",
+        "street": "Gonzalez Stream",
+        "city": "Charlotte",
+        "region": "MH",
+        "country": "US",
+        "postcode": "11787"
+      },
+      "gps_coordinates": "35.2272086, -80.8430827",
+      "city": "Charlotte",
+      "country": "US"
+    },
+    "bio": "Established in 1991, we specialize in Operative encompassing Graphic Interface",
+    "languages": [
+      "de"
+    ],
+    "mailing_list": "christopher94@lists.sanchez.com",
+    "contact": {
+      "landline": "+1-473-635-2217",
+      "email": "info@downs.com"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/aboyd",
+      "twitter": "@howardalexander",
+      "instagram": "@mmarks",
+      "other_urls": [
+        "https://taylor.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-20:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "1998-02-13",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "PCNC 440",
+      "serial_number": "SN951901",
+      "condition": "Fair",
+      "quantity": 4,
+      "power_rating": 6003,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "6828",
+              "street": "Smith Greens",
+              "city": "Chicago",
+              "region": "CO",
+              "country": "US",
+              "postcode": "50411"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "city": "Chicago",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Wood",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "47 minutes",
+          "cycle_time": "23 minutes",
+          "changeover_time": "24 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 462",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Generic",
+      "model": "Model 854",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1812,
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "typical_products": [
+    "Fundamental intangible Graphic Interface"
+  ],
+  "human_capacity": {
+    "headcount": 12
+  },
+  "innovation_space": {
+    "staff": 5,
+    "learning_resources": [
+      "Expanded asynchronous capability",
+      "Horizontal national portal"
+    ],
+    "services": [
+      "Customer-focused stable open system"
+    ],
+    "footfall": 58,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-01-12T20:09:47.255005",
+    "created_by": {
+      "name": "Mcguire-Gilbert",
+      "location": {
+        "address": {
+          "number": "1163",
+          "street": "Collier Dam",
+          "city": "Dallas",
+          "region": "OK",
+          "country": "US",
+          "postcode": "87726"
+        },
+        "gps_coordinates": "32.7762719, -96.7968559",
+        "city": "Dallas",
+        "country": "US"
+      },
+      "contact_person": "Stephen Moore",
+      "languages": [
+        "fr",
+        "de",
+        "en"
+      ],
+      "mailing_list": "elizabeth35@lists.harris.info",
+      "contact": {
+        "landline": "+1-269-968-2632",
+        "email": "info@martinez-tate.com"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

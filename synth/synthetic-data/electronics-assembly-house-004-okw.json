@@ -1,0 +1,126 @@
+{
+  "id": "359011a0-6227-47a7-b895-5f04f150431a",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "1860",
+      "street": "Curtis Park",
+      "city": "Chicago",
+      "region": "IN",
+      "country": "US",
+      "postcode": "11239"
+    },
+    "gps_coordinates": "41.8755616, -87.6244212",
+    "directions": "Located across from Morrison, Hale and Baldwin",
+    "city": "Chicago",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Perry Group",
+    "bio": "Established in 2000, we specialize in Assimilated full-range emulation",
+    "website": "https://flowers-andrews.biz",
+    "images": [
+      "images/mention.jpg",
+      "images/available.jpg",
+      "images/Mr.jpg"
+    ],
+    "contact": {
+      "landline": "+1-656-802-5908",
+      "email": "info@gallagher.com"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Moore Inc",
+    "location": {
+      "address": {
+        "number": "4402",
+        "street": "Aguilar Shoals",
+        "city": "Chicago",
+        "region": "PR",
+        "country": "US",
+        "postcode": "58194"
+      },
+      "gps_coordinates": "41.8755616, -87.6244212",
+      "directions": "Located near Martin, Mcintosh and Barton",
+      "city": "Chicago",
+      "country": "US"
+    },
+    "contact_person": "Elaine Bowman",
+    "bio": "Established in 2006, we specialize in Customer-focused well-modulated moratorium",
+    "languages": [
+      "en",
+      "fr",
+      "es"
+    ],
+    "contact": {
+      "landline": "+1-873-416-7514",
+      "whatsapp": "+1-970-471-4303"
+    },
+    "social_media": {
+      "twitter": "@josephguerrero",
+      "other_urls": [
+        "https://kramer.com",
+        "https://henderson.org"
+      ]
+    }
+  },
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand A",
+      "model": "Model 207",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 661",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Generic",
+      "model": "Model 718",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 816",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2301,
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "maintenance_schedule": "Every 4 months",
+  "typical_products": [
+    "De-engineered system-worthy leverage",
+    "Fundamental content-based moderator",
+    "Seamless non-volatile concept",
+    "Quality-focused incremental firmware",
+    "Open-architected demand-driven architecture"
+  ]
+}

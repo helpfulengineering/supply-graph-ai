@@ -1,0 +1,97 @@
+{
+  "id": "d63bd0bf-bd34-408d-a226-c6757c31d441",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "6806",
+      "street": "Jacob River",
+      "city": "Austin",
+      "region": "WY",
+      "country": "US",
+      "postcode": "66694"
+    },
+    "gps_coordinates": "30.2711286, -97.7436995",
+    "directions": "Located across from Rogers, James and Huber",
+    "city": "Austin",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Fisher, Lewis and Miller",
+    "contact_person": "Mary Allen",
+    "bio": "Established in 2017, we specialize in Sharable content-based core",
+    "images": [
+      "images/article.jpg",
+      "images/establish.jpg",
+      "images/foot.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-584-971-5438",
+      "whatsapp": "+1-413-881-4693"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-18:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand A",
+      "model": "Model 978",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 643",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 429",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 452",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-J-STD-001",
+    "RoHS Compliance"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Reduced hybrid open architecture",
+      "Enterprise-wide human-resource matrix"
+    ],
+    "services": [
+      "Balanced dedicated neural-net"
+    ],
+    "footfall": 19
+  }
+}

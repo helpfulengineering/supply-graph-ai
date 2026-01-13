@@ -450,8 +450,8 @@ class OKHService(BaseService["OKHService"]):
 
             # Note: Review interface is handled by CLI, not API service
 
-            # Convert to response format
-            manifest_dict = result.to_dict()
+            # Convert to response format - use to_okh_manifest() to get full OKH structure
+            manifest_dict = result.to_okh_manifest()
 
             return {
                 "success": True,
