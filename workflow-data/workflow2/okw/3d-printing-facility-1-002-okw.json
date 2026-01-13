@@ -1,0 +1,228 @@
+{
+  "id": "c4086983-37ad-46d3-9883-88f75888c70a",
+  "name": "3D Printing Facility 1",
+  "location": {
+    "address": {
+      "number": "9743",
+      "street": "Mitchell Ports",
+      "city": "New York",
+      "region": "SD",
+      "country": "US",
+      "postcode": "76441"
+    },
+    "gps_coordinates": "40.7127281, -74.0060152",
+    "directions": "Located near Johnson, Hammond and Mason",
+    "city": "New York",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Roy-Turner",
+    "location": {
+      "address": {
+        "number": "2512",
+        "street": "Anna Extensions",
+        "city": "Charlotte",
+        "region": "OR",
+        "country": "US",
+        "postcode": "05533"
+      },
+      "gps_coordinates": "35.2272086, -80.8430827",
+      "directions": "Located across from Henderson, May and Wells",
+      "city": "Charlotte",
+      "country": "US"
+    },
+    "contact_person": "Jacqueline Cole",
+    "bio": "Established in 1996, we specialize in Integrated eco-centric Local Area Network",
+    "website": "https://harris-russo.com",
+    "languages": [
+      "es",
+      "en",
+      "de"
+    ],
+    "mailing_list": "bryantjessica@lists.scott.com",
+    "images": [
+      "images/age.jpg",
+      "images/never.jpg"
+    ],
+    "contact": {
+      "landline": "+1-382-952-6143",
+      "mobile": "+1-501-796-3159",
+      "email": "info@singh.com",
+      "whatsapp": "+1-707-572-1870"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/kthompson",
+      "twitter": "@pguerrero",
+      "instagram": "@ericwinters",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Lowery-Willis",
+    "location": {
+      "address": {
+        "number": "4687",
+        "street": "West Way",
+        "city": "Dallas",
+        "region": "CT",
+        "country": "US",
+        "postcode": "04261"
+      },
+      "gps_coordinates": "32.7762719, -96.7968559",
+      "directions": "Located across from Rollins Inc",
+      "city": "Dallas",
+      "country": "US"
+    },
+    "contact_person": "Kathy Martin",
+    "bio": "Established in 1993, we specialize in Progressive dynamic portal",
+    "website": "https://davis.com",
+    "languages": [
+      "fr"
+    ],
+    "mailing_list": "williamscheryl@lists.moore.com",
+    "contact": {
+      "landline": "+1-379-866-6500",
+      "mobile": "+1-996-685-7206",
+      "email": "info@clark.biz",
+      "whatsapp": "+1-842-815-1636"
+    },
+    "social_media": {
+      "twitter": "@vpittman",
+      "other_urls": [
+        "https://kerr-carlson.com",
+        "https://quinn-may.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-19:00",
+  "description": "Specialized in additive manufacturing and rapid prototyping",
+  "date_founded": "2018-03-04",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "Ender 3",
+      "serial_number": "SN516050",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Rest star memory his speak.",
+      "quantity": 5,
+      "throughput": "86 parts/hour",
+      "power_rating": 2427,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9840",
+              "street": "Caroline Ferry",
+              "city": "Chicago",
+              "region": "VT",
+              "country": "US",
+              "postcode": "94852"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "directions": "Located behind Barron PLC",
+            "city": "Chicago",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3544",
+              "street": "Ryan Causeway",
+              "city": "Houston",
+              "region": "SD",
+              "country": "US",
+              "postcode": "62160"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "directions": "Located near Dawson LLC",
+            "city": "Houston",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2988",
+              "street": "Castro View",
+              "city": "San Jose",
+              "region": "DC",
+              "country": "US",
+              "postcode": "25136"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "directions": "Located near Cervantes-Dominguez",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2610",
+              "street": "Young Bypass",
+              "city": "Seattle",
+              "region": "WI",
+              "country": "US",
+              "postcode": "99506"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "directions": "Located near Bennett-Parker",
+            "city": "Seattle",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand B",
+      "model": "Model 356",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4935,
+  "storage_capacity": "545 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Basic Safety Training",
+    "Equipment Operation Certification",
+    "First Aid Training"
+  ],
+  "uninterrupted_power_supply": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "Innovative mobile architecture",
+    "Proactive stable help-desk"
+  ]
+}

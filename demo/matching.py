@@ -28,6 +28,7 @@ async def _match_facilities_async(
     location_by_distance: Optional[Dict[str, Any]] = None,
     min_confidence: float = 0.3,
     max_depth: Optional[int] = None,
+    auto_detect_depth: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Execute facility matching (async function).
@@ -39,6 +40,7 @@ async def _match_facilities_async(
         location_by_distance: Filter by distance (optional)
         min_confidence: Minimum confidence threshold (default: 0.3)
         max_depth: Maximum nesting depth (optional, auto-detect if None)
+        auto_detect_depth: Auto-detect nested matching (optional)
         
     Returns:
         API response with matching results
@@ -51,6 +53,7 @@ async def _match_facilities_async(
         location_by_distance=location_by_distance,
         min_confidence=min_confidence,
         max_depth=max_depth,
+        auto_detect_depth=auto_detect_depth,
     )
 
 
@@ -61,6 +64,7 @@ def match_facilities(
     location_by_distance: Optional[Dict[str, Any]] = None,
     min_confidence: float = 0.3,
     max_depth: Optional[int] = None,
+    auto_detect_depth: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
     Execute facility matching (synchronous wrapper for async function).
@@ -72,6 +76,7 @@ def match_facilities(
         location_by_distance: Filter by distance (optional)
         min_confidence: Minimum confidence threshold (default: 0.3)
         max_depth: Maximum nesting depth (optional, auto-detect if None)
+        auto_detect_depth: Auto-detect nested matching (optional)
         
     Returns:
         API response with matching results
@@ -101,6 +106,7 @@ def match_facilities(
                             location_by_distance=location_by_distance,
                             min_confidence=min_confidence,
                             max_depth=max_depth,
+                            auto_detect_depth=auto_detect_depth,
                         )
                     )
                 finally:
@@ -120,6 +126,7 @@ def match_facilities(
                     location_by_distance=location_by_distance,
                     min_confidence=min_confidence,
                     max_depth=max_depth,
+                    auto_detect_depth=auto_detect_depth,
                 )
             )
     except Exception as e:

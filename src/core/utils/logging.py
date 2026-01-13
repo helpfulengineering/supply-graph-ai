@@ -115,9 +115,14 @@ def setup_logging(level: int = logging.INFO, log_file: str = None) -> None:
     and not running in a container.
 
     Args:
-        level: Logging level (default: INFO)
+        level: Logging level (default: INFO). Can be integer or string (e.g., "INFO", "DEBUG").
         log_file: Optional path to log file (ignored in container environments)
     """
+    # Convert string level to integer if needed
+    if isinstance(level, str):
+        level_str = level.upper()
+        level = getattr(logging, level_str, logging.INFO)
+
     # Create root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
@@ -143,6 +148,20 @@ def setup_logging(level: int = logging.INFO, log_file: str = None) -> None:
 
     root_logger.addHandler(console_handler)
     root_logger.addHandler(error_handler)
+
+    # Ensure logs are flushed immediately (important for Cloud Run)
+    # Set unbuffered mode for stdout/stderr in container environments
+    if is_container:
+        (
+            sys.stdout.reconfigure(line_buffering=True)
+            if hasattr(sys.stdout, "reconfigure")
+            else None
+        )
+        (
+            sys.stderr.reconfigure(line_buffering=True)
+            if hasattr(sys.stderr, "reconfigure")
+            else None
+        )
 
     # Only add file handler in local development (not in containers)
     # In containers, all logs should go to stdout/stderr for cloud log ingestion

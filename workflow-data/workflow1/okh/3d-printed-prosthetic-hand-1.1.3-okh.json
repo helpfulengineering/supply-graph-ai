@@ -1,0 +1,336 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "06323d6c-100f-4127-ac94-65c63556e575",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/osmith/laser-cut-acrylic-display-case",
+  "version": "1.1.3",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Johnny Thomas",
+    "email": "jennifergreen@example.org",
+    "affiliation": "Taylor LLC",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "eanderson"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Functional prosthetic hand for upper limb amputees, designed for 3D printing and assembly",
+  "description": "A laser cut acrylic display case designed for Dog surface nation receive area such.",
+  "intended_use": "Set building structure pretty wonder.",
+  "keywords": [
+    "housing",
+    "fastener",
+    "mount",
+    "modular"
+  ],
+  "contact": {
+    "name": "Wanda Aguirre",
+    "email": "hesterchristopher@example.com",
+    "affiliation": "Rose-Frank",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "edwin53"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Steven Miller",
+      "email": "millerjeremy@example.org",
+      "affiliation": "Arnold, Mejia and Eaton",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "nathanielhayes"
+        }
+      ]
+    },
+    {
+      "name": "Hayley Garcia",
+      "email": "angela06@example.net",
+      "affiliation": "Santos Ltd",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "nguyencurtis"
+        }
+      ]
+    },
+    {
+      "name": "Emma King",
+      "email": "lewisjudy@example.org",
+      "affiliation": "Little-Nguyen",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "henry04"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Peterson-Caldwell",
+    "url": "https://knight-hunter.biz",
+    "email": "contact@little.com"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/troy61/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/smithjacob/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/tmartinez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/leelinda/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/andrew30/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/deborahmoore/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/kyle84/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/michele02/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/brocktina/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/robinsonsydney/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/ophelps/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/lindseywilliams/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Cutting bed",
+    "Wrench set",
+    "Heat shrink",
+    "Pliers",
+    "Air assist",
+    "Crimping tool",
+    "Material guides",
+    "Exhaust system",
+    "Focus lens"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 500.0,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 100.0,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [],
+    "outer_dimensions": {
+      "length": 200,
+      "width": 100,
+      "height": 50
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill": "20%",
+          "temperature": "210°C"
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Post-processing",
+        "parameters": {
+          "support_removal": "required",
+          "sanding": "optional"
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Assembly",
+        "parameters": {
+          "tools": [
+            "screwdriver",
+            "pliers"
+          ]
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "bom": "https://github.com/hterrell/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Hand Frame",
+      "id": "70f467fb-8c9f-4402-9c4e-d74688cc6a24",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Finger Joints",
+      "id": "f92393ee-8241-46c3-af6c-f56c190c4f80",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Assembly Components",
+      "id": "f89c199c-aba4-449d-b447-415df3cb175a",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "Assembly"
+      ],
+      "material": null,
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

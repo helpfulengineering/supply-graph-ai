@@ -162,6 +162,7 @@ class APIClient:
         location_by_distance: Optional[Dict[str, Any]] = None,
         min_confidence: float = 0.3,
         max_depth: Optional[int] = None,
+        auto_detect_depth: Optional[bool] = None,
         timeout: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
@@ -174,6 +175,7 @@ class APIClient:
             location_by_distance: Filter by distance (optional) - dict with "latitude", "longitude", "radius_km"
             min_confidence: Minimum confidence threshold (default: 0.3)
             max_depth: Maximum nesting depth (optional, auto-detect if None)
+            auto_detect_depth: Auto-detect if nested matching is needed (optional, defaults to True if max_depth is None)
             
         Returns:
             API response with matching results
@@ -201,8 +203,16 @@ class APIClient:
                 # API expects "max_distance_km" not "radius_km"
                 payload["max_distance_km"] = float(radius_km)
         
+        # Handle max_depth and auto_detect_depth
+        # API defaults max_depth to 0 (single-level), so we need to explicitly set auto_detect_depth
+        # for nested designs when max_depth is not explicitly set
         if max_depth is not None:
             payload["max_depth"] = max_depth
+        else:
+            # max_depth not set - use auto_detect_depth if provided, otherwise don't set it
+            # (API will default to single-level matching)
+            if auto_detect_depth is not None:
+                payload["auto_detect_depth"] = auto_detect_depth
         
         # Use longer timeout for matching operations
         matching_timeout = timeout or MATCHING_TIMEOUT

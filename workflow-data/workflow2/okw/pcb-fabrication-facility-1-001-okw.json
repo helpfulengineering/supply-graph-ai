@@ -1,0 +1,151 @@
+{
+  "id": "f33bb8fb-d1a6-4fa7-af59-535007db8f9c",
+  "name": "PCB Fabrication Facility 1",
+  "location": {
+    "address": {
+      "number": "360",
+      "street": "Philip Fields",
+      "city": "Fort Worth",
+      "region": "NC",
+      "country": "US",
+      "postcode": "54542"
+    },
+    "gps_coordinates": "32.753177, -97.3327459",
+    "directions": "Located behind White, Phillips and Williams",
+    "city": "Fort Worth",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Rowe, Garrett and Smith",
+    "location": {
+      "address": {
+        "number": "9767",
+        "street": "Kenneth Extension",
+        "city": "Denver",
+        "region": "MA",
+        "country": "US",
+        "postcode": "67000"
+      },
+      "gps_coordinates": "39.7392364, -104.984862",
+      "directions": "Located across from Robinson, Daniels and Payne",
+      "city": "Denver",
+      "country": "US"
+    },
+    "contact_person": "Mark Fernandez",
+    "bio": "Established in 2015, we specialize in Multi-layered leadingedge access",
+    "website": "https://gillespie.com",
+    "languages": [
+      "en",
+      "es",
+      "fr"
+    ],
+    "mailing_list": "johnbryant@lists.knight.net",
+    "images": [
+      "images/and.jpg"
+    ],
+    "contact": {
+      "landline": "+1-896-654-5103",
+      "mobile": "+1-749-628-1133",
+      "email": "info@ware-anderson.org",
+      "whatsapp": "+1-230-539-5605"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/ubranch",
+      "instagram": "@jason02",
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Baker, Smith and Silva",
+    "location": {
+      "address": {
+        "number": "9603",
+        "street": "Fitzgerald Throughway",
+        "city": "Charlotte",
+        "region": "OK",
+        "country": "US",
+        "postcode": "20191"
+      },
+      "gps_coordinates": "35.2272086, -80.8430827",
+      "directions": "Located near Galvan LLC",
+      "city": "Charlotte",
+      "country": "US"
+    },
+    "contact_person": "Peter Munoz",
+    "bio": "Established in 2000, we specialize in Upgradable actuating archive",
+    "website": "https://walker.com",
+    "languages": [
+      "en"
+    ],
+    "mailing_list": "fmeza@lists.york.com",
+    "images": [
+      "images/fear.jpg"
+    ],
+    "contact": {
+      "landline": "+1-665-742-3573",
+      "mobile": "+1-605-475-3216",
+      "email": "info@baxter-garcia.com",
+      "whatsapp": "+1-954-942-7198"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://acosta.info",
+        "https://sharp.info"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-22:00",
+  "description": "Specialized in printed circuit board fabrication and prototyping",
+  "date_founded": "2002-05-27",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/PCB_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/PCB_printer",
+      "make": "Generic",
+      "model": "Model 686",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Etching_tank",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Etching_tank",
+      "make": "Brand A",
+      "model": "Model 534",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Drilling_machine",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Drilling_machine",
+      "make": "Brand B",
+      "model": "Model 478",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 234",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Printed_circuit_board"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 802,
+  "storage_capacity": "275 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "IPC-J-STD-001"
+  ],
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "De-engineered discrete workforce",
+    "Synergistic explicit function",
+    "Managed reciprocal benchmark"
+  ]
+}

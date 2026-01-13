@@ -1,0 +1,367 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "4f32694e-7957-4191-9602-39b99a55eacb",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/rogersjenna/arduino-based-iot-sensor-node",
+  "version": "1.1.4",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Alexandra Webster",
+    "email": "amiller@example.net",
+    "affiliation": "Stewart, Cain and Saunders",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "hendricksmichael"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees, designed for 3D printing and assembly",
+  "description": "A arduino-based iot sensor node designed for Break state performance president cold.",
+  "intended_use": "Exactly film recent blood kitchen.",
+  "keywords": [
+    "reproducible",
+    "housing",
+    "assembly",
+    "customizable",
+    "gear"
+  ],
+  "contact": {
+    "name": "Mary Watson",
+    "email": "charles92@example.net",
+    "affiliation": "Brown-Stephens",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "james58"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Melissa Nguyen",
+      "email": "ramirezmichael@example.net",
+      "affiliation": "Yang-Jones",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "jonathan81"
+        }
+      ]
+    },
+    {
+      "name": "Troy Williams",
+      "email": "george42@example.net",
+      "affiliation": "Daugherty-Morris",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "karlamunoz"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Mcfarland PLC",
+    "url": "https://gray.info",
+    "email": "contact@douglas-fowler.com"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/ebailey/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/nancybrown/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/hjacobs/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/lopezapril/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/amy35/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.4"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/nreyes/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/michellesanchez/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/gavin68/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/jsmith/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/caldwellleslie/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/shirleyjohnson/project/raw/main/docs/pcb_assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/robertchambers/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/edennis/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/hamiltontami/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Wrench set",
+    "Filament",
+    "Screwdriver set",
+    "Calipers",
+    "Heat gun",
+    "Cable ties",
+    "Soldering station",
+    "Reflow oven",
+    "3D printer",
+    "Build plate",
+    "Pick and place",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 500.0,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 100.0,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [],
+    "outer_dimensions": {
+      "length": 200,
+      "width": 100,
+      "height": 50
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill": "20%",
+          "temperature": "210°C"
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Post-processing",
+        "parameters": {
+          "support_removal": "required",
+          "sanding": "optional"
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Assembly",
+        "parameters": {
+          "tools": [
+            "screwdriver",
+            "pliers"
+          ]
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "bom": "https://github.com/lisa96/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "PCB",
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Hand Frame",
+      "id": "caf360ca-c6db-45b3-a4dc-599c96492b33",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Finger Joints",
+      "id": "c23f2302-edf0-4193-b659-3a37edee1797",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Assembly Components",
+      "id": "c01ca1b6-dd91-4128-a2d2-27a96692ce51",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "Assembly"
+      ],
+      "material": null,
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,129 @@
+{
+  "id": "8dde14d9-30ba-4dd6-b077-e7dd2c8d03b0",
+  "name": "Assembly Facility 1",
+  "location": {
+    "address": {
+      "number": "514",
+      "street": "Joseph Garden",
+      "city": "San Diego",
+      "region": "TN",
+      "country": "US",
+      "postcode": "67043"
+    },
+    "gps_coordinates": "32.7174202, -117.162772",
+    "directions": "Located near Simpson, Matthews and Gregory",
+    "city": "San Diego",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Stevenson-Callahan",
+    "location": {
+      "address": {
+        "number": "2029",
+        "street": "Welch Brook",
+        "city": "Phoenix",
+        "region": "SD",
+        "country": "US",
+        "postcode": "02527"
+      },
+      "gps_coordinates": "33.4484367, -112.074141",
+      "directions": "Located near Bautista-Schmidt",
+      "city": "Phoenix",
+      "country": "US"
+    },
+    "contact_person": "Nicole Salinas",
+    "bio": "Established in 2013, we specialize in Proactive intermediate utilization",
+    "website": "https://williams-dean.com",
+    "languages": [
+      "fr",
+      "de"
+    ],
+    "mailing_list": "amandaclark@lists.gonzales.com",
+    "contact": {
+      "landline": "+1-715-856-5767",
+      "mobile": "+1-973-623-8251",
+      "email": "info@wells.com",
+      "whatsapp": "+1-284-570-9120"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Griffith LLC",
+    "location": {
+      "address": {
+        "number": "1121",
+        "street": "William Freeway",
+        "city": "Charlotte",
+        "region": "MS",
+        "country": "US",
+        "postcode": "04476"
+      },
+      "gps_coordinates": "35.2272086, -80.8430827",
+      "directions": "Located behind Banks LLC",
+      "city": "Charlotte",
+      "country": "US"
+    },
+    "contact_person": "Anthony Sanford",
+    "bio": "Established in 1991, we specialize in Progressive zero administration initiative",
+    "website": "https://jacobs.com",
+    "languages": [
+      "de"
+    ],
+    "mailing_list": "williamortiz@lists.mccullough.com",
+    "contact": {
+      "landline": "+1-933-784-5355",
+      "mobile": "+1-472-253-4317",
+      "email": "info@hardy-fernandez.com",
+      "whatsapp": "+1-231-680-4661"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/paula62",
+      "twitter": "@ctran",
+      "instagram": "@ricetracy",
+      "other_urls": [
+        "https://bennett-perez.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-21:00",
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2015-03-17",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
+      "make": "Generic",
+      "model": "Model 836",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Generic",
+      "model": "Model 659",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1387,
+  "storage_capacity": "426 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "OHSAS 18001",
+    "AS9100",
+    "NADCAP"
+  ],
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Visionary foreground paradigm"
+  ]
+}

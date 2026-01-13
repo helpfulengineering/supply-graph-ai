@@ -53,15 +53,27 @@ class StorageService:
         self._domain_handlers: Dict[str, "DomainStorageHandler"] = {}
 
     async def configure(self, config: StorageConfig) -> None:
-        """Configure storage service with provider settings"""
+        """Configure storage service with provider settings
+
+        Note: Storage connection failures during startup are logged but don't prevent
+        application startup. Storage operations will fail gracefully if not connected.
+        """
         try:
             self.manager = StorageManager(config)
             await self.manager.connect()
             self._configured = True
             logger.info(f"Storage service configured with provider: {config.provider}")
         except Exception as e:
-            logger.error(f"Failed to configure storage service: {e}")
-            raise
+            # Log error but don't fail startup - allow app to start with degraded storage
+            # Storage operations will check _configured and fail gracefully if needed
+            logger.error(
+                f"Failed to configure storage service: {e}. "
+                f"Application will start but storage operations may fail. "
+                f"This may be a temporary network issue."
+            )
+            # Set manager but mark as not configured
+            self._configured = False
+            # Don't raise - allow app to start
 
     async def cleanup(self) -> None:
         """Clean up resources and close connections"""

@@ -98,15 +98,48 @@ class GCSProvider(StorageProvider):
                 self._bucket = self._client.bucket(self.config.bucket_name)
 
                 # Verify bucket exists (blocking I/O)
-                def _check_bucket():
-                    return self._bucket.exists()
+                # Use retry logic with exponential backoff for network issues
+                import time
 
-                bucket_exists = await asyncio.to_thread(_check_bucket)
-                if not bucket_exists:
-                    logger.warning(
-                        f"Bucket {self.config.bucket_name} does not exist, but continuing..."
-                    )
-                    # Don't create bucket automatically - user should create it first
+                max_retries = 3
+                retry_delay = 2  # seconds
+
+                bucket_exists = False
+                last_error = None
+
+                for attempt in range(max_retries):
+                    try:
+
+                        def _check_bucket():
+                            return self._bucket.exists()
+
+                        bucket_exists = await asyncio.to_thread(_check_bucket)
+                        if not bucket_exists:
+                            logger.warning(
+                                f"Bucket {self.config.bucket_name} does not exist, but continuing..."
+                            )
+                            # Don't create bucket automatically - user should create it first
+                        break  # Success, exit retry loop
+                    except Exception as e:
+                        last_error = e
+                        if attempt < max_retries - 1:
+                            wait_time = retry_delay * (
+                                2**attempt
+                            )  # Exponential backoff
+                            logger.warning(
+                                f"Failed to check bucket existence (attempt {attempt + 1}/{max_retries}): {e}. "
+                                f"Retrying in {wait_time}s..."
+                            )
+                            await asyncio.sleep(wait_time)
+                        else:
+                            # Last attempt failed - log but don't fail startup
+                            logger.error(
+                                f"Failed to verify bucket {self.config.bucket_name} after {max_retries} attempts: {e}. "
+                                f"Application will start but storage operations may fail. "
+                                f"This may be a temporary network issue."
+                            )
+                            # Don't raise - allow app to start with degraded storage
+                            bucket_exists = None  # Unknown state
 
                 self._connected = True
                 logger.info(

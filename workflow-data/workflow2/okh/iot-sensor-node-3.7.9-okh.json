@@ -1,0 +1,383 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b70935e1-56bf-4b4f-9d16-c5795f0b69b9",
+  "title": "IoT Sensor Node",
+  "repo": "https://github.com/urose/3d-printed-prosthetic-hand",
+  "version": "3.7.9",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Melanie Sweeney",
+    "email": "ccollins@example.org",
+    "affiliation": "Hart, Wilson and Thompson",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "ashleycline"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Complete IoT sensor node with PCB, 3D printed enclosure, and final assembly",
+  "description": "A 3d printed prosthetic hand designed for Beautiful federal someone sea.",
+  "intended_use": "Meet face then.",
+  "keywords": [
+    "customizable",
+    "bracket"
+  ],
+  "contact": {
+    "name": "Garrett Patel",
+    "email": "jacob77@example.org",
+    "affiliation": "Roach, Crawford and Smith",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "wayne62"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Shannon Murray",
+      "email": "branchkirk@example.com",
+      "affiliation": "Jackson LLC",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "diazanna"
+        }
+      ]
+    },
+    {
+      "name": "Austin Cruz",
+      "email": "jonessteven@example.net",
+      "affiliation": "Brown-Torres",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "lindagonzalez"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Anderson, Brock and Ritter",
+    "url": "https://cruz.com",
+    "email": "contact@daniels.com"
+  },
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/renee52/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/davisrebecca/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/craigsanchez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/sandra39/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/janetjones/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/debra75/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/lsantana/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/debra98/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/fitzgeraldjoshua/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/gcastillo/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/edwardschristopher/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/charles31/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Wrench set",
+    "Screwdriver set",
+    "Cable ties",
+    "Heat gun",
+    "Calipers",
+    "Pliers",
+    "Deburring tool",
+    "Crimping tool",
+    "Nozzle",
+    "3D printer",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 50.0,
+      "unit": "g",
+      "notes": "Standard PCB substrate"
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 200.0,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Copper",
+      "name": "Copper Traces",
+      "quantity": 10.0,
+      "unit": "g",
+      "notes": "PCB traces"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [],
+    "outer_dimensions": {
+      "length": 80,
+      "width": 60,
+      "height": 25
+    },
+    "process_requirements": [
+      {
+        "process_name": "PCB",
+        "parameters": {
+          "layers": "2",
+          "trace_width": "0.1mm",
+          "via_diameter": "0.2mm"
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill": "30%",
+          "temperature": "210°C"
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Assembly",
+        "parameters": {
+          "tools": [
+            "soldering iron",
+            "screwdriver"
+          ],
+          "sequence": [
+            "PCB first",
+            "then enclosure",
+            "final assembly"
+          ]
+        },
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Sensor PCB",
+      "id": "46573983-0a48-4097-a7ef-9224c890c4e9",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "FR4",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "3D Printed Enclosure",
+      "id": "3d8530ac-fb46-4b74-af3d-a97caf1c5781",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Final Assembly",
+      "id": "3afbe331-90bc-47bf-928a-c9a8393e6f0f",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "Assembly"
+      ],
+      "material": null,
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Microcontroller",
+      "component_id": "MCU-001",
+      "quantity": 1,
+      "unit": "pcs",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Silicon",
+      "depends_on": []
+    },
+    {
+      "name": "Sensor Module",
+      "component_id": "SENSOR-001",
+      "quantity": 1,
+      "unit": "pcs",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "FR4",
+      "depends_on": []
+    },
+    {
+      "name": "Enclosure Base",
+      "component_id": "ENC-BASE",
+      "quantity": 1,
+      "unit": "pcs",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "depends_on": []
+    },
+    {
+      "name": "Enclosure Lid",
+      "component_id": "ENC-LID",
+      "quantity": 1,
+      "unit": "pcs",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "depends_on": [
+        "Enclosure Base"
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

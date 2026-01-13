@@ -2187,12 +2187,16 @@ class OKWGenerator(SyntheticDataGenerator):
         for equipment_type in template["equipment_types"]:
             facility.equipment.append(self.generate_equipment(equipment_type))
         
-        # Set manufacturing processes (primary + related only)
+        # Set manufacturing processes (ONLY primary process for specialized facilities)
+        # This ensures facilities are truly specialized and don't match components they shouldn't
+        # For demo purposes, we want facilities that can ONLY produce specific components
         facility.manufacturing_processes = [
             self._process_to_url(specialization)
         ]
-        for related in template["related_processes"]:
-            facility.manufacturing_processes.append(self._process_to_url(related))
+        # NOTE: Removed related_processes to ensure true specialization
+        # If you need facilities with multiple processes, create them explicitly
+        # for related in template["related_processes"]:
+        #     facility.manufacturing_processes.append(self._process_to_url(related))
         
         # Set batch size
         facility.typical_batch_size = template["batch_size"]

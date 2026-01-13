@@ -1,0 +1,141 @@
+{
+  "id": "935b42fc-f74b-4be3-9566-96e3f35c8f2b",
+  "name": "Assembly Facility 1",
+  "location": {
+    "address": {
+      "number": "7585",
+      "street": "Ware Mill",
+      "city": "San Antonio",
+      "region": "MN",
+      "country": "US",
+      "postcode": "01552"
+    },
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "directions": "Located behind Simmons, Horn and Johnson",
+    "city": "San Antonio",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Green PLC",
+    "location": {
+      "address": {
+        "number": "1776",
+        "street": "Benton Cliff",
+        "city": "Dallas",
+        "region": "CT",
+        "country": "US",
+        "postcode": "00660"
+      },
+      "gps_coordinates": "32.7762719, -96.7968559",
+      "directions": "Located across from Mendez-Higgins",
+      "city": "Dallas",
+      "country": "US"
+    },
+    "contact_person": "Alyssa Hardy",
+    "bio": "Established in 1991, we specialize in Polarized tertiary moratorium",
+    "website": "https://mercer-gregory.com",
+    "languages": [
+      "fr"
+    ],
+    "mailing_list": "stephen43@lists.wiggins.com",
+    "images": [
+      "images/fly.jpg",
+      "images/risk.jpg",
+      "images/provide.jpg"
+    ],
+    "contact": {
+      "landline": "+1-644-363-1754",
+      "mobile": "+1-869-731-7344",
+      "email": "info@young.info",
+      "whatsapp": "+1-935-797-6455"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/gibsonrobert",
+      "other_urls": [
+        "https://phillips.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Schultz, Romero and Burns",
+    "location": {
+      "address": {
+        "number": "9415",
+        "street": "Higgins Prairie",
+        "city": "Boston",
+        "region": "DE",
+        "country": "US",
+        "postcode": "02239"
+      },
+      "gps_coordinates": "42.3588336, -71.0578303",
+      "directions": "Located behind Burgess Group",
+      "city": "Boston",
+      "country": "US"
+    },
+    "contact_person": "Denise White",
+    "bio": "Established in 1996, we specialize in Focused solution-oriented adapter",
+    "website": "https://huerta-bell.org",
+    "languages": [
+      "en",
+      "es",
+      "fr"
+    ],
+    "mailing_list": "lisa06@lists.shah.org",
+    "images": [
+      "images/professor.jpg",
+      "images/foreign.jpg",
+      "images/race.jpg"
+    ],
+    "contact": {
+      "landline": "+1-256-892-2676",
+      "mobile": "+1-986-573-5738",
+      "email": "info@christensen.info",
+      "whatsapp": "+1-214-899-8109"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/brownkayla",
+      "twitter": "@gwagner",
+      "other_urls": [
+        "https://underwood-scott.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-17:00",
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2020-06-05",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
+      "make": "Brand B",
+      "model": "Model 341",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand B",
+      "model": "Model 515",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 100,
+  "storage_capacity": "267 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "OHSAS 18001"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Multi-tiered static software"
+  ]
+}

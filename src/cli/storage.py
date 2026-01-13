@@ -351,9 +351,9 @@ async def populate(
         # Create organizer
         organizer = StorageOrganizer(storage_service.manager)
 
-        # Load and store files
-        okh_files = list(data_dir.glob("*okh*.json"))
-        okw_files = list(data_dir.glob("*okw*.json"))
+        # Load and store files (recursively search subdirectories)
+        okh_files = list(data_dir.rglob("*okh*.json"))
+        okw_files = list(data_dir.rglob("*okw*.json"))
 
         stored_files = []
         errors = []
