@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional, Type
 
 from ..services.base import BaseService, ServiceConfig, ServiceStatus
 from ..utils.logging import get_logger
+from ..integration.manager import IntegrationManager
 from .models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
 from .models.responses import LLMResponse, LLMResponseStatus
 from .providers.anthropic import AnthropicProvider
@@ -170,6 +171,18 @@ class LLMService(BaseService["LLMService"]):
 
         # Initialize default providers
         await self._initialize_providers()
+
+        # Register providers with IntegrationManager
+        integration_manager = IntegrationManager.get_instance()
+        # Initialize IntegrationManager if not already
+        if not integration_manager._initialized:
+             await integration_manager.initialize()
+
+        for provider_type, provider in self._providers.items():
+            # Create a unique name for the provider instance
+            name = f"{provider_type.value}_llm"
+            integration_manager.providers[name] = provider
+            self.logger.info(f"Registered {name} with IntegrationManager")
 
         # Set active provider
         self._active_provider = self.config.default_provider
