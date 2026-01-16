@@ -31,7 +31,8 @@ class IntegrationManager:
         return cls._instance
 
     def __init__(self):
-        if self._initialized:
+        # Prevent re-initialization of instance variables if already set
+        if hasattr(self, "providers"):
             return
 
         self.providers: Dict[str, BaseIntegrationProvider] = {}
@@ -39,7 +40,8 @@ class IntegrationManager:
         self.config: Optional[IntegrationConfig] = None
         self._secrets_manager = get_secrets_manager()
         self._lock = asyncio.Lock()
-        # Do not set _initialized = True here, as it blocks initialize() from running
+        self._initialized = False # Flag for async initialization
+
         logger.info("IntegrationManager instantiated")
 
     @classmethod
@@ -83,42 +85,42 @@ class IntegrationManager:
                 self.config = IntegrationConfig()
 
             # Register default provider classes
-        from .providers.github import GitHubProvider
-        from .providers.gitlab import GitLabProvider
+            from .providers.github import GitHubProvider
+            from .providers.gitlab import GitLabProvider
 
-        self.register_provider_class("github", GitHubProvider)
-        self.register_provider_class("gitlab", GitLabProvider)
+            self.register_provider_class("github", GitHubProvider)
+            self.register_provider_class("gitlab", GitLabProvider)
 
-        # Initialize providers from config
-        if self.config and self.config.providers:
-            for provider_name, provider_config in self.config.providers.items():
-                try:
-                    provider_type = provider_config.get("provider_type")
-                    if provider_type in self.provider_classes:
-                        # Inject secrets if needed
-                        if provider_config.get("use_secrets", False):
-                            secret_key = provider_config.get("secret_key_env")
-                            if secret_key:
-                                secret_value = self._secrets_manager.get_secret(
-                                    secret_key
-                                )
-                                if secret_value:
-                                    provider_config["api_key"] = secret_value
+            # Initialize providers from config
+            if self.config and self.config.providers:
+                for provider_name, provider_config in self.config.providers.items():
+                    try:
+                        provider_type = provider_config.get("provider_type")
+                        if provider_type in self.provider_classes:
+                            # Inject secrets if needed
+                            if provider_config.get("use_secrets", False):
+                                secret_key = provider_config.get("secret_key_env")
+                                if secret_key:
+                                    secret_value = self._secrets_manager.get_secret(
+                                        secret_key
+                                    )
+                                    if secret_value:
+                                        provider_config["api_key"] = secret_value
 
-                        provider_class = self.provider_classes[provider_type]
-                        provider_instance = provider_class(provider_config)
-                        await provider_instance.connect()
-                        self.providers[provider_name] = provider_instance
-                        logger.info(f"Initialized provider: {provider_name}")
-                    else:
-                        logger.warning(
-                            f"Provider type {provider_type} not registered. Skipping {provider_name}."
-                        )
-                except Exception as e:
-                    logger.error(f"Failed to initialize provider {provider_name}: {e}")
+                            provider_class = self.provider_classes[provider_type]
+                            provider_instance = provider_class(provider_config)
+                            await provider_instance.connect()
+                            self.providers[provider_name] = provider_instance
+                            logger.info(f"Initialized provider: {provider_name}")
+                        else:
+                            logger.warning(
+                                f"Provider type {provider_type} not registered. Skipping {provider_name}."
+                            )
+                    except Exception as e:
+                        logger.error(f"Failed to initialize provider {provider_name}: {e}")
 
-        self._initialized = True
-        logger.info("IntegrationManager initialization complete")
+            self._initialized = True
+            logger.info("IntegrationManager initialization complete")
 
     async def get_provider(self, provider_name: str) -> Optional[BaseIntegrationProvider]:
         """Get a specific provider by name."""

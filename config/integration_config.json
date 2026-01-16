@@ -12,6 +12,7 @@
       "secret_key_env": "GITLAB_TOKEN",
       "cache_ttl_hours": 24
     },
+    "_comment_llm": "LLM providers are currently managed by LLMService and injected at runtime. These configs are placeholders for future migration.",
     "openai_gpt4": {
       "provider_type": "openai",
       "model": "gpt-4",

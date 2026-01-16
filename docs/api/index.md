@@ -63,6 +63,7 @@ For production deployments, [authentication](auth.md) can be enabled to secure A
 - **Package Routes (10)**: Package building, verification, and management with LLM support
 - **Supply Tree Routes (6)**: Supply tree creation, validation, and management
 - **Utility Routes (2)**: Domain listing and context information with LLM analysis
+- **Integration Routes (2)**: [Unified Integration Framework](integration.md) provider discovery and status
 
 #### Storage Integration
 - **Azure Blob Storage**: Full integration with cloud storage for OKH/OKW data
