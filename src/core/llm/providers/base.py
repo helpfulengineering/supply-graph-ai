@@ -15,6 +15,8 @@ from typing import Any, Dict, List, Optional
 from ..models.metrics import LLMMetrics
 from ..models.requests import LLMRequest
 from ..models.responses import LLMResponse
+from ...integration.providers.base import BaseIntegrationProvider as BaseUIFProvider
+from ...integration.models.base import IntegrationRequest, IntegrationResponse, IntegrationCategory
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,7 @@ class LLMProviderConfig:
             raise ValueError("retry_attempts must be non-negative")
 
 
-class BaseLLMProvider(ABC):
+class BaseLLMProvider(BaseUIFProvider):
     """
     Abstract base class for all LLM providers.
 
@@ -81,6 +83,16 @@ class BaseLLMProvider(ABC):
         Raises:
             ValueError: If configuration is invalid
         """
+        # Adapt LLMProviderConfig to Dict for BaseIntegrationProvider
+        config_dict = {
+            "provider_type": config.provider_type.value,
+            "model": config.model,
+            # Add other fields as needed
+        }
+        super().__init__(config_dict)
+        self.category = IntegrationCategory.AI_MODEL
+
+        # Keep original config for backward compatibility
         self.config = config
         self.metrics = LLMMetrics()
         self._connected = False
@@ -89,7 +101,6 @@ class BaseLLMProvider(ABC):
         # Validate configuration
         self._validate_config()
 
-    @abstractmethod
     async def connect(self) -> None:
         """
         Connect to the LLM provider.
@@ -103,7 +114,6 @@ class BaseLLMProvider(ABC):
         """
         pass
 
-    @abstractmethod
     async def disconnect(self) -> None:
         """
         Disconnect from the LLM provider.
@@ -111,6 +121,26 @@ class BaseLLMProvider(ABC):
         This method should clean up any resources and close connections.
         """
         pass
+
+    async def execute(self, request: IntegrationRequest) -> IntegrationResponse:
+        """
+        Execute an integration request (adapts to generate).
+        """
+        # Basic adaptation - expects payload to match LLMRequest fields
+        try:
+            llm_request = LLMRequest(
+                prompt=request.payload.get("prompt"),
+                # Add other fields mapping
+            )
+            response = await self.generate(llm_request)
+            return IntegrationResponse(
+                success=response.status != "error",
+                data=response.content,
+                metadata=response.metadata.dict() if hasattr(response.metadata, "dict") else {},
+                error=response.error_message
+            )
+        except Exception as e:
+            return IntegrationResponse(success=False, data=None, error=str(e))
 
     @abstractmethod
     async def generate(self, request: LLMRequest) -> LLMResponse:

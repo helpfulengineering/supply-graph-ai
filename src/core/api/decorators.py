@@ -8,7 +8,7 @@ error handling, and response formatting across all endpoints.
 import time
 from datetime import datetime
 from functools import wraps
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Any
 
 from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -18,6 +18,8 @@ from fastapi.responses import JSONResponse
 from ..utils.logging import get_logger
 from .error_handlers import create_error_response
 from .models.base import APIStatus, PaginatedResponse, PaginationInfo, PaginationParams
+from ..integration.manager import IntegrationManager
+from ..integration.models.base import IntegrationCategory
 
 # Set up logging
 logger = get_logger(__name__)
@@ -631,24 +633,49 @@ def _generate_cache_key(
     return f"cache:{key_hash}"
 
 
+def external_integration(
+    category: IntegrationCategory = IntegrationCategory.AI_MODEL,
+    provider_selector: Any = None
+):
+    """
+    Decorator for endpoints that use external integrations.
+
+    Args:
+        category: The category of integration (e.g. AI_MODEL)
+        provider_selector: Logic to select provider (not fully implemented in this MVP)
+    """
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+             # Ensure IntegrationManager is initialized
+            integration_manager = IntegrationManager.get_instance()
+            if not integration_manager._initialized:
+                await integration_manager.initialize()
+
+            # Execute function
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# Backward compatibility alias - expanded to use new functionality if needed,
+# but for now we keep the interface same and can wrap the new decorator or just implement logic
 def llm_endpoint(
     default_provider: str = None, default_model: str = None, track_costs: bool = True
 ):
     """
     Decorator for LLM-enabled endpoints.
 
-    Args:
-        default_provider: Default LLM provider
-        default_model: Default LLM model
-        track_costs: Whether to track LLM costs
-
-    Returns:
-        Decorated function
+    (Updated to be compatible with UIF)
     """
-
+    # Reuse the logic but add initialization
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            # Ensure IntegrationManager is initialized (since LLM service uses it now)
+            integration_manager = IntegrationManager.get_instance()
+            if not integration_manager._initialized:
+                await integration_manager.initialize()
+
             # Extract request object if available
             request = None
             for arg in args:
