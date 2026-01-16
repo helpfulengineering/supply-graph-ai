@@ -9,6 +9,7 @@ class IntegrationCategory(str, Enum):
     VCS_PLATFORM = "vcs_platform"
     STORAGE_BUCKET = "storage_bucket"
     ERP = "erp"
+    SUPPLY_CHAIN = "supply_chain"
 
 class IntegrationRequest(BaseModel):
     """Standardized request for an integration provider."""
