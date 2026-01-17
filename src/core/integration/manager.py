@@ -87,9 +87,11 @@ class IntegrationManager:
             # Register default provider classes
             from .providers.github import GitHubProvider
             from .providers.gitlab import GitLabProvider
+            from .providers.supply_chain import GenericSupplyChainProvider
 
             self.register_provider_class("github", GitHubProvider)
             self.register_provider_class("gitlab", GitLabProvider)
+            self.register_provider_class("supply_chain", GenericSupplyChainProvider)
 
             # Initialize providers from config
             if self.config and self.config.providers:
