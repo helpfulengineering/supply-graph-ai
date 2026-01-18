@@ -13,11 +13,11 @@ from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHVal
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
 from ..generation.models import PlatformType
-from ..generation.platforms.github import GitHubExtractor
-from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
 from ..storage.smart_discovery import FileInfo, SmartFileDiscovery
+from ..integration.manager import IntegrationManager
+from ..integration.models.base import IntegrationRequest, IntegrationCategory
 from ..utils.logging import get_logger
 from ..validation.context import ValidationContext
 from ..validation.uuid_validator import UUIDValidator
@@ -427,17 +427,44 @@ class OKHService(BaseService["OKHService"]):
             if platform is None:
                 raise ValueError(f"Unsupported platform for URL: {url}")
 
-            # Get platform-specific generator
-            if platform == PlatformType.GITHUB:
-                generator = GitHubExtractor()
-            elif platform == PlatformType.GITLAB:
+            # Get platform-specific provider from IntegrationManager
+            integration_manager = IntegrationManager.get_instance()
+            if not integration_manager._initialized:
+                await integration_manager.initialize()
 
-                generator = GitLabExtractor()
-            else:
-                raise ValueError(f"Unsupported platform: {platform}")
+            provider_type = "github" if platform == PlatformType.GITHUB else "gitlab"
 
-            # Generate project data
-            project_data = await generator.extract_project(url)
+            # Find an active provider of the correct type
+            # For now, we assume standard naming or iterate to find correct type
+            # Ideally config should define default provider for platform
+
+            provider_name = f"{provider_type}_default" # Matches default config
+
+            # Fallback to searching by type if default name not found
+            if provider_name not in integration_manager.providers:
+                found = False
+                for name, p in integration_manager.providers.items():
+                    if p.provider_type == provider_type:
+                        provider_name = name
+                        found = True
+                        break
+                if not found:
+                     raise ValueError(f"No configured provider found for {provider_type}")
+
+            # Execute request via IntegrationManager
+            request = IntegrationRequest(
+                provider_type=provider_type,
+                action="extract_project",
+                payload={"url": url}
+            )
+
+            response = await integration_manager.execute_request(provider_name, request)
+
+            if not response.success:
+                raise ValueError(f"Extraction failed: {response.error}")
+
+            # Use ProjectData directly (in-process)
+            project_data = response.data
 
             # Generate manifest
             # Lazy import to avoid loading heavy dependencies at module import time

@@ -38,6 +38,8 @@ class ContentValidator:
             "okh": self._validate_okh_content,
             "okw": self._validate_okw_content,
             "supply-tree": self._validate_supply_tree_content,
+            "rfq": self._validate_rfq_content,
+            "quote": self._validate_quote_content,
         }
 
     def identify_file_type(self, content: bytes) -> Optional[str]:
@@ -144,6 +146,20 @@ class ContentValidator:
         except (TypeError, AttributeError):
             return False
 
+    def _validate_rfq_content(self, data: dict) -> bool:
+        """Validate RFQ content structure."""
+        required_fields = ["project_name", "status"]
+        if not all(field in data for field in required_fields):
+            return False
+        return True
+
+    def _validate_quote_content(self, data: dict) -> bool:
+        """Validate Quote content structure."""
+        required_fields = ["rfq_id", "amount", "provider_id"]
+        if not all(field in data for field in required_fields):
+            return False
+        return True
+
 
 class SmartFileDiscovery:
     """Multi-strategy file discovery service"""
@@ -181,7 +197,7 @@ class SmartFileDiscovery:
         """Discover all files of all types"""
         all_files = []
 
-        for file_type in ["okh", "okw", "supply-tree"]:
+        for file_type in ["okh", "okw", "supply-tree", "rfq", "quote"]:
             files = await self.discover_files(file_type)
             all_files.extend(files)
 
@@ -196,6 +212,8 @@ class SmartFileDiscovery:
             "okh": "okh/manifests/",
             "okw": "okw/facilities/",
             "supply-tree": "supply-trees/",
+            "rfq": "rfq/requests/",
+            "quote": "rfq/quotes/",
         }
 
         prefix = directory_prefixes.get(file_type)
@@ -288,6 +306,8 @@ class SmartFileDiscovery:
             "okh": ["-okh.json", "-okh.yaml", "-okh.yml"],
             "okw": ["-okw.json", "-okw.yaml", "-okw.yml"],
             "supply-tree": ["-supply-tree.json", "-tree.json"],
+            "rfq": ["-rfq.json"],
+            "quote": ["-quote.json"],
         }
 
         patterns = filename_patterns.get(file_type, [])
