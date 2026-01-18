@@ -78,6 +78,10 @@ done
 # Pre-flight Checks
 # =============================================================================
 command -v docker >/dev/null 2>&1 || { log_error "Docker is required but not installed."; exit 1; }
+
+# Check for python3 (required for cross-platform helper scripts)
+command -v python3 >/dev/null 2>&1 || { log_error "python3 is required but not installed."; exit 1; }
+
 command -v docker-compose >/dev/null 2>&1 || {
     # Try 'docker compose' as fallback
     if docker compose version >/dev/null 2>&1; then
@@ -128,24 +132,35 @@ if [ ! -f "$ENV_FILE" ]; then
     fi
 fi
 
-# Function to update .env file
+# Function to update .env file using Python for cross-platform reliability
+# Avoids sed BSD/GNU differences and Windows file locking issues
 update_env() {
     local key=$1
     local value=$2
     local file=$3
 
-    # Check if key exists
-    if grep -q "^${key}=" "$file"; then
-        # Update existing key (using distinct delimiter to avoid issues with slashes in URLs)
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-             sed -i '' "s|^${key}=.*|${key}=${value}|" "$file"
-        else
-             sed -i "s|^${key}=.*|${key}=${value}|" "$file"
-        fi
-    else
-        # Append new key
-        echo "${key}=${value}" >> "$file"
-    fi
+    python3 -c "
+import sys, re
+
+key = sys.argv[1]
+value = sys.argv[2]
+file_path = sys.argv[3]
+
+with open(file_path, 'r') as f:
+    content = f.read()
+
+# Check if key exists
+pattern = re.compile(f'^{re.escape(key)}=.*', re.MULTILINE)
+if pattern.search(content):
+    # Replace existing
+    new_content = pattern.sub(f'{key}={value}', content)
+else:
+    # Append
+    new_content = content + f'\n{key}={value}'
+
+with open(file_path, 'w') as f:
+    f.write(new_content)
+" "$key" "$value" "$file"
 }
 
 # =============================================================================
@@ -159,12 +174,13 @@ if [ "$WITH_LLM" = true ]; then
     # Enable LLM in .env
     update_env "LLM_ENABLED" "true" "$ENV_FILE"
 
-    # Check if Ollama is running locally
-    if lsof -i :11434 >/dev/null 2>&1 || nc -z localhost 11434 >/dev/null 2>&1; then
+    # Check if Ollama is running locally using Python (reliable across OS)
+    if python3 -c "import socket; s = socket.socket(); s.settimeout(1); sys.exit(0 if s.connect_ex(('localhost', 11434)) == 0 else 1)" 2>/dev/null; then
         log_info "Detected local Ollama running on port 11434."
 
         # Configure host networking for container to reach host
-        if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "msys"* ]]; then
+        if [[ "$OSTYPE" == "darwin"* ]] || [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]]; then
+            # Mac or Windows (Git Bash/Cygwin)
             OLLAMA_URL="http://host.docker.internal:11434"
         else
             # Linux: Access host via default gateway IP usually 172.17.0.1
@@ -186,8 +202,6 @@ else
     # Ensure LLM is disabled if not requested (optional, but good for consistency)
     # Actually, we might want to leave it alone if the user manually set it,
     # but for a "bringup" script, enforcing state is often desired.
-    # We'll leave it unless explicitly disabled to avoid overriding user manual edits too aggressively,
-    # unless it was missing.
     pass=true
 fi
 
