@@ -73,7 +73,7 @@ async def lifespan(app: FastAPI):
         # Ensure directory structure exists (lazy initialization)
         # This allows the application to self-bootstrap on first run
         try:
-            from ..storage.organizer import StorageOrganizer
+            from .storage.organizer import StorageOrganizer
 
             organizer = StorageOrganizer(storage_service.manager)
             # Check if structure exists by looking for a known placeholder
