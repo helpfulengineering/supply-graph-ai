@@ -57,19 +57,19 @@ export LLM_MODEL="claude-sonnet-4-5-20250929"
 
 ```bash
 # Generate OKH manifest with automatic provider selection
-ome llm generate-okh https://github.com/example/project
+ohm llm generate-okh https://github.com/example/project
 
 # Override provider via CLI flag
-ome llm generate-okh https://github.com/example/project --provider openai
-ome llm generate-okh https://github.com/example/project --provider azure_openai
-ome llm generate-okh https://github.com/example/project --provider aws_bedrock
-ome llm generate-okh https://github.com/example/project --provider google
+ohm llm generate-okh https://github.com/example/project --provider openai
+ohm llm generate-okh https://github.com/example/project --provider azure_openai
+ohm llm generate-okh https://github.com/example/project --provider aws_bedrock
+ohm llm generate-okh https://github.com/example/project --provider google
 
 # Match facilities with LLM enhancement
-ome llm match requirements.okh.json facilities.okw.json
+ohm llm match requirements.okh.json facilities.okw.json
 
 # Check available providers
-ome llm providers info
+ohm llm providers info
 ```
 
 ### 3. API Usage
@@ -98,10 +98,10 @@ The LLM integration includes an intelligent provider selection system that autom
 
 1. **Command Line Flags** (highest priority)
    ```bash
-   ome llm generate "Hello" --provider anthropic --model claude-sonnet-4-5-20250929
-   ome llm generate "Hello" --provider azure_openai --model gpt-35-turbo
-   ome llm generate "Hello" --provider aws_bedrock --model anthropic.claude-3-5-sonnet-20241022-v2:0
-   ome llm generate "Hello" --provider google --model gemini-1.5-pro
+   ohm llm generate "Hello" --provider anthropic --model claude-sonnet-4-5-20250929
+   ohm llm generate "Hello" --provider azure_openai --model gpt-35-turbo
+   ohm llm generate "Hello" --provider aws_bedrock --model anthropic.claude-3-5-sonnet-20241022-v2:0
+   ohm llm generate "Hello" --provider google --model gemini-1.5-pro
    ```
 
 2. **Environment Variables**
@@ -109,12 +109,12 @@ The LLM integration includes an intelligent provider selection system that autom
    # Available provider types: anthropic, openai, azure_openai, aws_bedrock, google, local
    export LLM_PROVIDER=anthropic
    export LLM_MODEL=claude-sonnet-4-5-20250929
-   ome llm generate "Hello"
+   ohm llm generate "Hello"
    ```
 
 3. **Auto-Detection** (based on available API keys)
    ```bash
-   ome llm generate "Hello"  # Automatically selects best available provider
+   ohm llm generate "Hello"  # Automatically selects best available provider
    ```
 
 4. **Default Fallback** (lowest priority)
@@ -130,7 +130,7 @@ The LLM integration includes an intelligent provider selection system that autom
 Check available providers and their status:
 
 ```bash
-ome llm providers info
+ohm llm providers info
 ```
 
 This shows:
@@ -202,7 +202,7 @@ The LLM integration follows a modular architecture:
 - **Documentation**: Browse the sections below for detailed information
 - **Examples**: See [Examples](examples.md) for common use cases
 - **API Reference**: Check [API Reference](api.md) for endpoint details
-- **CLI Help**: Use `ome --help` for command-line assistance
+- **CLI Help**: Use `ohm --help` for command-line assistance
 
 ## Next Steps
 

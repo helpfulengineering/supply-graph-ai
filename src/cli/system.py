@@ -28,16 +28,16 @@ def system_group():
 
     Examples:
       # Check system health
-      ome system health
+      ohm system health
 
       # List available domains
-      ome system domains
+      ohm system domains
 
       # Show detailed system status
-      ome system status
+      ohm system status
 
       # Use LLM for enhanced analysis
-      ome system status --use-llm --quality-level professional
+      ohm system status --use-llm --quality-level professional
     """
     pass
 
@@ -152,10 +152,10 @@ async def _display_status_results(
     epilog="""
     Examples:
       # Basic health check
-      ome system health
+      ohm system health
       
       # Use LLM for enhanced analysis
-      ome system health --use-llm --quality-level professional
+      ohm system health --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -269,10 +269,10 @@ async def health(
     epilog="""
     Examples:
       # List all domains
-      ome system domains
+      ohm system domains
       
       # Use LLM for enhanced analysis
-      ome system domains --use-llm
+      ohm system domains --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -375,10 +375,10 @@ async def domains(
     epilog="""
     Examples:
       # Show system status
-      ome system status
+      ohm system status
       
       # Use LLM for enhanced analysis
-      ome system status --use-llm --quality-level professional
+      ohm system status --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -504,13 +504,13 @@ async def status(
     epilog="""
     Examples:
       # Ping default server
-      ome system ping
+      ohm system ping
       
       # Ping specific port with custom timeout
-      ome system ping --port 8001 --timeout 10
+      ohm system ping --port 8001 --timeout 10
       
       # Use LLM for enhanced analysis
-      ome system ping --use-llm
+      ohm system ping --use-llm
     """,
     async_cmd=False,  # This is a synchronous operation
     track_performance=True,
@@ -621,10 +621,10 @@ def ping(
     epilog="""
     Examples:
       # Show system information
-      ome system info
+      ohm system info
       
       # Use LLM for enhanced analysis
-      ome system info --use-llm
+      ohm system info --use-llm
     """,
     async_cmd=False,  # This is a synchronous operation
     track_performance=True,
@@ -714,7 +714,7 @@ def info(
             click.echo("  match    - Matching operations")
             click.echo("  system   - System management")
             click.echo("")  # Empty line for spacing
-            cli_ctx.log("For more information, use: ome <command> --help", "info")
+            cli_ctx.log("For more information, use: ohm <command> --help", "info")
 
         cli_ctx.end_command_tracking()
 

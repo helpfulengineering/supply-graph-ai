@@ -36,10 +36,10 @@ def storage_group():
 
     Examples:
       # Setup storage structure for GCS
-      ome storage setup --provider gcs --bucket my-bucket --region us-central1
+      ohm storage setup --provider gcs --bucket my-bucket --region us-central1
 
       # Populate storage with synthetic data
-      ome storage populate --provider gcs --bucket my-bucket
+      ohm storage populate --provider gcs --bucket my-bucket
     """
     pass
 
@@ -83,16 +83,16 @@ def storage_group():
     epilog="""
     Examples:
       # Setup local storage
-      ome storage setup --provider local
+      ohm storage setup --provider local
       
       # Setup GCS storage
-      ome storage setup --provider gcs --bucket my-bucket --region us-central1
+      ohm storage setup --provider gcs --bucket my-bucket --region us-central1
       
       # Setup Azure storage
-      ome storage setup --provider azure_blob --bucket my-container
+      ohm storage setup --provider azure_blob --bucket my-container
       
       # Setup AWS S3 storage
-      ome storage setup --provider aws_s3 --bucket my-bucket --region us-east-1
+      ohm storage setup --provider aws_s3 --bucket my-bucket --region us-east-1
     """,
     async_cmd=True,
     track_performance=True,
@@ -245,13 +245,13 @@ async def setup(
     epilog="""
     Examples:
       # Populate local storage
-      ome storage populate --provider local
+      ohm storage populate --provider local
       
       # Populate GCS storage
-      ome storage populate --provider gcs --bucket my-bucket
+      ohm storage populate --provider gcs --bucket my-bucket
       
       # Populate with custom data directory
-      ome storage populate --provider local --data-dir /path/to/data
+      ohm storage populate --provider local --data-dir /path/to/data
     """,
     async_cmd=True,
     track_performance=True,

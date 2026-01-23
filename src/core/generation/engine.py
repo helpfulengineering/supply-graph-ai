@@ -22,7 +22,7 @@ changes while maintaining backward compatibility.
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from .layers.direct import DirectMatcher
 from .layers.heuristic import HeuristicMatcher
@@ -30,8 +30,6 @@ from .layers.nlp import NLPMatcher
 from .models import (
     FieldGeneration,
     GenerationLayer,
-    GenerationQuality,
-    GenerationResult,
     LayerConfig,
     ManifestGeneration,
     ProjectData,
@@ -1235,12 +1233,582 @@ class GenerationEngine:
         processor = BOMProcessor()
         components = processor.process_bom_sources(sources)
 
+        # LLM Review Step (if enabled)
+        if self.config.use_llm and self.config.is_llm_configured():
+            try:
+                components = await self._review_components_with_llm(
+                    components, sources
+                )
+            except Exception as e:
+                # Log error but don't fail the entire generation
+                logger.warning(f"LLM component review failed: {e}, using all components")
+                # Continue with all components if LLM review fails
+
         # Build final BOM
         builder = BOMBuilder()
         project_name = project_data.metadata.get("name", "Project")
         bom = builder.build_bom(components, f"{project_name} BOM")
 
         return bom
+
+    async def _review_components_with_llm(
+        self,
+        components: List[Any],
+        sources: List[Any],
+    ) -> List[Any]:
+        """
+        Review extracted components using LLM to filter invalid component names.
+
+        Args:
+            components: List of extracted Component objects
+            sources: List of BOMSource objects (for context)
+
+        Returns:
+            Filtered list of valid Component objects
+        """
+        from ..llm.models.requests import LLMRequestType
+        from ..llm.models.responses import LLMResponseStatus
+
+        if not components:
+            return components
+
+        # Configuration constants
+        # Increase max_tokens for large component lists to avoid truncation
+        # With 65 components, JSON response can easily exceed 4000 tokens
+        max_tokens = 8000  # Max tokens for response (increased from 4000)
+        max_input_tokens = 200000  # Typical max context window (conservative estimate)
+        
+        prompt = None
+        estimated_tokens = None
+
+        try:
+            # Get or create LLM service
+            llm_service = await self._get_llm_service_for_review()
+
+            # Build prompt
+            component_list = self._format_components_for_prompt(components)
+            source_excerpts = self._format_source_excerpts(sources, components)
+            prompt = self._build_component_review_prompt(component_list, source_excerpts)
+
+            # Estimate token count for the prompt
+            estimated_tokens = self._estimate_token_count(prompt)
+
+            # Check if input exceeds token limit
+            if estimated_tokens > max_input_tokens:
+                logger.error(
+                    f"LLM component review skipped: Input prompt exceeds token limit. "
+                    f"Estimated tokens: {estimated_tokens:,}, Max input tokens: {max_input_tokens:,}. "
+                    f"Components: {len(components)}, Sources: {len(sources)}. "
+                    f"Consider reducing the number of components or source excerpts."
+                )
+                return components  # Return all components if input too large
+
+            # Call LLM
+            from ..llm.models.requests import LLMRequestConfig
+            
+            request_config = LLMRequestConfig(
+                max_tokens=max_tokens,  # Enough for JSON response (default 4000, may need increase for large component lists)
+                temperature=0.1,  # Low temperature for consistent validation
+            )
+
+            response = await llm_service.generate(
+                prompt=prompt,
+                request_type=LLMRequestType.ANALYSIS,  # Use ANALYSIS for component review
+                config=request_config,
+            )
+
+            # Parse response
+            if response.status == LLMResponseStatus.SUCCESS:
+                validated_components = self._parse_llm_validation_response(
+                    response.content, components
+                )
+                logger.info(
+                    f"LLM review: {len(validated_components)}/{len(components)} components validated "
+                    f"(estimated input tokens: {estimated_tokens:,})"
+                )
+                return validated_components
+            else:
+                logger.warning(f"LLM validation failed: {response.error}")
+                return components  # Return all if LLM fails
+
+        except Exception as e:
+            error_msg = str(e).lower()
+            
+            # Estimate tokens if we have the prompt (may not be available if error occurred early)
+            if prompt is not None and estimated_tokens is None:
+                estimated_tokens = self._estimate_token_count(prompt)
+            
+            # Check if error is related to token/context limits
+            token_limit_keywords = [
+                "token", "context length", "context window", "max tokens",
+                "input too long", "exceeds", "limit", "too many tokens"
+            ]
+            
+            if any(keyword in error_msg for keyword in token_limit_keywords):
+                token_info = f"Estimated input tokens: {estimated_tokens:,}" if estimated_tokens else "Token count unavailable"
+                logger.error(
+                    f"LLM component review failed due to token limit: {e}. "
+                    f"{token_info}. "
+                    f"Max tokens configured: {max_tokens:,}. "
+                    f"Components: {len(components)}, Sources: {len(sources)}. "
+                    f"Consider reducing the number of components or source excerpts, or increase max_tokens."
+                )
+            else:
+                logger.warning(f"LLM component review error: {e}")
+            
+            return components  # Return all components on error
+
+    async def _get_llm_service_for_review(self):
+        """Get or create LLM service for component review."""
+        from ..llm.service import LLMService, LLMServiceConfig
+        from ..llm.providers.base import LLMProviderType
+
+        # Try to reuse LLM service from LLM layer if available
+        if GenerationLayer.LLM in self._matchers:
+            llm_layer = self._matchers[GenerationLayer.LLM]
+            if hasattr(llm_layer, "llm_service") and llm_layer.llm_service:
+                # Initialize if needed
+                if llm_layer.llm_service.status.value != "active":
+                    await llm_layer.llm_service.initialize()
+                return llm_layer.llm_service
+
+        # Create temporary LLM service for review
+        service_config = LLMServiceConfig(
+            name="BOMComponentReview",
+            default_provider=LLMProviderType.ANTHROPIC,
+            max_retries=2,
+            timeout=30,
+        )
+        llm_service = LLMService("BOMComponentReview", service_config)
+        await llm_service.initialize()
+        return llm_service
+
+    def _format_components_for_prompt(self, components: List[Any]) -> str:
+        """Format components list for LLM prompt."""
+        lines = []
+        for i, comp in enumerate(components, 1):
+            source_info = comp.metadata.get("file_path", "unknown")
+            confidence = comp.metadata.get("confidence", 0.0)
+            lines.append(
+                f"{i}. ID: {comp.id}\n"
+                f"   Name: {comp.name}\n"
+                f"   Quantity: {comp.quantity} {comp.unit}\n"
+                f"   Source: {source_info}\n"
+                f"   Confidence: {confidence:.2f}"
+            )
+        return "\n\n".join(lines)
+
+    def _format_source_excerpts(self, sources: List[Any], components: List[Any]) -> str:
+        """Extract and format relevant source excerpts."""
+        # Map components to their sources
+        source_map = {}
+        for comp in components:
+            file_path = comp.metadata.get("file_path")
+            if file_path:
+                if file_path not in source_map:
+                    source_map[file_path] = []
+                source_map[file_path].append(comp)
+
+        # Extract excerpts from sources
+        excerpts = []
+        for source in sources:
+            if source.file_path in source_map:
+                # Extract first 2000 chars for context
+                content = source.raw_content[:2000]
+                excerpts.append(f"**{source.file_path}:**\n```\n{content}\n```")
+
+        return "\n\n".join(excerpts) if excerpts else "No source excerpts available."
+
+    def _build_component_review_prompt(
+        self, component_list: str, source_excerpts: str
+    ) -> str:
+        """Build the LLM prompt for component review."""
+        return f"""# BOM Component Validation Task
+
+You are reviewing a list of components extracted from project documentation to identify which are valid hardware parts/components and which are false positives (instructions, units, commands, etc.).
+
+## Task
+Review each extracted component and determine if it represents a valid hardware part/component that should be included in a Bill of Materials (BOM).
+
+## Valid Component Examples
+
+Valid components are actual physical parts, materials, or hardware items:
+
+✅ **Good Examples:**
+- "M3x25mm hexagon head screws" - Specific hardware part
+- "Arduino Nano" - Electronic component
+- "12V DC power supply" - Power component
+- "Header pins, 2.54mm pitch" - Connector component
+- "Peristaltic pump with stepper motor" - Mechanical component
+- "Barrel plug connector, 5.5mm x 2.1mm" - Connector with specifications
+- "Circulating pump" - Mechanical component
+- "Stepper motor cable" - Cable/connector component
+- "20 gauge wire" - Material/component with specification
+- "PCB board" - Electronic component
+
+## Invalid Component Examples
+
+Invalid components are instructions, units, commands, or non-physical items:
+
+❌ **Bad Examples:**
+- "slots." - Single word with punctuation, no context
+- "inches" - Unit of measurement, not a component
+- "command" - Action word, not a component
+- "pin" - Too generic, no specification
+- "P1" - Code reference, not a component name
+- "units per minute" - Unit phrase, not a component
+- "command, but there are some key differences..." - Sentence fragment
+- "Version" - Generic word, not a component
+- "to install" - Instruction phrase
+- "and the" - Sentence fragment
+- "G90G91 g-code parser state" - Software/instruction, not hardware
+
+## Component List to Review
+
+Below is the list of extracted components with their source information:
+
+{component_list}
+
+## Source Material Context
+
+For reference, here are excerpts from the source documents where these components were extracted:
+
+{source_excerpts}
+
+## Output Format
+
+Return a JSON object with the following structure:
+
+```json
+{{
+  "valid_components": [
+    {{
+      "id": "component_id",
+      "name": "component_name",
+      "reason": "Brief explanation why this is valid"
+    }}
+  ],
+  "invalid_components": [
+    {{
+      "id": "component_id",
+      "name": "component_name",
+      "reason": "Brief explanation why this is invalid (e.g., 'unit of measurement', 'instruction text', 'too generic')"
+    }}
+  ],
+  "suggested_improvements": [
+    {{
+      "id": "component_id",
+      "original_name": "original_name",
+      "suggested_name": "improved_name",
+      "reason": "Explanation of improvement"
+    }}
+  ]
+}}
+```
+
+## Instructions
+
+1. **Be strict** - Only include components that are clearly valid hardware parts
+2. **Consider context** - Use source material to understand if a component is valid
+3. **Filter aggressively** - When in doubt, exclude (better to have fewer valid components than many invalid ones)
+4. **Suggest improvements** - If a component name is valid but could be clearer, suggest an improved name
+5. **Preserve specificity** - Keep detailed component names (e.g., "M3x25mm hexagon head screws" is better than "screws")
+
+Review all components and return the JSON response."""
+
+    def _estimate_token_count(self, text: str) -> int:
+        """
+        Estimate token count for a given text.
+        
+        Uses a simple heuristic: ~1.3 tokens per word, which is a reasonable
+        approximation for English text. More accurate tokenization would require
+        the actual tokenizer for each model, but this provides a good estimate.
+        
+        Args:
+            text: Text to estimate tokens for
+            
+        Returns:
+            Estimated token count
+        """
+        if not text:
+            return 0
+        
+        # Simple estimation: ~1.3 tokens per word (common for English)
+        # This is similar to what Anthropic provider uses
+        word_count = len(text.split())
+        estimated_tokens = int(word_count * 1.3)
+        
+        # Add some overhead for special characters, formatting, etc.
+        # JSON structures and markdown add extra tokens
+        if "```" in text or "{" in text:
+            estimated_tokens = int(estimated_tokens * 1.1)
+        
+        return estimated_tokens
+
+    def _parse_llm_validation_response(
+        self, response_content: str, components: List[Any]
+    ) -> List[Any]:
+        """
+        Parse LLM validation response and filter components.
+        
+        Uses robust JSON extraction and recovery mechanisms to handle:
+        - Markdown-wrapped JSON
+        - Truncated responses
+        - Malformed JSON (trailing commas, missing commas, comments)
+        - Partial JSON extraction
+        """
+        import json
+        import re
+
+        try:
+            # Step 1: Extract JSON from response (handle markdown code blocks and other formats)
+            json_str = self._extract_json_from_validation_response(response_content)
+            
+            if not json_str:
+                logger.warning("No JSON found in LLM validation response")
+                return components  # Return all if no JSON found
+
+            # Step 2: Parse JSON with recovery attempts
+            validation = self._parse_json_with_recovery(json_str)
+            
+            if not validation:
+                logger.warning(
+                    f"Failed to parse LLM validation response after recovery attempts. "
+                    f"Response length: {len(response_content)}, "
+                    f"JSON length: {len(json_str) if json_str else 0}"
+                )
+                return components  # Return all if parsing fails
+
+            # Step 3: Create map of valid component IDs
+            valid_ids = {comp["id"] for comp in validation.get("valid_components", [])}
+
+            # Step 4: Apply suggested name improvements
+            improvements = {
+                comp["id"]: comp["suggested_name"]
+                for comp in validation.get("suggested_improvements", [])
+            }
+
+            # Step 5: Filter and update components
+            filtered = []
+            for comp in components:
+                if comp.id in valid_ids:
+                    # Apply name improvement if suggested
+                    if comp.id in improvements:
+                        original_name = comp.name
+                        comp.name = improvements[comp.id]
+                        # Update metadata
+                        comp.metadata["llm_reviewed"] = True
+                        comp.metadata["original_name"] = original_name
+                        comp.metadata["name_improved"] = True
+                    else:
+                        comp.metadata["llm_reviewed"] = True
+                    filtered.append(comp)
+                else:
+                    logger.debug(
+                        f"LLM filtered out invalid component: {comp.name} (ID: {comp.id})"
+                    )
+
+            return filtered
+
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            logger.warning(
+                f"Failed to parse LLM validation response: {e}. "
+                f"Response length: {len(response_content)} chars. "
+                f"Returning all components."
+            )
+            return components  # Return all if parsing fails
+
+    def _extract_json_from_validation_response(self, response_content: str) -> Optional[str]:
+        """
+        Extract JSON string from LLM response, handling various formats.
+        
+        Tries multiple strategies:
+        1. Markdown code blocks (```json ... ```)
+        2. Plain code blocks (``` ... ```)
+        3. JSON after keywords
+        4. First/last brace matching
+        5. Truncated JSON recovery
+        """
+        import re
+        
+        content = response_content.strip()
+        
+        # Strategy 1: Markdown JSON code block
+        if "```json" in content:
+            json_start = content.find("```json") + 7
+            json_end = content.find("```", json_start)
+            if json_end > json_start:
+                return content[json_start:json_end].strip()
+        
+        # Strategy 2: Plain code block
+        if "```" in content:
+            json_start = content.find("```") + 3
+            json_end = content.find("```", json_start)
+            if json_end > json_start:
+                extracted = content[json_start:json_end].strip()
+                # Only return if it looks like JSON (starts with {)
+                if extracted.startswith("{"):
+                    return extracted
+        
+        # Strategy 3: Look for JSON after common keywords
+        keywords = ["JSON:", "json:", "response:", "validation:"]
+        for keyword in keywords:
+            idx = content.find(keyword)
+            if idx != -1:
+                # Find the next {
+                json_start = content.find("{", idx)
+                if json_start != -1:
+                    json_end = content.rfind("}", json_start)
+                    if json_end > json_start:
+                        return content[json_start : json_end + 1]
+        
+        # Strategy 4: Find first { and last } (handles truncated responses)
+        json_start = content.find("{")
+        if json_start != -1:
+            json_end = content.rfind("}")
+            if json_end > json_start:
+                return content[json_start : json_end + 1]
+        
+        # Strategy 5: Try to find JSON object even if truncated (missing closing brace)
+        json_start = content.find("{")
+        if json_start != -1:
+            # Try to extract up to the last complete object/array
+            # This is a best-effort for truncated responses
+            extracted = content[json_start:]
+            # Try to find the last complete structure
+            # Count braces to find where JSON might be complete
+            brace_count = 0
+            last_valid_pos = -1
+            for i, char in enumerate(extracted):
+                if char == "{":
+                    brace_count += 1
+                elif char == "}":
+                    brace_count -= 1
+                    if brace_count == 0:
+                        last_valid_pos = i
+            if last_valid_pos > 0:
+                return extracted[:last_valid_pos + 1]
+            # If no complete structure, return what we have (will try recovery)
+            return extracted
+        
+        return None
+
+    def _parse_json_with_recovery(self, json_str: str) -> Optional[Dict[str, Any]]:
+        """
+        Parse JSON with recovery attempts for common issues.
+        
+        Handles:
+        - Trailing commas
+        - Missing commas
+        - Comments (// and /* */)
+        - Truncated JSON (tries to extract partial structure)
+        """
+        import json
+        import re
+
+        if not json_str:
+            return None
+
+        # First try: Direct parse
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            pass
+
+        # Recovery attempt 1: Fix trailing commas before } or ]
+        try:
+            fixed = re.sub(r",(\s*[}\]])", r"\1", json_str)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+
+        # Recovery attempt 2: Remove comments (// and /* */)
+        try:
+            # Remove single-line comments
+            fixed = re.sub(r"//.*?$", "", json_str, flags=re.MULTILINE)
+            # Remove multi-line comments
+            fixed = re.sub(r"/\*.*?\*/", "", fixed, flags=re.DOTALL)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+
+        # Recovery attempt 3: Fix missing commas between object properties
+        try:
+            # Pattern: "key": value "next_key": -> "key": value, "next_key":
+            fixed = re.sub(r'("\s*:\s*[^,}\]]+)\s+("[\w_]+"\s*:)', r"\1,\2", json_str)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+
+        # Recovery attempt 4: Apply multiple fixes in combination
+        try:
+            fixed = json_str
+            # Remove comments
+            fixed = re.sub(r"//.*?$", "", fixed, flags=re.MULTILINE)
+            fixed = re.sub(r"/\*.*?\*/", "", fixed, flags=re.DOTALL)
+            # Fix trailing commas
+            fixed = re.sub(r",(\s*[}\]])", r"\1", fixed)
+            # Fix missing commas
+            fixed = re.sub(r'("\s*:\s*[^,}\]]+)\s+("[\w_]+"\s*:)', r"\1,\2", fixed)
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+
+        # Recovery attempt 5: Try to extract and parse top-level object only
+        try:
+            json_start = json_str.find("{")
+            json_end = json_str.rfind("}")
+            if json_start != -1 and json_end > json_start:
+                isolated = json_str[json_start : json_end + 1]
+                # Apply fixes to isolated JSON
+                try:
+                    return json.loads(isolated)
+                except json.JSONDecodeError:
+                    fixed = isolated
+                    fixed = re.sub(r"//.*?$", "", fixed, flags=re.MULTILINE)
+                    fixed = re.sub(r"/\*.*?\*/", "", fixed, flags=re.DOTALL)
+                    fixed = re.sub(r",(\s*[}\]])", r"\1", fixed)
+                    return json.loads(fixed)
+        except json.JSONDecodeError:
+            pass
+
+        # Recovery attempt 6: Try to extract partial JSON if truncated
+        # This is a last resort - try to get at least valid_components if possible
+        try:
+            # Look for "valid_components" array even if JSON is incomplete
+            valid_components_match = re.search(
+                r'"valid_components"\s*:\s*\[(.*?)\]', json_str, re.DOTALL
+            )
+            invalid_components_match = re.search(
+                r'"invalid_components"\s*:\s*\[(.*?)\]', json_str, re.DOTALL
+            )
+            improvements_match = re.search(
+                r'"suggested_improvements"\s*:\s*\[(.*?)\]', json_str, re.DOTALL
+            )
+            
+            if valid_components_match or invalid_components_match:
+                # Try to construct minimal valid JSON
+                partial_json = "{"
+                if valid_components_match:
+                    partial_json += f'"valid_components": [{valid_components_match.group(1)}],'
+                if invalid_components_match:
+                    partial_json += f'"invalid_components": [{invalid_components_match.group(1)}],'
+                if improvements_match:
+                    partial_json += f'"suggested_improvements": [{improvements_match.group(1)}],'
+                # Remove trailing comma
+                partial_json = re.sub(r",\s*$", "", partial_json)
+                partial_json += "}"
+                
+                return json.loads(partial_json)
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+        # All recovery attempts failed
+        logger.debug(
+            f"All JSON recovery attempts failed. JSON string (first 1000 chars):\n{json_str[:1000]}"
+        )
+        logger.debug(f"Full JSON string length: {len(json_str)} characters")
+        return None
 
     def _extract_materials_from_bom(self, bom) -> List[str]:
         """

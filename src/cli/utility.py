@@ -24,16 +24,16 @@ def utility_group():
 
     Examples:
       # List available domains
-      ome utility domains
+      ohm utility domains
 
       # List validation contexts for a domain
-      ome utility contexts manufacturing
+      ohm utility contexts manufacturing
 
       # Get system metrics
-      ome utility metrics
+      ohm utility metrics
 
       # Use LLM for enhanced analysis
-      ome utility domains --use-llm --quality-level professional
+      ohm utility domains --use-llm --quality-level professional
     """
     pass
 
@@ -281,13 +281,13 @@ async def _display_metrics_results(
     epilog="""
     Examples:
       # List all domains
-      ome utility domains
+      ohm utility domains
       
       # Filter domains by name
-      ome utility domains --name manufacturing
+      ohm utility domains --name manufacturing
       
       # Use LLM for enhanced analysis
-      ome utility domains --use-llm --quality-level professional
+      ohm utility domains --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -393,13 +393,13 @@ async def domains(
     epilog="""
     Examples:
       # List contexts for manufacturing domain
-      ome utility contexts manufacturing
+      ohm utility contexts manufacturing
       
       # Filter contexts by name
-      ome utility contexts manufacturing --name professional
+      ohm utility contexts manufacturing --name professional
       
       # Use LLM for enhanced analysis
-      ome utility contexts cooking --use-llm --quality-level professional
+      ohm utility contexts cooking --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -533,19 +533,19 @@ async def contexts(
     epilog="""
     Examples:
       # Get overall metrics summary
-      ome utility metrics
+      ohm utility metrics
       
       # Get detailed metrics with all endpoints
-      ome utility metrics --no-summary
+      ohm utility metrics --no-summary
       
       # Get metrics for a specific endpoint
-      ome utility metrics --endpoint "GET /health"
+      ohm utility metrics --endpoint "GET /health"
       
       # Get metrics for a specific API endpoint
-      ome utility metrics --endpoint "POST /v1/api/match"
+      ohm utility metrics --endpoint "POST /v1/api/match"
       
       # Output in JSON format
-      ome utility metrics --json
+      ohm utility metrics --json
     """,
     async_cmd=True,
     track_performance=False,  # Don't track metrics for the metrics command itself

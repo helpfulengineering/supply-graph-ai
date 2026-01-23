@@ -54,7 +54,7 @@ Storage-based keys can be created through:
 
 1. **CLI Command** (when implemented):
    ```bash
-   ome auth create-key --name "My API Key" --permissions read,write
+   ohm auth create-key --name "My API Key" --permissions read,write
    ```
 
 2. **API Endpoint** (when implemented):

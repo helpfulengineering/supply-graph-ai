@@ -38,16 +38,16 @@ def okh_group():
 
     Examples:
       # Validate an OKH manifest
-      ome okh validate my-project.okh.json
+      ohm okh validate my-project.okh.json
 
       # Generate OKH manifest from GitHub repository
-      ome okh generate-from-url https://github.com/user/project
+      ohm okh generate-from-url https://github.com/user/project
 
       # Create and store a manifest
-      ome okh create my-project.okh.json
+      ohm okh create my-project.okh.json
 
       # Use LLM for enhanced processing
-      ome okh validate my-project.okh.json --use-llm --quality-level professional
+      ohm okh validate my-project.okh.json --use-llm --quality-level professional
     """
     pass
 
@@ -187,7 +187,7 @@ async def _display_retrieval_results(
             cli_ctx.log(f"Manifest saved to {output}", "info")
 
         # Always output full JSON to stdout by default
-        # If output_format is explicitly set to something other than json, still output JSON
+        # If output_format is explicitly set to sohmthing other than json, still output JSON
         # (the format option is mainly for other commands)
         click.echo(json.dumps(manifest, indent=2, default=str))
     else:
@@ -228,13 +228,13 @@ async def _display_retrieval_results(
     epilog="""
     Examples:
       # Basic validation
-      ome okh validate my-project.okh.json
+      ohm okh validate my-project.okh.json
       
       # Strict validation with medical quality level
-      ome okh validate my-project.okh.json --quality-level medical --strict-mode
+      ohm okh validate my-project.okh.json --quality-level medical --strict-mode
       
       # Use LLM for enhanced validation
-      ome okh validate my-project.okh.json --use-llm --quality-level professional
+      ohm okh validate my-project.okh.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -360,13 +360,13 @@ async def validate(
     epilog="""
     Examples:
       # Create and store a manifest
-      ome okh create my-project.okh.json
+      ohm okh create my-project.okh.json
       
       # Create with output file
-      ome okh create my-project.okh.json --output result.json
+      ohm okh create my-project.okh.json --output result.json
       
       # Use LLM for enhanced processing
-      ome okh create my-project.okh.json --use-llm --quality-level professional
+      ohm okh create my-project.okh.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -464,13 +464,13 @@ async def create(
     epilog="""
     Examples:
       # Get a manifest by ID
-      ome okh get 123e4567-e89b-12d3-a456-426614174000
+      ohm okh get 123e4567-e89b-12d3-a456-426614174000
       
       # Get with output file
-      ome okh get 123e4567-e89b-12d3-a456-426614174000 --output manifest.json
+      ohm okh get 123e4567-e89b-12d3-a456-426614174000 --output manifest.json
       
       # Use LLM for enhanced analysis
-      ome okh get 123e4567-e89b-12d3-a456-426614174000 --use-llm
+      ohm okh get 123e4567-e89b-12d3-a456-426614174000 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -560,10 +560,10 @@ async def get(
     epilog="""
     Examples:
       # Extract requirements from manifest
-      ome okh extract my-project.okh.json
+      ohm okh extract my-project.okh.json
       
       # Use LLM for enhanced extraction
-      ome okh extract my-project.okh.json --use-llm --quality-level professional
+      ohm okh extract my-project.okh.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -672,13 +672,13 @@ async def extract(
     epilog="""
     Examples:
       # List all manifests
-      ome okh list
+      ohm okh list
       
       # List with pagination
-      ome okh list --limit 20 --offset 10
+      ohm okh list --limit 20 --offset 10
       
       # Use LLM for enhanced analysis
-      ome okh list --use-llm --limit 50
+      ohm okh list --use-llm --limit 50
     """,
     async_cmd=True,
     track_performance=True,
@@ -812,13 +812,13 @@ async def list_manifests(
     epilog="""
     Examples:
       # Delete a manifest (with confirmation)
-      ome okh delete 123e4567-e89b-12d3-a456-426614174000
+      ohm okh delete 123e4567-e89b-12d3-a456-426614174000
       
       # Force deletion without confirmation
-      ome okh delete 123e4567-e89b-12d3-a456-426614174000 --force
+      ohm okh delete 123e4567-e89b-12d3-a456-426614174000 --force
       
       # Use LLM for enhanced analysis
-      ome okh delete 123e4567-e89b-12d3-a456-426614174000 --use-llm
+      ohm okh delete 123e4567-e89b-12d3-a456-426614174000 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -914,13 +914,13 @@ async def delete(
     epilog="""
     Examples:
       # Upload and validate a manifest
-      ome okh upload my-project.okh.json
+      ohm okh upload my-project.okh.json
       
       # Upload with premium quality validation
-      ome okh upload my-project.okh.json --quality-level premium --strict-mode
+      ohm okh upload my-project.okh.json --quality-level premium --strict-mode
       
       # Use LLM for enhanced processing
-      ome okh upload my-project.okh.json --use-llm --quality-level standard
+      ohm okh upload my-project.okh.json --use-llm --quality-level standard
     """,
     async_cmd=True,
     track_performance=True,
@@ -1074,7 +1074,7 @@ async def upload(
     - operating_instructions: User manuals and usage guides
     - technical_specifications: Technical specs and validation reports
     - publications: Research papers and academic publications
-    - documentation_home: Main project documentation (README.md)
+    - documentation_hohm: Main project documentation (README.md)
     
     When LLM is enabled, generation includes:
     - Enhanced project analysis and understanding
@@ -1086,16 +1086,16 @@ async def upload(
     epilog="""
     Examples:
       # Generate from GitHub repository
-      ome okh generate-from-url https://github.com/user/project
+      ohm okh generate-from-url https://github.com/user/project
       
       # Generate with local cloning (faster, more reliable)
-      ome okh generate-from-url https://github.com/user/project --clone
+      ohm okh generate-from-url https://github.com/user/project --clone
       
       # Generate with BOM export
-      ome okh generate-from-url https://github.com/user/project --output ./output
+      ohm okh generate-from-url https://github.com/user/project --output ./output
       
       # Use LLM for enhanced generation
-      ome okh generate-from-url https://github.com/user/project --use-llm --quality-level professional
+      ohm okh generate-from-url https://github.com/user/project --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -1386,13 +1386,13 @@ async def generate_from_url(
     epilog="""
     Examples:
       # Export schema to console
-      ome okh export
+      ohm okh export
       
       # Export schema to file
-      ome okh export --output okh-schema.json
+      ohm okh export --output okh-schema.json
       
       # Export with JSON output format
-      ome okh export --output okh-schema.json --json
+      ohm okh export --output okh-schema.json --json
     """,
     async_cmd=True,
     track_performance=True,
@@ -1542,20 +1542,20 @@ async def export(
     
     Examples:
       # Generate basic project scaffold
-      ome okh scaffold my-awesome-project
+      ohm okh scaffold my-awesohm-project
       
       # Generate with detailed templates and ZIP output
-      ome okh scaffold arduino-sensor --template-level detailed --output-format zip
+      ohm okh scaffold arduino-sensor --template-level detailed --output-format zip
       
       # Generate to filesystem with custom organization
-      ome okh scaffold microscope-stage --organization "University Lab" --output-format filesystem --output-path ./projects
+      ohm okh scaffold microscope-stage --organization "University Lab" --output-format filesystem --output-path ./projects
       
       # Generate minimal scaffold for experienced developers
-      ome okh scaffold quick-prototype --template-level minimal --output-format json
+      ohm okh scaffold quick-prototype --template-level minimal --output-format json
     """,
     epilog="""
     The scaffolded projects are designed to work seamlessly with the OHM ecosystem:
-    - Generated manifests can be validated using 'ome okh validate'
+    - Generated manifests can be validated using 'ohm okh validate'
     - Projects can be used as OKH requirements in matching operations
     - The structure supports the OHM generation workflow
     - Projects can be stored and retrieved using OHM storage services
@@ -1651,9 +1651,9 @@ async def scaffold(
             click.echo(f"\n🚀 Next Steps:")
             click.echo(f"   1. Customize the generated manifest template")
             click.echo(f"   2. Add your hardware designs and documentation")
-            click.echo(f"   3. Use 'ome okh validate' to check OKH compliance")
+            click.echo(f"   3. Use 'ohm okh validate' to check OKH compliance")
             click.echo(
-                f"   4. Use 'ome match requirements' to find manufacturing capabilities"
+                f"   4. Use 'ohm match requirements' to find manufacturing capabilities"
             )
 
             if template_level in ["standard", "detailed"]:
@@ -1717,13 +1717,13 @@ def _display_structure(structure: dict, indent: int = 0) -> None:
     epilog="""
     Examples:
       # Preview cleanup changes (dry-run)
-      ome okh scaffold-cleanup ./projects/my-project
+      ohm okh scaffold-cleanup ./projects/my-project
       
       # Apply cleanup changes
-      ome okh scaffold-cleanup ./projects/my-project --apply
+      ohm okh scaffold-cleanup ./projects/my-project --apply
       
       # Keep empty directories
-      ome okh scaffold-cleanup ./projects/my-project --apply --keep-empty-directories
+      ohm okh scaffold-cleanup ./projects/my-project --apply --keep-empty-directories
     """,
     track_performance=True,
     handle_errors=True,
@@ -1873,19 +1873,19 @@ async def scaffold_cleanup(
     epilog="""
     Examples:
       # Preview fixes without applying
-      ome okh fix recipe.json --dry-run
+      ohm okh fix recipe.json --dry-run
       
       # Apply fixes with backup
-      ome okh fix recipe.json --backup
+      ohm okh fix recipe.json --backup
       
       # Apply fixes to new file
-      ome okh fix recipe.json --output recipe-fixed.json
+      ohm okh fix recipe.json --output recipe-fixed.json
       
       # Apply all fixes including low-confidence ones
-      ome okh fix recipe.json --confidence-threshold 0.5 --yes
+      ohm okh fix recipe.json --confidence-threshold 0.5 --yes
       
       # Fix with domain override
-      ome okh fix recipe.json --domain cooking
+      ohm okh fix recipe.json --domain cooking
     """,
     async_cmd=True,
     track_performance=True,

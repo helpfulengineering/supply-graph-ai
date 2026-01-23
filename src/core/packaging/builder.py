@@ -35,8 +35,11 @@ class PackageBuilder:
         package_name = self._generate_package_name(manifest)
         package_path = output_dir / package_name / manifest.version
 
+        # Resolve to absolute path to ensure consistent behavior regardless of working directory
+        package_path = package_path.resolve()
+
         logger.info(f"Building package: {package_name}/{manifest.version}")
-        logger.info(f"Package path: {package_path}")
+        logger.info(f"Package path (absolute): {package_path}")
 
         # Create package directory structure
         await self._create_directory_structure(package_path)
@@ -223,6 +226,7 @@ class PackageBuilder:
                 fixed_file_inventory.append(file_info)
 
         # Generate package metadata
+        # package_path is already resolved to absolute at this point
         metadata = await self._generate_package_metadata(
             manifest, package_path, package_name, fixed_file_inventory, options
         )

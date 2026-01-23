@@ -1,1 +1,0 @@
-"""Demo infrastructure verification module."""

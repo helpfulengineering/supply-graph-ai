@@ -29,8 +29,8 @@ git clone git@github.com:helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
 # Activate or create conda environment
-conda create -n ome 
-conda activate ome
+conda create -n ohm 
+conda activate ohm
 
 # Install dependencies
 pip install -r requirements.txt
