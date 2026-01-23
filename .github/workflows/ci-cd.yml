@@ -100,16 +100,16 @@ jobs:
           python scripts/generate_repo_map.py
           
           echo "Checking if maps need to be updated..."
-          if ! git diff --quiet .repo-map-aider.md .repo-map-sourcegraph.md; then
+          if ! git diff --quiet .repo-map.md; then
             echo "❌ Repository maps are out of date!"
             echo ""
             echo "The following files have changed:"
-            git diff --name-only .repo-map-aider.md .repo-map-sourcegraph.md
+            git diff --name-only .repo-map.md
             echo ""
             echo "Please run the following commands locally and commit the changes:"
             echo "  python scripts/generate_repo_map.py"
             echo "  python scripts/generate_sourcegraph_map.py"
-            echo "  git add .repo-map-aider.md .repo-map-sourcegraph.md"
+            echo "  git add .repo-map.md"
             echo "  git commit -m 'chore: update repository maps'"
             echo ""
             echo "Diff:"
