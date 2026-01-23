@@ -1152,8 +1152,9 @@ class ManifestGeneration:
         Returns:
             Valid UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
         """
-        from ..validation.uuid_validator import UUIDValidator
         import hashlib
+
+        from ..validation.uuid_validator import UUIDValidator
 
         # Create a unique identifier string from name and original_id
         # This ensures deterministic UUIDs while maintaining uniqueness

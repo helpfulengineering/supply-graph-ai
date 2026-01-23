@@ -1372,8 +1372,8 @@ class GenerationEngine:
 
     async def _get_llm_service_for_review(self):
         """Get or create LLM service for component review."""
-        from ..llm.service import LLMService, LLMServiceConfig
         from ..llm.providers.base import LLMProviderType
+        from ..llm.service import LLMService, LLMServiceConfig
 
         # Try to reuse LLM service from LLM layer if available
         if GenerationLayer.LLM in self._matchers:
