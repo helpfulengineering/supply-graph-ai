@@ -54,7 +54,9 @@ class StructuredLogFormatter(logging.Formatter):
         severity = _get_severity(record.levelno)
 
         log_data: Dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),  # UTC with Z suffix
+            "timestamp": datetime.now(timezone.utc)
+            .isoformat()
+            .replace("+00:00", "Z"),  # UTC with Z suffix
             "severity": severity,  # Cloud Logging standard
             "level": record.levelname,  # Keep for backward compatibility
             "message": record.getMessage(),

@@ -172,7 +172,14 @@ class MatchingService:
                 "Extracted requirements from OKH manifest",
                 extra={
                     "requirement_count": len(requirements),
-                    "requirements": [req.get("process_name", "") if isinstance(req, dict) else str(req) for req in requirements],
+                    "requirements": [
+                        (
+                            req.get("process_name", "")
+                            if isinstance(req, dict)
+                            else str(req)
+                        )
+                        for req in requirements
+                    ],
                 },
             )
 
@@ -216,7 +223,11 @@ class MatchingService:
                         "facility_id": str(facility.id),
                         "facility_name": facility.name,
                         "capability_count": len(capabilities),
-                        "capabilities": [cap.get("process_name", "") for cap in capabilities if isinstance(cap, dict)],
+                        "capabilities": [
+                            cap.get("process_name", "")
+                            for cap in capabilities
+                            if isinstance(cap, dict)
+                        ],
                     },
                 )
 
@@ -272,16 +283,22 @@ class MatchingService:
                     req_list.append(req)
                 elif hasattr(req, "process_name"):
                     # Convert ProcessRequirement to dict
-                    req_list.append({
-                        "process_name": req.process_name,
-                        "parameters": getattr(req, "parameters", {}),
-                        "validation_criteria": getattr(req, "validation_criteria", {}),
-                        "required_tools": getattr(req, "required_tools", []),
-                    })
+                    req_list.append(
+                        {
+                            "process_name": req.process_name,
+                            "parameters": getattr(req, "parameters", {}),
+                            "validation_criteria": getattr(
+                                req, "validation_criteria", {}
+                            ),
+                            "required_tools": getattr(req, "required_tools", []),
+                        }
+                    )
                 else:
-                    logger.warning(f"Unknown requirement type: {type(req)}, value: {req}")
+                    logger.warning(
+                        f"Unknown requirement type: {type(req)}, value: {req}"
+                    )
                     continue
-            
+
             # Handle both dict and Capability objects
             cap_list = []
             for cap in capabilities:
@@ -289,17 +306,25 @@ class MatchingService:
                     cap_list.append(cap)
                 elif hasattr(cap, "type") or hasattr(cap, "process_name"):
                     # Convert Capability to dict
-                    process_name = getattr(cap, "process_name", None) or getattr(cap, "type", "")
-                    cap_list.append({
-                        "process_name": process_name,
-                        "parameters": getattr(cap, "parameters", {}),
-                        "validation_criteria": getattr(cap, "validation_criteria", {}),
-                        "required_tools": getattr(cap, "required_tools", []),
-                    })
+                    process_name = getattr(cap, "process_name", None) or getattr(
+                        cap, "type", ""
+                    )
+                    cap_list.append(
+                        {
+                            "process_name": process_name,
+                            "parameters": getattr(cap, "parameters", {}),
+                            "validation_criteria": getattr(
+                                cap, "validation_criteria", {}
+                            ),
+                            "required_tools": getattr(cap, "required_tools", []),
+                        }
+                    )
                 else:
-                    logger.warning(f"Unknown capability type: {type(cap)}, value: {cap}")
+                    logger.warning(
+                        f"Unknown capability type: {type(cap)}, value: {cap}"
+                    )
                     continue
-            
+
             # Log input for debugging
             logger.info(
                 f"Checking if capabilities can satisfy requirements",
@@ -310,15 +335,15 @@ class MatchingService:
                     "capabilities": [cap.get("process_name", "") for cap in cap_list],
                 },
             )
-            
+
             if not req_list:
                 logger.warning("No valid requirements to check")
                 return False
-            
+
             if not cap_list:
                 logger.warning("No valid capabilities to check against")
                 return False
-            
+
             # Check if ALL requirements can be satisfied by the capabilities
             for req in req_list:
                 req_process = req.get("process_name", "").lower().strip()
@@ -390,7 +415,9 @@ class MatchingService:
                         extra={
                             "requirement_process": req.get("process_name"),
                             "capability_count": len(cap_list),
-                            "available_capabilities": [cap.get("process_name", "") for cap in cap_list],
+                            "available_capabilities": [
+                                cap.get("process_name", "") for cap in cap_list
+                            ],
                         },
                     )
                     return False
@@ -515,7 +542,7 @@ class MatchingService:
             # Extract process names from URIs if needed
             req_normalized = self._normalize_process_name(req_process)
             cap_normalized = self._normalize_process_name(cap_process)
-            
+
             # Create requirement and capability objects for matching
             requirements = [{"process_name": req_normalized}]
             capabilities = [{"process_name": cap_normalized}]
@@ -566,7 +593,7 @@ class MatchingService:
             is_cap_uri = isinstance(cap_process, str) and (
                 cap_process.startswith("http://") or cap_process.startswith("https://")
             )
-            
+
             # CRITICAL: Skip NLP matching only if BOTH are URIs
             # This prevents URI-to-URI false matches (e.g., PCB URI matching 3DP URI)
             # But allow NLP when one is URI and other is simple name (extract name from URI)
@@ -583,11 +610,11 @@ class MatchingService:
                     },
                 )
                 return False
-            
+
             # If one side is a URI, extract the process name from it for NLP matching
             req_for_nlp = req_process
             cap_for_nlp = cap_process
-            
+
             if is_req_uri:
                 # Extract process name from requirement URI
                 req_for_nlp = self._normalize_process_name(req_process)
@@ -598,7 +625,7 @@ class MatchingService:
                         "extracted_requirement": req_for_nlp,
                     },
                 )
-            
+
             if is_cap_uri:
                 # Extract process name from capability URI
                 cap_for_nlp = self._normalize_process_name(cap_process)
@@ -1286,7 +1313,7 @@ class MatchingService:
         normalized = re.sub(r"\s+", " ", normalized)
 
         normalized = normalized.strip()
-        
+
         # Map common Wikipedia process names to standard names for better rule matching
         # This helps match Wikipedia URIs to OKH simple names through rules
         process_name_mapping = {
@@ -1317,14 +1344,14 @@ class MatchingService:
             "surface finish": "surface finishing",
             "surface treatment": "surface finishing",
         }
-        
+
         # Check if normalized name matches any mapping key (exact or contains)
         for wiki_name, standard_name in process_name_mapping.items():
             if wiki_name in normalized or normalized in wiki_name:
                 # Use the standard name for better rule matching
                 normalized = standard_name
                 break
-        
+
         return normalized
 
     def _calculate_process_similarity(self, process1: str, process2: str) -> float:

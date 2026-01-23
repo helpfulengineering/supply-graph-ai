@@ -142,7 +142,7 @@ async def build_package_from_manifest(
         # Pre-validate and fix UUID issues in manifest data before parsing
         # This is a safeguard in case the API server hasn't been restarted with the latest fixes
         from ...validation.uuid_validator import UUIDValidator
-        
+
         # Fix manifest ID if invalid
         if "id" in request.manifest_data:
             manifest_id = request.manifest_data["id"]
@@ -151,7 +151,7 @@ async def build_package_from_manifest(
                 request.manifest_data["id"] = UUIDValidator.fix_invalid_uuid(
                     manifest_id, fallback_to_random=True
                 )
-        
+
         # Fix part IDs if invalid
         if "parts" in request.manifest_data:
             for part in request.manifest_data["parts"]:
@@ -162,7 +162,7 @@ async def build_package_from_manifest(
                         part["id"] = UUIDValidator.fix_invalid_uuid(
                             part_id, fallback_to_random=True
                         )
-        
+
         # Create manifest from data (this will also handle UUID conversion)
         manifest = OKHManifest.from_dict(request.manifest_data)
 
@@ -608,7 +608,7 @@ async def push_package(
                         f"Suggested: Try 'ohm package push {suggested_package_name} {version}'"
                     ),
                 )
-        
+
         # Validate package name has exactly one slash (org/project format)
         if package_name.count("/") != 1:
             raise HTTPException(
