@@ -253,13 +253,30 @@ Should issues arise, rollback is simple:
 
 **Details**: See `PYTHON_312_INTEGRATION_TEST_RESULTS.md`
 
-### Future (When Deploying)
+### Cloud Run Deployment Complete ✅
+**Date**: January 23, 2026  
+**Service**: supply-graph-ai  
+**URL**: https://supply-graph-ai-1085931013579.us-west1.run.app  
+**Region**: us-west1 (GCP)  
+**Status**: ✅ DEPLOYED AND VALIDATED
+
+**Validation Results**:
+- ✅ Health endpoint: Operational
+- ✅ Readiness checks: All passing (storage, auth, domains)
+- ✅ API documentation: Accessible
+- ✅ Response times: 400-450ms (warm), ~900ms (cold start)
+- ✅ Python 3.12.12 confirmed in container
+
+**Details**: See `PYTHON_312_CLOUD_RUN_DEPLOYMENT.md`
+
+### Future (Monitoring & Finalization)
 1. ✅ Integration testing complete - DONE
-2. Deploy updated Docker image to staging environment
-3. Monitor staging for 48-72 hours
-4. Deploy to production using CI/CD pipeline
-5. Monitor production metrics (error rates, performance, memory)
+2. ✅ Deploy to Cloud Run - DONE
+3. 🔄 Monitor Cloud Run for 48-72 hours - IN PROGRESS
+4. Monitor production metrics (error rates, performance, memory)
+5. Mark migration officially complete after monitoring period
 6. Remove Python 3.11 support once stable (optional)
+7. Update production runbooks and documentation
 
 ### Maintenance
 - Monitor dependency updates for Python 3.12 compatibility
