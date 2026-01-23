@@ -97,8 +97,7 @@ jobs:
       - name: Check repository maps are up to date
         run: |
           echo "Generating repository maps..."
-          python scripts/generate_aider_map.py
-          python scripts/generate_sourcegraph_map.py
+          python scripts/generate_repo_map.py
           
           echo "Checking if maps need to be updated..."
           if ! git diff --quiet .repo-map-aider.md .repo-map-sourcegraph.md; then
@@ -108,13 +107,13 @@ jobs:
             git diff --name-only .repo-map-aider.md .repo-map-sourcegraph.md
             echo ""
             echo "Please run the following commands locally and commit the changes:"
-            echo "  python scripts/generate_aider_map.py"
+            echo "  python scripts/generate_repo_map.py"
             echo "  python scripts/generate_sourcegraph_map.py"
             echo "  git add .repo-map-aider.md .repo-map-sourcegraph.md"
             echo "  git commit -m 'chore: update repository maps'"
             echo ""
             echo "Diff:"
-            git diff .repo-map-aider.md .repo-map-sourcegraph.md
+            git diff .repo-map.md
             exit 1
           else
             echo "✅ Repository maps are up to date"
