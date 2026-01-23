@@ -1236,12 +1236,12 @@ class GenerationEngine:
         # LLM Review Step (if enabled)
         if self.config.use_llm and self.config.is_llm_configured():
             try:
-                components = await self._review_components_with_llm(
-                    components, sources
-                )
+                components = await self._review_components_with_llm(components, sources)
             except Exception as e:
                 # Log error but don't fail the entire generation
-                logger.warning(f"LLM component review failed: {e}, using all components")
+                logger.warning(
+                    f"LLM component review failed: {e}, using all components"
+                )
                 # Continue with all components if LLM review fails
 
         # Build final BOM
@@ -1277,7 +1277,7 @@ class GenerationEngine:
         # With 65 components, JSON response can easily exceed 4000 tokens
         max_tokens = 8000  # Max tokens for response (increased from 4000)
         max_input_tokens = 200000  # Typical max context window (conservative estimate)
-        
+
         prompt = None
         estimated_tokens = None
 
@@ -1288,7 +1288,9 @@ class GenerationEngine:
             # Build prompt
             component_list = self._format_components_for_prompt(components)
             source_excerpts = self._format_source_excerpts(sources, components)
-            prompt = self._build_component_review_prompt(component_list, source_excerpts)
+            prompt = self._build_component_review_prompt(
+                component_list, source_excerpts
+            )
 
             # Estimate token count for the prompt
             estimated_tokens = self._estimate_token_count(prompt)
@@ -1305,7 +1307,7 @@ class GenerationEngine:
 
             # Call LLM
             from ..llm.models.requests import LLMRequestConfig
-            
+
             request_config = LLMRequestConfig(
                 max_tokens=max_tokens,  # Enough for JSON response (default 4000, may need increase for large component lists)
                 temperature=0.1,  # Low temperature for consistent validation
@@ -1333,19 +1335,29 @@ class GenerationEngine:
 
         except Exception as e:
             error_msg = str(e).lower()
-            
+
             # Estimate tokens if we have the prompt (may not be available if error occurred early)
             if prompt is not None and estimated_tokens is None:
                 estimated_tokens = self._estimate_token_count(prompt)
-            
+
             # Check if error is related to token/context limits
             token_limit_keywords = [
-                "token", "context length", "context window", "max tokens",
-                "input too long", "exceeds", "limit", "too many tokens"
+                "token",
+                "context length",
+                "context window",
+                "max tokens",
+                "input too long",
+                "exceeds",
+                "limit",
+                "too many tokens",
             ]
-            
+
             if any(keyword in error_msg for keyword in token_limit_keywords):
-                token_info = f"Estimated input tokens: {estimated_tokens:,}" if estimated_tokens else "Token count unavailable"
+                token_info = (
+                    f"Estimated input tokens: {estimated_tokens:,}"
+                    if estimated_tokens
+                    else "Token count unavailable"
+                )
                 logger.error(
                     f"LLM component review failed due to token limit: {e}. "
                     f"{token_info}. "
@@ -1355,13 +1367,13 @@ class GenerationEngine:
                 )
             else:
                 logger.warning(f"LLM component review error: {e}")
-            
+
             return components  # Return all components on error
 
     async def _get_llm_service_for_review(self):
         """Get or create LLM service for component review."""
-        from ..llm.service import LLMService, LLMServiceConfig
         from ..llm.providers.base import LLMProviderType
+        from ..llm.service import LLMService, LLMServiceConfig
 
         # Try to reuse LLM service from LLM layer if available
         if GenerationLayer.LLM in self._matchers:
@@ -1519,30 +1531,30 @@ Review all components and return the JSON response."""
     def _estimate_token_count(self, text: str) -> int:
         """
         Estimate token count for a given text.
-        
+
         Uses a simple heuristic: ~1.3 tokens per word, which is a reasonable
         approximation for English text. More accurate tokenization would require
         the actual tokenizer for each model, but this provides a good estimate.
-        
+
         Args:
             text: Text to estimate tokens for
-            
+
         Returns:
             Estimated token count
         """
         if not text:
             return 0
-        
+
         # Simple estimation: ~1.3 tokens per word (common for English)
         # This is similar to what Anthropic provider uses
         word_count = len(text.split())
         estimated_tokens = int(word_count * 1.3)
-        
+
         # Add some overhead for special characters, formatting, etc.
         # JSON structures and markdown add extra tokens
         if "```" in text or "{" in text:
             estimated_tokens = int(estimated_tokens * 1.1)
-        
+
         return estimated_tokens
 
     def _parse_llm_validation_response(
@@ -1550,7 +1562,7 @@ Review all components and return the JSON response."""
     ) -> List[Any]:
         """
         Parse LLM validation response and filter components.
-        
+
         Uses robust JSON extraction and recovery mechanisms to handle:
         - Markdown-wrapped JSON
         - Truncated responses
@@ -1563,14 +1575,14 @@ Review all components and return the JSON response."""
         try:
             # Step 1: Extract JSON from response (handle markdown code blocks and other formats)
             json_str = self._extract_json_from_validation_response(response_content)
-            
+
             if not json_str:
                 logger.warning("No JSON found in LLM validation response")
                 return components  # Return all if no JSON found
 
             # Step 2: Parse JSON with recovery attempts
             validation = self._parse_json_with_recovery(json_str)
-            
+
             if not validation:
                 logger.warning(
                     f"Failed to parse LLM validation response after recovery attempts. "
@@ -1618,10 +1630,12 @@ Review all components and return the JSON response."""
             )
             return components  # Return all if parsing fails
 
-    def _extract_json_from_validation_response(self, response_content: str) -> Optional[str]:
+    def _extract_json_from_validation_response(
+        self, response_content: str
+    ) -> Optional[str]:
         """
         Extract JSON string from LLM response, handling various formats.
-        
+
         Tries multiple strategies:
         1. Markdown code blocks (```json ... ```)
         2. Plain code blocks (``` ... ```)
@@ -1630,16 +1644,16 @@ Review all components and return the JSON response."""
         5. Truncated JSON recovery
         """
         import re
-        
+
         content = response_content.strip()
-        
+
         # Strategy 1: Markdown JSON code block
         if "```json" in content:
             json_start = content.find("```json") + 7
             json_end = content.find("```", json_start)
             if json_end > json_start:
                 return content[json_start:json_end].strip()
-        
+
         # Strategy 2: Plain code block
         if "```" in content:
             json_start = content.find("```") + 3
@@ -1649,7 +1663,7 @@ Review all components and return the JSON response."""
                 # Only return if it looks like JSON (starts with {)
                 if extracted.startswith("{"):
                     return extracted
-        
+
         # Strategy 3: Look for JSON after common keywords
         keywords = ["JSON:", "json:", "response:", "validation:"]
         for keyword in keywords:
@@ -1661,14 +1675,14 @@ Review all components and return the JSON response."""
                     json_end = content.rfind("}", json_start)
                     if json_end > json_start:
                         return content[json_start : json_end + 1]
-        
+
         # Strategy 4: Find first { and last } (handles truncated responses)
         json_start = content.find("{")
         if json_start != -1:
             json_end = content.rfind("}")
             if json_end > json_start:
                 return content[json_start : json_end + 1]
-        
+
         # Strategy 5: Try to find JSON object even if truncated (missing closing brace)
         json_start = content.find("{")
         if json_start != -1:
@@ -1687,16 +1701,16 @@ Review all components and return the JSON response."""
                     if brace_count == 0:
                         last_valid_pos = i
             if last_valid_pos > 0:
-                return extracted[:last_valid_pos + 1]
+                return extracted[: last_valid_pos + 1]
             # If no complete structure, return what we have (will try recovery)
             return extracted
-        
+
         return None
 
     def _parse_json_with_recovery(self, json_str: str) -> Optional[Dict[str, Any]]:
         """
         Parse JSON with recovery attempts for common issues.
-        
+
         Handles:
         - Trailing commas
         - Missing commas
@@ -1785,20 +1799,26 @@ Review all components and return the JSON response."""
             improvements_match = re.search(
                 r'"suggested_improvements"\s*:\s*\[(.*?)\]', json_str, re.DOTALL
             )
-            
+
             if valid_components_match or invalid_components_match:
                 # Try to construct minimal valid JSON
                 partial_json = "{"
                 if valid_components_match:
-                    partial_json += f'"valid_components": [{valid_components_match.group(1)}],'
+                    partial_json += (
+                        f'"valid_components": [{valid_components_match.group(1)}],'
+                    )
                 if invalid_components_match:
-                    partial_json += f'"invalid_components": [{invalid_components_match.group(1)}],'
+                    partial_json += (
+                        f'"invalid_components": [{invalid_components_match.group(1)}],'
+                    )
                 if improvements_match:
-                    partial_json += f'"suggested_improvements": [{improvements_match.group(1)}],'
+                    partial_json += (
+                        f'"suggested_improvements": [{improvements_match.group(1)}],'
+                    )
                 # Remove trailing comma
                 partial_json = re.sub(r",\s*$", "", partial_json)
                 partial_json += "}"
-                
+
                 return json.loads(partial_json)
         except (json.JSONDecodeError, AttributeError):
             pass

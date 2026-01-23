@@ -227,7 +227,7 @@ class DocumentRef:
             filename = Path(self.path).stem.lower()
             if filename in common_filenames:
                 return True
-            
+
             # For generated manifests, be even more permissive:
             # If it's a simple filename (no path separators) and looks like a reasonable
             # file reference (has an extension or is a common name), allow it
@@ -537,7 +537,7 @@ class OKHManifest:
         ):
             if not doc.validate():
                 invalid_docs.append(doc.title)
-        
+
         # Only raise error if we have invalid docs AND they don't look like reasonable file references
         # This prevents false positives for files in remote repositories
         if invalid_docs:
@@ -548,7 +548,7 @@ class OKHManifest:
                 if "." in doc_title or any(c.isalnum() for c in doc_title):
                     potentially_valid = True
                     break
-            
+
             if not potentially_valid:
                 raise ValueError(f"Invalid document reference: {invalid_docs[0]}")
             else:
@@ -696,6 +696,7 @@ class OKHManifest:
                 # Handle invalid UUIDs (e.g., slug-like IDs from older manifests)
                 # Convert to UUID using UUIDValidator
                 from ..validation.uuid_validator import UUIDValidator
+
                 fixed_uuid = UUIDValidator.fix_invalid_uuid(
                     manifest_id_str, fallback_to_random=True
                 )
@@ -865,6 +866,7 @@ class OKHManifest:
                         # Handle invalid UUIDs (e.g., slug-like IDs from older manifests)
                         # Convert to UUID using UUIDValidator
                         from ..validation.uuid_validator import UUIDValidator
+
                         fixed_uuid = UUIDValidator.fix_invalid_uuid(
                             part_id_str, fallback_to_random=True
                         )

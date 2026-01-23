@@ -563,8 +563,8 @@ async def list_packages(
                 click.echo(output_data)
             else:
                 for pkg in packages:
-                    package_name = pkg.get('package_name', 'Unknown')
-                    version = pkg.get('version', 'Unknown')
+                    package_name = pkg.get("package_name", "Unknown")
+                    version = pkg.get("version", "Unknown")
                     click.echo(f"📦 {package_name}")
                     click.echo(f"   📌 Version: {version}")
                     click.echo(f"   📁 {pkg.get('package_path', 'Unknown')}")
@@ -732,6 +732,7 @@ async def describe(
     cli_ctx.start_command_tracking("package-describe")
 
     try:
+
         async def http_describe():
             """Get package info via HTTP API"""
             cli_ctx.log("Fetching package info via HTTP API...", "info")
@@ -745,12 +746,12 @@ async def describe(
             cli_ctx.log("Using direct service...", "info")
             package_service = await PackageService.get_instance()
             metadata = await package_service.get_package_metadata(package_name, version)
-            
+
             if not metadata:
                 raise click.ClickException(
                     f"Package {package_name}:{version} not found"
                 )
-            
+
             return {
                 "status": "success",
                 "package": metadata.to_dict(),
@@ -770,27 +771,42 @@ async def describe(
 
         if output_format == "json":
             import json
+
             click.echo(json.dumps(pkg, indent=2, default=str))
         else:
             # Display formatted package information
             click.echo(f"📦 Package: {pkg.get('package_name', 'Unknown')}")
             click.echo(f"   📌 Version: {pkg.get('version', 'Unknown')}")
-            click.echo(f"   🆔 OKH Manifest ID: {pkg.get('okh_manifest_id', 'Unknown')}")
+            click.echo(
+                f"   🆔 OKH Manifest ID: {pkg.get('okh_manifest_id', 'Unknown')}"
+            )
             click.echo(f"   📁 Path: {pkg.get('package_path', 'Unknown')}")
             click.echo(f"   📄 Files: {pkg.get('total_files', 0):,}")
-            click.echo(f"   💾 Size: {pkg.get('total_size_bytes', 0):,} bytes ({pkg.get('total_size_bytes', 0) / 1024 / 1024:.2f} MB)")
+            click.echo(
+                f"   💾 Size: {pkg.get('total_size_bytes', 0):,} bytes ({pkg.get('total_size_bytes', 0) / 1024 / 1024:.2f} MB)"
+            )
             click.echo(f"   🕒 Built: {pkg.get('build_timestamp', 'Unknown')}")
             click.echo(f"   🔧 OHM Version: {pkg.get('ohm_version', 'Unknown')}")
-            
+
             # Show build options if available
-            build_options = pkg.get('build_options', {})
+            build_options = pkg.get("build_options", {})
             if build_options:
                 click.echo(f"\n   Build Options:")
-                click.echo(f"      Output Directory: {build_options.get('output_dir', 'Default')}")
-                click.echo(f"      Include Design Files: {build_options.get('include_design_files', False)}")
-                click.echo(f"      Include Manufacturing Files: {build_options.get('include_manufacturing_files', False)}")
-                click.echo(f"      Include Software: {build_options.get('include_software', False)}")
-                click.echo(f"      Include Parts: {build_options.get('include_parts', False)}")
+                click.echo(
+                    f"      Output Directory: {build_options.get('output_dir', 'Default')}"
+                )
+                click.echo(
+                    f"      Include Design Files: {build_options.get('include_design_files', False)}"
+                )
+                click.echo(
+                    f"      Include Manufacturing Files: {build_options.get('include_manufacturing_files', False)}"
+                )
+                click.echo(
+                    f"      Include Software: {build_options.get('include_software', False)}"
+                )
+                click.echo(
+                    f"      Include Parts: {build_options.get('include_parts', False)}"
+                )
 
         cli_ctx.end_command_tracking()
 
@@ -1023,7 +1039,7 @@ async def push(
                         f"Expected format: package_name='org/project' (e.g., 'fourthievesvinegar/solderless-microlab'), version='1.0.0'\n"
                         f"Try: ohm package push {suggested_package_name} {version}"
                     )
-            
+
             # Validate package name has exactly one slash (org/project format)
             if package_name.count("/") != 1:
                 raise click.ClickException(

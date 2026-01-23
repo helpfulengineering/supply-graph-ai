@@ -56,8 +56,8 @@ Use this option if you need to modify code frequently and want hot-reload withou
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
-# Create and activate conda environment
-conda create -n supply-graph-ai python=3.10
+# Create and activate conda environment (Python 3.12 required)
+conda create -n supply-graph-ai python=3.12
 conda activate supply-graph-ai
 
 # Install dependencies

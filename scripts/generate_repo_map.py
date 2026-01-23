@@ -155,7 +155,11 @@ def _get_name(node):
         return node.id
     elif isinstance(node, ast.Attribute):
         return f"{_get_name(node.value)}.{node.attr}"
-    return str(node)
+    elif isinstance(node, ast.Subscript):
+        # Handle generic types like Generic[T], List[str], etc.
+        # Extract just the base name (e.g., "Generic" from "Generic[T]")
+        return _get_name(node.value)
+    return f"<{node.__class__.__name__}>"  # Fallback for unknown node types
 
 
 def extract_detailed_symbols(file_path: Path, repo_path: Path) -> Dict:

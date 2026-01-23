@@ -479,9 +479,11 @@ class ManifestGeneration:
             "bom": self._get_bom_field(fields_dict),
             "standards_used": fields_dict.get("standards_used", []),
             "tsdc": fields_dict.get("tsdc", []),
-            "parts": self._extract_parts_from_bom(
-                self.full_bom, fields_dict
-            ) if self.full_bom else fields_dict.get("parts", []),
+            "parts": (
+                self._extract_parts_from_bom(self.full_bom, fields_dict)
+                if self.full_bom
+                else fields_dict.get("parts", [])
+            ),
             "sub_parts": fields_dict.get("sub_parts", []),
             "software": self._normalize_software(
                 fields_dict.get("software", []), self.project_data
@@ -495,7 +497,10 @@ class ManifestGeneration:
         }
 
         # Add optional fields if they exist (with normalization)
-        if "documentation_language" in fields_dict and fields_dict["documentation_language"]:
+        if (
+            "documentation_language" in fields_dict
+            and fields_dict["documentation_language"]
+        ):
             manifest["documentation_language"] = fields_dict["documentation_language"]
         if "contact" in fields_dict and fields_dict["contact"]:
             manifest["contact"] = fields_dict["contact"]
@@ -516,7 +521,9 @@ class ManifestGeneration:
 
         return manifest
 
-    def _remove_type_from_file_entries(self, file_list: List[Any]) -> List[Dict[str, Any]]:
+    def _remove_type_from_file_entries(
+        self, file_list: List[Any]
+    ) -> List[Dict[str, Any]]:
         """
         Remove redundant 'type' field from file entries.
 
@@ -568,7 +575,9 @@ class ManifestGeneration:
         """
         # If already a dict with correct structure, return it
         if isinstance(license_value, dict):
-            if all(k in license_value for k in ["hardware", "documentation", "software"]):
+            if all(
+                k in license_value for k in ["hardware", "documentation", "software"]
+            ):
                 return license_value
             # If dict with single "license" key, extract and apply to all
             if "license" in license_value:
@@ -727,7 +736,10 @@ class ManifestGeneration:
 
         # If already MaterialSpec objects (dicts with material_id)
         if isinstance(materials_value, list) and materials_value:
-            if isinstance(materials_value[0], dict) and "material_id" in materials_value[0]:
+            if (
+                isinstance(materials_value[0], dict)
+                and "material_id" in materials_value[0]
+            ):
                 return materials_value  # Already correct format
 
         # If string array, convert to MaterialSpec
@@ -804,10 +816,10 @@ class ManifestGeneration:
         if isinstance(software_value, list):
             # Extract version once (shared for all software entries)
             version = self._extract_software_version(project_data)
-            
+
             # Track seen entries to avoid duplicates
             seen_entries = set()
-            
+
             for item in software_value:
                 if isinstance(item, dict):
                     # Check if it's a DocumentRef (has type field)
@@ -818,18 +830,18 @@ class ManifestGeneration:
                         else:
                             # Fallback to file path if no version found
                             release = item.get("path", item.get("title", "unknown"))
-                        
+
                         # Try to find installation guide
                         installation_guide = self._find_installation_guide(
                             item.get("path"), project_data
                         )
-                        
+
                         # Create entry
                         software_entry = {
                             "release": release,
                             "installation_guide": installation_guide,
                         }
-                        
+
                         # De-duplicate: use (release, installation_guide) as key
                         entry_key = (release, installation_guide)
                         if entry_key not in seen_entries:
@@ -838,7 +850,10 @@ class ManifestGeneration:
                     # If it's already a Software object (has release), use it
                     elif "release" in item:
                         # Also de-duplicate existing Software objects
-                        entry_key = (item.get("release"), item.get("installation_guide"))
+                        entry_key = (
+                            item.get("release"),
+                            item.get("installation_guide"),
+                        )
                         if entry_key not in seen_entries:
                             seen_entries.add(entry_key)
                             software_list.append(item)
@@ -959,12 +974,12 @@ class ManifestGeneration:
                     content = file_info.content
                     # Match: version = 1.2.3
                     version_match = re.search(
-                        r'version\s*=\s*([^\n]+)', content, re.IGNORECASE
+                        r"version\s*=\s*([^\n]+)", content, re.IGNORECASE
                     )
                     if version_match:
                         version = version_match.group(1).strip()
                         # Remove quotes if present
-                        version = version.strip('"\'')
+                        version = version.strip("\"'")
                         if version:
                             return version
                 except (AttributeError, Exception):
@@ -1007,7 +1022,8 @@ class ManifestGeneration:
             or ", then" in name.lower()
             or ". then" in name.lower()
             or " to install" in name.lower()
-            or " to " in name.lower() and len(name) > 30
+            or " to " in name.lower()
+            and len(name) > 30
             or " and the " in name.lower()
             or (name.count(",") > 0 and len(name) > 40)
             or (name.count(".") > 0 and len(name) > 40)
@@ -1034,7 +1050,11 @@ class ManifestGeneration:
         # Extract part name before first comma, period, or instruction word
         # Look for common part name patterns
         # Pattern 1: "M3 screws" or "M4 bolts" (screw/bolt specifications)
-        screw_match = re.search(r"([M\d]+(?:\s*[xX]\s*\d+)?\s*(?:screws?|bolts?|nuts?|washers?))", name, re.IGNORECASE)
+        screw_match = re.search(
+            r"([M\d]+(?:\s*[xX]\s*\d+)?\s*(?:screws?|bolts?|nuts?|washers?))",
+            name,
+            re.IGNORECASE,
+        )
         if screw_match:
             return screw_match.group(1).strip()
 
@@ -1055,7 +1075,13 @@ class ManifestGeneration:
                 parts = name.split(sep, 1)
                 first_part = parts[0].strip()
                 # If first part is meaningful (not just "degree" or "then")
-                if len(first_part) > 3 and not first_part.lower() in ["then", "and", "or", "to", "the"]:
+                if len(first_part) > 3 and not first_part.lower() in [
+                    "then",
+                    "and",
+                    "or",
+                    "to",
+                    "the",
+                ]:
                     name = first_part
                     break
 
@@ -1088,10 +1114,18 @@ class ManifestGeneration:
                     # Combine with preceding word if it's a modifier (e.g., "header pins")
                     for i, match in enumerate(matches):
                         if i > 0:
-                            prev_word = re.search(rf"\w+\s+{re.escape(match)}", original_name, re.IGNORECASE)
+                            prev_word = re.search(
+                                rf"\w+\s+{re.escape(match)}",
+                                original_name,
+                                re.IGNORECASE,
+                            )
                             if prev_word:
                                 return prev_word.group(0).strip()
-                    result = matches[0] if isinstance(matches[0], str) else " ".join(matches[:2])
+                    result = (
+                        matches[0]
+                        if isinstance(matches[0], str)
+                        else " ".join(matches[:2])
+                    )
                     # Preserve original case for the matched term
                     if result:
                         return result
@@ -1118,8 +1152,9 @@ class ManifestGeneration:
         Returns:
             Valid UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
         """
-        from ..validation.uuid_validator import UUIDValidator
         import hashlib
+
+        from ..validation.uuid_validator import UUIDValidator
 
         # Create a unique identifier string from name and original_id
         # This ensures deterministic UUIDs while maintaining uniqueness
@@ -1193,7 +1228,7 @@ class ManifestGeneration:
 
             # Clean and normalize part name (extract actual part name from sentence fragments)
             cleaned_name = self._clean_part_name(comp_name)
-            
+
             # Generate clean ID from cleaned name (not original sentence fragment)
             # If the name was cleaned, generate new ID; otherwise use original if it's reasonable
             if cleaned_name != comp_name:
@@ -1206,7 +1241,7 @@ class ManifestGeneration:
                     clean_id = self._generate_part_id(cleaned_name, comp_id)
                 else:
                     clean_id = comp_id if isinstance(comp_id, str) else str(comp_id)
-            
+
             # Create PartSpec dict
             part = {
                 "id": clean_id,
@@ -1253,7 +1288,7 @@ class ManifestGeneration:
             # Use improved file linking algorithm
             design_files = fields_dict.get("design_files", [])
             manufacturing_files = fields_dict.get("manufacturing_files", [])
-            
+
             # Link files using stricter matching
             linked_source = self._link_part_to_files(
                 comp_name, comp_metadata, design_files, is_manufacturing=False
@@ -1261,12 +1296,12 @@ class ManifestGeneration:
             linked_export = self._link_part_to_files(
                 comp_name, comp_metadata, manufacturing_files, is_manufacturing=True
             )
-            
+
             if linked_source:
                 if not part["source"]:
                     part["source"] = []
                 part["source"].extend(linked_source)
-            
+
             if linked_export:
                 if not part["export"]:
                     part["export"] = []
@@ -1309,110 +1344,127 @@ class ManifestGeneration:
 
         linked_files = []
         comp_name_lower = comp_name.lower().strip()
-        
+
         # Normalize component name: remove parentheses, special chars, extract key words
         comp_normalized = re.sub(r"[()]", "", comp_name_lower)
         comp_words = [w for w in re.split(r"[^a-z0-9]+", comp_normalized) if len(w) > 2]
-        
+
         # Extract hints from metadata
         file_reference = comp_metadata.get("file_reference", "").lower()
         file_path_hint = comp_metadata.get("file_path", "").lower()
-        
+
         # CAD file extensions (prioritized)
-        cad_extensions = [".stl", ".step", ".stp", ".obj", ".ply", ".3mf", ".cad", ".dxf"]
+        cad_extensions = [
+            ".stl",
+            ".step",
+            ".stp",
+            ".obj",
+            ".ply",
+            ".3mf",
+            ".cad",
+            ".dxf",
+        ]
         # Documentation extensions (lower priority)
         doc_extensions = [".md", ".txt", ".pdf", ".doc", ".docx"]
-        
+
         # Strategy 1: Directory structure matching (highest priority)
         # Look for files in parts/{component-name}/ or parts/{key-word}/
         for file_item in file_list:
             if not isinstance(file_item, dict):
                 continue
-                
+
             file_path = file_item.get("path", "")
             if not file_path:
                 continue
-                
+
             file_path_lower = file_path.lower()
             path_obj = Path(file_path_lower)
-            
+
             # Only match files in parts/ directory (stricter requirement)
             if "parts/" not in file_path_lower:
                 continue
-            
+
             # Extract directory name from parts/{dir}/
             parts_match = re.search(r"parts/([^/]+)", file_path_lower)
             if not parts_match:
                 continue
-                
+
             dir_name = parts_match.group(1)
-            
+
             # Check if component name or key words match directory
             if self._matches_component(comp_name_lower, comp_words, dir_name):
                 if file_path not in linked_files:
                     linked_files.append(file_path)
                     continue
-            
+
             # Check if file_reference matches directory
             if file_reference and file_reference in dir_name:
                 if file_path not in linked_files:
                     linked_files.append(file_path)
                     continue
-        
+
         # Strategy 2: Filename matching (if no directory matches found)
         if not linked_files:
             for file_item in file_list:
                 if not isinstance(file_item, dict):
                     continue
-                    
+
                 file_path = file_item.get("path", "")
                 if not file_path:
                     continue
-                    
+
                 file_path_lower = file_path.lower()
                 path_obj = Path(file_path_lower)
                 filename = path_obj.stem.lower()  # filename without extension
-                
+
                 # Only match files in parts/ directory
                 if "parts/" not in file_path_lower:
                     continue
-                
+
                 # Check if component name or key words match filename
                 if self._matches_component(comp_name_lower, comp_words, filename):
                     if file_path not in linked_files:
                         linked_files.append(file_path)
-        
+
         # Strategy 3: Use file_reference hint (e.g., "Heat" -> "heat" -> "blue-heat")
         if not linked_files and file_reference:
             for file_item in file_list:
                 if not isinstance(file_item, dict):
                     continue
-                    
+
                 file_path = file_item.get("path", "")
                 if not file_path:
                     continue
-                    
+
                 file_path_lower = file_path.lower()
-                
+
                 # Only match files in parts/ directory
                 if "parts/" not in file_path_lower:
                     continue
-                
+
                 # Check if file_reference appears in path
                 if file_reference in file_path_lower:
                     if file_path not in linked_files:
                         linked_files.append(file_path)
-        
+
         # Prioritize CAD files over documentation
         if linked_files:
-            cad_files = [f for f in linked_files if any(f.lower().endswith(ext) for ext in cad_extensions)]
+            cad_files = [
+                f
+                for f in linked_files
+                if any(f.lower().endswith(ext) for ext in cad_extensions)
+            ]
             if cad_files:
                 return cad_files[:5]  # Limit to 5 CAD files
             # If no CAD files, return documentation files (limited)
-            doc_files = [f for f in linked_files if any(f.lower().endswith(ext) for ext in doc_extensions)]
+            doc_files = [
+                f
+                for f in linked_files
+                if any(f.lower().endswith(ext) for ext in doc_extensions)
+            ]
             if doc_files:
                 return doc_files[:3]  # Limit to 3 doc files
-        
+
         return linked_files[:5]  # Overall limit
 
     def _matches_component(
@@ -1435,16 +1487,18 @@ class ManifestGeneration:
             True if component matches target
         """
         import re
-        
+
         # Normalize target
         target_normalized = re.sub(r"[^a-z0-9]+", "-", target.lower())
-        target_words = [w for w in re.split(r"[^a-z0-9]+", target_normalized) if len(w) > 2]
-        
+        target_words = [
+            w for w in re.split(r"[^a-z0-9]+", target_normalized) if len(w) > 2
+        ]
+
         # Exact match (normalized)
         comp_normalized = re.sub(r"[^a-z0-9]+", "-", comp_name_lower)
         if comp_normalized == target_normalized:
             return True
-        
+
         # Key word matching: require at least 2 significant words to match
         # This prevents false positives from single common words
         matches = 0
@@ -1452,7 +1506,7 @@ class ManifestGeneration:
             if len(comp_word) >= 4:  # Only match words of 4+ chars
                 if comp_word in target_normalized or comp_word in target_words:
                     matches += 1
-        
+
         # Require at least 2 matches for multi-word components, or 1 for short components
         if len(comp_words) > 1:
             return matches >= 2

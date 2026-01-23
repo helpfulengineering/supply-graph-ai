@@ -9,7 +9,7 @@ on:
     types: [ created ]
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.12'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   GCP_PROJECT_ID: nathan-playground-368310
@@ -97,24 +97,22 @@ jobs:
       - name: Check repository maps are up to date
         run: |
           echo "Generating repository maps..."
-          python scripts/generate_aider_map.py
-          python scripts/generate_sourcegraph_map.py
+          python scripts/generate_repo_map.py
           
           echo "Checking if maps need to be updated..."
-          if ! git diff --quiet .repo-map-aider.md .repo-map-sourcegraph.md; then
+          if ! git diff --quiet .repo-map.md; then
             echo "❌ Repository maps are out of date!"
             echo ""
             echo "The following files have changed:"
-            git diff --name-only .repo-map-aider.md .repo-map-sourcegraph.md
+            git diff --name-only .repo-map.md
             echo ""
             echo "Please run the following commands locally and commit the changes:"
-            echo "  python scripts/generate_aider_map.py"
-            echo "  python scripts/generate_sourcegraph_map.py"
-            echo "  git add .repo-map-aider.md .repo-map-sourcegraph.md"
+            echo "  python scripts/generate_repo_map.py"
+            echo "  git add .repo-map.md"
             echo "  git commit -m 'chore: update repository maps'"
             echo ""
             echo "Diff:"
-            git diff .repo-map-aider.md .repo-map-sourcegraph.md
+            git diff .repo-map.md
             exit 1
           else
             echo "✅ Repository maps are up to date"
@@ -126,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.12']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -167,6 +165,7 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: [lint, test]
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
       image-digest: ${{ steps.build.outputs.digest }}

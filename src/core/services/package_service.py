@@ -131,12 +131,12 @@ class PackageService:
             output_dir = repo_root / output_dir_path
         else:
             output_dir = output_dir_path
-        
+
         # Ensure output directory exists
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"Using output directory: {output_dir.absolute()}")
-        
+
         metadata = await self.package_builder.build_package(
             manifest, output_dir, options
         )
@@ -206,14 +206,14 @@ class PackageService:
             return None
 
         repo_root = Path(__file__).parent.parent.parent.parent
-        
+
         # Check multiple possible locations for packages
         possible_dirs = [
             repo_root / "packages",  # Default location
             repo_root / "test-data" / "microlab" / "package",  # Custom test location
             # Add more common locations as needed
         ]
-        
+
         package_path = None
         for output_dir in possible_dirs:
             candidate_path = output_dir / package_name / version
@@ -221,7 +221,7 @@ class PackageService:
                 package_path = candidate_path
                 logger.debug(f"Found package at: {package_path}")
                 break
-        
+
         # If not found in standard locations, try searching recursively
         if package_path is None:
             logger.debug(f"Package not found in standard locations, searching...")
@@ -233,7 +233,7 @@ class PackageService:
                         package_path = found_path
                         logger.debug(f"Found package via search at: {package_path}")
                         break
-        
+
         # Check if package exists
         if package_path is None or not package_path.exists():
             logger.debug(f"Package path does not exist: {package_name}/{version}")
@@ -279,7 +279,7 @@ class PackageService:
         await self.ensure_initialized()
 
         repo_root = Path(__file__).parent.parent.parent.parent
-        
+
         # Check multiple possible locations for packages
         possible_dirs = [
             repo_root / "packages",  # Default location
@@ -320,7 +320,7 @@ class PackageService:
 
                         package_name = f"{org_dir.name}/{project_dir.name}"
                         version = version_dir.name
-                        
+
                         # Skip if we've already seen this package (avoid duplicates)
                         package_key = f"{package_name}:{version}"
                         if package_key in seen_packages:
@@ -328,8 +328,12 @@ class PackageService:
                             continue
                         seen_packages.add(package_key)
 
-                        logger.debug(f"Found package directory: {package_name}/{version}")
-                        metadata = await self.get_package_metadata(package_name, version)
+                        logger.debug(
+                            f"Found package directory: {package_name}/{version}"
+                        )
+                        metadata = await self.get_package_metadata(
+                            package_name, version
+                        )
                         if metadata:
                             logger.debug(
                                 f"Successfully loaded metadata for {package_name}/{version}"

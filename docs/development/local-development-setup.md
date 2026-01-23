@@ -8,7 +8,10 @@ This guide will help you set up both the **project-data-platform-ts** and **supp
 
 - **Node.js**: Version 18+ (tested with v24.10.0)
 - **npm**: Version 8+ (tested with v11.6.0)
-- **Python**: Version 3.8+ (tested with v3.11.6)
+- **Python**: Version 3.12+ (required, tested with v3.12.12)
+  - **Note**: Python 3.10 reaches end-of-life in October 2026
+  - Python 3.12 offers ~10-15% performance improvements
+  - All dependencies are fully compatible with Python 3.12
 - **Azure CLI**: For backend authentication (optional for basic development)
 - **Git**: For cloning repositories
 
@@ -55,9 +58,20 @@ cd supply-graph-ai
 ```
 
 #### Step 2: Create Python Virtual Environment
+
+**Option A: Using Conda (Recommended)**
 ```bash
-# Create virtual environment
-python -m venv venv
+# Create conda environment with Python 3.12
+conda create -n supply-graph-ai python=3.12 -y
+
+# Activate conda environment
+conda activate supply-graph-ai
+```
+
+**Option B: Using venv**
+```bash
+# Create virtual environment (requires Python 3.12 installed)
+python3.12 -m venv venv
 
 # Activate virtual environment
 # On macOS/Linux:
@@ -68,7 +82,11 @@ source venv/bin/activate
 
 #### Step 3: Install Dependencies
 ```bash
+# Install all dependencies
 pip install -r requirements.txt
+
+# Install the package in editable mode (recommended for development)
+pip install -e .
 ```
 
 #### Step 4: Install spaCy Models
@@ -206,7 +224,11 @@ For full-stack development, you'll need to run all three services:
 #### Terminal 1: Supply Graph AI
 ```bash
 cd supply-graph-ai
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# If using conda:
+conda activate supply-graph-ai
+# If using venv:
+# source venv/bin/activate  # On Windows: venv\Scripts\activate
+
 python run.py
 ```
 
