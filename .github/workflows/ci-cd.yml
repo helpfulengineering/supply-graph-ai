@@ -108,7 +108,6 @@ jobs:
             echo ""
             echo "Please run the following commands locally and commit the changes:"
             echo "  python scripts/generate_repo_map.py"
-            echo "  python scripts/generate_sourcegraph_map.py"
             echo "  git add .repo-map.md"
             echo "  git commit -m 'chore: update repository maps'"
             echo ""
