@@ -1,71 +1,46 @@
 {
-  "id": "8860da7a-3d8c-4402-a584-196440084c4b",
+  "id": "d3161525-b4ae-43a6-98ad-55090da35a52",
   "name": "Sheet Metal Fabrication Facility 2",
   "location": {
     "address": {
-      "number": "2721",
-      "street": "Sharon Trail",
-      "city": "Tranville",
-      "region": "Tennessee",
-      "country": "Argentina",
-      "postcode": "26817"
+      "number": "4805",
+      "street": "Price Locks",
+      "city": "San Diego",
+      "region": "NE",
+      "country": "US",
+      "postcode": "85255"
     },
-    "gps_coordinates": "38.840349, 23.745414",
-    "city": "Tranville",
-    "country": "Argentina"
+    "gps_coordinates": "32.7174202, -117.162772",
+    "city": "San Diego",
+    "country": "US"
   },
   "facility_status": "Active",
-  "owner": {
-    "name": "Carney-Rosario",
-    "location": {
-      "address": {
-        "number": "9149",
-        "street": "Natasha Manors",
-        "city": "Port Jonathanshire",
-        "region": "Minnesota",
-        "country": "Namibia",
-        "postcode": "33665"
-      },
-      "gps_coordinates": "33.717447, -111.901442",
-      "city": "Port Jonathanshire",
-      "country": "Namibia"
-    },
-    "contact_person": "Lonnie Carter",
-    "website": "https://gordon.com",
-    "mailing_list": "wallaceadam@lists.cisneros.com",
-    "contact": {
-      "mobile": "+1-416-715-7985"
-    },
-    "social_media": {
-      "other_urls": []
-    }
-  },
+  "opening_hours": "Mon-Fri: 7:00-18:00",
   "description": "Specialized in sheet metal forming and fabrication",
-  "date_founded": "2003-07-06",
+  "date_founded": "2010-03-04",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
-      "make": "Brand A",
-      "model": "Model 904",
-      "condition": "Good",
-      "computer_controlled": true
+      "make": "Generic",
+      "model": "Model 974",
+      "condition": "Excellent"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Shear",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Shear",
       "make": "Brand A",
-      "model": "Model 889",
-      "condition": "Excellent",
+      "model": "Model 804",
+      "condition": "Good",
       "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Punch_press",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Punch_press",
-      "make": "Generic",
-      "model": "Model 804",
-      "condition": "Good"
+      "make": "Brand A",
+      "model": "Model 620",
+      "condition": "Excellent"
     }
   ],
   "manufacturing_processes": [
@@ -74,13 +49,14 @@
     "https://en.wikipedia.org/wiki/Deburring"
   ],
   "typical_batch_size": "50 -- 500 units",
+  "floor_size": 123,
   "typical_materials": [],
   "certifications": [],
-  "uninterrupted_power_supply": true,
   "road_access": true,
   "typical_products": [
-    "Sharable national Graphic Interface",
-    "Public-key cohesive pricing structure",
-    "Triple-buffered systemic circuit"
+    "Advanced actuating knowledge user",
+    "Front-line human-resource support",
+    "Customizable actuating standardization",
+    "Cloned high-level analyzer"
   ]
 }

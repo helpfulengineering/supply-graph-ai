@@ -1,0 +1,227 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "ca89ab0c-2d9d-4e17-bb57-83b5a170602a",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/ryan78/laser-cut-acrylic-display-case",
+  "version": "2.9.5",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Amanda Perez",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "oking"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Pass talk recent citizen go beat although.",
+  "keywords": [
+    "reproducible",
+    "gear",
+    "bracket"
+  ],
+  "contributors": [
+    {
+      "name": "James Carter",
+      "email": null,
+      "affiliation": "Black-Carr",
+      "social": []
+    },
+    {
+      "name": "Debra Villegas",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/shepherdmelanie/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/brittanylawson/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/amykelley/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/hughesrichard/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.0"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Exhaust system",
+    "Pliers",
+    "Cable ties",
+    "Crimping tool",
+    "Focus lens",
+    "Wrench set",
+    "Material guides",
+    "Screwdriver set"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 38.73,
+      "unit": "kg",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 835.5,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "466c0b6e-dd62-4d4a-aa19-151f3c3e47e9",
+      "source": [
+        "https://github.com/jenniferfitzgerald/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/sjordan/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/markharmon/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 140,
+        "width": 95,
+        "height": 59
+      },
+      "mass": 4.91,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "48165870-515d-4c96-b619-1bd31a96978d",
+      "source": [],
+      "export": [
+        "https://github.com/thomasstewart/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/johnsonlaura/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 22,
+        "width": 100,
+        "height": 15
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "be514ccd-ad42-4d29-9370-62de08e6ad00",
+      "source": [
+        "https://github.com/amy10/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/eric75/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 165,
+        "width": 199,
+        "height": 31
+      },
+      "mass": 499.72,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "fec17f01-5d3b-4f16-89b8-6f5ce9cc944b",
+      "source": [
+        "https://github.com/spencer75/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/ablack/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

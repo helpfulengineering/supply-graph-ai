@@ -39,16 +39,16 @@ def package_group():
 
     Examples:
       # Build a package from manifest
-      ome package build my-project.okh.json
+      ohm package build my-project.okh.json
 
       # List all built packages
-      ome package list
+      ohm package list
 
       # Push package to remote storage
-      ome package push my-project 1.0.0
+      ohm package push my-project 1.0.0
 
       # Use LLM for enhanced processing
-      ome package build my-project.okh.json --use-llm --quality-level professional
+      ohm package build my-project.okh.json --use-llm --quality-level professional
     """
     pass
 
@@ -193,16 +193,16 @@ async def _display_verification_results(
     epilog="""
     Examples:
       # Build a complete package
-      ome package build my-project.okh.json
+      ohm package build my-project.okh.json
       
       # Build with custom output directory
-      ome package build my-project.okh.json --output-dir ./packages
+      ohm package build my-project.okh.json --output-dir ./packages
       
       # Build excluding certain file types
-      ome package build my-project.okh.json --no-software --no-parts
+      ohm package build my-project.okh.json --no-software --no-parts
       
       # Use LLM for enhanced processing
-      ome package build my-project.okh.json --use-llm --quality-level professional
+      ohm package build my-project.okh.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -357,13 +357,13 @@ async def build(
     epilog="""
     Examples:
       # Build from stored manifest
-      ome package build-from-storage 123e4567-e89b-12d3-a456-426614174000
+      ohm package build-from-storage 123e4567-e89b-12d3-a456-426614174000
       
       # Build with custom options
-      ome package build-from-storage 123e4567-e89b-12d3-a456-426614174000 --no-software
+      ohm package build-from-storage 123e4567-e89b-12d3-a456-426614174000 --no-software
       
       # Use LLM for enhanced processing
-      ome package build-from-storage 123e4567-e89b-12d3-a456-426614174000 --use-llm
+      ohm package build-from-storage 123e4567-e89b-12d3-a456-426614174000 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -485,10 +485,10 @@ async def build_from_storage(
     epilog="""
     Examples:
       # List all packages
-      ome package list
+      ohm package list
       
       # Use LLM for enhanced analysis
-      ome package list --use-llm
+      ohm package list --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -563,9 +563,10 @@ async def list_packages(
                 click.echo(output_data)
             else:
                 for pkg in packages:
-                    click.echo(
-                        f"📦 {pkg.get('package_name', 'Unknown')}/{pkg.get('version', 'Unknown')}"
-                    )
+                    package_name = pkg.get('package_name', 'Unknown')
+                    version = pkg.get('version', 'Unknown')
+                    click.echo(f"📦 {package_name}")
+                    click.echo(f"   📌 Version: {version}")
                     click.echo(f"   📁 {pkg.get('package_path', 'Unknown')}")
                     cli_ctx.log(
                         f"   📄 {pkg.get('total_files', 0)} files, {pkg.get('total_size_bytes', 0):,} bytes",
@@ -586,8 +587,8 @@ async def list_packages(
 
 
 @package_group.command()
-@click.argument("package_name")
-@click.argument("version")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version", type=str, metavar="VERSION")
 @standard_cli_command(
     help_text="""
     Verify a package's integrity and completeness.
@@ -595,6 +596,12 @@ async def list_packages(
     This command performs verification of a built package,
     checking file integrity, completeness, and compliance with the
     OKH specification.
+    
+    **Arguments:**
+    - PACKAGE_NAME: Package name in format "org/project" (e.g., "fourthievesvinegar/solderless-microlab")
+    - VERSION: Package version (e.g., "1.0.0")
+    
+    Use 'ohm package list-packages' to see available packages and their versions.
     
     When LLM is enabled, verification includes:
     - Enhanced integrity analysis and validation
@@ -605,10 +612,10 @@ async def list_packages(
     epilog="""
     Examples:
       # Verify a package
-      ome package verify my-project 1.0.0
+      ohm package verify fourthievesvinegar/solderless-microlab 1.0.0
       
       # Use LLM for enhanced verification
-      ome package verify my-project 1.0.0 --use-llm
+      ohm package verify fourthievesvinegar/solderless-microlab 1.0.0 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -683,12 +690,128 @@ async def verify(
 
 
 @package_group.command()
-@click.argument("package_name")
-@click.argument("version")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version", type=str, metavar="VERSION")
+@standard_cli_command(
+    help_text="""
+    Show detailed information about a built package.
+    
+    This command displays comprehensive information about a specific package,
+    including metadata, file inventory, build options, and package path.
+    
+    **Arguments:**
+    - PACKAGE_NAME: Package name in format "org/project" (e.g., "fourthievesvinegar/solderless-microlab")
+    - VERSION: Package version (e.g., "1.0.0")
+    
+    Use 'ohm package list-packages' to see available packages and their versions.
+    """,
+    epilog="""
+    Examples:
+      # Describe a package
+      ohm package describe fourthievesvinegar/solderless-microlab 1.0.0
+      
+      # Describe with JSON output
+      ohm package describe fourthievesvinegar/solderless-microlab 1.0.0 --output-format json
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def describe(
+    ctx,
+    package_name: str,
+    version: str,
+    verbose: bool,
+    output_format: str,
+):
+    """Show detailed information about a built package."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("package-describe")
+
+    try:
+        async def http_describe():
+            """Get package info via HTTP API"""
+            cli_ctx.log("Fetching package info via HTTP API...", "info")
+            response = await cli_ctx.api_client.request(
+                "GET", f"/api/package/{package_name}/{version}"
+            )
+            return response
+
+        async def fallback_describe():
+            """Get package info using direct service calls"""
+            cli_ctx.log("Using direct service...", "info")
+            package_service = await PackageService.get_instance()
+            metadata = await package_service.get_package_metadata(package_name, version)
+            
+            if not metadata:
+                raise click.ClickException(
+                    f"Package {package_name}:{version} not found"
+                )
+            
+            return {
+                "status": "success",
+                "package": metadata.to_dict(),
+            }
+
+        # Execute with fallback
+        command = SmartCommand(cli_ctx)
+        result = await command.execute_with_fallback(http_describe, fallback_describe)
+
+        # Extract package data
+        if "data" in result:
+            pkg = result.get("data", {}).get("package", result.get("data", {}))
+        elif "package" in result:
+            pkg = result.get("package")
+        else:
+            pkg = result
+
+        if output_format == "json":
+            import json
+            click.echo(json.dumps(pkg, indent=2, default=str))
+        else:
+            # Display formatted package information
+            click.echo(f"📦 Package: {pkg.get('package_name', 'Unknown')}")
+            click.echo(f"   📌 Version: {pkg.get('version', 'Unknown')}")
+            click.echo(f"   🆔 OKH Manifest ID: {pkg.get('okh_manifest_id', 'Unknown')}")
+            click.echo(f"   📁 Path: {pkg.get('package_path', 'Unknown')}")
+            click.echo(f"   📄 Files: {pkg.get('total_files', 0):,}")
+            click.echo(f"   💾 Size: {pkg.get('total_size_bytes', 0):,} bytes ({pkg.get('total_size_bytes', 0) / 1024 / 1024:.2f} MB)")
+            click.echo(f"   🕒 Built: {pkg.get('build_timestamp', 'Unknown')}")
+            click.echo(f"   🔧 OHM Version: {pkg.get('ohm_version', 'Unknown')}")
+            
+            # Show build options if available
+            build_options = pkg.get('build_options', {})
+            if build_options:
+                click.echo(f"\n   Build Options:")
+                click.echo(f"      Output Directory: {build_options.get('output_dir', 'Default')}")
+                click.echo(f"      Include Design Files: {build_options.get('include_design_files', False)}")
+                click.echo(f"      Include Manufacturing Files: {build_options.get('include_manufacturing_files', False)}")
+                click.echo(f"      Include Software: {build_options.get('include_software', False)}")
+                click.echo(f"      Include Parts: {build_options.get('include_parts', False)}")
+
+        cli_ctx.end_command_tracking()
+
+    except Exception as e:
+        cli_ctx.log(f"Describe failed: {str(e)}", "error")
+        raise
+
+
+@package_group.command()
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version", type=str, metavar="VERSION")
 @click.option("--force", is_flag=True, help="Force deletion without confirmation")
 @standard_cli_command(
     help_text="""
     Delete a package from local storage.
+    
+    **Arguments:**
+    - PACKAGE_NAME: Package name in format "org/project" (e.g., "fourthievesvinegar/solderless-microlab")
+    - VERSION: Package version (e.g., "1.0.0")
+    
+    Use 'ohm package list-packages' to see available packages and their versions.
     
     This command removes a built package from the local package storage.
     Use with caution as this action cannot be undone.
@@ -702,13 +825,13 @@ async def verify(
     epilog="""
     Examples:
       # Delete a package (with confirmation)
-      ome package delete my-project 1.0.0
+      ohm package delete my-project 1.0.0
       
       # Force deletion without confirmation
-      ome package delete my-project 1.0.0 --force
+      ohm package delete my-project 1.0.0 --force
       
       # Use LLM for enhanced analysis
-      ome package delete my-project 1.0.0 --use-llm
+      ohm package delete my-project 1.0.0 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -801,14 +924,21 @@ async def delete(
 
 
 @package_group.command()
-@click.argument("package_name")
-@click.argument("version")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version", type=str, metavar="VERSION")
 @standard_cli_command(
     help_text="""
     Push a local package to remote storage.
     
     This command uploads a locally built package to remote storage,
     making it available for distribution and sharing.
+    
+    **Arguments:**
+    - PACKAGE_NAME: Package name in format "org/project" (e.g., "fourthievesvinegar/solderless-microlab")
+    - VERSION: Package version (e.g., "1.0.0")
+    
+    Use 'ohm package list-packages' to see available packages and their versions.
+    Use 'ohm package describe PACKAGE_NAME VERSION' for detailed package information.
     
     When LLM is enabled, pushing includes:
     - Enhanced package analysis before upload
@@ -819,10 +949,13 @@ async def delete(
     epilog="""
     Examples:
       # Push a package to remote storage
-      ome package push my-project 1.0.0
+      ohm package push fourthievesvinegar/solderless-microlab 1.0.0
       
       # Use LLM for enhanced processing
-      ome package push my-project 1.0.0 --use-llm
+      ohm package push fourthievesvinegar/solderless-microlab 1.0.0 --use-llm
+      
+      # List packages to find the correct name and version
+      ohm package list-packages
     """,
     async_cmd=True,
     track_performance=True,
@@ -879,11 +1012,33 @@ async def push(
 
             remote_storage = PackageRemoteStorage(storage_service)
 
+            # Validate package name format - detect common mistake where version is included
+            if "/" in version or package_name.count("/") > 1:
+                # Check if version appears to be in package_name
+                if version in package_name:
+                    suggested_package_name = package_name.rsplit("/", 1)[0]
+                    raise click.ClickException(
+                        f"Invalid package name format. It looks like you included the version in the package name.\n"
+                        f"Received: package_name='{package_name}', version='{version}'\n"
+                        f"Expected format: package_name='org/project' (e.g., 'fourthievesvinegar/solderless-microlab'), version='1.0.0'\n"
+                        f"Try: ohm package push {suggested_package_name} {version}"
+                    )
+            
+            # Validate package name has exactly one slash (org/project format)
+            if package_name.count("/") != 1:
+                raise click.ClickException(
+                    f"Invalid package name format. Package name must be in format 'org/project'.\n"
+                    f"Received: '{package_name}'\n"
+                    f"Expected: 'organization/project' (e.g., 'fourthievesvinegar/solderless-microlab')\n"
+                    f"Use 'ohm package list-packages' to see available packages."
+                )
+
             # Get package metadata
             metadata = await package_service.get_package_metadata(package_name, version)
             if not metadata:
                 raise click.ClickException(
-                    f"Package {package_name}:{version} not found locally"
+                    f"Package {package_name}:{version} not found locally.\n"
+                    f"Use 'ohm package list-packages' to see available packages and their versions."
                 )
 
             package_path = Path(metadata.package_path)
@@ -937,8 +1092,8 @@ async def push(
 
 
 @package_group.command()
-@click.argument("package_name")
-@click.argument("version")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version", type=str, metavar="VERSION")
 @click.option("--output-dir", "-o", help="Output directory for pulled package")
 @standard_cli_command(
     help_text="""
@@ -946,6 +1101,12 @@ async def push(
     
     This command downloads a package from remote storage to local storage,
     making it available for local use and modification.
+    
+    **Arguments:**
+    - PACKAGE_NAME: Package name in format "org/project" (e.g., "fourthievesvinegar/solderless-microlab")
+    - VERSION: Package version (e.g., "1.0.0")
+    
+    Use 'ohm package list-remote' to see available remote packages and their versions.
     
     When LLM is enabled, pulling includes:
     - Enhanced package analysis and validation
@@ -956,13 +1117,13 @@ async def push(
     epilog="""
     Examples:
       # Pull a package from remote storage
-      ome package pull my-project 1.0.0
+      ohm package pull fourthievesvinegar/solderless-microlab 1.0.0
       
       # Pull to custom directory
-      ome package pull my-project 1.0.0 --output-dir ./my-packages
+      ohm package pull fourthievesvinegar/solderless-microlab 1.0.0 --output-dir ./my-packages
       
       # Use LLM for enhanced processing
-      ome package pull my-project 1.0.0 --use-llm
+      ohm package pull fourthievesvinegar/solderless-microlab 1.0.0 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -1087,10 +1248,10 @@ async def pull(
     epilog="""
     Examples:
       # List remote packages
-      ome package list-remote
+      ohm package list-remote
       
       # Use LLM for enhanced analysis
-      ome package list-remote --use-llm
+      ohm package list-remote --use-llm
     """,
     async_cmd=True,
     track_performance=True,

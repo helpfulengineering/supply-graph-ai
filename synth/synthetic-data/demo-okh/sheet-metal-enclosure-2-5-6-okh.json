@@ -1,0 +1,1415 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "35b616ef-7bcf-47f2-aa4f-2868c1ecbc68",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/kmata/sheet-metal-enclosure",
+  "version": "2.5.6",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Luis Sandoval",
+    "email": null,
+    "affiliation": "Shaffer, Wilkinson and Johns",
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Owner price style agreement feeling total.",
+  "keywords": [
+    "mount",
+    "fastener",
+    "open-source",
+    "prototype"
+  ],
+  "contact": {
+    "name": "Amanda Flores",
+    "email": "andrew76@example.net",
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Diana Reid",
+      "email": null,
+      "affiliation": "Conley Group",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "bryanhenderson"
+        }
+      ]
+    },
+    {
+      "name": "Jason Levy",
+      "email": "susandavis@example.net",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "development_stage": "beta",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/garybuckley/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/bryan39/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/nmarsh/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/jacobscharlotte/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/colson/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/blackwellrebekah/project/raw/main/docs/technical_drawings.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/christopherdiaz/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/mccoyjohn/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat shrink",
+    "Screwdriver set",
+    "Crimping tool",
+    "Drill press",
+    "Shear",
+    "Wrench set",
+    "Grinder",
+    "Welder"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 921.58,
+      "unit": "kg",
+      "notes": "Grade: A"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Base Unit",
+      "id": "1499691f-43a5-4786-ad6e-8f14d90b7ce6",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "8ef4c164-a6d3-4d60-820f-f1a1edeaf251",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "e4729913-9040-4314-8098-6316a14b263c",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Core Component",
+      "id": "2b1a4554-f0e6-4193-b830-1565b91a7690",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 1.6,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Paint",
+        "process": "SHEET",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Element",
+          "quantity": 4.11,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Element - Tertiary Module",
+              "quantity": 9.28,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Element - Sub-Component",
+              "quantity": 7.33,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Element - Detail Part",
+              "quantity": 2.33,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Welding wire",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Base Unit - Secondary Module - Sub-Component",
+          "quantity": 8.81,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Paint",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Sub-Component - Sub-Component",
+              "quantity": 3.03,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Sub-Component - Sub-Component",
+              "quantity": 2.81,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Sub-Component - Sub-Component",
+              "quantity": 8.83,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 6.33,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Welding wire",
+        "process": "SHEET",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Tertiary Module",
+          "quantity": 9.29,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Tertiary Module - Detail Part",
+              "quantity": 3.43,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Tertiary Module - Detail Part",
+              "quantity": 1.03,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Welding wire",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Base Unit - Secondary Module - Sub-Component",
+          "quantity": 6.56,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Sub-Component - Sub-Component",
+              "quantity": 2.05,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 6.13,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Steel sheet",
+        "process": "SHEET",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Detail Part",
+          "quantity": 7.13,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Detail Part - Element",
+              "quantity": 9.43,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Detail Part - Detail Part",
+              "quantity": 6.26,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 9.74,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Steel sheet",
+        "process": "SHEET",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Element",
+          "quantity": 2.12,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Element - Element",
+              "quantity": 2.15,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Element - Element",
+              "quantity": 4.45,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Element - Sub-Component",
+              "quantity": 7.76,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Sub-Component",
+          "quantity": 8.04,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Element",
+              "quantity": 7.82,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Detail Part",
+          "quantity": 9.69,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Paint",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Detail Part - Element",
+              "quantity": 8.19,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 9.07,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Welding wire",
+        "process": "SHEET",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Detail Part",
+          "quantity": 6.09,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 1.2,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Detail Part",
+              "quantity": 6.93,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Element",
+              "quantity": 2.89,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Sub-Component",
+          "quantity": 3.12,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Paint",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Sub-Component",
+              "quantity": 3.51,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Detail Part",
+              "quantity": 9.35,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Welding wire",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Element",
+              "quantity": 3.19,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Sub-Component",
+          "quantity": 3.48,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Tertiary Module",
+              "quantity": 2.06,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Auxiliary Unit",
+      "quantity": 8.42,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Paint",
+        "process": "SHEET",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Auxiliary Unit - Detail Part",
+          "quantity": 3.51,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Detail Part - Tertiary Module",
+              "quantity": 3.58,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 8.24,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 9.74,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Welding wire",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Auxiliary Unit - Sub-Component",
+          "quantity": 9.34,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Sub-Component - Sub-Component",
+              "quantity": 3.02,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Sub-Component - Detail Part",
+              "quantity": 1.33,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Sub-Component - Detail Part",
+              "quantity": 6.98,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Auxiliary Unit - Sub-Component",
+          "quantity": 1.27,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Sub-Component - Tertiary Module",
+              "quantity": 3.24,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Sub-Component - Detail Part",
+              "quantity": 8.37,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Welding wire",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Sub-Assembly",
+      "quantity": 2.36,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Paint",
+        "process": "SHEET",
+        "tolerance": "±0.1mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Sub-Assembly - Element",
+          "quantity": 3.2,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Element - Tertiary Module",
+              "quantity": 1.78,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Sub-Component",
+          "quantity": 2.36,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Sub-Component - Tertiary Module",
+              "quantity": 6.44,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Auxiliary Unit",
+      "quantity": 8.24,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Welding wire",
+        "process": "SHEET",
+        "tolerance": "±0.2mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Auxiliary Unit - Detail Part",
+          "quantity": 4.43,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.5mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Auxiliary Unit - Detail Part - Detail Part",
+              "quantity": 2.47,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Auxiliary Unit - Tertiary Module",
+          "quantity": 1.39,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Welding wire",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Auxiliary Unit - Tertiary Module - Sub-Component",
+              "quantity": 3.64,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Auxiliary Unit - Tertiary Module - Sub-Component",
+              "quantity": 5.67,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Auxiliary Unit - Tertiary Module - Tertiary Module",
+              "quantity": 6.92,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Support Component",
+      "quantity": 6.49,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Paint",
+        "process": "SHEET",
+        "tolerance": "±0.5mm"
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Support Component - Sub-Component",
+          "quantity": 4.52,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.1mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Support Component - Sub-Component - Tertiary Module",
+              "quantity": 8.5,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Sub-Component - Detail Part",
+              "quantity": 8.63,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.5mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Sub-Component - Element",
+              "quantity": 1.35,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Support Component - Tertiary Module",
+          "quantity": 1.58,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Steel sheet",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Tertiary Module",
+              "quantity": 7.39,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Tertiary Module",
+              "quantity": 7.16,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.2mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Tertiary Module - Tertiary Module",
+              "quantity": 9.55,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Steel sheet",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Support Component - Sub-Component",
+          "quantity": 8.87,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Primer",
+            "process": "SHEET",
+            "tolerance": "±0.2mm"
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Support Component - Sub-Component - Detail Part",
+              "quantity": 7.47,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Primer",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Support Component - Sub-Component - Tertiary Module",
+              "quantity": 6.09,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Paint",
+                "process": "SHEET",
+                "tolerance": "±0.1mm"
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

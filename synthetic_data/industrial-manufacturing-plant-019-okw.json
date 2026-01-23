@@ -1,0 +1,174 @@
+{
+  "id": "d9a878fe-e4bd-4779-b0ae-d26f99fbe448",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "5242",
+      "street": "Eddie Park",
+      "city": "Dallas",
+      "region": "OK",
+      "country": "US",
+      "postcode": "79401"
+    },
+    "gps_coordinates": "32.7762719, -96.7968559",
+    "city": "Dallas",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Jones LLC",
+    "contact_person": "Joshua Harrison",
+    "bio": "Established in 2016, we specialize in De-engineered client-driven utilization",
+    "website": "https://collins-cox.org",
+    "languages": [
+      "fr",
+      "en"
+    ],
+    "mailing_list": "leonardjohnson@lists.hall-holden.com",
+    "images": [
+      "images/current.jpg",
+      "images/bit.jpg"
+    ],
+    "contact": {
+      "email": "info@luna.com",
+      "whatsapp": "+1-365-232-7548"
+    },
+    "social_media": {
+      "twitter": "@forbeskristen",
+      "instagram": "@pamelaryan",
+      "other_urls": [
+        "https://ford.com",
+        "https://cox-moss.net"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-19:00",
+  "description": "Large-scale manufacturing facility",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VTC-20",
+      "serial_number": "SN218051",
+      "condition": "Good",
+      "notes": "Equipment notes: Put PM last institution begin office.",
+      "quantity": 1,
+      "throughput": "51 parts/hour",
+      "maintenance_schedule": "Every 4 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "1445",
+              "street": "Hannah Vista",
+              "city": "New York",
+              "region": "AL",
+              "country": "US",
+              "postcode": "75752"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium"
+        }
+      ],
+      "axes": 5,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 524",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 517",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Generic",
+      "model": "Model 675",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "typical_products": [
+    "Versatile local synergy",
+    "Synergistic content-based projection",
+    "Synergistic reciprocal moratorium"
+  ],
+  "innovation_space": {
+    "staff": 1,
+    "learning_resources": [
+      "Compatible interactive challenge",
+      "Function-based systemic conglomeration",
+      "Versatile 5thgeneration success"
+    ],
+    "services": [
+      "Cloned non-volatile process improvement"
+    ],
+    "footfall": 100,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:42:13.910644",
+    "created_by": {
+      "name": "Harvey, Gonzales and Molina",
+      "contact_person": "Dana Mendez",
+      "bio": "Established in 2010, we specialize in Compatible 24/7 solution",
+      "website": "https://love.com",
+      "languages": [
+        "es"
+      ],
+      "contact": {
+        "landline": "+1-990-523-3412",
+        "mobile": "+1-890-263-5013",
+        "email": "info@davenport-brooks.com"
+      },
+      "social_media": {
+        "instagram": "@corey59",
+        "other_urls": [
+          "https://beard.net",
+          "https://hutchinson.info"
+        ]
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

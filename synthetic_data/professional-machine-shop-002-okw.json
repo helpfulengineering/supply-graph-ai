@@ -1,0 +1,163 @@
+{
+  "id": "ded1854f-8b44-47fe-8bf4-b8c3afbcfd82",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "2804",
+      "street": "Richardson Estate",
+      "city": "Seattle",
+      "region": "MN",
+      "country": "US",
+      "postcode": "69267"
+    },
+    "gps_coordinates": "47.6038321, -122.330062",
+    "city": "Seattle",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Riley and Sons",
+    "location": {
+      "address": {
+        "number": "1609",
+        "street": "William Row",
+        "city": "Houston",
+        "region": "MD",
+        "country": "US",
+        "postcode": "61080"
+      },
+      "gps_coordinates": "29.7589382, -95.3676974",
+      "city": "Houston",
+      "country": "US"
+    },
+    "contact_person": "Kenneth Le",
+    "bio": "Established in 2014, we specialize in Managed system-worthy help-desk",
+    "website": "https://garcia.com",
+    "languages": [
+      "fr",
+      "en",
+      "de"
+    ],
+    "mailing_list": "williamsdiana@lists.richards.com",
+    "contact": {
+      "landline": "+1-482-552-3902",
+      "whatsapp": "+1-593-732-8313"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "1996-04-09",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "DMU 50",
+      "serial_number": "SN885690",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: This need effect too.",
+      "throughput": "81 parts/hour",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "6963",
+              "street": "Jack Springs",
+              "city": "San Diego",
+              "region": "ME",
+              "country": "US",
+              "postcode": "24225"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located near Sparks and Sons",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Standard"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 607",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand B",
+      "model": "Model 696",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 5 months",
+  "human_capacity": {
+    "headcount": 9
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:41:55.650228",
+    "created_by": {
+      "name": "Mckinney, Robinson and Ford",
+      "contact_person": "Joan Jones",
+      "website": "https://ray.com",
+      "mailing_list": "oblack@lists.reed.com",
+      "images": [
+        "images/late.jpg",
+        "images/deep.jpg",
+        "images/simple.jpg"
+      ],
+      "contact": {
+        "landline": "+1-604-994-2535",
+        "mobile": "+1-645-331-1647",
+        "email": "info@hodge.net",
+        "whatsapp": "+1-451-368-2382"
+      },
+      "social_media": {
+        "instagram": "@brian38",
+        "other_urls": [
+          "https://perez.com",
+          "https://rich.com"
+        ]
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

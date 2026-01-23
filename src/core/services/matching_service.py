@@ -170,7 +170,10 @@ class MatchingService:
 
             logger.info(
                 "Extracted requirements from OKH manifest",
-                extra={"requirement_count": len(requirements)},
+                extra={
+                    "requirement_count": len(requirements),
+                    "requirements": [req.get("process_name", "") if isinstance(req, dict) else str(req) for req in requirements],
+                },
             )
 
             solutions = set()
@@ -205,6 +208,16 @@ class MatchingService:
                     extraction_result.data.content.get("capabilities", [])
                     if extraction_result.data
                     else []
+                )
+
+                logger.info(
+                    f"Extracted capabilities for facility {facility.name}",
+                    extra={
+                        "facility_id": str(facility.id),
+                        "facility_name": facility.name,
+                        "capability_count": len(capabilities),
+                        "capabilities": [cap.get("process_name", "") for cap in capabilities if isinstance(cap, dict)],
+                    },
                 )
 
                 if await self._can_satisfy_requirements(
@@ -252,53 +265,139 @@ class MatchingService:
     ) -> bool:
         """Check if capabilities can satisfy requirements using multi-layered matching"""
         try:
+            # Handle both dict and ProcessRequirement objects
+            req_list = []
             for req in requirements:
+                if isinstance(req, dict):
+                    req_list.append(req)
+                elif hasattr(req, "process_name"):
+                    # Convert ProcessRequirement to dict
+                    req_list.append({
+                        "process_name": req.process_name,
+                        "parameters": getattr(req, "parameters", {}),
+                        "validation_criteria": getattr(req, "validation_criteria", {}),
+                        "required_tools": getattr(req, "required_tools", []),
+                    })
+                else:
+                    logger.warning(f"Unknown requirement type: {type(req)}, value: {req}")
+                    continue
+            
+            # Handle both dict and Capability objects
+            cap_list = []
+            for cap in capabilities:
+                if isinstance(cap, dict):
+                    cap_list.append(cap)
+                elif hasattr(cap, "type") or hasattr(cap, "process_name"):
+                    # Convert Capability to dict
+                    process_name = getattr(cap, "process_name", None) or getattr(cap, "type", "")
+                    cap_list.append({
+                        "process_name": process_name,
+                        "parameters": getattr(cap, "parameters", {}),
+                        "validation_criteria": getattr(cap, "validation_criteria", {}),
+                        "required_tools": getattr(cap, "required_tools", []),
+                    })
+                else:
+                    logger.warning(f"Unknown capability type: {type(cap)}, value: {cap}")
+                    continue
+            
+            # Log input for debugging
+            logger.info(
+                f"Checking if capabilities can satisfy requirements",
+                extra={
+                    "requirement_count": len(req_list),
+                    "capability_count": len(cap_list),
+                    "requirements": [req.get("process_name", "") for req in req_list],
+                    "capabilities": [cap.get("process_name", "") for cap in cap_list],
+                },
+            )
+            
+            if not req_list:
+                logger.warning("No valid requirements to check")
+                return False
+            
+            if not cap_list:
+                logger.warning("No valid capabilities to check against")
+                return False
+            
+            # Check if ALL requirements can be satisfied by the capabilities
+            for req in req_list:
                 req_process = req.get("process_name", "").lower().strip()
                 if not req_process:
+                    logger.debug(f"Skipping empty requirement: {req}")
                     continue
+
+                # Track if this requirement has a match
+                requirement_satisfied = False
+
+                for cap in cap_list:
+                    cap_process = cap.get("process_name", "").lower().strip()
+                    if not cap_process:
+                        logger.debug(f"Skipping empty capability: {cap}")
+                        continue
+
+                # Track if this requirement has a match
+                requirement_satisfied = False
 
                 for cap in capabilities:
                     cap_process = cap.get("process_name", "").lower().strip()
                     if not cap_process:
+                        logger.debug(f"Skipping empty capability: {cap}")
                         continue
 
                     # Try Layer 1: Direct Matching first
                     if await self._direct_match(req_process, cap_process, domain):
-                        logger.debug(
+                        logger.info(
                             "Direct match found",
                             extra={
-                                "requirement": req.get("process_name"),
-                                "capability": cap.get("process_name"),
+                                "requirement_process": req.get("process_name"),
+                                "capability_process": cap.get("process_name"),
                                 "layer": "direct",
                             },
                         )
-                        return True
+                        requirement_satisfied = True
+                        break  # Found a match for this requirement, move to next requirement
 
                     # Try Layer 2: Heuristic Matching
                     if await self._heuristic_match(req_process, cap_process, domain):
-                        logger.debug(
+                        logger.info(
                             "Heuristic match found",
                             extra={
-                                "requirement": req.get("process_name"),
-                                "capability": cap.get("process_name"),
+                                "requirement_process": req.get("process_name"),
+                                "capability_process": cap.get("process_name"),
                                 "layer": "heuristic",
                             },
                         )
-                        return True
+                        requirement_satisfied = True
+                        break  # Found a match for this requirement, move to next requirement
 
                     # Try Layer 3: NLP Matching
                     if await self._nlp_match(req_process, cap_process, domain):
-                        logger.debug(
+                        logger.info(
                             "NLP match found",
                             extra={
-                                "requirement": req.get("process_name"),
-                                "capability": cap.get("process_name"),
+                                "requirement_process": req.get("process_name"),
+                                "capability_process": cap.get("process_name"),
                                 "layer": "nlp",
                             },
                         )
-                        return True
+                        requirement_satisfied = True
+                        break  # Found a match for this requirement, move to next requirement
 
-            return False
+                # If this requirement has no match, the facility cannot satisfy all requirements
+                if not requirement_satisfied:
+                    logger.info(
+                        f"Requirement '{req.get('process_name')}' has no matching capability",
+                        extra={
+                            "requirement_process": req.get("process_name"),
+                            "capability_count": len(cap_list),
+                            "available_capabilities": [cap.get("process_name", "") for cap in cap_list],
+                        },
+                    )
+                    return False
+
+            # All requirements have matches
+            logger.info("All requirements satisfied by capabilities")
+            return True
 
         except Exception as e:
             logger.error(
@@ -318,6 +417,16 @@ class MatchingService:
     ) -> bool:
         """Layer 1: Direct Matching - Exact and near-exact string matching with normalization"""
         try:
+            # For process URIs (from TSDC codes), require exact matches only
+            # This prevents similarity-based matching from incorrectly matching unrelated processes
+            is_req_uri = isinstance(req_process, str) and (
+                req_process.startswith("http://") or req_process.startswith("https://")
+            )
+            is_cap_uri = isinstance(cap_process, str) and (
+                cap_process.startswith("http://") or cap_process.startswith("https://")
+            )
+            require_exact_match = is_req_uri or is_cap_uri
+
             # Normalize both process names for better matching
             req_normalized = self._normalize_process_name(req_process)
             cap_normalized = self._normalize_process_name(cap_process)
@@ -327,8 +436,8 @@ class MatchingService:
                 logger.debug(
                     "Direct exact match found",
                     extra={
-                        "requirement": req_process,
-                        "capability": cap_process,
+                        "requirement_process": req_process,
+                        "capability_process": cap_process,
                         "requirement_normalized": req_normalized,
                         "capability_normalized": cap_normalized,
                         "layer": "direct",
@@ -341,20 +450,24 @@ class MatchingService:
                 logger.debug(
                     "Direct case-insensitive match found",
                     extra={
-                        "requirement": req_process,
-                        "capability": cap_process,
+                        "requirement_process": req_process,
+                        "capability_process": cap_process,
                         "layer": "direct",
                     },
                 )
                 return True
 
-            # Check for substring matches (one contains the other)
+            # For URIs, only allow exact matches (no substring or similarity matching)
+            if require_exact_match:
+                return False
+
+            # Check for substring matches (one contains the other) - only for non-URIs
             if req_normalized in cap_normalized or cap_normalized in req_normalized:
                 logger.debug(
                     "Direct substring match found",
                     extra={
-                        "requirement": req_process,
-                        "capability": cap_process,
+                        "requirement_process": req_process,
+                        "capability_process": cap_process,
                         "requirement_normalized": req_normalized,
                         "capability_normalized": cap_normalized,
                         "layer": "direct",
@@ -363,13 +476,14 @@ class MatchingService:
                 return True
 
             # Check for high similarity matches (threshold 0.3 for direct matching)
+            # Only for non-URIs to prevent incorrect matches
             similarity = self._calculate_process_similarity(req_process, cap_process)
             if similarity >= 0.3:
                 logger.debug(
                     "Direct similarity match found",
                     extra={
-                        "requirement": req_process,
-                        "capability": cap_process,
+                        "requirement_process": req_process,
+                        "capability_process": cap_process,
                         "requirement_normalized": req_normalized,
                         "capability_normalized": cap_normalized,
                         "similarity": similarity,
@@ -397,9 +511,14 @@ class MatchingService:
                 )
                 return False
 
+            # Normalize process names before heuristic matching
+            # Extract process names from URIs if needed
+            req_normalized = self._normalize_process_name(req_process)
+            cap_normalized = self._normalize_process_name(cap_process)
+            
             # Create requirement and capability objects for matching
-            requirements = [{"process_name": req_process}]
-            capabilities = [{"process_name": cap_process}]
+            requirements = [{"process_name": req_normalized}]
+            capabilities = [{"process_name": cap_normalized}]
 
             # Use the capability-centric matcher
             results = await self.capability_matcher.match_requirements_to_capabilities(
@@ -418,8 +537,8 @@ class MatchingService:
                     logger.debug(
                         "Heuristic match found using capability-centric rules",
                         extra={
-                            "requirement": req_process,
-                            "capability": cap_process,
+                            "requirement_process": req_process,
+                            "capability_process": cap_process,
                             "confidence": result.confidence,
                             "rule_used": (
                                 result.rule_used.id if result.rule_used else None
@@ -440,6 +559,57 @@ class MatchingService:
     ) -> bool:
         """Layer 3: NLP Matching - Using semantic similarity and natural language understanding"""
         try:
+            # Check if either side is a URI
+            is_req_uri = isinstance(req_process, str) and (
+                req_process.startswith("http://") or req_process.startswith("https://")
+            )
+            is_cap_uri = isinstance(cap_process, str) and (
+                cap_process.startswith("http://") or cap_process.startswith("https://")
+            )
+            
+            # CRITICAL: Skip NLP matching only if BOTH are URIs
+            # This prevents URI-to-URI false matches (e.g., PCB URI matching 3DP URI)
+            # But allow NLP when one is URI and other is simple name (extract name from URI)
+            if is_req_uri and is_cap_uri:
+                # Both are URIs - skip NLP to prevent false matches
+                logger.info(
+                    f"SKIPPING NLP for URI-to-URI: req={req_process[:60]}, cap={cap_process[:60]} | "
+                    f"Both are URIs, use direct matching only",
+                    extra={
+                        "requirement_process": req_process,
+                        "capability_process": cap_process,
+                        "requirement_is_uri": is_req_uri,
+                        "capability_is_uri": is_cap_uri,
+                    },
+                )
+                return False
+            
+            # If one side is a URI, extract the process name from it for NLP matching
+            req_for_nlp = req_process
+            cap_for_nlp = cap_process
+            
+            if is_req_uri:
+                # Extract process name from requirement URI
+                req_for_nlp = self._normalize_process_name(req_process)
+                logger.debug(
+                    f"Extracted process name from requirement URI: '{req_process}' -> '{req_for_nlp}'",
+                    extra={
+                        "original_requirement": req_process,
+                        "extracted_requirement": req_for_nlp,
+                    },
+                )
+            
+            if is_cap_uri:
+                # Extract process name from capability URI
+                cap_for_nlp = self._normalize_process_name(cap_process)
+                logger.debug(
+                    f"Extracted process name from capability URI: '{cap_process}' -> '{cap_for_nlp}'",
+                    extra={
+                        "original_capability": cap_process,
+                        "extracted_capability": cap_for_nlp,
+                    },
+                )
+
             # Use the NLP matcher for the specified domain
             if domain not in self.nlp_matchers:
                 logger.warning(
@@ -449,12 +619,34 @@ class MatchingService:
 
             nlp_matcher = self.nlp_matchers[domain]
 
+            # CRITICAL: Log at INFO level BEFORE calling NLP matcher so we can see what's being matched
+            logger.info(
+                f"CALLING NLP MATCHER: req={req_process[:80]}, cap={cap_process[:80]} | "
+                f"req_is_uri={isinstance(req_process, str) and (req_process.startswith('http://') or req_process.startswith('https://'))}, "
+                f"cap_is_uri={isinstance(cap_process, str) and (cap_process.startswith('http://') or cap_process.startswith('https://'))}",
+                extra={
+                    "requirement_process": req_process,
+                    "capability_process": cap_process,
+                    "requirement_is_uri": isinstance(req_process, str)
+                    and (
+                        req_process.startswith("http://")
+                        or req_process.startswith("https://")
+                    ),
+                    "capability_is_uri": isinstance(cap_process, str)
+                    and (
+                        cap_process.startswith("http://")
+                        or cap_process.startswith("https://")
+                    ),
+                },
+            )
+
             # Add timeout to prevent slow NLP operations from blocking the API
             import asyncio
 
             try:
+                # Use extracted/normalized process names for NLP matching
                 results = await asyncio.wait_for(
-                    nlp_matcher.match([req_process], [cap_process]),
+                    nlp_matcher.match([req_for_nlp], [cap_for_nlp]),
                     timeout=0.5,  # 500ms timeout
                 )
             except asyncio.TimeoutError:
@@ -471,8 +663,8 @@ class MatchingService:
                     logger.debug(
                         "NLP match found using semantic similarity",
                         extra={
-                            "requirement": req_process,
-                            "capability": cap_process,
+                            "requirement_process": req_process,
+                            "capability_process": cap_process,
                             "confidence": result.confidence,
                             "similarity": (
                                 result.metadata.semantic_similarity
@@ -504,9 +696,48 @@ class MatchingService:
             match_count = 0
             best_overall_match_type = "unknown"
 
+            # DEBUG: Log process requirements for troubleshooting
+            if process_requirements:
+                logger.debug(
+                    f"Processing {len(process_requirements)} process requirements for matching",
+                    extra={
+                        "process_count": len(process_requirements),
+                        "processes": process_requirements,
+                        "facility_name": (
+                            facility.name if hasattr(facility, "name") else "Unknown"
+                        ),
+                    },
+                )
+
             # Check if facility can handle the processes using multi-layer matching
+            # IMPORTANT: Use facility.manufacturing_processes as the primary source of truth
+            # Equipment processes are secondary and may be too granular (e.g., "PCB_printer" vs "PCB")
             for process_name in process_requirements:
+                # CRITICAL: Ensure process_name is a string and validate it's a URI if expected
+                if not isinstance(process_name, str):
+                    logger.warning(
+                        f"Process requirement is not a string: {type(process_name)}, value: {process_name}",
+                        extra={
+                            "process_name": process_name,
+                            "process_type": type(process_name).__name__,
+                        },
+                    )
+                    continue  # Skip non-string processes
+
                 facility_capabilities = []
+
+                # PRIMARY: Use facility's declared manufacturing_processes (most accurate)
+                if (
+                    hasattr(facility, "manufacturing_processes")
+                    and facility.manufacturing_processes
+                ):
+                    if isinstance(facility.manufacturing_processes, list):
+                        facility_capabilities.extend(facility.manufacturing_processes)
+                    elif isinstance(facility.manufacturing_processes, str):
+                        facility_capabilities.append(facility.manufacturing_processes)
+
+                # SECONDARY: Also check equipment processes (for backward compatibility)
+                # But these are less reliable as they may be too specific
                 for equipment in facility.equipment:
                     if hasattr(equipment, "manufacturing_process"):
                         if isinstance(equipment.manufacturing_process, str):
@@ -524,31 +755,165 @@ class MatchingService:
                             )
 
                 # Use multi-layer matching for confidence calculation
+                # IMPORTANT: For component-level matching with process URIs, require direct matches only
+                # This prevents NLP/heuristic matching from incorrectly matching unrelated processes
+                # (e.g., PCB to 3DP) which breaks specialization requirements
+                is_process_uri = isinstance(process_name, str) and (
+                    process_name.startswith("http://")
+                    or process_name.startswith("https://")
+                )
+
+                # CRITICAL: Log at INFO level so it shows up in Cloud Run logs
+                if is_process_uri:
+                    logger.info(
+                        f"PROCESS IS URI: {process_name[:80]} | facility={facility.name if hasattr(facility, 'name') else 'Unknown'}",
+                        extra={
+                            "process_name": process_name,
+                            "is_uri": is_process_uri,
+                            "facility_name": (
+                                facility.name
+                                if hasattr(facility, "name")
+                                else "Unknown"
+                            ),
+                        },
+                    )
+                else:
+                    logger.warning(
+                        f"PROCESS IS NOT URI (expected for component-level matching): {process_name} | "
+                        f"facility={facility.name if hasattr(facility, 'name') else 'Unknown'} | "
+                        f"all_processes={process_requirements}",
+                        extra={
+                            "process_name": process_name,
+                            "is_uri": is_process_uri,
+                            "process_requirements": process_requirements,
+                            "facility_name": (
+                                facility.name
+                                if hasattr(facility, "name")
+                                else "Unknown"
+                            ),
+                        },
+                    )
+
                 best_confidence = 0.0
                 best_match_type = "unknown"
 
                 for capability in facility_capabilities:
+                    # Check if capability is also a URI - if either requirement or capability is a URI,
+                    # require exact match only (no NLP/heuristic/similarity matching)
+                    is_capability_uri = isinstance(capability, str) and (
+                        capability.startswith("http://")
+                        or capability.startswith("https://")
+                    )
+                    require_direct_match = is_process_uri or is_capability_uri
+
+                    # CRITICAL: Log at INFO level so it shows up in Cloud Run logs
+                    if is_process_uri or is_capability_uri:
+                        logger.info(
+                            f"URI MATCHING: process={process_name[:60]}, capability={capability[:60]} | "
+                            f"req_uri={is_process_uri}, cap_uri={is_capability_uri}, require_direct={require_direct_match}",
+                            extra={
+                                "process_name": process_name,
+                                "capability_name": capability,
+                                "is_process_uri": is_process_uri,
+                                "is_capability_uri": is_capability_uri,
+                                "require_direct_match": require_direct_match,
+                            },
+                        )
+
                     # Try each layer and get the best confidence
-                    if await self._direct_match(process_name, capability, domain):
+                    direct_match_result = await self._direct_match(
+                        process_name, capability, domain
+                    )
+                    if direct_match_result:
                         confidence = 1.0
                         match_type = "direct"
-                    elif await self._heuristic_match(process_name, capability, domain):
-                        confidence = 0.8
-                        match_type = "heuristic"
-                    elif await self._nlp_match(process_name, capability, domain):
-                        confidence = 0.7
-                        match_type = "nlp"
-                    else:
-                        # Fallback to similarity-based scoring
-                        similarity = self._calculate_process_similarity(
-                            process_name, capability
+                        logger.debug(
+                            f"Direct match found: process={process_name[:50]}, capability={capability[:50]}",
+                            extra={
+                                "process_name": process_name,
+                                "capability_name": capability,
+                                "match_type": "direct",
+                            },
                         )
-                        if similarity >= 0.3:
-                            confidence = similarity * 0.6  # Partial credit
-                            match_type = "partial"
+                    elif not require_direct_match:
+                        heuristic_match_result = await self._heuristic_match(
+                            process_name, capability, domain
+                        )
+                        if heuristic_match_result:
+                            confidence = 0.8
+                            match_type = "heuristic"
+                            logger.debug(
+                                f"Heuristic match found: process={process_name[:50]}, capability={capability[:50]}",
+                                extra={
+                                    "process_name": process_name,
+                                    "capability_name": capability,
+                                    "match_type": "heuristic",
+                                },
+                            )
                         else:
-                            confidence = 0.0
-                            match_type = "no_match"
+                            nlp_match_result = await self._nlp_match(
+                                process_name, capability, domain
+                            )
+                            if nlp_match_result:
+                                # This should NOT happen for URI processes - log as error if it does
+                                if is_process_uri or is_capability_uri:
+                                    logger.error(
+                                        f"CRITICAL: NLP matching occurred for URI process! This should not happen. "
+                                        f"process={process_name}, capability={capability}, "
+                                        f"is_process_uri={is_process_uri}, is_capability_uri={is_capability_uri}, "
+                                        f"require_direct_match={require_direct_match}",
+                                        extra={
+                                            "process_name": process_name,
+                                            "capability_name": capability,
+                                            "is_process_uri": is_process_uri,
+                                            "is_capability_uri": is_capability_uri,
+                                            "require_direct_match": require_direct_match,
+                                        },
+                                    )
+                                confidence = 0.7
+                                match_type = "nlp"
+                                # CRITICAL: Log NLP matches in main message so they're always visible
+                                logger.warning(
+                                    f"NLP MATCH (0.7): process={process_name[:80]}, capability={capability[:80]} | "
+                                    f"is_process_uri={is_process_uri}, is_capability_uri={is_capability_uri}, "
+                                    f"require_direct_match={require_direct_match}",
+                                    extra={
+                                        "process_name": process_name,
+                                        "capability_name": capability,
+                                        "is_process_uri": is_process_uri,
+                                        "is_capability_uri": is_capability_uri,
+                                        "require_direct_match": require_direct_match,
+                                    },
+                                )
+                            else:
+                                # No match found - try similarity-based scoring as last resort
+                                if not require_direct_match:
+                                    similarity = self._calculate_process_similarity(
+                                        process_name, capability
+                                    )
+                                    if similarity >= 0.3:
+                                        confidence = similarity * 0.6  # Partial credit
+                                        match_type = "partial"
+                                    else:
+                                        confidence = 0.0
+                                        match_type = "no_match"
+                                else:
+                                    confidence = 0.0
+                                    match_type = "no_match"
+                    else:
+                        # require_direct_match is True but direct match failed - no match
+                        confidence = 0.0
+                        match_type = "no_match"
+                        logger.debug(
+                            f"No match (require_direct_match=True): process={process_name[:50]}, capability={capability[:50]}",
+                            extra={
+                                "process_name": process_name,
+                                "capability_name": capability,
+                                "is_process_uri": is_process_uri,
+                                "is_capability_uri": is_capability_uri,
+                                "require_direct_match": require_direct_match,
+                            },
+                        )
 
                     if confidence > best_confidence:
                         best_confidence = confidence
@@ -889,6 +1254,7 @@ class MatchingService:
         - Case normalization: Converts to lowercase
         - Whitespace normalization: Removes extra whitespace
         - Special character handling: Normalizes underscores, hyphens, etc.
+        - Common process name mapping: Maps Wikipedia process names to standard names
 
         Args:
             process_name: The process name to normalize
@@ -919,7 +1285,47 @@ class MatchingService:
         # Normalize multiple spaces to single space
         normalized = re.sub(r"\s+", " ", normalized)
 
-        return normalized.strip()
+        normalized = normalized.strip()
+        
+        # Map common Wikipedia process names to standard names for better rule matching
+        # This helps match Wikipedia URIs to OKH simple names through rules
+        process_name_mapping = {
+            # 3D Printing variants
+            "fused filament fabrication": "3d printing",
+            "fused deposition modeling": "fdm printing",
+            "stereolithography": "sla printing",
+            "selective laser sintering": "sls printing",
+            "digital light processing": "dlp printing",
+            # Assembly variants
+            "electronics assembly": "assembly",
+            "electronics manufacturing": "assembly",
+            "pcb assembly": "assembly",
+            "component assembly": "assembly",
+            "assembly line": "assembly",
+            # Machining variants
+            "computer numerical control": "cnc machining",
+            "subtractive manufacturing": "cnc machining",
+            "machining": "cnc machining",
+            # Post-processing variants
+            "post processing": "post-processing",
+            "postprocessing": "post-processing",
+            # Other common mappings
+            "printed circuit board": "pcb",
+            "circuit board": "pcb",
+            "pcb fabrication": "pcb",
+            # Surface finishing
+            "surface finish": "surface finishing",
+            "surface treatment": "surface finishing",
+        }
+        
+        # Check if normalized name matches any mapping key (exact or contains)
+        for wiki_name, standard_name in process_name_mapping.items():
+            if wiki_name in normalized or normalized in wiki_name:
+                # Use the standard name for better rule matching
+                normalized = standard_name
+                break
+        
+        return normalized
 
     def _calculate_process_similarity(self, process1: str, process2: str) -> float:
         """
@@ -1502,6 +1908,10 @@ class MatchingService:
 
         component_manifest = copy.deepcopy(base_manifest)
 
+        # CRITICAL: Immediately clear manufacturing_processes to prevent any accidental inheritance
+        # We will set it explicitly based on component's TSDC codes
+        component_manifest.manufacturing_processes = []
+
         # Extract component processes and convert to URIs
         component_processes = []
 
@@ -1531,20 +1941,102 @@ class MatchingService:
                     process_uri = self._tsdc_to_process_uri(tsdc_code)
                     if process_uri not in component_processes:
                         component_processes.append(process_uri)
+                # CRITICAL: Log TSDC conversion at INFO level
+                logger.info(
+                    f"Component '{component.name}' TSDC codes converted: {tsdc_codes} -> {[p for p in component_processes if p.startswith('http')]}",
+                    extra={
+                        "component_id": component.id,
+                        "component_name": component.name,
+                        "tsdc_codes": tsdc_codes,
+                        "converted_uris": [
+                            p
+                            for p in component_processes
+                            if isinstance(p, str)
+                            and (p.startswith("http://") or p.startswith("https://"))
+                        ],
+                    },
+                )
 
         # If we found component-specific processes, use them
-        # Otherwise, fall back to base manifest processes
+        # Otherwise, for component-level matching, use empty list to prevent fallback
+        # This ensures components only match facilities that can actually produce them
         if component_processes:
-            component_manifest.manufacturing_processes = component_processes
-            logger.debug(
-                f"Using component-specific processes for {component.name}: {component_processes}",
+            # CRITICAL: Verify all processes are URIs (strings starting with http/https)
+            # This ensures URI-based matching logic works correctly
+            validated_processes = []
+            for proc in component_processes:
+                if isinstance(proc, str) and (
+                    proc.startswith("http://") or proc.startswith("https://")
+                ):
+                    validated_processes.append(proc)
+                else:
+                    logger.error(
+                        f"Component process is not a URI! component={component.name}, process={proc}, type={type(proc)}",
+                        extra={
+                            "component_id": component.id,
+                            "component_name": component.name,
+                            "process_name": proc,
+                            "process_type": type(proc).__name__,
+                            "all_processes": component_processes,
+                        },
+                    )
+
+            if validated_processes:
+                component_manifest.manufacturing_processes = validated_processes
+                # CRITICAL: Log in main message so it's always visible
+                logger.info(
+                    f"Component '{component.name}' processes set: {validated_processes}",
+                    extra={
+                        "component_id": component.id,
+                        "component_name": component.name,
+                        "processes": validated_processes,
+                        "base_manifest_processes": base_manifest.manufacturing_processes,
+                    },
+                )
+            else:
+                # All processes were invalid - set to empty
+                logger.error(
+                    f"All component processes were invalid (not URIs)! component={component.name}, "
+                    f"original_processes={component_processes}",
+                    extra={
+                        "component_id": component.id,
+                        "component_name": component.name,
+                        "original_processes": component_processes,
+                    },
+                )
+                component_manifest.manufacturing_processes = []
+        else:
+            # For component-level matching, don't fall back to base manifest processes
+            # This prevents components from matching all facilities when they have no specific requirements
+            # Only use base manifest processes for root-level matching (not component-level)
+            # CRITICAL: Explicitly set to empty list to prevent any fallback
+            component_manifest.manufacturing_processes = []
+            # Double-check that we didn't accidentally inherit base manifest processes
+            if component_manifest.manufacturing_processes != []:
+                logger.error(
+                    f"CRITICAL: Component manifest still has processes after setting to empty! "
+                    f"component={component.name}, processes={component_manifest.manufacturing_processes}",
+                    extra={
+                        "component_id": component.id,
+                        "component_name": component.name,
+                        "manifest_processes": component_manifest.manufacturing_processes,
+                        "base_manifest_processes": base_manifest.manufacturing_processes,
+                    },
+                )
+                component_manifest.manufacturing_processes = []  # Force to empty
+            logger.warning(
+                f"Component '{component.name}' has no specific process requirements (no TSDC codes). "
+                f"This component will not match any facilities unless it has explicit process requirements.",
                 extra={
                     "component_id": component.id,
                     "component_name": component.name,
-                    "processes": component_processes,
+                    "has_requirements": bool(component.requirements),
+                    "has_metadata_tsdc": bool(
+                        component.metadata and "tsdc" in component.metadata
+                    ),
+                    "base_manifest_processes": base_manifest.manufacturing_processes,
                 },
             )
-        # If no component processes found, use base manifest processes (existing behavior)
 
         return component_manifest
 
@@ -1582,16 +2074,50 @@ class MatchingService:
         # Create component-specific manifest with component's process requirements
         component_manifest = self._create_component_manifest(manifest, component)
 
+        # CRITICAL: Log component manifest processes to verify they're URIs
+        component_processes = component_manifest.manufacturing_processes or []
+        process_uris = [
+            p
+            for p in component_processes
+            if isinstance(p, str)
+            and (p.startswith("http://") or p.startswith("https://"))
+        ]
+        non_uri_processes = [
+            p
+            for p in component_processes
+            if not (
+                isinstance(p, str)
+                and (p.startswith("http://") or p.startswith("https://"))
+            )
+        ]
+
+        # CRITICAL: Log component processes in the main message so it's always visible
         logger.info(
-            f"Matching component '{component.name}' to {len(facilities)} facilities",
+            f"Matching component '{component.name}' to {len(facilities)} facilities | "
+            f"Component processes: {component_processes} | "
+            f"URI count: {len(process_uris)}, Non-URI count: {len(non_uri_processes)}",
             extra={
                 "component_id": component.id,
                 "component_name": component.name,
-                "component_processes": component_manifest.manufacturing_processes,
+                "component_processes": component_processes,
+                "process_uri_count": len(process_uris),
+                "non_uri_process_count": len(non_uri_processes),
                 "facility_count": len(facilities),
                 "base_manifest_processes": manifest.manufacturing_processes,
             },
         )
+
+        if non_uri_processes:
+            logger.error(
+                f"CRITICAL: Component '{component.name}' has non-URI processes! "
+                f"non_uri_processes={non_uri_processes}, all_processes={component_processes}",
+                extra={
+                    "component_id": component.id,
+                    "component_name": component.name,
+                    "non_uri_processes": non_uri_processes,
+                    "all_processes": component_processes,
+                },
+            )
 
         # Match component to each facility
         for facility in facilities:
@@ -1634,11 +2160,18 @@ class MatchingService:
                 tree.component_name = component.name
                 tree.component_quantity = component.quantity
                 tree.component_unit = component.unit
-                tree.depth = component_match.depth
-                tree.component_path = component_match.path
-                tree.production_stage = (
-                    "component" if component_match.depth > 0 else "final"
-                )
+                # Handle None component_match gracefully
+                if component_match:
+                    tree.depth = component_match.depth
+                    tree.component_path = component_match.path
+                    tree.production_stage = (
+                        "component" if component_match.depth > 0 else "final"
+                    )
+                else:
+                    # Default values when component_match is None
+                    tree.depth = 0
+                    tree.component_path = [component.name] if component.name else []
+                    tree.production_stage = "final"
 
                 # Add component-specific metadata
                 if component.requirements:
@@ -1654,7 +2187,7 @@ class MatchingService:
                         "component_id": component.id,
                         "facility_id": str(facility.id),
                         "confidence": tree.confidence_score,
-                        "depth": component_match.depth,
+                        "depth": component_match.depth if component_match else 0,
                     },
                 )
 

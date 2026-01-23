@@ -1,0 +1,201 @@
+{
+  "id": "5a27707c-2037-4456-a6c5-83bd39d5f4d7",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "4369",
+      "street": "Benson Stravenue",
+      "city": "New York",
+      "region": "VI",
+      "country": "US",
+      "postcode": "81580"
+    },
+    "gps_coordinates": "40.7127281, -74.0060152",
+    "city": "New York",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "contact": {
+    "name": "Ramirez, Sanders and Robinson",
+    "location": {
+      "address": {
+        "number": "5073",
+        "street": "Felicia Lock",
+        "city": "Indianapolis",
+        "region": "PR",
+        "country": "US",
+        "postcode": "57866"
+      },
+      "gps_coordinates": "39.7683331, -86.1583502",
+      "city": "Indianapolis",
+      "country": "US"
+    },
+    "website": "https://williams-miller.com",
+    "mailing_list": "weaverjoel@lists.booker-riggs.info",
+    "contact": {
+      "landline": "+1-265-974-8130",
+      "mobile": "+1-615-298-8963"
+    },
+    "social_media": {
+      "instagram": "@phamlaura",
+      "other_urls": [
+        "https://miller.com",
+        "https://vincent.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-22:00",
+  "description": "University research facility for rapid prototyping",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "S5",
+      "condition": "Fair",
+      "throughput": "5 parts/hour",
+      "power_rating": 8309,
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "brand": "Industrial"
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 341",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "DMU 50",
+      "serial_number": "SN889215",
+      "condition": "Good",
+      "throughput": "39 parts/hour",
+      "power_rating": 3748,
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7560",
+              "street": "Valerie Squares",
+              "city": "Austin",
+              "region": "PW",
+              "country": "US",
+              "postcode": "12432"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Generic",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8732",
+              "street": "Moore Creek",
+              "city": "San Jose",
+              "region": "PR",
+              "country": "US",
+              "postcode": "43333"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "directions": "Located behind Osborne-Humphrey",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A"
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4435,
+  "storage_capacity": "196 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "human_capacity": {
+    "headcount": 10
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:42:12.465080",
+    "created_by": {
+      "name": "Rodriguez, Barnes and Frederick",
+      "location": {
+        "address": {
+          "number": "8549",
+          "street": "Cristina Overpass",
+          "city": "Phoenix",
+          "region": "AZ",
+          "country": "US",
+          "postcode": "49931"
+        },
+        "gps_coordinates": "33.4484367, -112.074141",
+        "directions": "Located across from Roach, Carter and Williams",
+        "city": "Phoenix",
+        "country": "US"
+      },
+      "bio": "Established in 2004, we specialize in Polarized client-server architecture",
+      "website": "https://roth.com",
+      "social_media": {
+        "twitter": "@state",
+        "instagram": "@sharongiles",
+        "other_urls": [
+          "https://gordon.net",
+          "https://miller.com"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

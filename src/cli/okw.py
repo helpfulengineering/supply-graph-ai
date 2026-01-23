@@ -38,16 +38,16 @@ def okw_group():
 
     Examples:
       # Validate an OKW facility
-      ome okw validate my-facility.okw.json
+      ohm okw validate my-facility.okw.json
 
       # Create and store a facility
-      ome okw create my-facility.okw.json
+      ohm okw create my-facility.okw.json
 
       # Search for facilities by capability
-      ome okw search --capability "PCB Assembly" --location "San Francisco"
+      ohm okw search --capability "PCB Assembly" --location "San Francisco"
 
       # Use LLM for enhanced processing
-      ome okw validate my-facility.okw.json --use-llm --quality-level professional
+      ohm okw validate my-facility.okw.json --use-llm --quality-level professional
     """
     pass
 
@@ -187,13 +187,13 @@ async def _display_retrieval_results(
     epilog="""
     Examples:
       # Basic validation
-      ome okw validate my-facility.okw.json
+      ohm okw validate my-facility.okw.json
       
       # Strict validation with medical quality level
-      ome okw validate my-facility.okw.json --quality-level medical --strict-mode
+      ohm okw validate my-facility.okw.json --quality-level medical --strict-mode
       
       # Use LLM for enhanced validation
-      ome okw validate my-facility.okw.json --use-llm --quality-level professional
+      ohm okw validate my-facility.okw.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -299,13 +299,13 @@ async def validate(
     epilog="""
     Examples:
       # Create and store a facility
-      ome okw create my-facility.okw.json
+      ohm okw create my-facility.okw.json
       
       # Create with output file
-      ome okw create my-facility.okw.json --output result.json
+      ohm okw create my-facility.okw.json --output result.json
       
       # Use LLM for enhanced processing
-      ome okw create my-facility.okw.json --use-llm --quality-level professional
+      ohm okw create my-facility.okw.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -402,13 +402,13 @@ async def create(
     epilog="""
     Examples:
       # Get a facility by ID
-      ome okw get 123e4567-e89b-12d3-a456-426614174000
+      ohm okw get 123e4567-e89b-12d3-a456-426614174000
       
       # Get with output file
-      ome okw get 123e4567-e89b-12d3-a456-426614174000 --output facility.json
+      ohm okw get 123e4567-e89b-12d3-a456-426614174000 --output facility.json
       
       # Use LLM for enhanced analysis
-      ome okw get 123e4567-e89b-12d3-a456-426614174000 --use-llm
+      ohm okw get 123e4567-e89b-12d3-a456-426614174000 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -501,13 +501,13 @@ async def get(
     epilog="""
     Examples:
       # List all facilities
-      ome okw list
+      ohm okw list
       
       # List with pagination and filters
-      ome okw list --limit 20 --offset 10 --facility-type "Manufacturing"
+      ohm okw list --limit 20 --offset 10 --facility-type "Manufacturing"
       
       # Use LLM for enhanced analysis
-      ome okw list --use-llm --limit 50
+      ohm okw list --use-llm --limit 50
     """,
     async_cmd=True,
     track_performance=True,
@@ -635,13 +635,13 @@ async def list_facilities(
     epilog="""
     Examples:
       # Delete a facility (with confirmation)
-      ome okw delete 123e4567-e89b-12d3-a456-426614174000
+      ohm okw delete 123e4567-e89b-12d3-a456-426614174000
       
       # Force deletion without confirmation
-      ome okw delete 123e4567-e89b-12d3-a456-426614174000 --force
+      ohm okw delete 123e4567-e89b-12d3-a456-426614174000 --force
       
       # Use LLM for enhanced analysis
-      ome okw delete 123e4567-e89b-12d3-a456-426614174000 --use-llm
+      ohm okw delete 123e4567-e89b-12d3-a456-426614174000 --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -738,10 +738,10 @@ async def delete(
     epilog="""
     Examples:
       # Extract capabilities from facility
-      ome okw extract my-facility.okw.json
+      ohm okw extract my-facility.okw.json
       
       # Use LLM for enhanced extraction
-      ome okw extract my-facility.okw.json --use-llm --quality-level professional
+      ohm okw extract my-facility.okw.json --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -886,13 +886,13 @@ async def extract_capabilities(
     epilog="""
     Examples:
       # Upload and validate a facility
-      ome okw upload my-facility.okw.json
+      ohm okw upload my-facility.okw.json
       
       # Upload with premium quality validation
-      ome okw upload my-facility.okw.json --quality-level premium --strict-mode
+      ohm okw upload my-facility.okw.json --quality-level premium --strict-mode
       
       # Use LLM for enhanced processing
-      ome okw upload my-facility.okw.json --use-llm --quality-level standard
+      ohm okw upload my-facility.okw.json --use-llm --quality-level standard
     """,
     async_cmd=True,
     track_performance=True,
@@ -1022,13 +1022,13 @@ async def upload(
     epilog="""
     Examples:
       # Export schema to console
-      ome okw export
+      ohm okw export
       
       # Export schema to file
-      ome okw export --output okw-schema.json
+      ohm okw export --output okw-schema.json
       
       # Export with JSON output format
-      ome okw export --output okw-schema.json --json
+      ohm okw export --output okw-schema.json --json
     """,
     async_cmd=True,
     track_performance=True,
@@ -1143,13 +1143,13 @@ async def export(
     epilog="""
     Examples:
       # Search by capability
-      ome okw search --capability "PCB Assembly"
+      ohm okw search --capability "PCB Assembly"
       
       # Search with multiple filters
-      ome okw search --query "electronics" --location "San Francisco" --limit 20
+      ohm okw search --query "electronics" --location "San Francisco" --limit 20
       
       # Use LLM for enhanced search
-      ome okw search --query "precision manufacturing" --use-llm
+      ohm okw search --query "precision manufacturing" --use-llm
     """,
     async_cmd=True,
     track_performance=True,
@@ -1314,19 +1314,19 @@ async def search(
     epilog="""
     Examples:
       # Preview fixes without applying
-      ome okw fix facility.json --dry-run
+      ohm okw fix facility.json --dry-run
       
       # Apply fixes with backup
-      ome okw fix facility.json --backup
+      ohm okw fix facility.json --backup
       
       # Apply fixes to new file
-      ome okw fix facility.json --output facility-fixed.json
+      ohm okw fix facility.json --output facility-fixed.json
       
       # Apply all fixes including low-confidence ones
-      ome okw fix facility.json --confidence-threshold 0.5 --yes
+      ohm okw fix facility.json --confidence-threshold 0.5 --yes
       
       # Fix with domain override
-      ome okw fix facility.json --domain cooking
+      ohm okw fix facility.json --domain cooking
     """,
     async_cmd=True,
     track_performance=True,
@@ -1626,13 +1626,13 @@ async def fix(
     epilog="""
     Examples:
       # List all OKW files
-      ome okw list-files
+      ohm okw list-files
       
       # List with specific prefix
-      ome okw list-files --prefix okw/facilities/
+      ohm okw list-files --prefix okw/facilities/
       
       # Save list to JSON file
-      ome okw list-files --output files.json --format json
+      ohm okw list-files --output files.json --format json
     """,
     async_cmd=True,
     track_performance=True,

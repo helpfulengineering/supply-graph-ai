@@ -139,7 +139,31 @@ async def build_package_from_manifest(
     start_time = datetime.now()
 
     try:
-        # Create manifest from data
+        # Pre-validate and fix UUID issues in manifest data before parsing
+        # This is a safeguard in case the API server hasn't been restarted with the latest fixes
+        from ...validation.uuid_validator import UUIDValidator
+        
+        # Fix manifest ID if invalid
+        if "id" in request.manifest_data:
+            manifest_id = request.manifest_data["id"]
+            if not UUIDValidator.is_valid_uuid(manifest_id):
+                logger.warning(f"Fixing invalid manifest ID: {manifest_id}")
+                request.manifest_data["id"] = UUIDValidator.fix_invalid_uuid(
+                    manifest_id, fallback_to_random=True
+                )
+        
+        # Fix part IDs if invalid
+        if "parts" in request.manifest_data:
+            for part in request.manifest_data["parts"]:
+                if "id" in part:
+                    part_id = part["id"]
+                    if not UUIDValidator.is_valid_uuid(part_id):
+                        logger.warning(f"Fixing invalid part ID: {part_id}")
+                        part["id"] = UUIDValidator.fix_invalid_uuid(
+                            part_id, fallback_to_random=True
+                        )
+        
+        # Create manifest from data (this will also handle UUID conversion)
         manifest = OKHManifest.from_dict(request.manifest_data)
 
         # Use default options if none provided
@@ -570,13 +594,43 @@ async def push_package(
         package_name = request.package_name
         version = request.version
 
+        # Validate package name format - detect common mistake where version is included
+        if "/" in version or package_name.count("/") > 1:
+            # Check if version appears to be in package_name
+            if version in package_name:
+                suggested_package_name = package_name.rsplit("/", 1)[0]
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        f"Invalid package name format. It looks like you included the version in the package name.\n"
+                        f"Received: package_name='{package_name}', version='{version}'\n"
+                        f"Expected format: package_name='org/project' (e.g., 'fourthievesvinegar/solderless-microlab'), version='1.0.0'\n"
+                        f"Suggested: Try 'ohm package push {suggested_package_name} {version}'"
+                    ),
+                )
+        
+        # Validate package name has exactly one slash (org/project format)
+        if package_name.count("/") != 1:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Invalid package name format. Package name must be in format 'org/project'.\n"
+                    f"Received: '{package_name}'\n"
+                    f"Expected: 'organization/project' (e.g., 'fourthievesvinegar/solderless-microlab')"
+                ),
+            )
+
         # Get package metadata first
         package_service = await get_package_service()
         metadata = await package_service.get_package_metadata(package_name, version)
 
         if not metadata:
             raise HTTPException(
-                status_code=404, detail=f"Package {package_name}:{version} not found"
+                status_code=404,
+                detail=(
+                    f"Package {package_name}:{version} not found.\n"
+                    f"Use 'ohm package list-packages' to see available packages and their versions."
+                ),
             )
 
         # Push package

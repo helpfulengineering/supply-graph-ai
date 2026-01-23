@@ -28,26 +28,26 @@ def solution_group():
 
     Examples:
       # Save a solution from a file
-      ome solution save solution.json --id {uuid} --tags "production,test" --ttl-days 60
+      ohm solution save solution.json --id {uuid} --tags "production,test" --ttl-days 60
 
       # Load a solution
-      ome solution load {solution_id} --output solution.json
+      ohm solution load {solution_id} --output solution.json
 
       # List solutions with filters
-      ome solution list --okh-id {uuid} --matching-mode nested
-      ome solution list --sort-by created_at --sort-order desc
-      ome solution list --max-age-days 7 --only-stale
+      ohm solution list --okh-id {uuid} --matching-mode nested
+      ohm solution list --sort-by created_at --sort-order desc
+      ohm solution list --max-age-days 7 --only-stale
 
       # Check solution staleness
-      ome solution check {solution_id}
+      ohm solution check {solution_id}
 
       # Extend solution TTL
-      ome solution extend {solution_id} --days 30
+      ohm solution extend {solution_id} --days 30
 
       # Cleanup stale solutions
-      ome solution cleanup --max-age-days 90 --dry-run
-      ome solution cleanup --max-age-days 90 --archive
-      ome solution cleanup --before-date 2024-01-01
+      ohm solution cleanup --max-age-days 90 --dry-run
+      ohm solution cleanup --max-age-days 90 --archive
+      ohm solution cleanup --before-date 2024-01-01
     """
     pass
 
@@ -73,13 +73,13 @@ def solution_group():
     
     Examples:
       # Save with auto-generated ID
-      ome solution save solution.json
+      ohm solution save solution.json
       
       # Save with specific ID and TTL
-      ome solution save solution.json --id abc123 --ttl-days 60
+      ohm solution save solution.json --id abc123 --ttl-days 60
       
       # Save with tags
-      ome solution save solution.json --tags "production,test"
+      ohm solution save solution.json --tags "production,test"
     """,
     async_cmd=True,
     track_performance=True,
@@ -169,13 +169,13 @@ async def save(
     
     Examples:
       # Load to stdout
-      ome solution load {solution_id}
+      ohm solution load {solution_id}
       
       # Load to file
-      ome solution load {solution_id} --output solution.json
+      ohm solution load {solution_id} --output solution.json
       
       # Load as JSON
-      ome solution load {solution_id} --json
+      ohm solution load {solution_id} --json
     """,
     async_cmd=True,
     track_performance=True,
@@ -255,12 +255,12 @@ async def load(
     
     Examples:
       # List all solutions
-      ome solution list
+      ohm solution list
       
       # List with filters
-      ome solution list --okh-id {uuid} --matching-mode nested
-      ome solution list --sort-by created_at --sort-order desc
-      ome solution list --max-age-days 7 --only-stale
+      ohm solution list --okh-id {uuid} --matching-mode nested
+      ohm solution list --sort-by created_at --sort-order desc
+      ohm solution list --max-age-days 7 --only-stale
     """,
     async_cmd=True,
     track_performance=True,
@@ -363,7 +363,7 @@ async def list_solutions(
     
     Examples:
       # Delete a solution
-      ome solution delete {solution_id}
+      ohm solution delete {solution_id}
     """,
     async_cmd=True,
     track_performance=True,
@@ -409,10 +409,10 @@ async def delete(
     
     Examples:
       # Check staleness
-      ome solution check {solution_id}
+      ohm solution check {solution_id}
       
       # Check with custom max age
-      ome solution check {solution_id} --max-age-days 7
+      ohm solution check {solution_id} --max-age-days 7
     """,
     async_cmd=True,
     track_performance=True,
@@ -482,10 +482,10 @@ async def check(
     
     Examples:
       # Extend by default 30 days
-      ome solution extend {solution_id}
+      ohm solution extend {solution_id}
       
       # Extend by specific number of days
-      ome solution extend {solution_id} --days 60
+      ohm solution extend {solution_id} --days 60
     """,
     async_cmd=True,
     track_performance=True,
@@ -552,16 +552,16 @@ async def extend(
     
     Examples:
       # Dry run to see what would be deleted
-      ome solution cleanup --max-age-days 90 --dry-run
+      ohm solution cleanup --max-age-days 90 --dry-run
       
       # Actually delete stale solutions
-      ome solution cleanup --max-age-days 90
+      ohm solution cleanup --max-age-days 90
       
       # Archive instead of delete
-      ome solution cleanup --max-age-days 90 --archive
+      ohm solution cleanup --max-age-days 90 --archive
       
       # Delete solutions before a specific date
-      ome solution cleanup --before-date 2024-01-01
+      ohm solution cleanup --before-date 2024-01-01
     """,
     async_cmd=True,
     track_performance=True,

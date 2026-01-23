@@ -36,13 +36,13 @@ def match_group():
 
     Examples:
       # Match requirements from an OKH file
-      ome match requirements my-design.okh.json
+      ohm match requirements my-design.okh.json
 
       # Match with specific filters
-      ome match requirements my-design.okh.json --location "San Francisco" --access-type public
+      ohm match requirements my-design.okh.json --location "San Francisco" --access-type public
 
       # Use LLM for enhanced matching
-      ome match requirements my-design.okh.json --use-llm --quality-level professional
+      ohm match requirements my-design.okh.json --use-llm --quality-level professional
     """
     pass
 
@@ -156,37 +156,37 @@ def match_group():
     epilog="""
     Examples:
       # Match OKH requirements (manufacturing) from local file
-      ome match requirements my-design.okh.json
+      ohm match requirements my-design.okh.json
       
       # Match OKH requirements from URL
-      ome match requirements https://example.com/manifest.okh.json
+      ohm match requirements https://example.com/manifest.okh.json
       
       # Match recipe requirements (cooking)
-      ome match requirements chocolate-chip-cookies-recipe.json
+      ohm match requirements chocolate-chip-cookies-recipe.json
       
       # Match with location filter
-      ome match requirements my-design.okh.json --location "Berlin"
+      ohm match requirements my-design.okh.json --location "Berlin"
       
       # High-confidence matches only
-      ome match requirements my-design.okh.json --min-confidence 0.9
+      ohm match requirements my-design.okh.json --min-confidence 0.9
       
       # Use LLM for enhanced matching
-      ome match requirements my-design.okh.json --use-llm --quality-level professional
+      ohm match requirements my-design.okh.json --use-llm --quality-level professional
       
       # Nested matching with custom depth
-      ome match requirements my-design.okh.json --max-depth 5
+      ohm match requirements my-design.okh.json --max-depth 5
       
       # Auto-detect nested matching
-      ome match requirements my-design.okh.json --auto-detect-depth
+      ohm match requirements my-design.okh.json --auto-detect-depth
       
       # Save results to file
-      ome match requirements my-design.okh.json --output matches.json
+      ohm match requirements my-design.okh.json --output matches.json
       
       # Auto-save solution to storage
-      ome match requirements my-design.okh.json --max-depth 3 --save-solution
+      ohm match requirements my-design.okh.json --max-depth 3 --save-solution
       
       # Auto-save with TTL and tags
-      ome match requirements my-design.okh.json --save-solution --solution-ttl-days 60 --solution-tags "production,test"
+      ohm match requirements my-design.okh.json --save-solution --solution-ttl-days 60 --solution-tags "production,test"
     """,
     async_cmd=True,
     track_performance=True,
@@ -1379,16 +1379,16 @@ def rules():
 
     Examples:
       # List all rules
-      ome match rules list
+      ohm match rules list
 
       # Get a specific rule
-      ome match rules get manufacturing cnc_machining_capability
+      ohm match rules get manufacturing cnc_machining_capability
 
       # Create a new rule interactively
-      ome match rules create --interactive
+      ohm match rules create --interactive
 
       # Import rules from file
-      ome match rules import rules.yaml
+      ohm match rules import rules.yaml
     """
     pass
 

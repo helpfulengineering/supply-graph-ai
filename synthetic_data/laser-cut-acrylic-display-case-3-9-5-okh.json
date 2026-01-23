@@ -1,0 +1,218 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "c92d2ead-f6a9-42a5-b6ce-eaa1f3b013cb",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/prestonleonard/laser-cut-acrylic-display-case",
+  "version": "3.9.5",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Jeffrey Finley",
+    "email": null,
+    "affiliation": "Sanchez-English",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "phillipsconnie"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "keywords": [
+    "modular",
+    "mount",
+    "open-source"
+  ],
+  "contributors": [
+    {
+      "name": "Kimberly Scott",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "aperez"
+        }
+      ]
+    },
+    {
+      "name": "Brian Watts",
+      "email": null,
+      "affiliation": "Jones-Arnold",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "michaelreid"
+        }
+      ]
+    },
+    {
+      "name": "Jennifer Ortiz",
+      "email": null,
+      "affiliation": "Jones, Carlson and Mckinney",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "andrea23"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Knight-Campbell",
+    "url": null,
+    "email": null
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/tamaramoran/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/mark58/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/meghan73/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/ehubbard/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/tdickson/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Exhaust system",
+    "Pliers",
+    "Cable ties",
+    "Focus lens",
+    "Material guides",
+    "Screwdriver set",
+    "Cutting bed",
+    "Heat shrink"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": {
+      "length": 342,
+      "width": 185,
+      "height": 53
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "75W",
+          "speed": "998 mm/min",
+          "passes": 3
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": ""
+  },
+  "bom": "https://github.com/angelamiller/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "dfe7f232-eb4c-45b8-8ac6-ecc1cf3a995f",
+      "source": [],
+      "export": [
+        "https://github.com/kristinefleming/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [
+        "https://github.com/akelly/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 21.12,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

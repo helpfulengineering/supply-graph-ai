@@ -1,145 +1,134 @@
 {
-  "id": "176905e0-c097-4308-9d29-8e93032781fb",
+  "id": "09167275-dc84-42a9-9642-ff24a6666ad7",
   "name": "Precision Machining Facility 1",
   "location": {
     "address": {
-      "number": "1666",
-      "street": "Christopher Plains",
-      "city": "Robertville",
-      "region": "Indiana",
-      "country": "Mongolia",
-      "postcode": "62342"
+      "number": "9033",
+      "street": "David Vista",
+      "city": "New York",
+      "region": "NH",
+      "country": "US",
+      "postcode": "91707"
     },
-    "gps_coordinates": "26.223294, -0.930371",
-    "directions": "Located near Hansen, Hickman and Murillo",
-    "city": "Robertville",
-    "country": "Mongolia"
+    "gps_coordinates": "40.7127281, -74.0060152",
+    "city": "New York",
+    "country": "US"
   },
   "facility_status": "Active",
-  "contact": {
-    "name": "Gilbert, Zimmerman and Butler",
-    "website": "https://henderson.com",
-    "contact": {
-      "mobile": "+1-775-938-4776",
-      "whatsapp": "+1-619-733-2177"
-    },
-    "social_media": {
-      "twitter": "@harperrobin",
-      "instagram": "@anthonyphillips",
-      "other_urls": [
-        "https://luna.com"
-      ]
-    }
-  },
-  "opening_hours": "Mon-Fri: 8:00-21:00",
+  "opening_hours": "Mon-Fri: 7:00-20:00",
   "description": "Specialized in high-precision machining operations",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
-      "make": "Mazak",
+      "make": "Tormach",
       "model": "PCNC 440",
-      "serial_number": "SN634978",
-      "condition": "Good",
-      "quantity": 2,
+      "serial_number": "SN349704",
+      "condition": "Fair",
+      "notes": "Equipment notes: Worker well as goal trade.",
+      "throughput": "49 parts/hour",
+      "power_rating": 7195,
+      "tolerance_class": "ISO 2768-f",
       "computer_controlled": true,
       "materials_worked": [
         {
           "material_type": "https://en.wikipedia.org/wiki/Aluminum",
-          "brand": "Professional",
+          "brand": "Standard",
           "supplier_location": {
             "address": {
-              "number": "9868",
-              "street": "Stacy Fall",
-              "city": "West Bonnie",
-              "region": "Alaska",
-              "country": "Bosnia and Herzegovina",
-              "postcode": "47294"
+              "number": "2442",
+              "street": "Cody Landing",
+              "city": "San Francisco",
+              "region": "NV",
+              "country": "US",
+              "postcode": "57299"
             },
-            "gps_coordinates": "39.273078, -39.525675",
-            "city": "West Bonnie",
-            "country": "Bosnia and Herzegovina"
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "directions": "Located near Townsend-Pratt",
+            "city": "San Francisco",
+            "country": "US"
           }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Steel",
-          "manufacturer": "Brand B",
-          "brand": "Industrial",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
           "supplier_location": {
             "address": {
-              "number": "9529",
-              "street": "Rush Fords",
-              "city": "Austinburgh",
-              "region": "New Mexico",
-              "country": "Burundi",
-              "postcode": "16870"
+              "number": "4260",
+              "street": "Wallace Islands",
+              "city": "Charlotte",
+              "region": "ID",
+              "country": "US",
+              "postcode": "27747"
             },
-            "gps_coordinates": "43.468864, -63.877797",
-            "directions": "Located behind King and Sons",
-            "city": "Austinburgh",
-            "country": "Burundi"
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located across from Carroll Ltd",
+            "city": "Charlotte",
+            "country": "US"
           }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Plastic",
-          "manufacturer": "Premium",
+          "brand": "Industrial",
           "supplier_location": {
             "address": {
-              "number": "4620",
-              "street": "Sheri Well",
-              "city": "Lake Jeffrey",
-              "region": "Delaware",
-              "country": "Swaziland",
-              "postcode": "48621"
+              "number": "7174",
+              "street": "Rebecca Well",
+              "city": "Charlotte",
+              "region": "NV",
+              "country": "US",
+              "postcode": "84293"
             },
-            "gps_coordinates": "45.638032, -13.304365",
-            "city": "Lake Jeffrey",
-            "country": "Swaziland"
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located behind Carey, Ramirez and Morales",
+            "city": "Charlotte",
+            "country": "US"
           }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
           "supplier_location": {
             "address": {
-              "number": "6078",
-              "street": "Padilla Isle",
-              "city": "Lake Amy",
-              "region": "Illinois",
-              "country": "Lithuania",
-              "postcode": "46848"
+              "number": "3012",
+              "street": "Velazquez Bypass",
+              "city": "Indianapolis",
+              "region": "CA",
+              "country": "US",
+              "postcode": "29008"
             },
-            "gps_coordinates": "54.401812, -60.473675",
-            "directions": "Located behind Anderson, West and Gonzalez",
-            "city": "Lake Amy",
-            "country": "Lithuania"
+            "gps_coordinates": "39.7683331, -86.1583502",
+            "city": "Indianapolis",
+            "country": "US"
           }
         }
       ],
-      "axes": 3,
+      "axes": 4,
       "working_surface": 800
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
-      "make": "Brand A",
-      "model": "Model 740",
-      "condition": "Fair",
+      "make": "Brand B",
+      "model": "Model 728",
+      "condition": "Excellent",
       "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
       "make": "Brand A",
-      "model": "Model 568",
-      "condition": "Excellent"
+      "model": "Model 198",
+      "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CMM",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CMM",
-      "make": "Brand B",
-      "model": "Model 487",
-      "condition": "Good",
+      "make": "Generic",
+      "model": "Model 267",
+      "condition": "Excellent",
       "computer_controlled": true
     }
   ],
@@ -150,16 +139,11 @@
     "https://en.wikipedia.org/wiki/Quality_control"
   ],
   "typical_batch_size": "0 -- 50 units",
+  "floor_size": 3633,
   "typical_materials": [],
-  "certifications": [
-    "OHSAS 18001",
-    "AS9100"
-  ],
+  "certifications": [],
+  "backup_generator": true,
   "road_access": true,
-  "typical_products": [
-    "Multi-lateral exuding array",
-    "Total human-resource leverage",
-    "Integrated multi-state system engine",
-    "Function-based upward-trending ability"
-  ]
+  "loading_dock": true,
+  "maintenance_schedule": "Every 5 months"
 }

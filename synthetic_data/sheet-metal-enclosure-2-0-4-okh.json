@@ -1,0 +1,732 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "3d0873a7-c9b1-4dcd-884d-992849aed51a",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/marymichael/sheet-metal-enclosure",
+  "version": "2.0.4",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Louis Conner",
+    "email": "ellisonkim@example.com",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "davidhouse"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Month discussion Mrs walk protect carry.",
+  "intended_use": "Consumer spring threat fall end.",
+  "keywords": [
+    "housing",
+    "fastener",
+    "prototype",
+    "gear",
+    "open-source"
+  ],
+  "contributors": [
+    {
+      "name": "Roger Carter",
+      "email": "jodi98@example.org",
+      "affiliation": "Mcdonald PLC",
+      "social": []
+    },
+    {
+      "name": "Sarah Gutierrez",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Joy Bowman",
+      "email": null,
+      "affiliation": "Griffin Inc",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "pwillis"
+        }
+      ]
+    }
+  ],
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/lhahn/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/daniel37/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/hannah81/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/justinwashington/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/justinsmith/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/james84/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/paul82/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/ssparks/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Crimping tool",
+    "Sheet metal brake",
+    "Welder",
+    "Punch press",
+    "Heat shrink",
+    "Pliers"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 493,
+      "width": 447,
+      "height": 115
+    },
+    "process_requirements": [],
+    "quality_standards": [],
+    "notes": "Manufacturing notes: Animal write girl one."
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Base Unit",
+      "id": "0edc12eb-3502-410c-96c8-35da738f77c7",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "1d43b2b1-c233-4f44-a0bc-963079e7f383",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "978061f5-10d6-41e5-a61a-fdb01690daa2",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "f38b6514-a1b4-4876-8115-a071225702d7",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "ce6c9db5-31d5-4c48-bf1a-0342a4156d9b",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Base Unit - Auxiliary Unit",
+      "quantity": 5.3,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Nylon",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Auxiliary Unit - Sub-Component",
+          "quantity": 5.91,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Auxiliary Unit - Element",
+          "quantity": 9.33,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Auxiliary Unit - Sub-Component",
+          "quantity": 8.39,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "TPU",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Sub-Assembly",
+      "quantity": 1.51,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "PETG",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Sub-Assembly - Tertiary Module",
+          "quantity": 5.15,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Sub-Assembly - Tertiary Module",
+          "quantity": 2.59,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Sub-Assembly - Element",
+          "quantity": 8.26,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Auxiliary Unit",
+      "quantity": 9.17,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "TPU",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Auxiliary Unit - Detail Part",
+          "quantity": 4.53,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Support Component",
+      "quantity": 6.31,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "TPU",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Support Component - Element",
+          "quantity": 7.21,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Screws",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Support Component",
+      "quantity": 7.76,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Cables",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Support Component - Detail Part",
+          "quantity": 4.64,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 4.62,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Screws",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Detail Part",
+          "quantity": 6.09,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Support Component",
+      "quantity": 7.45,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Cables",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Support Component - Detail Part",
+          "quantity": 3.69,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "TPU",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Support Component - Tertiary Module",
+          "quantity": 1.92,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Support Component",
+      "quantity": 8.6,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "TPU",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Support Component - Detail Part",
+          "quantity": 9.28,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Support Component - Element",
+          "quantity": 6.69,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Support Component - Element",
+          "quantity": 7.87,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Screws",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 5.28,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "PETG",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Tertiary Module",
+          "quantity": 3.7,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Support Component",
+      "quantity": 2.52,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "TPU",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Support Component - Tertiary Module",
+          "quantity": 5.8,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Sub-Assembly",
+      "quantity": 8.74,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "PETG",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Sub-Assembly - Detail Part",
+          "quantity": 6.26,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

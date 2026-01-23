@@ -1,0 +1,270 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "eef424ad-de9f-404e-8266-fa840f013f84",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/hensonaaron/laser-cut-acrylic-display-case",
+  "version": "2.0.5",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "William Nguyen",
+    "email": null,
+    "affiliation": "Sullivan Ltd",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "owilliams"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Red easy beat contain.",
+  "keywords": [
+    "customizable",
+    "assembly",
+    "bearing"
+  ],
+  "contributors": [
+    {
+      "name": "Kimberly Hurley",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "brianna57"
+        }
+      ]
+    },
+    {
+      "name": "Richard Mccarthy",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "lisa29"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Farmer-Peterson",
+    "url": null,
+    "email": "contact@patterson-wilson.com"
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-4",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/aguilarrobert/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.8"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/patrickfreeman/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/rvelazquez/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/brittany58/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/bmorrow/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/jyoung/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Exhaust system",
+    "Pliers",
+    "Cable ties",
+    "Crimping tool",
+    "Heat shrink",
+    "Material guides",
+    "Screwdriver set",
+    "Cutting bed",
+    "Laser cutter"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 546.33,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": {
+      "length": 192,
+      "width": 229,
+      "height": 38
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "40W",
+          "speed": "906 mm/min",
+          "passes": 1
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": ""
+  },
+  "bom": "https://github.com/lauren36/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "4ce2d9ea-9b8a-4b5c-ab0b-188dfa9ba43f",
+      "source": [],
+      "export": [
+        "https://github.com/pmorgan/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/courtney56/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/eric79/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": 812.18,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "ddb09e7a-15b1-48f6-b804-2c9253a36aa5",
+      "source": [],
+      "export": [
+        "https://github.com/joannerodriguez/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/davidweber/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "5bbfc26c-ccbf-403e-bca8-035a46816a43",
+      "source": [
+        "https://github.com/curtisgaines/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/shawpeter/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 119,
+        "width": 147,
+        "height": 60
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

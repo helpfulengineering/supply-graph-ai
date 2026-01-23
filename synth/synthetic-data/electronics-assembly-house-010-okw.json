@@ -1,0 +1,132 @@
+{
+  "id": "546016d7-7e89-4f9c-aac6-5c2bbcfe14c2",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "4396",
+      "street": "Newton Lock",
+      "city": "Los Angeles",
+      "region": "KS",
+      "country": "US",
+      "postcode": "77084"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Williamson-Hart",
+    "location": {
+      "address": {
+        "number": "9662",
+        "street": "Nicholas Village",
+        "city": "Seattle",
+        "region": "TX",
+        "country": "US",
+        "postcode": "14779"
+      },
+      "gps_coordinates": "47.6038321, -122.330062",
+      "city": "Seattle",
+      "country": "US"
+    },
+    "contact": {
+      "landline": "+1-428-778-9486",
+      "mobile": "+1-317-985-4664",
+      "whatsapp": "+1-836-290-7610"
+    },
+    "social_media": {
+      "twitter": "@qbrown",
+      "other_urls": []
+    }
+  },
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "2003-05-17",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand A",
+      "model": "Model 775",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 407",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 845",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 575",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1269,
+  "storage_capacity": "216 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Fundamental interactive focus group",
+    "Front-line user-facing info-mediaries",
+    "Multi-channeled directional secured line",
+    "Customer-focused regional knowledge user"
+  ],
+  "innovation_space": {
+    "staff": 4,
+    "learning_resources": [
+      "Stand-alone disintermediate concept",
+      "Team-oriented interactive frame",
+      "Expanded impactful alliance"
+    ],
+    "services": [
+      "Open-source maximized core"
+    ],
+    "footfall": 32,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-01-12T20:09:54.974585",
+    "created_by": {
+      "name": "Cook, Allen and Munoz",
+      "contact_person": "Amber Caldwell",
+      "bio": "Established in 2018, we specialize in Inverse object-oriented intranet",
+      "website": "https://porter.biz",
+      "languages": [
+        "de"
+      ],
+      "mailing_list": "arnoldbobby@lists.cortez-anderson.org",
+      "contact": {
+        "landline": "+1-807-500-1504",
+        "mobile": "+1-332-854-7731"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

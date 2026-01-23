@@ -1,0 +1,229 @@
+{
+  "id": "9cdf424a-7b9c-4ddd-b05f-d84c0b1b367f",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "8118",
+      "street": "Ashley Groves",
+      "city": "Indianapolis",
+      "region": "AR",
+      "country": "US",
+      "postcode": "12691"
+    },
+    "gps_coordinates": "39.7683331, -86.1583502",
+    "city": "Indianapolis",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Savage-Mcdonald",
+    "location": {
+      "address": {
+        "number": "2619",
+        "street": "Haynes Prairie",
+        "city": "Austin",
+        "region": "MO",
+        "country": "US",
+        "postcode": "99677"
+      },
+      "gps_coordinates": "30.2711286, -97.7436995",
+      "city": "Austin",
+      "country": "US"
+    },
+    "languages": [
+      "de",
+      "fr",
+      "en"
+    ],
+    "mailing_list": "olsonchristopher@lists.smith.info",
+    "contact": {
+      "mobile": "+1-323-890-5286",
+      "whatsapp": "+1-699-971-6007"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "University research facility for rapid prototyping",
+  "access_type": "Restricted with public hours",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "Ender 3",
+      "serial_number": "SN183207",
+      "condition": "Good",
+      "notes": "Equipment notes: Strategy soldier bag cultural.",
+      "throughput": "34 parts/hour",
+      "power_rating": 7882,
+      "maintenance_schedule": "Every 7 months",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "687",
+              "street": "Franklin Highway",
+              "city": "Jacksonville",
+              "region": "NC",
+              "country": "US",
+              "postcode": "34163"
+            },
+            "gps_coordinates": "30.3321838, -81.655651",
+            "directions": "Located behind Jones-Peterson",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "6691",
+              "street": "Jordan Mission",
+              "city": "Philadelphia",
+              "region": "ME",
+              "country": "US",
+              "postcode": "26585"
+            },
+            "gps_coordinates": "39.9527237, -75.1635262",
+            "city": "Philadelphia",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Premium",
+          "brand": "Industrial"
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 445",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "DMU 50",
+      "serial_number": "SN566144",
+      "condition": "Good",
+      "maintenance_schedule": "Every 8 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9655",
+              "street": "Brown Circle",
+              "city": "Philadelphia",
+              "region": "NC",
+              "country": "US",
+              "postcode": "70078"
+            },
+            "gps_coordinates": "39.9527237, -75.1635262",
+            "directions": "Located across from Christensen-Lee",
+            "city": "Philadelphia",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2041,
+  "storage_capacity": "973 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "NADCAP",
+    "AS9100"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Function-based non-volatile encoding",
+    "Re-contextualized reciprocal alliance",
+    "Multi-layered secondary middleware",
+    "Polarized web-enabled projection"
+  ],
+  "human_capacity": {
+    "headcount": 48
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:41:49.854975",
+    "created_by": {
+      "name": "Le-Joseph",
+      "location": {
+        "address": {
+          "number": "7248",
+          "street": "Delacruz Station",
+          "city": "Columbus",
+          "region": "ND",
+          "country": "US",
+          "postcode": "90338"
+        },
+        "gps_coordinates": "39.9622601, -83.0007065",
+        "city": "Columbus",
+        "country": "US"
+      },
+      "bio": "Established in 2003, we specialize in Optional bandwidth-monitored migration",
+      "website": "https://smith-webster.com",
+      "languages": [
+        "de",
+        "es"
+      ],
+      "contact": {
+        "mobile": "+1-987-210-1213",
+        "whatsapp": "+1-706-390-6571"
+      },
+      "social_media": {
+        "instagram": "@leahadkins",
+        "other_urls": [
+          "https://aguilar.com",
+          "https://jones.biz"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

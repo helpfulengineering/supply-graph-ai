@@ -1,0 +1,282 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "7ad02001-d584-4597-a0c8-42b8c8bc0a76",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/dstanley/3d-printed-prosthetic-hand",
+  "version": "3.5.7",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "David Weber",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "youngerik"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Care camera control citizen total school give phone.",
+  "keywords": [
+    "reproducible",
+    "gear",
+    "bearing",
+    "documented",
+    "assembly"
+  ],
+  "organization": {
+    "name": "Campbell-Price",
+    "url": "https://morris-ward.com",
+    "email": "contact@mathis.net"
+  },
+  "development_stage": "beta",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/langdiane/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/walkerrobin/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/robertsanthony/project/raw/main/docs/3d_model.step",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/watkinsjohn/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/christopher89/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/huberalison/project/raw/main/docs/3d_printing_setup_and_parameters.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/nichole44/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Filament",
+    "3D printer",
+    "Crimping tool",
+    "Build plate",
+    "Nozzle",
+    "Screwdriver set",
+    "Wrench set",
+    "Heat gun"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 203.57,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 473.24,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 206.69,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Primary Module",
+      "id": "608f1933-bc27-4898-9a8e-983796d30fcc",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Core Component",
+      "id": "72b34ecc-2d1a-44c2-a1ec-b4e2dde0984e",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 7.96,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Detail Part",
+          "quantity": 5.06,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Support Component",
+      "quantity": 9.43,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Support Component - Tertiary Module",
+          "quantity": 8.88,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Core Component - Support Component - Element",
+          "quantity": 6.19,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Core Component - Support Component - Tertiary Module",
+          "quantity": 5.24,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

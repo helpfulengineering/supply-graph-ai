@@ -1,0 +1,236 @@
+{
+  "id": "77ba4ea4-bdaf-4786-95f9-6ee33d92db8f",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "9585",
+      "street": "Montgomery Corners",
+      "city": "San Francisco",
+      "region": "CA",
+      "country": "US",
+      "postcode": "83426"
+    },
+    "gps_coordinates": "37.7879363, -122.4075201",
+    "city": "San Francisco",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Lewis Ltd",
+    "contact_person": "Christy Campbell",
+    "mailing_list": "emathews@lists.mosley.com",
+    "contact": {
+      "mobile": "+1-640-926-9664"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-18:00",
+  "description": "Public makerspace with basic fabrication equipment",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "Form 3",
+      "serial_number": "SN758817",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Actually account commercial.",
+      "quantity": 2,
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "659",
+              "street": "Lee Mountains",
+              "city": "Los Angeles",
+              "region": "MD",
+              "country": "US",
+              "postcode": "72878"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located behind Williams-Castillo",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "Speedy 300",
+      "serial_number": "SN828334",
+      "condition": "Needs Maintenance",
+      "quantity": 4,
+      "maintenance_schedule": "Every 5 months",
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "6982",
+              "street": "Edwards Field",
+              "city": "San Diego",
+              "region": "NE",
+              "country": "US",
+              "postcode": "85559"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "supplier_location": {
+            "address": {
+              "number": "3866",
+              "street": "Joyce Plaza",
+              "city": "San Diego",
+              "region": "MI",
+              "country": "US",
+              "postcode": "51338"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located across from Rice LLC",
+            "city": "San Diego",
+            "country": "US"
+          }
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 300
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Axiom",
+      "model": "Pro",
+      "condition": "Needs Maintenance",
+      "maintenance_schedule": "Every 10 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "manufacturer": "Premium"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "914 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "typical_products": [
+    "Centralized even-keeled software",
+    "Secured transitional system engine",
+    "Synchronized multi-tasking leverage",
+    "Front-line static algorithm"
+  ],
+  "human_capacity": {
+    "headcount": 31
+  },
+  "innovation_space": {
+    "staff": 7,
+    "learning_resources": [
+      "Robust bi-directional infrastructure",
+      "Operative asynchronous open system",
+      "Persistent modular circuit"
+    ],
+    "services": [
+      "Visionary background protocol",
+      "Exclusive multi-tasking collaboration",
+      "Proactive motivating knowledgebase",
+      "Multi-lateral impactful emulation"
+    ],
+    "footfall": 68,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-01-12T20:09:33.791521",
+    "created_by": {
+      "name": "Pacheco, Moore and Nelson",
+      "location": {
+        "address": {
+          "number": "6750",
+          "street": "James Street",
+          "city": "Fort Worth",
+          "region": "DE",
+          "country": "US",
+          "postcode": "29081"
+        },
+        "gps_coordinates": "32.753177, -97.3327459",
+        "city": "Fort Worth",
+        "country": "US"
+      },
+      "contact_person": "Cheyenne Black",
+      "website": "https://shaffer.org",
+      "languages": [
+        "de"
+      ],
+      "mailing_list": "donaldmcdaniel@lists.smith-terrell.com",
+      "contact": {
+        "landline": "+1-779-299-4014",
+        "whatsapp": "+1-396-425-8418"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

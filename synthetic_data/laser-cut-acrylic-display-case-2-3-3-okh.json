@@ -1,0 +1,452 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "e478147d-de58-4344-b8c7-e09f40dcfbf6",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/jeffrey45/laser-cut-acrylic-display-case",
+  "version": "2.3.3",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Zachary Patton",
+    "email": "sylviaosborne@example.com",
+    "affiliation": "Andersen, Johnson and Yates",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "rojasmargaret"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Doctor return main Mr.",
+  "intended_use": "South food commercial never reflect this.",
+  "keywords": [
+    "housing",
+    "fastener",
+    "documented"
+  ],
+  "contact": {
+    "name": "Brad Williams",
+    "email": "mwatts@example.com",
+    "affiliation": "Mccarthy, Clark and Parker",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "christophermorales"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Mary Baird",
+      "email": "christensenmatthew@example.net",
+      "affiliation": "Mendoza Group",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "kevinpayne"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Gallagher-Farmer",
+    "url": "https://dixon-abbott.com",
+    "email": "contact@adkins.info"
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/zlopez/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/davisdaniel/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/michellehenson/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.7"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/rothkelly/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/rogersdenise/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Air assist",
+    "Crimping tool",
+    "Heat shrink",
+    "Pliers",
+    "Screwdriver set",
+    "Cutting bed",
+    "Material guides",
+    "Focus lens",
+    "Exhaust system"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 22.09,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit"
+    ],
+    "outer_dimensions": {
+      "length": 441,
+      "width": 241,
+      "height": 63
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "84W",
+          "speed": "938 mm/min",
+          "passes": 2
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Above base I might anything its senior hand."
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Assembly",
+      "id": "1b0bd713-a08a-4d32-a245-abd472300f09",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "6f468d0e-5d9b-4150-9d2a-4889b3300ade",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "5b15d75c-461a-4502-ab76-daca3c860f64",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Main Assembly - Secondary Module",
+      "quantity": 3.67,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Secondary Module - Detail Part",
+          "quantity": 7.65,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Main Assembly - Secondary Module - Element",
+          "quantity": 4.56,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Sub-Assembly",
+      "quantity": 7.66,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Sub-Assembly - Element",
+          "quantity": 7.7,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Sub-Assembly - Sub-Component",
+          "quantity": 8.33,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 3.97,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Element",
+          "quantity": 1.97,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Support Component - Sub-Component",
+          "quantity": 5.36,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Primary Module - Support Component - Sub-Component",
+          "quantity": 2.08,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 5.67,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Detail Part",
+          "quantity": 9.33,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Secondary Module - Sub-Component",
+          "quantity": 8.48,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,214 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b74e3c60-7a5f-4565-8d68-269c9809e2c0",
+  "title": "CNC Machined Aluminum Bracket",
+  "repo": "https://github.com/christophersmith/cnc-machined-aluminum-bracket",
+  "version": "1.3.3",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "William Martinez",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "mitchellmelissa"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Precision mounting bracket for industrial equipment",
+  "intended_use": "Long arrive already player score war dream across.",
+  "keywords": [
+    "assembly",
+    "open-source",
+    "bearing",
+    "documented",
+    "mount"
+  ],
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/philip06/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "CNC Safety Procedures",
+      "path": "https://github.com/kyle92/project/raw/main/docs/cnc_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/landerson/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for CNC Machined Aluminum Bracket",
+      "path": "https://github.com/taylorkayla/project/raw/main/docs/assembly_guide_for_cnc_machined_aluminum_bracket.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "CNC Machining Instructions",
+      "path": "https://github.com/charles31/project/raw/main/docs/cnc_machining_instructions.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Micrometer",
+    "CNC mill",
+    "CMM",
+    "Cutting tools",
+    "Workholding"
+  ],
+  "manufacturing_processes": [
+    "CNC",
+    "Deburring",
+    "Anodizing"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 817.27,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "CNC"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "ac85bbe5-58fd-4444-82ca-99edeb89ccdb",
+      "source": [],
+      "export": [
+        "https://github.com/gibsonleslie/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/dicksonmatthew/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/klinecynthia/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 165,
+        "width": 183,
+        "height": 14
+      },
+      "mass": 527.91,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "784ee07a-b212-49d7-b657-685fc529117f",
+      "source": [],
+      "export": [
+        "https://github.com/lwilliams/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/leslie80/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/brandonjohnson/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 164,
+        "width": 26,
+        "height": 86
+      },
+      "mass": 33.29,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "c621fffd-af3a-47a3-8c88-a8b7bcbb9c60",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/justinbaker/project/raw/main/docs/base_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 76,
+        "width": 31,
+        "height": 52
+      },
+      "mass": 130.79,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

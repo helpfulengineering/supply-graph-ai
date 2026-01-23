@@ -1,0 +1,332 @@
+{
+  "id": "0e25b650-fe4b-488d-9146-4bd32da42384",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "3996",
+      "street": "Chris Junction",
+      "city": "Charlotte",
+      "region": "GA",
+      "country": "US",
+      "postcode": "53714"
+    },
+    "gps_coordinates": "35.2272086, -80.8430827",
+    "directions": "Located across from Bell, Drake and Alvarez",
+    "city": "Charlotte",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Hamilton, White and Novak",
+    "bio": "Established in 2001, we specialize in Realigned fresh-thinking complexity",
+    "mailing_list": "christopherdavis@lists.williams-munoz.com",
+    "images": [
+      "images/why.jpg"
+    ],
+    "contact": {
+      "email": "info@phillips-barr.com",
+      "whatsapp": "+1-650-824-7474"
+    },
+    "social_media": {
+      "twitter": "@alexandria12",
+      "instagram": "@wbaker",
+      "other_urls": [
+        "https://mcdonald-pittman.org",
+        "https://davis.info"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Simmons Group",
+    "contact_person": "Monica Best",
+    "bio": "Established in 1990, we specialize in Customer-focused intangible middleware",
+    "images": [
+      "images/trip.jpg",
+      "images/sing.jpg",
+      "images/onto.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-574-466-1034",
+      "email": "info@newman.info"
+    },
+    "social_media": {
+      "twitter": "@bhampton",
+      "other_urls": [
+        "https://kirby.com",
+        "https://zuniga-joyce.biz"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-17:00",
+  "description": "Public makerspace with basic fabrication equipment",
+  "date_founded": "2015-04-17",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "Ender 3",
+      "serial_number": "SN253473",
+      "condition": "Fair",
+      "notes": "Equipment notes: Two sister town once world.",
+      "quantity": 2,
+      "power_rating": 7282,
+      "maintenance_schedule": "Every 6 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4618",
+              "street": "Grace Stream",
+              "city": "Fort Worth",
+              "region": "NY",
+              "country": "US",
+              "postcode": "80022"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located across from Ross Inc",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "747",
+              "street": "Harris Skyway",
+              "city": "Phoenix",
+              "region": "IN",
+              "country": "US",
+              "postcode": "78256"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located across from Brown, Brown and Hunt",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8500",
+              "street": "Smith Lights",
+              "city": "San Diego",
+              "region": "KS",
+              "country": "US",
+              "postcode": "10823"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "city": "San Diego",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "PLA",
+          "TPU"
+        ],
+        "process_parameters": {
+          "setup_time": "116 minutes",
+          "cycle_time": "57 minutes",
+          "changeover_time": "25 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "Speedy 300",
+      "serial_number": "SN378240",
+      "condition": "Fair",
+      "notes": "Equipment notes: Occur light if about father why attorney.",
+      "quantity": 4,
+      "power_rating": 7475,
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "5683",
+              "street": "Smith Coves",
+              "city": "Los Angeles",
+              "region": "NY",
+              "country": "US",
+              "postcode": "46843"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3361",
+              "street": "Graham Run",
+              "city": "San Antonio",
+              "region": "OR",
+              "country": "US",
+              "postcode": "39100"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "directions": "Located behind Clark, Simpson and Mays",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "supplier_location": {
+            "address": {
+              "number": "3245",
+              "street": "Cathy Underpass",
+              "city": "Charlotte",
+              "region": "MI",
+              "country": "US",
+              "postcode": "23537"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 300,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Fabric",
+          "Leather"
+        ],
+        "process_parameters": {
+          "setup_time": "28 minutes",
+          "cycle_time": "60 minutes",
+          "changeover_time": "43 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Shapeoko",
+      "model": "Pro",
+      "condition": "Good",
+      "notes": "Equipment notes: Writer dream least majority huge beautiful black.",
+      "quantity": 5,
+      "power_rating": 9382,
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 1200,
+      "detailed_capabilities": {
+        "tolerance": "±0.1mm",
+        "spindle_speed": "5000-24000 RPM",
+        "feed_rate": "100-5000 mm/min",
+        "tool_diameter": "0.5-25mm",
+        "cutting_depth": "0.1-50mm",
+        "tolerance_range": "±0.200mm",
+        "supported_materials": [
+          "Foam",
+          "Aluminum",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "50 minutes",
+          "cycle_time": "56 minutes",
+          "changeover_time": "22 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "796 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Basic Safety"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months",
+  "human_capacity": {
+    "headcount": 36
+  },
+  "innovation_space": {
+    "staff": 8,
+    "learning_resources": [
+      "Monitored fault-tolerant alliance",
+      "Cross-platform logistical initiative",
+      "Integrated intangible hierarchy",
+      "Reduced interactive infrastructure"
+    ],
+    "footfall": 46,
+    "residencies": true
+  }
+}

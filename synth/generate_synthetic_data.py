@@ -8,6 +8,8 @@ It can create both OKH manifests and OKW facilities with configurable complexity
 Usage:
     python generate_synthetic_data.py --type okh --count 10 --complexity complex --output-dir ./data
     python generate_synthetic_data.py --type okw --count 20 --complexity mixed --output-dir ./facilities
+    python generate_synthetic_data.py --type okw --count 34 --country "US" --output-dir ./facilities
+    python generate_synthetic_data.py --type okw --count 34 --region EU --output-dir ./facilities
 """
 
 import argparse
@@ -15,10 +17,21 @@ import json
 import os
 import random
 import sys
+import time
 from datetime import date, datetime
 from typing import Dict, List, Union, Any, Optional
 
 from faker import Faker
+
+# Try to import geopy for geocoding, but make it optional
+try:
+    from geopy.geocoders import Nominatim
+    from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+    GEOPY_AVAILABLE = True
+except ImportError:
+    GEOPY_AVAILABLE = False
+    print("Warning: geopy not available. GPS coordinates will be randomly generated.")
+    print("Install with: pip install geopy")
 
 # Add the src directory to the path so we can import the models
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
@@ -858,8 +871,285 @@ class OKHGenerator(SyntheticDataGenerator):
 class OKWGenerator(SyntheticDataGenerator):
     """Generator for OKW manufacturing facilities"""
     
-    def __init__(self, complexity: str = "mixed"):
+    # Region to locale mappings
+    REGION_LOCALES = {
+        "US": "en_US",
+        "EU": ["en_GB", "de_DE", "fr_FR", "es_ES", "it_IT", "nl_NL"],
+        "SE_ASIA": ["en_SG", "en_PH", "en_MY", "en_TH", "en_VN"],
+        "AFRICA": ["en_ZA", "en_KE", "en_NG", "en_GH"],
+        "LATAM": ["es_MX", "es_AR", "pt_BR", "es_CO", "es_CL"],
+        "ASIA": ["en_IN", "en_CN", "en_JP", "en_KR"],
+    }
+    
+    # Real cities by country/region (top 20 largest cities)
+    REAL_CITIES = {
+        "US": [
+            "New York", "Los Angeles", "Chicago", "Houston", "Phoenix",
+            "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose",
+            "Austin", "Jacksonville", "Fort Worth", "Columbus", "Charlotte",
+            "San Francisco", "Indianapolis", "Seattle", "Denver", "Boston"
+        ],
+        "Germany": [
+            "Berlin", "Hamburg", "Munich", "Cologne", "Frankfurt",
+            "Stuttgart", "Düsseldorf", "Dortmund", "Essen", "Leipzig",
+            "Bremen", "Dresden", "Hannover", "Nuremberg", "Duisburg",
+            "Bochum", "Wuppertal", "Bielefeld", "Bonn", "Münster"
+        ],
+        "United Kingdom": [
+            "London", "Birmingham", "Manchester", "Glasgow", "Liverpool",
+            "Leeds", "Sheffield", "Edinburgh", "Bristol", "Cardiff",
+            "Belfast", "Leicester", "Coventry", "Nottingham", "Newcastle",
+            "Sunderland", "Brighton", "Hull", "Plymouth", "Stoke-on-Trent"
+        ],
+        "UK": [
+            "London", "Birmingham", "Manchester", "Glasgow", "Liverpool",
+            "Leeds", "Sheffield", "Edinburgh", "Bristol", "Cardiff",
+            "Belfast", "Leicester", "Coventry", "Nottingham", "Newcastle",
+            "Sunderland", "Brighton", "Hull", "Plymouth", "Stoke-on-Trent"
+        ],
+        "France": [
+            "Paris", "Marseille", "Lyon", "Toulouse", "Nice",
+            "Nantes", "Strasbourg", "Montpellier", "Bordeaux", "Lille",
+            "Rennes", "Reims", "Le Havre", "Saint-Étienne", "Toulon",
+            "Grenoble", "Dijon", "Angers", "Nîmes", "Villeurbanne"
+        ],
+        "Spain": [
+            "Madrid", "Barcelona", "Valencia", "Seville", "Zaragoza",
+            "Málaga", "Murcia", "Palma", "Las Palmas", "Bilbao",
+            "Alicante", "Córdoba", "Valladolid", "Vigo", "Gijón",
+            "Hospitalet", "Vitoria", "Granada", "Elche", "Santa Cruz"
+        ],
+        "Italy": [
+            "Rome", "Milan", "Naples", "Turin", "Palermo",
+            "Genoa", "Bologna", "Florence", "Bari", "Catania",
+            "Venice", "Verona", "Messina", "Padua", "Trieste",
+            "Brescia", "Parma", "Taranto", "Modena", "Reggio"
+        ],
+        "Netherlands": [
+            "Amsterdam", "Rotterdam", "The Hague", "Utrecht", "Eindhoven",
+            "Groningen", "Tilburg", "Almere", "Breda", "Nijmegen",
+            "Enschede", "Haarlem", "Arnhem", "Zaanstad", "Amersfoort",
+            "Apeldoorn", "Hoofddorp", "Maastricht", "Dordrecht", "Leiden"
+        ],
+        "Singapore": [
+            "Singapore"
+        ],
+        "Philippines": [
+            "Manila", "Quezon City", "Caloocan", "Davao", "Cebu",
+            "Zamboanga", "Antipolo", "Pasig", "Taguig", "Valenzuela",
+            "Cagayan de Oro", "Parañaque", "Las Piñas", "Makati", "Bacolod",
+            "General Santos", "Mandaluyong", "Muntinlupa", "Marikina", "Mandaue"
+        ],
+        "Malaysia": [
+            "Kuala Lumpur", "George Town", "Ipoh", "Shah Alam", "Petaling Jaya",
+            "Johor Bahru", "Melaka", "Kota Kinabalu", "Kuching", "Kajang",
+            "Subang Jaya", "Klang", "Seremban", "Kuantan", "Tawau",
+            "Sandakan", "Alor Setar", "Kota Bharu", "Miri", "Sibu"
+        ],
+        "Thailand": [
+            "Bangkok", "Nonthaburi", "Nakhon Ratchasima", "Chiang Mai", "Hat Yai",
+            "Udon Thani", "Pak Kret", "Khon Kaen", "Chaophraya Surasak", "Ubon Ratchathani",
+            "Nakhon Si Thammarat", "Rayong", "Nakhon Sawan", "Lampang", "Phuket",
+            "Ratchaburi", "Samut Prakan", "Songkhla", "Phitsanulok", "Yala"
+        ],
+        "Vietnam": [
+            "Ho Chi Minh City", "Hanoi", "Da Nang", "Haiphong", "Can Tho",
+            "Bien Hoa", "Hue", "Nha Trang", "Vung Tau", "Quy Nhon",
+            "Rach Gia", "Long Xuyen", "Nam Dinh", "Buon Ma Thuot", "Vinh",
+            "Cam Ranh", "Cam Pha", "Thai Nguyen", "Pleiku", "My Tho"
+        ],
+        "South Africa": [
+            "Johannesburg", "Cape Town", "Durban", "Pretoria", "Port Elizabeth",
+            "Pietermaritzburg", "Benoni", "Tembisa", "Vereeniging", "Bloemfontein",
+            "Soweto", "Boksburg", "Welkom", "Newcastle", "Krugersdorp",
+            "Diepsloot", "Botshabelo", "Brakpan", "Witbank", "Richards Bay"
+        ],
+        "Kenya": [
+            "Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret",
+            "Thika", "Malindi", "Kitale", "Garissa", "Kakamega",
+            "Nyeri", "Meru", "Machakos", "Embu", "Narok",
+            "Kericho", "Bungoma", "Busia", "Homa Bay", "Kilifi"
+        ],
+        "Nigeria": [
+            "Lagos", "Kano", "Ibadan", "Abuja", "Port Harcourt",
+            "Benin City", "Kaduna", "Maiduguri", "Zaria", "Aba",
+            "Jos", "Ilorin", "Oyo", "Abeokuta", "Onitsha",
+            "Warri", "Sokoto", "Calabar", "Akure", "Bauchi"
+        ],
+        "Ghana": [
+            "Accra", "Kumasi", "Tamale", "Takoradi", "Ashaiman",
+            "Sunyani", "Cape Coast", "Obuasi", "Teshie", "Tema",
+            "Sekondi", "Koforidua", "Wa", "Ho", "Techiman",
+            "Bolgatanga", "Bawku", "Nkawkaw", "Axim", "Suhum"
+        ],
+        "Mexico": [
+            "Mexico City", "Guadalajara", "Monterrey", "Puebla", "Tijuana",
+            "León", "Juárez", "Torreón", "Querétaro", "San Luis Potosí",
+            "Mérida", "Mexicali", "Aguascalientes", "Tampico", "Culiacán",
+            "Cuernavaca", "Chihuahua", "Saltillo", "Toluca", "Reynosa"
+        ],
+        "Argentina": [
+            "Buenos Aires", "Córdoba", "Rosario", "Mendoza", "Tucumán",
+            "La Plata", "Mar del Plata", "Salta", "Santa Fe", "San Juan",
+            "Resistencia", "Santiago del Estero", "Corrientes", "Bahía Blanca", "Posadas",
+            "Paraná", "Neuquén", "Formosa", "San Salvador de Jujuy", "La Rioja"
+        ],
+        "Brazil": [
+            "São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza",
+            "Belo Horizonte", "Manaus", "Curitiba", "Recife", "Goiânia",
+            "Belém", "Porto Alegre", "Guarulhos", "Campinas", "São Luís",
+            "São Gonçalo", "Maceió", "Duque de Caxias", "Natal", "Teresina"
+        ],
+        "Colombia": [
+            "Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena",
+            "Cúcuta", "Soledad", "Ibagué", "Bucaramanga", "Santa Marta",
+            "Villavicencio", "Pereira", "Valledupar", "Bello", "Pasto",
+            "Manizales", "Montería", "Neiva", "Armenia", "Sincelejo"
+        ],
+        "Chile": [
+            "Santiago", "Valparaíso", "Concepción", "La Serena", "Antofagasta",
+            "Temuco", "Rancagua", "Talca", "Arica", "Iquique",
+            "Puerto Montt", "Coquimbo", "Valdivia", "Osorno", "Calama",
+            "Copiapó", "Quilpué", "Los Ángeles", "Punta Arenas", "Curicó"
+        ],
+        "India": [
+            "Mumbai", "Delhi", "Bangalore", "Hyderabad", "Ahmedabad",
+            "Chennai", "Kolkata", "Surat", "Pune", "Jaipur",
+            "Lucknow", "Kanpur", "Nagpur", "Indore", "Thane",
+            "Bhopal", "Visakhapatnam", "Pimpri-Chinchwad", "Patna", "Vadodara"
+        ],
+        "China": [
+            "Shanghai", "Beijing", "Guangzhou", "Shenzhen", "Chengdu",
+            "Chongqing", "Tianjin", "Nanjing", "Wuhan", "Xi'an",
+            "Hangzhou", "Dongguan", "Foshan", "Shenyang", "Qingdao",
+            "Changsha", "Zhengzhou", "Kunming", "Dalian", "Xiamen"
+        ],
+        "Japan": [
+            "Tokyo", "Yokohama", "Osaka", "Nagoya", "Sapporo",
+            "Fukuoka", "Kobe", "Kawasaki", "Kyoto", "Saitama",
+            "Hiroshima", "Sendai", "Chiba", "Kitakyushu", "Setagaya",
+            "Sakai", "Niigata", "Hamamatsu", "Shizuoka", "Okayama"
+        ],
+        "South Korea": [
+            "Seoul", "Busan", "Incheon", "Daegu", "Daejeon",
+            "Gwangju", "Suwon", "Ulsan", "Changwon", "Goyang",
+            "Yongin", "Seongnam", "Bucheon", "Ansan", "Anyang",
+            "Jeonju", "Cheonan", "Namyangju", "Hwaseong", "Gimhae"
+        ],
+    }
+    
+    # Region to city mappings (distribute across countries in region)
+    REGION_CITIES = {
+        "EU": {
+            "United Kingdom": REAL_CITIES["United Kingdom"],
+            "Germany": REAL_CITIES["Germany"],
+            "France": REAL_CITIES["France"],
+            "Spain": REAL_CITIES["Spain"],
+            "Italy": REAL_CITIES["Italy"],
+            "Netherlands": REAL_CITIES["Netherlands"],
+        },
+        "SE_ASIA": {
+            "Singapore": REAL_CITIES["Singapore"],
+            "Philippines": REAL_CITIES["Philippines"],
+            "Malaysia": REAL_CITIES["Malaysia"],
+            "Thailand": REAL_CITIES["Thailand"],
+            "Vietnam": REAL_CITIES["Vietnam"],
+        },
+        "AFRICA": {
+            "South Africa": REAL_CITIES["South Africa"],
+            "Kenya": REAL_CITIES["Kenya"],
+            "Nigeria": REAL_CITIES["Nigeria"],
+            "Ghana": REAL_CITIES["Ghana"],
+        },
+        "LATAM": {
+            "Mexico": REAL_CITIES["Mexico"],
+            "Argentina": REAL_CITIES["Argentina"],
+            "Brazil": REAL_CITIES["Brazil"],
+            "Colombia": REAL_CITIES["Colombia"],
+            "Chile": REAL_CITIES["Chile"],
+        },
+        "ASIA": {
+            "India": REAL_CITIES["India"],
+            "China": REAL_CITIES["China"],
+            "Japan": REAL_CITIES["Japan"],
+            "South Korea": REAL_CITIES["South Korea"],
+        },
+    }
+    
+    # Country to locale mappings (for specific countries)
+    COUNTRY_LOCALES = {
+        "US": "en_US",
+        "United Kingdom": "en_GB",
+        "UK": "en_GB",
+        "Germany": "de_DE",
+        "France": "fr_FR",
+        "Spain": "es_ES",
+        "Italy": "it_IT",
+        "Netherlands": "nl_NL",
+        "Singapore": "en_SG",
+        "Philippines": "en_PH",
+        "Malaysia": "en_MY",
+        "Thailand": "en_TH",
+        "Vietnam": "en_VN",
+        "South Africa": "en_ZA",
+        "Kenya": "en_KE",
+        "Nigeria": "en_NG",
+        "Ghana": "en_GH",
+        "Mexico": "es_MX",
+        "Argentina": "es_AR",
+        "Brazil": "pt_BR",
+        "Colombia": "es_CO",
+        "Chile": "es_CL",
+        "India": "en_IN",
+        "China": "zh_CN",
+        "Japan": "ja_JP",
+        "South Korea": "ko_KR",
+    }
+    
+    def __init__(self, complexity: str = "mixed", country: Optional[str] = None, region: Optional[str] = None):
+        # Normalize country input: convert "United States" or "USA" to "US"
+        if country in ["United States", "USA", "US"]:
+            country = "US"
+        
+        # Set country/region for consistent address generation BEFORE calling super()
+        self.country = country or "US"  # Default to US
+        self.region = region
+        
+        # Determine locale based on country or region
+        # Note: For regions, we'll determine the actual country when generating addresses
+        if self.country and self.country in self.COUNTRY_LOCALES:
+            locale = self.COUNTRY_LOCALES[self.country]
+        elif self.region and self.region in self.REGION_LOCALES:
+            # For regions, randomly select from available locales
+            # This will be used for generating street names, postcodes, etc.
+            locales = self.REGION_LOCALES[self.region]
+            if isinstance(locales, list):
+                locale = random.choice(locales)
+            else:
+                locale = locales
+        else:
+            # Default to US locale
+            locale = "en_US"
+            if not self.country:
+                self.country = "US"
+        
+        # Initialize with locale-specific Faker
+        # We need to override the parent's faker initialization
         super().__init__(complexity)
+        # Replace the default faker with locale-specific one
+        self.faker = Faker(locale)
+        
+        # Initialize geocoder if available
+        self.geocoder = None
+        self.geocode_cache = {}  # Cache geocoded coordinates
+        if GEOPY_AVAILABLE:
+            try:
+                self.geocoder = Nominatim(user_agent="ohm-synthetic-data-generator")
+                # Add delay to respect rate limits
+                self.geocode_delay = 1.0  # 1 second between requests
+            except Exception as e:
+                print(f"Warning: Could not initialize geocoder: {e}")
+                self.geocoder = None
         
         # Realistic facility templates
         self.facility_templates = [
@@ -1151,28 +1441,160 @@ class OKWGenerator(SyntheticDataGenerator):
             ]
         }
 
+    def get_real_city(self) -> tuple:
+        """
+        Get a real city name from the specified country/region.
+        
+        Returns:
+            Tuple of (city_name, country_name)
+        """
+        if self.region and self.region in self.REGION_CITIES:
+            # For regions, randomly select a country, then a city from that country
+            region_cities = self.REGION_CITIES[self.region]
+            country = random.choice(list(region_cities.keys()))
+            cities = region_cities[country]
+            city = random.choice(cities)
+            return (city, country)
+        elif self.country in self.REAL_CITIES:
+            # For specific country, select from its cities
+            cities = self.REAL_CITIES[self.country]
+            city = random.choice(cities)
+            return (city, self.country)
+        else:
+            # Fallback: use Faker (but this shouldn't happen with valid country/region)
+            return (self.faker.city(), self.country)
+    
     def generate_address(self) -> Address:
-        """Generate a realistic address"""
+        """Generate a realistic address with consistent country/region using real cities"""
+        # Get a real city from the specified country/region
+        city, country = self.get_real_city()
+        
+        # Get region/state based on locale
+        region = None
+        if country == "US":
+            # For US, use state abbreviation
+            try:
+                region = self.faker.state_abbr()  # e.g., "CA", "NY", "TX"
+            except:
+                try:
+                    region = self.faker.state()  # Fallback to full state name
+                except:
+                    region = None
+        else:
+            # For other countries, try to get region/state/province
+            # Different locales have different methods
+            try:
+                if hasattr(self.faker, 'state'):
+                    region = self.faker.state()
+                elif hasattr(self.faker, 'province'):
+                    region = self.faker.province()
+                elif hasattr(self.faker, 'administrative_unit'):
+                    region = self.faker.administrative_unit()
+            except:
+                region = None
+        
+        # Get postcode (locale-specific format)
+        try:
+            postcode = self.faker.postcode()
+        except:
+            # Fallback if postcode not available for locale
+            postcode = str(random.randint(10000, 99999))
+        
         return Address(
             number=str(random.randint(1, 9999)),
             street=self.faker.street_name(),
-            city=self.faker.city(),
-            region=self.faker.state(),
-            country=self.faker.country(),
-            postcode=self.faker.postcode()
+            city=city,  # Real city name
+            region=region,
+            country=country,  # Use the determined country (may differ from self.country for regions)
+            postcode=postcode
         )
 
+    def geocode_city(self, city: str, country: str = None) -> Optional[tuple]:
+        """
+        Geocode a city name to get real GPS coordinates.
+        
+        Args:
+            city: City name
+            country: Optional country name for better accuracy
+            
+        Returns:
+            Tuple of (latitude, longitude) or None if geocoding fails
+        """
+        if not self.geocoder:
+            return None
+        
+        # Check cache first
+        cache_key = f"{city}, {country}" if country else city
+        if cache_key in self.geocode_cache:
+            return self.geocode_cache[cache_key]
+        
+        try:
+            # Build query string
+            query = city
+            if country:
+                query = f"{city}, {country}"
+            
+            # Geocode the city
+            location = self.geocoder.geocode(query, timeout=10, exactly_one=True)
+            
+            if location:
+                coords = (location.latitude, location.longitude)
+                # Cache the result
+                self.geocode_cache[cache_key] = coords
+                # Respect rate limits
+                time.sleep(self.geocode_delay)
+                return coords
+            else:
+                # Try with just city name if country didn't work
+                if country:
+                    location = self.geocoder.geocode(city, timeout=10, exactly_one=True)
+                    if location:
+                        coords = (location.latitude, location.longitude)
+                        self.geocode_cache[cache_key] = coords
+                        time.sleep(self.geocode_delay)
+                        return coords
+                
+                return None
+                
+        except (GeocoderTimedOut, GeocoderServiceError) as e:
+            print(f"Geocoding error for {query}: {e}")
+            return None
+        except Exception as e:
+            print(f"Unexpected geocoding error for {query}: {e}")
+            return None
+    
     def generate_location(self) -> Location:
-        """Generate a realistic location"""
+        """Generate a realistic location with geocoded GPS coordinates from real cities"""
         address = self.generate_address()
         
-        # Generate GPS coordinates (roughly in North America/Europe)
-        lat = round(random.uniform(25.0, 70.0), 6)
-        lon = round(random.uniform(-125.0, 40.0), 6)
+        # Geocode the real city to get accurate coordinates
+        # Since we're using real city names, geocoding should work reliably
+        coords = self.geocode_city(address.city, address.country)
+        
+        if coords:
+            lat, lon = coords
+            gps_coordinates = f"{lat}, {lon}"
+        else:
+            # Fallback: This shouldn't happen often with real cities, but handle it gracefully
+            # Generate GPS coordinates roughly in the country's region
+            # This is a last resort - real cities should geocode successfully
+            if address.country == "US":
+                lat = round(random.uniform(25.0, 49.0), 6)  # US latitude range
+                lon = round(random.uniform(-125.0, -66.0), 6)  # US longitude range
+            elif address.country in ["United Kingdom", "UK", "Germany", "France", "Spain", "Italy", "Netherlands"]:
+                lat = round(random.uniform(40.0, 60.0), 6)  # Europe latitude range
+                lon = round(random.uniform(-10.0, 30.0), 6)  # Europe longitude range
+            else:
+                # Generic fallback
+                lat = round(random.uniform(-35.0, 60.0), 6)
+                lon = round(random.uniform(-180.0, 180.0), 6)
+            
+            gps_coordinates = f"{lat}, {lon}"
+            print(f"Warning: Could not geocode {address.city}, {address.country}. Using approximate coordinates.")
         
         return Location(
             address=address,
-            gps_coordinates=f"{lat}, {lon}",
+            gps_coordinates=gps_coordinates,
             directions=f"Located {random.choice(['near', 'behind', 'across from'])} {self.faker.company()}" if self.should_include_field() else None,
             city=address.city,
             country=address.country
@@ -1765,12 +2187,16 @@ class OKWGenerator(SyntheticDataGenerator):
         for equipment_type in template["equipment_types"]:
             facility.equipment.append(self.generate_equipment(equipment_type))
         
-        # Set manufacturing processes (primary + related only)
+        # Set manufacturing processes (ONLY primary process for specialized facilities)
+        # This ensures facilities are truly specialized and don't match components they shouldn't
+        # For demo purposes, we want facilities that can ONLY produce specific components
         facility.manufacturing_processes = [
             self._process_to_url(specialization)
         ]
-        for related in template["related_processes"]:
-            facility.manufacturing_processes.append(self._process_to_url(related))
+        # NOTE: Removed related_processes to ensure true specialization
+        # If you need facilities with multiple processes, create them explicitly
+        # for related in template["related_processes"]:
+        #     facility.manufacturing_processes.append(self._process_to_url(related))
         
         # Set batch size
         facility.typical_batch_size = template["batch_size"]
@@ -2298,6 +2724,12 @@ def main():
     parser.add_argument("--process-plan", type=str,
                        help="JSON file path with process plan dict (e.g., '{\"PCB\": 3, \"CNC\": 3}'). Overrides OKH analysis.")
     
+    # Location/region options
+    parser.add_argument("--country", type=str, default="US",
+                       help="Country for all generated facilities (default: US). Examples: 'US', 'Germany', 'Singapore'. Accepts 'US', 'USA', or 'United States' as synonyms.")
+    parser.add_argument("--region", type=str, choices=["US", "EU", "SE_ASIA", "AFRICA", "LATAM", "ASIA"],
+                       help="Region for all generated facilities. Overrides --country. Options: US, EU, SE_ASIA, AFRICA, LATAM, ASIA")
+    
     args = parser.parse_args()
     
     # Validate type based on domain
@@ -2324,7 +2756,11 @@ def main():
                 parser.error("For --match with manufacturing, specify either 'okh' or 'okw' (will generate pairs)")
             # Generate both types
             okh_generator = OKHGenerator(complexity)
-            okw_generator = OKWGenerator(complexity)
+            okw_generator = OKWGenerator(
+                complexity=complexity,
+                country=args.country if not args.region else None,
+                region=args.region
+            )
             
             generated_count = 0
             failed_count = 0
@@ -2451,7 +2887,12 @@ def main():
         if args.type == "okh":
             generator = OKHGenerator(complexity)
         else:  # okw
-            generator = OKWGenerator(complexity)
+            # Pass country/region to OKW generator for consistent locations
+            generator = OKWGenerator(
+                complexity=complexity,
+                country=args.country if not args.region else None,
+                region=args.region
+            )
             
             # Handle specialized facility generation
             if args.specialized:

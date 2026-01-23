@@ -1,0 +1,242 @@
+{
+  "id": "2c186720-ca9c-46cb-95fa-f675ed6f439b",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "8943",
+      "street": "Bradley Stravenue",
+      "city": "Jacksonville",
+      "region": "IL",
+      "country": "US",
+      "postcode": "28123"
+    },
+    "gps_coordinates": "30.3321838, -81.655651",
+    "directions": "Located across from Singleton LLC",
+    "city": "Jacksonville",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Jordan, Koch and Delgado",
+    "contact_person": "Linda Moore",
+    "bio": "Established in 2001, we specialize in Quality-focused didactic Internet solution",
+    "contact": {
+      "landline": "+1-720-532-2187"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "2005-09-27",
+  "access_type": "Restricted with public hours",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "Form 3",
+      "serial_number": "SN502362",
+      "condition": "Fair",
+      "throughput": "3 parts/hour",
+      "power_rating": 9786,
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8758",
+              "street": "Byrd Ways",
+              "city": "Austin",
+              "region": "GA",
+              "country": "US",
+              "postcode": "91892"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3033",
+              "street": "Kyle Circles",
+              "city": "New York",
+              "region": "IL",
+              "country": "US",
+              "postcode": "63325"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located behind Thompson Inc",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Premium"
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.6,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "PETG",
+          "TPU"
+        ],
+        "process_parameters": {
+          "setup_time": "67 minutes",
+          "cycle_time": "49 minutes",
+          "changeover_time": "22 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 551",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VF-2",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Answer that machine our become many.",
+      "quantity": 1,
+      "maintenance_schedule": "Every 7 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "9034",
+              "street": "Young Points",
+              "city": "Phoenix",
+              "region": "DE",
+              "country": "US",
+              "postcode": "98181"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "supplier_location": {
+            "address": {
+              "number": "7909",
+              "street": "Gomez Ports",
+              "city": "Charlotte",
+              "region": "DC",
+              "country": "US",
+              "postcode": "42049"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located behind Potter-Ortiz",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Steel",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "36 minutes",
+          "cycle_time": "6 minutes",
+          "changeover_time": "41 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "697 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Research Grade"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 2 months",
+  "human_capacity": {
+    "headcount": 16
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:42:13.914385",
+    "created_by": {
+      "name": "Donaldson-Wilcox",
+      "location": {
+        "address": {
+          "number": "7167",
+          "street": "Anthony Plains",
+          "city": "San Francisco",
+          "region": "MH",
+          "country": "US",
+          "postcode": "93141"
+        },
+        "gps_coordinates": "37.7879363, -122.4075201",
+        "city": "San Francisco",
+        "country": "US"
+      },
+      "bio": "Established in 2000, we specialize in De-engineered hybrid array",
+      "social_media": {
+        "facebook": "https://facebook.com/wcunningham",
+        "instagram": "@srich",
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

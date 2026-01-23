@@ -1,0 +1,724 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "f9d3091a-cb46-4dd2-950a-135245d0d67b",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/jim98/arduino-based-iot-sensor-node",
+  "version": "1.3.6",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Ronald Wright",
+    "email": "sallyhenderson@example.net",
+    "affiliation": "White Ltd",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "hrobinson"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Two tough age line wish challenge.",
+  "intended_use": "East he professor go control project including.",
+  "keywords": [
+    "bracket",
+    "documented",
+    "mount",
+    "gear"
+  ],
+  "contact": {
+    "name": "Steven Hickman",
+    "email": "holtstephanie@example.org",
+    "affiliation": "Thomas, Vazquez and Pugh",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jeremiah43"
+      }
+    ]
+  },
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/robertphillips/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/chloe74/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/burnsconnie/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/steven32/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/cgriffin/project/raw/main/docs/pcb_assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/lisaschneider/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/michael13/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat shrink",
+    "3D printer",
+    "Filament",
+    "Screwdriver set",
+    "Cable ties",
+    "Multimeter",
+    "Crimping tool",
+    "Heat gun",
+    "Oscilloscope",
+    "Reflow oven",
+    "Nozzle",
+    "Pliers",
+    "Soldering station",
+    "Pick and place",
+    "Build plate"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 770.73,
+      "unit": "m³",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 638.69,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 322.48,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "PCB",
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Main Assembly",
+      "id": "9c2571fa-f3d0-4429-a678-53027e72f581",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "4487d26f-d11c-4361-b8d4-53a13a7f28a7",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 4.98,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "PETG",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Sub-Component",
+          "quantity": 9.89,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Tertiary Module",
+              "quantity": 1.94,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Cables",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Sub-Component",
+          "quantity": 9.15,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Element",
+              "quantity": 4.72,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Cables",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Sub-Component",
+              "quantity": 3.8,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Secondary Module",
+      "quantity": 7.91,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Nylon",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Secondary Module - Tertiary Module",
+          "quantity": 5.87,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Screws",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Tertiary Module - Detail Part",
+              "quantity": 7.64,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Nylon",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Secondary Module",
+      "quantity": 3.32,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "TPU",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Secondary Module - Element",
+          "quantity": 7.13,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Element - Detail Part",
+              "quantity": 3.32,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Secondary Module - Tertiary Module",
+          "quantity": 2.57,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Screws",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Tertiary Module - Sub-Component",
+              "quantity": 8.35,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 2.57,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Cables",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Detail Part",
+          "quantity": 6.39,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Support Component - Detail Part - Tertiary Module",
+              "quantity": 2.79,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Support Component - Detail Part - Tertiary Module",
+              "quantity": 9.5,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "PETG",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Support Component - Detail Part - Element",
+              "quantity": 8.3,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Support Component - Sub-Component",
+          "quantity": 2.54,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Support Component - Sub-Component - Detail Part",
+              "quantity": 9.46,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Support Component - Detail Part",
+          "quantity": 9.12,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PETG",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Support Component - Detail Part - Detail Part",
+              "quantity": 2.88,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Nylon",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Support Component - Detail Part - Tertiary Module",
+              "quantity": 2.37,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Nylon",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Auxiliary Unit",
+      "quantity": 4.66,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Nylon",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Auxiliary Unit - Detail Part",
+          "quantity": 3.7,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Cables",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 8.35,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Auxiliary Unit - Element",
+          "quantity": 1.25,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "TPU",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Element - Tertiary Module",
+              "quantity": 5.66,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "PETG",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Auxiliary Unit - Tertiary Module",
+          "quantity": 8.24,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Nylon",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Auxiliary Unit - Tertiary Module - Detail Part",
+              "quantity": 6.66,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Screws",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Auxiliary Unit - Tertiary Module - Sub-Component",
+              "quantity": 9.34,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Cables",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

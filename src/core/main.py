@@ -1,4 +1,5 @@
 import json
+import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -47,8 +48,12 @@ from src.core.utils.logging import get_logger, setup_logging
 
 from .version import get_version
 
-# Setup logging
-setup_logging(level=settings.LOG_LEVEL, log_file=settings.LOG_FILE)
+# Setup logging - convert string LOG_LEVEL to integer
+_log_level_str = (
+    settings.LOG_LEVEL.upper() if isinstance(settings.LOG_LEVEL, str) else "INFO"
+)
+_log_level_int = getattr(logging, _log_level_str, logging.INFO)
+setup_logging(level=_log_level_int, log_file=settings.LOG_FILE)
 
 # Get logger for this module
 logger = get_logger(__name__)
@@ -68,7 +73,16 @@ async def lifespan(app: FastAPI):
         # Initialize storage
         logger.info("Initializing storage service")
         storage_service = await StorageService.get_instance()
-        await storage_service.configure(settings.STORAGE_CONFIG)
+        try:
+            await storage_service.configure(settings.STORAGE_CONFIG)
+        except Exception as e:
+            # Storage connection failure shouldn't prevent app startup
+            # Log error but continue - storage operations will fail gracefully
+            logger.warning(
+                f"Storage service initialization failed: {e}. "
+                f"Application will start but storage operations may be unavailable. "
+                f"This may be a temporary network issue."
+            )
 
         # Ensure directory structure exists (lazy initialization)
         # This allows the application to self-bootstrap on first run

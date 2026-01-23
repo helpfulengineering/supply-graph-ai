@@ -1,61 +1,105 @@
 {
-  "id": "7226ab04-fcf1-484b-8129-e399ff703a92",
+  "id": "0a13b73a-d722-47c1-96a2-cfab228030f5",
   "name": "3D Printing Facility 2",
   "location": {
     "address": {
-      "number": "8004",
-      "street": "Adrian Crossing",
-      "city": "Lake Eric",
-      "region": "North Dakota",
-      "country": "Vanuatu",
-      "postcode": "44038"
+      "number": "6122",
+      "street": "Eric Center",
+      "city": "Fort Worth",
+      "region": "MS",
+      "country": "US",
+      "postcode": "95696"
     },
-    "gps_coordinates": "27.262808, -83.066068",
-    "directions": "Located near Jenkins-Holden",
-    "city": "Lake Eric",
-    "country": "Vanuatu"
+    "gps_coordinates": "32.753177, -97.3327459",
+    "directions": "Located near Marshall-Burton",
+    "city": "Fort Worth",
+    "country": "US"
   },
   "facility_status": "Active",
+  "owner": {
+    "name": "Burns-Castillo",
+    "website": "https://oneal.biz",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "contact": {
+      "mobile": "+1-425-748-8204",
+      "email": "info@gates.net"
+    },
+    "social_media": {
+      "instagram": "@sabrinajarvis",
+      "other_urls": []
+    }
+  },
   "description": "Specialized in additive manufacturing and rapid prototyping",
+  "date_founded": "2016-06-26",
   "access_type": "Membership",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
-      "make": "Prusa",
+      "make": "Creality",
       "model": "S5",
-      "condition": "Good",
-      "notes": "Equipment notes: Article yourself collection.",
-      "quantity": 1,
-      "tolerance_class": "ISO 2768-m",
+      "serial_number": "SN612784",
+      "condition": "Fair",
+      "notes": "Equipment notes: Democrat something manage small lawyer.",
+      "usage_levels": "Medium",
+      "uninterrupted_power_supply": true,
       "computer_controlled": true,
       "materials_worked": [
         {
           "material_type": "https://en.wikipedia.org/wiki/PLA",
-          "brand": "Industrial"
+          "supplier_location": {
+            "address": {
+              "number": "6250",
+              "street": "Joseph Ways",
+              "city": "Houston",
+              "region": "MN",
+              "country": "US",
+              "postcode": "92135"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "city": "Houston",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/PETG",
-          "manufacturer": "Brand A"
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8384",
+              "street": "Sandra Stream",
+              "city": "Chicago",
+              "region": "PR",
+              "country": "US",
+              "postcode": "86138"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "directions": "Located across from Ellison and Sons",
+            "city": "Chicago",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/ABS"
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/TPU",
-          "brand": "Standard"
+          "manufacturer": "Brand A"
         }
       ],
-      "build_volume": 8000000,
+      "build_volume": 27000000,
       "nozzle_size": 0.4
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
       "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
-      "make": "Brand B",
-      "model": "Model 799",
-      "condition": "Fair",
-      "computer_controlled": true
+      "make": "Brand A",
+      "model": "Model 645",
+      "condition": "Fair"
     }
   ],
   "manufacturing_processes": [
@@ -63,8 +107,7 @@
     "https://en.wikipedia.org/wiki/Post-processing"
   ],
   "typical_batch_size": "0 -- 50 units",
-  "floor_size": 3856,
-  "storage_capacity": "650 cubic meters",
+  "floor_size": 3933,
   "typical_materials": [],
   "certifications": []
 }

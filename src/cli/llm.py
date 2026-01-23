@@ -34,16 +34,16 @@ def llm_group():
 
     Examples:
       # Generate content using LLM
-      ome llm generate "Analyze this hardware project"
+      ohm llm generate "Analyze this hardware project"
 
       # Generate OKH manifest with LLM
-      ome llm generate-okh https://github.com/user/project
+      ohm llm generate-okh https://github.com/user/project
 
       # Match facilities with LLM enhancement
-      ome llm match requirements.json facilities.json
+      ohm llm match requirements.json facilities.json
 
       # Analyze a project
-      ome llm analyze https://github.com/user/project
+      ohm llm analyze https://github.com/user/project
     """
     pass
 
@@ -227,13 +227,13 @@ async def _generate_okh_manifest(
     epilog="""
     Examples:
       # Basic generation
-      ome llm generate "Analyze this hardware project"
+      ohm llm generate "Analyze this hardware project"
       
       # With specific provider and model
-      ome llm generate "Generate OKH manifest" --provider anthropic --model claude-3-5-sonnet-latest
+      ohm llm generate "Generate OKH manifest" --provider anthropic --model claude-3-5-sonnet-latest
       
       # Save to file with JSON format
-      ome llm generate "Analyze project" --output result.json --format json
+      ohm llm generate "Analyze project" --output result.json --format json
     """,
     async_cmd=True,
     track_performance=True,
@@ -348,13 +348,13 @@ async def generate(
     epilog="""
     Examples:
       # Generate from GitHub URL
-      ome llm generate-okh https://github.com/user/project
+      ohm llm generate-okh https://github.com/user/project
       
       # With specific provider
-      ome llm generate-okh https://github.com/user/project --provider anthropic
+      ohm llm generate-okh https://github.com/user/project --provider anthropic
       
       # Clone repository for better analysis
-      ome llm generate-okh https://github.com/user/project --clone --preserve-context
+      ohm llm generate-okh https://github.com/user/project --clone --preserve-context
     """,
     async_cmd=True,
     track_performance=True,
@@ -458,13 +458,13 @@ async def generate_okh(
     epilog="""
     Examples:
       # Match requirements with facilities
-      ome llm match requirements.json facilities.json
+      ohm llm match requirements.json facilities.json
       
       # With confidence threshold
-      ome llm match requirements.json facilities.json --min-confidence 0.7
+      ohm llm match requirements.json facilities.json --min-confidence 0.7
       
       # Table format output
-      ome llm match requirements.json facilities.json --format table
+      ohm llm match requirements.json facilities.json --format table
     """,
     async_cmd=True,
     track_performance=True,
@@ -620,13 +620,13 @@ async def match(
     epilog="""
     Examples:
       # Basic project analysis
-      ome llm analyze https://github.com/user/project
+      ohm llm analyze https://github.com/user/project
       
       # analysis
-      ome llm analyze https://github.com/user/project --include-code --include-docs
+      ohm llm analyze https://github.com/user/project --include-code --include-docs
       
       # JSON output
-      ome llm analyze https://github.com/user/project --format json --output analysis.json
+      ohm llm analyze https://github.com/user/project --format json --output analysis.json
     """,
     async_cmd=True,
     track_performance=True,

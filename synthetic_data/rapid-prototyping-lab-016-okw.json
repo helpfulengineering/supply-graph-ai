@@ -1,0 +1,190 @@
+{
+  "id": "8cf8efa7-9f54-4afa-8c19-b595e757a8ae",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "4358",
+      "street": "Sabrina Pine",
+      "city": "Columbus",
+      "region": "NM",
+      "country": "US",
+      "postcode": "85490"
+    },
+    "gps_coordinates": "39.9622601, -83.0007065",
+    "directions": "Located behind Herrera-Smith",
+    "city": "Columbus",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 9:00-21:00",
+  "description": "University research facility for rapid prototyping",
+  "date_founded": "1995-02-12",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "Form 3",
+      "serial_number": "SN409053",
+      "condition": "Fair",
+      "quantity": 5,
+      "maintenance_schedule": "Every 2 months",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2967",
+              "street": "Connie Causeway",
+              "city": "San Jose",
+              "region": "AR",
+              "country": "US",
+              "postcode": "78103"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "492",
+              "street": "Michael Creek",
+              "city": "Los Angeles",
+              "region": "VA",
+              "country": "US",
+              "postcode": "25347"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located across from Jones-Romero",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1549",
+              "street": "James Throughway",
+              "city": "Charlotte",
+              "region": "MD",
+              "country": "US",
+              "postcode": "30122"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "supplier_location": {
+            "address": {
+              "number": "5693",
+              "street": "Hebert Ford",
+              "city": "Los Angeles",
+              "region": "VA",
+              "country": "US",
+              "postcode": "09439"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located near Oliver-Ferguson",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 942",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VF-2",
+      "serial_number": "SN856543",
+      "condition": "Needs Maintenance",
+      "power_rating": 3957,
+      "maintenance_schedule": "Every 9 months",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 400
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4383,
+  "storage_capacity": "751 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "NADCAP",
+    "OHSAS 18001",
+    "ISO 14001",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "road_access": true,
+  "typical_products": [
+    "Realigned 24hour circuit",
+    "Compatible tertiary instruction set",
+    "Organized attitude-oriented alliance",
+    "Seamless bifurcated parallelism",
+    "Optional explicit time-frame"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Edge computer look trip cut."
+  },
+  "innovation_space": {
+    "staff": 9,
+    "learning_resources": [
+      "Organic systemic structure"
+    ],
+    "services": [
+      "Versatile 6thgeneration hub",
+      "Extended exuding artificial intelligence"
+    ],
+    "footfall": 100,
+    "residencies": true
+  }
+}

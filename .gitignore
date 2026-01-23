@@ -185,3 +185,6 @@ projects/
 
 #cursor files
 .cursorrules
+
+# credentials
+service-account.json

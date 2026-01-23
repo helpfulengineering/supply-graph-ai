@@ -1,0 +1,270 @@
+{
+  "id": "33d03022-6708-4d5a-96b0-409932e2a394",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "2768",
+      "street": "John Center",
+      "city": "New York",
+      "region": "WY",
+      "country": "US",
+      "postcode": "92834"
+    },
+    "gps_coordinates": "40.7127281, -74.0060152",
+    "city": "New York",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "description": "Public makerspace with basic fabrication equipment",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Formlabs",
+      "model": "i3 MK3S+",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Be question listen situation civil enter.",
+      "quantity": 3,
+      "power_rating": 1659,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "8339",
+              "street": "Stephanie Valley",
+              "city": "San Antonio",
+              "region": "MS",
+              "country": "US",
+              "postcode": "39652"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5790",
+              "street": "Herman Place",
+              "city": "Austin",
+              "region": "NJ",
+              "country": "US",
+              "postcode": "18268"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "directions": "Located across from Green, Mccoy and Hurley",
+            "city": "Austin",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "VLS 3.50",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Everyone bag arrive staff.",
+      "quantity": 2,
+      "throughput": "95 parts/hour",
+      "power_rating": 9064,
+      "maintenance_schedule": "Every 4 months",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "3360",
+              "street": "Matthew Squares",
+              "city": "New York",
+              "region": "VA",
+              "country": "US",
+              "postcode": "70147"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "supplier_location": {
+            "address": {
+              "number": "2699",
+              "street": "Smith Glens",
+              "city": "Phoenix",
+              "region": "HI",
+              "country": "US",
+              "postcode": "51497"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "ShopBot",
+      "model": "XXL",
+      "serial_number": "SN974525",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Speech when bed must.",
+      "throughput": "44 parts/hour",
+      "maintenance_schedule": "Every 7 months",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "1063",
+              "street": "Randall Springs",
+              "city": "Phoenix",
+              "region": "FM",
+              "country": "US",
+              "postcode": "55211"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located near Donovan Inc",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "supplier_location": {
+            "address": {
+              "number": "9506",
+              "street": "David Island",
+              "city": "Jacksonville",
+              "region": "AZ",
+              "country": "US",
+              "postcode": "79168"
+            },
+            "gps_coordinates": "30.3321838, -81.655651",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "manufacturer": "Premium"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1646,
+  "typical_materials": [],
+  "certifications": [
+    "First Aid Training",
+    "Basic Safety Training",
+    "Equipment Operation Certification"
+  ],
+  "road_access": true,
+  "innovation_space": {
+    "staff": 7,
+    "learning_resources": [
+      "Object-based real-time paradigm",
+      "Cloned eco-centric flexibility",
+      "Organized directional Graphical User Interface",
+      "Synchronized discrete parallelism",
+      "Horizontal upward-trending secured line"
+    ],
+    "services": [
+      "Intuitive 6thgeneration algorithm",
+      "Open-source attitude-oriented structure",
+      "Centralized discrete model"
+    ],
+    "footfall": 95
+  },
+  "record_data": {
+    "date_created": "2026-01-10T19:42:00.529938",
+    "created_by": {
+      "name": "Williams-Baxter",
+      "location": {
+        "address": {
+          "number": "6870",
+          "street": "Marcus Vista",
+          "city": "San Diego",
+          "region": "GU",
+          "country": "US",
+          "postcode": "77013"
+        },
+        "gps_coordinates": "32.7174202, -117.162772",
+        "city": "San Diego",
+        "country": "US"
+      },
+      "bio": "Established in 1998, we specialize in Multi-lateral 24hour secured line",
+      "languages": [
+        "de"
+      ],
+      "contact": {
+        "mobile": "+1-998-464-5669",
+        "whatsapp": "+1-856-409-2848"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/matthewcline",
+        "instagram": "@hawkinscarolyn",
+        "other_urls": [
+          "https://hicks.info"
+        ]
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

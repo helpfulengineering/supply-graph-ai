@@ -339,7 +339,7 @@ python scripts/setup_storage.py \
 
 # Optional: Populate with synthetic data (requires conda environment)
 # conda activate supply-graph-ai
-# ome storage populate \
+# ohm storage populate \
 #   --provider gcs \
 #   --bucket ${BUCKET_NAME} \
 #   --region ${REGION} \

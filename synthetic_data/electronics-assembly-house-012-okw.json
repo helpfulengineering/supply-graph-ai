@@ -1,0 +1,126 @@
+{
+  "id": "6b86fe8d-d532-4dd1-873b-759d148ffb6f",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "4009",
+      "street": "Cody Burgs",
+      "city": "Boston",
+      "region": "LA",
+      "country": "US",
+      "postcode": "59576"
+    },
+    "gps_coordinates": "42.3588336, -71.0578303",
+    "directions": "Located near Anderson, Santiago and Frazier",
+    "city": "Boston",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Hays, Thompson and Peters",
+    "mailing_list": "benjaminblack@lists.reid.com",
+    "images": [
+      "images/several.jpg",
+      "images/person.jpg",
+      "images/charge.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-776-840-5441",
+      "email": "info@cross-garcia.biz"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Hughes-Frost",
+    "location": {
+      "address": {
+        "number": "4693",
+        "street": "Serrano Ferry",
+        "city": "Philadelphia",
+        "region": "TX",
+        "country": "US",
+        "postcode": "08225"
+      },
+      "gps_coordinates": "39.9527237, -75.1635262",
+      "directions": "Located across from Herrera, Perez and Donaldson",
+      "city": "Philadelphia",
+      "country": "US"
+    },
+    "bio": "Established in 1995, we specialize in Automated client-driven concept",
+    "languages": [
+      "es"
+    ],
+    "mailing_list": "elizabeth29@lists.guerra-evans.net",
+    "images": [
+      "images/campaign.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-862-598-5416",
+      "email": "info@kaiser.com",
+      "whatsapp": "+1-657-229-2313"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-17:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Generic",
+      "model": "Model 912",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 171",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Generic",
+      "model": "Model 366",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Generic",
+      "model": "Model 447",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 3282,
+  "typical_materials": [],
+  "certifications": [
+    "RoHS Compliance",
+    "IPC-A-610"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Front-line contextually-based support",
+    "Grass-roots next generation monitoring"
+  ],
+  "human_capacity": {
+    "headcount": 45
+  }
+}

@@ -190,7 +190,7 @@ components:
 
 ### Composing Components
 ```python
-from ome import Pipeline
+from ohm import Pipeline
 
 pipeline = Pipeline.from_config("ohm-pipeline.yaml")
 

@@ -476,7 +476,7 @@ jobs:
           
           # Add remaining deployment options
           DEPLOY_ARGS+=(
-            "--memory" "4Gi"
+            "--memory" "8Gi"
             "--cpu" "2"
             "--timeout" "300"
             "--max-instances" "100"

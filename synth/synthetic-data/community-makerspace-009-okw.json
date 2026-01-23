@@ -1,0 +1,229 @@
+{
+  "id": "0574984c-60c1-4da9-ad72-6ce32f81739b",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "8087",
+      "street": "Vargas Vista",
+      "city": "Los Angeles",
+      "region": "MH",
+      "country": "US",
+      "postcode": "54256"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "directions": "Located behind Bennett, King and Powers",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 6:00-18:00",
+  "description": "Public makerspace with basic fabrication equipment",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Ultimaker",
+      "model": "Ender 3",
+      "serial_number": "SN906495",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Computer a fill fine manage population.",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "1131",
+              "street": "Emily Knoll",
+              "city": "Seattle",
+              "region": "NC",
+              "country": "US",
+              "postcode": "47689"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9020",
+              "street": "Snyder Drive",
+              "city": "Jacksonville",
+              "region": "WY",
+              "country": "US",
+              "postcode": "78609"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "directions": "Located across from Silva, Cook and Boyle",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "4994",
+              "street": "Burke Island",
+              "city": "Los Angeles",
+              "region": "GU",
+              "country": "US",
+              "postcode": "57575"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located near Jacobs PLC",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Epilog",
+      "model": "Fusion Pro",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Can mind develop administration community interesting ahead guy.",
+      "quantity": 1,
+      "throughput": "40 parts/hour",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "supplier_location": {
+            "address": {
+              "number": "7999",
+              "street": "Jessica Ridge",
+              "city": "Houston",
+              "region": "GU",
+              "country": "US",
+              "postcode": "16748"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "city": "Houston",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "3985",
+              "street": "Lloyd Roads",
+              "city": "New York",
+              "region": "MS",
+              "country": "US",
+              "postcode": "76137"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located across from Gonzalez-Jenkins",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Onefinity",
+      "model": "XXL",
+      "condition": "Needs Maintenance",
+      "throughput": "23 parts/hour",
+      "power_rating": 5503,
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "9650",
+              "street": "Jacob Circle",
+              "city": "Phoenix",
+              "region": "WI",
+              "country": "US",
+              "postcode": "44940"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "3520",
+              "street": "Cantu Lock",
+              "city": "Seattle",
+              "region": "AS",
+              "country": "US",
+              "postcode": "59042"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 300
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "First Aid Training",
+    "Basic Safety Training"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "Down-sized scalable access",
+    "Pre-emptive mission-critical emulation"
+  ]
+}

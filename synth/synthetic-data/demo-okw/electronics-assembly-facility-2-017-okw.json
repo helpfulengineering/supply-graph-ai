@@ -1,99 +1,102 @@
 {
-  "id": "f0352496-47f1-40a8-a7fa-5459261f9d9c",
+  "id": "ab2e9ce7-b29b-4081-b5cd-37b2d7dd5a4b",
   "name": "Electronics Assembly Facility 2",
   "location": {
     "address": {
-      "number": "4468",
-      "street": "Corey Squares",
-      "city": "North Ashleyland",
-      "region": "Maryland",
-      "country": "Antigua and Barbuda",
-      "postcode": "94563"
+      "number": "4159",
+      "street": "Hoffman Harbors",
+      "city": "San Francisco",
+      "region": "IN",
+      "country": "US",
+      "postcode": "04526"
     },
-    "gps_coordinates": "47.544071, -36.076652",
-    "directions": "Located near Blair Ltd",
-    "city": "North Ashleyland",
-    "country": "Antigua and Barbuda"
+    "gps_coordinates": "37.7879363, -122.4075201",
+    "city": "San Francisco",
+    "country": "US"
   },
   "facility_status": "Active",
   "owner": {
-    "name": "Cannon, Wilkins and Bennett",
+    "name": "Tyler, Harris and Patterson",
     "location": {
       "address": {
-        "number": "6266",
-        "street": "Stone Skyway",
-        "city": "Joelhaven",
-        "region": "New Mexico",
-        "country": "Kazakhstan",
-        "postcode": "04933"
+        "number": "1984",
+        "street": "Payne Mission",
+        "city": "Boston",
+        "region": "FM",
+        "country": "US",
+        "postcode": "64839"
       },
-      "gps_coordinates": "43.549567, -105.166897",
-      "directions": "Located near Bradshaw Inc",
-      "city": "Joelhaven",
-      "country": "Kazakhstan"
+      "gps_coordinates": "42.3588336, -71.0578303",
+      "city": "Boston",
+      "country": "US"
     },
-    "contact_person": "Mrs. Kathy Hampton",
-    "languages": [
-      "es"
+    "bio": "Established in 2013, we specialize in Integrated systemic moderator",
+    "images": [
+      "images/west.jpg",
+      "images/approach.jpg"
     ],
     "contact": {
-      "landline": "+1-854-794-1222",
-      "mobile": "+1-869-365-7097",
-      "email": "info@strickland-vincent.com"
+      "mobile": "+1-583-850-5088",
+      "email": "info@hayes-scott.net",
+      "whatsapp": "+1-702-649-7651"
     },
     "social_media": {
-      "other_urls": []
+      "facebook": "https://facebook.com/campbellphillip",
+      "twitter": "@justinhernandez",
+      "other_urls": [
+        "https://campbell-berger.biz"
+      ]
     }
   },
   "contact": {
-    "name": "Peters, Horton and Walker",
-    "contact_person": "Meredith Wolfe",
-    "bio": "Established in 2009, we specialize in Virtual intangible flexibility",
+    "name": "Johnson and Sons",
+    "website": "https://brown.org",
     "languages": [
-      "es",
-      "de"
+      "en",
+      "de",
+      "fr"
     ],
     "contact": {
-      "landline": "+1-733-813-7170",
-      "whatsapp": "+1-549-453-5067"
+      "landline": "+1-639-350-3052",
+      "mobile": "+1-917-984-8047"
     },
     "social_media": {
-      "twitter": "@carlahawkins",
-      "instagram": "@garciapeter",
       "other_urls": []
     }
   },
-  "opening_hours": "Mon-Fri: 7:00-20:00",
+  "opening_hours": "Mon-Fri: 9:00-18:00",
   "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "1998-06-26",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
-      "make": "Brand A",
-      "model": "Model 563",
-      "condition": "Excellent"
+      "make": "Brand B",
+      "model": "Model 752",
+      "condition": "Good",
+      "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
       "make": "Brand B",
-      "model": "Model 238",
+      "model": "Model 323",
       "condition": "Fair"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/AOI",
       "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
       "make": "Brand B",
-      "model": "Model 367",
-      "condition": "Fair"
+      "model": "Model 389",
+      "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/ICT",
       "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
-      "make": "Brand B",
-      "model": "Model 985",
-      "condition": "Excellent"
+      "make": "Generic",
+      "model": "Model 117",
+      "condition": "Fair"
     }
   ],
   "manufacturing_processes": [
@@ -102,20 +105,8 @@
     "https://en.wikipedia.org/wiki/Quality_control"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "storage_capacity": "910 cubic meters",
   "typical_materials": [],
-  "certifications": [
-    "ISO 9001:2015",
-    "RoHS Compliance",
-    "IPC-A-610"
-  ],
+  "certifications": [],
   "backup_generator": true,
-  "uninterrupted_power_supply": true,
-  "road_access": true,
-  "maintenance_schedule": "Every 6 months",
-  "typical_products": [
-    "Multi-lateral upward-trending knowledgebase",
-    "Vision-oriented executive neural-net",
-    "Horizontal background installation"
-  ]
+  "road_access": true
 }

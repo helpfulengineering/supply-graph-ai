@@ -1,0 +1,309 @@
+{
+  "id": "619a0520-9111-43d3-8cc4-fe5a7ab794cc",
+  "name": "Community Makerspace",
+  "location": {
+    "address": {
+      "number": "5160",
+      "street": "Nash Meadow",
+      "city": "Charlotte",
+      "region": "TN",
+      "country": "US",
+      "postcode": "12792"
+    },
+    "gps_coordinates": "35.2272086, -80.8430827",
+    "directions": "Located near Smith LLC",
+    "city": "Charlotte",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Johnson-Elliott",
+    "contact_person": "Julia Li",
+    "bio": "Established in 2014, we specialize in Realigned exuding forecast",
+    "website": "https://pierce-martin.info",
+    "contact": {
+      "landline": "+1-548-342-6158",
+      "mobile": "+1-785-736-1650",
+      "whatsapp": "+1-952-772-1655"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Lyons, Jimenez and Jones",
+    "location": {
+      "address": {
+        "number": "7656",
+        "street": "Dana Ford",
+        "city": "San Jose",
+        "region": "NM",
+        "country": "US",
+        "postcode": "27215"
+      },
+      "gps_coordinates": "37.3361663, -121.890591",
+      "directions": "Located near Brown PLC",
+      "city": "San Jose",
+      "country": "US"
+    },
+    "contact_person": "Beverly Sanchez",
+    "website": "https://pennington.com",
+    "contact": {
+      "whatsapp": "+1-770-733-7486"
+    },
+    "social_media": {
+      "instagram": "@connie51",
+      "other_urls": []
+    }
+  },
+  "description": "Public makerspace with basic fabrication equipment",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "i3 MK3S+",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Can successful glass clear list art day wide.",
+      "throughput": "51 parts/hour",
+      "power_rating": 2280,
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "785",
+              "street": "Chavez Streets",
+              "city": "Phoenix",
+              "region": "MT",
+              "country": "US",
+              "postcode": "95743"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located across from Lee-Moore",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "supplier_location": {
+            "address": {
+              "number": "5879",
+              "street": "Wood Ferry",
+              "city": "Chicago",
+              "region": "MT",
+              "country": "US",
+              "postcode": "94512"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "city": "Chicago",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        }
+      ],
+      "build_volume": 8000000,
+      "nozzle_size": 0.8,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "TPU",
+          "PETG",
+          "ABS"
+        ],
+        "process_parameters": {
+          "setup_time": "39 minutes",
+          "cycle_time": "52 minutes",
+          "changeover_time": "24 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "LS-1630",
+      "serial_number": "SN296319",
+      "condition": "Excellent",
+      "throughput": "13 parts/hour",
+      "maintenance_schedule": "Every 2 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "9916",
+              "street": "Mclaughlin Ranch",
+              "city": "San Francisco",
+              "region": "WA",
+              "country": "US",
+              "postcode": "58692"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "5142",
+              "street": "Grant Stravenue",
+              "city": "Fort Worth",
+              "region": "AL",
+              "country": "US",
+              "postcode": "56572"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 300,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Fabric",
+          "Acrylic",
+          "Wood"
+        ],
+        "process_parameters": {
+          "setup_time": "88 minutes",
+          "cycle_time": "28 minutes",
+          "changeover_time": "25 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_router",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_router",
+      "make": "Onefinity",
+      "model": "Woodworker",
+      "serial_number": "SN854043",
+      "condition": "Excellent",
+      "quantity": 2,
+      "throughput": "55 parts/hour",
+      "maintenance_schedule": "Every 1 months",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "supplier_location": {
+            "address": {
+              "number": "9315",
+              "street": "Anderson Extensions",
+              "city": "Jacksonville",
+              "region": "HI",
+              "country": "US",
+              "postcode": "13585"
+            },
+            "gps_coordinates": "30.3321838, -81.655651",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Foam"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 300,
+      "detailed_capabilities": {
+        "tolerance": "±0.1mm",
+        "spindle_speed": "5000-24000 RPM",
+        "feed_rate": "100-5000 mm/min",
+        "tool_diameter": "0.5-25mm",
+        "cutting_depth": "0.1-50mm",
+        "tolerance_range": "±0.1mm",
+        "supported_materials": [
+          "Wood",
+          "Aluminum",
+          "Foam",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "22 minutes",
+          "cycle_time": "49 minutes",
+          "changeover_time": "13 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/CNC_router"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4050,
+  "typical_materials": [],
+  "certifications": [
+    "Basic Safety"
+  ],
+  "backup_generator": true,
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Machine energy address fish there."
+  },
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Programmable discrete framework",
+      "Team-oriented didactic artificial intelligence",
+      "Operative cohesive model",
+      "Advanced dedicated parallelism"
+    ],
+    "footfall": 44
+  }
+}

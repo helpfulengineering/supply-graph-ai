@@ -1,0 +1,134 @@
+{
+  "id": "790c02ac-73de-4c14-ba56-78abbcf7dd8d",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "3485",
+      "street": "Mark Station",
+      "city": "San Antonio",
+      "region": "FL",
+      "country": "US",
+      "postcode": "39136"
+    },
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "city": "San Antonio",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Vazquez and Sons",
+    "location": {
+      "address": {
+        "number": "3780",
+        "street": "Glover Orchard",
+        "city": "San Diego",
+        "region": "MI",
+        "country": "US",
+        "postcode": "69093"
+      },
+      "gps_coordinates": "32.7174202, -117.162772",
+      "directions": "Located across from Rodgers-Carroll",
+      "city": "San Diego",
+      "country": "US"
+    },
+    "mailing_list": "tracy11@lists.smith-marquez.com",
+    "images": [
+      "images/leader.jpg"
+    ],
+    "contact": {
+      "whatsapp": "+1-597-942-9390"
+    },
+    "social_media": {
+      "twitter": "@hilljennifer",
+      "other_urls": [
+        "https://perez-jones.info",
+        "https://bennett-pena.com"
+      ]
+    }
+  },
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Generic",
+      "model": "Model 285",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 189",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Generic",
+      "model": "Model 124",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Generic",
+      "model": "Model 255",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "maintenance_schedule": "Every 1 months",
+  "human_capacity": {
+    "headcount": 16
+  },
+  "innovation_space": {
+    "staff": 4,
+    "services": [
+      "Reverse-engineered asymmetric archive",
+      "Enterprise-wide eco-centric budgetary management",
+      "Re-contextualized object-oriented ability"
+    ],
+    "footfall": 73
+  },
+  "record_data": {
+    "date_created": "2026-01-12T20:09:47.250727",
+    "created_by": {
+      "name": "Molina, Garcia and Holmes",
+      "mailing_list": "nicolegreen@lists.perry-martinez.com",
+      "images": [
+        "images/what.jpg",
+        "images/old.jpg",
+        "images/yes.jpg"
+      ],
+      "contact": {
+        "landline": "+1-751-366-8635",
+        "email": "info@johnson.com",
+        "whatsapp": "+1-903-728-3765"
+      },
+      "social_media": {
+        "twitter": "@epatton",
+        "instagram": "@cbrady",
+        "other_urls": [
+          "https://williams-carr.com",
+          "https://lopez.com"
+        ]
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

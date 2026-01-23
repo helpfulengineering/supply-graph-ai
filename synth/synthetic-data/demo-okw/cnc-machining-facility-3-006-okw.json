@@ -1,116 +1,128 @@
 {
-  "id": "ca9c2086-cbf3-401d-b017-fd59e20a77b5",
+  "id": "07c94cc8-16fa-41f7-bd68-170f7b9f0086",
   "name": "CNC Machining Facility 3",
   "location": {
     "address": {
-      "number": "3113",
-      "street": "Good Villages",
-      "city": "South Brenda",
-      "region": "Connecticut",
-      "country": "Ghana",
-      "postcode": "08383"
+      "number": "9050",
+      "street": "Nichols Brook",
+      "city": "San Jose",
+      "region": "KS",
+      "country": "US",
+      "postcode": "34637"
     },
-    "gps_coordinates": "58.017714, -40.699669",
-    "directions": "Located near Waller, Wright and Sheppard",
-    "city": "South Brenda",
-    "country": "Ghana"
+    "gps_coordinates": "37.3361663, -121.890591",
+    "city": "San Jose",
+    "country": "US"
   },
   "facility_status": "Active",
-  "owner": {
-    "name": "Perez, Ross and Benson",
+  "contact": {
+    "name": "Herrera-Walters",
     "location": {
       "address": {
-        "number": "3596",
-        "street": "Miller Rue",
-        "city": "Port Anthonyburgh",
-        "region": "Indiana",
-        "country": "India",
-        "postcode": "35311"
+        "number": "6156",
+        "street": "Stevens Burg",
+        "city": "Austin",
+        "region": "AL",
+        "country": "US",
+        "postcode": "57811"
       },
-      "gps_coordinates": "33.937816, -69.240882",
-      "directions": "Located behind Moss, Payne and Phillips",
-      "city": "Port Anthonyburgh",
-      "country": "India"
+      "gps_coordinates": "30.2711286, -97.7436995",
+      "city": "Austin",
+      "country": "US"
     },
-    "contact_person": "Kristin Ramirez",
-    "website": "https://doyle.biz",
-    "mailing_list": "xmclean@lists.cortez-noble.net",
+    "website": "https://hayes.com",
     "contact": {
-      "email": "info@wheeler-mccoy.com"
+      "mobile": "+1-639-929-7977",
+      "email": "info@gordon.com"
     },
     "social_media": {
-      "twitter": "@jwilcox",
       "other_urls": []
     }
   },
+  "opening_hours": "Mon-Fri: 9:00-18:00",
   "description": "Specialized in CNC milling and turning operations",
+  "date_founded": "2004-05-10",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
-      "make": "Haas",
-      "model": "VF-2",
-      "condition": "Needs Maintenance",
-      "quantity": 3,
-      "tolerance_class": "ISO 2768-f",
+      "make": "DMG Mori",
+      "model": "PCNC 440",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Old order blue good carry not food.",
+      "quantity": 1,
+      "throughput": "64 parts/hour",
+      "maintenance_schedule": "Every 9 months",
+      "usage_levels": "High",
+      "uninterrupted_power_supply": true,
       "computer_controlled": true,
+      "extraction_system": true,
       "materials_worked": [
         {
           "material_type": "https://en.wikipedia.org/wiki/Aluminum",
-          "brand": "Industrial"
+          "supplier_location": {
+            "address": {
+              "number": "335",
+              "street": "Petty Glens",
+              "city": "San Francisco",
+              "region": "MA",
+              "country": "US",
+              "postcode": "98438"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "directions": "Located across from Cook Inc",
+            "city": "San Francisco",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Steel",
-          "manufacturer": "Generic"
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "8233",
+              "street": "Turner Estates",
+              "city": "San Jose",
+              "region": "IA",
+              "country": "US",
+              "postcode": "67846"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "city": "San Jose",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Plastic",
-          "manufacturer": "Generic",
-          "brand": "Industrial",
           "supplier_location": {
             "address": {
-              "number": "8907",
-              "street": "Daniel Pines",
-              "city": "Meganview",
-              "region": "Illinois",
-              "country": "Bahrain",
-              "postcode": "72449"
+              "number": "6665",
+              "street": "Lauren Mill",
+              "city": "Charlotte",
+              "region": "FM",
+              "country": "US",
+              "postcode": "56246"
             },
-            "gps_coordinates": "37.209739, 27.674063",
-            "directions": "Located across from Allen PLC",
-            "city": "Meganview",
-            "country": "Bahrain"
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located behind Lewis LLC",
+            "city": "Charlotte",
+            "country": "US"
           }
         },
         {
-          "material_type": "https://en.wikipedia.org/wiki/Wood",
-          "manufacturer": "Brand B",
-          "supplier_location": {
-            "address": {
-              "number": "2435",
-              "street": "Conner Shoals",
-              "city": "Leeville",
-              "region": "South Dakota",
-              "country": "French Polynesia",
-              "postcode": "62148"
-            },
-            "gps_coordinates": "46.453331, -23.961355",
-            "directions": "Located near Downs-Oliver",
-            "city": "Leeville",
-            "country": "French Polynesia"
-          }
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
         }
       ],
-      "axes": 4,
-      "working_surface": 600
+      "axes": 3,
+      "working_surface": 800
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
-      "make": "Brand B",
-      "model": "Model 162",
-      "condition": "Good",
+      "make": "Generic",
+      "model": "Model 313",
+      "condition": "Excellent",
       "computer_controlled": true
     }
   ],
@@ -120,11 +132,20 @@
     "https://en.wikipedia.org/wiki/Surface_finish"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "storage_capacity": "540 cubic meters",
+  "floor_size": 1645,
   "typical_materials": [],
   "certifications": [
+    "ISO 9001:2015",
     "OHSAS 18001",
-    "AS9100",
-    "NADCAP"
+    "NADCAP",
+    "AS9100"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 4 months",
+  "typical_products": [
+    "Team-oriented secondary leverage",
+    "Seamless systematic customer loyalty",
+    "Cross-group asynchronous approach",
+    "Extended impactful open system"
   ]
 }

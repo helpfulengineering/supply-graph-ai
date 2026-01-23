@@ -1,0 +1,95 @@
+{
+  "id": "327faaed-9c9a-4908-862b-93319e59f4bd",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "987",
+      "street": "Candice Islands",
+      "city": "Los Angeles",
+      "region": "MS",
+      "country": "US",
+      "postcode": "46477"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "opening_hours": "Mon-Fri: 9:00-20:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 391",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Generic",
+      "model": "Model 691",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand A",
+      "model": "Model 203",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand B",
+      "model": "Model 758",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 3 months",
+  "record_data": {
+    "date_created": "2026-01-10T19:42:13.907348",
+    "created_by": {
+      "name": "Howell, Nelson and Graham",
+      "location": {
+        "address": {
+          "number": "659",
+          "street": "Hahn Court",
+          "city": "Phoenix",
+          "region": "FL",
+          "country": "US",
+          "postcode": "55234"
+        },
+        "gps_coordinates": "33.4484367, -112.074141",
+        "city": "Phoenix",
+        "country": "US"
+      },
+      "bio": "Established in 1994, we specialize in Triple-buffered mission-critical matrix",
+      "website": "https://johnson.org",
+      "languages": [
+        "fr"
+      ],
+      "contact": {
+        "email": "info@johnson.com"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

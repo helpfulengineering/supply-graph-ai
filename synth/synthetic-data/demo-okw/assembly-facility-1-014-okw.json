@@ -1,77 +1,53 @@
 {
-  "id": "1e3f01c7-5757-44c7-894d-72b090391b72",
+  "id": "21e72c07-5289-457a-8ee8-3eb8ac96a9a4",
   "name": "Assembly Facility 1",
   "location": {
     "address": {
-      "number": "7694",
-      "street": "Moore Orchard",
-      "city": "New Nicole",
-      "region": "Hawaii",
-      "country": "Angola",
-      "postcode": "74565"
+      "number": "2488",
+      "street": "Aaron Junction",
+      "city": "Austin",
+      "region": "UT",
+      "country": "US",
+      "postcode": "28464"
     },
-    "gps_coordinates": "34.314299, -8.244346",
-    "city": "New Nicole",
-    "country": "Angola"
+    "gps_coordinates": "30.2711286, -97.7436995",
+    "directions": "Located behind Nash-Carson",
+    "city": "Austin",
+    "country": "US"
   },
   "facility_status": "Active",
   "owner": {
-    "name": "Martin, Livingston and Klein",
+    "name": "Perry-Compton",
     "location": {
       "address": {
-        "number": "8436",
-        "street": "Miller Crossroad",
-        "city": "Jasonfurt",
-        "region": "Missouri",
-        "country": "India",
-        "postcode": "98403"
+        "number": "1152",
+        "street": "Beard Center",
+        "city": "Houston",
+        "region": "SD",
+        "country": "US",
+        "postcode": "92066"
       },
-      "gps_coordinates": "58.899537, -29.876491",
-      "directions": "Located across from Sampson, Jarvis and Carter",
-      "city": "Jasonfurt",
-      "country": "India"
+      "gps_coordinates": "29.7589382, -95.3676974",
+      "directions": "Located near Warren-Townsend",
+      "city": "Houston",
+      "country": "US"
     },
-    "contact_person": "Rachel Brewer",
-    "website": "https://cunningham-lewis.com",
+    "website": "https://quinn-marshall.com",
     "languages": [
-      "fr",
-      "de"
+      "fr"
     ],
-    "mailing_list": "robin70@lists.murray.biz",
+    "mailing_list": "danielskeith@lists.nolan.com",
     "contact": {
-      "landline": "+1-569-467-9735",
-      "mobile": "+1-578-449-7726"
+      "mobile": "+1-572-591-5089",
+      "email": "info@brown.com",
+      "whatsapp": "+1-372-375-7658"
     },
     "social_media": {
-      "twitter": "@phamdenise",
+      "facebook": "https://facebook.com/martinamber",
+      "twitter": "@tylerbruce",
       "other_urls": [
-        "https://evans-lawson.com"
+        "https://edwards-powell.net"
       ]
-    }
-  },
-  "contact": {
-    "name": "Kent-Jones",
-    "location": {
-      "address": {
-        "number": "7959",
-        "street": "Christopher Cliffs",
-        "city": "Ballardton",
-        "region": "New Hampshire",
-        "country": "Maldives",
-        "postcode": "77744"
-      },
-      "gps_coordinates": "35.421921, -69.161363",
-      "city": "Ballardton",
-      "country": "Maldives"
-    },
-    "website": "https://west.biz",
-    "mailing_list": "jaredfrench@lists.rubio.info",
-    "contact": {
-      "landline": "+1-442-621-4539",
-      "email": "info@hawkins.com"
-    },
-    "social_media": {
-      "other_urls": []
     }
   },
   "description": "Specialized in product assembly and integration",
@@ -80,16 +56,18 @@
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_station",
-      "make": "Brand A",
-      "model": "Model 263",
-      "condition": "Fair"
+      "make": "Generic",
+      "model": "Model 783",
+      "condition": "Excellent",
+      "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
       "make": "Brand A",
-      "model": "Model 824",
-      "condition": "Excellent"
+      "model": "Model 688",
+      "condition": "Excellent",
+      "computer_controlled": true
     }
   ],
   "manufacturing_processes": [
@@ -98,12 +76,7 @@
     "https://en.wikipedia.org/wiki/Packaging_and_labeling"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "floor_size": 4607,
-  "storage_capacity": "408 cubic meters",
+  "floor_size": 2405,
   "typical_materials": [],
-  "certifications": [],
-  "backup_generator": true,
-  "road_access": true,
-  "loading_dock": true,
-  "maintenance_schedule": "Every 6 months"
+  "certifications": []
 }

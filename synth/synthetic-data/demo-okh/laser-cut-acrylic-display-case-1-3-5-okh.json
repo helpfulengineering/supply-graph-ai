@@ -1,0 +1,1344 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "5b7e484c-f103-4dce-8de5-56dce9caf260",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/hrowe/laser-cut-acrylic-display-case",
+  "version": "1.3.5",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Emily Howell",
+    "email": null,
+    "affiliation": "Dyer Inc",
+    "social": []
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Teacher site style improve movie room.",
+  "intended_use": "Ready popular outside television plant will.",
+  "keywords": [
+    "assembly",
+    "bearing",
+    "modular",
+    "shaft"
+  ],
+  "contact": {
+    "name": "Kenneth Myers",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "erin61"
+      }
+    ]
+  },
+  "organization": {
+    "name": "Parsons-Pineda",
+    "url": null,
+    "email": null
+  },
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/lraymond/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/juliajohnson/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/kristin02/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/jenniferwelch/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/brettklein/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/hhammond/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/ihartman/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Material guides",
+    "Heat shrink",
+    "Screwdriver set",
+    "Crimping tool",
+    "Air assist",
+    "Pliers",
+    "Focus lens",
+    "Cutting bed",
+    "Laser cutter",
+    "Wrench set"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 992.33,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "66W",
+          "speed": "871 mm/min",
+          "passes": 2
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Assembly",
+      "id": "d2ddb11a-f178-4ece-8103-11ab194683a4",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "f3fc6c8d-45ed-440c-9f20-a2c48c6ed215",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Copper",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Assembly",
+      "id": "05953cf2-39ea-4b4e-be08-a9787a22d290",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Main Assembly - Secondary Module",
+      "quantity": 3.27,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Copper",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Secondary Module - Detail Part",
+          "quantity": 1.94,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Copper",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Detail Part - Tertiary Module",
+              "quantity": 8.23,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "PLA",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Detail Part - Element",
+              "quantity": 7.15,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Detail Part - Detail Part",
+              "quantity": 2.64,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Secondary Module - Sub-Component",
+          "quantity": 5.6,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PLA",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Sub-Component - Tertiary Module",
+              "quantity": 9.85,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Sub-Component - Element",
+              "quantity": 6.95,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Secondary Module - Tertiary Module",
+          "quantity": 8.66,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Copper",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Tertiary Module - Sub-Component",
+              "quantity": 6.03,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Tertiary Module - Detail Part",
+              "quantity": 8.57,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "PLA",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Tertiary Module - Tertiary Module",
+              "quantity": 4.99,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 5.18,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "FR4",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Tertiary Module",
+          "quantity": 7.77,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "FR4",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Element",
+              "quantity": 5.46,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Tertiary Module",
+              "quantity": 6.68,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Detail Part",
+              "quantity": 3.86,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Sub-Component",
+          "quantity": 3.35,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Copper",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Detail Part",
+              "quantity": 2.08,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Sub-Component",
+              "quantity": 8.15,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Secondary Module",
+      "quantity": 8.15,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Electronic components",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Secondary Module - Element",
+          "quantity": 5.74,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "PLA",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Element - Element",
+              "quantity": 1.82,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Element - Sub-Component",
+              "quantity": 6.76,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Element - Tertiary Module",
+              "quantity": 9.24,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Secondary Module - Detail Part",
+          "quantity": 4.9,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Electronic components",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Detail Part - Sub-Component",
+              "quantity": 2.28,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Secondary Module - Element",
+          "quantity": 5.54,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "FR4",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Secondary Module - Element - Element",
+              "quantity": 5.92,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "PLA",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Secondary Module - Element - Sub-Component",
+              "quantity": 1.13,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 3.44,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Electronic components",
+        "process": "3DP",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Tertiary Module",
+          "quantity": 8.75,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PLA",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Detail Part",
+              "quantity": 2.21,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Tertiary Module",
+              "quantity": 9.93,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Sub-Component",
+              "quantity": 6.43,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 9.55,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Copper",
+        "process": "PCB",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Detail Part",
+          "quantity": 7.05,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "FR4",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Detail Part - Element",
+              "quantity": 5.32,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Detail Part - Tertiary Module",
+              "quantity": 1.4,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Detail Part - Sub-Component",
+              "quantity": 8.28,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "PLA",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Element",
+          "quantity": 8.51,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "PLA",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Element - Sub-Component",
+              "quantity": 5.73,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Element - Detail Part",
+              "quantity": 1.42,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Tertiary Module",
+          "quantity": 6.14,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Copper",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Tertiary Module - Tertiary Module",
+              "quantity": 8.37,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Sub-Assembly",
+      "quantity": 3.99,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "FR4",
+        "process": "PCB",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Sub-Assembly - Sub-Component",
+          "quantity": 9.23,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Electronic components",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Detail Part",
+              "quantity": 3.62,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Element",
+              "quantity": 6.29,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Sub-Component - Detail Part",
+              "quantity": 4.59,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Sub-Assembly - Tertiary Module",
+          "quantity": 5.84,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Electronic components",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Sub-Assembly - Tertiary Module - Detail Part",
+              "quantity": 6.04,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Sub-Assembly - Tertiary Module - Detail Part",
+              "quantity": 7.99,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "PLA",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 2.39,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Copper",
+        "process": "PCB",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Sub-Component",
+          "quantity": 3.87,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "FR4",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Sub-Component - Detail Part",
+              "quantity": 2.49,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Element",
+          "quantity": 3.29,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Copper",
+            "process": "3DP",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Element - Element",
+              "quantity": 5.44,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Element - Tertiary Module",
+              "quantity": 3.85,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Element - Detail Part",
+              "quantity": 2.87,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Auxiliary Unit - Detail Part",
+          "quantity": 2.82,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Copper",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Element",
+              "quantity": 7.72,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Main Assembly - Auxiliary Unit - Detail Part - Sub-Component",
+              "quantity": 7.18,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Auxiliary Unit",
+      "quantity": 9.81,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Copper",
+        "process": "PCB",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Auxiliary Unit - Tertiary Module",
+          "quantity": 4.27,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "FR4",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Auxiliary Unit - Tertiary Module - Tertiary Module",
+              "quantity": 7.92,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Copper",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Main Assembly - Support Component",
+      "quantity": 2.69,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "FR4",
+        "process": "PCB",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Main Assembly - Support Component - Detail Part",
+          "quantity": 3.08,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Electronic components",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Support Component - Detail Part - Element",
+              "quantity": 6.48,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "FR4",
+                "process": "PCB",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Main Assembly - Support Component - Element",
+          "quantity": 5.83,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Electronic components",
+            "process": "PCB",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Main Assembly - Support Component - Element - Detail Part",
+              "quantity": 6.17,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Electronic components",
+                "process": "3DP",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

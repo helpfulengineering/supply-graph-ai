@@ -1,0 +1,567 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b15a30a3-46ff-411c-92a9-44882ee936d0",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/ryanalexander/sheet-metal-enclosure",
+  "version": "2.9.1",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Timothy House",
+    "email": "christy16@example.com",
+    "affiliation": "Lee, Phillips and West",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "lisalopez"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Decide early career authority most.",
+  "intended_use": "Class teach rest guess agent appear end bad.",
+  "keywords": [
+    "assembly",
+    "fastener",
+    "documented"
+  ],
+  "contact": {
+    "name": "Tracy Alvarez",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Carl Singh",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "wmann"
+        }
+      ]
+    },
+    {
+      "name": "Jennifer Salazar",
+      "email": null,
+      "affiliation": "Jones-Jackson",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "wolfesarah"
+        }
+      ]
+    },
+    {
+      "name": "Elizabeth Smith",
+      "email": "robert14@example.com",
+      "affiliation": "Mitchell-Davenport",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "martinezsummer"
+        }
+      ]
+    }
+  ],
+  "development_stage": "prototype",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/jason50/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/campbellelizabeth/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/moniquejohnson/project/raw/main/docs/technical_drawings.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.8"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/sherry99/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Welder",
+    "Drill press",
+    "Punch press",
+    "Shear"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 53,
+      "width": 273,
+      "height": 162
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Plan run pass majority."
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Base Unit",
+      "id": "24963693-a6da-4c9e-a6d6-b7d2813435ef",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Core Component",
+      "id": "7aa5a8c2-6762-4176-bb52-7d127fdf82db",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "4807baec-5921-4a27-8a63-ee19304c45df",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Core Component",
+      "id": "51d5f916-8573-4165-b2d1-ddb52f223206",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Base Unit - Sub-Assembly",
+      "quantity": 7.0,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Sub-Assembly - Tertiary Module",
+          "quantity": 3.31,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Auxiliary Unit",
+      "quantity": 4.52,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Auxiliary Unit - Tertiary Module",
+          "quantity": 3.92,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Auxiliary Unit - Element",
+          "quantity": 6.06,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Secondary Module",
+      "quantity": 1.36,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Secondary Module - Sub-Component",
+          "quantity": 7.09,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Support Component",
+      "quantity": 9.04,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Support Component - Detail Part",
+          "quantity": 4.62,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Core Component - Support Component - Element",
+          "quantity": 7.51,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Support Component",
+      "quantity": 6.54,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Support Component - Tertiary Module",
+          "quantity": 4.55,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Support Component",
+      "quantity": 4.16,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Support Component - Detail Part",
+          "quantity": 9.06,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Support Component - Element",
+          "quantity": 2.07,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Base Unit - Support Component - Element",
+          "quantity": 7.81,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Sub-Assembly",
+      "quantity": 5.82,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Sub-Assembly - Sub-Component",
+          "quantity": 4.84,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Detail Part",
+          "quantity": 3.56,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Detail Part",
+          "quantity": 2.95,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          }
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}

@@ -1,76 +1,54 @@
 {
-  "id": "0c2f45f0-f2f6-4b68-833d-6585c93ff886",
+  "id": "b01e23f5-926c-4bc9-9771-ade3ce752249",
   "name": "Electronics Assembly Facility 1",
   "location": {
     "address": {
-      "number": "6078",
-      "street": "Knight Pine",
-      "city": "South Carol",
-      "region": "Utah",
-      "country": "Yemen",
-      "postcode": "11260"
+      "number": "6447",
+      "street": "Michelle Isle",
+      "city": "Charlotte",
+      "region": "PR",
+      "country": "US",
+      "postcode": "38182"
     },
-    "gps_coordinates": "32.782578, -59.918676",
-    "city": "South Carol",
-    "country": "Yemen"
+    "gps_coordinates": "35.2272086, -80.8430827",
+    "directions": "Located behind Wood, Noble and Heath",
+    "city": "Charlotte",
+    "country": "US"
   },
   "facility_status": "Active",
-  "contact": {
-    "name": "Miller LLC",
-    "location": {
-      "address": {
-        "number": "1546",
-        "street": "Carrie Street",
-        "city": "Port Matthew",
-        "region": "South Dakota",
-        "country": "Niue",
-        "postcode": "01152"
-      },
-      "gps_coordinates": "38.346479, -12.146832",
-      "city": "Port Matthew",
-      "country": "Niue"
-    },
-    "contact": {
-      "mobile": "+1-496-592-4749"
-    },
-    "social_media": {
-      "other_urls": []
-    }
-  },
-  "opening_hours": "Mon-Fri: 9:00-21:00",
+  "opening_hours": "Mon-Fri: 9:00-19:00",
   "description": "Specialized in PCB assembly and electronics manufacturing",
-  "date_founded": "2019-12-07",
+  "date_founded": "2007-07-06",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
       "make": "Brand B",
-      "model": "Model 334",
+      "model": "Model 409",
       "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
-      "make": "Brand A",
-      "model": "Model 188",
-      "condition": "Good",
+      "make": "Brand B",
+      "model": "Model 354",
+      "condition": "Fair",
       "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/AOI",
       "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
       "make": "Brand B",
-      "model": "Model 980",
-      "condition": "Excellent",
-      "computer_controlled": true
+      "model": "Model 965",
+      "condition": "Good"
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/ICT",
       "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
-      "make": "Brand B",
-      "model": "Model 821",
-      "condition": "Good",
+      "make": "Brand A",
+      "model": "Model 716",
+      "condition": "Excellent",
       "computer_controlled": true
     }
   ],
@@ -80,14 +58,13 @@
     "https://en.wikipedia.org/wiki/Quality_control"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "floor_size": 3454,
-  "storage_capacity": "368 cubic meters",
+  "floor_size": 1361,
   "typical_materials": [],
   "certifications": [
+    "ISO 9001:2015",
     "RoHS Compliance",
-    "IPC-J-STD-001",
-    "ISO 9001:2015"
+    "IPC-A-610"
   ],
-  "road_access": true,
-  "maintenance_schedule": "Every 5 months"
+  "uninterrupted_power_supply": true,
+  "road_access": true
 }

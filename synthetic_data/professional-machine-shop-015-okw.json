@@ -1,0 +1,135 @@
+{
+  "id": "cda8065f-6fab-45f4-bc94-80a58dd32cc7",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "2006",
+      "street": "Deleon Manor",
+      "city": "Columbus",
+      "region": "ND",
+      "country": "US",
+      "postcode": "52940"
+    },
+    "gps_coordinates": "39.9622601, -83.0007065",
+    "directions": "Located near Warren-Rowland",
+    "city": "Columbus",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Bryant, Hughes and Williams",
+    "mailing_list": "waynebuck@lists.hoffman.com",
+    "contact": {
+      "mobile": "+1-885-553-5379",
+      "email": "info@brown.com",
+      "whatsapp": "+1-417-536-2081"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2013-10-07",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "VTC-20",
+      "condition": "Good",
+      "throughput": "19 parts/hour",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "3619",
+              "street": "Monique Forks",
+              "city": "Chicago",
+              "region": "CT",
+              "country": "US",
+              "postcode": "70777"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "city": "Chicago",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Industrial"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Aluminum",
+          "Wood",
+          "Plastic",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "27 minutes",
+          "cycle_time": "30 minutes",
+          "changeover_time": "24 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 493",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 880",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1217,
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "innovation_space": {
+    "staff": 1,
+    "learning_resources": [
+      "Virtual methodical database",
+      "Managed mission-critical intranet",
+      "User-centric human-resource standardization"
+    ],
+    "footfall": 48,
+    "residencies": true
+  }
+}

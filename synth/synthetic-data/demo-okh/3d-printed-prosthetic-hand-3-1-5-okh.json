@@ -1,0 +1,969 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "f2f0248d-764a-4822-80a5-a899942332e7",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/rogerskathleen/3d-printed-prosthetic-hand",
+  "version": "3.1.5",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Christopher Garcia",
+    "email": null,
+    "affiliation": "Lee, Cantu and Ortiz",
+    "social": []
+  },
+  "documentation_language": "es",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Audience according let left walk herself Republican.",
+  "intended_use": "Consider wonder necessary worker political.",
+  "keywords": [
+    "open-source",
+    "shaft",
+    "documented",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Michael Walsh",
+    "email": "robert78@example.com",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "rhonda27"
+      }
+    ]
+  },
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/youngmichael/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/bradley91/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/xolson/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/athompson/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.1"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat shrink",
+    "Filament",
+    "3D printer",
+    "Screwdriver set",
+    "Cable ties",
+    "Crimping tool",
+    "Pliers",
+    "Build plate",
+    "Calipers",
+    "Wrench set"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 96.61,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Core Component",
+      "id": "c22aa5c2-eb78-49ce-bdeb-6d2108f7f53c",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base Unit",
+      "id": "82894717-dcea-475b-95af-937277c9fe11",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Primary Module",
+      "id": "2d4d8803-0cd7-4b16-902c-e74c857c6a82",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [
+    {
+      "name": "Core Component - Secondary Module",
+      "quantity": 2.71,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Secondary Module - Element",
+          "quantity": 3.68,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Secondary Module - Element - Element",
+              "quantity": 6.21,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Secondary Module - Tertiary Module",
+          "quantity": 1.31,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Secondary Module - Tertiary Module - Tertiary Module",
+              "quantity": 2.94,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Secondary Module - Tertiary Module - Sub-Component",
+              "quantity": 2.48,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Secondary Module - Tertiary Module - Element",
+              "quantity": 5.95,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Secondary Module - Tertiary Module",
+          "quantity": 7.97,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Secondary Module - Tertiary Module - Sub-Component",
+              "quantity": 2.8,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Core Component - Sub-Assembly",
+      "quantity": 8.54,
+      "unit": "items",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Core Component - Sub-Assembly - Tertiary Module",
+          "quantity": 2.23,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Tertiary Module - Sub-Component",
+              "quantity": 5.0,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Tertiary Module",
+          "quantity": 6.77,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Tertiary Module - Sub-Component",
+              "quantity": 1.62,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Sub-Assembly - Tertiary Module - Detail Part",
+              "quantity": 7.38,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Core Component - Sub-Assembly - Tertiary Module - Sub-Component",
+              "quantity": 5.64,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Core Component - Sub-Assembly - Sub-Component",
+          "quantity": 7.81,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Core Component - Sub-Assembly - Sub-Component - Sub-Component",
+              "quantity": 3.24,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 4.18,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Detail Part",
+          "quantity": 2.03,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Detail Part - Sub-Component",
+              "quantity": 9.98,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Base Unit - Secondary Module - Tertiary Module",
+          "quantity": 4.4,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Tertiary Module - Sub-Component",
+              "quantity": 5.44,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Secondary Module",
+      "quantity": 6.58,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Acrylic sheet",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Secondary Module - Detail Part",
+          "quantity": 5.52,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Secondary Module - Detail Part - Detail Part",
+              "quantity": 2.5,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Secondary Module - Detail Part - Sub-Component",
+              "quantity": 4.5,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Base Unit - Auxiliary Unit",
+      "quantity": 6.03,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Base Unit - Auxiliary Unit - Tertiary Module",
+          "quantity": 5.99,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Base Unit - Auxiliary Unit - Tertiary Module - Element",
+              "quantity": 7.34,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Base Unit - Auxiliary Unit - Tertiary Module - Tertiary Module",
+              "quantity": 4.06,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Sub-Assembly",
+      "quantity": 7.55,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Sub-Assembly - Detail Part",
+          "quantity": 2.39,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Acrylic sheet",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Sub-Assembly - Detail Part - Detail Part",
+              "quantity": 7.09,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Sub-Assembly - Detail Part - Sub-Component",
+              "quantity": 9.41,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Sub-Assembly - Detail Part - Element",
+              "quantity": 3.31,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Sub-Assembly - Element",
+          "quantity": 4.62,
+          "unit": "units",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Sub-Assembly - Element - Element",
+              "quantity": 4.69,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Sub-Assembly - Element - Sub-Component",
+              "quantity": 7.96,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Sub-Assembly - Element - Element",
+              "quantity": 9.41,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Secondary Module",
+      "quantity": 9.69,
+      "unit": "pcs",
+      "reference": null,
+      "requirements": {
+        "material": "Adhesive",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Secondary Module - Detail Part",
+          "quantity": 5.59,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Secondary Module - Detail Part - Tertiary Module",
+              "quantity": 3.89,
+              "unit": "pcs",
+              "reference": null,
+              "requirements": {
+                "material": "Adhesive",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            },
+            {
+              "name": "Primary Module - Secondary Module - Detail Part - Sub-Component",
+              "quantity": 4.71,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Primary Module - Support Component",
+      "quantity": 7.51,
+      "unit": "units",
+      "reference": null,
+      "requirements": {
+        "material": "Hinges",
+        "process": "LASER",
+        "tolerance": null
+      },
+      "metadata": {
+        "depth": 1,
+        "generated": true
+      },
+      "sub_parts": [
+        {
+          "name": "Primary Module - Support Component - Sub-Component",
+          "quantity": 4.37,
+          "unit": "items",
+          "reference": null,
+          "requirements": {
+            "material": "Hinges",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Support Component - Sub-Component - Element",
+              "quantity": 1.84,
+              "unit": "units",
+              "reference": null,
+              "requirements": {
+                "material": "Hinges",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        },
+        {
+          "name": "Primary Module - Support Component - Element",
+          "quantity": 9.57,
+          "unit": "pcs",
+          "reference": null,
+          "requirements": {
+            "material": "Adhesive",
+            "process": "LASER",
+            "tolerance": null
+          },
+          "metadata": {
+            "depth": 2,
+            "generated": true
+          },
+          "sub_parts": [
+            {
+              "name": "Primary Module - Support Component - Element - Tertiary Module",
+              "quantity": 7.37,
+              "unit": "items",
+              "reference": null,
+              "requirements": {
+                "material": "Acrylic sheet",
+                "process": "LASER",
+                "tolerance": null
+              },
+              "metadata": {
+                "depth": 3,
+                "generated": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "software": [],
+  "metadata": {}
+}
