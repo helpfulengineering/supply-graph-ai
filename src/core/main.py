@@ -26,6 +26,8 @@ from src.core.api.routes.package import router as package_router
 from src.core.api.routes.rules import router as rules_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.utility import router as utility_router
+from src.core.api.routes.integration import router as integration_router
+from src.core.api.routes.rfq import router as rfq_router
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
 from src.core.domains.cooking.validation.compatibility import CookingValidatorCompat
@@ -284,6 +286,10 @@ api_v1.include_router(llm_router, tags=["llm"])  # Already has /api/llm prefix
 api_v1.include_router(
     rules_router, tags=["rules"]
 )  # Already has /api/match/rules prefix
+api_v1.include_router(
+    integration_router, prefix="/api/integration", tags=["integration"]
+)
+api_v1.include_router(rfq_router, prefix="/api/rfq", tags=["rfq"])
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

@@ -31,6 +31,9 @@
     * [Manufacturing Domain](domains/manufacturing.md)
     * [Cooking Domain](domains/cooking.md)
 
+### Features
+* [RFQ System](features/rfq.md)
+
 ### API Documentation
 * [API Documentation](api/index.md)
     * [Routes & Endpoints](api/routes.md)
