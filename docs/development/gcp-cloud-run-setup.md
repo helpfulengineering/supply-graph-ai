@@ -1,6 +1,6 @@
 # GCP Cloud Run Setup Guide
 
-This guide covers the complete setup process for deploying the Supply Graph AI application to Google Cloud Run with Google Cloud Storage.
+This guide covers the complete setup process for deploying the Open Hardware Manager application to Google Cloud Run with Google Cloud Storage.
 
 ## Overview
 

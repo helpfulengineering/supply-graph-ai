@@ -147,7 +147,7 @@ This shows:
 - [Quick Start](llm-quick-start.md) - Getting started with using the LLM Service
 - [LLM Service](llm-service.md) - Complete docs on LLM Service
 - [Generation Layer](generation.md) - OKH manifest generation with LLM
-- [Matching Layer](TBD) - Facility matching with LLM enhancement
+- [Matching Layer](../matching/index.md) - Facility matching with LLM enhancement
 - [Examples](examples.md) - Usage examples and best practices
 
 ## Architecture

@@ -376,7 +376,4 @@ python deploy/scripts/test_azure_deployer.py \
 3. Test the deployers with the test scripts (to be created)
 4. Deploy using the deployment scripts
 
-For more details on each provider's deployment process, see:
-- [AWS ECS Fargate Deployment Guide](aws-deployment.md) (to be created)
-- [Azure Container Apps Deployment Guide](azure-deployment.md) (to be created)
 

@@ -143,5 +143,5 @@ All LLM endpoints may return error responses in the following format:
 ## Next Steps
 
 - [CLI Commands](cli.md) - Use LLM features from command line
-- [Configuration](../../llm/configuration.md) - Set up LLM providers
-- [LLM Service Documentation](../../llm/llm-service.md) - Detailed LLM service information
+- [Configuration](configuration.md) - Set up LLM providers
+- [LLM Service Documentation](llm-service.md) - Detailed LLM service information

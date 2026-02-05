@@ -407,7 +407,7 @@ All rules management operations are available through RESTful API endpoints unde
 - **Compare Rules**: `POST /v1/api/match/rules/compare` - Compare rules file with current rules (dry-run)
 - **Reset Rules**: `POST /v1/api/match/rules/reset` - Reset all rules (clear all rule sets)
 
-See [API Documentation](../../api/routes.md#rules-management-routes) for detailed endpoint documentation.
+See [API Documentation](../api/routes.md#rules-management-routes) for detailed endpoint documentation.
 
 #### Via CLI
 
@@ -424,7 +424,7 @@ All rules management operations are available through CLI commands under `ome ma
 - **Compare Rules**: `ome match rules compare FILE` - Compare rules file with current rules (dry-run)
 - **Reset Rules**: `ome match rules reset` - Reset all rules (clear all rule sets)
 
-See [CLI Documentation](../../CLI/index.md#rules-management-commands) for detailed command documentation.
+See [CLI Documentation](../CLI/index.md) for detailed command documentation.
 
 ### Import/Export Workflows
 

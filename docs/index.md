@@ -67,7 +67,6 @@
 * [Matching Layers Architecture](architecture/matching.md)
     * [Direct Matching Layer](matching/direct-matching.md)
     * [Capability-Centric Heuristic Rules](matching/heuristic-matching.md)
-    * [Matching Demonstration Guide](api/matching-demonstration-guide.md) - Practical curl examples for testing Direct and Heuristic matching
 
 # Overview
 

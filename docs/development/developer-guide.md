@@ -12,6 +12,7 @@
 7. [Development Workflow](#development-workflow)
 8. [Testing](#testing)
 9. [Troubleshooting](#troubleshooting)
+10. [Roadmap](roadmap.md)
 
 ## Quick Start
 

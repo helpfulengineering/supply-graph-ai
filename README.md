@@ -4,8 +4,21 @@
 
 The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. The system matches requirements (what needs to be done) with capabilities (what can be done) to create viable solutions.
 
+OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose or deployed serverlessly using the configurations in `deploy/`.
 
-## Quick Start for Developers
+
+## Quick Start for New Users
+
+### Prerequisites (first-time setup)
+
+If you are new to these tools, install them before continuing:
+
+- **Git** (to clone the repository): https://git-scm.com/downloads
+- **Docker Desktop** (includes Docker Compose): https://www.docker.com/products/docker-desktop/
+- **Miniconda** (recommended for Python env management): https://docs.conda.io/en/latest/miniconda.html
+- **MkDocs** (for local docs browsing): https://www.mkdocs.org/
+
+After installing, open a new terminal so the tools are on your PATH.
 
 ### Installation
 
@@ -18,25 +31,23 @@ Docker Compose is the recommended way to run the OHM server. It handles all depe
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
+# Create and activate conda environment (Python 3.12 required)
+conda create -n supply-graph-ai python=3.12
+conda activate supply-graph-ai
+
+# Install dependencies (CLI + tooling)
+pip install -r requirements.txt
+
+# Install the CLI in editable mode (creates the 'ohm' command)
+pip install -e .
+
 # Copy environment template and customize (optional)
 cp env.template .env
 # Edit .env with your configuration if needed
 # Most defaults work for local development
 
-# Start the API server
+# Start the API server (FastAPI via Docker)
 docker-compose up ohm-api
-
-# Or run in detached mode (background)
-docker-compose up -d ohm-api
-
-# View logs
-docker-compose logs -f ohm-api
-
-# Stop the server
-docker-compose down
-
-# Access the API documentation at:
-# http://localhost:8001/docs
 ```
 
 **Docker Compose Benefits:**
@@ -79,10 +90,22 @@ uvicorn src.core.main:app --reload --host 0.0.0.0 --port 8001
 ohm system health
 ```
 
+### Helpful Docker Commands
+
+```bash
+# Run in detached mode (background)
+docker-compose up -d ohm-api
+
+# View logs
+docker-compose logs -f ohm-api
+
+# Stop the server
+docker-compose down
+```
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. For documentation, please build the documentation locally.
+This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally.
 
 ### Building Documentation Locally
 
@@ -90,17 +113,24 @@ The OHM documentation is built using [MkDocs](https://www.mkdocs.org/), a simple
 
 To build and view the documentation locally:
 
-1. Install MkDocs and required plugins:
+1. Ensure your conda environment is active:
+```bash
+conda activate supply-graph-ai
+```
+
+2. Install MkDocs and required plugins:
 ```bash
 pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
 ```
 
-2. Start the documentation server:
+3. Start the documentation server:
 ```bash
 mkdocs serve
 ```
 
-4. Open your browser to `http://localhost:8000/` (Note: This is the MkDocs documentation server port, not the API server which runs on port 8001)
+4. Open your browser to `http://localhost:8000/`
+
+Note: This is the MkDocs documentation server port, not the API server which runs on port 8001.
 
 ### Documentation Structure
 
@@ -172,13 +202,18 @@ supply-graph-ai/
 # Start the API server
 docker-compose up ohm-api
 
-# Or run CLI commands
+# Access the API documentation at:
+# http://localhost:8001/docs
+```
+
+```bash
+# Run CLI commands (local install required)
+ohm system health
+
+# Or run a containerized CLI command
 docker run --rm \
   -v $(pwd)/test-data:/app/test-data \
   open-matching-engine cli okh validate /app/test-data/manifest.okh.json
-
-# Access the API documentation at:
-# http://localhost:8001/docs
 ```
 
 ### Local Development

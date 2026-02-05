@@ -51,10 +51,13 @@ nav:
   - Home: 
     - Overview: index.md
     - Project Overview: overview.md
+    - Cheatsheet: cheatsheet.md
   - Architecture:
     - Overview: architecture/index.md
     - Matching Layers:  architecture/matching.md
     - Storage: architecture/storage.md
+    - Generation: architecture/generation.md
+    - Services: architecture/services.md
     - Diagrams: 
       - System Diagram: architecture/system-diagram.md
       - Data Flow: architecture/data-flow-diagram.md
@@ -70,6 +73,8 @@ nav:
     - CLI Commands: llm/cli.md
     - Generation Layer: llm/generation.md
     - Examples: llm/examples.md
+    - LLM Service: llm/llm-service.md
+    - Quickstart Guide: llm/llm-quick-start.md
   - CLI:
     - Overview: CLI/index.md
     - Quick Start Guide: CLI/quick-start.md
@@ -83,6 +88,7 @@ nav:
   - Development:
     - Developer Guide: development/developer-guide.md
     - Container Guide: development/container-guide.md
+    - Roadmap: development/roadmap.md
   - Data Models:
     - Overview: models/index.md
     - Bill Of Materials: models/bom.md
@@ -91,6 +97,7 @@ nav:
     - Validation Contexts: models/validation.md
     - OpenKnowHow Documentation: models/okh-docs.md
     - OpenKnowWhere Documentation: models/okw-docs.md
+    - OpenKnowWhere Specification: models/okw-specification.md
     - Validation: models/validation.md
   - Domains:
     - Overview: domains/index.md

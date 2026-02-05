@@ -17,7 +17,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from demo.facilities import get_facilities_for_map, get_facilities_with_full_data, load_facilities_data
+from demo.facilities import get_facilities_with_full_data
 from demo.okh_designs import get_okh_designs_for_selection, get_design_by_id
 from demo.matching import match_facilities
 from demo.results_parser import (
@@ -35,9 +35,8 @@ from demo.results_parser import (
     get_component_name_for_tree
 )
 from demo.rfq_generator import generate_rfq
-from demo.solution_selectors import SELECTOR_REGISTRY, DEFAULT_SELECTOR
+from demo.solution_selectors import DEFAULT_SELECTOR
 from demo.facility_deduplication import (
-    get_primary_facility_for_component,
     get_alternative_facilities_for_component
 )
 

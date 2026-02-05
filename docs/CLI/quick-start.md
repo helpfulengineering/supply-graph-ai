@@ -2,6 +2,24 @@
 
 ## Getting Started in 5 Minutes
 
+If you have not installed the CLI yet, do a quick setup first:
+
+```bash
+# Clone the repository
+git clone https://github.com/helpfulengineering/supply-graph-ai.git
+cd supply-graph-ai
+
+# Create and activate conda environment (Python 3.12 required)
+conda create -n supply-graph-ai python=3.12
+conda activate supply-graph-ai
+
+# Install dependencies and the CLI
+pip install -r requirements.txt
+pip install -e .
+
+# Start the API server (required for most commands)
+docker-compose up ohm-api
+```
 
 ### 1. Prerequisites
 
