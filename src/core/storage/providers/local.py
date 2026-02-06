@@ -12,18 +12,108 @@ from ..base import StorageConfig, StorageMetadata, StorageProvider
 
 
 class LocalStorageProvider(StorageProvider):
-    """Local filesystem-based storage provider"""
+    """Local filesystem-based storage provider
+
+    Supports multiple path formats:
+    - Relative paths: ./storage, storage, data
+    - Absolute paths: /var/lib/ohm, C:\\ohm\\storage
+    - Home directory: ~/ohm-data, ~/Documents/ohm
+    - Environment variables: $HOME/ohm, ${HOME}/.ohm
+
+    Path expansion and validation happens during initialization.
+    """
 
     def __init__(self, config: StorageConfig):
         self.config = config
-        self.base_path = Path(config.bucket_name)
+        # Expand path (handles ~, environment variables)
+        self.base_path = self._expand_path(config.bucket_name)
         self._connected = False
 
+    def _expand_path(self, path_str: str) -> Path:
+        """Expand path to handle ~, environment variables, and make absolute
+
+        Args:
+            path_str: Path string (may contain ~ or environment variables)
+
+        Returns:
+            Expanded Path object
+        """
+        # First expand environment variables
+        expanded = os.path.expandvars(path_str)
+        # Then expand user home directory
+        expanded = os.path.expanduser(expanded)
+        # Convert to Path object
+        path = Path(expanded)
+        return path
+
     async def connect(self) -> None:
-        """Create base directory if it doesn't exist"""
+        """Create base directory if it doesn't exist with validation"""
         if not self._connected:
-            os.makedirs(self.base_path, exist_ok=True)
-            self._connected = True
+            try:
+                # Validate path before creating
+                validation_result = self._validate_path()
+                if not validation_result["is_valid"]:
+                    raise RuntimeError(
+                        f"Cannot use storage path: {validation_result['error']}\n"
+                        f"Suggestion: {validation_result['suggestion']}"
+                    )
+
+                # Create directory structure
+                os.makedirs(self.base_path, exist_ok=True)
+                self._connected = True
+            except PermissionError as e:
+                raise RuntimeError(
+                    f"Permission denied: Cannot create or access storage directory at {self.base_path}\n"
+                    f"Suggestion: Choose a directory where you have write permissions, "
+                    f"or run: chmod 755 {self.base_path.parent}"
+                ) from e
+            except OSError as e:
+                raise RuntimeError(
+                    f"Failed to create storage directory at {self.base_path}: {e}\n"
+                    f"Suggestion: Check that the parent directory exists and is writable"
+                ) from e
+
+    def _validate_path(self) -> Dict[str, Any]:
+        """Validate that the storage path can be used
+
+        Returns:
+            Dict with: is_valid (bool), error (str), suggestion (str)
+        """
+        # Check if path exists
+        if self.base_path.exists():
+            # Check if it's a directory
+            if not self.base_path.is_dir():
+                return {
+                    "is_valid": False,
+                    "error": f"Path exists but is not a directory: {self.base_path}",
+                    "suggestion": "Choose a different path or remove the existing file",
+                }
+
+            # Check if it's writable
+            if not os.access(self.base_path, os.W_OK):
+                return {
+                    "is_valid": False,
+                    "error": f"Directory exists but is not writable: {self.base_path}",
+                    "suggestion": f"Run: chmod 755 {self.base_path}",
+                }
+        else:
+            # Check if parent directory exists and is writable
+            parent = self.base_path.parent
+            if not parent.exists():
+                return {
+                    "is_valid": False,
+                    "error": f"Parent directory does not exist: {parent}",
+                    "suggestion": f"Create the parent directory first: mkdir -p {parent}",
+                }
+
+            if not os.access(parent, os.W_OK):
+                return {
+                    "is_valid": False,
+                    "error": f"Cannot create directory in {parent} (no write permission)",
+                    "suggestion": f"Run: chmod 755 {parent} or choose a different location",
+                }
+
+        return {"is_valid": True, "error": None, "suggestion": None}
 
     async def disconnect(self) -> None:
         """No cleanup needed for local storage"""

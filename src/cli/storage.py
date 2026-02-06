@@ -34,12 +34,26 @@ def storage_group():
     These commands help you set up and manage storage systems,
     including directory structure creation and data population.
 
+    🏠 LOCAL STORAGE (Recommended for Getting Started)
+    Local storage is the easiest way to get started - no credentials needed!
+    Just specify a path on your local filesystem or network drive.
+
+    ☁️ CLOUD STORAGE (For Production/Teams)
+    Cloud storage providers (AWS S3, Azure Blob, Google Cloud) offer
+    automatic backups, scalability, and team collaboration features.
+
     Examples:
-      # Setup storage structure for GCS
+      # Setup local storage (easiest!)
+      ohm storage setup --provider local
+
+      # Setup with custom local path
+      ohm storage setup --provider local --bucket ~/ohm-data
+
+      # Setup cloud storage (requires credentials in .env)
       ohm storage setup --provider gcs --bucket my-bucket --region us-central1
 
       # Populate storage with synthetic data
-      ohm storage populate --provider gcs --bucket my-bucket
+      ohm storage populate --provider local
     """
     pass
 
@@ -52,9 +66,15 @@ def storage_group():
     help="Storage provider to use",
 )
 @click.option(
+    "--storage-path",
+    "--path",
+    help="Local storage path (for local provider only). Overrides LOCAL_STORAGE_PATH and --bucket. "
+    "Examples: ./storage, ~/ohm-data, /mnt/nas/ohm-storage",
+)
+@click.option(
     "--bucket",
     "bucket_name",
-    help="Bucket/container name (required for cloud providers)",
+    help="Bucket/container name (required for cloud providers, or local directory name)",
 )
 @click.option("--region", help="Region/location for cloud providers")
 @click.option("--credentials-json", help="Path to credentials JSON file (for GCP)")
@@ -75,23 +95,39 @@ def storage_group():
     - okw/facilities/ - For OKW facility files (manufacturing, makerspaces, research)
     - supply-trees/ - For supply tree solutions (generated, validated)
     
+    🏠 LOCAL STORAGE (Default & Recommended)
+    Local storage is the easiest option - no credentials required!
+    - Works immediately after installation
+    - Perfect for development, testing, and self-hosting
+    - Supports local drives, home directories, and network storage
+    
+    ☁️ CLOUD STORAGE
     For cloud providers, you can provide credentials via:
-    - Environment variables (recommended)
-    - Command-line options
-    - Credentials files
+    - Environment variables in .env file (recommended)
+    - Command-line options (for testing)
+    - Credentials files (for GCP)
     """,
     epilog="""
     Examples:
-      # Setup local storage
+      # Setup local storage (easiest - default location: ./storage)
       ohm storage setup --provider local
       
-      # Setup GCS storage
+      # Setup local storage with custom path (using --storage-path shortcut)
+      ohm storage setup --provider local --storage-path ~/my-ohm-data
+      
+      # Setup local storage on network drive
+      ohm storage setup --provider local --path /mnt/nas/ohm-storage
+      
+      # Alternative: Use --bucket for local storage (backward compatible)
+      ohm storage setup --provider local --bucket ~/my-ohm-data
+      
+      # Setup GCS storage (requires GCP credentials in .env)
       ohm storage setup --provider gcs --bucket my-bucket --region us-central1
       
-      # Setup Azure storage
+      # Setup Azure storage (requires Azure credentials in .env)
       ohm storage setup --provider azure_blob --bucket my-container
       
-      # Setup AWS S3 storage
+      # Setup AWS S3 storage (requires AWS credentials in .env)
       ohm storage setup --provider aws_s3 --bucket my-bucket --region us-east-1
     """,
     async_cmd=True,
@@ -104,6 +140,7 @@ def storage_group():
 async def setup(
     ctx,
     provider: str,
+    storage_path: Optional[str],
     bucket_name: Optional[str],
     region: Optional[str],
     credentials_json: Optional[str],
@@ -128,6 +165,11 @@ async def setup(
     cli_ctx.start_command_tracking("storage-setup")
 
     try:
+        # For local provider, --storage-path takes precedence over --bucket
+        if provider == "local" and storage_path:
+            bucket_name = storage_path
+            cli_ctx.log(f"Using local storage path: {storage_path}", "info")
+
         # Build credentials dict based on provider
         credentials: Dict[str, str] = {}
 
@@ -164,9 +206,18 @@ async def setup(
             storage_config = create_storage_config(provider, bucket_name, region)
 
         cli_ctx.log(f"Setting up storage structure for {provider}...", "info")
-        cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
-        if region:
-            cli_ctx.log(f"Region: {region}", "info")
+
+        # Display storage location prominently
+        if provider == "local":
+            # Get absolute path for display
+            from pathlib import Path
+
+            abs_path = Path(storage_config.bucket_name).resolve()
+            cli_ctx.log(f"📁 Using local storage at: {abs_path}", "info")
+        else:
+            cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
+            if region:
+                cli_ctx.log(f"Region: {region}", "info")
 
         # Initialize storage service
         storage_service = await StorageService.get_instance()
@@ -177,10 +228,18 @@ async def setup(
         result = await organizer.create_directory_structure()
 
         if output_format == "json":
+            # Include absolute path for local storage
+            storage_location = storage_config.bucket_name
+            if provider == "local":
+                from pathlib import Path
+
+                storage_location = str(Path(storage_config.bucket_name).resolve())
+
             output_data = {
                 "status": "success",
                 "provider": provider,
                 "bucket": storage_config.bucket_name,
+                "storage_location": storage_location,
                 "region": region,
                 "directories_created": result["total_created"],
                 "directories": result["created_directories"],
@@ -191,7 +250,18 @@ async def setup(
                 "✅ Storage directory structure created successfully!", "success"
             )
             cli_ctx.log(f"Provider: {provider}", "info")
-            cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
+
+            # Show full path for local storage
+            if provider == "local":
+                from pathlib import Path
+
+                abs_path = Path(storage_config.bucket_name).resolve()
+                cli_ctx.log(f"Location: {abs_path}", "info")
+            else:
+                cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
+                if region:
+                    cli_ctx.log(f"Region: {region}", "info")
+
             cli_ctx.log(f"Created {result['total_created']} directories:", "info")
             for directory in result["created_directories"]:
                 click.echo(f"  - {directory}")
@@ -214,9 +284,15 @@ async def setup(
     help="Storage provider to use",
 )
 @click.option(
+    "--storage-path",
+    "--path",
+    help="Local storage path (for local provider only). Overrides LOCAL_STORAGE_PATH and --bucket. "
+    "Examples: ./storage, ~/ohm-data, /mnt/nas/ohm-storage",
+)
+@click.option(
     "--bucket",
     "bucket_name",
-    help="Bucket/container name (required for cloud providers)",
+    help="Bucket/container name (required for cloud providers, or local directory name)",
 )
 @click.option("--region", help="Region/location for cloud providers")
 @click.option(
@@ -241,17 +317,28 @@ async def setup(
     - Load all *okh*.json files as OKH manifests
     - Load all *okw*.json files as OKW facilities
     - Store them in the appropriate directories with proper metadata
+    
+    This is useful for:
+    - Testing your storage setup
+    - Learning how OHM organizes data
+    - Development and demonstrations
     """,
     epilog="""
     Examples:
-      # Populate local storage
+      # Populate local storage (default)
       ohm storage populate --provider local
       
-      # Populate GCS storage
-      ohm storage populate --provider gcs --bucket my-bucket
+      # Populate local storage with custom path (using --storage-path shortcut)
+      ohm storage populate --provider local --storage-path ~/my-ohm-data
       
       # Populate with custom data directory
       ohm storage populate --provider local --data-dir /path/to/data
+      
+      # Alternative: Use --bucket for local storage (backward compatible)
+      ohm storage populate --provider local --bucket ~/my-ohm-data
+      
+      # Populate cloud storage (requires credentials in .env)
+      ohm storage populate --provider gcs --bucket my-bucket
     """,
     async_cmd=True,
     track_performance=True,
@@ -263,6 +350,7 @@ async def setup(
 async def populate(
     ctx,
     provider: str,
+    storage_path: Optional[str],
     bucket_name: Optional[str],
     region: Optional[str],
     data_dir: Optional[str],
@@ -288,6 +376,11 @@ async def populate(
     cli_ctx.start_command_tracking("storage-populate")
 
     try:
+        # For local provider, --storage-path takes precedence over --bucket
+        if provider == "local" and storage_path:
+            bucket_name = storage_path
+            cli_ctx.log(f"Using local storage path: {storage_path}", "info")
+
         # Build credentials dict based on provider
         credentials: Dict[str, str] = {}
 
@@ -342,7 +435,14 @@ async def populate(
             f"Populating storage with synthetic data from {data_dir}...", "info"
         )
         cli_ctx.log(f"Provider: {provider}", "info")
-        cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
+
+        # Display storage location prominently
+        if provider == "local":
+            # Get absolute path for display
+            abs_path = Path(storage_config.bucket_name).resolve()
+            cli_ctx.log(f"📁 Target location: {abs_path}", "info")
+        else:
+            cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
 
         # Initialize storage service
         storage_service = await StorageService.get_instance()

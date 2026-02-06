@@ -2,7 +2,121 @@
 
 ## Overview
 
-The storage system in Supply Graph AI provides a flexible, extensible, and domain-specific storage solution for managing OKH manifests, OKW facilities, and supply trees. The architecture follows a provider-based pattern with a unified interface that supports multiple storage backends including Azure Blob Storage, AWS S3, Google Cloud Storage, and local filesystem.
+The storage system in Supply Graph AI provides a flexible, extensible, and domain-specific storage solution for managing OKH manifests, OKW facilities, and supply trees. The architecture follows a provider-based pattern with a unified interface that supports multiple storage backends including local filesystem, Azure Blob Storage, AWS S3, and Google Cloud Storage.
+
+## Getting Started with Local Storage
+
+### Quick Start (Recommended for New Users)
+
+Local storage is the easiest way to get started with OHM. It requires no cloud accounts, no credentials, and works immediately on your local machine or network-attached storage.
+
+**1. Configure Local Storage**
+
+Edit your `.env` file (or create one from `env.template`):
+
+```bash
+# Storage Configuration
+STORAGE_PROVIDER=local
+LOCAL_STORAGE_PATH=./storage
+```
+
+**2. Set Up Storage Structure**
+
+```bash
+# Create the directory structure
+ohm storage setup --provider local
+```
+
+This creates:
+```
+./storage/
+├── okh/
+│   └── manifests/
+├── okw/
+│   └── facilities/
+└── supply-trees/
+    ├── generated/
+    └── validated/
+```
+
+**3. Start Using Storage**
+
+You're done! OHM will now store all data in the `./storage` directory.
+
+### Local Storage Path Options
+
+Local storage supports multiple path formats:
+
+```bash
+# Relative to project root (default)
+LOCAL_STORAGE_PATH=./storage
+
+# Home directory expansion
+LOCAL_STORAGE_PATH=~/ohm-data
+LOCAL_STORAGE_PATH=~/Documents/ohm-storage
+
+# Absolute paths
+LOCAL_STORAGE_PATH=/var/lib/ohm/storage
+LOCAL_STORAGE_PATH=/opt/ohm-data
+
+# Network-attached storage
+LOCAL_STORAGE_PATH=/mnt/nas/ohm-storage
+LOCAL_STORAGE_PATH=/Volumes/shared/ohm-data  # macOS network drive
+```
+
+### When to Use Local Storage
+
+**✅ Perfect for:**
+- Getting started and learning OHM
+- Development and testing
+- Self-hosted single-server deployments
+- Network-attached storage (NAS) setups
+- Air-gapped or offline environments
+- Privacy-sensitive data that must stay on-premises
+
+**⚠️ Consider Cloud Storage for:**
+- Multi-server production deployments
+- Automatic backup and disaster recovery
+- Team collaboration across locations
+- Global content delivery
+- Automatic scaling and high availability
+
+### Local Storage Features
+
+The local storage provider offers full feature parity with cloud providers:
+
+- ✅ **All storage operations**: Create, read, update, delete, list
+- ✅ **Metadata tracking**: Content type, size, timestamps, custom metadata
+- ✅ **Domain organization**: Automatic organization by OKH, OKW, supply-trees
+- ✅ **Async operations**: High-performance async file I/O
+- ✅ **Cross-platform**: Works on Windows, macOS, Linux
+- ✅ **ETag generation**: MD5 hashing for data integrity
+
+### Troubleshooting Local Storage
+
+**Directory not found error:**
+```bash
+# Ensure parent directory exists or use absolute path
+mkdir -p ~/ohm-data
+LOCAL_STORAGE_PATH=~/ohm-data ohm storage setup
+```
+
+**Permission denied error:**
+```bash
+# Check and fix permissions
+ls -ld ./storage
+chmod 755 ./storage  # On Unix-like systems
+```
+
+**Storage not found after setup:**
+```bash
+# Verify configuration
+cat .env | grep STORAGE
+# Should show: STORAGE_PROVIDER=local
+
+# Verify path exists
+ls -la ./storage
+```
 
 ## Core Components
 
@@ -145,6 +259,17 @@ Storage configuration is managed through environment variables and the `StorageC
 
 ### Environment Variables
 
+**Local Storage (Recommended for getting started):**
+```bash
+STORAGE_PROVIDER=local
+LOCAL_STORAGE_PATH=./storage
+
+# Alternative paths:
+# LOCAL_STORAGE_PATH=~/ohm-data           # Home directory
+# LOCAL_STORAGE_PATH=/var/lib/ohm         # System directory
+# LOCAL_STORAGE_PATH=/mnt/nas/ohm-storage # Network storage
+```
+
 **Azure Blob Storage:**
 ```bash
 STORAGE_PROVIDER=azure_blob
@@ -168,12 +293,6 @@ STORAGE_PROVIDER=gcs
 GCP_PROJECT_ID=your_project_id
 GCP_CREDENTIALS_JSON=your_credentials_json
 GCP_STORAGE_BUCKET=your_bucket_name
-```
-
-**Local Storage:**
-```bash
-STORAGE_PROVIDER=local
-LOCAL_STORAGE_PATH=./storage
 ```
 
 ### Configuration Creation

@@ -31,11 +31,78 @@ conda activate supply-graph-ai
 cd /path/to/supply-graph-ai
 ```
 
-### 2. Check System Health
+### 2. Configure Storage
+
+OHM needs a place to store data files (OKH manifests, OKW facilities, supply trees). You have two options:
+
+#### Option A: Local Storage (Recommended for Getting Started)
+
+Local storage is the easiest way to get started - no credentials required, works immediately!
 
 ```bash
-# Verify the CLI is working
+# Option 1: Use the local-only template (simplest!)
+cp .env.local.example .env
+
+# Option 2: Use the full template (includes cloud storage config)
+# cp env.template .env
+
+# The default settings use local storage:
+# STORAGE_PROVIDER=local
+# LOCAL_STORAGE_PATH=./storage
+
+# Set up the storage directory structure
+ohm storage setup --provider local
+```
+
+Expected output:
+```
+ℹ️  Setting up storage structure for local...
+ℹ️  Bucket: storage
+✅ Storage directory structure created successfully!
+Provider: local
+Bucket: storage
+Created 6 directories:
+  - okh/manifests/
+  - okw/facilities/
+  - supply-trees/
+  - ...
+```
+
+**What just happened?**
+- OHM created a `./storage` directory in your project folder
+- Inside, it organized subdirectories for different data types
+- You're ready to start using OHM!
+
+**Common local storage paths:**
+```bash
+# Use default project directory (recommended for testing)
+LOCAL_STORAGE_PATH=./storage
+
+# Store in your home directory
+LOCAL_STORAGE_PATH=~/ohm-data
+
+# Use an absolute path
+LOCAL_STORAGE_PATH=/var/lib/ohm/storage
+
+# Store on a network drive
+LOCAL_STORAGE_PATH=/mnt/nas/ohm-storage
+```
+
+#### Option B: Cloud Storage (For Production/Team Use)
+
+If you need cloud storage for production deployments or team collaboration, see the [Storage Architecture Guide](../architecture/storage.md) for detailed setup instructions for:
+- AWS S3
+- Azure Blob Storage
+- Google Cloud Storage
+
+### 3. Verify Setup
+
+```bash
+# Check that everything is working
 ohm system health
+
+# Verify storage is configured
+ohm storage setup --provider local
 ```
 
 Expected output:
@@ -52,7 +119,7 @@ Expected output:
 ✅ Command system-health completed in 0.08 seconds
 ```
 
-### 3. List Available Commands
+### 4. List Available Commands
 
 ```bash
 # See all available command groups
@@ -62,7 +129,7 @@ ohm --help
 ohm package --help
 ```
 
-### 4. Generate Your First Project Scaffold
+### 5. Generate Your First Project Scaffold
 
 ```bash
 # Generate a new OKH-compliant project structure
@@ -94,7 +161,7 @@ The scaffold includes comprehensive interlinking between documentation sections:
 - **Cross-References**: Documentation pages (assembly, manufacturing, maintenance, etc.) include links to related sections
 - **MkDocs Navigation**: Bridge pages in `docs/sections/` enable full MkDocs navigation while preserving OKH structure
 
-### 4.5. Clean Up a Scaffolded Project
+### 5.5. Clean Up a Scaffolded Project
 
 ```bash
 # Preview cleanup (dry-run)
@@ -114,7 +181,7 @@ Flags:
 
 **Note**: Cleanup automatically detects broken links after removing files. Broken link warnings are displayed separately for visibility.
 
-### 5. Build Your First Package
+### 6. Build Your First Package
 
 ```bash
 # Validate a manifest (if you have one)
@@ -133,7 +200,7 @@ ohm package build your-manifest.okh.json --use-llm --llm-provider anthropic
 ohm package list-packages
 ```
 
-### 6. Test LLM Integration
+### 7. Test LLM Integration
 
 ```bash
 # Test LLM-enhanced validation
@@ -149,7 +216,7 @@ ohm system health --use-llm --llm-provider anthropic
 ohm utility contexts manufacturing --use-llm --quality-level professional
 ```
 
-### 7. Test Remote Operations
+### 8. Test Remote Operations
 
 ```bash
 # List remote packages
