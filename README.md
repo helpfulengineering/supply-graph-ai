@@ -20,9 +20,34 @@ If you are new to these tools, install them before continuing:
 
 After installing, open a new terminal so the tools are on your PATH.
 
+### Quick Start Script (Recommended)
+
+The easiest way to get started is using the automated bring-up script. This handles environment configuration, container orchestration, and optional LLM setup in one command.
+
+```bash
+# Basic setup (starts API and core services)
+./scripts/bringup.sh
+
+# Setup with local LLM support (automatically handles Ollama)
+./scripts/bringup.sh --with-llm
+
+# Setup with specific LLM model
+./scripts/bringup.sh --with-llm --model mistral
+
+# Reset environment (clean start)
+./scripts/bringup.sh --reset
+```
+
+**Key Options:**
+- `--with-llm`: Enables LLM support. Uses existing local Ollama if detected, or starts a containerized instance.
+- `--model <name>`: Specifies the Ollama model to use (default: `llama3.1:8b`).
+- `--clean`: Stops containers and removes volumes (`docker-compose down -v`).
+- `--reset`: Deep cleans the repository (removes build artifacts, `.env`, etc) and restarts.
+- `--help`: Shows all available options.
+
 ### Installation
 
-#### Option 1: Docker Compose (Recommended - Simplest)
+#### Option 1: Docker Compose (Manual)
 
 Docker Compose is the recommended way to run the OHM server. It handles all dependencies, configuration, and provides a consistent environment.
 

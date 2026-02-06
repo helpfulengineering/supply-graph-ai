@@ -1,0 +1,33 @@
+{
+  "providers": {
+    "github_default": {
+      "provider_type": "github",
+      "use_secrets": true,
+      "secret_key_env": "GITHUB_TOKEN",
+      "cache_ttl_hours": 24
+    },
+    "gitlab_default": {
+      "provider_type": "gitlab",
+      "use_secrets": true,
+      "secret_key_env": "GITLAB_TOKEN",
+      "cache_ttl_hours": 24
+    },
+    "_comment_llm": "LLM providers are currently managed by LLMService and injected at runtime. These configs are placeholders for future migration.",
+    "openai_gpt4": {
+      "provider_type": "openai",
+      "model": "gpt-4",
+      "use_secrets": true,
+      "secret_key_env": "OPENAI_API_KEY"
+    },
+    "anthropic_claude": {
+      "provider_type": "anthropic",
+      "model": "claude-3-sonnet",
+      "use_secrets": true,
+      "secret_key_env": "ANTHROPIC_API_KEY"
+    }
+  },
+  "defaults": {
+    "ai_model": "anthropic_claude",
+    "vcs_platform": "github_default"
+  }
+}
