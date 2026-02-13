@@ -99,6 +99,9 @@ nav:
     - OpenKnowWhere Documentation: models/okw-docs.md
     - OpenKnowWhere Specification: models/okw-specification.md
     - Validation: models/validation.md
+  - Conversion:
+    - Overview: conversion/index.md
+    - MSF Datasheet: conversion/msf-datasheet.md
   - Domains:
     - Overview: domains/index.md
     - Manufacturing: domains/manufacturing.md

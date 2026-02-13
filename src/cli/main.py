@@ -10,6 +10,7 @@ from typing import Optional
 import click
 
 from .base import CLIConfig, CLIContext
+from .convert import convert_group
 from .match import match_group
 from .okh import okh_group
 from .okw import okw_group
@@ -111,6 +112,7 @@ cli.add_command(system_group, name="system")
 cli.add_command(utility_group, name="utility")
 cli.add_command(storage_group, name="storage")
 cli.add_command(solution_group, name="solution")
+cli.add_command(convert_group, name="convert")
 
 
 @cli.command()
