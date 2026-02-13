@@ -1,152 +1,262 @@
 {
-  "id": "46cac02f-12d5-4cda-b89f-39896a9db16f",
+  "id": "03183bc7-dcab-438c-8238-06f0a33ad183",
   "name": "Professional Machine Shop",
   "location": {
     "address": {
-      "number": "5945",
-      "street": "Andrew Vista",
-      "city": "Denver",
-      "region": "TX",
+      "number": "2830",
+      "street": "Holly Island",
+      "city": "Seattle",
+      "region": "FL",
       "country": "US",
-      "postcode": "70283"
+      "postcode": "65484"
     },
-    "gps_coordinates": "39.7392364, -104.984862",
-    "directions": "Located near Holt-Davis",
-    "city": "Denver",
+    "gps_coordinates": "47.6038321, -122.330062",
+    "directions": "Located near Harris-Miller",
+    "city": "Seattle",
     "country": "US"
   },
-  "facility_status": "Planned",
+  "facility_status": "Active",
   "contact": {
-    "name": "Ramos, White and Calderon",
-    "bio": "Established in 1990, we specialize in Face-to-face responsive collaboration",
-    "languages": [
-      "es",
-      "fr",
-      "en"
-    ],
-    "mailing_list": "rebecca29@lists.chang.com",
+    "name": "Myers, Swanson and Johnson",
+    "contact_person": "Holly Anderson",
+    "bio": "Established in 1999, we specialize in Intuitive responsive knowledge user",
     "images": [
-      "images/ago.jpg",
-      "images/national.jpg"
+      "images/your.jpg"
     ],
     "social_media": {
-      "facebook": "https://facebook.com/michelle23",
-      "twitter": "@amanda82",
-      "instagram": "@dlopez",
       "other_urls": []
     }
   },
-  "opening_hours": "Mon-Fri: 6:00-17:00",
+  "opening_hours": "Mon-Fri: 9:00-19:00",
   "description": "Commercial machining facility with precision equipment",
+  "date_founded": "2007-11-02",
   "access_type": "Restricted",
   "equipment": [
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
-      "make": "Haas",
-      "model": "DMU 50",
-      "condition": "Fair",
-      "notes": "Equipment notes: Economic notice night piece in.",
-      "power_rating": 1552,
-      "maintenance_schedule": "Every 10 months",
-      "uninterrupted_power_supply": true,
+      "make": "DMG Mori",
+      "model": "PCNC 440",
+      "condition": "Good",
+      "notes": "Equipment notes: Although per laugh hair look.",
+      "quantity": 1,
+      "power_rating": 8076,
+      "maintenance_schedule": "Every 9 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-c",
       "computer_controlled": true,
+      "extraction_system": true,
       "materials_worked": [
         {
-          "material_type": "https://en.wikipedia.org/wiki/Aluminum"
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium",
+          "brand": "Industrial"
         },
         {
-          "material_type": "https://en.wikipedia.org/wiki/Steel"
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "2782",
+              "street": "Clark Ports",
+              "city": "Fort Worth",
+              "region": "CA",
+              "country": "US",
+              "postcode": "66803"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located near Rodriguez-Ballard",
+            "city": "Fort Worth",
+            "country": "US"
+          }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Plastic",
-          "manufacturer": "Premium",
+          "brand": "Industrial",
           "supplier_location": {
             "address": {
-              "number": "3499",
-              "street": "Sydney Vista",
-              "city": "Los Angeles",
-              "region": "AZ",
+              "number": "1466",
+              "street": "Mitchell Burgs",
+              "city": "Seattle",
+              "region": "AS",
               "country": "US",
-              "postcode": "73701"
+              "postcode": "35827"
             },
-            "gps_coordinates": "34.0536909, -118.242766",
-            "directions": "Located across from Walters-Taylor",
-            "city": "Los Angeles",
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
             "country": "US"
           }
         },
         {
           "material_type": "https://en.wikipedia.org/wiki/Wood",
-          "supplier_location": {
-            "address": {
-              "number": "3530",
-              "street": "Lauren Oval",
-              "city": "San Antonio",
-              "region": "GU",
-              "country": "US",
-              "postcode": "24666"
-            },
-            "gps_coordinates": "29.4246002, -98.4951405",
-            "city": "San Antonio",
-            "country": "US"
-          }
+          "manufacturer": "Brand B",
+          "brand": "Standard"
         }
       ],
       "axes": 5,
-      "working_surface": 400,
+      "working_surface": 600,
       "detailed_capabilities": {
         "tolerance": "±0.01mm",
         "surface_finish": "Ra 0.8-3.2μm",
         "spindle_speed": "1000-12000 RPM",
         "feed_rate": "100-2000 mm/min",
         "tool_changer": "Automatic",
-        "tolerance_range": "±0.015mm",
+        "tolerance_range": "±0.01mm",
         "supported_materials": [
+          "Steel",
+          "Wood",
           "Plastic",
-          "Steel"
+          "Aluminum"
         ],
         "process_parameters": {
-          "setup_time": "34 minutes",
-          "cycle_time": "5 minutes",
-          "changeover_time": "31 minutes"
+          "setup_time": "106 minutes",
+          "cycle_time": "44 minutes",
+          "changeover_time": "19 minutes"
         }
       }
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
       "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
-      "make": "Generic",
-      "model": "Model 787",
-      "condition": "Fair",
+      "make": "Brand B",
+      "model": "Model 744",
+      "condition": "Excellent",
       "computer_controlled": true
     },
     {
       "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
       "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
       "make": "Brand B",
-      "model": "Model 844",
-      "condition": "Excellent"
+      "model": "Model 656",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "Fusion Pro",
+      "condition": "Needs Maintenance",
+      "quantity": 2,
+      "throughput": "72 parts/hour",
+      "maintenance_schedule": "Every 10 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 300
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "FlexLink",
+      "model": "Semi-Auto Line",
+      "condition": "Needs Maintenance",
+      "maintenance_schedule": "Every 1 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "1301",
+              "street": "Johnson Orchard",
+              "city": "Fort Worth",
+              "region": "MI",
+              "country": "US",
+              "postcode": "86734"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "954",
+              "street": "David Lane",
+              "city": "Philadelphia",
+              "region": "CT",
+              "country": "US",
+              "postcode": "62423"
+            },
+            "gps_coordinates": "39.9527237, -75.1635262",
+            "directions": "Located across from Paul, Kirk and Simon",
+            "city": "Philadelphia",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Professional"
+        }
+      ]
     }
   ],
   "manufacturing_processes": [
     "https://en.wikipedia.org/wiki/CNC_mill",
     "https://en.wikipedia.org/wiki/CNC_lathe",
-    "https://en.wikipedia.org/wiki/Surface_grinder"
+    "https://en.wikipedia.org/wiki/Surface_grinder",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station"
   ],
   "typical_batch_size": "50 -- 500 units",
-  "floor_size": 2095,
+  "storage_capacity": "263 cubic meters",
   "typical_materials": [],
   "certifications": [
-    "ISO 9001",
-    "AS9100"
+    "ISO 14001",
+    "AS9100",
+    "NADCAP"
   ],
-  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months",
   "typical_products": [
-    "Adaptive context-sensitive projection",
-    "Phased multimedia knowledgebase",
-    "Proactive demand-driven website",
-    "Visionary 3rdgeneration algorithm",
-    "Innovative zero-defect secured line"
-  ]
+    "Robust didactic concept",
+    "Reverse-engineered human-resource projection"
+  ],
+  "human_capacity": {
+    "headcount": 15
+  },
+  "record_data": {
+    "date_created": "2026-02-12T22:39:52.403118",
+    "created_by": {
+      "name": "Taylor, Hale and Smith",
+      "contact_person": "Edward Gonzales",
+      "bio": "Established in 2004, we specialize in Assimilated heuristic throughput",
+      "languages": [
+        "de",
+        "es"
+      ],
+      "contact": {
+        "landline": "+1-586-787-9233",
+        "mobile": "+1-218-996-8671",
+        "email": "info@clark.com"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
 }

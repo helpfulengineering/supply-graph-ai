@@ -1,0 +1,29 @@
+{
+  "id": "00000000-0000-0000-0000-000000000001",
+  "okhv": "OKH-LOSHv1.0",
+  "title": "Minimal Test Design",
+  "version": "1.0.0",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Test Author",
+    "email": "test@example.com"
+  },
+  "function": "A minimal OKH manifest for testing validation tiers",
+  "repo": "https://github.com/test/minimal-design",
+  "documentation_language": "en",
+  "manufacturing_processes": [],
+  "tsdc": [],
+  "materials": [],
+  "parts": [],
+  "sub_parts": [],
+  "tool_list": [],
+  "standards_used": [],
+  "making_instructions": [],
+  "manufacturing_files": [],
+  "design_files": [],
+  "keywords": []
+}

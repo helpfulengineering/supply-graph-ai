@@ -1,0 +1,261 @@
+{
+  "id": "085611ad-30a3-4daf-9900-9892c12995fc",
+  "name": "Laser Fabrication Lab",
+  "location": {
+    "address": {
+      "number": "6397",
+      "street": "Ewing Station",
+      "city": "Seattle",
+      "region": "FM",
+      "country": "US",
+      "postcode": "14780"
+    },
+    "gps_coordinates": "47.6038321, -122.330062",
+    "city": "Seattle",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Mcdaniel, Rhodes and Cline",
+    "website": "https://shah.com",
+    "mailing_list": "ashleymurphy@lists.vega.org",
+    "images": [
+      "images/early.jpg",
+      "images/explain.jpg"
+    ],
+    "contact": {
+      "landline": "+1-739-899-7610",
+      "whatsapp": "+1-558-311-4246"
+    },
+    "social_media": {
+      "twitter": "@vasquezwilliam",
+      "other_urls": []
+    }
+  },
+  "description": "Laser cutting and engraving with product assembly services",
+  "date_founded": "2000-05-05",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "Speedy 300",
+      "condition": "Fair",
+      "notes": "Equipment notes: Drive meet deal technology people reflect class.",
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "8993",
+              "street": "Gillespie Plaza",
+              "city": "Los Angeles",
+              "region": "NV",
+              "country": "US",
+              "postcode": "74202"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4009",
+              "street": "Taylor Fork",
+              "city": "Los Angeles",
+              "region": "NV",
+              "country": "US",
+              "postcode": "48491"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located across from Nichols Inc",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Fabric",
+          "Acrylic",
+          "Wood",
+          "Leather"
+        ],
+        "process_parameters": {
+          "setup_time": "29 minutes",
+          "cycle_time": "26 minutes",
+          "changeover_time": "13 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Bosch Rexroth",
+      "model": "Flex Station",
+      "serial_number": "SN809776",
+      "condition": "Needs Maintenance",
+      "quantity": 1,
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7155",
+              "street": "Avila Shoals",
+              "city": "Austin",
+              "region": "WY",
+              "country": "US",
+              "postcode": "57266"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "directions": "Located near Weiss-Newman",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4372",
+              "street": "Taylor Mountain",
+              "city": "San Jose",
+              "region": "WI",
+              "country": "US",
+              "postcode": "92959"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "supplier_location": {
+            "address": {
+              "number": "6897",
+              "street": "Johnson Neck",
+              "city": "Phoenix",
+              "region": "VI",
+              "country": "US",
+              "postcode": "98323"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "assembly_types": [
+          "Mechanical",
+          "Electrical",
+          "Mixed"
+        ],
+        "torque_control": "0.1-50 Nm",
+        "esd_protection": "Yes",
+        "test_integration": "Functional test points",
+        "supported_materials": [
+          "Adhesives",
+          "Cables"
+        ],
+        "process_parameters": {
+          "setup_time": "28 minutes",
+          "cycle_time": "46 minutes",
+          "changeover_time": "29 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 3351,
+  "storage_capacity": "462 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "road_access": true,
+  "typical_products": [
+    "Re-engineered regional concept",
+    "Pre-emptive even-keeled concept"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Close tend ago sure course.",
+    "by_products": [
+      "home",
+      "show",
+      "appear"
+    ]
+  },
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Intuitive background budgetary management",
+      "Profit-focused composite architecture",
+      "Secured user-facing firmware",
+      "Universal client-server matrix"
+    ],
+    "services": [
+      "Ergonomic foreground archive",
+      "Innovative needs-based capability"
+    ],
+    "footfall": 25
+  },
+  "record_data": {
+    "date_created": "2026-02-12T22:39:50.614603",
+    "created_by": {
+      "name": "Melendez Group",
+      "mailing_list": "frederickdawn@lists.becker.biz",
+      "contact": {
+        "mobile": "+1-717-491-5742"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

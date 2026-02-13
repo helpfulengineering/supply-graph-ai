@@ -25,6 +25,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from ...taxonomy import taxonomy
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -442,37 +444,34 @@ class BaseMatchingLayer(ABC):
         """
         Normalize process names for better matching.
 
-        This method handles:
-        - Wikipedia URLs: Extracts the process name from URLs
-        - Case normalization: Converts to lowercase
-        - Whitespace normalization: Removes extra whitespace
-        - Special character handling: Normalizes underscores, hyphens, etc.
+        Delegates to the canonical ProcessTaxonomy for known processes.
+        Falls back to basic text normalization for unrecognized inputs.
 
         Args:
             process_name: The process name to normalize
 
         Returns:
-            Normalized process name
+            Normalized process name (canonical ID for known processes,
+            or lowercase cleaned string for unknown)
         """
         if not process_name:
             return ""
 
-        # Handle Wikipedia URLs
-        if "wikipedia.org/wiki/" in process_name.lower():
-            # Extract the process name from Wikipedia URL
-            # e.g., "https://en.wikipedia.org/wiki/PCB_assembly" -> "PCB_assembly"
-            parts = process_name.split("/wiki/")
+        # Delegate to taxonomy for known processes
+        canonical_id = taxonomy.normalize(process_name)
+        if canonical_id is not None:
+            return canonical_id
+
+        # Fallback: basic text normalization for unrecognized inputs
+        text = process_name.strip()
+
+        # Extract slug from Wikipedia URIs
+        if "wikipedia.org/wiki/" in text.lower():
+            parts = text.split("/wiki/")
             if len(parts) > 1:
-                process_name = parts[1]
+                text = parts[1]
 
-        # Normalize case and whitespace
-        normalized = process_name.strip().lower()
-
-        # Normalize special characters
-        # Replace underscores and hyphens with spaces for better matching
+        normalized = text.lower()
         normalized = re.sub(r"[_\-]+", " ", normalized)
-
-        # Normalize multiple spaces to single space
         normalized = re.sub(r"\s+", " ", normalized)
-
         return normalized.strip()

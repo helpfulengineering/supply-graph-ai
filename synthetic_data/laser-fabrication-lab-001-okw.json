@@ -1,0 +1,318 @@
+{
+  "id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+  "name": "Laser Fabrication Lab",
+  "location": {
+    "address": {
+      "number": "8493",
+      "street": "Walker Orchard",
+      "city": "Jacksonville",
+      "region": "IL",
+      "country": "US",
+      "postcode": "87044"
+    },
+    "gps_coordinates": "30.3262247, -81.6579179",
+    "directions": "Located behind Jimenez-Becker",
+    "city": "Jacksonville",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Robinson, Herrera and Taylor",
+    "images": [
+      "images/feel.jpg",
+      "images/read.jpg",
+      "images/answer.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-792-223-1945",
+      "email": "info@hansen-duncan.com"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/sarahstone",
+      "twitter": "@reevessuzanne",
+      "other_urls": [
+        "https://perry.com",
+        "https://green.com"
+      ]
+    }
+  },
+  "description": "Laser cutting and engraving with product assembly services",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "Fusion Pro",
+      "serial_number": "SN254891",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Direction pick bring nature become store past explain.",
+      "power_rating": 9371,
+      "maintenance_schedule": "Every 12 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5645",
+              "street": "Garcia Courts",
+              "city": "New York",
+              "region": "MI",
+              "country": "US",
+              "postcode": "96977"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located behind Blankenship, Collins and Ross",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "4621",
+              "street": "Robinson Throughway",
+              "city": "Los Angeles",
+              "region": "NH",
+              "country": "US",
+              "postcode": "85406"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located near Garcia Inc",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Professional"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 900,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Acrylic",
+          "Wood",
+          "Fabric"
+        ],
+        "process_parameters": {
+          "setup_time": "85 minutes",
+          "cycle_time": "56 minutes",
+          "changeover_time": "31 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Bosch Rexroth",
+      "model": "Modular Bench",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Music cultural something do rich.",
+      "quantity": 3,
+      "throughput": "79 parts/hour",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "6461",
+              "street": "Ramos Highway",
+              "city": "San Antonio",
+              "region": "MI",
+              "country": "US",
+              "postcode": "30041"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "supplier_location": {
+            "address": {
+              "number": "295",
+              "street": "Gaines Well",
+              "city": "San Diego",
+              "region": "MO",
+              "country": "US",
+              "postcode": "79929"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located behind Hess PLC",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "supplier_location": {
+            "address": {
+              "number": "9821",
+              "street": "Jessica Hollow",
+              "city": "Seattle",
+              "region": "OK",
+              "country": "US",
+              "postcode": "26116"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "assembly_types": [
+          "Mechanical",
+          "Electrical",
+          "Mixed"
+        ],
+        "torque_control": "0.1-50 Nm",
+        "esd_protection": "Yes",
+        "test_integration": "Functional test points",
+        "supported_materials": [
+          "Connectors",
+          "Fasteners",
+          "Cables",
+          "Adhesives"
+        ],
+        "process_parameters": {
+          "setup_time": "51 minutes",
+          "cycle_time": "32 minutes",
+          "changeover_time": "43 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 206",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 297",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Accudraft",
+      "model": "Downdraft",
+      "condition": "Good",
+      "throughput": "5 parts/hour",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "8050",
+              "street": "Andrew Walks",
+              "city": "Phoenix",
+              "region": "AS",
+              "country": "US",
+              "postcode": "11569"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located near Wilson, Vazquez and Merritt",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "manufacturer": "Premium",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+          "manufacturer": "Brand A",
+          "brand": "Industrial"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2127,
+  "storage_capacity": "711 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "OHSAS 18001",
+    "NADCAP"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Right-sized client-driven encryption"
+  ],
+  "human_capacity": {
+    "headcount": 1
+  },
+  "record_data": {
+    "date_created": "2026-02-12T22:39:27.769803",
+    "created_by": {
+      "name": "Nielsen and Sons",
+      "bio": "Established in 2001, we specialize in Implemented contextually-based policy",
+      "website": "https://johnson-williams.com",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "contact": {
+        "mobile": "+1-828-838-2947",
+        "email": "info@ortiz-griffin.com",
+        "whatsapp": "+1-411-260-1683"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

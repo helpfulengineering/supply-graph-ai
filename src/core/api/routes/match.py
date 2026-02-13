@@ -239,7 +239,7 @@ async def match_requirements_to_capabilities(
                     detail="Nested matching requires OKH manifest for manufacturing domain",
                 )
 
-            solution = await matching_service.match_with_nested_components(
+            solutions = await matching_service.match_with_nested_components(
                 okh_manifest=requirements_data,
                 facilities=facilities,
                 max_depth=max_depth,
@@ -247,17 +247,22 @@ async def match_requirements_to_capabilities(
                 okh_service=okh_service,
             )
 
+            # Pick the best-scoring solution for response formatting
+            best_solution = max(solutions, key=lambda s: s.score) if solutions else None
+
             # Format nested response
             processing_time = (datetime.now() - start_time).total_seconds()
             response_data = await _format_nested_response(
-                solution, request, request_id, processing_time, storage_service
+                best_solution, request, request_id, processing_time, storage_service
             )
 
+            total_trees = sum(len(s.all_trees) for s in solutions)
             logger.info(
-                f"Nested matching completed: {len(solution.all_trees)} trees in solution",
+                f"Nested matching completed: {total_trees} trees across {len(solutions)} solution(s)",
                 extra={
                     "request_id": request_id,
-                    "trees_count": len(solution.all_trees),
+                    "trees_count": total_trees,
+                    "solution_count": len(solutions),
                     "max_depth": max_depth,
                     "processing_time": processing_time,
                     "solution_saved": (

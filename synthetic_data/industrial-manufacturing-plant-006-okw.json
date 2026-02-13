@@ -1,0 +1,192 @@
+{
+  "id": "0083a649-0185-422b-92df-284db6f6919c",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "5899",
+      "street": "Samantha Ville",
+      "city": "Chicago",
+      "region": "OR",
+      "country": "US",
+      "postcode": "38400"
+    },
+    "gps_coordinates": "41.8755616, -87.6244212",
+    "directions": "Located across from Boyle Ltd",
+    "city": "Chicago",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Stewart Inc",
+    "location": {
+      "address": {
+        "number": "1357",
+        "street": "Stevens Fall",
+        "city": "Denver",
+        "region": "SC",
+        "country": "US",
+        "postcode": "58655"
+      },
+      "gps_coordinates": "39.7392364, -104.984862",
+      "directions": "Located behind Roberts-Harris",
+      "city": "Denver",
+      "country": "US"
+    },
+    "bio": "Established in 2014, we specialize in Reverse-engineered client-server forecast",
+    "website": "https://doyle-oneill.org",
+    "contact": {
+      "mobile": "+1-785-960-3504"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/hernandezmary",
+      "twitter": "@wpineda",
+      "instagram": "@erika44",
+      "other_urls": [
+        "https://robertson.net",
+        "https://stephens.org"
+      ]
+    }
+  },
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "1990-01-24",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VF-2",
+      "serial_number": "SN110561",
+      "condition": "Fair",
+      "notes": "Equipment notes: Crime least authority along surface tax.",
+      "throughput": "99 parts/hour",
+      "power_rating": 4159,
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "supplier_location": {
+            "address": {
+              "number": "4232",
+              "street": "Harris Loaf",
+              "city": "Fort Worth",
+              "region": "DE",
+              "country": "US",
+              "postcode": "63207"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Steel",
+          "Aluminum",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "33 minutes",
+          "cycle_time": "42 minutes",
+          "changeover_time": "36 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 696",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand A",
+      "model": "Model 540",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 906",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Global Finishing",
+      "model": "Downdraft",
+      "condition": "Fair",
+      "notes": "Equipment notes: Modern maybe factor issue magazine evening organization.",
+      "quantity": 4,
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+          "brand": "Professional"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months",
+  "typical_products": [
+    "Programmable value-added secured line"
+  ],
+  "human_capacity": {
+    "headcount": 41
+  }
+}

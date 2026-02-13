@@ -1,0 +1,199 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "f95e1ee1-80e0-46e7-9bae-023a23089891",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/janderson/laser-cut-acrylic-display-case",
+  "version": "2.5.3",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Dana Lee",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "melanie46"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Eat man street should.",
+  "keywords": [
+    "open-source",
+    "assembly"
+  ],
+  "contact": {
+    "name": "Donna Randall",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Jennifer Miller",
+      "email": null,
+      "affiliation": "Phillips Ltd",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Johnston-Vincent",
+    "url": "https://ayala.com",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-8",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/martinezricky/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/tiffany12/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/dpoole/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/emilyholmes/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/aprilgreene/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/john28/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/benjamin06/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Laser cutter",
+    "Heat shrink",
+    "Cutting bed",
+    "Wrench set",
+    "Material guides",
+    "Screwdriver set",
+    "Crimping tool",
+    "Pliers",
+    "Air assist"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 80.02,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": {
+      "length": 292,
+      "width": 173,
+      "height": 25
+    },
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "73W",
+          "speed": "135 mm/min",
+          "passes": 2
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Choose inside Republican well yet."
+      }
+    ],
+    "quality_standards": [],
+    "notes": "Manufacturing notes: Alone space south realize performance claim."
+  },
+  "bom": "https://github.com/bsimmons/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "e0d277eb-3067-4bfc-9c7b-6d9c9217a5ec",
+      "source": [
+        "https://github.com/hughessherry/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/sanchezrichard/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 797.75,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

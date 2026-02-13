@@ -1,0 +1,399 @@
+{
+  "id": "6df00e28-ce8a-4ef0-95ee-ebb066ec6c80",
+  "name": "Full-Service CNC Shop",
+  "location": {
+    "address": {
+      "number": "712",
+      "street": "Christian Point",
+      "city": "San Diego",
+      "region": "ID",
+      "country": "US",
+      "postcode": "82253"
+    },
+    "gps_coordinates": "32.7174202, -117.162772",
+    "city": "San Diego",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-18:00",
+  "description": "End-to-end CNC machining with deburring and anodizing finishing",
+  "date_founded": "2005-10-19",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VTC-20",
+      "serial_number": "SN645919",
+      "condition": "Fair",
+      "notes": "Equipment notes: Music challenge most.",
+      "power_rating": 4239,
+      "maintenance_schedule": "Every 2 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6973",
+              "street": "Gerald Ville",
+              "city": "Chicago",
+              "region": "LA",
+              "country": "US",
+              "postcode": "28359"
+            },
+            "gps_coordinates": "41.8755616, -87.6244212",
+            "directions": "Located across from Long Group",
+            "city": "Chicago",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "supplier_location": {
+            "address": {
+              "number": "25",
+              "street": "Lisa Avenue",
+              "city": "Charlotte",
+              "region": "AR",
+              "country": "US",
+              "postcode": "08853"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located across from Jacobson LLC",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "3958",
+              "street": "Jon Divide",
+              "city": "Austin",
+              "region": "MO",
+              "country": "US",
+              "postcode": "37275"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6413",
+              "street": "Gonzalez Ranch",
+              "city": "Phoenix",
+              "region": "MN",
+              "country": "US",
+              "postcode": "85705"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Deburring_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Deburring",
+      "make": "Grind Master",
+      "model": "RSA 600",
+      "condition": "Good",
+      "notes": "Equipment notes: New card myself trial.",
+      "quantity": 5,
+      "throughput": "26 parts/hour",
+      "power_rating": 3675,
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Brass",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Anodizing_line",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Anodizing",
+      "make": "Saporiti",
+      "model": "Type III Line",
+      "condition": "Fair",
+      "notes": "Equipment notes: Pretty process smile place eight.",
+      "power_rating": 2595,
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_6061",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3293",
+              "street": "Sara Stream",
+              "city": "Los Angeles",
+              "region": "AZ",
+              "country": "US",
+              "postcode": "19109"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located behind Simpson Group",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_7075"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_2024",
+          "supplier_location": {
+            "address": {
+              "number": "8693",
+              "street": "Michael Fork",
+              "city": "Los Angeles",
+              "region": "LA",
+              "country": "US",
+              "postcode": "92765"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Brand B",
+      "model": "Model 671",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "S5",
+      "condition": "Good",
+      "notes": "Equipment notes: Truth determine score blue stop fight remember.",
+      "throughput": "28 parts/hour",
+      "power_rating": 5342,
+      "maintenance_schedule": "Every 2 months",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "5460",
+              "street": "Carr Crossroad",
+              "city": "Seattle",
+              "region": "TN",
+              "country": "US",
+              "postcode": "53381"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "directions": "Located behind Harding and Sons",
+            "city": "Seattle",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "supplier_location": {
+            "address": {
+              "number": "7406",
+              "street": "Dawn Harbors",
+              "city": "Seattle",
+              "region": "OK",
+              "country": "US",
+              "postcode": "39666"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "7464",
+              "street": "Daniel Trace",
+              "city": "Indianapolis",
+              "region": "AR",
+              "country": "US",
+              "postcode": "14305"
+            },
+            "gps_coordinates": "39.7683331, -86.1583502",
+            "city": "Indianapolis",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3669",
+              "street": "Anthony View",
+              "city": "San Jose",
+              "region": "AK",
+              "country": "US",
+              "postcode": "31877"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "directions": "Located across from Adams Group",
+            "city": "San Jose",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "FlexLink",
+      "model": "Semi-Auto Line",
+      "condition": "Good",
+      "throughput": "13 parts/hour",
+      "power_rating": 7463,
+      "maintenance_schedule": "Every 9 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "9258",
+              "street": "Samuel Cliff",
+              "city": "San Antonio",
+              "region": "GU",
+              "country": "US",
+              "postcode": "95036"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "directions": "Located near Frank-Salazar",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "9974",
+              "street": "Castro Greens",
+              "city": "Seattle",
+              "region": "AL",
+              "country": "US",
+              "postcode": "31043"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "4761",
+              "street": "Mccarthy Ferry",
+              "city": "Los Angeles",
+              "region": "CT",
+              "country": "US",
+              "postcode": "18354"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "manufacturer": "Generic"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/Deburring_station",
+    "https://en.wikipedia.org/wiki/Anodizing_line",
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "storage_capacity": "847 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "NADCAP",
+    "OHSAS 18001",
+    "ISO 14001"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 2 months",
+  "record_data": {
+    "date_created": "2026-02-12T22:39:35.281309",
+    "created_by": {
+      "name": "Lee, Williams and Rivas",
+      "contact_person": "William Watkins",
+      "images": [
+        "images/pattern.jpg",
+        "images/summer.jpg",
+        "images/religious.jpg"
+      ],
+      "contact": {
+        "landline": "+1-850-499-9920",
+        "mobile": "+1-407-703-5552"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

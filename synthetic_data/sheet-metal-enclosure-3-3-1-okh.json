@@ -1,0 +1,223 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "11bee0d5-db91-42b1-a122-25b966926d6e",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/xjimenez/sheet-metal-enclosure",
+  "version": "3.3.1",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "David Martin",
+    "email": "karen87@example.com",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "iwilliams"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Assume matter performance real piece impact around.",
+  "intended_use": "Hit product health.",
+  "keywords": [
+    "fastener",
+    "gear",
+    "reproducible",
+    "mount"
+  ],
+  "contact": {
+    "name": "Kelly Huff",
+    "email": "danielwilson@example.net",
+    "affiliation": "Lawrence-Pitts",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "pamelasmith"
+      }
+    ]
+  },
+  "organization": {
+    "name": "Elliott Group",
+    "url": "https://johnson.com",
+    "email": "contact@johnson.com"
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/jeremy54/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/vargasmonica/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/lisa97/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/margaret10/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/suzanne22/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/lindsaygreen/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/mjohns/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.7"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cable ties",
+    "Heat shrink",
+    "Grinder",
+    "Welder",
+    "Punch press"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 566.14,
+      "unit": "kg",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 423.86,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "9d63d0cb-5ac9-4b0d-84d8-cf712f813a13",
+      "source": [
+        "https://github.com/josephproctor/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/kimberly10/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/kellyhester/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 164,
+        "width": 52,
+        "height": 56
+      },
+      "mass": 542.9,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "f83a8048-d20d-47ce-9e9c-37733e202d86",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/logansmith/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/anthonybrown/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 38,
+        "width": 104,
+        "height": 8
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

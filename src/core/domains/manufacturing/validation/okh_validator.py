@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from ....models.base.base_types import Capability, Requirement
 from ....models.okh import OKHManifest
 from ....models.supply_trees import SupplyTree
+from ....taxonomy import taxonomy
 from ....validation.context import ValidationContext
 from ....validation.engine import Validator
 from ....validation.result import ValidationError, ValidationResult, ValidationWarning
@@ -379,21 +380,12 @@ class ManufacturingOKHValidator(Validator):
                 )
 
     def _is_valid_manufacturing_process(self, process: str) -> bool:
-        """Check if manufacturing process is valid"""
-        # List of valid manufacturing processes
-        valid_processes = [
-            "https://en.wikipedia.org/wiki/CNC_mill",
-            "https://en.wikipedia.org/wiki/3D_printing",
-            "https://en.wikipedia.org/wiki/CNC_lathe",
-            "https://en.wikipedia.org/wiki/Laser_cutting",
-            "https://en.wikipedia.org/wiki/Water_jet_cutting",
-            "https://en.wikipedia.org/wiki/Injection_molding",
-            "https://en.wikipedia.org/wiki/Sheet_metal_forming",
-            "https://en.wikipedia.org/wiki/Welding",
-            "https://en.wikipedia.org/wiki/Assembly",
-        ]
+        """Check if manufacturing process is valid.
 
-        return process in valid_processes
+        Delegates to the canonical ProcessTaxonomy, which accepts any known
+        form: TSDC codes, Wikipedia URIs, plain English names, etc.
+        """
+        return taxonomy.is_valid(process)
 
     async def _validate_materials_and_tools(
         self, okh_manifest: OKHManifest, quality_level: str, result: ValidationResult

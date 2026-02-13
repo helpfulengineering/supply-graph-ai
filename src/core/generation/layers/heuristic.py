@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from ...models.okh import DocumentationType
+from ...taxonomy import taxonomy
 from ..models import AnalysisDepth, GenerationLayer, LayerConfig, ProjectData
 from ..utils.file_categorization import (
     FileCategorizationResult,
@@ -1029,26 +1030,39 @@ class HeuristicMatcher(BaseGenerationLayer):
         return None
 
     def _extract_processes_from_text(self, text: str) -> List[str]:
-        """Extract manufacturing processes from text"""
+        """Extract manufacturing processes from text using the canonical taxonomy."""
         processes = []
         text_lower = text.lower()
 
-        process_mapping = {
-            "3d print": "3D Printing",
-            "3d printing": "3D Printing",
-            "laser cut": "Laser cutting",
-            "laser cutting": "Laser cutting",
-            "cnc": "CNC machining",
-            "machining": "CNC machining",
-            "solder": "Soldering",
-            "soldering": "Soldering",
-            "assemble": "Assembly",
-            "assembly": "Assembly",
-        }
+        # Keywords to search for in text, mapped to taxonomy input
+        search_keywords = [
+            "3d print",
+            "3d printing",
+            "laser cut",
+            "laser cutting",
+            "cnc",
+            "machining",
+            "solder",
+            "soldering",
+            "assemble",
+            "assembly",
+            "welding",
+            "weld",
+            "drilling",
+            "bending",
+            "grinding",
+            "casting",
+            "forging",
+            "injection mold",
+        ]
 
-        for keyword, process in process_mapping.items():
-            if keyword in text_lower and process not in processes:
-                processes.append(process)
+        for keyword in search_keywords:
+            if keyword in text_lower:
+                canonical_id = taxonomy.normalize(keyword)
+                if canonical_id is not None:
+                    display_name = taxonomy.get_display_name(canonical_id)
+                    if display_name not in processes:
+                        processes.append(display_name)
 
         return processes
 
