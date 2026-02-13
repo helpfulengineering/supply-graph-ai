@@ -42,6 +42,10 @@
     * Generate OKH-compliant project structures
     * MkDocs integration and documentation templates
 
+### Format Conversion
+* [Conversion](conversion/index.md)
+    * [MSF Datasheet](conversion/msf-datasheet.md)
+
 ### CLI Documentation
 * [CLI Documentation](CLI/index.md)
     * [Quick Start Guide](CLI/quick-start.md)

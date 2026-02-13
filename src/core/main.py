@@ -25,6 +25,7 @@ from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.package import router as package_router
 from src.core.api.routes.rules import router as rules_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
+from src.core.api.routes.convert import router as convert_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -284,6 +285,9 @@ api_v1.include_router(llm_router, tags=["llm"])  # Already has /api/llm prefix
 api_v1.include_router(
     rules_router, tags=["rules"]
 )  # Already has /api/match/rules prefix
+api_v1.include_router(
+    convert_router, tags=["convert"]
+)  # Already has /api/convert prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)
