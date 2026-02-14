@@ -25,7 +25,7 @@ These workflows serve as the **single source of truth** for what "correct behavi
 |----|------|----------|---------|--------------|--------|
 | [WF-1](wf01-single-level-matching.md) | Single-Level Matching | Foundation | `@pytest.mark.e2e` | `MatchingService` | **PASSING** (69/69) |
 | [WF-2](wf02-nested-bom-matching.md) | Nested BOM Matching | Advanced | `@pytest.mark.e2e`, `@pytest.mark.slow` | `MatchingService`, `BOMResolutionService` | **PASSING** (68/68) |
-| [WF-3](wf03-okh-generation-from-url.md) | OKH Generation from URL | Advanced | `@pytest.mark.e2e`, `@pytest.mark.llm` | `OKHService`, `GenerationEngine` | Not started |
+| [WF-3](wf03-okh-generation-from-url.md) | OKH Generation from URL | Advanced | `@pytest.mark.e2e`, `@pytest.mark.llm` | `OKHService`, `GenerationEngine` | **PASSING** (33/34, 1 skip) |
 | [WF-4](wf04-quality-tiered-validation.md) | Quality-Tiered Validation | Foundation | `@pytest.mark.e2e` | `ValidationContext`, domain validators | **PASSING** (23/23) |
 | [WF-5](wf05-datasheet-round-trip.md) | Datasheet Round-Trip | Advanced | `@pytest.mark.e2e` | `DatasheetConverter` | Not started |
 | [WF-6](wf06-error-recovery.md) | Error Recovery | Resilience | `@pytest.mark.e2e` | All services | Not started |
@@ -219,7 +219,7 @@ Every workflow document follows this structure:
 
 - **Issue 1.1.1**: This document (canonical workflow definitions) -- **COMPLETE**
 - **Issue 1.1.2**: Test dataset creation (fills gaps flagged by workflows) -- **IN PROGRESS** (synthetic data expanded, edge cases created)
-- **Issue 1.1.3**: Automated test framework (implements these workflows as pytest tests) -- **IN PROGRESS** (WF-1, WF-2, WF-4 implemented)
+- **Issue 1.1.3**: Automated test framework (implements these workflows as pytest tests) -- **IN PROGRESS** (WF-1, WF-2, WF-3, WF-4 implemented)
 - **Issue 1.1.4**: Performance benchmarks (uses performance targets from workflows) -- Not started
 
 ## Progress Log
@@ -242,3 +242,8 @@ Every workflow document follows this structure:
 - **2026-02-13**: Fixed validator gap: TSDC codes, Wikipedia URIs, and plain names now all accepted
 - **2026-02-13**: Process taxonomy tests: 164 passed (TSDC codes, Wikipedia URIs, plain names, hierarchy, edge cases)
 - **2026-02-13**: All existing E2E tests confirmed passing after taxonomy consolidation (WF-1: 69, WF-2: 68, WF-4: 23)
+- **2026-02-14**: WF-3 E2E tests implemented (`test_wf03_okh_generation.py`, 34 tests across 9 test classes)
+- **2026-02-14**: Verified LLM infrastructure: Anthropic (cloud) and Ollama (local) providers both working
+- **2026-02-14**: 3-layer graceful degradation confirmed: system produces valid manifests without LLM layer
+- **2026-02-14**: 4-layer generation confirmed: Anthropic and Ollama both produce parseable OKH manifests
+- **2026-02-14**: WF-3 suite: 33 passed, 0 failed, 1 skipped (matching skip: no manufacturing_processes in 3-layer output)
