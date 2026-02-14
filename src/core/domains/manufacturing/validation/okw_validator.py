@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional
 
 from ....models.base.base_types import Capability, Requirement
 from ....models.okw import ManufacturingFacility
+from ....taxonomy import taxonomy
 from ....validation.context import ValidationContext
 from ....validation.engine import Validator
 from ....validation.result import ValidationError, ValidationResult, ValidationWarning
@@ -680,19 +681,12 @@ class ManufacturingOKWValidator(Validator):
         return any(hasattr(specifications, field) for field in spec_fields)
 
     def _is_valid_manufacturing_process(self, process: str) -> bool:
-        """Check if manufacturing process is valid"""
-        valid_processes = [
-            "https://en.wikipedia.org/wiki/CNC_mill",
-            "https://en.wikipedia.org/wiki/3D_printing",
-            "https://en.wikipedia.org/wiki/CNC_lathe",
-            "https://en.wikipedia.org/wiki/Laser_cutting",
-            "https://en.wikipedia.org/wiki/Water_jet_cutting",
-            "https://en.wikipedia.org/wiki/Injection_molding",
-            "https://en.wikipedia.org/wiki/Sheet_metal_forming",
-            "https://en.wikipedia.org/wiki/Welding",
-            "https://en.wikipedia.org/wiki/Assembly",
-        ]
-        return process in valid_processes
+        """Check if manufacturing process is valid.
+
+        Delegates to the canonical ProcessTaxonomy, which accepts any known
+        form: TSDC codes, Wikipedia URIs, plain English names, etc.
+        """
+        return taxonomy.is_valid(process)
 
     def _is_valid_material_type(self, material_type: str) -> bool:
         """Check if material type is valid"""

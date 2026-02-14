@@ -1,0 +1,305 @@
+{
+  "id": "d8055257-247a-42e6-ad69-bc811ad81b4e",
+  "name": "Electronics Assembly House",
+  "location": {
+    "address": {
+      "number": "5709",
+      "street": "Raymond Courts",
+      "city": "Fort Worth",
+      "region": "NH",
+      "country": "US",
+      "postcode": "90398"
+    },
+    "gps_coordinates": "32.753177, -97.3327459",
+    "city": "Fort Worth",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Walker-Preston",
+    "website": "https://perez.org",
+    "mailing_list": "grahamamanda@lists.miller.com",
+    "images": [
+      "images/doctor.jpg",
+      "images/well.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-746-849-7204",
+      "whatsapp": "+1-317-497-5073"
+    },
+    "social_media": {
+      "other_urls": []
+    }
+  },
+  "contact": {
+    "name": "Wilson PLC",
+    "location": {
+      "address": {
+        "number": "9242",
+        "street": "Amy Springs",
+        "city": "Philadelphia",
+        "region": "MH",
+        "country": "US",
+        "postcode": "35323"
+      },
+      "gps_coordinates": "39.9527237, -75.1635262",
+      "directions": "Located behind Landry-Johnson",
+      "city": "Philadelphia",
+      "country": "US"
+    },
+    "bio": "Established in 2015, we specialize in Managed intermediate complexity",
+    "website": "https://wise.com",
+    "mailing_list": "huertaemily@lists.morgan.com",
+    "contact": {
+      "mobile": "+1-384-774-4476",
+      "email": "info@burton.info",
+      "whatsapp": "+1-758-574-3426"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://campbell-fisher.info"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-18:00",
+  "description": "Specialized in PCB assembly and electronics manufacturing",
+  "date_founded": "2000-01-03",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Generic",
+      "model": "Model 997",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Reflow_oven",
+      "make": "Brand B",
+      "model": "Model 869",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/AOI",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/AOI",
+      "make": "Brand B",
+      "model": "Model 475",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/ICT",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/ICT",
+      "make": "Brand A",
+      "model": "Model 594",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "LS-1630",
+      "serial_number": "SN194640",
+      "condition": "Fair",
+      "notes": "Equipment notes: Suggest process occur senior build respond new.",
+      "quantity": 1,
+      "throughput": "55 parts/hour",
+      "maintenance_schedule": "Every 10 months",
+      "usage_levels": "Medium",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4420",
+              "street": "Thomas Row",
+              "city": "San Francisco",
+              "region": "SC",
+              "country": "US",
+              "postcode": "76820"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "1535",
+              "street": "Brandon Forks",
+              "city": "San Diego",
+              "region": "WI",
+              "country": "US",
+              "postcode": "59879"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located across from Schmidt Group",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "supplier_location": {
+            "address": {
+              "number": "1670",
+              "street": "Shannon Forks",
+              "city": "Boston",
+              "region": "MP",
+              "country": "US",
+              "postcode": "43596"
+            },
+            "gps_coordinates": "42.3588336, -71.0578303",
+            "directions": "Located across from Hill-Henry",
+            "city": "Boston",
+            "country": "US"
+          }
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "item",
+      "model": "Semi-Auto Line",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: History short human.",
+      "quantity": 1,
+      "throughput": "72 parts/hour",
+      "power_rating": 2212,
+      "maintenance_schedule": "Every 9 months",
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4122",
+              "street": "Brian Tunnel",
+              "city": "Dallas",
+              "region": "AS",
+              "country": "US",
+              "postcode": "91189"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "city": "Dallas",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "supplier_location": {
+            "address": {
+              "number": "4617",
+              "street": "Helen Alley",
+              "city": "Charlotte",
+              "region": "RI",
+              "country": "US",
+              "postcode": "12940"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located behind Crawford-Miller",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/Reflow_oven",
+    "https://en.wikipedia.org/wiki/AOI",
+    "https://en.wikipedia.org/wiki/ICT",
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 3506,
+  "storage_capacity": "345 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "ISO 9001"
+  ],
+  "road_access": true,
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "main",
+      "laugh"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 43
+  },
+  "innovation_space": {
+    "staff": 1,
+    "learning_resources": [
+      "Enhanced modular methodology",
+      "Profit-focused context-sensitive neural-net",
+      "Multi-layered system-worthy hierarchy"
+    ],
+    "services": [
+      "Organized zero-defect help-desk",
+      "Organic background task-force",
+      "Synergized stable Local Area Network"
+    ],
+    "footfall": 69
+  },
+  "record_data": {
+    "date_created": "2026-02-12T22:39:47.025167",
+    "created_by": {
+      "name": "Maldonado-Jones",
+      "location": {
+        "address": {
+          "number": "1643",
+          "street": "Christina Coves",
+          "city": "San Antonio",
+          "region": "MO",
+          "country": "US",
+          "postcode": "47499"
+        },
+        "gps_coordinates": "29.4246002, -98.4951405",
+        "city": "San Antonio",
+        "country": "US"
+      },
+      "contact_person": "Ashley Young",
+      "website": "https://williams.net",
+      "contact": {
+        "mobile": "+1-345-797-3608"
+      },
+      "social_media": {
+        "other_urls": []
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

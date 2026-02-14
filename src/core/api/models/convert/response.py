@@ -16,7 +16,9 @@ class ConvertToDatasheetResponse(SuccessResponse):
     """
 
     manifest_title: str = Field(..., description="Title from the source OKH manifest")
-    manifest_version: str = Field(..., description="Version from the source OKH manifest")
+    manifest_version: str = Field(
+        ..., description="Version from the source OKH manifest"
+    )
     output_filename: str = Field(..., description="Name of the generated .docx file")
 
     model_config = ConfigDict(

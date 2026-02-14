@@ -18,7 +18,9 @@ class ConvertToDatasheetRequest(BaseAPIRequest):
     title: str
     version: str
     license: Union[str, Dict[str, Any]]
-    licensor: Optional[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]] = None
+    licensor: Optional[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]] = (
+        None
+    )
     documentation_language: Optional[Union[str, List[str]]] = None
     function: str
 
@@ -45,7 +47,9 @@ class ConvertToDatasheetRequest(BaseAPIRequest):
     version_date: Optional[str] = None
     contact: Optional[Dict[str, Any]] = None
     contributors: List[Dict[str, Any]] = Field(default_factory=list)
-    organization: Optional[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]] = None
+    organization: Optional[
+        Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]
+    ] = None
 
     model_config = ConfigDict(
         json_schema_extra={

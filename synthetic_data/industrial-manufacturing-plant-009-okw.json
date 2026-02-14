@@ -1,0 +1,262 @@
+{
+  "id": "e58d6d7d-a4ec-41ed-b81b-398b91a5db5e",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "1302",
+      "street": "Bowen Harbor",
+      "city": "Indianapolis",
+      "region": "GU",
+      "country": "US",
+      "postcode": "41674"
+    },
+    "gps_coordinates": "39.7683331, -86.1583502",
+    "directions": "Located near Lewis-Williams",
+    "city": "Indianapolis",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Wagner-Tanner",
+    "website": "https://martinez.info",
+    "languages": [
+      "en",
+      "de",
+      "fr"
+    ],
+    "mailing_list": "phoward@lists.hernandez.net",
+    "images": [
+      "images/money.jpg"
+    ],
+    "contact": {
+      "landline": "+1-552-385-9886",
+      "email": "info@james.com",
+      "whatsapp": "+1-595-359-4143"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://fleming.biz",
+        "https://robles.com"
+      ]
+    }
+  },
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "2005-06-05",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "PCNC 440",
+      "serial_number": "SN187952",
+      "condition": "Needs Maintenance",
+      "maintenance_schedule": "Every 3 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "1958",
+              "street": "Ho Pine",
+              "city": "Columbus",
+              "region": "AS",
+              "country": "US",
+              "postcode": "76333"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "city": "Columbus",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "9110",
+              "street": "Ramirez Springs",
+              "city": "New York",
+              "region": "NJ",
+              "country": "US",
+              "postcode": "55811"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located across from Riley, Gonzalez and Bishop",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Generic",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 400,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.01mm",
+        "supported_materials": [
+          "Aluminum",
+          "Plastic",
+          "Wood",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "16 minutes",
+          "cycle_time": "11 minutes",
+          "changeover_time": "13 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 522",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 274",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 476",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Accudraft",
+      "model": "Cross-Draft",
+      "serial_number": "SN562289",
+      "condition": "Good",
+      "notes": "Equipment notes: Service fear talk move north.",
+      "power_rating": 6701,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "supplier_location": {
+            "address": {
+              "number": "2923",
+              "street": "Clayton Villages",
+              "city": "Seattle",
+              "region": "TN",
+              "country": "US",
+              "postcode": "67691"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "directions": "Located across from Porter Ltd",
+            "city": "Seattle",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+          "supplier_location": {
+            "address": {
+              "number": "6079",
+              "street": "Peters Shore",
+              "city": "Houston",
+              "region": "PR",
+              "country": "US",
+              "postcode": "42083"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "directions": "Located across from Griffin-Spencer",
+            "city": "Houston",
+            "country": "US"
+          }
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "road_access": true,
+  "typical_products": [
+    "Reverse-engineered impactful archive",
+    "Cross-group clear-thinking support",
+    "Profit-focused executive info-mediaries",
+    "Compatible heuristic pricing structure"
+  ],
+  "record_data": {
+    "date_created": "2026-02-12T22:39:52.419923",
+    "created_by": {
+      "name": "Green Inc",
+      "location": {
+        "address": {
+          "number": "1069",
+          "street": "Fry Fords",
+          "city": "Denver",
+          "region": "VI",
+          "country": "US",
+          "postcode": "65582"
+        },
+        "gps_coordinates": "39.7392364, -104.984862",
+        "city": "Denver",
+        "country": "US"
+      },
+      "contact_person": "David Sampson",
+      "mailing_list": "clairecabrera@lists.jackson.com",
+      "contact": {
+        "mobile": "+1-252-502-8059",
+        "whatsapp": "+1-431-975-4489"
+      },
+      "social_media": {
+        "other_urls": [
+          "https://wallace.com",
+          "https://cameron-scott.com"
+        ]
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

@@ -1,0 +1,228 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "a8fa7066-591e-4c2e-9af9-132296c758e2",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/mortoncrystal/laser-cut-acrylic-display-case",
+  "version": "2.5.8",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Jennifer Kent",
+    "email": null,
+    "affiliation": "Wright-Mendoza",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "sancheznathaniel"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Score large mouth dream cause trade.",
+  "keywords": [
+    "reproducible",
+    "bearing",
+    "mount",
+    "documented",
+    "housing"
+  ],
+  "contributors": [
+    {
+      "name": "Kevin Ponce",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/wilsontiffany/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/vtran/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/josephpeterson/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/tyler12/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/patrickjonathan/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/kyle16/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.6"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/hostephen/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/andrewgomez/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Exhaust system",
+    "Heat shrink",
+    "Cutting bed",
+    "Wrench set",
+    "Crimping tool",
+    "Screwdriver set",
+    "Pliers",
+    "Air assist",
+    "Focus lens"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 474.88,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 297.26,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "d0923e6e-9ca6-4a19-ae28-bc81572619b5",
+      "source": [
+        "https://github.com/nicholas75/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/christopher74/project/raw/main/docs/base_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 732.89,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "88aaf34e-4e41-4edb-924f-9c932d55ea47",
+      "source": [
+        "https://github.com/guzmannicholas/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/suttonoscar/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/floresjason/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 39,
+        "width": 105,
+        "height": 37
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "4f44b70b-8f20-4b04-ac8f-5983248aa334",
+      "source": [],
+      "export": [
+        "https://github.com/ehunt/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/sarah99/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

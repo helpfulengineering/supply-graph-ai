@@ -1,0 +1,478 @@
+# =============================================================================
+# Canonical Manufacturing Process Taxonomy
+# =============================================================================
+#
+# This file is the single source of truth for manufacturing process
+# identification across the entire OHM system. It replaces the previously
+# scattered normalization functions and hardcoded dictionaries.
+#
+# HOW TO ADD OR MODIFY PROCESSES:
+#
+#   1. Each top-level key under "processes:" is the canonical_id.
+#      - Must be lowercase snake_case (e.g., "cnc_milling", not "CNC Milling").
+#      - Must be unique across the entire file.
+#
+#   2. Required fields:
+#      - display_name: Human-readable label shown in the UI and reports.
+#
+#   3. Optional fields:
+#      - tsdc_code: TSDC code from DIN SPEC 3105, if applicable (e.g., "3DP").
+#      - parent: canonical_id of the parent process, for hierarchy.
+#        The parent must be defined elsewhere in this file.
+#      - aliases: List of alternative names, abbreviations, and Wikipedia
+#        article slugs that should resolve to this canonical ID.
+#        Aliases are matched CASE-INSENSITIVELY. Do NOT include full
+#        Wikipedia URLs -- only the slug (the part after /wiki/).
+#
+#   4. After editing, validate your changes:
+#        ohm taxonomy validate
+#      Then reload the taxonomy in a running server:
+#        ohm taxonomy reload
+#
+# ALIAS RESOLUTION ORDER (in the ProcessTaxonomy.normalize() method):
+#   1. Exact canonical ID match
+#   2. Wikipedia URI extraction -> slug -> alias lookup
+#   3. TSDC code exact match (case-insensitive)
+#   4. Alias table exact match (after key normalization)
+#   5. Substring match against alias table keys
+#   6. Return None (unrecognized -- falls through to NLP layer)
+#
+# =============================================================================
+
+version: "1.0.0"
+description: "Canonical manufacturing process taxonomy for the Open Hardware Manager"
+metadata:
+  maintainer: "OHM Manufacturing Team"
+  last_updated: "2026-02-13"
+  source: "Consolidated from TSDC (DIN SPEC 3105), Wikipedia, and industry terminology"
+
+processes:
+
+  # ---------------------------------------------------------------------------
+  # Additive Manufacturing (TSDC: 3DP)
+  # ---------------------------------------------------------------------------
+
+  3d_printing:
+    display_name: "3D Printing"
+    tsdc_code: "3DP"
+    aliases:
+      - "3dp"
+      - "3d printing"
+      - "3d print"
+      - "3d_printing"
+      - "additive manufacturing"
+      - "am"
+      - "printing"
+      - "print"
+
+  3d_printing_fdm:
+    display_name: "FDM 3D Printing"
+    parent: "3d_printing"
+    aliases:
+      - "fdm"
+      - "fdm printing"
+      - "fused deposition modeling"
+      - "fused deposition modelling"
+      - "fused filament fabrication"
+      - "fused_filament_fabrication"
+      - "fff"
+
+  3d_printing_sla:
+    display_name: "SLA 3D Printing"
+    parent: "3d_printing"
+    aliases:
+      - "sla"
+      - "sla printing"
+      - "stereolithography"
+
+  3d_printing_sls:
+    display_name: "SLS 3D Printing"
+    parent: "3d_printing"
+    aliases:
+      - "sls"
+      - "sls printing"
+      - "selective laser sintering"
+
+  3d_printing_dlp:
+    display_name: "DLP 3D Printing"
+    parent: "3d_printing"
+    aliases:
+      - "dlp"
+      - "dlp printing"
+      - "digital light processing"
+
+  # ---------------------------------------------------------------------------
+  # Subtractive Manufacturing (TSDC: CNC)
+  # ---------------------------------------------------------------------------
+
+  cnc_machining:
+    display_name: "CNC Machining"
+    tsdc_code: "CNC"
+    aliases:
+      - "cnc"
+      - "cnc machining"
+      - "cnc_machining"
+      - "computer numerical control"
+      - "subtractive manufacturing"
+      - "machining"
+
+  cnc_milling:
+    display_name: "CNC Milling"
+    parent: "cnc_machining"
+    aliases:
+      - "cnc milling"
+      - "cnc_milling"
+      - "cnc mill"
+      - "cnc_mill"
+      - "milling"
+
+  cnc_turning:
+    display_name: "CNC Turning"
+    parent: "cnc_machining"
+    aliases:
+      - "cnc turning"
+      - "cnc_turning"
+      - "cnc lathe"
+      - "cnc_lathe"
+      - "turning"
+
+  # ---------------------------------------------------------------------------
+  # Laser Processes (TSDC: LAS)
+  # ---------------------------------------------------------------------------
+
+  laser_cutting:
+    display_name: "Laser Cutting"
+    tsdc_code: "LAS"
+    aliases:
+      - "las"
+      - "laser"
+      - "laser cutting"
+      - "laser_cutting"
+      - "laser cut"
+
+  # ---------------------------------------------------------------------------
+  # PCB (TSDC: PCB)
+  # ---------------------------------------------------------------------------
+
+  pcb_fabrication:
+    display_name: "PCB Fabrication"
+    tsdc_code: "PCB"
+    aliases:
+      - "pcb"
+      - "pcb fabrication"
+      - "pcb_fabrication"
+      - "printed circuit board"
+      - "printed_circuit_board"
+      - "circuit board"
+
+  # ---------------------------------------------------------------------------
+  # Assembly (TSDC: ASM)
+  # ---------------------------------------------------------------------------
+
+  assembly:
+    display_name: "Assembly"
+    tsdc_code: "ASM"
+    aliases:
+      - "asm"
+      - "assembly"
+      - "assembly line"
+      - "assembly_line"
+      - "assemble"
+      - "assembling"
+      - "component assembly"
+      - "attach"
+      - "attaching"
+      - "install"
+      - "installing"
+      - "mount"
+      - "mounting"
+
+  mechanical_assembly:
+    display_name: "Mechanical Assembly"
+    tsdc_code: "MEC"
+    parent: "assembly"
+    aliases:
+      - "mec"
+      - "mechanical assembly"
+      - "mechanical_assembly"
+
+  electronics_assembly:
+    display_name: "Electronics Assembly"
+    parent: "assembly"
+    aliases:
+      - "electronics assembly"
+      - "electronics_assembly"
+      - "electronics manufacturing"
+      - "electronics_manufacturing"
+
+  pcb_assembly:
+    display_name: "PCB Assembly"
+    parent: "assembly"
+    aliases:
+      - "pcb assembly"
+      - "pcb_assembly"
+      - "clean room assembly"
+      - "clean_room_assembly"
+
+  # ---------------------------------------------------------------------------
+  # Welding (TSDC: WEL)
+  # ---------------------------------------------------------------------------
+
+  welding:
+    display_name: "Welding"
+    tsdc_code: "WEL"
+    aliases:
+      - "wel"
+      - "welding"
+      - "weld"
+
+  tig_welding:
+    display_name: "TIG Welding"
+    parent: "welding"
+    aliases:
+      - "tig welding"
+      - "tig_welding"
+      - "tig"
+
+  mig_welding:
+    display_name: "MIG Welding"
+    parent: "welding"
+    aliases:
+      - "mig welding"
+      - "mig_welding"
+      - "mig"
+
+  arc_welding:
+    display_name: "Arc Welding"
+    parent: "welding"
+    aliases:
+      - "arc welding"
+      - "arc_welding"
+
+  # ---------------------------------------------------------------------------
+  # Sheet Metal (TSDC: SHEET)
+  # ---------------------------------------------------------------------------
+
+  sheet_metal_forming:
+    display_name: "Sheet Metal Forming"
+    tsdc_code: "SHEET"
+    aliases:
+      - "sheet"
+      - "sheet metal"
+      - "sheet metal forming"
+      - "sheet_metal_forming"
+      - "sheet_metal"
+
+  # ---------------------------------------------------------------------------
+  # Other Manufacturing Processes
+  # ---------------------------------------------------------------------------
+
+  injection_molding:
+    display_name: "Injection Molding"
+    aliases:
+      - "injection molding"
+      - "injection_molding"
+      - "injection moulding"
+
+  water_jet_cutting:
+    display_name: "Water Jet Cutting"
+    aliases:
+      - "water jet cutting"
+      - "water_jet_cutting"
+      - "waterjet"
+      - "water jet"
+
+  casting:
+    display_name: "Casting"
+    aliases:
+      - "casting"
+      - "cast"
+
+  forging:
+    display_name: "Forging"
+    aliases:
+      - "forging"
+      - "forge"
+
+  soldering:
+    display_name: "Soldering"
+    aliases:
+      - "soldering"
+      - "solder"
+
+  drilling:
+    display_name: "Drilling"
+    aliases:
+      - "drilling"
+      - "drill"
+
+  bending:
+    display_name: "Bending"
+    aliases:
+      - "bending"
+      - "bend"
+
+  grinding:
+    display_name: "Grinding"
+    aliases:
+      - "grinding"
+      - "grind"
+
+  polishing:
+    display_name: "Polishing"
+    aliases:
+      - "polishing"
+      - "polish"
+
+  sanding:
+    display_name: "Sanding"
+    aliases:
+      - "sanding"
+      - "sand"
+
+  coating:
+    display_name: "Coating"
+    aliases:
+      - "coating"
+      - "coat"
+
+  anodizing:
+    display_name: "Anodizing"
+    aliases:
+      - "anodizing"
+      - "anodising"
+      - "anodize"
+
+  heat_treatment:
+    display_name: "Heat Treatment"
+    aliases:
+      - "heat treatment"
+      - "heat_treatment"
+      - "heat treat"
+
+  annealing:
+    display_name: "Annealing"
+    parent: "heat_treatment"
+    aliases:
+      - "annealing"
+      - "anneal"
+
+  tempering:
+    display_name: "Tempering"
+    parent: "heat_treatment"
+    aliases:
+      - "tempering"
+      - "temper"
+
+  quenching:
+    display_name: "Quenching"
+    parent: "heat_treatment"
+    aliases:
+      - "quenching"
+      - "quench"
+
+  plasma_cutting:
+    display_name: "Plasma Cutting"
+    aliases:
+      - "plasma cutting"
+      - "plasma_cutting"
+      - "plasma cut"
+
+  surface_finishing:
+    display_name: "Surface Finishing"
+    aliases:
+      - "surface finishing"
+      - "surface_finishing"
+      - "surface finish"
+      - "surface_finish"
+      - "surface treatment"
+      - "surface_treatment"
+
+  # ---------------------------------------------------------------------------
+  # Post-Processing (TSDC: POST)
+  # ---------------------------------------------------------------------------
+
+  post_processing:
+    display_name: "Post-Processing"
+    tsdc_code: "POST"
+    aliases:
+      - "post"
+      - "post processing"
+      - "post_processing"
+      - "post-processing"
+      - "postprocessing"
+
+  deburring:
+    display_name: "Deburring"
+    aliases:
+      - "deburring"
+      - "deburr"
+
+  painting:
+    display_name: "Painting"
+    aliases:
+      - "painting"
+      - "paint"
+
+  # ---------------------------------------------------------------------------
+  # Cutting Processes
+  # ---------------------------------------------------------------------------
+
+  cutting:
+    display_name: "Cutting"
+    aliases:
+      - "cutting"
+      - "cut"
+
+  sawing:
+    display_name: "Sawing"
+    parent: "cutting"
+    aliases:
+      - "sawing"
+      - "saw"
+
+  shearing:
+    display_name: "Shearing"
+    parent: "cutting"
+    aliases:
+      - "shearing"
+      - "shear"
+
+  # ---------------------------------------------------------------------------
+  # Quality & Logistics
+  # ---------------------------------------------------------------------------
+
+  testing:
+    display_name: "Testing"
+    aliases:
+      - "testing"
+      - "test equipment"
+      - "test_equipment"
+      - "quality control"
+      - "quality_control"
+
+  packaging:
+    display_name: "Packaging"
+    aliases:
+      - "packaging"
+      - "packaging and labeling"
+      - "packaging_and_labeling"
+
+  # ---------------------------------------------------------------------------
+  # Precision & Electronics
+  # ---------------------------------------------------------------------------
+
+  precision_machining:
+    display_name: "Precision Machining"
+    parent: "cnc_machining"
+    aliases:
+      - "precision machining"
+      - "precision_machining"
+
+  electronic_circuitry:
+    display_name: "Electronic Circuitry"
+    tsdc_code: "CIR"
+    aliases:
+      - "cir"
+      - "electronic circuitry"
+      - "circuitry"

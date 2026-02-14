@@ -69,7 +69,9 @@ def _get_converter(template_path: str = None) -> DatasheetConverter:
     """,
     responses={
         200: {
-            "content": {"application/vnd.openxmlformats-officedocument.wordprocessingml.document": {}},
+            "content": {
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {}
+            },
             "description": "Generated MSF datasheet as .docx download",
         },
     },
@@ -115,9 +117,12 @@ async def convert_to_datasheet(
                 os.unlink(tmp_path)
 
         # Build a sensible filename
-        safe_title = "".join(
-            c if c.isalnum() or c in "-_ " else "" for c in manifest.title
-        ).strip().replace(" ", "-").lower()
+        safe_title = (
+            "".join(c if c.isalnum() or c in "-_ " else "" for c in manifest.title)
+            .strip()
+            .replace(" ", "-")
+            .lower()
+        )
         filename = f"{safe_title}-datasheet.docx" if safe_title else "datasheet.docx"
 
         return StreamingResponse(

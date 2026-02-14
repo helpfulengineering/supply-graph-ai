@@ -1,0 +1,301 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "3f531231-bf67-4c8d-bd5f-a7ac1a86812f",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/davidhunt/3d-printed-prosthetic-hand",
+  "version": "1.9.3",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "James Cooke",
+    "email": "nbonilla@example.org",
+    "affiliation": "Parks PLC",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "cainjackson"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Child very interest positive third.",
+  "keywords": [
+    "fastener",
+    "customizable",
+    "bracket",
+    "gear"
+  ],
+  "contributors": [
+    {
+      "name": "Michael Nelson",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Kim Anderson",
+      "email": null,
+      "affiliation": "Smith Group",
+      "social": []
+    },
+    {
+      "name": "Anita Hensley",
+      "email": "oliverjulie@example.com",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "andrew66"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Ruiz-Johnson",
+    "url": "https://blankenship.com",
+    "email": null
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/mariatran/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/shelbystewart/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/michael38/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/jacksonjames/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/nancyrose/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/donna12/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/kathleenmarquez/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/sabrina83/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Build plate",
+    "Cable ties",
+    "Heat shrink",
+    "Wrench set",
+    "Filament",
+    "Screwdriver set",
+    "Pliers",
+    "Nozzle"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 400.37,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 77.69,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "a5dadabb-2104-4c63-802b-3637aece440a",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/alexamurphy/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": null,
+      "mass": 350.21,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "4daf2cdf-1766-47da-ad27-066e84076b58",
+      "source": [
+        "https://github.com/claybrenda/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/james62/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/njames/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "e3ddd246-486d-4219-a40f-ed31ae098b3e",
+      "source": [],
+      "export": [
+        "https://github.com/sara02/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/bassjohn/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": 647.28,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "39c81479-40bf-4f50-a46c-965032d92284",
+      "source": [],
+      "export": [
+        "https://github.com/tracycollier/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/arussell/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 152,
+        "width": 186,
+        "height": 24
+      },
+      "mass": 321.2,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "280a77d4-c1e1-4df0-b49d-d7afc2baa788",
+      "source": [
+        "https://github.com/jamesjennifer/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/rebecca52/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/smoore/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 151,
+        "width": 198,
+        "height": 22
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1739,6 +1739,123 @@ Reset all rules (clear all rule sets).
 
 **Status:** ✅ **Fully Implemented**
 
+### Taxonomy Routes
+
+The Taxonomy API provides endpoints for querying and reloading the canonical manufacturing process taxonomy at runtime. The taxonomy is the single source of truth for process normalization, validation, and matching across OHM.
+
+**Base Path:** `/v1/api/taxonomy`
+
+#### Get Current Taxonomy
+
+```
+GET /v1/api/taxonomy
+```
+
+Returns all processes in the current taxonomy with their definitions, aliases, and hierarchy.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "data": {
+    "total": 47,
+    "source": "src/config/taxonomy/processes.yaml",
+    "processes": [
+      {
+        "canonical_id": "3d_printing",
+        "display_name": "3D Printing",
+        "tsdc_code": "3DP",
+        "parent": null,
+        "aliases": ["3d print", "3d printing", "3d_printing", "3dp", "additive manufacturing", "am", "print", "printing"],
+        "children": ["3d_printing_dlp", "3d_printing_fdm", "3d_printing_sla", "3d_printing_sls"]
+      },
+      {
+        "canonical_id": "3d_printing_fdm",
+        "display_name": "FDM 3D Printing",
+        "tsdc_code": null,
+        "parent": "3d_printing",
+        "aliases": ["fdm", "fdm printing", "fff", "fused deposition modeling", "fused deposition modelling", "fused filament fabrication", "fused_filament_fabrication"],
+        "children": []
+      }
+    ]
+  }
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
+#### Reload Taxonomy
+
+```
+POST /v1/api/taxonomy/reload
+```
+
+Reload the process taxonomy from the YAML configuration file. The reload is atomic: if validation fails, the current taxonomy is preserved.
+
+**Response (success):**
+```json
+{
+  "status": "ok",
+  "message": "Taxonomy reloaded successfully",
+  "data": {
+    "added": [],
+    "removed": [],
+    "total": 47,
+    "source": "src/config/taxonomy/processes.yaml",
+    "version": "1.0.0"
+  }
+}
+```
+
+**Response (validation failure):**
+```json
+{
+  "detail": "Taxonomy validation failed: Circular hierarchy detected involving 'proc_a'"
+}
+```
+
+**Error Status Codes:**
+- `400`: Validation failed (taxonomy preserved)
+- `404`: YAML file not found
+- `500`: Unexpected error
+
+**Status:** ✅ **Fully Implemented**
+
+#### Validate Taxonomy
+
+```
+GET /v1/api/taxonomy/validate
+```
+
+Validate the current taxonomy YAML file without applying changes.
+
+**Response (valid):**
+```json
+{
+  "status": "ok",
+  "valid": true,
+  "total_processes": 47,
+  "errors": [],
+  "source": "src/config/taxonomy/processes.yaml"
+}
+```
+
+**Response (invalid):**
+```json
+{
+  "status": "error",
+  "valid": false,
+  "total_processes": 48,
+  "errors": [
+    "Duplicate canonical_id: 'cnc_machining'",
+    "Process 'orphan': parent 'nonexistent' does not exist"
+  ],
+  "source": "src/config/taxonomy/processes.yaml"
+}
+```
+
+**Status:** ✅ **Fully Implemented**
+
 ### Domain Management Routes
 
 #### List All Domains
@@ -2113,6 +2230,11 @@ Paginated responses include consistent metadata:
 - `PUT /v1/api/supply-tree/{id}` - **Update supply tree**
 - `DELETE /v1/api/supply-tree/{id}` - **Delete supply tree**
 - `POST /v1/api/supply-tree/validate` - **Validate supply tree**
+
+#### **Taxonomy Routes**
+- `GET /v1/api/taxonomy` - **Get full taxonomy with process definitions, aliases, and hierarchy**
+- `POST /v1/api/taxonomy/reload` - **Atomic runtime reload of taxonomy from YAML**
+- `GET /v1/api/taxonomy/validate` - **Validate taxonomy YAML without applying changes**
 
 #### **Utility Routes**
 - `GET /v1/api/utility/domains` - **Domain listing with LLM analysis**

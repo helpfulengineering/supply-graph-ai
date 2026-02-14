@@ -41,6 +41,10 @@ from core.models.okh import (
     ProcessRequirement, ManufacturingSpec, Standard, PartSpec,
     DocumentationType
 )
+
+# Also add the project root to the path for taxonomy import
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from src.core.taxonomy import taxonomy as process_taxonomy
 from core.models.bom import BillOfMaterials, Component
 from core.models.okw import (
     ManufacturingFacility, Equipment, Location, Address, Agent,
@@ -1192,6 +1196,46 @@ class OKWGenerator(SyntheticDataGenerator):
                 "equipment_types": ["Pick and place", "Reflow oven", "AOI", "ICT"],
                 "batch_size": BatchSize.MEDIUM,
                 "certifications": ["IPC-A-610", "ISO 9001"]
+            },
+            {
+                "name": "Full-Service CNC Shop",
+                "description": "End-to-end CNC machining with deburring and anodizing finishing",
+                "access_type": AccessType.RESTRICTED,
+                "equipment_types": ["CNC mill", "Deburring station", "Anodizing line"],
+                "batch_size": BatchSize.MEDIUM,
+                "certifications": ["ISO 9001", "NADCAP"]
+            },
+            {
+                "name": "Sheet Metal Fabrication House",
+                "description": "Full-service sheet metal fabrication with welding and painting",
+                "access_type": AccessType.RESTRICTED,
+                "equipment_types": ["Sheet metal brake", "Welder", "Paint booth"],
+                "batch_size": BatchSize.MEDIUM,
+                "certifications": ["ISO 9001", "AWS D1.1"]
+            },
+            {
+                "name": "Additive Manufacturing Center",
+                "description": "Advanced additive manufacturing with post-processing and assembly",
+                "access_type": AccessType.RESTRICTED_PUBLIC,
+                "equipment_types": ["3D printer", "SLA printer", "Post-processing station", "Assembly station"],
+                "batch_size": BatchSize.SMALL,
+                "certifications": ["ISO 9001", "Research Grade"]
+            },
+            {
+                "name": "Laser Fabrication Lab",
+                "description": "Laser cutting and engraving with product assembly services",
+                "access_type": AccessType.MEMBERSHIP,
+                "equipment_types": ["Laser cutter", "Assembly station"],
+                "batch_size": BatchSize.SMALL,
+                "certifications": ["Basic Safety", "Laser Safety"]
+            },
+            {
+                "name": "Electronics Prototyping Center",
+                "description": "Integrated PCB assembly, 3D printing, and product assembly",
+                "access_type": AccessType.RESTRICTED,
+                "equipment_types": ["Pick and place", "3D printer", "Assembly station"],
+                "batch_size": BatchSize.SMALL,
+                "certifications": ["IPC-A-610", "ISO 9001"]
             }
         ]
         
@@ -1251,6 +1295,70 @@ class OKWGenerator(SyntheticDataGenerator):
                     "feed_rate": "100-5000 mm/min",
                     "tool_diameter": "0.5-25mm",
                     "cutting_depth": "0.1-50mm"
+                }
+            },
+            "Deburring station": {
+                "makes": ["Timesavers", "Grind Master", "Lissmac", "RSA"],
+                "models": ["Series 71", "MCSB 300", "SBM-L", "RSA 600"],
+                "process": "https://en.wikipedia.org/wiki/Deburring",
+                "materials": ["Aluminum", "Steel", "Brass", "Plastic"],
+                "properties": {"working_width": [300, 600, 900]},
+                "capabilities": {
+                    "edge_quality": "Ra 0.4-1.6μm",
+                    "processing_speed": "1-5 m/min",
+                    "max_part_thickness": "100mm"
+                }
+            },
+            "Anodizing line": {
+                "makes": ["Saporiti", "Henkel", "Alufinish", "Chemetall"],
+                "models": ["Type II Line", "Type III Line", "Hard Anodize Pro", "Color Line"],
+                "process": "https://en.wikipedia.org/wiki/Anodizing",
+                "materials": ["Aluminum 6061", "Aluminum 7075", "Aluminum 2024"],
+                "properties": {"tank_volume": [500, 1000, 2000]},
+                "capabilities": {
+                    "coating_thickness": "5-75μm",
+                    "colors": ["Clear", "Black", "Red", "Blue", "Gold"],
+                    "hardness": "200-600 HV",
+                    "mil_spec": "MIL-A-8625"
+                }
+            },
+            "Paint booth": {
+                "makes": ["Spray Systems", "Col-Met", "Global Finishing", "Accudraft"],
+                "models": ["Drive-In", "Cross-Draft", "Downdraft", "Semi-Downdraft"],
+                "process": "https://en.wikipedia.org/wiki/Painting",
+                "materials": ["Primer", "Enamel", "Powder coat", "Epoxy"],
+                "properties": {"booth_size": [3, 5, 8]},
+                "capabilities": {
+                    "finish_quality": "Class A surface",
+                    "coating_types": ["Wet spray", "Powder coat", "E-coat"],
+                    "cure_temperature": "60-200°C",
+                    "humidity_control": "Yes"
+                }
+            },
+            "Post-processing station": {
+                "makes": ["PostProcess", "DyeMansion", "AMT", "Bel Air"],
+                "models": ["DECI Duo", "Powershot C", "PostPro3D", "VibroStar"],
+                "process": "https://en.wikipedia.org/wiki/Post-processing",
+                "materials": ["PLA", "PETG", "ABS", "Nylon", "Resin"],
+                "properties": {"chamber_volume": [200, 400, 600]},
+                "capabilities": {
+                    "surface_smoothing": "Ra 1.0-3.0μm",
+                    "support_removal": "Automated",
+                    "vapor_smoothing": "Yes",
+                    "dyeing": "Yes"
+                }
+            },
+            "Assembly station": {
+                "makes": ["Bosch Rexroth", "Festo", "item", "FlexLink"],
+                "models": ["Manual Cell", "Semi-Auto Line", "Flex Station", "Modular Bench"],
+                "process": "https://en.wikipedia.org/wiki/Assembly_line",
+                "materials": ["Fasteners", "Adhesives", "Cables", "Connectors"],
+                "properties": {"workstation_count": [1, 2, 4]},
+                "capabilities": {
+                    "assembly_types": ["Mechanical", "Electrical", "Mixed"],
+                    "torque_control": "0.1-50 Nm",
+                    "esd_protection": "Yes",
+                    "test_integration": "Functional test points"
                 }
             }
         }
@@ -1375,6 +1483,8 @@ class OKWGenerator(SyntheticDataGenerator):
         }
         
         # Process name to Wikipedia URL mapping
+        # Uses the canonical taxonomy for normalization, with Wikipedia slugs
+        # for backward compatibility with OKW data format
         self.process_mapping = {
             "PCB": "Printed_circuit_board",
             "CNC": "Machining",
@@ -1398,6 +1508,9 @@ class OKWGenerator(SyntheticDataGenerator):
             "Post-processing": "Post-processing",
             "Welding": "Welding"
         }
+        # Note: This mapping is kept for backward compatibility with existing
+        # OKW JSON format which uses Wikipedia slugs in process URIs.
+        # The canonical source of truth is src.core.taxonomy.process_taxonomy.
         
         # Capacity metrics templates
         self.capacity_metrics = {
@@ -2495,52 +2608,21 @@ def analyze_okh_process_requirements(okh_manifests: List[OKHManifest]) -> Dict[s
     """
     all_processes = set()
     
-    # Process name normalization mapping
-    process_normalization = {
-        "PCB": "PCB",
-        "Printed_circuit_board": "PCB",
-        "Printed circuit board": "PCB",
-        "CNC": "CNC",
-        "Machining": "CNC",
-        "CNC Machining": "CNC",
-        "3DP": "3DP",
-        "3D Printing": "3DP",
-        "Fused_filament_fabrication": "3DP",
-        "FDM": "3DP",
-        "SLA": "3DP",
-        "LASER": "LASER",
-        "Laser Cutting": "LASER",
-        "Laser_cutting": "LASER",
-        "SHEET": "SHEET",
-        "Sheet Metal": "SHEET",
-        "Sheet_metal_forming": "SHEET",
-        "Assembly": "Assembly",
-        "Assembly_line": "Assembly",
-        "Electronics Assembly": "Electronics Assembly",
-        "Electronics_manufacturing": "Electronics Assembly",
-        "Precision Machining": "Precision Machining",
-        "Clean Room Assembly": "Clean Room Assembly",
-    }
-    
     def normalize_process(process: str) -> Optional[str]:
-        """Normalize a process name to a standard key"""
-        # Try direct match
-        if process in process_normalization:
-            return process_normalization[process]
+        """Normalize a process name using the canonical ProcessTaxonomy.
         
-        # Try case-insensitive match
-        process_lower = process.lower()
-        for key, value in process_normalization.items():
-            if key.lower() == process_lower:
-                return value
-        
-        # Try partial match (e.g., "PCB Fabrication" -> "PCB")
-        for key, value in process_normalization.items():
-            if key.lower() in process_lower or process_lower in key.lower():
-                return value
-        
-        # If no match, return None (will be skipped)
-        return None
+        Returns the TSDC code if available, otherwise the display name.
+        This preserves backward compatibility with the existing analysis
+        that groups by TSDC-style codes (e.g., "PCB", "CNC", "3DP").
+        """
+        canonical_id = process_taxonomy.normalize(process)
+        if canonical_id is None:
+            return None
+        # Return TSDC code if available (for grouping), else display name
+        tsdc = process_taxonomy.get_tsdc_code(canonical_id)
+        if tsdc:
+            return tsdc
+        return process_taxonomy.get_display_name(canonical_id)
     
     # Extract processes from each OKH manifest
     for okh in okh_manifests:
@@ -2769,11 +2851,57 @@ def main():
             if args.nested:
                 parser.error("--nested option is not supported with --match. Use --nested without --match to generate nested OKH manifests.")
             
+            # Mapping from OKH short-code processes to required equipment types.
+            # This ensures the generated OKW facility has equipment that covers
+            # every process the OKH design requires.
+            process_to_equipment = {
+                "CNC": "CNC mill",
+                "3DP": "3D printer",
+                "LASER": "Laser cutter",
+                "PCB": "Pick and place",
+                "SHEET": "Sheet metal brake",
+                "Deburring": "Deburring station",
+                "Anodizing": "Anodizing line",
+                "Welding": "Welder",
+                "Painting": "Paint booth",
+                "Post-processing": "Post-processing station",
+                "Assembly": "Assembly station",
+                "Soldering": "Pick and place",
+            }
+
             for i in range(args.count):
                 try:
                     # Generate matched pair
                     okh_record = okh_generator.generate_okh_manifest()
                     okw_record = okw_generator.generate_manufacturing_facility()
+                    
+                    # --- Reconcile: ensure OKW covers OKH's processes ---
+                    okh_processes = getattr(okh_record, "manufacturing_processes", []) or []
+                    existing_equipment_types = {
+                        eq.manufacturing_process for eq in okw_record.equipment
+                    }
+                    
+                    for proc in okh_processes:
+                        equip_type = process_to_equipment.get(proc)
+                        if equip_type is None:
+                            continue  # Unknown process, skip
+                        # Check if a compatible equipment is already present by
+                        # comparing the target process URI.
+                        target_spec = okw_generator.equipment_specs.get(equip_type)
+                        if target_spec:
+                            target_uri = target_spec["process"]
+                        else:
+                            target_uri = f"https://en.wikipedia.org/wiki/{equip_type.replace(' ', '_')}"
+                        
+                        if target_uri not in existing_equipment_types:
+                            # Add the missing equipment
+                            new_equip = okw_generator.generate_equipment(equip_type)
+                            okw_record.equipment.append(new_equip)
+                            existing_equipment_types.add(new_equip.manufacturing_process)
+                            # Also add to manufacturing_processes list
+                            process_wiki = f"https://en.wikipedia.org/wiki/{equip_type.replace(' ', '_')}"
+                            if process_wiki not in (okw_record.manufacturing_processes or []):
+                                okw_record.manufacturing_processes.append(process_wiki)
                     
                     # Validate if requested
                     if args.validate:

@@ -1,0 +1,224 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "d1f512a9-1807-4321-8c97-71ee69c3f17c",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/bmedina/laser-cut-acrylic-display-case",
+  "version": "1.4.4",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Gregory Richards",
+    "email": "grantdaniel@example.com",
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "es",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Want measure sound.",
+  "keywords": [
+    "documented",
+    "housing",
+    "mount",
+    "modular"
+  ],
+  "contact": {
+    "name": "Timothy Schwartz DVM",
+    "email": null,
+    "affiliation": "Rivera Inc",
+    "social": []
+  },
+  "organization": {
+    "name": "Wilson-Villanueva",
+    "url": "https://macdonald-myers.org",
+    "email": "contact@wilson.com"
+  },
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/diaznicole/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/jerry93/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/james57/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/elizabeth89/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/ashley86/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/joel69/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/brandiadams/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/john55/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/paul27/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Exhaust system",
+    "Heat shrink",
+    "Material guides",
+    "Crimping tool",
+    "Screwdriver set",
+    "Pliers",
+    "Air assist",
+    "Focus lens"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 45.33,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 522.62,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "20bef48b-80df-42c1-950a-0aa9884f30b9",
+      "source": [
+        "https://github.com/jenkinsdavid/project/raw/main/models/housing.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "6d0c5df4-40ac-4b33-af98-7a251d65d212",
+      "source": [
+        "https://github.com/berryalison/project/raw/main/models/bracket.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/tammy38/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "73514df1-4db4-4248-ba4f-81b15b09a2df",
+      "source": [
+        "https://github.com/brian16/project/raw/main/models/frame.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/whansen/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 683.02,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

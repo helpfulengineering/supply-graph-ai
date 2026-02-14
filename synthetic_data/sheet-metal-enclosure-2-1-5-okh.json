@@ -1,0 +1,277 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "69efb032-1ba4-44c6-be5c-7385104651a4",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/phines/sheet-metal-enclosure",
+  "version": "2.1.5",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "James Scott",
+    "email": "josephtaylor@example.org",
+    "affiliation": "Combs, Estrada and Buchanan",
+    "social": []
+  },
+  "documentation_language": "fr",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Discussion really site half identify job.",
+  "keywords": [
+    "bracket",
+    "reproducible",
+    "documented"
+  ],
+  "contact": {
+    "name": "Anita Hahn",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "snowcharles"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Kelly Lee",
+      "email": "uhughes@example.org",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Whitney-Huff",
+    "url": null,
+    "email": "contact@thompson-carr.biz"
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/dtaylor/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/jeanne24/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/tracey66/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/jacob95/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/nmosley/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/melaniecruz/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/rramos/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/pmcneil/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Grinder",
+    "Sheet metal brake",
+    "Screwdriver set",
+    "Crimping tool",
+    "Pliers",
+    "Shear",
+    "Punch press"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 530.01,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": []
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "3e902819-6949-4b44-af4a-1681f25ee638",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/vmatthews/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/david99/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "bf96656e-5d97-4c02-87f2-133d3f57cc14",
+      "source": [
+        "https://github.com/ramirezleslie/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/tonyajohnson/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "a8b6524a-fc8e-4b3b-bee0-4deb1bc8785e",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/omcdonald/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/davidbeltran/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "d8b1487e-5bf1-4c30-b5fc-ce94eb6913c2",
+      "source": [
+        "https://github.com/mariagross/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "f4ffd506-c1a7-4e41-837b-7bb2af77d79f",
+      "source": [
+        "https://github.com/ibyrd/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/bvega/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/jacqueline65/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": null,
+      "mass": 221.05,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

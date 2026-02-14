@@ -1,0 +1,208 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "4bb307bb-a368-4b8f-9e50-337824cca4f6",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/rmccarthy/arduino-based-iot-sensor-node",
+  "version": "2.3.4",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Scott Hogan",
+    "email": "blakederek@example.net",
+    "affiliation": "Williams Group",
+    "social": []
+  },
+  "documentation_language": "fr",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Beautiful science give industry officer yet.",
+  "intended_use": "Within various green.",
+  "keywords": [
+    "bearing",
+    "documented"
+  ],
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/loricortez/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/adamsrobert/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/nicholashoward/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.9"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/sara53/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/spenceheather/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/virginiaanderson/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/scottlopez/project/raw/main/docs/pcb_assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/oliverryan/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Soldering station",
+    "Oscilloscope",
+    "Cable ties",
+    "Heat shrink",
+    "Wrench set",
+    "Heat gun",
+    "Filament",
+    "Screwdriver set",
+    "3D printer",
+    "Multimeter",
+    "Reflow oven",
+    "Nozzle"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 648.74,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: B"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "PCB",
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "740df9d0-3c6d-4e23-adcf-d3925b64d4f0",
+      "source": [
+        "https://github.com/jasonfreeman/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/christophermiller/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/whitneycathy/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "PLA",
+      "outer_dimensions": null,
+      "mass": 768.64,
+      "manufacturing_params": {
+        "board_thickness": "1.6mm",
+        "copper_thickness": "35μm"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "d49a978d-2b1f-4816-8e1e-e307018c4e6a",
+      "source": [
+        "https://github.com/jeffrey05/project/raw/main/models/housing.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/whitenicholas/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": {
+        "length": 132,
+        "width": 155,
+        "height": 93
+      },
+      "mass": 387.76,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -438,7 +438,7 @@ async def requirements(
                     okh_service = await OKHService.get_instance()
                     # Pass manifest path for BOM file resolution
                     manifest_path = input_file if not is_url else None
-                    solution = await matching_service.match_with_nested_components(
+                    solutions = await matching_service.match_with_nested_components(
                         okh_manifest=manifest,
                         facilities=facilities,
                         max_depth=effective_max_depth,
@@ -447,9 +447,14 @@ async def requirements(
                         manifest_path=manifest_path,
                     )
 
+                    # Pick the best-scoring solution for display and saving
+                    best_solution = (
+                        max(solutions, key=lambda s: s.score) if solutions else None
+                    )
+
                     # Save solution if requested
                     solution_id = None
-                    if save_solution:
+                    if save_solution and best_solution:
                         try:
                             from ..config.storage_config import (
                                 get_default_storage_config,
@@ -476,7 +481,7 @@ async def requirements(
                             )
                             solution_id = (
                                 await storage_service.save_supply_tree_solution(
-                                    solution,
+                                    best_solution,
                                     ttl_days=ttl_days,
                                     tags=tags_list,
                                 )
@@ -490,15 +495,17 @@ async def requirements(
                             # Continue without failing the match
 
                     # Convert to response format matching API
-                    # For nested solutions, count trees, not solutions
-                    solution_dict = solution.to_dict()
-                    num_trees = len(solution.all_trees) if solution.all_trees else 0
+                    solutions_list = sorted(
+                        solutions, key=lambda s: s.score, reverse=True
+                    )
+                    solution_dicts = [s.to_dict() for s in solutions_list]
+                    total_trees = sum(len(s.all_trees) for s in solutions_list)
                     result = {
-                        "solutions": [
-                            solution_dict
-                        ],  # Wrap in array for consistency with display logic
-                        "solution": solution_dict,  # Also include singular for API compatibility
-                        "total_solutions": num_trees,  # Count trees found, not solution count
+                        "solutions": solution_dicts,
+                        "solution": (
+                            solution_dicts[0] if solution_dicts else {}
+                        ),  # Best solution for API compatibility
+                        "total_solutions": total_trees,  # Count trees found
                         "matching_mode": "nested",
                         "processing_time": 0.0,  # Fallback doesn't track time
                     }

@@ -1,0 +1,347 @@
+{
+  "id": "12ba5643-e1a5-48f5-8739-43ace6521c40",
+  "name": "Laser Fabrication Lab",
+  "location": {
+    "address": {
+      "number": "7873",
+      "street": "Dylan Stravenue",
+      "city": "Boston",
+      "region": "TN",
+      "country": "US",
+      "postcode": "16490"
+    },
+    "gps_coordinates": "42.3588336, -71.0578303",
+    "directions": "Located behind Nguyen Inc",
+    "city": "Boston",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 6:00-22:00",
+  "description": "Laser cutting and engraving with product assembly services",
+  "date_founded": "2013-11-23",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "LS-1630",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Each history play color according investment.",
+      "throughput": "88 parts/hour",
+      "maintenance_schedule": "Every 4 months",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "supplier_location": {
+            "address": {
+              "number": "900",
+              "street": "Smith Shoals",
+              "city": "Columbus",
+              "region": "AK",
+              "country": "US",
+              "postcode": "03979"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "directions": "Located near Medina-Rodriguez",
+            "city": "Columbus",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "supplier_location": {
+            "address": {
+              "number": "3865",
+              "street": "Peter Drives",
+              "city": "Fort Worth",
+              "region": "IN",
+              "country": "US",
+              "postcode": "49913"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Generic",
+          "brand": "Professional"
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "FlexLink",
+      "model": "Flex Station",
+      "serial_number": "SN400894",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Paper they science should build then.",
+      "quantity": 1,
+      "maintenance_schedule": "Every 10 months",
+      "usage_levels": "Medium",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2201",
+              "street": "Rowland Knoll",
+              "city": "New York",
+              "region": "PW",
+              "country": "US",
+              "postcode": "67972"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Standard"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "DMU 50",
+      "serial_number": "SN211529",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Machine dinner arrive stop TV able.",
+      "quantity": 5,
+      "power_rating": 7171,
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "supplier_location": {
+            "address": {
+              "number": "4066",
+              "street": "Neal Walks",
+              "city": "San Francisco",
+              "region": "IA",
+              "country": "US",
+              "postcode": "58617"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "296",
+              "street": "Curtis Loaf",
+              "city": "Austin",
+              "region": "LA",
+              "country": "US",
+              "postcode": "58794"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "directions": "Located behind Cox LLC",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "5652",
+              "street": "Lee Villages",
+              "city": "Jacksonville",
+              "region": "AL",
+              "country": "US",
+              "postcode": "47294"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Deburring_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Deburring",
+      "make": "Grind Master",
+      "model": "SBM-L",
+      "condition": "Needs Maintenance",
+      "power_rating": 7848,
+      "maintenance_schedule": "Every 5 months",
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3245",
+              "street": "Jesse Row",
+              "city": "New York",
+              "region": "OR",
+              "country": "US",
+              "postcode": "42893"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located across from Sanders, Taylor and Chapman",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6347",
+              "street": "Rice Station",
+              "city": "New York",
+              "region": "MP",
+              "country": "US",
+              "postcode": "84137"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located across from Goodwin-Bright",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Brass"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8977",
+              "street": "Maria Cliff",
+              "city": "Dallas",
+              "region": "AS",
+              "country": "US",
+              "postcode": "28750"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "city": "Dallas",
+            "country": "US"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Anodizing_line",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Anodizing",
+      "make": "Saporiti",
+      "model": "Hard Anodize Pro",
+      "serial_number": "SN418946",
+      "condition": "Good",
+      "throughput": "77 parts/hour",
+      "power_rating": 9991,
+      "maintenance_schedule": "Every 9 months",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_6061",
+          "supplier_location": {
+            "address": {
+              "number": "5861",
+              "street": "Peter Flats",
+              "city": "San Diego",
+              "region": "ND",
+              "country": "US",
+              "postcode": "07749"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_7075",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_2024",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5677",
+              "street": "Dodson Route",
+              "city": "Austin",
+              "region": "WI",
+              "country": "US",
+              "postcode": "62961"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "city": "Austin",
+            "country": "US"
+          }
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station",
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/Deburring_station",
+    "https://en.wikipedia.org/wiki/Anodizing_line"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "OHSAS 18001",
+    "AS9100"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Question owner lead pull discover.",
+    "by_products": [
+      "spring",
+      "suffer",
+      "girl"
+    ]
+  }
+}

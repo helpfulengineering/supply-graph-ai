@@ -37,6 +37,8 @@ from .models import (
 )
 from .quality import QualityAssessor
 
+from ..taxonomy import taxonomy
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -1085,105 +1087,47 @@ class GenerationEngine:
         """
         Normalize manufacturing processes list.
 
-        - Removes duplicates (case-insensitive)
-        - Normalizes to lowercase standard forms
-        - Maps to canonical manufacturing process names
-        - Filters out non-manufacturing verbs
+        Delegates to the canonical ProcessTaxonomy for known processes.
+        Filters out non-manufacturing terms and deduplicates.
 
         Args:
             processes: List of process names (may include duplicates, various cases)
 
         Returns:
-            Normalized, deduplicated list of manufacturing processes
+            Normalized, deduplicated list of manufacturing process display names
         """
         if not processes:
             return []
 
-        # Map of common variations to canonical names
-        canonical_map = {
-            "print": "3d printing",
-            "printing": "3d printing",
-            "3d print": "3d printing",
-            "3d printing": "3d printing",
-            "fdm": "3d printing",
-            "sla": "3d printing",
-            "sls": "3d printing",
-            "assemble": "assembly",
-            "assembling": "assembly",
-            "attach": "assembly",
-            "attaching": "assembly",
-            "install": "assembly",
-            "installing": "assembly",
-            "mount": "assembly",
-            "mounting": "assembly",
-            "test": None,  # Filter out generic "test" - not a manufacturing process
-            "layer": None,  # Filter out generic "layer" - part of 3d printing but not a process
-        }
-
-        # Set of valid manufacturing processes (canonical names)
-        valid_processes = {
-            "3d printing",
-            "laser cutting",
-            "cnc machining",
-            "soldering",
-            "assembly",
-            "welding",
-            "cutting",
-            "drilling",
-            "bending",
-            "grinding",
-            "painting",
-            "anodizing",
-            "heat treatment",
-            "injection molding",
-            "casting",
-            "forging",
-            "machining",
-            "turning",
-            "milling",
-            "sawing",
-            "shearing",
-            "plasma cutting",
-            "tig welding",
-            "mig welding",
-            "arc welding",
-            "polishing",
-            "sanding",
-            "coating",
-            "annealing",
-            "tempering",
-            "quenching",
-        }
+        # Words to explicitly filter out (not manufacturing processes)
+        filter_words = {"test", "layer"}
 
         normalized = []
-        seen = set()
+        seen: set = set()
 
         for process in processes:
             if not process or not isinstance(process, str):
                 continue
 
-            # Normalize to lowercase for comparison
-            process_lower = process.lower().strip()
-
-            # Skip empty strings
-            if not process_lower:
+            process_stripped = process.strip()
+            if not process_stripped:
                 continue
 
-            # Map to canonical name
-            canonical = canonical_map.get(process_lower)
-
-            # If explicitly mapped to None, filter it out
-            if canonical is None and process_lower in canonical_map:
+            # Filter out known non-process words
+            if process_stripped.lower() in filter_words:
                 continue
 
-            # Use canonical name if mapped, otherwise use lowercase version
-            final_name = canonical if canonical is not None else process_lower
+            # Try taxonomy normalization
+            canonical_id = taxonomy.normalize(process_stripped)
 
-            # Check if it's a valid manufacturing process
-            # Allow if it's in valid_processes or contains manufacturing-related keywords
-            is_valid = final_name in valid_processes or any(
-                keyword in final_name
-                for keyword in [
+            if canonical_id is not None:
+                if canonical_id not in seen:
+                    seen.add(canonical_id)
+                    normalized.append(taxonomy.get_display_name(canonical_id))
+            else:
+                # Unknown process -- keep if it looks manufacturing-related
+                lower = process_stripped.lower()
+                manufacturing_hints = [
                     "print",
                     "cut",
                     "weld",
@@ -1199,17 +1143,10 @@ class GenerationEngine:
                     "mold",
                     "treat",
                 ]
-            )
-
-            if not is_valid:
-                continue
-
-            # Deduplicate using lowercase comparison
-            final_lower = final_name.lower()
-            if final_lower not in seen:
-                seen.add(final_lower)
-                # Capitalize first letter for consistency
-                normalized.append(final_name.title())
+                if any(hint in lower for hint in manufacturing_hints):
+                    if lower not in seen:
+                        seen.add(lower)
+                        normalized.append(process_stripped.title())
 
         return normalized
 

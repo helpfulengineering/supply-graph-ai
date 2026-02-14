@@ -15,6 +15,7 @@ from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from ..registry.domain_registry import DomainRegistry
 from ..services.bom_resolution_service import BOMResolutionService
 from ..services.domain_service import DomainDetector
+from ..taxonomy import taxonomy
 from ..utils.logging import get_logger
 from .okh_service import OKHService
 from .okw_service import OKWService
@@ -346,7 +347,10 @@ class MatchingService:
 
             # Check if ALL requirements can be satisfied by the capabilities
             for req in req_list:
-                req_process = req.get("process_name", "").lower().strip()
+                raw_req_process = req.get("process_name", "").strip()
+                req_process = (
+                    self._normalize_process_name(raw_req_process).lower().strip()
+                )
                 if not req_process:
                     logger.debug(f"Skipping empty requirement: {req}")
                     continue
@@ -355,16 +359,10 @@ class MatchingService:
                 requirement_satisfied = False
 
                 for cap in cap_list:
-                    cap_process = cap.get("process_name", "").lower().strip()
-                    if not cap_process:
-                        logger.debug(f"Skipping empty capability: {cap}")
-                        continue
-
-                # Track if this requirement has a match
-                requirement_satisfied = False
-
-                for cap in capabilities:
-                    cap_process = cap.get("process_name", "").lower().strip()
+                    raw_cap_process = cap.get("process_name", "").strip()
+                    cap_process = (
+                        self._normalize_process_name(raw_cap_process).lower().strip()
+                    )
                     if not cap_process:
                         logger.debug(f"Skipping empty capability: {cap}")
                         continue
@@ -751,6 +749,11 @@ class MatchingService:
                     )
                     continue  # Skip non-string processes
 
+                # Normalize process name: convert URIs to plain names for matching
+                normalized_process = (
+                    self._normalize_process_name(process_name).lower().strip()
+                )
+
                 facility_capabilities = []
 
                 # PRIMARY: Use facility's declared manufacturing_processes (most accurate)
@@ -782,141 +785,93 @@ class MatchingService:
                             )
 
                 # Use multi-layer matching for confidence calculation
-                # IMPORTANT: For component-level matching with process URIs, require direct matches only
-                # This prevents NLP/heuristic matching from incorrectly matching unrelated processes
-                # (e.g., PCB to 3DP) which breaks specialization requirements
-                is_process_uri = isinstance(process_name, str) and (
-                    process_name.startswith("http://")
-                    or process_name.startswith("https://")
+                # URI detection is done on the NORMALIZED process name, so plain
+                # names extracted from URIs won't trigger require_direct_match.
+                is_process_uri = isinstance(normalized_process, str) and (
+                    normalized_process.startswith("http://")
+                    or normalized_process.startswith("https://")
                 )
 
-                # CRITICAL: Log at INFO level so it shows up in Cloud Run logs
-                if is_process_uri:
-                    logger.info(
-                        f"PROCESS IS URI: {process_name[:80]} | facility={facility.name if hasattr(facility, 'name') else 'Unknown'}",
-                        extra={
-                            "process_name": process_name,
-                            "is_uri": is_process_uri,
-                            "facility_name": (
-                                facility.name
-                                if hasattr(facility, "name")
-                                else "Unknown"
-                            ),
-                        },
-                    )
-                else:
-                    logger.warning(
-                        f"PROCESS IS NOT URI (expected for component-level matching): {process_name} | "
-                        f"facility={facility.name if hasattr(facility, 'name') else 'Unknown'} | "
-                        f"all_processes={process_requirements}",
-                        extra={
-                            "process_name": process_name,
-                            "is_uri": is_process_uri,
-                            "process_requirements": process_requirements,
-                            "facility_name": (
-                                facility.name
-                                if hasattr(facility, "name")
-                                else "Unknown"
-                            ),
-                        },
-                    )
+                logger.debug(
+                    f"Scoring process '{process_name}' (normalized: '{normalized_process}') "
+                    f"against {len(facility_capabilities)} facility capabilities | "
+                    f"facility={facility.name if hasattr(facility, 'name') else 'Unknown'}",
+                    extra={
+                        "process_name": process_name,
+                        "normalized_process": normalized_process,
+                        "is_uri": is_process_uri,
+                        "facility_name": (
+                            facility.name if hasattr(facility, "name") else "Unknown"
+                        ),
+                    },
+                )
 
                 best_confidence = 0.0
                 best_match_type = "unknown"
 
                 for capability in facility_capabilities:
-                    # Check if capability is also a URI - if either requirement or capability is a URI,
-                    # require exact match only (no NLP/heuristic/similarity matching)
-                    is_capability_uri = isinstance(capability, str) and (
-                        capability.startswith("http://")
-                        or capability.startswith("https://")
+                    # Normalize capability: convert URIs to plain names
+                    normalized_capability = (
+                        self._normalize_process_name(capability).lower().strip()
+                    )
+
+                    # Check if normalized values are still URIs (unlikely after normalization)
+                    is_capability_uri = isinstance(normalized_capability, str) and (
+                        normalized_capability.startswith("http://")
+                        or normalized_capability.startswith("https://")
                     )
                     require_direct_match = is_process_uri or is_capability_uri
 
-                    # CRITICAL: Log at INFO level so it shows up in Cloud Run logs
-                    if is_process_uri or is_capability_uri:
-                        logger.info(
-                            f"URI MATCHING: process={process_name[:60]}, capability={capability[:60]} | "
-                            f"req_uri={is_process_uri}, cap_uri={is_capability_uri}, require_direct={require_direct_match}",
-                            extra={
-                                "process_name": process_name,
-                                "capability_name": capability,
-                                "is_process_uri": is_process_uri,
-                                "is_capability_uri": is_capability_uri,
-                                "require_direct_match": require_direct_match,
-                            },
-                        )
-
                     # Try each layer and get the best confidence
                     direct_match_result = await self._direct_match(
-                        process_name, capability, domain
+                        normalized_process, normalized_capability, domain
                     )
                     if direct_match_result:
                         confidence = 1.0
                         match_type = "direct"
                         logger.debug(
-                            f"Direct match found: process={process_name[:50]}, capability={capability[:50]}",
+                            f"Direct match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
                             extra={
-                                "process_name": process_name,
-                                "capability_name": capability,
+                                "process_name": normalized_process,
+                                "capability_name": normalized_capability,
                                 "match_type": "direct",
                             },
                         )
                     elif not require_direct_match:
                         heuristic_match_result = await self._heuristic_match(
-                            process_name, capability, domain
+                            normalized_process, normalized_capability, domain
                         )
                         if heuristic_match_result:
                             confidence = 0.8
                             match_type = "heuristic"
                             logger.debug(
-                                f"Heuristic match found: process={process_name[:50]}, capability={capability[:50]}",
+                                f"Heuristic match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
                                 extra={
-                                    "process_name": process_name,
-                                    "capability_name": capability,
+                                    "process_name": normalized_process,
+                                    "capability_name": normalized_capability,
                                     "match_type": "heuristic",
                                 },
                             )
                         else:
                             nlp_match_result = await self._nlp_match(
-                                process_name, capability, domain
+                                normalized_process, normalized_capability, domain
                             )
                             if nlp_match_result:
-                                # This should NOT happen for URI processes - log as error if it does
-                                if is_process_uri or is_capability_uri:
-                                    logger.error(
-                                        f"CRITICAL: NLP matching occurred for URI process! This should not happen. "
-                                        f"process={process_name}, capability={capability}, "
-                                        f"is_process_uri={is_process_uri}, is_capability_uri={is_capability_uri}, "
-                                        f"require_direct_match={require_direct_match}",
-                                        extra={
-                                            "process_name": process_name,
-                                            "capability_name": capability,
-                                            "is_process_uri": is_process_uri,
-                                            "is_capability_uri": is_capability_uri,
-                                            "require_direct_match": require_direct_match,
-                                        },
-                                    )
                                 confidence = 0.7
                                 match_type = "nlp"
-                                # CRITICAL: Log NLP matches in main message so they're always visible
-                                logger.warning(
-                                    f"NLP MATCH (0.7): process={process_name[:80]}, capability={capability[:80]} | "
-                                    f"is_process_uri={is_process_uri}, is_capability_uri={is_capability_uri}, "
-                                    f"require_direct_match={require_direct_match}",
+                                logger.debug(
+                                    f"NLP match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
                                     extra={
-                                        "process_name": process_name,
-                                        "capability_name": capability,
-                                        "is_process_uri": is_process_uri,
-                                        "is_capability_uri": is_capability_uri,
-                                        "require_direct_match": require_direct_match,
+                                        "process_name": normalized_process,
+                                        "capability_name": normalized_capability,
+                                        "match_type": "nlp",
                                     },
                                 )
                             else:
                                 # No match found - try similarity-based scoring as last resort
                                 if not require_direct_match:
                                     similarity = self._calculate_process_similarity(
-                                        process_name, capability
+                                        normalized_process, normalized_capability
                                     )
                                     if similarity >= 0.3:
                                         confidence = similarity * 0.6  # Partial credit
@@ -932,10 +887,10 @@ class MatchingService:
                         confidence = 0.0
                         match_type = "no_match"
                         logger.debug(
-                            f"No match (require_direct_match=True): process={process_name[:50]}, capability={capability[:50]}",
+                            f"No match (require_direct_match=True): process={normalized_process[:50]}, capability={normalized_capability[:50]}",
                             extra={
-                                "process_name": process_name,
-                                "capability_name": capability,
+                                "process_name": normalized_process,
+                                "capability_name": normalized_capability,
                                 "is_process_uri": is_process_uri,
                                 "is_capability_uri": is_capability_uri,
                                 "require_direct_match": require_direct_match,
@@ -1276,168 +1231,85 @@ class MatchingService:
         """
         Normalize process names for better matching.
 
-        This method handles:
-        - Wikipedia URLs: Extracts the process name from URLs
-        - Case normalization: Converts to lowercase
-        - Whitespace normalization: Removes extra whitespace
-        - Special character handling: Normalizes underscores, hyphens, etc.
-        - Common process name mapping: Maps Wikipedia process names to standard names
+        Delegates to the canonical ProcessTaxonomy for known processes.
+        For unrecognized inputs, falls back to basic text normalization
+        so the NLP matching layer can still attempt fuzzy matching.
 
         Args:
             process_name: The process name to normalize
 
         Returns:
-            Normalized process name
+            Normalized process name (canonical ID for known processes,
+            or lowercase cleaned string for unknown processes)
         """
         if not process_name:
             return ""
 
-        # Handle Wikipedia URLs
-        if "wikipedia.org/wiki/" in process_name.lower():
-            # Extract the process name from Wikipedia URL
-            # e.g., "https://en.wikipedia.org/wiki/PCB_assembly" -> "PCB_assembly"
-            parts = process_name.split("/wiki/")
-            if len(parts) > 1:
-                process_name = parts[1]
+        # Delegate to taxonomy for known processes
+        canonical_id = taxonomy.normalize(process_name)
+        if canonical_id is not None:
+            return canonical_id
 
-        # Normalize case and whitespace
-        normalized = process_name.strip().lower()
-
-        # Normalize special characters
-        # Replace underscores and hyphens with spaces for better matching
+        # Fallback: basic text normalization for unrecognized inputs
+        # This allows the NLP layer to still attempt fuzzy matching
         import re
 
+        text = process_name.strip()
+
+        # Extract slug from Wikipedia URIs
+        if "wikipedia.org/wiki/" in text.lower():
+            parts = text.split("/wiki/")
+            if len(parts) > 1:
+                text = parts[1]
+
+        normalized = text.lower()
         normalized = re.sub(r"[_\-]+", " ", normalized)
-
-        # Normalize multiple spaces to single space
         normalized = re.sub(r"\s+", " ", normalized)
-
-        normalized = normalized.strip()
-
-        # Map common Wikipedia process names to standard names for better rule matching
-        # This helps match Wikipedia URIs to OKH simple names through rules
-        process_name_mapping = {
-            # 3D Printing variants
-            "fused filament fabrication": "3d printing",
-            "fused deposition modeling": "fdm printing",
-            "stereolithography": "sla printing",
-            "selective laser sintering": "sls printing",
-            "digital light processing": "dlp printing",
-            # Assembly variants
-            "electronics assembly": "assembly",
-            "electronics manufacturing": "assembly",
-            "pcb assembly": "assembly",
-            "component assembly": "assembly",
-            "assembly line": "assembly",
-            # Machining variants
-            "computer numerical control": "cnc machining",
-            "subtractive manufacturing": "cnc machining",
-            "machining": "cnc machining",
-            # Post-processing variants
-            "post processing": "post-processing",
-            "postprocessing": "post-processing",
-            # Other common mappings
-            "printed circuit board": "pcb",
-            "circuit board": "pcb",
-            "pcb fabrication": "pcb",
-            # Surface finishing
-            "surface finish": "surface finishing",
-            "surface treatment": "surface finishing",
-        }
-
-        # Check if normalized name matches any mapping key (exact or contains)
-        for wiki_name, standard_name in process_name_mapping.items():
-            if wiki_name in normalized or normalized in wiki_name:
-                # Use the standard name for better rule matching
-                normalized = standard_name
-                break
-
-        return normalized
+        return normalized.strip()
 
     def _calculate_process_similarity(self, process1: str, process2: str) -> float:
         """
         Calculate similarity between two process names.
+
+        Uses the canonical ProcessTaxonomy for known processes. Falls back
+        to text-based similarity for unrecognized inputs.
 
         Returns a score between 0.0 and 1.0 indicating how similar the processes are.
         """
         if not process1 or not process2:
             return 0.0
 
-        # Normalize both process names
+        # Normalize both process names via taxonomy
         norm1 = self._normalize_process_name(process1)
         norm2 = self._normalize_process_name(process2)
 
-        # Exact match
+        # Exact match (both normalize to same canonical ID)
         if norm1 == norm2:
             return 1.0
 
-        # Check for substring matches
-        if norm1 in norm2 or norm2 in norm1:
-            return 0.8
+        # Taxonomy-aware relationship check
+        if taxonomy.are_related(norm1, norm2):
+            # Parent-child or sibling relationship
+            return 0.85
 
-        # Check for common keywords
-        words1 = set(norm1.split())
-        words2 = set(norm2.split())
+        # Check for substring matches (for unrecognized inputs)
+        if norm1 in norm2 or norm2 in norm1:
+            return 0.7
+
+        # Fallback: word-based Jaccard similarity
+        words1 = set(norm1.split("_") if "_" in norm1 else norm1.split())
+        words2 = set(norm2.split("_") if "_" in norm2 else norm2.split())
 
         if not words1 or not words2:
             return 0.0
 
-        # Calculate Jaccard similarity
         intersection = len(words1.intersection(words2))
         union = len(words1.union(words2))
 
         if union == 0:
             return 0.0
 
-        jaccard_similarity = intersection / union
-
-        # Boost similarity for manufacturing-related keywords
-        manufacturing_keywords = {
-            "machining",
-            "cnc",
-            "mill",
-            "lathe",
-            "drill",
-            "cut",
-            "grind",
-            "3d",
-            "print",
-            "printer",
-            "assembly",
-            "pcb",
-            "electronics",
-            "welding",
-            "weld",
-            "brake",
-            "bend",
-            "form",
-            "stamp",
-        }
-
-        common_manufacturing = words1.intersection(words2).intersection(
-            manufacturing_keywords
-        )
-        if common_manufacturing:
-            jaccard_similarity += 0.2  # Boost for manufacturing keywords
-
-        # Handle common manufacturing abbreviations and synonyms
-        abbreviation_map = {
-            "3dp": ["3d", "print", "printer", "fused", "filament", "fabrication"],
-            "pcb": ["printed", "circuit", "board", "electronics", "assembly"],
-            "cnc": ["computer", "numerical", "control", "machining"],
-            "assembly": ["assembling", "putting", "together", "joining"],
-        }
-
-        # Check for abbreviation matches
-        for abbr, synonyms in abbreviation_map.items():
-            if abbr in words1:
-                if any(syn in words2 for syn in synonyms):
-                    jaccard_similarity += 0.3  # Strong boost for abbreviation matches
-            elif abbr in words2:
-                if any(syn in words1 for syn in synonyms):
-                    jaccard_similarity += 0.3  # Strong boost for abbreviation matches
-
-        return min(1.0, jaccard_similarity)
+        return intersection / union
 
     async def get_available_domains(self) -> List[Dict[str, Any]]:
         """Get list of available matching domains"""
@@ -1615,7 +1487,7 @@ class MatchingService:
         domain: str = "manufacturing",
         okh_service: Optional[OKHService] = None,
         manifest_path: Optional[str] = None,
-    ) -> SupplyTreeSolution:
+    ) -> Set[SupplyTreeSolution]:
         """
         Match OKH with nested components across multiple facilities.
 
@@ -1629,7 +1501,7 @@ class MatchingService:
         4. Build dependency graph
         5. Calculate production sequence
         6. Validate solution
-        7. Return SupplyTreeSolution
+        7. Return Set[SupplyTreeSolution]
 
         Args:
             okh_manifest: OKH manifest to match
@@ -1639,7 +1511,7 @@ class MatchingService:
             okh_service: OKHService instance for resolving references (optional)
 
         Returns:
-            SupplyTreeSolution with all matched components (nested if multiple trees)
+            Set of SupplyTreeSolution with all matched components (nested if multiple trees)
         """
         await self.ensure_initialized()
 
@@ -1675,18 +1547,20 @@ class MatchingService:
                     extra={"okh_id": str(okh_manifest.id)},
                 )
                 # Return empty solution with helpful message
-                return SupplyTreeSolution.from_nested_trees(
-                    all_trees=[],
-                    root_trees=[],
-                    component_mapping={},
-                    score=0.0,
-                    metrics={},
-                    metadata={
-                        "matching_mode": "nested",
-                        "warning": "No components found in BOM for nested matching",
-                        "suggestion": "Try single-level matching (max_depth=0) or ensure BOM has components",
-                    },
-                )
+                return {
+                    SupplyTreeSolution.from_nested_trees(
+                        all_trees=[],
+                        root_trees=[],
+                        component_mapping={},
+                        score=0.0,
+                        metrics={},
+                        metadata={
+                            "matching_mode": "nested",
+                            "warning": "No components found in BOM for nested matching",
+                            "suggestion": "Try single-level matching (max_depth=0) or ensure BOM has components",
+                        },
+                    )
+                }
 
             component_matches = await bom_resolver.explode_bom(
                 bom, service, max_depth=max_depth
@@ -1860,7 +1734,7 @@ class MatchingService:
                 },
             )
 
-            return solution
+            return {solution}
 
         except Exception as e:
             error_msg = (
@@ -1878,41 +1752,45 @@ class MatchingService:
                 exc_info=True,
             )
             # Return a partial solution with error information rather than failing completely
-            return SupplyTreeSolution.from_nested_trees(
-                all_trees=[],
-                root_trees=[],
-                component_mapping={},
-                score=0.0,
-                metrics={},
-                metadata={
-                    "matching_mode": "nested",
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                    "suggestion": "Try single-level matching (max_depth=0) or check BOM data availability",
-                },
-            )
+            return {
+                SupplyTreeSolution.from_nested_trees(
+                    all_trees=[],
+                    root_trees=[],
+                    component_mapping={},
+                    score=0.0,
+                    metrics={},
+                    metadata={
+                        "matching_mode": "nested",
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                        "suggestion": "Try single-level matching (max_depth=0) or check BOM data availability",
+                    },
+                )
+            }
 
     def _tsdc_to_process_uri(self, tsdc_code: str) -> str:
         """
-        Convert TSDC code to manufacturing process URI.
+        Convert a TSDC code or process identifier to a normalized process name.
+
+        Uses the canonical ProcessTaxonomy for resolution. Returns the
+        canonical ID for known processes, or the original input unchanged
+        for unrecognized inputs.
+
+        Note: This method retains its original name for backward compatibility,
+        but now returns canonical IDs rather than Wikipedia URIs.
 
         Args:
-            tsdc_code: TSDC code (e.g., "3DP", "PCB", "CNC")
+            tsdc_code: TSDC code (e.g., "3DP", "PCB", "CNC") or any
+                       process identifier
 
         Returns:
-            Process URI (Wikipedia URL format)
+            Canonical process ID (e.g., "3d_printing"), or original input
+            if not recognized
         """
-        tsdc_mapping = {
-            "3DP": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
-            "PCB": "https://en.wikipedia.org/wiki/Printed_circuit_board",
-            "CNC": "https://en.wikipedia.org/wiki/Machining",
-            "LASER": "https://en.wikipedia.org/wiki/Laser_cutting",
-            "SHEET": "https://en.wikipedia.org/wiki/Sheet_metal_forming",
-            "ASSEMBLY": "https://en.wikipedia.org/wiki/Assembly_line",
-        }
-        return tsdc_mapping.get(
-            tsdc_code.upper(), f"https://en.wikipedia.org/wiki/{tsdc_code}"
-        )
+        canonical = taxonomy.normalize(tsdc_code)
+        if canonical is not None:
+            return canonical
+        return tsdc_code
 
     def _create_component_manifest(
         self, base_manifest: OKHManifest, component: Component
@@ -1948,39 +1826,27 @@ class MatchingService:
         if isinstance(req_processes, str):
             req_processes = [req_processes]
 
-        # Convert process strings to URIs (handle both TSDC codes and existing URIs)
+        # Normalize process strings via taxonomy (handles TSDC codes, URIs, plain names)
         for process in req_processes:
-            # If it's already a URI, use it as-is
-            if process.startswith("http://") or process.startswith("https://"):
-                if process not in component_processes:
-                    component_processes.append(process)
-            else:
-                # Convert TSDC code or process name to URI
-                process_uri = self._tsdc_to_process_uri(process)
-                if process_uri not in component_processes:
-                    component_processes.append(process_uri)
+            normalized = self._tsdc_to_process_uri(process)
+            if normalized not in component_processes:
+                component_processes.append(normalized)
 
-        # Convert TSDC codes from metadata to process URIs
+        # Convert TSDC codes from metadata
         if component.metadata and "tsdc" in component.metadata:
             tsdc_codes = component.metadata.get("tsdc", [])
             if isinstance(tsdc_codes, list):
                 for tsdc_code in tsdc_codes:
-                    process_uri = self._tsdc_to_process_uri(tsdc_code)
-                    if process_uri not in component_processes:
-                        component_processes.append(process_uri)
-                # CRITICAL: Log TSDC conversion at INFO level
+                    normalized = self._tsdc_to_process_uri(tsdc_code)
+                    if normalized not in component_processes:
+                        component_processes.append(normalized)
                 logger.info(
-                    f"Component '{component.name}' TSDC codes converted: {tsdc_codes} -> {[p for p in component_processes if p.startswith('http')]}",
+                    f"Component '{component.name}' TSDC codes normalized: {tsdc_codes} -> {component_processes}",
                     extra={
                         "component_id": component.id,
                         "component_name": component.name,
                         "tsdc_codes": tsdc_codes,
-                        "converted_uris": [
-                            p
-                            for p in component_processes
-                            if isinstance(p, str)
-                            and (p.startswith("http://") or p.startswith("https://"))
-                        ],
+                        "normalized_processes": component_processes,
                     },
                 )
 
@@ -1988,29 +1854,15 @@ class MatchingService:
         # Otherwise, for component-level matching, use empty list to prevent fallback
         # This ensures components only match facilities that can actually produce them
         if component_processes:
-            # CRITICAL: Verify all processes are URIs (strings starting with http/https)
-            # This ensures URI-based matching logic works correctly
-            validated_processes = []
-            for proc in component_processes:
-                if isinstance(proc, str) and (
-                    proc.startswith("http://") or proc.startswith("https://")
-                ):
-                    validated_processes.append(proc)
-                else:
-                    logger.error(
-                        f"Component process is not a URI! component={component.name}, process={proc}, type={type(proc)}",
-                        extra={
-                            "component_id": component.id,
-                            "component_name": component.name,
-                            "process_name": proc,
-                            "process_type": type(proc).__name__,
-                            "all_processes": component_processes,
-                        },
-                    )
+            # Validate: keep only non-empty string processes
+            validated_processes = [
+                proc
+                for proc in component_processes
+                if isinstance(proc, str) and proc.strip()
+            ]
 
             if validated_processes:
                 component_manifest.manufacturing_processes = validated_processes
-                # CRITICAL: Log in main message so it's always visible
                 logger.info(
                     f"Component '{component.name}' processes set: {validated_processes}",
                     extra={
@@ -2021,10 +1873,8 @@ class MatchingService:
                     },
                 )
             else:
-                # All processes were invalid - set to empty
-                logger.error(
-                    f"All component processes were invalid (not URIs)! component={component.name}, "
-                    f"original_processes={component_processes}",
+                logger.warning(
+                    f"No valid processes for component '{component.name}' after validation",
                     extra={
                         "component_id": component.id,
                         "component_name": component.name,

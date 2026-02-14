@@ -18,6 +18,7 @@ A quick reference guide for new users to understand the major capabilities of th
 | **Domain Management** | List domains, get domain information, perform domain health checks, and detect domains from input data | `GET /v1/api/match/domains`<br>`GET /v1/api/match/domains/{name}`<br>`GET /v1/api/match/domains/{name}/health`<br>`POST /v1/api/match/detect-domain` | `ohm utility domains` | [Domains Overview](domains/index.md), [Domain API Routes](api/routes.md#domain-management-routes) |
 | **File Upload** | Upload OKH/OKW files for storage and use in matching operations with automatic validation and parsing | `POST /v1/api/okh/upload`<br>`POST /v1/api/okw/upload`<br>`POST /v1/api/match/upload` | `ohm okh upload`<br>`ohm okw upload` | [API Routes - File Upload](api/routes.md#file-upload) |
 | **Schema Export** | Export JSON schemas for OKH and OKW domain models in canonical format | `GET /v1/api/okh/export`<br>`GET /v1/api/okw/export` | `ohm okh export-schema`<br>`ohm okw export-schema` | [API Routes - Export Schema](api/routes.md#export-schema) |
+| **Process Taxonomy** | Manage the canonical manufacturing process taxonomy used for normalization, matching, and validation. List processes, validate definitions, and reload at runtime | `GET /v1/api/taxonomy`<br>`POST /v1/api/taxonomy/reload`<br>`GET /v1/api/taxonomy/validate` | `ohm taxonomy list`<br>`ohm taxonomy validate`<br>`ohm taxonomy reload` | [Taxonomy ADR](architecture/process-taxonomy-adr.md), [CLI Taxonomy Commands](CLI/index.md#taxonomy-commands), [API Taxonomy Routes](api/routes.md#taxonomy-routes) |
 | **System Health** | Monitor system health, check server connectivity, and view system status with diagnostics | `GET /health` | `ohm system health`<br>`ohm system status` | [System Routes](api/routes.md#system-routes) |
 
 ## Quick Reference by Use Case
@@ -59,9 +60,14 @@ A quick reference guide for new users to understand the major capabilities of th
 - **CLI**: Add `--use-llm --llm-provider anthropic` to any command
 - **Docs**: [LLM Integration](llm/index.md)
 
+#### Manage the process taxonomy
+- **API**: `GET /v1/api/taxonomy` to list, `POST /v1/api/taxonomy/reload` to reload
+- **CLI**: `ohm taxonomy list`, `ohm taxonomy validate`, `ohm taxonomy reload`
+- **Docs**: [Taxonomy ADR](architecture/process-taxonomy-adr.md), [CLI Taxonomy Commands](CLI/index.md#taxonomy-commands)
+
 ## Command Groups Summary
 
-The CLI is organized into 7 command groups:
+The CLI is organized into 8 command groups:
 
 1. **`ohm match`** - Requirements-to-capabilities matching (3 commands)
 2. **`ohm okh`** - OKH manifest management (8 commands)
@@ -70,6 +76,7 @@ The CLI is organized into 7 command groups:
 5. **`ohm llm`** - LLM operations (available if LLM enabled)
 6. **`ohm system`** - System administration (5 commands)
 7. **`ohm utility`** - Utility operations (2 commands)
+8. **`ohm taxonomy`** - Process taxonomy management (3 commands)
 
 ## Documentation Links
 

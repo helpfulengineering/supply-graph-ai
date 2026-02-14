@@ -50,3 +50,9 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+asyncio_mode = "strict"
+markers = [
+    "e2e: end-to-end canonical workflow tests",
+    "slow: tests that take more than 10 seconds",
+    "llm: tests requiring LLM API access",
+]

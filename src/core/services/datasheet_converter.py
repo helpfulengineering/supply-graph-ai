@@ -45,7 +45,13 @@ logger = get_logger(__name__)
 
 # Default template location relative to the project root
 _DEFAULT_TEMPLATE_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "..", "notes", "msf", "datasheet-template.docx"
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "..",
+    "notes",
+    "msf",
+    "datasheet-template.docx",
 )
 
 
@@ -109,9 +115,7 @@ class DatasheetConverter:
         try:
             doc = Document(self.template_path)
         except Exception as exc:
-            raise DatasheetConversionError(
-                f"Failed to open template: {exc}"
-            ) from exc
+            raise DatasheetConversionError(f"Failed to open template: {exc}") from exc
 
         tables = doc.tables
         if len(tables) < 6:
@@ -120,9 +124,16 @@ class DatasheetConverter:
             )
 
         # --- Table 1: Identity -------------------------------------------
-        self._set_cell(tables[1], 0, 0, f"Internal Ref.\n{manifest.metadata.get('internal_ref', str(manifest.id)[:8])}")
+        self._set_cell(
+            tables[1],
+            0,
+            0,
+            f"Internal Ref.\n{manifest.metadata.get('internal_ref', str(manifest.id)[:8])}",
+        )
         self._set_cell(tables[1], 0, 1, f"Name:\n{manifest.title}")
-        self._set_cell(tables[1], 0, 2, f"Product stage:\n{manifest.development_stage or ''}")
+        self._set_cell(
+            tables[1], 0, 2, f"Product stage:\n{manifest.development_stage or ''}"
+        )
 
         # --- Table 2: FORM -----------------------------------------------
         self._set_cell(tables[2], 0, 0, f"Product picture:\n{manifest.image or ''}")
@@ -148,7 +159,10 @@ class DatasheetConverter:
 
         # Dimensions & use type
         dims = ""
-        if manifest.manufacturing_specs and manifest.manufacturing_specs.outer_dimensions:
+        if (
+            manifest.manufacturing_specs
+            and manifest.manufacturing_specs.outer_dimensions
+        ):
             d = manifest.manufacturing_specs.outer_dimensions
             dims = f"{d.get('length', '')}x{d.get('width', '')}x{d.get('height', '')}"
 
@@ -175,26 +189,51 @@ class DatasheetConverter:
 
         # Justification
         justification = manifest.intended_use or meta.get("justification", "")
-        self._set_cell(tables[2], 4, 0, f"Justification of using 3D printed item:\n{justification}")
-        self._set_cell(tables[2], 4, 1, f"Justification of using 3D printed item:\n{justification}")
+        self._set_cell(
+            tables[2], 4, 0, f"Justification of using 3D printed item:\n{justification}"
+        )
+        self._set_cell(
+            tables[2], 4, 1, f"Justification of using 3D printed item:\n{justification}"
+        )
 
         # Why 3D printed / approval
         why_3d = meta.get("justification_3d_print", "")
         approval = meta.get("approval_required_by", "")
-        self._set_cell(tables[2], 5, 0, f"Why should this item be 3D printed:\n{why_3d}\nApproval required by: {approval}")
-        self._set_cell(tables[2], 5, 1, f"Why should this item be 3D printed:\n{why_3d}\nApproval required by: {approval}")
+        self._set_cell(
+            tables[2],
+            5,
+            0,
+            f"Why should this item be 3D printed:\n{why_3d}\nApproval required by: {approval}",
+        )
+        self._set_cell(
+            tables[2],
+            5,
+            1,
+            f"Why should this item be 3D printed:\n{why_3d}\nApproval required by: {approval}",
+        )
 
         # --- Table 3: FIT ------------------------------------------------
         compat = meta.get("primary_compatibility", "")
         accessories = meta.get("compatible_accessories", "")
-        self._set_cell(tables[3], 0, 0, f"Primary compatibility: {compat}\n\nCompatible accessories: {accessories}")
+        self._set_cell(
+            tables[3],
+            0,
+            0,
+            f"Primary compatibility: {compat}\n\nCompatible accessories: {accessories}",
+        )
 
         # Manufacturing instructions
-        mfg_instr = "; ".join(d.title for d in manifest.making_instructions) if manifest.making_instructions else ""
+        mfg_instr = (
+            "; ".join(d.title for d in manifest.making_instructions)
+            if manifest.making_instructions
+            else ""
+        )
         self._set_cell(tables[3], 1, 0, f"Manufacturing instructions: {mfg_instr}")
 
         # Materials and manufacturing detail
-        material_str = ", ".join(m.name for m in manifest.materials) if manifest.materials else ""
+        material_str = (
+            ", ".join(m.name for m in manifest.materials) if manifest.materials else ""
+        )
         printer = ", ".join(manifest.tool_list) if manifest.tool_list else ""
         slicer = meta.get("slicer_settings", "")
         post_proc = meta.get("post_processing", "")
@@ -223,19 +262,28 @@ class DatasheetConverter:
         self._set_cell(tables[3], 2, 0, fit_detail)
 
         # --- Table 4: FUNCTION -------------------------------------------
-        self._set_cell(tables[4], 0, 0, f"Detailed description of the component/product/workflow and its use:\n{manifest.function or ''}")
+        self._set_cell(
+            tables[4],
+            0,
+            0,
+            f"Detailed description of the component/product/workflow and its use:\n{manifest.function or ''}",
+        )
 
         # Cleaning
         cleaning = self._get_doc_ref_text(manifest.operating_instructions, "cleaning")
         if not cleaning:
             cleaning = meta.get("cleaning_procedures", "")
-        self._set_cell(tables[4], 2, 0, f"Cleaning and sanitization procedures: {cleaning}")
+        self._set_cell(
+            tables[4], 2, 0, f"Cleaning and sanitization procedures: {cleaning}"
+        )
 
         # Packaging
         packaging = self._get_doc_ref_text(manifest.operating_instructions, "packaging")
         if not packaging:
             packaging = meta.get("packaging_instructions", "")
-        self._set_cell(tables[4], 4, 0, f"Packaging and storing instructions: {packaging}")
+        self._set_cell(
+            tables[4], 4, 0, f"Packaging and storing instructions: {packaging}"
+        )
 
         # Standards & safety
         standards_str = ""
@@ -245,14 +293,28 @@ class DatasheetConverter:
                 for s in manifest.standards_used
             )
         safety = manifest.health_safety_notice or ""
-        self._set_cell(tables[4], 6, 0, f"Related links, standards, safety considerations: {standards_str} {safety}".strip())
+        self._set_cell(
+            tables[4],
+            6,
+            0,
+            f"Related links, standards, safety considerations: {standards_str} {safety}".strip(),
+        )
 
         spaulding = meta.get("spaulding_classification", "")
         self._set_cell(tables[4], 7, 0, f"Spaulding Classification (IPC): {spaulding}")
 
         # --- Table 5: ATTACHMENTS ----------------------------------------
-        design_str = "; ".join(d.title for d in manifest.design_files) if manifest.design_files else ""
-        self._set_cell(tables[5], 0, 0, f"Technical drawings\nPhotos: {manifest.image or ''}\nOther: {design_str}")
+        design_str = (
+            "; ".join(d.title for d in manifest.design_files)
+            if manifest.design_files
+            else ""
+        )
+        self._set_cell(
+            tables[5],
+            0,
+            0,
+            f"Technical drawings\nPhotos: {manifest.image or ''}\nOther: {design_str}",
+        )
 
         # Designed by
         designer = self._licensor_to_string(manifest.licensor)
@@ -261,9 +323,13 @@ class DatasheetConverter:
         self._set_cell(tables[5], 1, 2, f"Date: {date_str}")
 
         # Approved / Tested
-        self._set_cell(tables[5], 2, 0, f"Product approved by\n{meta.get('approved_by', '')}")
+        self._set_cell(
+            tables[5], 2, 0, f"Product approved by\n{meta.get('approved_by', '')}"
+        )
         self._set_cell(tables[5], 2, 2, f"Date: {meta.get('approved_date', '')}")
-        self._set_cell(tables[5], 3, 0, f"Product tested by\n{meta.get('tested_by', '')}")
+        self._set_cell(
+            tables[5], 3, 0, f"Product tested by\n{meta.get('tested_by', '')}"
+        )
         self._set_cell(tables[5], 3, 2, f"Date: {meta.get('tested_date', '')}")
 
         # Write output
@@ -273,9 +339,7 @@ class DatasheetConverter:
             logger.info(f"Datasheet written to {output_path}")
             return os.path.abspath(output_path)
         except Exception as exc:
-            raise DatasheetConversionError(
-                f"Failed to save datasheet: {exc}"
-            ) from exc
+            raise DatasheetConversionError(f"Failed to save datasheet: {exc}") from exc
 
     # ------------------------------------------------------------------
     # Datasheet (.docx) → OKH
@@ -307,9 +371,7 @@ class DatasheetConverter:
         try:
             doc = Document(docx_path)
         except Exception as exc:
-            raise DatasheetConversionError(
-                f"Failed to open docx file: {exc}"
-            ) from exc
+            raise DatasheetConversionError(f"Failed to open docx file: {exc}") from exc
 
         tables = doc.tables
         if len(tables) < 6:
@@ -326,7 +388,9 @@ class DatasheetConverter:
             metadata["internal_ref"] = internal_ref
 
         title = self._extract_value(self._get_cell(tables[1], 0, 1), "Name:")
-        dev_stage = self._extract_value(self._get_cell(tables[1], 0, 2), "Product stage:")
+        dev_stage = self._extract_value(
+            self._get_cell(tables[1], 0, 2), "Product stage:"
+        )
 
         # --- Table 2: FORM -----------------------------------------------
         image_text = self._get_cell(tables[2], 0, 0)
@@ -381,7 +445,9 @@ class DatasheetConverter:
             metadata["risk_level"] = risk_level
 
         justification_cell = self._get_cell(tables[2], 4, 0)
-        intended_use = self._extract_value(justification_cell, "Justification of using 3D printed item:")
+        intended_use = self._extract_value(
+            justification_cell, "Justification of using 3D printed item:"
+        )
 
         why_cell = self._get_cell(tables[2], 5, 0)
         why_3d = self._extract_value(why_cell, "Why should this item be 3D printed:")
@@ -401,14 +467,20 @@ class DatasheetConverter:
             metadata["compatible_accessories"] = accessories
 
         mfg_instr_cell = self._get_cell(tables[3], 1, 0)
-        mfg_instr_text = self._extract_value(mfg_instr_cell, "Manufacturing instructions:")
+        mfg_instr_text = self._extract_value(
+            mfg_instr_cell, "Manufacturing instructions:"
+        )
 
         detail_fit_cell = self._get_cell(tables[3], 2, 0)
         material_color = self._extract_value(detail_fit_cell, "Material and color:")
-        other_materials = self._extract_value(detail_fit_cell, "List of other materials:")
+        other_materials = self._extract_value(
+            detail_fit_cell, "List of other materials:"
+        )
         printer_3d = self._extract_value(detail_fit_cell, "3D Printer:")
         slicer_settings = self._extract_value(detail_fit_cell, "Slicer settings:")
-        post_proc = self._extract_value(detail_fit_cell, "Post processing instructions:")
+        post_proc = self._extract_value(
+            detail_fit_cell, "Post processing instructions:"
+        )
         assembly_instr = self._extract_value(detail_fit_cell, "Assembly instructions:")
         visual_insp = self._extract_value(detail_fit_cell, "Visual inspection:")
         dim_validation = self._extract_value(detail_fit_cell, "Dimensional validation:")
@@ -445,12 +517,16 @@ class DatasheetConverter:
         )
 
         cleaning_cell = self._get_cell(tables[4], 2, 0)
-        cleaning = self._extract_value(cleaning_cell, "Cleaning and sanitization procedures:")
+        cleaning = self._extract_value(
+            cleaning_cell, "Cleaning and sanitization procedures:"
+        )
         if cleaning:
             metadata["cleaning_procedures"] = cleaning
 
         packaging_cell = self._get_cell(tables[4], 4, 0)
-        packaging = self._extract_value(packaging_cell, "Packaging and storing instructions:")
+        packaging = self._extract_value(
+            packaging_cell, "Packaging and storing instructions:"
+        )
         if packaging:
             metadata["packaging_instructions"] = packaging
 
@@ -460,7 +536,9 @@ class DatasheetConverter:
         )
 
         spaulding_cell = self._get_cell(tables[4], 7, 0)
-        spaulding = self._extract_value(spaulding_cell, "Spaulding Classification (IPC):")
+        spaulding = self._extract_value(
+            spaulding_cell, "Spaulding Classification (IPC):"
+        )
         if spaulding:
             metadata["spaulding_classification"] = spaulding
 
@@ -667,12 +745,17 @@ class DatasheetConverter:
         return "\n".join(result_lines).strip()
 
     @staticmethod
-    def _license_to_string(license_obj: License) -> str:
+    def _license_to_string(license_obj: Optional[License]) -> str:
         """Convert a License object to a human-readable string."""
+        if license_obj is None:
+            return ""
         parts = []
         if license_obj.hardware:
             parts.append(license_obj.hardware)
-        if license_obj.documentation and license_obj.documentation != license_obj.hardware:
+        if (
+            license_obj.documentation
+            and license_obj.documentation != license_obj.hardware
+        ):
             parts.append(f"Docs: {license_obj.documentation}")
         if license_obj.software and license_obj.software != license_obj.hardware:
             parts.append(f"SW: {license_obj.software}")
