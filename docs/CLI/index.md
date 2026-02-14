@@ -87,7 +87,7 @@ ohm --use-llm --quality-level medical --strict-mode system health
 
 ## Command Groups
 
-The OHM CLI is organized into 7 main command groups with 53 total commands:
+The OHM CLI is organized into 8 main command groups:
 
 1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching and rules management
 2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management
@@ -96,6 +96,7 @@ The OHM CLI is organized into 7 main command groups with 53 total commands:
 5. **[LLM Commands](#llm-commands)** - LLM operations and AI features
 6. **[System Commands](#system-commands)** - System administration
 7. **[Utility Commands](#utility-commands)** - Utility operations
+8. **[Taxonomy Commands](#taxonomy-commands)** - Process taxonomy management
 
 **Note**: Supply Tree Commands are not implemented in the current CLI version.
 
@@ -1821,6 +1822,139 @@ The command displays:
 - LLM usage and costs (if applicable)
 
 **Note:** Metrics are only available when connected to the API server. The command will show an error if the server is not accessible.
+
+---
+
+## Taxonomy Commands
+
+Manage the canonical manufacturing process taxonomy that powers process normalization, matching, and validation across OHM. The taxonomy is defined in a YAML configuration file (`src/config/taxonomy/processes.yaml`) and can be listed, validated, and reloaded at runtime.
+
+These commands operate directly on the local taxonomy module and do **not** require a running API server.
+
+### `ohm taxonomy list`
+
+List all processes in the current taxonomy.
+
+```bash
+ohm taxonomy list [OPTIONS]
+```
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--json` | Output as JSON | `False` |
+| `--tsdc-only` | Show only processes with TSDC codes | `False` |
+| `--roots-only` | Show only root processes (no parent) | `False` |
+
+**Examples:**
+```bash
+# List all processes
+ohm taxonomy list
+
+# List only TSDC-coded processes
+ohm taxonomy list --tsdc-only
+
+# List root processes in JSON format
+ohm taxonomy list --roots-only --json
+```
+
+**Output:**
+```
+Process Taxonomy (47 processes)
+Source: src/config/taxonomy/processes.yaml
+
+  CANONICAL ID                   DISPLAY NAME              TSDC     PARENT
+  ------------------------------ ------------------------- -------- --------------------
+  3d_printing                    3D Printing               3DP
+  assembly                       Assembly                  ASM
+  cnc_machining                  CNC Machining             CNC
+  laser_cutting                  Laser Cutting             LAS
+  ...
+
+  47 process(es) displayed
+```
+
+### `ohm taxonomy validate`
+
+Validate a taxonomy YAML file without applying it. Runs all integrity checks: unique IDs, valid parent references, no circular hierarchy, snake_case format, and no alias collisions.
+
+```bash
+ohm taxonomy validate [FILE]
+```
+
+**Arguments:**
+- `FILE` (optional) - Path to YAML taxonomy file. If omitted, validates the default file at `src/config/taxonomy/processes.yaml`.
+
+**Examples:**
+```bash
+# Validate the default taxonomy
+ohm taxonomy validate
+
+# Validate a custom file
+ohm taxonomy validate /path/to/custom-taxonomy.yaml
+```
+
+**Output:**
+```
+Validating: src/config/taxonomy/processes.yaml
+
+  Loaded 47 process definitions
+  Canonical IDs:  47
+  With TSDC code: 22
+  Root processes: 29
+  Child processes: 18
+
+  PASSED: Taxonomy is valid
+```
+
+### `ohm taxonomy reload`
+
+Reload the taxonomy from a YAML file at runtime. The reload is atomic: if validation fails, the current taxonomy is preserved.
+
+```bash
+ohm taxonomy reload [FILE] [OPTIONS]
+```
+
+**Arguments:**
+- `FILE` (optional) - Path to YAML taxonomy file. If omitted, reloads from the default file at `src/config/taxonomy/processes.yaml`.
+
+**Options:**
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--dry-run` | Validate only, do not apply changes | `False` |
+
+**Examples:**
+```bash
+# Reload from default YAML
+ohm taxonomy reload
+
+# Preview changes without applying
+ohm taxonomy reload --dry-run
+
+# Reload from a custom file
+ohm taxonomy reload /path/to/updated-taxonomy.yaml
+```
+
+**Output:**
+```
+Reloading taxonomy from: src/config/taxonomy/processes.yaml
+
+  Version:  1.0.0
+  Source:   src/config/taxonomy/processes.yaml
+  Total:    47 processes (was 47)
+  Changes:  none (taxonomy unchanged)
+
+  Taxonomy reloaded successfully
+```
+
+When processes are added or removed, the output shows the diff:
+```
+  Total:    49 processes (was 47)
+  Added:    vacuum_forming, wire_edm
+  Removed:  (none)
+```
 
 ---
 
