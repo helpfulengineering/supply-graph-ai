@@ -745,8 +745,10 @@ class DatasheetConverter:
         return "\n".join(result_lines).strip()
 
     @staticmethod
-    def _license_to_string(license_obj: License) -> str:
+    def _license_to_string(license_obj: Optional[License]) -> str:
         """Convert a License object to a human-readable string."""
+        if license_obj is None:
+            return ""
         parts = []
         if license_obj.hardware:
             parts.append(license_obj.hardware)

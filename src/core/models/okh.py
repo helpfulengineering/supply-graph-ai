@@ -575,7 +575,7 @@ class OKHManifest:
             "title": self.title,
             "repo": self.repo,
             "version": self.version,
-            "license": self.license.to_dict(),
+            "license": self.license.to_dict() if self.license else {},
             "licensor": licensor_dict,
             "documentation_language": self.documentation_language,
             "function": self.function,

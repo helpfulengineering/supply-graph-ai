@@ -27,9 +27,9 @@ These workflows serve as the **single source of truth** for what "correct behavi
 | [WF-2](wf02-nested-bom-matching.md) | Nested BOM Matching | Advanced | `@pytest.mark.e2e`, `@pytest.mark.slow` | `MatchingService`, `BOMResolutionService` | **PASSING** (68/68) |
 | [WF-3](wf03-okh-generation-from-url.md) | OKH Generation from URL | Advanced | `@pytest.mark.e2e`, `@pytest.mark.llm` | `OKHService`, `GenerationEngine` | **PASSING** (33/34, 1 skip) |
 | [WF-4](wf04-quality-tiered-validation.md) | Quality-Tiered Validation | Foundation | `@pytest.mark.e2e` | `ValidationContext`, domain validators | **PASSING** (23/23) |
-| [WF-5](wf05-datasheet-round-trip.md) | Datasheet Round-Trip | Advanced | `@pytest.mark.e2e` | `DatasheetConverter` | Not started |
-| [WF-6](wf06-error-recovery.md) | Error Recovery | Resilience | `@pytest.mark.e2e` | All services | Not started |
-| [WF-7](wf07-solution-lifecycle.md) | Solution Lifecycle | Resilience | `@pytest.mark.e2e` | `StorageService` | Not started |
+| [WF-5](wf05-datasheet-round-trip.md) | Datasheet Round-Trip | Advanced | `@pytest.mark.e2e` | `DatasheetConverter` | **PASSING** (38/39, 1 skip) |
+| [WF-6](wf06-error-recovery.md) | Error Recovery | Resilience | `@pytest.mark.e2e` | All services | **PASSING** (26/26) |
+| [WF-7](wf07-solution-lifecycle.md) | Solution Lifecycle | Resilience | `@pytest.mark.e2e` | `StorageService` | **PASSING** (29/29) |
 
 ---
 
@@ -219,7 +219,7 @@ Every workflow document follows this structure:
 
 - **Issue 1.1.1**: This document (canonical workflow definitions) -- **COMPLETE**
 - **Issue 1.1.2**: Test dataset creation (fills gaps flagged by workflows) -- **IN PROGRESS** (synthetic data expanded, edge cases created)
-- **Issue 1.1.3**: Automated test framework (implements these workflows as pytest tests) -- **IN PROGRESS** (WF-1, WF-2, WF-3, WF-4 implemented)
+- **Issue 1.1.3**: Automated test framework (implements these workflows as pytest tests) -- **COMPLETE** (WF-1 through WF-7 all implemented)
 - **Issue 1.1.4**: Performance benchmarks (uses performance targets from workflows) -- Not started
 
 ## Progress Log
@@ -247,3 +247,15 @@ Every workflow document follows this structure:
 - **2026-02-14**: 3-layer graceful degradation confirmed: system produces valid manifests without LLM layer
 - **2026-02-14**: 4-layer generation confirmed: Anthropic and Ollama both produce parseable OKH manifests
 - **2026-02-14**: WF-3 suite: 33 passed, 0 failed, 1 skipped (matching skip: no manufacturing_processes in 3-layer output)
+- **2026-02-14**: WF-5 E2E tests implemented (`test_wf05_datasheet_round_trip.py`, 39 tests across 5 test classes)
+- **2026-02-14**: Fixed bug in `DatasheetConverter._license_to_string()` -- crashed on `None` license input
+- **2026-02-14**: Round-trip fidelity confirmed: title, license, function, dimensions, materials, standards all preserved
+- **2026-02-14**: WF-5 suite: 38 passed, 0 failed, 1 skipped (CNC bracket has no outer_dimensions)
+- **2026-02-14**: WF-6 E2E tests implemented (`test_wf06_error_recovery.py`, 26 tests across 6 test classes)
+- **2026-02-14**: Fixed `OKHManifest.to_dict()` crash when `license` is `None` (null-safety bug)
+- **2026-02-14**: Fixed `empty-equipment-okw-test.json` enum values (`ACTIVE`->`Active`, `RESTRICTED`->`Restricted`)
+- **2026-02-14**: WF-6 suite: 26 passed, 0 failed (all 5 error scenarios covered: no-match, partial, malformed, empty, type errors)
+- **2026-02-14**: WF-7 E2E tests implemented (`test_wf07_solution_lifecycle.py`, 29 tests across 7 test classes)
+- **2026-02-14**: Full solution lifecycle validated: save, load, list, metadata, TTL extension, staleness, cleanup, delete
+- **2026-02-14**: WF-7 suite: 29 passed, 0 failed (0.12s)
+- **2026-02-14**: All 7 canonical workflows now have passing E2E tests (Issue 1.1.3 COMPLETE)

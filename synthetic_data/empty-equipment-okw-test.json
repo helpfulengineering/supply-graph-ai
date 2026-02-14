@@ -7,8 +7,8 @@
     "state": "California",
     "city": "San Francisco"
   },
-  "facility_status": "ACTIVE",
-  "access_type": "RESTRICTED",
+  "facility_status": "Active",
+  "access_type": "Restricted",
   "equipment": [],
   "manufacturing_processes": [],
   "certifications": []
