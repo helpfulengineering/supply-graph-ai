@@ -76,6 +76,32 @@ Options considered:
 The taxonomy is designed to be **extensible**: adding a new process requires
 adding one `ProcessDefinition` entry with its aliases.
 
+### YAML externalization and runtime reload (2026-02-13)
+
+In a follow-up change, the taxonomy definitions were externalized from
+hardcoded Python to a YAML configuration file at
+`src/config/taxonomy/processes.yaml`. This enables non-developer editing
+and runtime reloading without code changes or restarts.
+
+Key aspects:
+
+- **YAML takes precedence** over the built-in Python `PROCESS_DEFINITIONS`
+  when the file exists. The Python list serves as a bootstrap fallback.
+- **Validation on load**: `validate_definitions()` checks unique IDs,
+  valid parent references, no circular hierarchy, snake_case format,
+  non-empty display names, and no alias collisions.
+- **Atomic reload**: `taxonomy.reload()` builds new lookup structures
+  from the YAML file and swaps them in only if validation passes. On
+  failure, the current state is preserved.
+- **CLI commands**: `ohm taxonomy list`, `ohm taxonomy validate`,
+  `ohm taxonomy reload` for local management.
+- **API endpoints**: `GET /api/taxonomy` and `POST /api/taxonomy/reload`
+  for server-side management.
+- **No file-watching**: consistent with the existing capability rules
+  pattern, reload is explicit.
+- **No consumer changes needed**: the module-level `taxonomy` singleton
+  remains the same object; only its internal state updates on reload.
+
 ## Consequences
 
 ### Positive
@@ -83,8 +109,10 @@ adding one `ProcessDefinition` entry with its aliases.
 - Single source of truth for process identification
 - TSDC codes, Wikipedia URIs, and plain names all resolve correctly
 - Hierarchy enables smarter matching (sibling processes score higher)
-- Adding new processes requires updating only one file
+- Adding new processes requires editing only one YAML file
 - Validators now accept TSDC codes directly (fixed WF-4 test gap)
+- Taxonomy can be updated and reloaded at runtime via CLI or API
+- YAML file is well-documented with inline instructions for editors
 
 ### Negative
 
@@ -92,11 +120,16 @@ adding one `ProcessDefinition` entry with its aliases.
 - The alias table must be maintained as new processes are discovered
 - Substring matching in `normalize()` could cause false positives for
   very short inputs (mitigated by 3-character minimum)
+- YAML file must remain in sync with any new built-in definitions
 
 ## Files
 
-- **New**: `src/core/taxonomy/__init__.py`, `src/core/taxonomy/process_taxonomy.py`
-- **Tests**: `tests/core/taxonomy/test_process_taxonomy.py` (164 tests)
+- **Taxonomy module**: `src/core/taxonomy/__init__.py`, `src/core/taxonomy/process_taxonomy.py`
+- **YAML definitions**: `src/config/taxonomy/processes.yaml`
+- **Tests**: `tests/core/taxonomy/test_process_taxonomy.py` (164 tests),
+  `tests/core/taxonomy/test_yaml_loading.py` (33 tests)
+- **CLI**: `src/cli/taxonomy.py`
+- **API**: `src/core/api/routes/taxonomy.py`
 - **Refactored consumers**: `matching_service.py`, `okh_validator.py`,
   `okw_validator.py`, `engine.py`, `heuristic.py`, `base.py`,
   `generate_synthetic_data.py`

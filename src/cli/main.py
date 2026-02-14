@@ -18,6 +18,7 @@ from .package import package_group
 from .solution import solution_group
 from .storage import storage_group
 from .system import system_group
+from .taxonomy import taxonomy_group
 from .utility import utility_group
 
 # Conditional LLM import - only load if LLM is enabled
@@ -113,6 +114,7 @@ cli.add_command(utility_group, name="utility")
 cli.add_command(storage_group, name="storage")
 cli.add_command(solution_group, name="solution")
 cli.add_command(convert_group, name="convert")
+cli.add_command(taxonomy_group, name="taxonomy")
 
 
 @cli.command()

@@ -26,6 +26,7 @@ from src.core.api.routes.package import router as package_router
 from src.core.api.routes.rules import router as rules_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.convert import router as convert_router
+from src.core.api.routes.taxonomy import router as taxonomy_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -288,6 +289,9 @@ api_v1.include_router(
 api_v1.include_router(
     convert_router, tags=["convert"]
 )  # Already has /api/convert prefix
+api_v1.include_router(
+    taxonomy_router, tags=["taxonomy"]
+)  # Already has /api/taxonomy prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

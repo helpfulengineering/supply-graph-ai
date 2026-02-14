@@ -24,9 +24,26 @@ Usage:
     display = taxonomy.get_display_name("3d_printing")          # -> "3D Printing"
 """
 
+import logging
 import re
 from dataclasses import dataclass, field
-from typing import Dict, FrozenSet, List, Optional, Set
+from pathlib import Path
+from typing import Any, Dict, FrozenSet, List, Optional, Set
+
+import yaml
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Default path for the YAML taxonomy file
+# ---------------------------------------------------------------------------
+# Resolved relative to this file: src/core/taxonomy/ -> src/config/taxonomy/
+DEFAULT_TAXONOMY_PATH: Path = (
+    Path(__file__).resolve().parent.parent.parent
+    / "config"
+    / "taxonomy"
+    / "processes.yaml"
+)
 
 
 @dataclass(frozen=True)
@@ -719,6 +736,180 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
 ]
 
 
+# ---------------------------------------------------------------------------
+# YAML loading
+# ---------------------------------------------------------------------------
+
+
+def load_from_yaml(path: Path) -> List[ProcessDefinition]:
+    """Load process definitions from a YAML taxonomy file.
+
+    Args:
+        path: Path to the YAML file.
+
+    Returns:
+        List of ProcessDefinition objects.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
+        ValueError: If the YAML structure is invalid.
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"Taxonomy YAML file not found: {path}")
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"Taxonomy YAML root must be a mapping, got {type(data).__name__}"
+        )
+
+    processes_section: Any = data.get("processes")
+    if not processes_section or not isinstance(processes_section, dict):
+        raise ValueError("Taxonomy YAML must contain a non-empty 'processes' mapping")
+
+    definitions: List[ProcessDefinition] = []
+    for canonical_id, entry in processes_section.items():
+        if not isinstance(entry, dict):
+            raise ValueError(
+                f"Process '{canonical_id}': expected a mapping, got {type(entry).__name__}"
+            )
+
+        display_name = entry.get("display_name")
+        if not display_name:
+            raise ValueError(
+                f"Process '{canonical_id}': missing required 'display_name'"
+            )
+
+        tsdc_code = entry.get("tsdc_code")
+        parent = entry.get("parent")
+        raw_aliases = entry.get("aliases", [])
+
+        if not isinstance(raw_aliases, list):
+            raise ValueError(
+                f"Process '{canonical_id}': 'aliases' must be a list, "
+                f"got {type(raw_aliases).__name__}"
+            )
+
+        aliases = frozenset(str(a) for a in raw_aliases if a)
+
+        definitions.append(
+            ProcessDefinition(
+                canonical_id=str(canonical_id),
+                display_name=str(display_name),
+                tsdc_code=str(tsdc_code) if tsdc_code else None,
+                parent=str(parent) if parent else None,
+                aliases=aliases,
+            )
+        )
+
+    version = data.get("version", "unknown")
+    logger.info(
+        "Loaded %d process definitions from %s (version %s)",
+        len(definitions),
+        path,
+        version,
+    )
+    return definitions
+
+
+# ---------------------------------------------------------------------------
+# Validation
+# ---------------------------------------------------------------------------
+
+
+def validate_definitions(definitions: List[ProcessDefinition]) -> List[str]:
+    """Validate a list of process definitions for internal consistency.
+
+    Checks performed:
+    - All canonical IDs are unique
+    - All canonical IDs are lowercase snake_case
+    - All display names are non-empty
+    - All parent references point to existing canonical IDs
+    - No circular parent hierarchy
+    - No alias collisions (two different canonical IDs claiming the same alias)
+
+    Args:
+        definitions: List of ProcessDefinition objects to validate.
+
+    Returns:
+        List of error message strings. Empty list means valid.
+    """
+    errors: List[str] = []
+    id_set: Set[str] = set()
+
+    # Pass 1: collect IDs, check uniqueness, format, display_name
+    for defn in definitions:
+        cid = defn.canonical_id
+
+        # Unique IDs
+        if cid in id_set:
+            errors.append(f"Duplicate canonical_id: '{cid}'")
+        id_set.add(cid)
+
+        # Lowercase snake_case
+        if cid != cid.lower() or not re.match(r"^[a-z0-9][a-z0-9_]*$", cid):
+            errors.append(f"canonical_id '{cid}' is not lowercase snake_case")
+
+        # Display name
+        if not defn.display_name or not defn.display_name.strip():
+            errors.append(f"Process '{cid}': display_name is empty")
+
+    # Pass 2: parent references and cycles
+    for defn in definitions:
+        if defn.parent:
+            if defn.parent not in id_set:
+                errors.append(
+                    f"Process '{defn.canonical_id}': parent '{defn.parent}' does not exist"
+                )
+            else:
+                # Check for cycles
+                visited: Set[str] = set()
+                current: Optional[str] = defn.canonical_id
+                defn_map = {d.canonical_id: d for d in definitions}
+                while current:
+                    if current in visited:
+                        errors.append(
+                            f"Circular hierarchy detected involving '{defn.canonical_id}'"
+                        )
+                        break
+                    visited.add(current)
+                    parent_defn = defn_map.get(current)
+                    current = parent_defn.parent if parent_defn else None
+
+    # Pass 3: alias collisions
+    alias_owner: Dict[str, str] = {}
+    normalize_key = ProcessTaxonomy._normalize_key
+    for defn in definitions:
+        cid = defn.canonical_id
+
+        # Check the canonical_id itself as an alias
+        key = normalize_key(cid)
+        if key and key in alias_owner and alias_owner[key] != cid:
+            errors.append(
+                f"Alias collision: '{key}' maps to both "
+                f"'{alias_owner[key]}' and '{cid}'"
+            )
+        elif key:
+            alias_owner[key] = cid
+
+        # Check explicit aliases
+        for alias in defn.aliases:
+            key = normalize_key(alias)
+            if not key:
+                continue
+            if key in alias_owner and alias_owner[key] != cid:
+                errors.append(
+                    f"Alias collision: '{key}' (from alias '{alias}') maps to both "
+                    f"'{alias_owner[key]}' and '{cid}'"
+                )
+            else:
+                alias_owner[key] = cid
+
+    return errors
+
+
 class ProcessTaxonomy:
     """
     Canonical manufacturing process taxonomy.
@@ -748,7 +939,93 @@ class ProcessTaxonomy:
         # Hierarchy: canonical_id -> set of child canonical_ids
         self._children: Dict[str, Set[str]] = {}
 
+        # Track which file was loaded (None means built-in definitions)
+        self._source_path: Optional[Path] = None
+
         self._build(definitions)
+
+    # ------------------------------------------------------------------
+    # Reload
+    # ------------------------------------------------------------------
+
+    def reload(self, yaml_path: Optional[Path] = None) -> Dict[str, Any]:
+        """Reload the taxonomy from a YAML file.
+
+        This is an atomic operation: if loading or validation fails, the
+        current taxonomy state is preserved and an exception is raised.
+
+        Args:
+            yaml_path: Path to the YAML file.  Defaults to
+                ``DEFAULT_TAXONOMY_PATH`` if not provided.
+
+        Returns:
+            Dict with reload summary: ``added``, ``removed``, ``total``,
+            ``source``, and ``version``.
+
+        Raises:
+            FileNotFoundError: If the YAML file does not exist.
+            ValueError: If validation fails.
+        """
+        path = yaml_path or DEFAULT_TAXONOMY_PATH
+
+        # Load from file
+        new_definitions = load_from_yaml(path)
+
+        # Validate before applying
+        errors = validate_definitions(new_definitions)
+        if errors:
+            error_summary = "; ".join(errors[:5])
+            if len(errors) > 5:
+                error_summary += f" ... and {len(errors) - 5} more"
+            raise ValueError(
+                f"Taxonomy validation failed ({len(errors)} errors): {error_summary}"
+            )
+
+        # Compute diff for logging
+        old_ids = set(self._definitions.keys())
+        new_ids = {d.canonical_id for d in new_definitions}
+        added = new_ids - old_ids
+        removed = old_ids - new_ids
+
+        # Atomically rebuild internal state
+        self._definitions = {}
+        self._alias_map = {}
+        self._tsdc_map = {}
+        self._children = {}
+        self._build(new_definitions)
+        self._source_path = path
+
+        # Log changes
+        if added:
+            logger.info(
+                "Taxonomy reload: added processes: %s", ", ".join(sorted(added))
+            )
+        if removed:
+            logger.info(
+                "Taxonomy reload: removed processes: %s", ", ".join(sorted(removed))
+            )
+        logger.info(
+            "Taxonomy reloaded from %s: %d processes (%d added, %d removed)",
+            path,
+            len(new_definitions),
+            len(added),
+            len(removed),
+        )
+
+        # Read version from the YAML metadata
+        with open(path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        version = (
+            data.get("version", "unknown") if isinstance(data, dict) else "unknown"
+        )
+
+        return {
+            "added": sorted(added),
+            "removed": sorted(removed),
+            "total": len(new_definitions),
+            "source": str(path),
+            "version": version,
+        }
 
     # ------------------------------------------------------------------
     # Build phase
@@ -1048,4 +1325,49 @@ class ProcessTaxonomy:
 # ---------------------------------------------------------------------------
 # Module-level singleton
 # ---------------------------------------------------------------------------
-taxonomy: ProcessTaxonomy = ProcessTaxonomy()
+# Prefer YAML file if it exists; fall back to built-in PROCESS_DEFINITIONS.
+
+
+def _create_taxonomy() -> ProcessTaxonomy:
+    """Create the module-level taxonomy singleton.
+
+    Tries to load from the default YAML file first.  If the file is
+    missing or invalid, falls back to the built-in ``PROCESS_DEFINITIONS``.
+    """
+    if DEFAULT_TAXONOMY_PATH.exists():
+        try:
+            definitions = load_from_yaml(DEFAULT_TAXONOMY_PATH)
+            errors = validate_definitions(definitions)
+            if errors:
+                logger.warning(
+                    "Taxonomy YAML at %s has %d validation errors; "
+                    "using built-in definitions. First error: %s",
+                    DEFAULT_TAXONOMY_PATH,
+                    len(errors),
+                    errors[0],
+                )
+            else:
+                t = ProcessTaxonomy(definitions)
+                t._source_path = DEFAULT_TAXONOMY_PATH
+                logger.info(
+                    "Taxonomy initialized from YAML: %s (%d processes)",
+                    DEFAULT_TAXONOMY_PATH,
+                    len(definitions),
+                )
+                return t
+        except Exception as exc:
+            logger.warning(
+                "Failed to load taxonomy YAML at %s: %s; using built-in definitions",
+                DEFAULT_TAXONOMY_PATH,
+                exc,
+            )
+    else:
+        logger.debug(
+            "No taxonomy YAML found at %s; using built-in definitions",
+            DEFAULT_TAXONOMY_PATH,
+        )
+
+    return ProcessTaxonomy()
+
+
+taxonomy: ProcessTaxonomy = _create_taxonomy()
