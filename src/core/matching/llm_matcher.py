@@ -315,6 +315,9 @@ Remember: In crisis situations, perfect matches are rare. Focus on practical sol
         # Extract domain-specific context
         domain_context = self._get_domain_context()
 
+        # Extract taxonomy context for better matching
+        taxonomy_context = self._get_taxonomy_context(requirement, capability)
+
         prompt = f"""
 {self.matching_prompt}
 
@@ -326,8 +329,14 @@ Remember: In crisis situations, perfect matches are rare. Focus on practical sol
 ### Facility Capability (What facility can do):
 **Description**: {capability}
 
+### URI Normalization
+IMPORTANT: If the capability is a Wikipedia URI (e.g., https://en.wikipedia.org/wiki/Pick_and_place),
+extract the article name and treat it as the process name (e.g., "Pick and place").
+Similarly, if it looks like a URI slug (e.g., "Pick_and_place"), replace underscores with spaces.
+
 ### Domain Context:
 {domain_context}
+{taxonomy_context}
 
 ### Crisis Context:
 **Crisis Type**: General emergency response
@@ -342,6 +351,117 @@ Provide your analysis in the specified JSON format.
 """
 
         return prompt
+
+    def _get_taxonomy_context(self, requirement: str, capability: str) -> str:
+        """Build taxonomy-informed context for better matching.
+
+        Uses the process taxonomy to provide the LLM with domain knowledge
+        about process relationships, sub-processes, and abbreviations.
+        """
+        try:
+            from ..taxonomy import taxonomy
+        except ImportError:
+            return ""
+
+        lines = []
+
+        # Resolve requirement and capability through taxonomy
+        req_canonical = taxonomy.normalize(requirement)
+        cap_canonical = taxonomy.normalize(capability)
+
+        if req_canonical or cap_canonical:
+            lines.append("### Taxonomy Context (Domain Knowledge)")
+
+        if req_canonical:
+            defn = taxonomy.get_definition(req_canonical)
+            if defn:
+                lines.append(
+                    f"- Requirement '{requirement}' is recognized as "
+                    f"**{defn.display_name}** (canonical: {req_canonical})"
+                )
+                parent = taxonomy.get_parent(req_canonical)
+                if parent:
+                    parent_defn = taxonomy.get_definition(parent)
+                    pname = parent_defn.display_name if parent_defn else parent
+                    lines.append(f"  - Parent category: {pname}")
+                children = taxonomy.get_children(req_canonical)
+                if children:
+                    child_names = []
+                    for c in sorted(children):
+                        cd = taxonomy.get_definition(c)
+                        child_names.append(cd.display_name if cd else c)
+                    lines.append(f"  - Sub-processes: {', '.join(child_names)}")
+
+        if cap_canonical:
+            defn = taxonomy.get_definition(cap_canonical)
+            if defn:
+                lines.append(
+                    f"- Capability '{capability}' is recognized as "
+                    f"**{defn.display_name}** (canonical: {cap_canonical})"
+                )
+                parent = taxonomy.get_parent(cap_canonical)
+                if parent:
+                    parent_defn = taxonomy.get_definition(parent)
+                    pname = parent_defn.display_name if parent_defn else parent
+                    lines.append(f"  - Parent category: {pname}")
+
+        if req_canonical and cap_canonical:
+            if taxonomy.are_related(req_canonical, cap_canonical):
+                lines.append(
+                    f"- **These processes are related** in the taxonomy hierarchy"
+                )
+            else:
+                lines.append(
+                    f"- These processes are **NOT directly related** in the taxonomy"
+                )
+
+        # Add process-to-equipment knowledge for common cases
+        lines.append("")
+        lines.append("### Process-Equipment Relationships")
+        lines.append(
+            "- PCB / PCB fabrication / SMT (Surface Mount Technology) "
+            "**requires**: Pick-and-place machines, Reflow ovens, "
+            "Solder paste printers"
+        )
+        lines.append(
+            "- Post-processing is an umbrella term that **includes**: "
+            "Deburring, Anodizing, Painting, Polishing, Sanding, "
+            "Heat treatment, Surface finishing"
+        )
+        lines.append(
+            "- 3D Printing (3DP) is additive manufacturing and is "
+            "**NOT** CNC machining (subtractive manufacturing)"
+        )
+
+        # Add common abbreviation mappings
+        lines.append("")
+        lines.append("### Common Abbreviations")
+        lines.append("- SLA = Stereolithography (a type of 3D printing)")
+        lines.append("- FDM = Fused Deposition Modeling (a type of 3D printing)")
+        lines.append("- SMT = Surface Mount Technology (PCB assembly)")
+        lines.append("- TPU = Thermoplastic Polyurethane (a flexible plastic)")
+        lines.append("- PLA = Polylactic Acid (a 3D printing filament)")
+        lines.append("- ABS = Acrylonitrile Butadiene Styrene (a plastic)")
+        lines.append("- CNC = Computer Numerical Control (machining)")
+
+        # Add critical negative examples
+        lines.append("")
+        lines.append("### Important Distinctions (DO NOT confuse these)")
+        lines.append(
+            "- Brazing is NOT welding (different joining temperatures and methods)"
+        )
+        lines.append(
+            "- Electroplating is NOT anodizing (different surface treatment processes)"
+        )
+        lines.append(
+            "- Plasma cutting is NOT CNC milling (different material removal methods)"
+        )
+        lines.append(
+            "- Aluminum 6061-T6 is NOT interchangeable with Aluminum 7075 "
+            "(different alloys with different properties)"
+        )
+
+        return "\n".join(lines)
 
     def _get_domain_context(self) -> str:
         """Get domain-specific context for the prompt."""

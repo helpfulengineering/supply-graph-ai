@@ -290,21 +290,6 @@ ohm okh validate recipe.json --domain cooking --quality-level home
 ohm okh validate manifest.json --strict-mode --quality-level professional
 ```
 
-### `ohm okh create`
-
-Create and store an OKH manifest.
-
-```bash
-ohm okh create MANIFEST_FILE [OPTIONS]
-```
-
-**Arguments:**
-- `MANIFEST_FILE` - Path to OKH manifest file
-
-**Options:**
-- `--quality-level [basic\|standard\|premium]` - Validation quality level
-- `--strict-mode` - Enable strict validation mode
-
 ### `ohm okh get`
 
 Get an OKH manifest by ID and display the full JSON to stdout.
@@ -664,21 +649,6 @@ Validate an OKW facility.
 
 ```bash
 ohm okw validate FACILITY_FILE [OPTIONS]
-```
-
-**Arguments:**
-- `FACILITY_FILE` - Path to OKW facility file
-
-**Options:**
-- `--quality-level [basic\|standard\|premium]` - Validation quality level
-- `--strict-mode` - Enable strict validation mode
-
-### `ohm okw create`
-
-Create and store an OKW facility.
-
-```bash
-ohm okw create FACILITY_FILE [OPTIONS]
 ```
 
 **Arguments:**
@@ -2151,7 +2121,7 @@ ohm package list-remote
 
 # 7. Work with OKW facilities (now fully functional)
 ohm okw validate facility.okw.json
-ohm okw create facility.okw.json
+ohm okw upload facility.okw.json
 ohm okw list-facilities
 
 # 8. Perform matching operations (now fully functional)

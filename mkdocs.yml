@@ -103,6 +103,8 @@ nav:
   - Conversion:
     - Overview: conversion/index.md
     - MSF Datasheet: conversion/msf-datasheet.md
+  - Metrics:
+    - Matching Accuracy Baseline: metrics/matching-accuracy-baseline.md
   - Domains:
     - Overview: domains/index.md
     - Manufacturing: domains/manufacturing.md

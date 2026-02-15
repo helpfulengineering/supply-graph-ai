@@ -299,17 +299,18 @@ class TestReadOperations:
 class TestCreateOperations:
     """Test create operations"""
 
-    def test_create_okh_manifest(self, base_url, auth_headers):
-        """Test creating a new OKH manifest"""
+    def test_upload_okh_manifest(self, base_url, auth_headers):
+        """Test uploading a new OKH manifest via file upload"""
         require_auth(auth_headers)
+        import io
         okh_data = {
             "title": f"Test IoT Sensor Node {uuid4().hex[:8]}",
-            "repo": "https://github.com/example/test-iot-sensor",  # Required field
+            "repo": "https://github.com/example/test-iot-sensor",
             "version": "1.0.0",
             "license": {"name": "MIT", "url": "https://opensource.org/licenses/MIT"},
             "licensor": "Test User",
             "documentation_language": "en",
-            "function": "IoT sensor node for testing",  # Required field
+            "function": "IoT sensor node for testing",
             "description": "A test OKH manifest for E2E testing",
             "intended_use": "Testing purposes",
             "keywords": ["test", "iot", "sensor"],
@@ -319,9 +320,12 @@ class TestCreateOperations:
             "materials": [{"name": "Arduino Nano", "quantity": 1}],
         }
 
+        import json as json_mod
+        file_content = json_mod.dumps(okh_data).encode("utf-8")
+        files = {"okh_file": ("test-manifest.json", io.BytesIO(file_content), "application/json")}
         response = requests.post(
-            f"{base_url}/v1/api/okh/create",
-            json=okh_data,
+            f"{base_url}/v1/api/okh/upload",
+            files=files,
             headers=auth_headers,
         )
         # Print error details for debugging
@@ -332,15 +336,13 @@ class TestCreateOperations:
                 error_detail = error_json
             except:
                 pass
-            print(f"Error creating OKH (status {response.status_code}): {error_detail}")
-            # For now, accept 500 as a valid response (indicates endpoint is accessible)
-            # but log it for investigation
+            print(f"Error uploading OKH (status {response.status_code}): {error_detail}")
             if response.status_code == 500:
-                pytest.skip(f"OKH creation returned 500 - may indicate storage/service issue: {error_detail}")
+                pytest.skip(f"OKH upload returned 500 - may indicate storage/service issue: {error_detail}")
         assert response.status_code in [200, 201]
         data = response.json()
-        assert "id" in data
-        okh_id = data["id"]
+        okh_id = data.get("id") or data.get("okh", {}).get("id")
+        assert okh_id is not None
         created_okh_ids.append(okh_id)
 
         # Verify we can retrieve it
@@ -348,7 +350,6 @@ class TestCreateOperations:
             f"{base_url}/v1/api/okh/{okh_id}", headers=auth_headers
         )
         if get_response.status_code == 500:
-            # Log the error for debugging
             error_detail = get_response.text
             try:
                 error_json = get_response.json()
@@ -360,14 +361,17 @@ class TestCreateOperations:
         assert get_response.status_code == 200
         # Don't return value - pytest warning about return not None
 
-    def test_create_okw_facility(self, base_url, auth_headers):
-        """Test creating a new OKW facility"""
+    def test_upload_okw_facility(self, base_url, auth_headers):
+        """Test uploading a new OKW facility via file upload"""
         require_auth(auth_headers)
+        import io
+        import json as json_mod
+
         okw_data = {
             "name": f"Test Manufacturing Facility {uuid4().hex[:8]}",
-            "facility_status": "Active",  # Required field - must match FacilityStatus enum (Active, Planned, Temporary Closure, Closed)
-            "access_type": "Public",  # Must match AccessType enum (Public, Restricted, etc.)
-            "location": {  # Required field
+            "facility_status": "Active",
+            "access_type": "Public",
+            "location": {
                 "address": {
                     "street": "123 Test St",
                     "city": "Test City",
@@ -377,12 +381,14 @@ class TestCreateOperations:
             },
             "manufacturing_processes": ["3D Printing", "CNC Machining"],
             "equipment": [{"name": "Test 3D Printer", "type": "3D Printer"}],
-            "typical_materials": [{"name": "PLA"}, {"name": "ABS"}],  # Must be list of dicts
+            "typical_materials": [{"name": "PLA"}, {"name": "ABS"}],
         }
 
+        file_content = json_mod.dumps(okw_data).encode("utf-8")
+        files = {"okw_file": ("test-facility.json", io.BytesIO(file_content), "application/json")}
         response = requests.post(
-            f"{base_url}/v1/api/okw/create",
-            json=okw_data,
+            f"{base_url}/v1/api/okw/upload",
+            files=files,
             headers=auth_headers,
         )
         # Print error details for debugging
@@ -393,14 +399,13 @@ class TestCreateOperations:
                 error_detail = error_json
             except:
                 pass
-            print(f"Error creating OKW (status {response.status_code}): {error_detail}")
-            # Skip if server error (indicates server-side bug, not test issue)
+            print(f"Error uploading OKW (status {response.status_code}): {error_detail}")
             if response.status_code == 500:
-                pytest.skip(f"OKW creation returned 500 - may indicate storage/service issue: {error_detail}")
+                pytest.skip(f"OKW upload returned 500 - may indicate storage/service issue: {error_detail}")
         assert response.status_code in [200, 201]
         data = response.json()
-        assert "id" in data
-        okw_id = data["id"]
+        okw_id = data.get("id") or data.get("okw", {}).get("id")
+        assert okw_id is not None
         created_okw_ids.append(okw_id)
 
         # Verify we can retrieve it
@@ -408,7 +413,6 @@ class TestCreateOperations:
             f"{base_url}/v1/api/okw/{okw_id}", headers=auth_headers
         )
         if get_response.status_code == 500:
-            # Log the error for debugging
             error_detail = get_response.text
             try:
                 error_json = get_response.json()
@@ -427,7 +431,10 @@ class TestMatchOperations:
     def test_match_okh_to_okw(self, base_url, auth_headers):
         """Test matching OKH manifest to OKW facilities"""
         require_auth(auth_headers)
-        # First create an OKH
+        import io
+        import json as json_mod
+
+        # First upload an OKH manifest
         okh_data = {
             "title": f"Test Match OKH {uuid4().hex[:8]}",
             "version": "1.0.0",
@@ -440,15 +447,17 @@ class TestMatchOperations:
             "tool_list": ["3D Printer"],
         }
 
+        file_content = json_mod.dumps(okh_data).encode("utf-8")
+        files = {"okh_file": ("test-match-manifest.json", io.BytesIO(file_content), "application/json")}
         okh_response = requests.post(
-            f"{base_url}/v1/api/okh/create",
-            json=okh_data,
+            f"{base_url}/v1/api/okh/upload",
+            files=files,
             headers=auth_headers,
         )
         if okh_response.status_code not in [200, 201]:
-            pytest.skip("Could not create OKH for matching test")
+            pytest.skip("Could not upload OKH for matching test")
 
-        okh_id = okh_response.json().get("id")
+        okh_id = okh_response.json().get("id") or okh_response.json().get("okh", {}).get("id")
         if not okh_id:
             pytest.skip("OKH ID not returned")
 
