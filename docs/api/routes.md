@@ -121,34 +121,6 @@ Authorization is role-based with the following permission levels:
 
 ### OKH Routes
 
-#### Create
-
-```
-POST /v1/api/okh/create
-```
-
-Creates a new OKH manifest.
-
-**Request:**
-```json
-{
-  "title": "New Hardware Project",
-  "license": {...},
-  ...
-}
-```
-
-**Response:**
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "title": "New Hardware Project",
-  ...
-}
-```
-
-**Status:**  **Fully Implemented** - Complete CRUD operations with service integration
-
 #### Read (Get)
 
 ```
@@ -649,34 +621,6 @@ Export the JSON schema for the OKH (OpenKnowHow) domain model in canonical forma
 **Status:**  **Fully Implemented** - Complete schema export functionality
 
 ### OKW Routes
-
-#### Create
-
-```
-POST /v1/api/okw/create
-```
-
-Creates a new OKW facility.
-
-**Request:**
-```json
-{
-  "name": "New Manufacturing Facility",
-  "location": {...},
-  ...
-}
-```
-
-**Response:**
-```json
-{
-  "id": "123e4567-e89b-12d3-a456-426614174000",
-  "name": "New Manufacturing Facility",
-  ...
-}
-```
-
-**Status:**  **Fully Implemented** - Complete CRUD operations with service integration
 
 #### Read (Get)
 
@@ -2185,7 +2129,6 @@ Paginated responses include consistent metadata:
 - `POST /v1/api/match/rules/reset` - **Reset all rules (clear all rule sets)**
 
 #### **OKH Routes**
-- `POST /v1/api/okh/create` - **Complete CRUD operations with service integration**
 - `GET /v1/api/okh/{id}` - **Retrieves OKH manifests from storage with proper model conversion and validation**
 - `GET /v1/api/okh` - **Paginated listing with filter support**
 - `PUT /v1/api/okh/{id}` - **Complete update functionality with validation**
@@ -2200,7 +2143,6 @@ Paginated responses include consistent metadata:
 - `POST /v1/api/okh/scaffold/cleanup` - **Clean scaffolded projects with broken link detection and template alignment**
 
 #### **OKW Routes**
-- `POST /v1/api/okw/create` - **Complete CRUD operations with service integration**
 - `GET /v1/api/okw/{id}` - **Retrieves OKW facilities from storage with proper serialization**
 - `GET /v1/api/okw` - **Paginated listing with service integration**
 - `PUT /v1/api/okw/{id}` - **Complete update functionality with validation**

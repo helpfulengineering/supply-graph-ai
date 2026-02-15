@@ -14,7 +14,7 @@ class ConvertToDatasheetRequest(BaseAPIRequest):
     3D-printed product technical specification datasheet (.docx).
     """
 
-    # The OKH manifest content (same shape as OKHCreateRequest)
+    # The OKH manifest content (follows OKH manifest schema)
     title: str
     version: str
     license: Union[str, Dict[str, Any]]
