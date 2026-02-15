@@ -456,6 +456,10 @@ class MatchingService:
             req_normalized = self._normalize_process_name(req_process)
             cap_normalized = self._normalize_process_name(cap_process)
 
+            # Guard: empty strings should never match anything
+            if not req_normalized or not cap_normalized:
+                return False
+
             # Check for exact match after normalization
             if req_normalized == cap_normalized:
                 logger.debug(
@@ -685,6 +689,23 @@ class MatchingService:
                 if (
                     result.matched and result.confidence >= 0.7
                 ):  # Use 0.7 as threshold for NLP match
+                    # Taxonomy post-filter: reject NLP match when both terms
+                    # resolve to known but unrelated canonical processes.
+                    # This prevents spaCy's broad semantic similarity from
+                    # matching same-domain but fundamentally different processes
+                    # (e.g., 3D printing vs CNC milling).
+                    req_canonical = taxonomy.normalize(req_process)
+                    cap_canonical = taxonomy.normalize(cap_process)
+                    if req_canonical and cap_canonical:
+                        if not taxonomy.are_related(req_canonical, cap_canonical):
+                            logger.info(
+                                f"NLP match REJECTED by taxonomy post-filter: "
+                                f"req='{req_process}' ({req_canonical}) vs "
+                                f"cap='{cap_process}' ({cap_canonical}) "
+                                f"are not related in taxonomy",
+                            )
+                            return False
+
                     logger.debug(
                         "NLP match found using semantic similarity",
                         extra={

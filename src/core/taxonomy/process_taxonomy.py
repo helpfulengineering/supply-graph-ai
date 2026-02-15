@@ -359,6 +359,23 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         ),
     ),
     # -----------------------------------------------------------------------
+    # Brazing / Soldering (distinct from welding)
+    # -----------------------------------------------------------------------
+    ProcessDefinition(
+        canonical_id="brazing",
+        display_name="Brazing",
+        tsdc_code=None,
+        parent=None,
+        aliases=frozenset(
+            {
+                "brazing",
+                "braze",
+                "silver brazing",
+                "torch brazing",
+            }
+        ),
+    ),
+    # -----------------------------------------------------------------------
     # Sheet Metal
     # -----------------------------------------------------------------------
     ProcessDefinition(
@@ -528,6 +545,22 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         ),
     ),
     ProcessDefinition(
+        canonical_id="electroplating",
+        display_name="Electroplating",
+        tsdc_code=None,
+        parent=None,
+        aliases=frozenset(
+            {
+                "electroplating",
+                "electroplate",
+                "plating",
+                "chrome plating",
+                "nickel plating",
+                "zinc plating",
+            }
+        ),
+    ),
+    ProcessDefinition(
         canonical_id="heat_treatment",
         display_name="Heat Treatment",
         tsdc_code=None,
@@ -586,6 +619,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "plasma cutting",
                 "plasma_cutting",
                 "plasma cut",
+                "cnc plasma cutting",
+                "cnc plasma",
             }
         ),
     ),
@@ -1135,10 +1170,13 @@ class ProcessTaxonomy:
             return self._alias_map[key]
 
         # 5. Substring match: check if any alias key is contained in the
-        #    input or the input is contained in an alias key
+        #    input or the input is contained in an alias key.
+        #    Require aliases to be at least 5 chars to avoid false positives
+        #    from short abbreviations (e.g., "las" matching "plastic",
+        #    "pla" matching "electroplating"). Short aliases still work
+        #    via exact match in step 4.
         for alias_key, cid in self._alias_map.items():
-            # Skip very short keys to avoid false positives
-            if len(alias_key) < 3:
+            if len(alias_key) < 5:
                 continue
             if alias_key in key or key in alias_key:
                 return cid

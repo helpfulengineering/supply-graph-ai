@@ -83,6 +83,7 @@ processes:
     aliases:
       - "sla"
       - "sla printing"
+      - "sla printer"
       - "stereolithography"
 
   3d_printing_sls:
@@ -225,6 +226,7 @@ processes:
       - "wel"
       - "welding"
       - "weld"
+      - "welder"
 
   tig_welding:
     display_name: "TIG Welding"
@@ -248,6 +250,18 @@ processes:
     aliases:
       - "arc welding"
       - "arc_welding"
+
+  # ---------------------------------------------------------------------------
+  # Brazing / Soldering (distinct from welding)
+  # ---------------------------------------------------------------------------
+
+  brazing:
+    display_name: "Brazing"
+    aliases:
+      - "brazing"
+      - "braze"
+      - "silver brazing"
+      - "torch brazing"
 
   # ---------------------------------------------------------------------------
   # Sheet Metal (TSDC: SHEET)
@@ -343,6 +357,16 @@ processes:
       - "anodising"
       - "anodize"
 
+  electroplating:
+    display_name: "Electroplating"
+    aliases:
+      - "electroplating"
+      - "electroplate"
+      - "plating"
+      - "chrome plating"
+      - "nickel plating"
+      - "zinc plating"
+
   heat_treatment:
     display_name: "Heat Treatment"
     aliases:
@@ -377,6 +401,8 @@ processes:
       - "plasma cutting"
       - "plasma_cutting"
       - "plasma cut"
+      - "cnc plasma cutting"
+      - "cnc plasma"
 
   surface_finishing:
     display_name: "Surface Finishing"
