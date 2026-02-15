@@ -216,3 +216,94 @@ rules:
     description: "Post-processing can satisfy post-processing requirements"
     source: "Manufacturing Standards"
     tags: ["finishing", "post-processing", "quality"]
+
+  # Post-Processing Sub-type Capabilities
+  deburring_capability:
+    id: "deburring_capability"
+    type: "capability_match"
+    capability: "deburring"
+    satisfies_requirements: ["post-processing", "post processing", "post_processing", "postprocessing", "finishing", "deburring", "edge finishing", "surface finishing"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Deburring is a post-processing sub-type"
+    source: "Manufacturing Standards"
+    tags: ["finishing", "post-processing", "deburring"]
+
+  anodizing_capability:
+    id: "anodizing_capability"
+    type: "capability_match"
+    capability: "anodizing"
+    satisfies_requirements: ["post-processing", "post processing", "post_processing", "postprocessing", "finishing", "anodizing", "surface treatment", "surface finishing"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Anodizing is a post-processing sub-type"
+    source: "Manufacturing Standards"
+    tags: ["finishing", "post-processing", "anodizing"]
+
+  painting_capability:
+    id: "painting_capability"
+    type: "capability_match"
+    capability: "painting"
+    satisfies_requirements: ["post-processing", "post processing", "post_processing", "postprocessing", "finishing", "painting", "paint", "coating", "surface finishing"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Painting is a post-processing sub-type"
+    source: "Manufacturing Standards"
+    tags: ["finishing", "post-processing", "painting"]
+
+  # Material Abbreviation Capabilities
+  tpu_material_capability:
+    id: "tpu_material_capability"
+    type: "capability_match"
+    capability: "tpu"
+    satisfies_requirements: ["thermoplastic polyurethane", "tpu", "flexible filament", "flexible plastic"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "TPU is Thermoplastic Polyurethane"
+    source: "Material Science Standards"
+    tags: ["material", "plastic", "flexible"]
+
+  pla_material_capability:
+    id: "pla_material_capability"
+    type: "capability_match"
+    capability: "pla"
+    satisfies_requirements: ["polylactic acid", "pla", "pla filament", "bioplastic"]
+    confidence: 0.95
+    domain: "manufacturing"
+    description: "PLA is Polylactic Acid"
+    source: "Material Science Standards"
+    tags: ["material", "plastic", "biodegradable"]
+
+  plastic_material_capability:
+    id: "plastic_material_capability"
+    type: "capability_match"
+    capability: "plastic"
+    satisfies_requirements: ["plastic", "acrylic", "acrylic sheet", "polycarbonate", "nylon", "abs", "pla", "petg", "polymer", "thermoplastic"]
+    confidence: 0.85
+    domain: "manufacturing"
+    description: "Generic plastic capability satisfies specific plastic types"
+    source: "Material Science Standards"
+    tags: ["material", "plastic"]
+
+  # PCB / SMT Equipment Capabilities
+  pick_and_place_capability:
+    id: "pick_and_place_capability"
+    type: "capability_match"
+    capability: "pick and place"
+    satisfies_requirements: ["pcb", "pcb_fabrication", "pcb fabrication", "pcb assembly", "smt", "surface mount technology", "surface mount", "electronics assembly", "component placement"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Pick-and-place machines are essential for PCB/SMT assembly"
+    source: "IPC-A-610 Electronics Assembly Standard"
+    tags: ["electronics", "pcb", "smt", "assembly"]
+
+  reflow_oven_capability:
+    id: "reflow_oven_capability"
+    type: "capability_match"
+    capability: "reflow oven"
+    satisfies_requirements: ["pcb", "pcb_fabrication", "pcb fabrication", "pcb assembly", "smt", "surface mount technology", "surface mount", "reflow soldering", "solder reflow"]
+    confidence: 0.9
+    domain: "manufacturing"
+    description: "Reflow ovens are essential for PCB/SMT soldering"
+    source: "IPC-A-610 Electronics Assembly Standard"
+    tags: ["electronics", "pcb", "smt", "soldering"]
