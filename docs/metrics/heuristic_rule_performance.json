@@ -1,0 +1,160 @@
+{
+  "rule_performance": {
+    "anodizing_capability": {
+      "rule_id": "anodizing_capability",
+      "hit_count": 1,
+      "correct_matches": 1,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": "low_sample"
+    },
+    "deburring_capability": {
+      "rule_id": "deburring_capability",
+      "hit_count": 2,
+      "correct_matches": 2,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": "low_sample"
+    },
+    "painting_capability": {
+      "rule_id": "painting_capability",
+      "hit_count": 1,
+      "correct_matches": 1,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": "low_sample"
+    },
+    "pick_and_place_capability": {
+      "rule_id": "pick_and_place_capability",
+      "hit_count": 4,
+      "correct_matches": 4,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": ""
+    },
+    "pla_material_capability": {
+      "rule_id": "pla_material_capability",
+      "hit_count": 1,
+      "correct_matches": 1,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": "low_sample"
+    },
+    "reflow_oven_capability": {
+      "rule_id": "reflow_oven_capability",
+      "hit_count": 2,
+      "correct_matches": 2,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": "low_sample"
+    },
+    "tpu_material_capability": {
+      "rule_id": "tpu_material_capability",
+      "hit_count": 1,
+      "correct_matches": 1,
+      "false_positives": 0,
+      "precision": 1.0,
+      "accuracy_note": "low_sample"
+    }
+  },
+  "hits": [
+    {
+      "case_id": "tp-proc-004",
+      "rule_id": "pick_and_place_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-005",
+      "rule_id": "reflow_oven_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-010",
+      "rule_id": "deburring_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-011",
+      "rule_id": "deburring_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-012",
+      "rule_id": "anodizing_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-013",
+      "rule_id": "painting_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-019",
+      "rule_id": "pick_and_place_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "tp-proc-020",
+      "rule_id": "reflow_oven_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "uri-005",
+      "rule_id": "pick_and_place_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "mat-011",
+      "rule_id": "tpu_material_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "mat-013",
+      "rule_id": "pla_material_capability",
+      "expected_match": true
+    },
+    {
+      "case_id": "edge-015",
+      "rule_id": "pick_and_place_capability",
+      "expected_match": true
+    }
+  ],
+  "all_rule_ids": [
+    "additive_manufacturing_capability",
+    "aluminum_capability",
+    "anodizing_capability",
+    "assembly_capability",
+    "cnc_lathe_capability",
+    "cnc_machining_capability",
+    "cnc_milling_capability",
+    "deburring_capability",
+    "end_mill_capability",
+    "fdm_printing_capability",
+    "lathe_capability",
+    "mill_capability",
+    "painting_capability",
+    "pick_and_place_capability",
+    "pla_material_capability",
+    "plastic_material_capability",
+    "post_processing_capability",
+    "precision_machining_capability",
+    "reflow_oven_capability",
+    "sla_printing_capability",
+    "stainless_steel_capability",
+    "steel_capability",
+    "tig_welding_capability",
+    "titanium_capability",
+    "tpu_material_capability",
+    "welding_capability"
+  ],
+  "summary": {
+    "total_ground_truth_cases": 115,
+    "heuristic_hits_total": 12,
+    "heuristic_hits_correct": 12,
+    "heuristic_hits_false_positive": 0,
+    "heuristic_precision": 1.0,
+    "rules_with_at_least_one_hit": 7,
+    "rules_never_triggered": 19,
+    "total_rules": 26
+  }
+}

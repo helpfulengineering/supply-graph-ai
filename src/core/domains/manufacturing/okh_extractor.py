@@ -53,13 +53,20 @@ class OKHExtractor(BaseExtractor):
     def _detailed_extract_requirements(
         self, parsed_data: OKHManifest
     ) -> NormalizedRequirements:
-        """Extract detailed requirements from OKH manifest"""
-        # Extract process requirements
-        process_reqs = []
+        """Extract detailed requirements from OKH manifest.
+
+        Each requirement dict may include optional "source" and "part_name" for
+        explanation transparency: source is "process_requirements" | "manufacturing_processes" | "part",
+        and part_name is set when source is "part".
+        """
+        process_req_dicts: List[Dict[str, Any]] = []
 
         # Add requirements from manufacturing specs
         if parsed_data.manufacturing_specs:
-            process_reqs.extend(parsed_data.manufacturing_specs.process_requirements)
+            for req in parsed_data.manufacturing_specs.process_requirements:
+                d = self._convert_process_req_to_dict(req)
+                d["source"] = "process_requirements"
+                process_req_dicts.append(d)
 
         # Extract implicit requirements from manufacturing processes
         for process in parsed_data.manufacturing_processes:
@@ -69,38 +76,39 @@ class OKHExtractor(BaseExtractor):
                 validation_criteria={},
                 required_tools=[],
             )
-            process_reqs.append(req)
+            d = self._convert_process_req_to_dict(req)
+            d["source"] = "manufacturing_processes"
+            process_req_dicts.append(d)
 
         # Extract requirements from parts
         for part in parsed_data.parts:
             for tsdc in part.tsdc:
-                # Create process requirement based on TSDC
                 params = (
                     part.manufacturing_params.copy()
                     if hasattr(part, "manufacturing_params")
                     else {}
                 )
                 params["material"] = part.material
-
                 req = ProcessRequirement(
                     process_name=tsdc,
                     parameters=params,
                     validation_criteria={},
                     required_tools=[],
                 )
-                process_reqs.append(req)
+                d = self._convert_process_req_to_dict(req)
+                d["source"] = "part"
+                d["part_name"] = getattr(part, "name", None) or ""
+                process_req_dicts.append(d)
 
         # Build normalized requirements content
         content = {
             "id": str(parsed_data.id),
             "name": parsed_data.title,
             "version": parsed_data.version,
-            "processes": [pr.process_name for pr in process_reqs],
+            "processes": [d["process_name"] for d in process_req_dicts],
             "materials": [m.material_id for m in parsed_data.materials],
             "tools": parsed_data.tool_list.copy() if parsed_data.tool_list else [],
-            "process_requirements": [
-                self._convert_process_req_to_dict(req) for req in process_reqs
-            ],
+            "process_requirements": process_req_dicts,
             "tsdcs": parsed_data.tsdc.copy() if parsed_data.tsdc else [],
             "parts": [self._convert_part_to_dict(part) for part in parsed_data.parts],
         }
@@ -117,7 +125,7 @@ class OKHExtractor(BaseExtractor):
         # Create confidence scores
         confidence_scores = {
             "name": 1.0 if parsed_data.title else 0.0,
-            "processes": 1.0 if process_reqs else 0.0,
+            "processes": 1.0 if process_req_dicts else 0.0,
             "materials": 1.0 if parsed_data.materials else 0.0,
             "tools": 1.0 if parsed_data.tool_list else 0.0,
             "tsdcs": 1.0 if parsed_data.tsdc else 0.0,
@@ -127,7 +135,9 @@ class OKHExtractor(BaseExtractor):
         metadata = ExtractionMetadata(
             source_document=parsed_data.repo,
             confidence_scores=confidence_scores,
-            processing_logs=[f"Extracted {len(process_reqs)} process requirements"],
+            processing_logs=[
+                f"Extracted {len(process_req_dicts)} process requirements"
+            ],
         )
 
         # Create normalized requirements with metadata

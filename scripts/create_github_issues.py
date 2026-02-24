@@ -92,8 +92,7 @@ class ParsedIssue:
 
         # Add a footer linking back to the source document
         parts.append(
-            "---\n"
-            f"*Generated from `notes/github-issues.md` — Issue {self.issue_id}*"
+            "---\n" f"*Generated from `notes/github-issues.md` — Issue {self.issue_id}*"
         )
 
         return "\n\n".join(parts)
@@ -127,9 +126,7 @@ def _indent(text: str, spaces: int) -> str:
 
 # Pattern matching the issue heading line:
 #   ### Issue 1.1.1: Define Canonical Test Workflows ...
-ISSUE_HEADING_RE = re.compile(
-    r"^### Issue (\d+\.\d+\.\d+):\s*(.+)$", re.MULTILINE
-)
+ISSUE_HEADING_RE = re.compile(r"^### Issue (\d+\.\d+\.\d+):\s*(.+)$", re.MULTILINE)
 
 # Pattern for the **Title** field value
 TITLE_RE = re.compile(r"^\*\*Title\*\*:\s*(.+)$", re.MULTILINE)
@@ -151,7 +148,11 @@ def parse_issues(markdown_text: str) -> List[ParsedIssue]:
 
         # Extract the block of text for this issue (up to next issue heading or EOF)
         start = match.end()
-        end = heading_matches[idx + 1].start() if idx + 1 < len(heading_matches) else len(markdown_text)
+        end = (
+            heading_matches[idx + 1].start()
+            if idx + 1 < len(heading_matches)
+            else len(markdown_text)
+        )
         block = markdown_text[start:end]
 
         # --- Parse individual fields ---
@@ -193,9 +194,7 @@ def parse_issues(markdown_text: str) -> List[ParsedIssue]:
 
 def _extract_field_line(block: str, field_name: str) -> str:
     """Extract the single-line value after **FieldName**: ..."""
-    pattern = re.compile(
-        rf"^\*\*{re.escape(field_name)}\*\*:\s*(.+)$", re.MULTILINE
-    )
+    pattern = re.compile(rf"^\*\*{re.escape(field_name)}\*\*:\s*(.+)$", re.MULTILINE)
     m = pattern.search(block)
     return m.group(1).strip() if m else ""
 
@@ -207,9 +206,7 @@ def _extract_section(block: str, section_name: str) -> str:
     or the next issue heading.
     """
     # Find the start of this section
-    pattern = re.compile(
-        rf"^\*\*{re.escape(section_name)}\*\*:\s*\n?", re.MULTILINE
-    )
+    pattern = re.compile(rf"^\*\*{re.escape(section_name)}\*\*:\s*\n?", re.MULTILINE)
     m = pattern.search(block)
     if not m:
         return ""
@@ -334,10 +331,15 @@ def create_issue(
         return None
 
     cmd = [
-        "gh", "issue", "create",
-        "--repo", repo,
-        "--title", issue.title,
-        "--body", issue.build_body(),
+        "gh",
+        "issue",
+        "create",
+        "--repo",
+        repo,
+        "--title",
+        issue.title,
+        "--body",
+        issue.build_body(),
     ]
 
     # Add labels (gh accepts multiple --label flags)
@@ -380,7 +382,8 @@ def main():
         help="Actually create issues (default is dry-run mode)",
     )
     parser.add_argument(
-        "--yes", "-y",
+        "--yes",
+        "-y",
         action="store_true",
         help="Skip confirmation prompt (use with --create)",
     )
@@ -409,7 +412,8 @@ def main():
         help="GitHub repo (owner/repo). Default: auto-detected from git remote",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Show body preview in dry-run output",
     )
@@ -438,7 +442,9 @@ def main():
         input_path = Path(args.input)
     else:
         # Assume running from repo root
-        input_path = Path(__file__).resolve().parent.parent / "notes" / "github-issues.md"
+        input_path = (
+            Path(__file__).resolve().parent.parent / "notes" / "github-issues.md"
+        )
 
     if not input_path.exists():
         print(f"ERROR: Input file not found: {input_path}")
@@ -548,11 +554,15 @@ def main():
         if url:
             print(f"  ✓ Created: {url}")
             created += 1
-            results.append({"issue_id": issue.issue_id, "url": url, "title": issue.title})
+            results.append(
+                {"issue_id": issue.issue_id, "url": url, "title": issue.title}
+            )
         else:
             print(f"  ✗ Failed: {issue.issue_id}")
             failed += 1
-            results.append({"issue_id": issue.issue_id, "url": None, "title": issue.title})
+            results.append(
+                {"issue_id": issue.issue_id, "url": None, "title": issue.title}
+            )
 
         # Rate-limit delay (skip after last issue)
         if idx < len(issues) and args.delay > 0:

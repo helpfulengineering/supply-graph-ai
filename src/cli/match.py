@@ -15,6 +15,7 @@ import yaml
 
 from ..core.models.base.base_types import NormalizedCapabilities
 from ..core.models.okh import OKHManifest
+from ..core.registry.domain_registry import DomainRegistry
 from ..core.services.matching_service import MatchingService
 from .base import (
     CLIContext,
@@ -123,6 +124,13 @@ def match_group():
     default=None,
     help="Comma-separated tags to apply to saved solution. Only used if --save-solution is set.",
 )
+@click.option(
+    "--explain",
+    "include_explanation",
+    is_flag=True,
+    default=False,
+    help="Include per-facility match explanations (which layer/rule matched each requirement).",
+)
 @standard_cli_command(
     help_text="""
     Match requirements to capabilities (supports both manufacturing and cooking domains).
@@ -220,6 +228,7 @@ async def requirements(
     save_solution: bool = False,
     solution_ttl_days: Optional[int] = None,
     solution_tags: Optional[str] = None,
+    include_explanation: bool = False,
 ):
     """Match OKH requirements to OKW capabilities with enhanced LLM support."""
     cli_ctx = ctx.obj
@@ -273,6 +282,7 @@ async def requirements(
         nested_params = {
             "max_depth": max_depth,
             "auto_detect_depth": auto_detect_depth,
+            "include_explanation": include_explanation,
         }
 
         # Add solution storage parameters if requested
@@ -393,23 +403,35 @@ async def requirements(
 
                 matching_service = await MatchingService.get_instance()
 
-                # Get facilities for matching with filters
-                from ..core.services.okw_service import OKWService
+                # Get facilities: from local file (testing) or from storage
+                if facility_file:
+                    from ..core.models.okw import ManufacturingFacility
 
-                okw_service = await OKWService.get_instance()
+                    cli_ctx.log(f"Using local facility file: {facility_file}", "info")
+                    with open(facility_file, "r") as f:
+                        file_data = json.load(f)
+                    raw = file_data if isinstance(file_data, list) else [file_data]
+                    facilities = [ManufacturingFacility.from_dict(d) for d in raw]
+                    cli_ctx.log(
+                        f"Loaded {len(facilities)} facility(ies) from file",
+                        "info",
+                    )
+                else:
+                    from ..core.services.okw_service import OKWService
 
-                # Build filter_params for okw_service.list() if filters are provided
-                filter_params = {}
-                if filters.get("access_type"):
-                    filter_params["access_type"] = filters.get("access_type")
-                if filters.get("facility_status"):
-                    filter_params["facility_status"] = filters.get("facility_status")
-                if filters.get("location"):
-                    filter_params["location"] = filters.get("location")
-
-                facilities, _ = await okw_service.list(
-                    filter_params=filter_params if filter_params else None
-                )
+                    okw_service = await OKWService.get_instance()
+                    filter_params = {}
+                    if filters.get("access_type"):
+                        filter_params["access_type"] = filters.get("access_type")
+                    if filters.get("facility_status"):
+                        filter_params["facility_status"] = filters.get(
+                            "facility_status"
+                        )
+                    if filters.get("location"):
+                        filter_params["location"] = filters.get("location")
+                    facilities, _ = await okw_service.list(
+                        filter_params=filter_params if filter_params else None
+                    )
 
                 # Apply additional filters that aren't supported by okw_service.list()
                 # (e.g., capabilities, materials would need more complex matching logic)
@@ -511,6 +533,14 @@ async def requirements(
                     }
                     if solution_id:
                         result["solution_id"] = str(solution_id)
+                    if include_explanation:
+                        await _attach_explanations_to_solutions(
+                            result,
+                            manifest,
+                            facilities,
+                            matching_service,
+                            detected_domain,
+                        )
                     return result
                 else:
                     # Single-level matching
@@ -607,6 +637,14 @@ async def requirements(
                         }
                         if solution_id:
                             result["solution_id"] = str(solution_id)
+                        if include_explanation:
+                            await _attach_explanations_to_solutions(
+                                result,
+                                manifest,
+                                facilities,
+                                matching_service,
+                                detected_domain,
+                            )
                         return result
                     else:
                         return {
@@ -1223,6 +1261,56 @@ def _parse_match_filters(
     return filters
 
 
+async def _attach_explanations_to_solutions(
+    result: Dict[str, Any],
+    manifest: Any,
+    facilities: List[Any],
+    matching_service: MatchingService,
+    domain: str,
+) -> None:
+    """Attach match explanation and explanation_human to each solution (manufacturing fallback)."""
+    solutions = result.get("solutions", [])
+    if not solutions or domain != "manufacturing":
+        return
+    manifest_data = manifest.to_dict() if hasattr(manifest, "to_dict") else manifest
+    domain_services = DomainRegistry.get_domain_services(domain)
+    extractor = domain_services.extractor
+    ext_req = extractor.extract_requirements(manifest_data)
+    requirements = (
+        ext_req.data.content.get("process_requirements", [])
+        if ext_req.data and ext_req.data.content
+        else []
+    )
+    facility_by_id = {str(f.id): f for f in facilities}
+    for solution in solutions:
+        tree = solution.get("tree") or (solution.get("all_trees") or [{}])[0]
+        facility_id = tree.get("okw_reference") or ""
+        facility_name = tree.get("facility_name", "Unknown")
+        facility = facility_by_id.get(facility_id) if facility_id else None
+        facility_data = (
+            facility.to_dict() if facility and hasattr(facility, "to_dict") else {}
+        )
+        ext_cap = extractor.extract_capabilities(facility_data)
+        capabilities = (
+            ext_cap.data.content.get("capabilities", [])
+            if ext_cap.data and ext_cap.data.content
+            else []
+        )
+        try:
+            explanation = await matching_service.get_match_explanation(
+                requirements,
+                capabilities,
+                str(facility_id),
+                facility_name,
+                domain,
+            )
+            solution["explanation"] = explanation.to_dict()
+            solution["explanation_human"] = explanation.to_human_readable()
+        except Exception:
+            solution["explanation"] = None
+            solution["explanation_human"] = None
+
+
 async def _display_match_results(
     cli_ctx: CLIContext,
     result: Dict[str, Any],
@@ -1294,6 +1382,13 @@ async def _display_match_results(
             match_type = solution.get("match_type", "unknown")
             if match_type != "unknown":
                 click.echo(f"   Match Type: {match_type}")
+
+            # Show match explanation when --explain was used
+            explanation_human = solution.get("explanation_human")
+            if explanation_human:
+                click.echo("   Explanation:")
+                for line in explanation_human.strip().split("\n"):
+                    click.echo(f"     {line}")
 
 
 async def _display_validation_results(

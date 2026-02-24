@@ -1718,6 +1718,47 @@ async def _perform_enhanced_matching(
                     "metrics": solution.metrics,
                 }
                 results.append(solution_dict)
+
+            # Add match explanations if requested
+            if (
+                getattr(request, "include_explanation", False)
+                and results
+                and domain == "manufacturing"
+            ):
+                domain_services = DomainRegistry.get_domain_services(domain)
+                extractor = domain_services.extractor
+                manifest_data = requirements_data.to_dict()
+                ext_req = extractor.extract_requirements(manifest_data)
+                requirements = (
+                    ext_req.data.content.get("process_requirements", [])
+                    if ext_req.data and ext_req.data.content
+                    else []
+                )
+                for result in results:
+                    facility_data = result.get("facility") or {}
+                    ext_cap = extractor.extract_capabilities(facility_data)
+                    capabilities = (
+                        ext_cap.data.content.get("capabilities", [])
+                        if ext_cap.data and ext_cap.data.content
+                        else []
+                    )
+                    try:
+                        explanation = await matching_service.get_match_explanation(
+                            requirements,
+                            capabilities,
+                            str(result["facility_id"]),
+                            result["facility_name"],
+                            domain,
+                        )
+                        result["explanation"] = explanation.to_dict()
+                        result["explanation_human"] = explanation.to_human_readable()
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to generate explanation for {result.get('facility_name')}: {e}",
+                            extra={"request_id": request_id},
+                        )
+                        result["explanation"] = None
+                        result["explanation_human"] = str(e)
         elif domain == "cooking":
             # Use cooking domain extractor and matcher
             from ...domains.cooking.extractors import CookingExtractor

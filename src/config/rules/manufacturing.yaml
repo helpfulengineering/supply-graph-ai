@@ -4,8 +4,10 @@ description: "Capability-centric rules for manufacturing domain - defines what r
 
 metadata:
   maintainer: "OHM Manufacturing Team"
-  last_updated: "2024-01-01"
+  last_updated: "2026-02-15"
   source: "Industry standards and manufacturing terminology"
+  rule_design_doc: "docs/development/rule_design.md"
+  performance_report: "docs/metrics/heuristic_rule_performance.md"
 
 rules:
   # CNC Machining Capabilities

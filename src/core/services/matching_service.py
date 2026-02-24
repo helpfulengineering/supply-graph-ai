@@ -9,6 +9,12 @@ from ..matching.capability_rules import CapabilityMatcher, CapabilityRuleManager
 from ..matching.nlp_matcher import NLPMatcher
 from ..models.bom import Component
 from ..models.component_match import ComponentMatch
+from ..models.match_explanation import (
+    MatchExplanation,
+    MatchLayer,
+    MatchStatus,
+    RequirementMatchDetail,
+)
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..models.supply_trees import SupplyTree, SupplyTreeSolution
@@ -437,6 +443,198 @@ class MatchingService:
             )
             raise
 
+    async def _can_satisfy_requirements_with_details(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]],
+        domain: str = "manufacturing",
+    ) -> tuple[bool, List[RequirementMatchDetail]]:
+        """Check satisfaction and return per-requirement match details for explanations."""
+        details: List[RequirementMatchDetail] = []
+        req_list, cap_list = self._normalize_req_cap_lists(requirements, capabilities)
+        if req_list is None or cap_list is None:
+            return False, details
+
+        for req in req_list:
+            raw_req = req.get("process_name", "").strip()
+            req_process = self._normalize_process_name(raw_req).lower().strip()
+            if not req_process:
+                continue
+
+            req_source = req.get("source")
+            req_part_name = req.get("part_name")
+
+            requirement_satisfied = False
+            for cap in cap_list:
+                raw_cap = cap.get("process_name", "").strip()
+                cap_process = self._normalize_process_name(raw_cap).lower().strip()
+                if not cap_process:
+                    continue
+
+                if await self._direct_match(req_process, cap_process, domain):
+                    details.append(
+                        RequirementMatchDetail(
+                            requirement_value=raw_req or req_process,
+                            status=MatchStatus.MATCHED,
+                            confidence=0.95,
+                            matched_capability=raw_cap or cap_process,
+                            matching_layer=MatchLayer.DIRECT,
+                            rule_id=None,
+                            explanation=f"Exact or normalized match: '{raw_req}' ↔ '{raw_cap}'",
+                            requirement_source=req_source,
+                            requirement_part_name=req_part_name,
+                        )
+                    )
+                    requirement_satisfied = True
+                    break
+
+                matched, rule_id = await self._heuristic_match_with_rule(
+                    req_process, cap_process, domain
+                )
+                if matched:
+                    details.append(
+                        RequirementMatchDetail(
+                            requirement_value=raw_req or req_process,
+                            status=MatchStatus.MATCHED,
+                            confidence=0.9,
+                            matched_capability=raw_cap or cap_process,
+                            matching_layer=MatchLayer.HEURISTIC,
+                            rule_id=rule_id,
+                            explanation=(
+                                f"Rule match: {rule_id or 'heuristic'}"
+                                if rule_id
+                                else "Heuristic rule match"
+                            ),
+                            evidence={"rule_id": rule_id} if rule_id else {},
+                            requirement_source=req_source,
+                            requirement_part_name=req_part_name,
+                        )
+                    )
+                    requirement_satisfied = True
+                    break
+
+                if await self._nlp_match(req_process, cap_process, domain):
+                    details.append(
+                        RequirementMatchDetail(
+                            requirement_value=raw_req or req_process,
+                            status=MatchStatus.MATCHED,
+                            confidence=0.7,
+                            matched_capability=raw_cap or cap_process,
+                            matching_layer=MatchLayer.NLP,
+                            rule_id=None,
+                            explanation=f"Semantic similarity above threshold for '{raw_req}' and '{raw_cap}'",
+                            requirement_source=req_source,
+                            requirement_part_name=req_part_name,
+                        )
+                    )
+                    requirement_satisfied = True
+                    break
+
+            if not requirement_satisfied:
+                details.append(
+                    RequirementMatchDetail(
+                        requirement_value=raw_req or req_process,
+                        status=MatchStatus.NOT_MATCHED,
+                        confidence=0.0,
+                        matched_capability=None,
+                        matching_layer=None,
+                        rule_id=None,
+                        explanation=f"No matching capability for requirement '{raw_req}'",
+                        requirement_source=req_source,
+                        requirement_part_name=req_part_name,
+                    )
+                )
+                return False, details
+
+        return True, details
+
+    def _normalize_req_cap_lists(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]],
+    ) -> tuple[Optional[List[Dict[str, Any]]], Optional[List[Dict[str, Any]]]]:
+        """Normalize requirements and capabilities to list of dicts; return (req_list, cap_list) or (None, None) if invalid."""
+        req_list = []
+        for req in requirements:
+            if isinstance(req, dict):
+                req_list.append(req)
+            elif hasattr(req, "process_name"):
+                req_list.append(
+                    {
+                        "process_name": req.process_name,
+                        "parameters": getattr(req, "parameters", {}),
+                        "validation_criteria": getattr(req, "validation_criteria", {}),
+                        "required_tools": getattr(req, "required_tools", []),
+                    }
+                )
+            else:
+                continue
+        cap_list = []
+        for cap in capabilities:
+            if isinstance(cap, dict):
+                cap_list.append(cap)
+            elif hasattr(cap, "type") or hasattr(cap, "process_name"):
+                process_name = getattr(cap, "process_name", None) or getattr(
+                    cap, "type", ""
+                )
+                cap_list.append(
+                    {
+                        "process_name": process_name,
+                        "parameters": getattr(cap, "parameters", {}),
+                        "validation_criteria": getattr(cap, "validation_criteria", {}),
+                        "required_tools": getattr(cap, "required_tools", []),
+                    }
+                )
+            else:
+                continue
+        if not req_list or not cap_list:
+            return None, None
+        return req_list, cap_list
+
+    async def get_match_explanation(
+        self,
+        requirements: List[Dict[str, Any]],
+        capabilities: List[Dict[str, Any]],
+        facility_id: str,
+        facility_name: str,
+        domain: str = "manufacturing",
+    ) -> MatchExplanation:
+        """Build a match explanation for a single facility vs requirements."""
+        satisfied, details = await self._can_satisfy_requirements_with_details(
+            requirements, capabilities, domain
+        )
+        status = MatchStatus.MATCHED if satisfied else MatchStatus.NOT_MATCHED
+        overall_confidence = (
+            sum(d.confidence for d in details) / len(details) if details else 0.0
+        )
+        layers_used = list(
+            {d.matching_layer.value for d in details if d.matching_layer is not None}
+        )
+        why_matched = ""
+        why_not_matched = ""
+        missing = []
+        if satisfied:
+            why_matched = (
+                f"All {len(details)} requirement(s) satisfied. "
+                f"Layers used: {', '.join(layers_used) or 'none'}."
+            )
+        else:
+            unmatched = [d for d in details if d.status == MatchStatus.NOT_MATCHED]
+            why_not_matched = f"{len(unmatched)} requirement(s) could not be satisfied."
+            missing = [d.requirement_value for d in unmatched]
+
+        return MatchExplanation(
+            facility_id=facility_id,
+            facility_name=facility_name,
+            overall_status=status,
+            overall_confidence=round(overall_confidence, 2),
+            requirement_matches=details,
+            why_matched=why_matched,
+            why_not_matched=why_not_matched,
+            matching_layers_used=layers_used,
+            missing_capabilities=missing,
+        )
+
     async def _direct_match(
         self, req_process: str, cap_process: str, domain: str = "manufacturing"
     ) -> bool:
@@ -532,24 +730,31 @@ class MatchingService:
         self, req_process: str, cap_process: str, domain: str = "manufacturing"
     ) -> bool:
         """Layer 2: Heuristic Matching - Using the new capability-centric heuristic rules system"""
+        matched, _ = await self._heuristic_match_with_rule(
+            req_process, cap_process, domain
+        )
+        return matched
+
+    async def _heuristic_match_with_rule(
+        self, req_process: str, cap_process: str, domain: str = "manufacturing"
+    ) -> tuple[bool, Optional[str]]:
+        """Run heuristic matching and return (matched, rule_id or None).
+
+        Used for rule performance analysis and attribution.
+        """
         try:
-            # Use the capability-centric heuristic matcher
             if not self.capability_matcher:
                 logger.warning(
                     "Capability matcher not initialized, skipping heuristic matching"
                 )
-                return False
+                return False, None
 
-            # Normalize process names before heuristic matching
-            # Extract process names from URIs if needed
             req_normalized = self._normalize_process_name(req_process)
             cap_normalized = self._normalize_process_name(cap_process)
 
-            # Create requirement and capability objects for matching
             requirements = [{"process_name": req_normalized}]
             capabilities = [{"process_name": cap_normalized}]
 
-            # Use the capability-centric matcher
             results = await self.capability_matcher.match_requirements_to_capabilities(
                 requirements=requirements,
                 capabilities=capabilities,
@@ -558,30 +763,28 @@ class MatchingService:
                 capability_field="process_name",
             )
 
-            # Check if we have any matches
             for result in results:
                 if (
                     result.matched and result.confidence >= 0.7
                 ):  # Use 0.7 as threshold for heuristic match
+                    rule_id = result.rule_used.id if result.rule_used else None
                     logger.debug(
                         "Heuristic match found using capability-centric rules",
                         extra={
                             "requirement_process": req_process,
                             "capability_process": cap_process,
                             "confidence": result.confidence,
-                            "rule_used": (
-                                result.rule_used.id if result.rule_used else None
-                            ),
+                            "rule_used": rule_id,
                             "domain": result.domain,
                         },
                     )
-                    return True
+                    return True, rule_id
 
-            return False
+            return False, None
 
         except Exception as e:
             logger.error(f"Error in Heuristic Matching layer: {e}", exc_info=True)
-            return False
+            return False, None
 
     async def _nlp_match(
         self, req_process: str, cap_process: str, domain: str = "manufacturing"
