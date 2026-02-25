@@ -85,6 +85,11 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         description="Include validation results in response (for nested matching)",
     )
 
+    include_explanation: Optional[bool] = Field(
+        False,
+        description="Include per-facility match explanations (which layer/rule matched each requirement).",
+    )
+
     # Solution storage options
     save_solution: Optional[bool] = Field(
         False,

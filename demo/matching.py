@@ -32,7 +32,7 @@ async def _match_facilities_async(
 ) -> Dict[str, Any]:
     """
     Execute facility matching (async function).
-    
+
     Args:
         okh_manifest: OKH manifest dictionary
         quantity: Production quantity
@@ -41,7 +41,7 @@ async def _match_facilities_async(
         min_confidence: Minimum confidence threshold (default: 0.3)
         max_depth: Maximum nesting depth (optional, auto-detect if None)
         auto_detect_depth: Auto-detect nested matching (optional)
-        
+
     Returns:
         API response with matching results
     """
@@ -68,7 +68,7 @@ def match_facilities(
 ) -> Dict[str, Any]:
     """
     Execute facility matching (synchronous wrapper for async function).
-    
+
     Args:
         okh_manifest: OKH manifest dictionary
         quantity: Production quantity
@@ -77,10 +77,10 @@ def match_facilities(
         min_confidence: Minimum confidence threshold (default: 0.3)
         max_depth: Maximum nesting depth (optional, auto-detect if None)
         auto_detect_depth: Auto-detect nested matching (optional)
-        
+
     Returns:
         API response with matching results
-        
+
     Raises:
         Exception: If matching fails
     """
@@ -91,7 +91,7 @@ def match_facilities(
             # If loop is running (Streamlit uses uvloop which nest_asyncio can't patch)
             # Run the async function in a separate thread with its own event loop
             import concurrent.futures
-            
+
             def run_in_thread():
                 """Run async function in a new thread with new event loop"""
                 # Create new event loop in this thread (not uvloop)
@@ -111,11 +111,13 @@ def match_facilities(
                     )
                 finally:
                     new_loop.close()
-            
+
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(run_in_thread)
-                return future.result(timeout=150)  # 150 second timeout for matching (2.5 minutes)
-                
+                return future.result(
+                    timeout=150
+                )  # 150 second timeout for matching (2.5 minutes)
+
         except RuntimeError:
             # No event loop running, create new one
             return asyncio.run(

@@ -4,6 +4,8 @@
 
 The Open Hardware Manager (OHM) employs a sophisticated 4-layer matching architecture to accurately and reliably match requirements (specified in formats like OKH) with capabilities (specified in formats like OKW). This document outlines the four distinct matching layers, each with increasing sophistication and computational complexity, all built on a standardized base architecture.
 
+**Capability data for matching** is loaded from the configured [storage](storage.md). The match API and CLI discover OKH manifests under the `okh/` prefix and OKW facilities (and kitchen capabilities) under the `okw/` prefix, recursively. See [Storage — Directory structure expected by OHM](storage.md#directory-structure-expected-by-ohm) for the exact layout and how to set up remote or local storage.
+
 ```mermaid
 flowchart TD
     subgraph input[Input Sources]

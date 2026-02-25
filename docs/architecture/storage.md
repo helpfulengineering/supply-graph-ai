@@ -1,21 +1,202 @@
- # Storage Architecture
+# Storage Architecture
 
 ## Overview
 
 The storage system in Supply Graph AI provides a flexible, extensible, and domain-specific storage solution for managing OKH manifests, OKW facilities, and supply trees. The architecture follows a provider-based pattern with a unified interface that supports multiple storage backends including local filesystem, Azure Blob Storage, AWS S3, and Google Cloud Storage.
 
-## Getting Started with Local Storage
+---
+
+## Directory structure expected by OHM
+
+OHM expects **three top-level prefixes** in your bucket or local storage root. All discovery is **recursive** under each prefix: OHM does not enforce or depend on any subdirectory layout. You can organise files in subfolders (e.g. `okw/kitchens/`, `okw/fabrication/`) and OHM will find them.
+
+| Domain / content      | Top-level prefix   | Discovery scope           |
+|-----------------------|--------------------|---------------------------|
+| OKH manifests         | `okh/`             | Recursive under `okh/`    |
+| OKW facilities + kitchens | `okw/`         | Recursive under `okw/`    |
+| Supply trees          | `supply-trees/`    | Recursive under `supply-trees/` |
+
+**When OHM creates a file**, it uses these default paths:
+
+| Object type     | Default write key                          |
+|-----------------|--------------------------------------------|
+| OKH manifest    | `okh/<title>-<id8>-okh.json` (human-readable) |
+| OKW facility    | `okw/<id>.json` (ID-based)                 |
+| Supply tree     | `supply-trees/<id>.json`                   |
+
+**Update and delete** use *find-then-act*: OHM discovers the existing file by ID first, then writes or deletes at that key. So if you moved a file to e.g. `okw/my-team/facility.json`, updates and deletes will still target that path; no extra copies are created.
+
+Example layout (subdirectories are optional and up to you):
+
+```
+bucket-or-root/
+├── okh/
+│   ├── my-gadget-abc12345-okh.json      # created by OHM
+│   └── archive/
+│       └── old-design-def67890-okh.json  # your organisation
+├── okw/
+│   ├── facility-uuid-1.json              # created by OHM
+│   ├── kitchens/
+│   │   └── home-kitchen.json             # your organisation
+│   └── fabrication/
+│       └── lab-uuid-2.json
+└── supply-trees/
+    └── solution-uuid.json
+```
+
+---
+
+## How to set up remote storage
+
+You can use **local storage** (directory on disk or network share) or **cloud storage** (Azure Blob, AWS S3, Google Cloud Storage). Setup is the same conceptually: configure the provider, then create the three top-level prefixes.
+
+### Option 1: Local storage (easiest)
+
+No cloud account or credentials required. Ideal for development, testing, or single-server/on-premises use.
+
+**1. Configure**
+
+Edit `.env` (or create from `env.template`):
+
+```bash
+STORAGE_PROVIDER=local
+LOCAL_STORAGE_PATH=./storage
+```
+
+**2. Create the directory structure**
+
+```bash
+ohm storage setup --provider local
+```
+
+Or with a custom path:
+
+```bash
+ohm storage setup --provider local --storage-path ~/ohm-data
+```
+
+**3. Use storage**
+
+OHM will read and write under the path you configured. Matching, CLI, and API will use this storage automatically once the app is configured to use it.
+
+### Option 2: Cloud storage (Azure, AWS, GCS)
+
+Use a bucket/container in your cloud account. Credentials are read from environment variables (or `.env`).
+
+**1. Configure credentials and bucket**
+
+**Azure Blob Storage:**
+
+```bash
+STORAGE_PROVIDER=azure_blob
+AZURE_STORAGE_ACCOUNT=your_account_name
+AZURE_STORAGE_KEY=your_account_key
+AZURE_STORAGE_CONTAINER=your_container_name
+```
+
+**AWS S3:**
+
+```bash
+STORAGE_PROVIDER=aws_s3
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_DEFAULT_REGION=us-east-1
+AWS_S3_BUCKET=your_bucket_name
+```
+
+**Google Cloud Storage:**
+
+```bash
+STORAGE_PROVIDER=gcs
+GCP_PROJECT_ID=your_project_id
+GCP_CREDENTIALS_JSON=your_credentials_json
+GCP_STORAGE_BUCKET=your_bucket_name
+```
+
+**2. Create the bucket/container** (if it does not exist) in your cloud console, then create the OHM directory structure inside it:
+
+```bash
+# Azure
+ohm storage setup --provider azure_blob --bucket your_container
+
+# AWS
+ohm storage setup --provider aws_s3 --bucket your_bucket --region us-east-1
+
+# GCS
+ohm storage setup --provider gcs --bucket your_bucket --region us-central1
+```
+
+**3. Use storage**
+
+Point the application at this config (e.g. via `.env` or deployment config). The match API and CLI will load OKH/OKW data from this storage.
+
+---
+
+## Tools for setting up and managing storage
+
+OHM provides the following ways to create and manage the expected directory layout.
+
+### CLI: `ohm storage`
+
+**Create the three top-level prefixes** (and optional placeholder files so empty “folders” exist in blob storage):
+
+```bash
+# Local (default path ./storage)
+ohm storage setup --provider local
+
+# Local with custom path
+ohm storage setup --provider local --storage-path ~/ohm-data
+ohm storage setup --provider local --path /mnt/nas/ohm-storage
+
+# Cloud (credentials from .env)
+ohm storage setup --provider gcs --bucket my-bucket --region us-central1
+ohm storage setup --provider azure_blob --bucket my-container
+ohm storage setup --provider aws_s3 --bucket my-bucket --region us-east-1
+```
+
+**Populate storage with synthetic data** (for testing or demos):
+
+```bash
+ohm storage populate --provider local
+```
+
+This copies OKH and OKW files from the project’s `synth/synthetic-data/` (or similar) into the configured storage under the correct `okh/` and `okw/` prefixes.
+
+### Standalone script: `scripts/setup_storage.py`
+
+For automation or environments where the full CLI is not run (e.g. CI or a one-off bootstrap), you can create the directory structure without starting the app:
+
+```bash
+# Local
+python scripts/setup_storage.py --provider local --bucket ./storage
+
+# Cloud (bucket/container must already exist; credentials from env)
+python scripts/setup_storage.py --provider gcs --bucket my-bucket --region us-central1
+python scripts/setup_storage.py --provider azure_blob --bucket my-container
+python scripts/setup_storage.py --provider aws_s3 --bucket my-bucket --region us-east-1
+```
+
+The script creates only the three top-level prefixes (`okh/`, `okw/`, `supply-trees/`). It does not create nested subdirectories; OHM discovers files recursively under these prefixes.
+
+### Summary
+
+| Task                         | Tool                      |
+|-----------------------------|---------------------------|
+| Create directory structure  | `ohm storage setup` or `scripts/setup_storage.py` |
+| Populate with sample data    | `ohm storage populate`    |
+| Configure provider & path    | `.env` (see Configuration section below) |
+
+---
+
+## Getting Started with Local Storage (quick reference)
 
 ### Quick Start (Recommended for New Users)
-
-Local storage is the easiest way to get started with OHM. It requires no cloud accounts, no credentials, and works immediately on your local machine or network-attached storage.
 
 **1. Configure Local Storage**
 
 Edit your `.env` file (or create one from `env.template`):
 
 ```bash
-# Storage Configuration
 STORAGE_PROVIDER=local
 LOCAL_STORAGE_PATH=./storage
 ```
@@ -23,25 +204,23 @@ LOCAL_STORAGE_PATH=./storage
 **2. Set Up Storage Structure**
 
 ```bash
-# Create the directory structure
 ohm storage setup --provider local
 ```
 
-This creates:
+This creates the three top-level prefixes (with placeholder files where needed):
+
 ```
 ./storage/
 ├── okh/
-│   └── manifests/
 ├── okw/
-│   └── facilities/
 └── supply-trees/
-    ├── generated/
-    └── validated/
 ```
+
+You can add subdirectories under any of these (e.g. `okw/kitchens/`, `okh/archive/`); OHM discovers files recursively and does not require a fixed subdirectory layout.
 
 **3. Start Using Storage**
 
-You're done! OHM will now store all data in the `./storage` directory.
+OHM will now store and discover all data under `./storage`. The match API and CLI load OKH manifests and OKW facilities from here.
 
 ### Local Storage Path Options
 
@@ -248,10 +427,10 @@ class DomainStorageHandler(Generic[T]):
    - Provider retrieves objects and returns raw bytes
    - Objects are deserialized from JSON back to domain models
 
-4. **Real-time Processing**
-   - The `/v1/match` endpoint automatically loads OKW facilities from storage
-   - Files are parsed in real-time (YAML/JSON) and converted to domain objects
-   - Invalid files are logged and skipped to ensure robust operation
+4. **Matching and capability loading**
+   - The **match API** (`POST /v1/api/match`) and **match CLI** load capabilities from the configured storage.
+   - OKH manifests are discovered under the `okh/` prefix (recursively); OKW facilities and kitchen data under the `okw/` prefix (recursively).
+   - Discovery uses the directory structure described above: no fixed subdirectories are required, so you can organise files under `okh/`, `okw/`, and `supply-trees/` in any way you like. Invalid or unparseable files are logged and skipped.
 
 ## Configuration
 

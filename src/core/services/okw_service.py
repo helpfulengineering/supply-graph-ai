@@ -2,6 +2,7 @@ import json
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
+from ..domains.cooking.models import KitchenCapability
 from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
 from ..models.okw import ManufacturingFacility
 from ..storage.smart_discovery import SmartFileDiscovery
@@ -70,19 +71,11 @@ class OKWService(BaseService["OKWService"]):
             else:
                 facility = ManufacturingFacility.from_dict(facility_data)
 
-            # Store in storage with proper naming convention
+            # Store directly under okw/ using the facility UUID as the filename.
+            # No subdirectory is enforced; users may organise beneath okw/ freely.
             if self.storage and self.storage.manager:
-                # Generate filename based on facility name and ID (similar to synthetic data)
-                # Use okw/facilities/ prefix to match SmartFileDiscovery expectations
-                safe_name = "".join(
-                    c for c in facility.name if c.isalnum() or c in (" ", "-", "_")
-                ).rstrip()
-                safe_name = safe_name.replace(" ", "").replace(
-                    "'", ""
-                )  # Remove spaces and apostrophes for filename
-                filename = f"okw/facilities/general/{safe_name}.json"
+                filename = f"okw/{str(facility.id)}.json"
 
-                # Save to okw/facilities/general/ directory (matching the directory structure used by SmartFileDiscovery)
                 facility_json = json.dumps(
                     facility.to_dict(), indent=2, ensure_ascii=False, default=str
                 )
@@ -158,7 +151,17 @@ class OKWService(BaseService["OKWService"]):
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[ManufacturingFacility], int]:
-        """List manufacturing facilities using smart discovery"""
+        """List manufacturing facilities found under the ``okw/`` prefix.
+
+        Returns only ``ManufacturingFacility`` objects.  Any file under
+        ``okw/`` that is identified as kitchen-shaped by
+        ``KitchenCapability.is_kitchen_data()`` is skipped and logged at
+        DEBUG level so the two capability types remain strictly separated.
+
+        Returns:
+            A tuple of ``(facilities, total_count)`` where every element
+            in ``facilities`` is a ``ManufacturingFacility`` instance.
+        """
         await self.ensure_initialized()
         logger.info(
             f"Listing manufacturing facilities (page={page}, page_size={page_size})"
@@ -181,6 +184,11 @@ class OKWService(BaseService["OKWService"]):
                     data = await self.storage.manager.get_object(file_info.key)
                     content = data.decode("utf-8")
                     okw_data = json.loads(content)
+
+                    # Skip files that are kitchen-shaped — they belong to list_kitchens()
+                    if KitchenCapability.is_kitchen_data(okw_data):
+                        logger.debug(f"Skipping kitchen file {file_info.key} in list()")
+                        continue
 
                     # Validate and fix UUID issues
                     fixed_okw_data = UUIDValidator.validate_and_fix_okw_data(okw_data)
@@ -259,33 +267,153 @@ class OKWService(BaseService["OKWService"]):
         )
         return facilities
 
+    async def list_kitchens(self) -> List[KitchenCapability]:
+        """Return all kitchen capabilities found under the ``okw/`` prefix.
+
+        Returns only ``KitchenCapability`` objects.  Any file under
+        ``okw/`` that is *not* identified as kitchen-shaped by
+        ``KitchenCapability.is_kitchen_data()`` (e.g. a manufacturing
+        facility file) is skipped and logged at DEBUG level.
+
+        Mirrors the structure of ``list()`` but:
+        - Only returns files that pass ``KitchenCapability.is_kitchen_data()``.
+        - Deduplicates by ``KitchenCapability.id``, keeping the most-recently
+          modified file when the same ID appears at multiple paths.
+        """
+        await self.ensure_initialized()
+        logger.info("Listing kitchen capabilities")
+
+        if not self.storage:
+            return []
+
+        discovery = SmartFileDiscovery(self.storage.manager)
+        file_infos = await discovery.discover_files("okw")
+
+        logger.info(f"Scanning {len(file_infos)} OKW files for kitchen capabilities")
+
+        kitchens_by_id: Dict[UUID, KitchenCapability] = {}
+        file_info_by_id: Dict[UUID, Any] = {}
+
+        for file_info in file_infos:
+            try:
+                data = await self.storage.manager.get_object(file_info.key)
+                content = data.decode("utf-8")
+                raw = json.loads(content)
+
+                if not KitchenCapability.is_kitchen_data(raw):
+                    logger.debug(
+                        f"Skipping non-kitchen file {file_info.key} in list_kitchens()"
+                    )
+                    continue
+
+                kitchen = KitchenCapability.from_dict(raw)
+                kitchen_id = kitchen.id
+
+                if kitchen_id not in kitchens_by_id:
+                    kitchens_by_id[kitchen_id] = kitchen
+                    file_info_by_id[kitchen_id] = file_info
+                else:
+                    existing_modified = (
+                        file_info_by_id[kitchen_id].last_modified
+                        if hasattr(file_info_by_id[kitchen_id], "last_modified")
+                        else None
+                    )
+                    current_modified = (
+                        file_info.last_modified
+                        if hasattr(file_info, "last_modified")
+                        else None
+                    )
+                    if current_modified and (
+                        not existing_modified or current_modified > existing_modified
+                    ):
+                        kitchens_by_id[kitchen_id] = kitchen
+                        file_info_by_id[kitchen_id] = file_info
+                        logger.debug(
+                            f"Replacing kitchen {kitchen_id} with more recent version from {file_info.key}"
+                        )
+            except Exception as e:
+                logger.warning(
+                    f"Skipping file {file_info.key}: could not parse as KitchenCapability: {e}"
+                )
+                continue
+
+        kitchens = list(kitchens_by_id.values())
+        logger.info(f"Found {len(kitchens)} unique kitchen capabilities")
+        return kitchens
+
     async def update(
         self, facility_id: UUID, facility_data: Dict[str, Any]
     ) -> ManufacturingFacility:
-        """Update a manufacturing facility"""
+        """Update a manufacturing facility in-place at its existing storage key (find-then-act)."""
         await self.ensure_initialized()
         logger.info(f"Updating manufacturing facility with ID {facility_id}")
 
-        # Create facility object
         facility = ManufacturingFacility.from_dict(facility_data)
 
-        # Update in storage
-        if self.storage:
-            handler = await self.storage.get_domain_handler("okw")
-            await handler.save_object(facility_id, facility.to_dict())
+        if self.storage and self.storage.manager:
+            # Discover the existing file so we overwrite at the same key,
+            # preserving any user-defined subdirectory organisation under okw/.
+            existing_key = await self._find_key_for_id(facility_id)
+
+            if existing_key is None:
+                existing_key = f"okw/{str(facility_id)}.json"
+                logger.warning(
+                    f"OKW facility {facility_id} not found during update; "
+                    f"writing to fallback key {existing_key}"
+                )
+
+            facility_json = json.dumps(
+                facility.to_dict(), indent=2, ensure_ascii=False, default=str
+            )
+            await self.storage.manager.put_object(
+                existing_key, facility_json.encode("utf-8")
+            )
+            logger.info(f"Updated OKW facility at {existing_key}")
 
         return facility
 
     async def delete(self, facility_id: UUID) -> bool:
-        """Delete a manufacturing facility"""
+        """Delete a manufacturing facility by locating its actual storage key (find-then-act)."""
         await self.ensure_initialized()
         logger.info(f"Deleting manufacturing facility with ID {facility_id}")
 
-        if self.storage:
-            handler = await self.storage.get_domain_handler("okw")
-            return await handler.delete_object(facility_id)
+        if self.storage and self.storage.manager:
+            existing_key = await self._find_key_for_id(facility_id)
 
-        return True
+            if existing_key is None:
+                logger.warning(
+                    f"OKW facility {facility_id} not found for deletion; "
+                    "no file deleted"
+                )
+                return False
+
+            result = await self.storage.manager.delete_object(existing_key)
+            logger.info(f"Deleted OKW facility at {existing_key}")
+            return result
+
+        return False
+
+    async def _find_key_for_id(self, target_id: UUID) -> Optional[str]:
+        """
+        Discover the storage key of the OKW file matching target_id.
+
+        Returns the key string if found, None otherwise.
+        """
+        discovery = SmartFileDiscovery(self.storage.manager)
+        file_infos = await discovery.discover_files("okw")
+
+        for file_info in file_infos:
+            try:
+                data = await self.storage.manager.get_object(file_info.key)
+                content = data.decode("utf-8")
+                obj_data = json.loads(content)
+                if obj_data.get("id") == str(target_id):
+                    return file_info.key
+            except Exception as e:
+                logger.debug(f"Could not read {file_info.key} during key lookup: {e}")
+                continue
+
+        return None
 
     async def validate(
         self,

@@ -90,35 +90,66 @@ class ContentValidator:
             return False
 
     def _validate_okw_content(self, data: dict) -> bool:
-        """Validate OKW content structure with enhanced validation"""
-        # Required fields
-        required_fields = ["id", "facility_status"]
-        if not all(field in data for field in required_fields):
-            return False
+        """Validate OKW content structure — accepts both manufacturing and kitchen shapes.
 
-        # Enhanced validation rules
+        Two branches are supported:
+
+        **Manufacturing facility** (has ``facility_status``):
+        - ``facility_status`` must be a string with a value from the canonical
+          ``FacilityStatus`` enum, accepted case-insensitively and with spaces
+          normalised to underscores (e.g. ``"Active"`` → ``"active"``,
+          ``"Temporary Closure"`` → ``"temporary_closure"``).
+        - Backward-compatible with legacy lowercase values (``"active"``,
+          ``"planned"``, etc.).
+        - At least one optional context field must be present
+          (``manufacturing_processes``, ``equipment``, ``location``, ``name``).
+
+        **Kitchen / cooking capability** (no ``facility_status``):
+        - Must have at least one cooking-specific field
+          (``appliances``, ``tools``, ``ingredients``).
+        - Must have a non-empty string ``name`` field.
+
+        Both branches require a non-empty string ``id``.
+        """
         try:
-            # Check ID is non-empty string
+            # Both branches require a non-empty string ID.
             if not isinstance(data.get("id"), str) or not data["id"].strip():
                 return False
 
-            # Check facility_status is valid
-            facility_status = data.get("facility_status")
-            valid_statuses = ["active", "inactive", "maintenance", "planned"]
-            if facility_status not in valid_statuses:
-                return False
+            # ── Manufacturing branch ──────────────────────────────────────
+            if "facility_status" in data:
+                facility_status = data["facility_status"]
+                if not isinstance(facility_status, str):
+                    return False
 
-            # Check at least one optional field is present
-            optional_fields = [
-                "manufacturing_processes",
-                "equipment",
-                "location",
-                "name",
-            ]
-            if not any(field in data for field in optional_fields):
-                return False
+                # Accept both canonical title-case values and legacy lowercase.
+                # Normalise: lower + replace spaces with underscores.
+                canonical_statuses = {
+                    "active",
+                    "inactive",
+                    "maintenance",
+                    "planned",
+                    "temporary_closure",
+                    "closed",
+                }
+                normalized = facility_status.lower().replace(" ", "_")
+                if normalized not in canonical_statuses:
+                    return False
 
-            return True
+                optional_fields = [
+                    "manufacturing_processes",
+                    "equipment",
+                    "location",
+                    "name",
+                ]
+                return any(f in data for f in optional_fields)
+
+            # ── Kitchen branch ────────────────────────────────────────────
+            cooking_fields = {"appliances", "tools", "ingredients"}
+            if cooking_fields & data.keys():
+                return isinstance(data.get("name"), str) and bool(data["name"])
+
+            return False
         except (TypeError, AttributeError):
             return False
 
@@ -167,7 +198,12 @@ class SmartFileDiscovery:
                 files = await strategy(file_type)
                 if files:
                     logger.info(
-                        f"Found {len(files)} {file_type} files using {strategy.__name__}"
+                        "Discovery strategy selected",
+                        extra={
+                            "strategy": strategy.__name__,
+                            "file_type": file_type,
+                            "files_found": len(files),
+                        },
                     )
                     return files
             except Exception as e:
@@ -191,10 +227,12 @@ class SmartFileDiscovery:
         """Discover files by directory structure (fastest method)"""
         files = []
 
-        # Define directory prefixes for each file type
+        # Top-level domain prefixes — search recursively from here.
+        # Users may organise subdirectories however they wish; OHM does not
+        # enforce any subdirectory structure beneath these roots.
         directory_prefixes = {
-            "okh": "okh/manifests/",
-            "okw": "okw/facilities/",
+            "okh": "okh/",
+            "okw": "okw/",
             "supply-tree": "supply-trees/",
         }
 
@@ -269,6 +307,15 @@ class SmartFileDiscovery:
                             content_validated=True,
                         )
                         files.append(file_info)
+                    else:
+                        logger.debug(
+                            "File skipped by content validator",
+                            extra={
+                                "key": obj["key"],
+                                "detected_type": detected_type,
+                                "requested_type": file_type,
+                            },
+                        )
 
                 except Exception as e:
                     logger.debug(f"Failed to validate content for {obj['key']}: {e}")

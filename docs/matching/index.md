@@ -112,6 +112,7 @@ To understand the matching system in detail, explore these documentation section
 - **[Direct Matching](direct-matching.md)**: Learn about exact and near-miss matching algorithms
 - **[Heuristic Matching](heuristic-matching.md)**: Understand the rule-based matching system
 - **[NLP Matching](nlp-matching.md)**: Discover semantic similarity and natural language processing
+- **[Match Explanation](match-explanation.md)**: Request and interpret per-facility match explanations (layers, rules, confidence)
 
 ## Architecture Integration
 

@@ -27,7 +27,9 @@ def get_git_files(repo_path: Path) -> List[Path]:
         files = list(repo_path.rglob("*.py"))
 
     # Filter out files in src/tests directory
-    filtered_files = [f for f in files if "src/tests" not in str(f.relative_to(repo_path))]
+    filtered_files = [
+        f for f in files if "src/tests" not in str(f.relative_to(repo_path))
+    ]
     return filtered_files
 
 
@@ -103,10 +105,14 @@ def format_tree(tree: Dict, indent: int = 0, prefix: str = "") -> str:
                 # Add symbols
                 if content.get("classes"):
                     for cls in content["classes"]:
-                        lines.append(f"{prefix}{'    ' if is_last else '│   '}    class {cls}")
+                        lines.append(
+                            f"{prefix}{'    ' if is_last else '│   '}    class {cls}"
+                        )
                 if content.get("functions"):
                     for func in content["functions"]:
-                        lines.append(f"{prefix}{'    ' if is_last else '│   '}    def {func}()")
+                        lines.append(
+                            f"{prefix}{'    ' if is_last else '│   '}    def {func}()"
+                        )
                 if content.get("error"):
                     lines.append(
                         f"{prefix}{'    ' if is_last else '│   '}    # Error: {content['error']}"
@@ -184,7 +190,9 @@ def extract_detailed_symbols(file_path: Path, repo_path: Path) -> Dict:
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    symbols["imports"].append({"module": alias.name, "alias": alias.asname})
+                    symbols["imports"].append(
+                        {"module": alias.name, "alias": alias.asname}
+                    )
             elif isinstance(node, ast.ImportFrom):
                 module = node.module or ""
                 for alias in node.names:
@@ -312,9 +320,13 @@ def format_sourcegraph_map(categories: Dict[str, List[Dict]]) -> str:
             if file_symbols.get("classes"):
                 lines.append("**Classes:**")
                 for cls in file_symbols["classes"]:
-                    public_methods = [m["name"] for m in cls["methods"] if m["is_public"]]
+                    public_methods = [
+                        m["name"] for m in cls["methods"] if m["is_public"]
+                    ]
                     if cls.get("bases"):
-                        lines.append(f"- `{cls['name']}` (inherits: {', '.join(cls['bases'])})")
+                        lines.append(
+                            f"- `{cls['name']}` (inherits: {', '.join(cls['bases'])})"
+                        )
                     else:
                         lines.append(f"- `{cls['name']}`")
 
@@ -346,7 +358,9 @@ def format_sourcegraph_map(categories: Dict[str, List[Dict]]) -> str:
                     or imp.get("module", "").startswith("src")
                 ]
                 if internal_imports:
-                    lines.append(f"**Internal Dependencies:** {len(internal_imports)} imports")
+                    lines.append(
+                        f"**Internal Dependencies:** {len(internal_imports)} imports"
+                    )
                     lines.append("")
 
             if file_symbols.get("error"):
