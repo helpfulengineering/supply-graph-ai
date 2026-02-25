@@ -26,6 +26,7 @@ from fastapi import (
 
 from src.config.settings import MAX_DEPTH
 
+from ...domains.cooking.models import KitchenCapability
 from ...models.okh import OKHManifest
 from ...models.okw import ManufacturingFacility
 from ...registry.domain_registry import DomainRegistry
@@ -1488,13 +1489,23 @@ async def _get_filtered_facilities(
     request_id: str,
     domain: str = "manufacturing",
 ) -> List[Any]:
-    """Get facilities with applied filters. Returns ManufacturingFacility for manufacturing domain, dict for cooking domain."""
+    """Get facilities with applied filters.
+
+    Returns:
+        - ``List[ManufacturingFacility]`` for the manufacturing domain.
+        - ``List[KitchenCapability]`` for the cooking domain.
+
+    Type boundaries are enforced at load time by the respective OKWService
+    methods (``list()`` / ``list_kitchens()``).  Any element that does not
+    match the expected type triggers a WARNING log and is dropped from the
+    candidate pool before matching begins.
+    """
     try:
         if domain == "manufacturing":
-            # Get all facilities using OKWService with proper pagination
+            # Get all facilities using OKWService with proper pagination.
+            # list() skips kitchen files — returns ManufacturingFacility only.
             okw_service = await OKWService.get_instance()
 
-            # Get all facilities by paginating through all pages
             all_facilities = []
             page = 1
             page_size = 1000
@@ -1505,60 +1516,52 @@ async def _get_filtered_facilities(
                 )
                 all_facilities.extend(facilities_batch)
 
-                # If we got fewer facilities than page_size, we've reached the end
                 if len(facilities_batch) < page_size:
                     break
 
                 page += 1
 
             facilities = all_facilities
-            total = len(all_facilities)
+            expected_type = ManufacturingFacility
+            type_label = "ManufacturingFacility"
+
         elif domain == "cooking":
-            # Load kitchens from storage using OKWService to get proper deduplication
+            # list_kitchens() scans okw/ recursively, returns KitchenCapability only.
             okw_service = await OKWService.get_instance()
+            facilities = await okw_service.list_kitchens()
+            expected_type = KitchenCapability
+            type_label = "KitchenCapability"
 
-            # Get all facilities by paginating through all pages
-            all_facilities = []
-            page = 1
-            page_size = 1000
-
-            while True:
-                facilities_batch, _ = await okw_service.list(
-                    page=page, page_size=page_size
-                )
-                all_facilities.extend(facilities_batch)
-
-                # If we got fewer facilities than page_size, we've reached the end
-                if len(facilities_batch) < page_size:
-                    break
-
-                page += 1
-
-            # Filter for cooking domain facilities
-            cooking_facilities = []
-            for facility in all_facilities:
-                # Check if facility has domain="cooking" or matches cooking keywords
-                facility_dict = (
-                    facility.to_dict() if hasattr(facility, "to_dict") else facility
-                )
-                facility_name = str(facility_dict.get("name", "") or "")
-                if (
-                    facility_dict.get("domain") == "cooking"
-                    or "kitchen" in facility_name.lower()
-                ):
-                    cooking_facilities.append(facility)
-
-            facilities = cooking_facilities
-            total = len(cooking_facilities)
         else:
             raise ValueError(f"Unsupported domain: {domain}")
 
+        # ── Type gate ────────────────────────────────────────────────────────
+        # The loading methods already enforce types, but we add a runtime
+        # assertion here so that any future code path that bypasses the service
+        # layer produces a visible, structured warning rather than silent
+        # downstream misbehaviour.
+        unexpected = [f for f in facilities if not isinstance(f, expected_type)]
+        if unexpected:
+            logger.warning(
+                "Unexpected facility types in capability pool; dropping",
+                extra={
+                    "domain": domain,
+                    "unexpected_count": len(unexpected),
+                    "unexpected_types": list({type(f).__name__ for f in unexpected}),
+                    "request_id": request_id,
+                },
+            )
+            facilities = [f for f in facilities if isinstance(f, expected_type)]
+
+        total = len(facilities)
+
         logger.info(
-            f"Loaded {total} facilities for {domain} domain",
+            "Facility load complete",
             extra={
-                "request_id": request_id,
-                "total_facilities": total,
                 "domain": domain,
+                "facility_count": total,
+                "facility_type": type_label,
+                "request_id": request_id,
             },
         )
 

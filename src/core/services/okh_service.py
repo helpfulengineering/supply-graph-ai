@@ -94,16 +94,15 @@ class OKHService(BaseService["OKHService"]):
             else:
                 manifest = OKHManifest.from_dict(manifest_data)
 
-            # Store in storage with -okh.json suffix pattern (consistent with synthetic data)
+            # Store directly under okh/ with a human-readable, ID-anchored filename.
+            # No subdirectory is enforced; users may organise beneath okh/ freely.
             if self.storage and self.storage.manager:
-                # Generate filename based on title and ID (similar to synthetic data)
                 safe_title = "".join(
                     c for c in manifest.title if c.isalnum() or c in (" ", "-", "_")
                 ).rstrip()
                 safe_title = safe_title.replace(" ", "-").lower()
-                filename = f"okh/manifests/{safe_title}-{str(manifest.id)[:8]}-okh.json"
+                filename = f"okh/{safe_title}-{str(manifest.id)[:8]}-okh.json"
 
-                # Save to okh/manifests/ directory to match SmartFileDiscovery expectations
                 manifest_json = json.dumps(
                     manifest.to_dict(), indent=2, ensure_ascii=False, default=str
                 )
@@ -308,30 +307,77 @@ class OKHService(BaseService["OKHService"]):
     async def update(
         self, manifest_id: UUID, manifest_data: Dict[str, Any]
     ) -> OKHManifest:
-        """Update an OKH manifest"""
+        """Update an OKH manifest in-place at its existing storage key (find-then-act)."""
         await self.ensure_initialized()
         logger.info(f"Updating OKH manifest with ID {manifest_id}")
 
-        # Create manifest object
         manifest = OKHManifest.from_dict(manifest_data)
 
-        # Update in storage
-        if self.storage:
-            handler = await self.storage.get_domain_handler("okh")
-            await handler.save_object(manifest_id, manifest.to_dict())
+        if self.storage and self.storage.manager:
+            # Discover the existing file so we overwrite at the same key,
+            # preserving any user-defined subdirectory organisation under okh/.
+            existing_key = await self._find_key_for_id(manifest_id, "okh")
+
+            if existing_key is None:
+                # Fallback: write to a canonical flat key and log the miss.
+                existing_key = f"okh/{str(manifest_id)}.json"
+                logger.warning(
+                    f"OKH manifest {manifest_id} not found during update; "
+                    f"writing to fallback key {existing_key}"
+                )
+
+            manifest_json = json.dumps(
+                manifest.to_dict(), indent=2, ensure_ascii=False, default=str
+            )
+            await self.storage.manager.put_object(
+                existing_key, manifest_json.encode("utf-8")
+            )
+            logger.info(f"Updated OKH manifest at {existing_key}")
 
         return manifest
 
     async def delete(self, manifest_id: UUID) -> bool:
-        """Delete an OKH manifest"""
+        """Delete an OKH manifest by locating its actual storage key (find-then-act)."""
         await self.ensure_initialized()
         logger.info(f"Deleting OKH manifest with ID {manifest_id}")
 
-        if self.storage:
-            handler = await self.storage.get_domain_handler("okh")
-            return await handler.delete_object(manifest_id)
+        if self.storage and self.storage.manager:
+            existing_key = await self._find_key_for_id(manifest_id, "okh")
 
-        return True
+            if existing_key is None:
+                logger.warning(
+                    f"OKH manifest {manifest_id} not found for deletion; "
+                    "no file deleted"
+                )
+                return False
+
+            result = await self.storage.manager.delete_object(existing_key)
+            logger.info(f"Deleted OKH manifest at {existing_key}")
+            return result
+
+        return False
+
+    async def _find_key_for_id(self, target_id: UUID, file_type: str) -> Optional[str]:
+        """
+        Discover the storage key of the file matching target_id.
+
+        Returns the key string if found, None otherwise.
+        """
+        discovery = SmartFileDiscovery(self.storage.manager)
+        file_infos = await discovery.discover_files(file_type)
+
+        for file_info in file_infos:
+            try:
+                data = await self.storage.manager.get_object(file_info.key)
+                content = data.decode("utf-8")
+                obj_data = json.loads(content)
+                if obj_data.get("id") == str(target_id):
+                    return file_info.key
+            except Exception as e:
+                logger.debug(f"Could not read {file_info.key} during key lookup: {e}")
+                continue
+
+        return None
 
     async def extract_requirements(self, manifest_id: UUID) -> List[ProcessRequirement]:
         """Extract manufacturing requirements from an OKH manifest"""

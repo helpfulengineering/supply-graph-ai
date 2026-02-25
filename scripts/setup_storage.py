@@ -29,11 +29,11 @@ from src.core.storage.manager import StorageManager
 async def create_simple_directory_structure(
     storage_manager: StorageManager, directories: list[str]
 ) -> Dict[str, Any]:
-    """Create a simple directory structure using placeholder files.
+    """Create top-level domain directories using placeholder files.
 
     Args:
         storage_manager: Configured storage manager
-        directories: List of directory paths to create (e.g., ['okh/manifests/', 'okw/facilities/'])
+        directories: List of directory paths to create (e.g., ['okh/', 'okw/', 'supply-trees/'])
 
     Returns:
         Dictionary with creation results
@@ -144,8 +144,10 @@ async def main():
         print(f"❌ Failed to connect to storage: {e}")
         sys.exit(1)
 
-    # Define simple directory structure
-    directories = ["okh/manifests/", "okw/facilities/", "supply-trees/"]
+    # Bootstrap top-level domain directories only.
+    # OHM searches recursively from these roots; no subdirectory structure is
+    # enforced — users may organise files beneath these prefixes freely.
+    directories = ["okh/", "okw/", "supply-trees/"]
 
     # Create directory structure
     try:

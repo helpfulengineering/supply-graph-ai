@@ -29,11 +29,12 @@ class StorageOrganizer:
         """Create the organized directory structure in storage"""
         logger.info("Creating organized directory structure")
 
-        # Create placeholder files to establish directory structure
-        # Simplified structure: only top-level directories
+        # Create placeholder files to establish top-level domain directories.
+        # No subdirectory structure is enforced; users may organise freely beneath
+        # these roots. OHM searches recursively from each top-level prefix.
         directories = {
-            "okh/manifests/": ".gitkeep",
-            "okw/facilities/": ".gitkeep",
+            "okh/": ".gitkeep",
+            "okw/": ".gitkeep",
             "supply-trees/": ".gitkeep",
         }
 
@@ -86,8 +87,8 @@ class StorageOrganizer:
         if not manifest_id:
             manifest_id = manifest_data.get("id", str(uuid4()))
 
-        # Generate organized path (simplified structure: no subdirectories)
-        path = f"okh/manifests/{manifest_id}.json"
+        # Store directly under okh/ — no subdirectory enforced.
+        path = f"okh/{manifest_id}.json"
 
         # Store with metadata
         data = json.dumps(manifest_data).encode("utf-8")
@@ -115,8 +116,8 @@ class StorageOrganizer:
         if not facility_id:
             facility_id = facility_data.get("id", str(uuid4()))
 
-        # Generate organized path (simplified structure: no subdirectories)
-        path = f"okw/facilities/{facility_id}.json"
+        # Store directly under okw/ — no subdirectory enforced.
+        path = f"okw/{facility_id}.json"
 
         # Store with metadata
         data = json.dumps(facility_data).encode("utf-8")
