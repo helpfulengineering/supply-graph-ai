@@ -92,55 +92,26 @@ async def search_okw(
     facility_status: Optional[str] = Query(None, description="Facility status filter"),
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page"),
-    storage_service: StorageService = Depends(get_storage_service),
+    okw_service: OKWService = Depends(get_okw_service),
 ):
-    """Search for facilities by criteria"""
+    """Search for facilities by criteria. Uses OKWService so only objects under okw/ are considered."""
     try:
-        # Load OKW facilities from storage (same logic as matching route)
+        # Load all OKW facilities from the service (scoped to okw/ prefix via SmartFileDiscovery)
         facilities = []
-        try:
-            # Get all objects from storage (these are the actual OKW files)
-            objects = []
-            async for obj in storage_service.manager.list_objects():
-                objects.append(obj)
-
-            logger.info(f"Found {len(objects)} objects in storage")
-
-            # Load and parse each OKW file
-            for obj in objects:
-                try:
-                    # Read the file content
-                    data = await storage_service.manager.get_object(obj["key"])
-                    content = data.decode("utf-8")
-
-                    # Parse based on file extension
-                    if obj["key"].endswith((".yaml", ".yml")):
-                        okw_data = yaml.safe_load(content)
-                    elif obj["key"].endswith(".json"):
-                        okw_data = json.loads(content)
-                    else:
-                        logger.warning(
-                            f"Skipping unsupported file format: {obj['key']}"
-                        )
-                        continue
-
-                    # Create ManufacturingFacility object
-                    facility = ManufacturingFacility.from_dict(okw_data)
-                    facilities.append(facility)
-                    logger.debug(
-                        f"Loaded OKW facility from {obj['key']}: {facility.name}"
-                    )
-
-                except Exception as e:
-                    logger.error(f"Failed to load OKW facility from {obj['key']}: {e}")
-                    continue
-
-            logger.info(f"Loaded {len(facilities)} OKW facilities from storage.")
-        except Exception as e:
-            logger.error(f"Failed to list/load OKW facilities: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Failed to load OKW facilities: {str(e)}"
+        fetch_page = 1
+        fetch_page_size = 500
+        while True:
+            batch, total = await okw_service.list(
+                page=fetch_page, page_size=fetch_page_size, filter_params=None
             )
+            facilities.extend(batch)
+            if len(batch) < fetch_page_size or len(facilities) >= total:
+                break
+            fetch_page += 1
+
+        logger.info(
+            f"Loaded {len(facilities)} OKW facilities from service (okw/ only)."
+        )
 
         # Apply search filters
         filtered_facilities = []
