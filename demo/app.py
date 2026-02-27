@@ -5,12 +5,13 @@ Streamlit application for demonstrating Open Hardware Manager (OHM)
 multi-facility matching capabilities with synthetic demo data.
 """
 
-import streamlit as st
 import os
 import sys
+from typing import Any, Dict
+
 import pandas as pd
 import pydeck as pdk
-from typing import Dict, Any
+import streamlit as st
 
 # Add project root to path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -18,25 +19,25 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from demo.facilities import get_facilities_with_full_data
-from demo.okh_designs import get_okh_designs_for_selection, get_design_by_id
+from demo.facility_deduplication import get_alternative_facilities_for_component
 from demo.matching import match_facilities
+from demo.okh_designs import get_design_by_id, get_okh_designs_for_selection
 from demo.results_parser import (
+    detect_duplicate_component_mappings,
     detect_matching_mode,
+    format_component_mapping,
+    get_component_name_for_tree,
+    get_component_name_map,
+    get_facility_dependency_indicator,
+    get_solution_summary,
+    group_facilities_by_stage,
+    has_nested_components,
     parse_nested_solution,
     parse_single_level_solutions,
     select_best_solution,
-    get_solution_summary,
-    get_facility_dependency_indicator,
-    has_nested_components,
-    get_component_name_map,
-    format_component_mapping,
-    detect_duplicate_component_mappings,
-    group_facilities_by_stage,
-    get_component_name_for_tree,
 )
 from demo.rfq_generator import generate_rfq
 from demo.solution_selectors import DEFAULT_SELECTOR
-from demo.facility_deduplication import get_alternative_facilities_for_component
 
 # Page configuration
 st.set_page_config(

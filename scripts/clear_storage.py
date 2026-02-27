@@ -15,8 +15,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.core.services.storage_service import StorageService
 from src.config.storage_config import create_storage_config
+from src.core.services.storage_service import StorageService
 from src.core.utils.logging import get_logger
 
 logger = get_logger(__name__)

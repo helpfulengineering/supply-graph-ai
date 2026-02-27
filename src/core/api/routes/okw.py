@@ -39,11 +39,7 @@ from ..models.base import (
     SuccessResponse,
     ValidationResult,
 )
-from ..models.okw.request import (
-    OKWExtractRequest,
-    OKWUpdateRequest,
-    OKWValidateRequest,
-)
+from ..models.okw.request import OKWExtractRequest, OKWUpdateRequest, OKWValidateRequest
 from ..models.okw.response import (
     Capability,
     OKWExportResponse,

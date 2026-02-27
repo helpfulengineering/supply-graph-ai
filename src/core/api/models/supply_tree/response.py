@@ -4,10 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 # Import base classes for enhanced functionality
-from ..base import (
-    LLMResponseMixin,
-    SuccessResponse,
-)
+from ..base import LLMResponseMixin, SuccessResponse
 from ..base import ValidationResult as BaseValidationResult
 
 

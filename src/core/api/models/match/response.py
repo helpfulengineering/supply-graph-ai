@@ -2,10 +2,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ..base import (
-    LLMResponseMixin,
-    SuccessResponse,
-)
+from ..base import LLMResponseMixin, SuccessResponse
 from ..base import ValidationResult as BaseValidationResult
 
 if TYPE_CHECKING:

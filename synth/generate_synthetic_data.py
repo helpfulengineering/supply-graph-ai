@@ -19,14 +19,14 @@ import random
 import sys
 import time
 from datetime import date, datetime
-from typing import Dict, List, Union, Any, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from faker import Faker
 
 # Try to import geopy for geocoding, but make it optional
 try:
+    from geopy.exc import GeocoderServiceError, GeocoderTimedOut
     from geopy.geocoders import Nominatim
-    from geopy.exc import GeocoderTimedOut, GeocoderServiceError
 
     GEOPY_AVAILABLE = True
 except ImportError:
@@ -38,41 +38,41 @@ except ImportError:
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from core.models.okh import (
-    OKHManifest,
-    License,
-    Person,
-    Organization,
-    DocumentRef,
-    MaterialSpec,
-    ProcessRequirement,
-    ManufacturingSpec,
-    Standard,
-    PartSpec,
     DocumentationType,
+    DocumentRef,
+    License,
+    ManufacturingSpec,
+    MaterialSpec,
+    OKHManifest,
+    Organization,
+    PartSpec,
+    Person,
+    ProcessRequirement,
+    Standard,
 )
 
 # Also add the project root to the path for taxonomy import
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from src.core.taxonomy import taxonomy as process_taxonomy
-from core.models.bom import BillOfMaterials, Component
 from core.domains.cooking.models import KitchenCapability
+from core.models.bom import BillOfMaterials, Component
 from core.models.okw import (
-    ManufacturingFacility,
-    Equipment,
-    Location,
+    AccessType,
     Address,
     Agent,
-    Contact,
-    SocialMedia,
+    BatchSize,
     CircularEconomy,
+    Contact,
+    Equipment,
+    FacilityStatus,
     HumanCapacity,
     InnovationSpace,
+    Location,
+    ManufacturingFacility,
     Material,
     RecordData,
-    FacilityStatus,
-    AccessType,
-    BatchSize,
+    SocialMedia,
 )
+from src.core.taxonomy import taxonomy as process_taxonomy
 
 fake = Faker()
 

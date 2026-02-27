@@ -1,15 +1,15 @@
 import asyncio
 import json
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from click.testing import CliRunner
 
 from src.cli.okh import okh_group
-
-from src.core.services.scaffold_service import ScaffoldService, ScaffoldOptions
+from src.core.services.scaffold_service import ScaffoldOptions, ScaffoldService
 
 
 async def _create_scaffold(tmp_path: Path) -> Path:
@@ -25,7 +25,9 @@ async def _create_scaffold(tmp_path: Path) -> Path:
 
 
 def test_scaffold_cleanup_cli_dry_run_and_apply(tmp_path, monkeypatch):
-    project_dir = asyncio.get_event_loop().run_until_complete(_create_scaffold(tmp_path))
+    project_dir = asyncio.get_event_loop().run_until_complete(
+        _create_scaffold(tmp_path)
+    )
 
     # Patch API client used by CLI to avoid real HTTP; emulate server response
     class DummyApiClient:
@@ -52,7 +54,7 @@ def test_scaffold_cleanup_cli_dry_run_and_apply(tmp_path, monkeypatch):
     # Build CLI context fixture shim
     class DummyCLIContext:
         def __init__(self):
-            self.output_format = 'text'
+            self.output_format = "text"
             self.verbose = False
             self.api_client = DummyApiClient()
 
@@ -75,7 +77,7 @@ def test_scaffold_cleanup_cli_dry_run_and_apply(tmp_path, monkeypatch):
     result = runner.invoke(
         okh_group,
         [
-            'scaffold-cleanup',
+            "scaffold-cleanup",
             str(project_dir),
         ],
         obj=get_dummy_context(),
@@ -87,18 +89,19 @@ def test_scaffold_cleanup_cli_dry_run_and_apply(tmp_path, monkeypatch):
     result2 = runner.invoke(
         okh_group,
         [
-            'scaffold-cleanup',
+            "scaffold-cleanup",
             str(project_dir),
-            '--apply',
+            "--apply",
         ],
         obj=get_dummy_context(),
     )
     assert result2.exit_code == 0, result2.output
-    assert not (project_dir / 'README.md').exists()
-
+    assert not (project_dir / "README.md").exists()
 
 
 if __name__ == "__main__":
-    import pytest
     import sys as _sys
+
+    import pytest
+
     _sys.exit(pytest.main([__file__]))

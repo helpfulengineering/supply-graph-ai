@@ -1,26 +1,28 @@
 import asyncio
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
 
-import pytest
 import httpx
+import pytest
 
 # Ensure repository root on path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
-from src.core.services.scaffold_service import ScaffoldService, ScaffoldOptions
-
+from src.core.services.scaffold_service import ScaffoldOptions, ScaffoldService
 
 if __name__ == "__main__":
-    import pytest
     import sys as _sys
+
+    import pytest
+
     _sys.exit(pytest.main([__file__]))
 
 
 def _get_app():
     # Lazy import to avoid heavy app import in test collection
     from src.core.main import app as fastapi_app
+
     return fastapi_app
 
 
@@ -41,7 +43,9 @@ async def test_cleanup_endpoint_dry_run_and_apply(tmp_path):
     project_dir = await _create_scaffold(tmp_path)
 
     transport = httpx.ASGITransport(app=_get_app())
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
         # Dry run
         resp = await client.post(
             "/v1/api/okh/scaffold/cleanup",
@@ -81,7 +85,9 @@ async def test_cleanup_endpoint_dry_run_and_apply(tmp_path):
 @pytest.mark.asyncio
 async def test_cleanup_endpoint_invalid_path_returns_500(tmp_path):
     transport = httpx.ASGITransport(app=_get_app())
-    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+    async with httpx.AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
         resp = await client.post(
             "/v1/api/okh/scaffold/cleanup",
             json={
@@ -94,5 +100,3 @@ async def test_cleanup_endpoint_invalid_path_returns_500(tmp_path):
         data = resp.json()
         assert data["status"] == "success"
         assert any("not found" in w.lower() for w in data.get("warnings", []))
-
-

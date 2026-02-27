@@ -4,12 +4,12 @@ Matching Execution Module
 Provides functions to execute facility matching from the Streamlit demo interface.
 """
 
+import asyncio
+import concurrent.futures
+import logging
 import os
 import sys
-import asyncio
-import logging
-from typing import Dict, Any, Optional, List
-import concurrent.futures
+from typing import Any, Dict, List, Optional
 
 # Add project root to path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

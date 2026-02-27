@@ -24,6 +24,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
+from ..taxonomy import taxonomy
 from .layers.direct import DirectMatcher
 from .layers.heuristic import HeuristicMatcher
 from .layers.nlp import NLPMatcher
@@ -36,8 +37,6 @@ from .models import (
     QualityReport,
 )
 from .quality import QualityAssessor
-
-from ..taxonomy import taxonomy
 
 # Configure logging
 logger = logging.getLogger(__name__)

@@ -7,7 +7,7 @@ This is a demonstration feature showing how RFQs could be generated from matchin
 
 import uuid
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
 
 class RFQTemplate:

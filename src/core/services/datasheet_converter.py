@@ -31,8 +31,8 @@ from datetime import date
 from typing import Any, Dict, List, Optional
 
 from ..models.okh import (
-    DocumentRef,
     DocumentationType,
+    DocumentRef,
     License,
     MaterialSpec,
     OKHManifest,
