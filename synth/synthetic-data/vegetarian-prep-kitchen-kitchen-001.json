@@ -1,0 +1,35 @@
+{
+  "id": "2468e9f0-8d81-4fd8-bdd8-f9e322b01570",
+  "name": "Vegetarian Prep Kitchen",
+  "appliances": [
+    "stovetop",
+    "oven",
+    "refrigerator"
+  ],
+  "tools": [
+    "wok",
+    "chef knife",
+    "cutting board",
+    "pot",
+    "blender"
+  ],
+  "ingredients": [
+    "lentils",
+    "chickpeas",
+    "tofu",
+    "olive oil",
+    "onion",
+    "spinach"
+  ],
+  "domain": "cooking",
+  "location": "Jefferyborough",
+  "capacity": "large",
+  "amenities": [
+    "walk-in pantry",
+    "ventilation hood"
+  ],
+  "certifications": [
+    "Health Department Approved",
+    "ServSafe"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "id": "9d1c3795-03bc-4abc-bf69-d2075208d5e0",
+  "name": "Grilling Kitchen",
+  "appliances": [
+    "grill",
+    "refrigerator"
+  ],
+  "tools": [
+    "grill",
+    "cutting board",
+    "knife",
+    "tongs",
+    "bowl"
+  ],
+  "ingredients": [
+    "chicken",
+    "vegetables",
+    "olive oil",
+    "lemon",
+    "salt",
+    "pepper"
+  ]
+}

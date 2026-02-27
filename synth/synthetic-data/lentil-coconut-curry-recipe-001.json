@@ -1,0 +1,50 @@
+{
+  "name": "Lentil Coconut Curry",
+  "ingredients": [
+    "red lentils",
+    "coconut milk",
+    "onion",
+    "garlic",
+    "ginger",
+    "curry powder"
+  ],
+  "instructions": [
+    "Saute onion, garlic, and ginger",
+    "Add curry powder and stir for one minute",
+    "Add lentils and coconut milk",
+    "Simmer until lentils are tender",
+    "Season and serve hot"
+  ],
+  "equipment": [
+    "pot",
+    "knife",
+    "cutting board",
+    "spoon"
+  ],
+  "appliances": [
+    "stovetop"
+  ],
+  "cooking_time": "35 minutes",
+  "totalTime": "35 minutes",
+  "description": "A synthetic recipe for lentil coconut curry",
+  "servings": 8,
+  "difficulty_level": "medium",
+  "difficulty": "medium",
+  "cuisine_type": "indian",
+  "allergen_info": [
+    "wheat"
+  ],
+  "nutritional_info": {
+    "calories": 760,
+    "protein": 12,
+    "carbs": 52,
+    "fat": 7
+  },
+  "food_safety_notes": [
+    "Store leftovers below 40F",
+    "Cook proteins to a safe internal temperature"
+  ],
+  "tips": [
+    "Taste and adjust seasoning before serving."
+  ]
+}

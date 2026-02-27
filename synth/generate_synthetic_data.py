@@ -55,6 +55,7 @@ from core.models.okh import (
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from src.core.taxonomy import taxonomy as process_taxonomy
 from core.models.bom import BillOfMaterials, Component
+from core.domains.cooking.models import KitchenCapability
 from core.models.okw import (
     ManufacturingFacility,
     Equipment,
@@ -3482,12 +3483,12 @@ class OKWGenerator(SyntheticDataGenerator):
 
 
 class RecipeGenerator(SyntheticDataGenerator):
-    """Generator for Cooking domain recipes"""
+    """Generator for cooking domain recipes"""
 
-    def __init__(self, complexity: str = "minimal"):
+    def __init__(self, complexity: str = "mixed", profile: str = "mixed"):
         super().__init__(complexity)
+        self.profile = profile
 
-        # Simple recipe templates for low complexity
         self.recipe_templates = [
             {
                 "name": "Spaghetti Carbonara",
@@ -3509,6 +3510,8 @@ class RecipeGenerator(SyntheticDataGenerator):
                     "Season with black pepper",
                 ],
                 "totalTime": "30 minutes",
+                "cuisine_type": "italian",
+                "profiles": ["home", "quick"],
             },
             {
                 "name": "Chocolate Chip Cookies",
@@ -3531,6 +3534,8 @@ class RecipeGenerator(SyntheticDataGenerator):
                     "Bake for 10-12 minutes",
                 ],
                 "totalTime": "25 minutes",
+                "cuisine_type": "dessert",
+                "profiles": ["baking", "home"],
             },
             {
                 "name": "Grilled Chicken Salad",
@@ -3552,6 +3557,8 @@ class RecipeGenerator(SyntheticDataGenerator):
                     "Combine in bowl with olive oil and lemon",
                 ],
                 "totalTime": "20 minutes",
+                "cuisine_type": "mediterranean",
+                "profiles": ["grilling", "healthy"],
             },
             {
                 "name": "Vegetable Stir Fry",
@@ -3574,6 +3581,8 @@ class RecipeGenerator(SyntheticDataGenerator):
                     "Cook until vegetables are tender",
                 ],
                 "totalTime": "15 minutes",
+                "cuisine_type": "asian",
+                "profiles": ["quick", "vegetarian"],
             },
             {
                 "name": "Scrambled Eggs",
@@ -3588,41 +3597,93 @@ class RecipeGenerator(SyntheticDataGenerator):
                     "Stir gently until cooked",
                 ],
                 "totalTime": "5 minutes",
+                "cuisine_type": "breakfast",
+                "profiles": ["quick", "home"],
+            },
+            {
+                "name": "Lentil Coconut Curry",
+                "ingredients": [
+                    "red lentils",
+                    "coconut milk",
+                    "onion",
+                    "garlic",
+                    "ginger",
+                    "curry powder",
+                ],
+                "equipment": ["pot", "knife", "cutting board", "spoon"],
+                "appliances": ["stovetop"],
+                "instructions": [
+                    "Saute onion, garlic, and ginger",
+                    "Add curry powder and stir for one minute",
+                    "Add lentils and coconut milk",
+                    "Simmer until lentils are tender",
+                    "Season and serve hot",
+                ],
+                "totalTime": "35 minutes",
+                "cuisine_type": "indian",
+                "profiles": ["vegetarian", "home"],
             },
         ]
 
+    def _select_template(self) -> Dict[str, Any]:
+        if self.profile == "mixed":
+            return random.choice(self.recipe_templates)
+        filtered = [
+            t for t in self.recipe_templates if self.profile in t.get("profiles", [])
+        ]
+        return random.choice(filtered or self.recipe_templates)
+
     def generate_recipe(self) -> Dict[str, Any]:
         """Generate a complete recipe"""
-        template = random.choice(self.recipe_templates)
+        template = self._select_template()
 
         recipe = {
             "name": template["name"],
             "ingredients": template["ingredients"].copy(),
             "instructions": template["instructions"].copy(),
             "equipment": template["equipment"].copy(),
+            # Keep both keys for extractor/backward compatibility.
+            "appliances": template["appliances"].copy(),
+            "cooking_time": template["totalTime"],
             "totalTime": template["totalTime"],
         }
 
-        # Add optional fields based on complexity (but keep it simple for cooking domain)
         if self.should_include_field():
-            recipe["description"] = f"A simple recipe for {template['name'].lower()}"
-
+            recipe["description"] = f"A synthetic recipe for {template['name'].lower()}"
         if self.should_include_field():
-            recipe["servings"] = random.randint(2, 6)
-
+            recipe["servings"] = random.randint(2, 8)
         if self.should_include_field():
-            recipe["difficulty"] = random.choice(["easy", "medium"])
+            difficulty = random.choice(["easy", "medium", "hard"])
+            recipe["difficulty_level"] = difficulty
+            recipe["difficulty"] = difficulty
+        if self.should_include_field():
+            recipe["cuisine_type"] = template.get("cuisine_type", "general")
+        if self.complexity == "complex":
+            recipe["allergen_info"] = random.choice(
+                [["eggs"], ["dairy"], ["wheat"], ["none"]]
+            )
+            recipe["nutritional_info"] = {
+                "calories": random.randint(220, 760),
+                "protein": random.randint(8, 42),
+                "carbs": random.randint(12, 95),
+                "fat": random.randint(5, 38),
+            }
+            recipe["food_safety_notes"] = [
+                "Store leftovers below 40F",
+                "Cook proteins to a safe internal temperature",
+            ]
+            recipe["tips"] = ["Taste and adjust seasoning before serving."]
 
         return recipe
 
 
 class KitchenGenerator(SyntheticDataGenerator):
-    """Generator for Cooking domain kitchens"""
+    """Generator for cooking domain kitchens"""
 
-    def __init__(self, complexity: str = "minimal"):
+    def __init__(self, complexity: str = "mixed", profile: str = "mixed"):
         super().__init__(complexity)
+        self.profile = profile
 
-        # Simple kitchen templates for low complexity
         self.kitchen_templates = [
             {
                 "name": "Home Kitchen",
@@ -3645,12 +3706,14 @@ class KitchenGenerator(SyntheticDataGenerator):
                     "olive oil",
                     "garlic",
                 ],
+                "profiles": ["home"],
             },
             {
                 "name": "Basic Kitchen",
                 "appliances": ["stovetop", "refrigerator"],
                 "tools": ["pot", "pan", "spatula", "bowl"],
                 "ingredients": ["eggs", "butter", "salt", "pepper"],
+                "profiles": ["quick", "home"],
             },
             {
                 "name": "Well-Equipped Kitchen",
@@ -3686,6 +3749,7 @@ class KitchenGenerator(SyntheticDataGenerator):
                     "vegetables",
                     "pasta",
                 ],
+                "profiles": ["home", "mixed"],
             },
             {
                 "name": "Baking Kitchen",
@@ -3705,6 +3769,7 @@ class KitchenGenerator(SyntheticDataGenerator):
                     "chocolate chips",
                     "vanilla extract",
                 ],
+                "profiles": ["baking"],
             },
             {
                 "name": "Grilling Kitchen",
@@ -3718,32 +3783,69 @@ class KitchenGenerator(SyntheticDataGenerator):
                     "salt",
                     "pepper",
                 ],
+                "profiles": ["grilling"],
+            },
+            {
+                "name": "Vegetarian Prep Kitchen",
+                "appliances": ["stovetop", "oven", "refrigerator"],
+                "tools": ["wok", "chef knife", "cutting board", "pot", "blender"],
+                "ingredients": [
+                    "lentils",
+                    "chickpeas",
+                    "tofu",
+                    "olive oil",
+                    "onion",
+                    "spinach",
+                ],
+                "profiles": ["vegetarian"],
             },
         ]
 
+    def _select_template(self) -> Dict[str, Any]:
+        if self.profile == "mixed":
+            return random.choice(self.kitchen_templates)
+        filtered = [
+            t for t in self.kitchen_templates if self.profile in t.get("profiles", [])
+        ]
+        return random.choice(filtered or self.kitchen_templates)
+
     def generate_kitchen(self) -> Dict[str, Any]:
         """Generate a complete kitchen"""
-        template = random.choice(self.kitchen_templates)
+        template = self._select_template()
 
         # Generate unique ID for kitchen
         from uuid import uuid4
 
-        kitchen_id = str(uuid4())
+        # Build from canonical cooking model, then enrich with optional fields.
+        kitchen = KitchenCapability(
+            id=uuid4(),
+            name=template["name"],
+            appliances=template["appliances"].copy(),
+            tools=template["tools"].copy(),
+            ingredients=template["ingredients"].copy(),
+        ).to_dict()
 
-        kitchen = {
-            "id": kitchen_id,
-            "name": template["name"],
-            "appliances": template["appliances"].copy(),
-            "tools": template["tools"].copy(),
-            "ingredients": template["ingredients"].copy(),
-        }
-
-        # Add optional fields based on complexity (but keep it simple)
         if self.should_include_field():
             kitchen["location"] = self.faker.city()
 
         if self.should_include_field():
             kitchen["capacity"] = random.choice(["small", "medium", "large"])
+
+        if self.complexity in ["mixed", "complex"] and self.should_include_field():
+            kitchen["amenities"] = random.sample(
+                [
+                    "dishwasher",
+                    "walk-in pantry",
+                    "extra prep counter",
+                    "ventilation hood",
+                ],
+                k=random.randint(1, 2),
+            )
+
+        if self.complexity == "complex":
+            kitchen["certifications"] = random.sample(
+                ["ServSafe", "HACCP", "Health Department Approved"], k=2
+            )
 
         return kitchen
 
@@ -3874,11 +3976,17 @@ def validate_record(record: Union[OKHManifest, ManufacturingFacility, Dict]) -> 
         # For cooking domain (dicts), check required fields
         elif isinstance(record, dict):
             # Recipe validation
-            if "name" in record and "ingredients" in record:
+            if (
+                "name" in record
+                and "ingredients" in record
+                and "instructions" in record
+            ):
                 if not record.get("ingredients") or not record.get("instructions"):
                     return False
             # Kitchen validation
             elif "name" in record and "appliances" in record:
+                # Validate with canonical cooking model parser
+                KitchenCapability.from_dict(record)
                 if not record.get("appliances") or not record.get("tools"):
                     return False
         return True
@@ -3979,6 +4087,12 @@ def main():
         action="store_true",
         help="Generate matched pairs (okh+okw or recipe+kitchen)",
     )
+    parser.add_argument(
+        "--cooking-profile",
+        choices=["mixed", "home", "quick", "baking", "grilling", "vegetarian"],
+        default="mixed",
+        help="Template profile used for cooking generation (default: mixed)",
+    )
 
     # Nested component generation options (for OKH manifests)
     parser.add_argument(
@@ -4055,11 +4169,7 @@ def main():
                 f"For cooking domain, --type must be 'recipe' or 'kitchen', got '{args.type}'"
             )
 
-    # For cooking domain, use minimal complexity (as per requirements)
-    if args.domain == "cooking":
-        complexity = "minimal"
-    else:
-        complexity = args.complexity
+    complexity = args.complexity
 
     if not args.nested:  # Only print default message if not using nested generation
         print(
@@ -4187,8 +4297,10 @@ def main():
                     "For --match with cooking, specify either 'recipe' or 'kitchen' (will generate pairs)"
                 )
             # Generate both types
-            recipe_generator = RecipeGenerator(complexity)
-            kitchen_generator = KitchenGenerator(complexity)
+            recipe_generator = RecipeGenerator(complexity, profile=args.cooking_profile)
+            kitchen_generator = KitchenGenerator(
+                complexity, profile=args.cooking_profile
+            )
 
             generated_count = 0
             failed_count = 0
@@ -4384,9 +4496,9 @@ def main():
                 return
     else:  # cooking
         if args.type == "recipe":
-            generator = RecipeGenerator(complexity)
+            generator = RecipeGenerator(complexity, profile=args.cooking_profile)
         else:  # kitchen
-            generator = KitchenGenerator(complexity)
+            generator = KitchenGenerator(complexity, profile=args.cooking_profile)
 
     # Prepare referenced manifests if needed
     referenced_manifests = None

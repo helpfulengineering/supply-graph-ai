@@ -1,0 +1,51 @@
+{
+  "name": "Vegetable Stir Fry",
+  "ingredients": [
+    "broccoli",
+    "carrots",
+    "bell peppers",
+    "soy sauce",
+    "garlic",
+    "ginger"
+  ],
+  "instructions": [
+    "Cut vegetables into bite-sized pieces",
+    "Heat oil in wok",
+    "Add garlic and ginger",
+    "Stir fry vegetables",
+    "Add soy sauce",
+    "Cook until vegetables are tender"
+  ],
+  "equipment": [
+    "wok",
+    "spatula",
+    "cutting board",
+    "knife"
+  ],
+  "appliances": [
+    "stovetop"
+  ],
+  "cooking_time": "15 minutes",
+  "totalTime": "15 minutes",
+  "description": "A synthetic recipe for vegetable stir fry",
+  "servings": 6,
+  "difficulty_level": "easy",
+  "difficulty": "easy",
+  "cuisine_type": "asian",
+  "allergen_info": [
+    "eggs"
+  ],
+  "nutritional_info": {
+    "calories": 463,
+    "protein": 25,
+    "carbs": 29,
+    "fat": 38
+  },
+  "food_safety_notes": [
+    "Store leftovers below 40F",
+    "Cook proteins to a safe internal temperature"
+  ],
+  "tips": [
+    "Taste and adjust seasoning before serving."
+  ]
+}

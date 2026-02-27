@@ -1,0 +1,20 @@
+{
+  "id": "cf0ce4db-6f9c-4275-847d-4c0ae2b7bada",
+  "name": "Basic Kitchen",
+  "appliances": [
+    "stovetop",
+    "refrigerator"
+  ],
+  "tools": [
+    "pot",
+    "pan",
+    "spatula",
+    "bowl"
+  ],
+  "ingredients": [
+    "eggs",
+    "butter",
+    "salt",
+    "pepper"
+  ]
+}

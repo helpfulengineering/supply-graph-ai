@@ -1,0 +1,36 @@
+{
+  "id": "41ea4e75-9026-4694-92d6-06d4585c4acf",
+  "name": "Well-Equipped Kitchen",
+  "appliances": [
+    "stovetop",
+    "oven",
+    "refrigerator",
+    "microwave",
+    "grill"
+  ],
+  "tools": [
+    "pot",
+    "pan",
+    "wok",
+    "cutting board",
+    "knife",
+    "spatula",
+    "whisk",
+    "bowl",
+    "baking sheet",
+    "strainer"
+  ],
+  "ingredients": [
+    "eggs",
+    "butter",
+    "flour",
+    "sugar",
+    "salt",
+    "pepper",
+    "olive oil",
+    "garlic",
+    "chicken",
+    "vegetables",
+    "pasta"
+  ]
+}

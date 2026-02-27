@@ -1,0 +1,35 @@
+{
+  "id": "a7f27eb4-78c7-4aad-a353-4f050ddc60bb",
+  "name": "Vegetarian Prep Kitchen",
+  "appliances": [
+    "stovetop",
+    "oven",
+    "refrigerator"
+  ],
+  "tools": [
+    "wok",
+    "chef knife",
+    "cutting board",
+    "pot",
+    "blender"
+  ],
+  "ingredients": [
+    "lentils",
+    "chickpeas",
+    "tofu",
+    "olive oil",
+    "onion",
+    "spinach"
+  ],
+  "domain": "cooking",
+  "location": "Port Andreachester",
+  "capacity": "medium",
+  "amenities": [
+    "walk-in pantry",
+    "ventilation hood"
+  ],
+  "certifications": [
+    "ServSafe",
+    "HACCP"
+  ]
+}

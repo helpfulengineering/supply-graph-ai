@@ -1,0 +1,34 @@
+{
+  "id": "43836952-839d-4d8c-8bad-9810134f1669",
+  "name": "Vegetarian Prep Kitchen",
+  "appliances": [
+    "stovetop",
+    "oven",
+    "refrigerator"
+  ],
+  "tools": [
+    "wok",
+    "chef knife",
+    "cutting board",
+    "pot",
+    "blender"
+  ],
+  "ingredients": [
+    "lentils",
+    "chickpeas",
+    "tofu",
+    "olive oil",
+    "onion",
+    "spinach"
+  ],
+  "domain": "cooking",
+  "location": "South Kelly",
+  "capacity": "small",
+  "amenities": [
+    "extra prep counter"
+  ],
+  "certifications": [
+    "ServSafe",
+    "HACCP"
+  ]
+}
