@@ -11,9 +11,9 @@ from fastapi import APIRouter, HTTPException, status
 
 from ....core.taxonomy import (
     DEFAULT_TAXONOMY_PATH,
+    load_from_yaml,
     taxonomy,
     validate_definitions,
-    load_from_yaml,
 )
 from ...utils.logging import get_logger
 

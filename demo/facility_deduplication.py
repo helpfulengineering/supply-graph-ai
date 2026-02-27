@@ -5,7 +5,7 @@ Groups facilities by name and aggregates component assignments.
 Shows each facility once with all components it produces.
 """
 
-from typing import Dict, List, Any, Set, Optional
+from typing import Any, Dict, List, Optional, Set
 
 
 def deduplicate_facilities(

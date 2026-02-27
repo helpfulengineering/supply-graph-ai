@@ -6,15 +6,15 @@ Run this locally to verify TSDC codes are being converted to URIs.
 
 import asyncio
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.core.models.okh import OKHManifest
-from src.core.services.matching_service import MatchingService
 from src.core.services.bom_resolution_service import BOMResolutionService
+from src.core.services.matching_service import MatchingService
 
 
 async def diagnose():

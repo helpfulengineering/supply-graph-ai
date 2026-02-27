@@ -57,3 +57,22 @@ markers = [
     "llm: tests requiring LLM API access",
     "benchmark: performance benchmark tests",
 ]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+py_version = 312
+skip_gitignore = true

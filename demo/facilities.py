@@ -5,12 +5,13 @@ Functions for loading OKW facilities from the API and preparing
 them for visualization (e.g., map display).
 """
 
-import pandas as pd
-from typing import List, Dict, Any, Optional, Tuple
-import logging
 import asyncio
+import logging
 import os
 import sys
+from typing import Any, Dict, List, Optional, Tuple
+
+import pandas as pd
 
 # Add project root to path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

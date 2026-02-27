@@ -10,7 +10,7 @@ This script checks:
 
 import re
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 
 class DocValidator:

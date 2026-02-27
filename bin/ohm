@@ -26,7 +26,10 @@ try:
     from src.cli.main import cli
 except ImportError as e:
     print(f"Error: Could not import CLI module: {e}", file=sys.stderr)
-    print("Hint: Install the package with 'pip install -e .' for proper setup", file=sys.stderr)
+    print(
+        "Hint: Install the package with 'pip install -e .' for proper setup",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 if __name__ == "__main__":

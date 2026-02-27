@@ -23,15 +23,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from ..models import (
-    FieldGeneration,
-    FileInfo,
-)
+from ..models import FieldGeneration, FileInfo
 from ..models import GenerationLayer as LayerType
-from ..models import (
-    LayerConfig,
-    ProjectData,
-)
+from ..models import LayerConfig, ProjectData
 from ..utils import ConfidenceCalculator, FileProcessor, TextProcessor
 
 # Configure logging

@@ -10,13 +10,13 @@ Usage:
     python scripts/setup_storage.py --provider gcs --bucket my-bucket --region us-central1
 """
 
-import asyncio
 import argparse
+import asyncio
 import json
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 # Add project root to path
 project_root = Path(__file__).parent.parent

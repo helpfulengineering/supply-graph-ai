@@ -8,7 +8,7 @@ Uses Base Class Inheritance pattern for extensibility.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Set
+from typing import Any, Dict, List, Set
 
 
 class SolutionSelector(ABC):

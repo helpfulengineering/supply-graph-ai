@@ -15,10 +15,11 @@ Usage:
 """
 
 import os
+from typing import Any, Dict, Optional
+from uuid import uuid4
+
 import pytest
 import requests
-from typing import Dict, Any, Optional
-from uuid import uuid4
 
 # Test configuration
 SERVICE_URL = os.getenv("SERVICE_URL", "")
@@ -54,12 +55,13 @@ def auth_headers():
         else:
             # Try to get GCP identity token if gcloud is available
             import subprocess
+
             try:
                 # Generate identity token (gcloud auth print-identity-token doesn't support --audience flag)
                 token = subprocess.check_output(
                     ["gcloud", "auth", "print-identity-token"],
                     stderr=subprocess.DEVNULL,
-                    text=True
+                    text=True,
                 ).strip()
                 if token:
                     headers["Authorization"] = f"Bearer {token}"
@@ -68,7 +70,7 @@ def auth_headers():
                     print("⚠ gcloud auth print-identity-token returned empty token")
             except (subprocess.CalledProcessError, FileNotFoundError) as e:
                 print(f"⚠ Failed to get GCP identity token: {e}")
-    
+
     if not headers and USE_AUTH:
         pytest.skip(
             "Authentication required but no token provided. "
@@ -76,7 +78,7 @@ def auth_headers():
         )
     elif not headers:
         print("⚠ No authentication headers (USE_AUTH=false)")
-    
+
     return headers
 
 
@@ -95,7 +97,9 @@ def invalid_auth_headers():
 def require_auth(auth_headers):
     """Helper to skip test if authentication is not available"""
     if not auth_headers:
-        pytest.skip("No authentication configured. Set IDENTITY_TOKEN or API_KEY environment variable.")
+        pytest.skip(
+            "No authentication configured. Set IDENTITY_TOKEN or API_KEY environment variable."
+        )
 
 
 class TestHealthEndpoints:
@@ -182,7 +186,9 @@ class TestUtilityEndpoints:
     def test_list_domains(self, base_url, auth_headers):
         """Test listing available domains"""
         require_auth(auth_headers)
-        response = requests.get(f"{base_url}/v1/api/utility/domains", headers=auth_headers)
+        response = requests.get(
+            f"{base_url}/v1/api/utility/domains", headers=auth_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, (list, dict))
@@ -191,7 +197,8 @@ class TestUtilityEndpoints:
         """Test getting validation contexts"""
         require_auth(auth_headers)
         response = requests.get(
-            f"{base_url}/v1/api/utility/contexts?domain=manufacturing", headers=auth_headers
+            f"{base_url}/v1/api/utility/contexts?domain=manufacturing",
+            headers=auth_headers,
         )
         assert response.status_code == 200
         data = response.json()
@@ -290,7 +297,9 @@ class TestReadOperations:
     def test_list_match_domains(self, base_url, auth_headers):
         """Test listing match domains"""
         require_auth(auth_headers)
-        response = requests.get(f"{base_url}/v1/api/match/domains", headers=auth_headers)
+        response = requests.get(
+            f"{base_url}/v1/api/match/domains", headers=auth_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, (list, dict))
@@ -303,6 +312,7 @@ class TestCreateOperations:
         """Test uploading a new OKH manifest via file upload"""
         require_auth(auth_headers)
         import io
+
         okh_data = {
             "title": f"Test IoT Sensor Node {uuid4().hex[:8]}",
             "repo": "https://github.com/example/test-iot-sensor",
@@ -321,8 +331,15 @@ class TestCreateOperations:
         }
 
         import json as json_mod
+
         file_content = json_mod.dumps(okh_data).encode("utf-8")
-        files = {"okh_file": ("test-manifest.json", io.BytesIO(file_content), "application/json")}
+        files = {
+            "okh_file": (
+                "test-manifest.json",
+                io.BytesIO(file_content),
+                "application/json",
+            )
+        }
         response = requests.post(
             f"{base_url}/v1/api/okh/upload",
             files=files,
@@ -336,9 +353,13 @@ class TestCreateOperations:
                 error_detail = error_json
             except:
                 pass
-            print(f"Error uploading OKH (status {response.status_code}): {error_detail}")
+            print(
+                f"Error uploading OKH (status {response.status_code}): {error_detail}"
+            )
             if response.status_code == 500:
-                pytest.skip(f"OKH upload returned 500 - may indicate storage/service issue: {error_detail}")
+                pytest.skip(
+                    f"OKH upload returned 500 - may indicate storage/service issue: {error_detail}"
+                )
         assert response.status_code in [200, 201]
         data = response.json()
         okh_id = data.get("id") or data.get("okh", {}).get("id")
@@ -357,7 +378,9 @@ class TestCreateOperations:
             except:
                 pass
             print(f"Error retrieving OKH (status 500): {error_detail}")
-            pytest.skip(f"OKH retrieval returned 500 - may indicate storage/service issue: {error_detail}")
+            pytest.skip(
+                f"OKH retrieval returned 500 - may indicate storage/service issue: {error_detail}"
+            )
         assert get_response.status_code == 200
         # Don't return value - pytest warning about return not None
 
@@ -385,7 +408,13 @@ class TestCreateOperations:
         }
 
         file_content = json_mod.dumps(okw_data).encode("utf-8")
-        files = {"okw_file": ("test-facility.json", io.BytesIO(file_content), "application/json")}
+        files = {
+            "okw_file": (
+                "test-facility.json",
+                io.BytesIO(file_content),
+                "application/json",
+            )
+        }
         response = requests.post(
             f"{base_url}/v1/api/okw/upload",
             files=files,
@@ -399,9 +428,13 @@ class TestCreateOperations:
                 error_detail = error_json
             except:
                 pass
-            print(f"Error uploading OKW (status {response.status_code}): {error_detail}")
+            print(
+                f"Error uploading OKW (status {response.status_code}): {error_detail}"
+            )
             if response.status_code == 500:
-                pytest.skip(f"OKW upload returned 500 - may indicate storage/service issue: {error_detail}")
+                pytest.skip(
+                    f"OKW upload returned 500 - may indicate storage/service issue: {error_detail}"
+                )
         assert response.status_code in [200, 201]
         data = response.json()
         okw_id = data.get("id") or data.get("okw", {}).get("id")
@@ -420,7 +453,9 @@ class TestCreateOperations:
             except:
                 pass
             print(f"Error retrieving OKW (status 500): {error_detail}")
-            pytest.skip(f"OKW retrieval returned 500 - may indicate storage/service issue: {error_detail}")
+            pytest.skip(
+                f"OKW retrieval returned 500 - may indicate storage/service issue: {error_detail}"
+            )
         assert get_response.status_code == 200
         # Don't return value - pytest warning about return not None
 
@@ -448,7 +483,13 @@ class TestMatchOperations:
         }
 
         file_content = json_mod.dumps(okh_data).encode("utf-8")
-        files = {"okh_file": ("test-match-manifest.json", io.BytesIO(file_content), "application/json")}
+        files = {
+            "okh_file": (
+                "test-match-manifest.json",
+                io.BytesIO(file_content),
+                "application/json",
+            )
+        }
         okh_response = requests.post(
             f"{base_url}/v1/api/okh/upload",
             files=files,
@@ -457,7 +498,9 @@ class TestMatchOperations:
         if okh_response.status_code not in [200, 201]:
             pytest.skip("Could not upload OKH for matching test")
 
-        okh_id = okh_response.json().get("id") or okh_response.json().get("okh", {}).get("id")
+        okh_id = okh_response.json().get("id") or okh_response.json().get(
+            "okh", {}
+        ).get("id")
         if not okh_id:
             pytest.skip("OKH ID not returned")
 
@@ -481,9 +524,7 @@ class TestErrorHandling:
     def test_invalid_endpoint(self, base_url, auth_headers):
         """Test that invalid endpoints return 404"""
         require_auth(auth_headers)
-        response = requests.get(
-            f"{base_url}/v1/api/nonexistent", headers=auth_headers
-        )
+        response = requests.get(f"{base_url}/v1/api/nonexistent", headers=auth_headers)
         assert response.status_code == 404
 
     def test_invalid_resource_id(self, base_url, auth_headers):
@@ -556,4 +597,3 @@ def cleanup_created_resources(base_url, auth_headers):
             )
         except Exception:
             pass
-

@@ -5,10 +5,11 @@ Provides functions to interact with the OHM API for fetching
 OKH designs, OKW facilities, and executing matches.
 """
 
-import os
-import httpx
-from typing import Dict, Any, List, Optional
 import logging
+import os
+from typing import Any, Dict, List, Optional
+
+import httpx
 
 logger = logging.getLogger(__name__)
 

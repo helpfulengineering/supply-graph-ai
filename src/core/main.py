@@ -18,6 +18,7 @@ from src.core.api.error_handlers import (
     validation_exception_handler,
 )
 from src.core.api.middleware import setup_api_middleware
+from src.core.api.routes.convert import router as convert_router
 from src.core.api.routes.llm import router as llm_router
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.okh import router as okh_router
@@ -25,7 +26,6 @@ from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.package import router as package_router
 from src.core.api.routes.rules import router as rules_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
-from src.core.api.routes.convert import router as convert_router
 from src.core.api.routes.taxonomy import router as taxonomy_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.domains.cooking.extractors import CookingExtractor

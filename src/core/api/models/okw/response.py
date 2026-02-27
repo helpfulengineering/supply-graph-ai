@@ -3,10 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ..base import (
-    LLMResponseMixin,
-    SuccessResponse,
-)
+from ..base import LLMResponseMixin, SuccessResponse
 from ..base import ValidationResult as BaseValidationResult
 
 

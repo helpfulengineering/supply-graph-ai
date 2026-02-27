@@ -4,11 +4,11 @@ Generate repository maps in both Aider and Sourcegraph styles.
 Combines both approaches into a single unified script.
 """
 
-import ast
 import argparse
-from pathlib import Path
-from typing import List, Dict
+import ast
 import subprocess
+from pathlib import Path
+from typing import Dict, List
 
 
 def get_git_files(repo_path: Path) -> List[Path]:

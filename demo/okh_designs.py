@@ -5,12 +5,12 @@ Provides functions to load and process OKH designs from the API
 for use in the Streamlit demo interface.
 """
 
+import asyncio
+import concurrent.futures
+import logging
 import os
 import sys
-import asyncio
-import logging
-from typing import List, Dict, Any, Optional
-import concurrent.futures
+from typing import Any, Dict, List, Optional
 
 # Add project root to path for imports
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

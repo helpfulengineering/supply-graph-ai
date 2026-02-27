@@ -22,18 +22,18 @@ project_root = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, project_root)
 sys.path.insert(0, os.path.join(project_root, "src"))
 
-# Import from synth directory (same directory as this script)
-from synth.generate_synthetic_data import OKHGenerator, OKWGenerator
-
 # Import models from src/core/models
 from core.models.okh import (
+    ManufacturingSpec,
+    MaterialSpec,
     OKHManifest,
     PartSpec,
-    MaterialSpec,
     ProcessRequirement,
-    ManufacturingSpec,
 )
 from core.models.okw import ManufacturingFacility
+
+# Import from synth directory (same directory as this script)
+from synth.generate_synthetic_data import OKHGenerator, OKWGenerator
 
 
 def generate_workflow1_okh(okh_gen: OKHGenerator) -> OKHManifest:

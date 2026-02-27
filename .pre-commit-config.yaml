@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        args: ["--config=pyproject.toml"]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 8.0.0
+    hooks:
+      - id: isort
+        args: ["--settings-path=pyproject.toml"]
+
+  - repo: local
+    hooks:
+      - id: update-repo-map
+        name: update repository map
+        entry: bash -c 'python scripts/generate_repo_map.py && git add .repo-map.md'
+        language: system
+        pass_filenames: false
+        always_run: true

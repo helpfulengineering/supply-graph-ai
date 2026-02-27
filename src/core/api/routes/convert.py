@@ -9,21 +9,11 @@ import io
 import os
 import tempfile
 
-from fastapi import (
-    APIRouter,
-    File,
-    HTTPException,
-    Request,
-    UploadFile,
-    status,
-)
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
 
 from ...models.okh import OKHManifest
-from ...services.datasheet_converter import (
-    DatasheetConversionError,
-    DatasheetConverter,
-)
+from ...services.datasheet_converter import DatasheetConversionError, DatasheetConverter
 from ...utils.logging import get_logger
 from ..error_handlers import create_error_response
 from ..models.convert.request import ConvertToDatasheetRequest

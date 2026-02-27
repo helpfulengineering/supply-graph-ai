@@ -5,14 +5,14 @@ Parses matching API responses and extracts structured data for display.
 This module handles both single-level and nested (multi-facility) matching modes.
 """
 
-from typing import Dict, List, Any, Optional, Tuple, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from demo.solution_selectors import get_selector, DEFAULT_SELECTOR
 from demo.facility_deduplication import (
     deduplicate_facilities,
-    get_primary_facility_for_component,
     get_alternative_facilities_for_component,
+    get_primary_facility_for_component,
 )
+from demo.solution_selectors import DEFAULT_SELECTOR, get_selector
 
 
 def detect_matching_mode(data: Dict[str, Any]) -> str:
