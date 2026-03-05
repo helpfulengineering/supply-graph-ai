@@ -672,7 +672,10 @@ class ManifestGeneration:
 
             # Try to extract from repository metadata
             repo_metadata = project_data.metadata.get("owner", {})
-            if repo_metadata and repo_metadata.get("name") == licensor_value:
+            if (
+                isinstance(repo_metadata, dict)
+                and repo_metadata.get("name") == licensor_value
+            ):
                 return {
                     "name": repo_metadata.get("name", licensor_value),
                     "url": repo_metadata.get("html_url") or repo_metadata.get("url"),
@@ -694,7 +697,7 @@ class ManifestGeneration:
 
             # Try repository metadata
             repo_metadata = project_data.metadata.get("owner", {})
-            if repo_metadata and repo_metadata.get("name"):
+            if isinstance(repo_metadata, dict) and repo_metadata.get("name"):
                 return {
                     "name": repo_metadata.get("name"),
                     "url": repo_metadata.get("html_url") or repo_metadata.get("url"),
@@ -1819,7 +1822,9 @@ class LayerConfig:
     use_direct: bool = True
     use_heuristic: bool = True
     use_nlp: bool = True
-    use_llm: bool = True  # Re-enable LLM layer - generation pipeline works fine
+    use_llm: bool = (
+        False  # Off by default; enable explicitly with --use-llm for 4-layer mode
+    )
     use_bom_normalization: bool = False
 
     # Quality and processing settings

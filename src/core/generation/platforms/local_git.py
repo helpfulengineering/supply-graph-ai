@@ -325,22 +325,130 @@ class LocalGitExtractor(ProjectExtractor):
 
         return result
 
+    def _load_gitlab_token_from_env(self) -> Optional[str]:
+        """Load GitLab API token from .env file and common environment variable names."""
+        try:
+            from dotenv import load_dotenv
+
+            load_dotenv()
+        except ImportError:
+            pass
+
+        for token_name in ("GITLAB_TOKEN", "GITLAB_PAT", "GITLAB_ACCESS_TOKEN"):
+            token = os.getenv(token_name)
+            if token:
+                return token
+        return None
+
+    async def _fetch_gitlab_supplementary_metadata(
+        self, owner: str, repo: str
+    ) -> Dict[str, Any]:
+        """
+        Fetch lightweight metadata from the GitLab API to supplement local clone extraction.
+
+        Retrieves repository topics (``tag_list``, used for keywords) and the latest
+        release tag (used for version).  Fails gracefully — returns an empty dict on
+        any network or auth error.
+
+        Args:
+            owner: Repository namespace/group name
+            repo: Repository name
+
+        Returns:
+            Dict with any of: ``topics`` (list[str]), ``tag_name`` (str)
+        """
+        result: Dict[str, Any] = {}
+        token = self._load_gitlab_token_from_env()
+        headers: Dict[str, str] = {}
+        if token:
+            headers["PRIVATE-TOKEN"] = token
+
+        # GitLab requires URL-encoded project path (owner%2Frepo)
+        from urllib.parse import quote
+
+        encoded_path = quote(f"{owner}/{repo}", safe="")
+
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(headers=headers, timeout=10.0) as client:
+                # Project endpoint: tag_list (topics), description, name
+                proj_response = await client.get(
+                    f"https://gitlab.com/api/v4/projects/{encoded_path}"
+                )
+                if proj_response.status_code == 200:
+                    proj_data = proj_response.json()
+                    topics = proj_data.get("tag_list", []) or proj_data.get(
+                        "topics", []
+                    )
+                    if topics:
+                        result["topics"] = topics
+                elif proj_response.status_code in (401, 403):
+                    logger.warning(
+                        f"GitLab supplementary fetch: auth/rate-limit issue "
+                        f"(HTTP {proj_response.status_code}) — skipping"
+                    )
+                    return result
+
+                # Latest release endpoint: tag_name for version
+                rel_response = await client.get(
+                    f"https://gitlab.com/api/v4/projects/{encoded_path}/releases",
+                    params={"per_page": 1},
+                )
+                if rel_response.status_code == 200:
+                    releases = rel_response.json()
+                    if releases and isinstance(releases, list):
+                        tag = releases[0].get("tag_name")
+                        if tag:
+                            result["tag_name"] = tag
+
+        except Exception as e:
+            logger.warning(
+                f"GitLab supplementary metadata fetch failed (non-fatal): {e}"
+            )
+
+        return result
+
     def _find_files_by_pattern(self, repo_path: Path, pattern: str) -> List[Path]:
         """
-        Find files matching pattern in repository.
+        Find files matching pattern in repository with case-insensitive matching.
+
+        Python's Path.rglob() is case-sensitive even on macOS HFS+, so repos
+        that use mixed-case filenames (e.g. "License" vs "LICENSE") need special
+        handling.  This method normalises both the pattern stem and each candidate
+        filename to lowercase before comparing.
 
         Args:
             repo_path: Path to repository
-            pattern: Pattern to match (e.g., "README*", "*.md")
+            pattern: Glob pattern to match (e.g., "README*", "LICENSE*", "*bom*")
 
         Returns:
-            List of matching file paths
+            List of matching file paths, deduplicated and sorted
         """
-        matches = []
+        import fnmatch
+
+        pattern_lower = pattern.lower()
+        seen: set = set()
+        matches: List[Path] = []
+
         try:
+            # First pass: standard rglob (fast, handles most cases)
             for file_path in repo_path.rglob(pattern):
-                if file_path.is_file():
+                if file_path.is_file() and file_path not in seen:
+                    seen.add(file_path)
                     matches.append(file_path)
+
+            # Second pass: case-insensitive scan of root-level files only
+            # (covers mixed-case names like "License", "Readme.md", etc.)
+            for file_path in repo_path.iterdir():
+                if (
+                    file_path.is_file()
+                    and file_path not in seen
+                    and fnmatch.fnmatch(file_path.name.lower(), pattern_lower)
+                ):
+                    seen.add(file_path)
+                    matches.append(file_path)
+
         except Exception as e:
             logger.warning(f"Error finding files: {e}")
 
@@ -500,9 +608,15 @@ class LocalGitExtractor(ProjectExtractor):
                 **git_metadata,
             }
 
-            # Supplement with GitHub API metadata (topics, latest release) when available
+            # Supplement with platform API metadata (topics, latest release) when available
             if platform == PlatformType.GITHUB:
                 supplementary = await self._fetch_github_supplementary_metadata(
+                    owner, repo
+                )
+                if supplementary:
+                    metadata.update(supplementary)
+            elif platform == PlatformType.GITLAB:
+                supplementary = await self._fetch_gitlab_supplementary_metadata(
                     owner, repo
                 )
                 if supplementary:
@@ -905,9 +1019,15 @@ class LocalGitExtractor(ProjectExtractor):
                 **git_metadata,
             }
 
-            # Supplement with GitHub API metadata (topics, latest release) when available
+            # Supplement with platform API metadata (topics, latest release) when available
             if platform == PlatformType.GITHUB:
                 supplementary = await self._fetch_github_supplementary_metadata(
+                    owner, repo
+                )
+                if supplementary:
+                    metadata.update(supplementary)
+            elif platform == PlatformType.GITLAB:
+                supplementary = await self._fetch_gitlab_supplementary_metadata(
                     owner, repo
                 )
                 if supplementary:

@@ -1131,6 +1131,9 @@ async def generate_from_url(
 
             # Generate manifest from project data
             config = LayerConfig()
+            config.use_llm = (
+                use_llm  # Honour --use-llm flag (off by default = 3-layer mode)
+            )
             config.use_bom_normalization = True  # Enable BOM normalization
             engine = GenerationEngine(config=config)
             cli_ctx.log("Generating manifest fields...", "info")
