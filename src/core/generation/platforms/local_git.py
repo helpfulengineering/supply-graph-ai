@@ -15,6 +15,7 @@ Benefits:
 """
 
 import json
+import logging
 import os
 import re
 import shutil
@@ -23,6 +24,13 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
+
+
+class _RetryWithoutAuth(Exception):
+    """Sentinel raised inside _fetch_github_supplementary_metadata to trigger an unauthenticated retry."""
+
 
 from ..models import DocumentInfo, FileInfo, PlatformType, ProjectData
 from .base import ProjectExtractor
@@ -99,8 +107,8 @@ class LocalGitExtractor(ProjectExtractor):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             clone_dir = self.temp_dir / f"repo_{url_hash}_{timestamp}"
 
-            print(f"Cloning repository: {url}")
-            print(f"Target directory: {clone_dir}")
+            logger.info(f"Cloning repository: {url}")
+            logger.info(f"Target directory: {clone_dir}")
 
             # Clone repository with timeout
             result = subprocess.run(
@@ -119,17 +127,17 @@ class LocalGitExtractor(ProjectExtractor):
             )
 
             if result.returncode == 0:
-                print(f"Successfully cloned repository to {clone_dir}")
+                logger.info(f"Successfully cloned repository to {clone_dir}")
                 return clone_dir
             else:
-                print(f"Git clone failed: {result.stderr}")
+                logger.warning(f"Git clone failed: {result.stderr}")
                 return None
 
         except subprocess.TimeoutExpired:
-            print(f"Git clone timed out after 2 minutes for {url}")
+            logger.warning(f"Git clone timed out after 2 minutes for {url}")
             return None
         except Exception as e:
-            print(f"Git clone error: {e}")
+            logger.warning(f"Git clone error: {e}")
             return None
 
     def _cleanup_repository(self, repo_path: Path):
@@ -143,7 +151,7 @@ class LocalGitExtractor(ProjectExtractor):
             if repo_path.exists():
                 shutil.rmtree(repo_path)
         except Exception as e:
-            print(f"Cleanup error: {e}")
+            logger.warning(f"Cleanup error: {e}")
 
     def _detect_platform(self, url: str) -> PlatformType:
         """
@@ -204,24 +212,245 @@ class LocalGitExtractor(ProjectExtractor):
         except Exception as e:
             return f"[Error reading file: {e}]"
 
+    def _extract_readme_title(self, readme_content: str) -> Optional[str]:
+        """
+        Extract the first H1 heading from README content for use as the project title.
+
+        Args:
+            readme_content: Raw README file content
+
+        Returns:
+            Title string if an H1 heading is found, otherwise None
+        """
+        if not readme_content:
+            return None
+        match = re.search(r"^#\s+(.+)", readme_content, re.MULTILINE)
+        if match:
+            title = match.group(1).strip()
+            # Reject titles that are just badges, links, or image markup
+            if title and not title.startswith("[") and not title.startswith("!"):
+                return title
+        return None
+
+    def _load_github_token_from_env(self) -> Optional[str]:
+        """Load GitHub API token from .env file and common environment variable names."""
+        try:
+            from dotenv import load_dotenv
+
+            load_dotenv()
+        except ImportError:
+            pass
+
+        for token_name in ("GITHUB_TOKEN", "GITHUB_PAT", "GITHUB_ACCESS_TOKEN"):
+            token = os.getenv(token_name)
+            if token:
+                return token
+        return None
+
+    async def _fetch_github_supplementary_metadata(
+        self, owner: str, repo: str
+    ) -> Dict[str, Any]:
+        """
+        Fetch lightweight metadata from the GitHub API to supplement local clone extraction.
+
+        Retrieves repository topics (used for keywords) and the latest release tag
+        (used for version).  This is a single additional API round-trip that fills in
+        fields that are not stored inside a git clone.
+
+        Fails gracefully — returns an empty dict on any network or auth error so the
+        rest of the extraction is never blocked.
+
+        Args:
+            owner: Repository owner/organisation name
+            repo: Repository name
+
+        Returns:
+            Dict with any of: ``topics`` (list[str]), ``tag_name`` (str)
+        """
+        result: Dict[str, Any] = {}
+        token = self._load_github_token_from_env()
+
+        async def _do_fetch(auth_token: Optional[str]) -> Dict[str, Any]:
+            headers = {"Accept": "application/vnd.github+json"}
+            if auth_token:
+                headers["Authorization"] = f"Bearer {auth_token}"
+            partial: Dict[str, Any] = {}
+            import httpx
+
+            async with httpx.AsyncClient(headers=headers, timeout=10.0) as client:
+                repo_response = await client.get(
+                    f"https://api.github.com/repos/{owner}/{repo}"
+                )
+                if repo_response.status_code == 200:
+                    repo_data = repo_response.json()
+                    topics = repo_data.get("topics", [])
+                    if topics:
+                        partial["topics"] = topics
+                elif repo_response.status_code == 401 and auth_token:
+                    # Invalid token — retry without auth to get unauthenticated response
+                    raise _RetryWithoutAuth()
+                elif repo_response.status_code == 403:
+                    logger.warning(
+                        "GitHub supplementary fetch: rate-limited "
+                        f"(HTTP 403) — skipping"
+                    )
+                    return partial
+
+                release_response = await client.get(
+                    f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+                )
+                if release_response.status_code == 200:
+                    release_data = release_response.json()
+                    tag = release_data.get("tag_name")
+                    if tag:
+                        partial["tag_name"] = tag
+            return partial
+
+        try:
+            result = await _do_fetch(token)
+        except _RetryWithoutAuth:
+            logger.warning(
+                "GitHub token rejected (HTTP 401) — retrying without authentication"
+            )
+            try:
+                result = await _do_fetch(None)
+            except Exception as e:
+                logger.warning(
+                    f"GitHub supplementary metadata fetch failed (non-fatal): {e}"
+                )
+        except Exception as e:
+            logger.warning(
+                f"GitHub supplementary metadata fetch failed (non-fatal): {e}"
+            )
+
+        return result
+
+    def _load_gitlab_token_from_env(self) -> Optional[str]:
+        """Load GitLab API token from .env file and common environment variable names."""
+        try:
+            from dotenv import load_dotenv
+
+            load_dotenv()
+        except ImportError:
+            pass
+
+        for token_name in ("GITLAB_TOKEN", "GITLAB_PAT", "GITLAB_ACCESS_TOKEN"):
+            token = os.getenv(token_name)
+            if token:
+                return token
+        return None
+
+    async def _fetch_gitlab_supplementary_metadata(
+        self, owner: str, repo: str
+    ) -> Dict[str, Any]:
+        """
+        Fetch lightweight metadata from the GitLab API to supplement local clone extraction.
+
+        Retrieves repository topics (``tag_list``, used for keywords) and the latest
+        release tag (used for version).  Fails gracefully — returns an empty dict on
+        any network or auth error.
+
+        Args:
+            owner: Repository namespace/group name
+            repo: Repository name
+
+        Returns:
+            Dict with any of: ``topics`` (list[str]), ``tag_name`` (str)
+        """
+        result: Dict[str, Any] = {}
+        token = self._load_gitlab_token_from_env()
+        headers: Dict[str, str] = {}
+        if token:
+            headers["PRIVATE-TOKEN"] = token
+
+        # GitLab requires URL-encoded project path (owner%2Frepo)
+        from urllib.parse import quote
+
+        encoded_path = quote(f"{owner}/{repo}", safe="")
+
+        try:
+            import httpx
+
+            async with httpx.AsyncClient(headers=headers, timeout=10.0) as client:
+                # Project endpoint: tag_list (topics), description, name
+                proj_response = await client.get(
+                    f"https://gitlab.com/api/v4/projects/{encoded_path}"
+                )
+                if proj_response.status_code == 200:
+                    proj_data = proj_response.json()
+                    topics = proj_data.get("tag_list", []) or proj_data.get(
+                        "topics", []
+                    )
+                    if topics:
+                        result["topics"] = topics
+                elif proj_response.status_code in (401, 403):
+                    logger.warning(
+                        f"GitLab supplementary fetch: auth/rate-limit issue "
+                        f"(HTTP {proj_response.status_code}) — skipping"
+                    )
+                    return result
+
+                # Latest release endpoint: tag_name for version
+                rel_response = await client.get(
+                    f"https://gitlab.com/api/v4/projects/{encoded_path}/releases",
+                    params={"per_page": 1},
+                )
+                if rel_response.status_code == 200:
+                    releases = rel_response.json()
+                    if releases and isinstance(releases, list):
+                        tag = releases[0].get("tag_name")
+                        if tag:
+                            result["tag_name"] = tag
+
+        except Exception as e:
+            logger.warning(
+                f"GitLab supplementary metadata fetch failed (non-fatal): {e}"
+            )
+
+        return result
+
     def _find_files_by_pattern(self, repo_path: Path, pattern: str) -> List[Path]:
         """
-        Find files matching pattern in repository.
+        Find files matching pattern in repository with case-insensitive matching.
+
+        Python's Path.rglob() is case-sensitive even on macOS HFS+, so repos
+        that use mixed-case filenames (e.g. "License" vs "LICENSE") need special
+        handling.  This method normalises both the pattern stem and each candidate
+        filename to lowercase before comparing.
 
         Args:
             repo_path: Path to repository
-            pattern: Pattern to match (e.g., "README*", "*.md")
+            pattern: Glob pattern to match (e.g., "README*", "LICENSE*", "*bom*")
 
         Returns:
-            List of matching file paths
+            List of matching file paths, deduplicated and sorted
         """
-        matches = []
+        import fnmatch
+
+        pattern_lower = pattern.lower()
+        seen: set = set()
+        matches: List[Path] = []
+
         try:
+            # First pass: standard rglob (fast, handles most cases)
             for file_path in repo_path.rglob(pattern):
-                if file_path.is_file():
+                if file_path.is_file() and file_path not in seen:
+                    seen.add(file_path)
                     matches.append(file_path)
+
+            # Second pass: case-insensitive scan of root-level files only
+            # (covers mixed-case names like "License", "Readme.md", etc.)
+            for file_path in repo_path.iterdir():
+                if (
+                    file_path.is_file()
+                    and file_path not in seen
+                    and fnmatch.fnmatch(file_path.name.lower(), pattern_lower)
+                ):
+                    seen.add(file_path)
+                    matches.append(file_path)
+
         except Exception as e:
-            print(f"Error finding files: {e}")
+            logger.warning(f"Error finding files: {e}")
 
         return matches
 
@@ -277,16 +506,21 @@ class LocalGitExtractor(ProjectExtractor):
                 metadata["branch"] = result.stdout.strip()
 
         except Exception as e:
-            print(f"Error extracting Git metadata: {e}")
+            logger.warning(f"Error extracting Git metadata: {e}")
 
         return metadata
 
-    async def extract_project(self, url: str) -> ProjectData:
+    async def extract_project(
+        self, url: str, persist_path: Optional[Path] = None
+    ) -> ProjectData:
         """
         Extract project data from a Git repository URL by cloning locally.
 
         Args:
             url: The Git repository URL
+            persist_path: If provided, move the cloned repository to this path after
+                successful extraction instead of deleting it.  Useful for caching clones
+                so subsequent runs (e.g. with --use-llm) can skip re-cloning.
 
         Returns:
             ProjectData containing extracted information
@@ -299,6 +533,7 @@ class LocalGitExtractor(ProjectExtractor):
         self.start_extraction(url)
 
         repo_path = None
+        extraction_succeeded = False
         try:
             # Validate URL
             if not self.validate_url(url):
@@ -358,8 +593,9 @@ class LocalGitExtractor(ProjectExtractor):
                     )
 
             # Create project metadata
+            readme_title = self._extract_readme_title(readme_content)
             metadata = {
-                "name": repo,
+                "name": readme_title or repo,
                 "owner": owner,
                 "description": "",
                 "url": url,
@@ -371,6 +607,20 @@ class LocalGitExtractor(ProjectExtractor):
                 "extraction_method": "local_git_clone",
                 **git_metadata,
             }
+
+            # Supplement with platform API metadata (topics, latest release) when available
+            if platform == PlatformType.GITHUB:
+                supplementary = await self._fetch_github_supplementary_metadata(
+                    owner, repo
+                )
+                if supplementary:
+                    metadata.update(supplementary)
+            elif platform == PlatformType.GITLAB:
+                supplementary = await self._fetch_gitlab_supplementary_metadata(
+                    owner, repo
+                )
+                if supplementary:
+                    metadata.update(supplementary)
 
             # Create ProjectData
             project_data = ProjectData(
@@ -384,16 +634,26 @@ class LocalGitExtractor(ProjectExtractor):
 
             # End tracking metrics
             self.end_extraction(True, len(files))
-
+            extraction_succeeded = True
             return project_data
 
         except Exception as e:
             self.add_error(str(e))
             raise
         finally:
-            # Clean up cloned repository
             if repo_path:
-                self._cleanup_repository(repo_path)
+                if persist_path and extraction_succeeded:
+                    try:
+                        persist_path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.move(str(repo_path), str(persist_path))
+                        logger.info(f"Saved clone to {persist_path}")
+                    except Exception as e:
+                        logger.warning(
+                            f"Could not persist clone to {persist_path}: {e}"
+                        )
+                        self._cleanup_repository(repo_path)
+                else:
+                    self._cleanup_repository(repo_path)
 
     def _categorize_file_by_structure(self, file_path: Path) -> tuple[str, str]:
         """
@@ -675,6 +935,120 @@ class LocalGitExtractor(ProjectExtractor):
 
         return documentation
 
+    async def extract_from_local_path(self, local_path: Path) -> ProjectData:
+        """
+        Extract project data from an already-cloned local repository directory.
+
+        Unlike extract_project, this method skips cloning entirely and processes
+        the provided directory directly.  It never deletes or moves the directory.
+        The source URL and platform are inferred from the git remote if available.
+
+        Args:
+            local_path: Path to the root of a locally cloned Git repository.
+
+        Returns:
+            ProjectData containing extracted information
+
+        Raises:
+            ValueError: If the path does not exist or is not a directory
+        """
+        self.start_extraction(str(local_path))
+        try:
+            if not local_path.exists() or not local_path.is_dir():
+                raise ValueError(
+                    f"Local path does not exist or is not a directory: {local_path}"
+                )
+
+            git_metadata = self._extract_git_metadata(local_path)
+            remote_url = git_metadata.get("remote_url", "")
+
+            if remote_url:
+                platform = self._detect_platform(remote_url)
+                try:
+                    owner, repo = self._extract_repo_info(remote_url)
+                except ValueError:
+                    owner = "unknown"
+                    repo = local_path.name
+                source_url = remote_url
+            else:
+                platform = PlatformType.UNKNOWN
+                owner = "unknown"
+                repo = local_path.name
+                source_url = str(local_path)
+
+            readme_files = self._find_files_by_pattern(local_path, "README*")
+            readme_content = (
+                self._read_file_content(readme_files[0]) if readme_files else ""
+            )
+
+            license_files = self._find_files_by_pattern(local_path, "LICENSE*")
+            license_content = (
+                self._read_file_content(license_files[0]) if license_files else ""
+            )
+
+            bom_files = self._find_files_by_pattern(local_path, "*bom*")
+            bom_content = self._read_file_content(bom_files[0]) if bom_files else ""
+
+            files = []
+            for file_path in local_path.rglob("*"):
+                if file_path.is_file() and not file_path.name.startswith("."):
+                    relative_path = file_path.relative_to(local_path)
+                    content = self._read_file_content(file_path)
+                    file_type, _ = self._categorize_file_by_structure(file_path)
+                    files.append(
+                        FileInfo(
+                            path=str(relative_path),
+                            content=content,
+                            size=file_path.stat().st_size,
+                            file_type=file_type,
+                        )
+                    )
+
+            readme_title = self._extract_readme_title(readme_content)
+            metadata = {
+                "name": readme_title or repo,
+                "owner": owner,
+                "description": "",
+                "url": source_url,
+                "platform": platform.value,
+                "readme_content": readme_content,
+                "license_content": license_content,
+                "bom_content": bom_content,
+                "files_count": len(files),
+                "extraction_method": "local_path",
+                **git_metadata,
+            }
+
+            # Supplement with platform API metadata (topics, latest release) when available
+            if platform == PlatformType.GITHUB:
+                supplementary = await self._fetch_github_supplementary_metadata(
+                    owner, repo
+                )
+                if supplementary:
+                    metadata.update(supplementary)
+            elif platform == PlatformType.GITLAB:
+                supplementary = await self._fetch_gitlab_supplementary_metadata(
+                    owner, repo
+                )
+                if supplementary:
+                    metadata.update(supplementary)
+
+            project_data = ProjectData(
+                platform=platform,
+                url=source_url,
+                metadata=metadata,
+                files=files,
+                documentation=self._build_documentation_list(files),
+                raw_content={"local_path": str(local_path)},
+            )
+
+            self.end_extraction(True, len(files))
+            return project_data
+
+        except Exception as e:
+            self.add_error(str(e))
+            raise
+
     def cleanup_all(self):
         """Clean up all temporary cloned repositories."""
         try:
@@ -682,7 +1056,7 @@ class LocalGitExtractor(ProjectExtractor):
                 shutil.rmtree(self.temp_dir)
                 self.temp_dir.mkdir(parents=True, exist_ok=True)
         except Exception as e:
-            print(f"Error cleaning up temp directory: {e}")
+            logger.warning(f"Error cleaning up temp directory: {e}")
 
 
 # Import hashlib for the hash function

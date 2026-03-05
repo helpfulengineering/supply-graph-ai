@@ -458,32 +458,62 @@ class OKHService(BaseService["OKHService"]):
             raise ValueError(f"Validation failed: {str(e)}")
 
     async def generate_from_url(
-        self, url: str, skip_review: bool = False, verbose: bool = False
+        self,
+        url: str,
+        skip_review: bool = False,
+        verbose: bool = False,
+        clone: bool = False,
+        save_clone: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Generate OKH manifest from repository URL"""
+        """Generate OKH manifest from a repository URL or a local clone path.
+
+        Args:
+            url: Remote repository URL (GitHub / GitLab) *or* an absolute path to an
+                already-cloned local directory on the server filesystem.
+            skip_review: Skip interactive review step.
+            verbose: Include file metadata in the generated manifest.
+            clone: Clone the repository locally before extraction.  Ignored when
+                ``url`` is a local path.
+            save_clone: Server-side path where the clone should be persisted after
+                generation (only used when ``clone=True`` and ``url`` is a remote URL).
+        """
         try:
             await self.ensure_initialized()
 
-            # Validate and route URL
-            router = URLRouter()
-            if not router.validate_url(url):
-                raise ValueError(f"Invalid URL: {url}")
+            from pathlib import Path as _Path
+            from ..generation.platforms.local_git import LocalGitExtractor
 
-            platform = router.detect_platform(url)
-            if platform is None:
-                raise ValueError(f"Unsupported platform for URL: {url}")
+            # --- Local path input: skip all network extraction ---
+            local_input = _Path(url)
+            if local_input.is_dir():
+                self.logger.info(f"Local path detected, extracting from: {local_input}")
+                extractor = LocalGitExtractor()
+                project_data = await extractor.extract_from_local_path(local_input)
 
-            # Get platform-specific generator
-            if platform == PlatformType.GITHUB:
-                generator = GitHubExtractor()
-            elif platform == PlatformType.GITLAB:
-
-                generator = GitLabExtractor()
             else:
-                raise ValueError(f"Unsupported platform: {platform}")
+                # --- Remote URL input ---
+                router = URLRouter()
+                if not router.validate_url(url):
+                    raise ValueError(f"Invalid URL or path does not exist: {url}")
 
-            # Generate project data
-            project_data = await generator.extract_project(url)
+                platform = router.detect_platform(url)
+                if platform is None:
+                    raise ValueError(f"Unsupported platform for URL: {url}")
+
+                if clone and router.supports_local_cloning(url):
+                    persist_path = _Path(save_clone) if save_clone else None
+                    extractor = LocalGitExtractor()
+                    project_data = await extractor.extract_project(
+                        url, persist_path=persist_path
+                    )
+                else:
+                    if platform == PlatformType.GITHUB:
+                        generator = GitHubExtractor()
+                    elif platform == PlatformType.GITLAB:
+                        generator = GitLabExtractor()
+                    else:
+                        raise ValueError(f"Unsupported platform: {platform}")
+                    project_data = await generator.extract_project(url)
 
             # Generate manifest
             # Lazy import to avoid loading heavy dependencies at module import time

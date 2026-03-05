@@ -85,10 +85,17 @@ class OKHUploadRequest(BaseModel):
 
 
 class OKHGenerateRequest(BaseModel):
-    """Request model for generating OKH manifest from URL"""
+    """Request model for generating OKH manifest from URL or local path"""
 
     # Required fields
-    url: str = Field(..., description="Repository URL to generate manifest from")
+    url: str = Field(
+        ...,
+        description=(
+            "Repository URL (GitHub / GitLab) **or** an absolute path to a locally "
+            "cloned repository on the server filesystem.  When a local path is given "
+            "the service skips network extraction and reads the directory directly."
+        ),
+    )
 
     # Optional fields
     skip_review: bool = Field(
@@ -97,6 +104,22 @@ class OKHGenerateRequest(BaseModel):
     verbose: bool = Field(
         False,
         description="Include file metadata in manifest (default: False for less verbose output)",
+    )
+    clone: bool = Field(
+        False,
+        description=(
+            "Clone the repository locally before extraction (faster, no API rate limits). "
+            "Ignored when `url` is already a local path."
+        ),
+    )
+    save_clone: Optional[str] = Field(
+        None,
+        description=(
+            "Server-side path where the cloned repository should be persisted after "
+            "generation instead of being deleted.  Only used when `clone=true` and "
+            "`url` is a remote URL.  Useful for caching clones so a subsequent request "
+            "can pass the saved path as `url` to skip re-cloning."
+        ),
     )
 
 

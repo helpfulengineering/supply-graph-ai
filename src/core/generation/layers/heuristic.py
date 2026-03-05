@@ -771,7 +771,7 @@ class HeuristicMatcher(BaseGenerationLayer):
                     if pattern.field == "license":
                         # Extract license content
                         license_content = file_info.content
-                        license_type = self._extract_license_type(license_content)
+                        license_type = self.extract_license_type(license_content)
                         if license_type:
                             confidence = self.calculate_confidence(
                                 "license", license_type, pattern.extraction_method
@@ -1005,29 +1005,6 @@ class HeuristicMatcher(BaseGenerationLayer):
                     )
 
         return materials
-
-    def _extract_license_type(self, content: str) -> Optional[str]:
-        """Extract license type from license file content"""
-        content_lower = content.lower()
-
-        # Common license patterns
-        license_patterns = {
-            "MIT": r"mit\s+license",
-            "Apache-2.0": r"apache\s+license",
-            "GPL-3.0": r"gnu\s+general\s+public\s+license",
-            "GPL-2.0": r"gnu\s+general\s+public\s+license\s+version\s+2",
-            "BSD-3-Clause": r"bsd\s+3.clause",
-            "BSD-2-Clause": r"bsd\s+2.clause",
-            "CERN-OHL-S-2.0": r"cern\s+open\s+hardware\s+license",
-            "CERN-OHL-P-2.0": r"cern\s+open\s+hardware\s+license\s+permissive",
-            "CERN-OHL-W-2.0": r"cern\s+open\s+hardware\s+license\s+weakly.revocable",
-        }
-
-        for license_type, pattern in license_patterns.items():
-            if re.search(pattern, content_lower):
-                return license_type
-
-        return None
 
     def _extract_processes_from_text(self, text: str) -> List[str]:
         """Extract manufacturing processes from text using the canonical taxonomy."""

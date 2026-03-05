@@ -883,7 +883,7 @@ async def upload(
 
 
 @okh_group.command()
-@click.argument("url", type=str)
+@click.argument("url_or_path", metavar="URL_OR_PATH", type=str)
 @click.option(
     "--output",
     "-o",
@@ -924,6 +924,23 @@ async def upload(
     is_flag=True,
     help="Clone repository locally for extraction (faster, more reliable, eliminates API limits)",
 )
+@click.option(
+    "--save-clone",
+    "save_clone",
+    type=click.Path(),
+    default=None,
+    help="Persist the cloned repository to this directory after generation (use with --clone). "
+    "Allows subsequent runs to pass the saved path as input instead of re-cloning.",
+)
+@click.option(
+    "--bom-output",
+    "bom_output",
+    type=click.Path(),
+    default=None,
+    help="Write the generated BOM to this file path as JSON. "
+    "Required when using --json without --output, since the manifest references "
+    "an external BOM file but has no output directory to write it to.",
+)
 @standard_cli_command(
     help_text="""
     Generate OKH manifest from repository URL.
@@ -958,13 +975,24 @@ async def upload(
     Examples:
       # Generate from GitHub repository
       ohm okh generate-from-url https://github.com/user/project
-      
+
       # Generate with local cloning (faster, more reliable)
       ohm okh generate-from-url https://github.com/user/project --clone
-      
+
+      # Clone, generate (3-layer), save clone and BOM alongside the manifest
+      ohm okh generate-from-url https://github.com/user/project \
+        --clone --save-clone ./clones/my-project \
+        --bom-output ./clones/my-project-bom.json \
+        --format okh --no-review --json > ./clones/my-project.json
+
+      # Generate (4-layer with LLM) from the saved clone — no network required
+      ohm okh generate-from-url ./clones/my-project \
+        --bom-output ./clones/my-project-4L-bom.json \
+        --format okh --no-review --use-llm --json > ./clones/my-project-4L.json
+
       # Generate with BOM export
       ohm okh generate-from-url https://github.com/user/project --output ./output
-      
+
       # Use LLM for enhanced generation
       ohm okh generate-from-url https://github.com/user/project --use-llm --quality-level professional
     """,
@@ -977,7 +1005,7 @@ async def upload(
 @click.pass_context
 async def generate_from_url(
     ctx,
-    url: str,
+    url_or_path: str,
     output: str,
     format: str,
     bom_formats: tuple,
@@ -985,6 +1013,8 @@ async def generate_from_url(
     no_review: bool,
     github_token: str,
     clone: bool,
+    save_clone: Optional[str],
+    bom_output: Optional[str],
     verbose: bool,
     output_format: str,
     use_llm: bool,
@@ -993,9 +1023,12 @@ async def generate_from_url(
     quality_level: str,
     strict_mode: bool,
 ):
-    """Generate OKH manifest from repository URL with enhanced LLM support."""
+    """Generate OKH manifest from repository URL or local clone path with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("okh-generate-from-url")
+
+    # Normalise: treat as a plain string throughout; detect local vs remote below
+    url = url_or_path
 
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
@@ -1024,6 +1057,9 @@ async def generate_from_url(
 
         async def fallback_generate():
             """Generate using direct service calls"""
+            import os
+            from pathlib import Path as _Path
+
             cli_ctx.log("Using direct service generation...", "info")
             from ..core.generation.engine import GenerationEngine
             from ..core.generation.models import (
@@ -1036,47 +1072,68 @@ async def generate_from_url(
             from ..core.generation.review import ReviewInterface
             from ..core.generation.url_router import URLRouter
 
-            # Validate and route URL
             router = URLRouter()
-            if not router.validate_url(url):
-                raise ValueError(f"Invalid URL: {url}")
 
-            platform = router.detect_platform(url)
-            if platform is None:
-                raise ValueError(f"Unsupported platform for URL: {url}")
+            # --- Local path input: skip cloning, process directory directly ---
+            local_input = _Path(url)
+            if local_input.is_dir():
+                cli_ctx.log(
+                    f"Local path detected — extracting from existing clone: {local_input}",
+                    "info",
+                )
+                from ..core.generation.platforms.local_git import LocalGitExtractor
 
-            cli_ctx.log(f"Detected platform: {platform.value}", "info")
+                extractor = LocalGitExtractor()
+                project_data = await extractor.extract_from_local_path(local_input)
 
-            # Generate project data from URL
-            cli_ctx.log("Fetching project data...", "info")
+            else:
+                # --- URL input ---
+                if not router.validate_url(url):
+                    raise ValueError(f"Invalid URL or path does not exist: {url}")
 
-            # Choose extraction method based on clone flag
-            use_clone = clone
-            if use_clone:
-                cli_ctx.log("Using local Git cloning for extraction...", "info")
-                if not router.supports_local_cloning(url):
-                    cli_ctx.log(
-                        "Warning: URL doesn't support local cloning, falling back to API extraction",
-                        "warning",
-                    )
-                    use_clone = False
-                else:
-                    generator = router.route_to_local_git_extractor()
+                platform = router.detect_platform(url)
+                if platform is None:
+                    raise ValueError(f"Unsupported platform for URL: {url}")
+
+                cli_ctx.log(f"Detected platform: {platform.value}", "info")
+                cli_ctx.log("Fetching project data...", "info")
+
+                # Choose extraction method based on clone flag
+                use_clone = clone
+                if use_clone:
+                    cli_ctx.log("Using local Git cloning for extraction...", "info")
+                    if not router.supports_local_cloning(url):
+                        cli_ctx.log(
+                            "Warning: URL doesn't support local cloning, falling back to API extraction",
+                            "warning",
+                        )
+                        use_clone = False
+                    else:
+                        persist_path = _Path(save_clone) if save_clone else None
+                        if persist_path:
+                            cli_ctx.log(
+                                f"Clone will be saved to: {persist_path}", "info"
+                            )
+                        generator = router.route_to_local_git_extractor()
+                        project_data = await generator.extract_project(
+                            url, persist_path=persist_path
+                        )
+
+                if not use_clone:
+                    if platform == PlatformType.GITHUB:
+                        generator = GitHubExtractor(github_token=github_token)
+                    elif platform == PlatformType.GITLAB:
+                        generator = GitLabExtractor()
+                    else:
+                        raise ValueError(f"Unsupported platform: {platform}")
+
                     project_data = await generator.extract_project(url)
-
-            if not use_clone:
-                # Get platform-specific generator for API-based extraction
-                if platform == PlatformType.GITHUB:
-                    generator = GitHubExtractor(github_token=github_token)
-                elif platform == PlatformType.GITLAB:
-                    generator = GitLabExtractor()
-                else:
-                    raise ValueError(f"Unsupported platform: {platform}")
-
-                project_data = await generator.extract_project(url)
 
             # Generate manifest from project data
             config = LayerConfig()
+            config.use_llm = (
+                use_llm  # Honour --use-llm flag (off by default = 3-layer mode)
+            )
             config.use_bom_normalization = True  # Enable BOM normalization
             engine = GenerationEngine(config=config)
             cli_ctx.log("Generating manifest fields...", "info")
@@ -1180,10 +1237,15 @@ async def generate_from_url(
                 else:
                     cli_ctx.log(f"✅ Manifest saved to: {manifest_path}", "success")
         else:
-            if (cli_ctx and cli_ctx.output_format == "json") or format in [
-                "json",
-                "api",
-            ]:
+            if (
+                output_format == "json"
+                or (cli_ctx and cli_ctx.output_format == "json")
+                or format
+                in [
+                    "json",
+                    "api",
+                ]
+            ):
                 output_data = format_llm_output(result, cli_ctx)
                 click.echo(output_data)
             else:
@@ -1223,6 +1285,34 @@ async def generate_from_url(
                             f"⚠️  Missing required fields: {', '.join(missing)}",
                             "warning",
                         )
+
+        # Write BOM to disk if requested
+        if (
+            bom_output
+            and hasattr(raw_result, "full_bom")
+            and raw_result.full_bom is not None
+        ):
+            import json as _json
+            from pathlib import Path as _Path
+
+            bom_path = _Path(bom_output)
+            bom_path.parent.mkdir(parents=True, exist_ok=True)
+            bom_dict = (
+                raw_result.full_bom.to_dict()
+                if hasattr(raw_result.full_bom, "to_dict")
+                else raw_result.full_bom
+            )
+            with open(bom_path, "w") as _f:
+                _json.dump(bom_dict, _f, indent=2, default=str)
+            click.echo(f"✅ BOM saved to: {bom_path}", err=True)
+            # Update external_file reference in the manifest to match actual output path
+            if isinstance(result, dict) and isinstance(result.get("bom"), dict):
+                result["bom"]["external_file"] = str(bom_path)
+        elif bom_output:
+            click.echo(
+                "⚠️  --bom-output specified but no BOM was generated (try --clone with a well-documented repo)",
+                err=True,
+            )
 
         cli_ctx.end_command_tracking()
 
