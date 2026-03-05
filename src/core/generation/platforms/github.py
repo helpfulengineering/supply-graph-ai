@@ -8,10 +8,13 @@ using the GitHub API with caching to avoid rate limits.
 import base64
 import hashlib
 import json
+import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, Optional
+
+logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 
@@ -70,16 +73,16 @@ class GitHubExtractor(ProjectExtractor):
         if self.is_authenticated:
             self.rate_limit_remaining = 5000  # Authenticated rate limit
             if not GitHubExtractor._auth_message_printed:
-                print(
+                logger.info(
                     "✅ GitHub authentication enabled - using 5,000 requests/hour rate limit"
                 )
                 GitHubExtractor._auth_message_printed = True
         else:
             if not GitHubExtractor._auth_message_printed:
-                print(
-                    "⚠️  GitHub authentication not found - using 60 requests/hour rate limit"
+                logger.warning(
+                    "GitHub authentication not found - using 60 requests/hour rate limit"
                 )
-                print(
+                logger.warning(
                     "   To increase rate limits, set GITHUB_TOKEN environment variable or use --github-token flag"
                 )
                 GitHubExtractor._auth_message_printed = True
@@ -376,7 +379,7 @@ class GitHubExtractor(ProjectExtractor):
         except Exception as e:
             # Fallback to mock data if API fails
             error_msg = f"GitHub API failed ({e}), using fallback data"
-            print(f"Warning: {error_msg}")
+            logger.warning(f"{error_msg}")
             self.add_error(error_msg)
 
             metadata = {
@@ -720,23 +723,23 @@ class GitHubExtractor(ProjectExtractor):
                     "X-RateLimit-Remaining", "0"
                 )
                 rate_limit_reset = response.headers.get("X-RateLimit-Reset", "0")
-                print(
+                logger.info(
                     f"GitHub API rate limited. Remaining: {rate_limit_remaining}, Reset: {rate_limit_reset}"
                 )
                 if not self.is_authenticated:
-                    print(
+                    logger.info(
                         "💡 Tip: Set GITHUB_TOKEN environment variable to increase rate limit from 60 to 5,000 requests/hour"
                     )
                 return None
             elif response.status_code == 401:
-                print("GitHub API authentication failed - check your token")
+                logger.info("GitHub API authentication failed - check your token")
                 return None
             elif response.status_code == 404:
                 # 404 is expected for non-existent directories/files - don't print as error
                 return None
             else:
-                print(f"GitHub API error: {response.status_code}")
+                logger.info(f"GitHub API error: {response.status_code}")
                 return None
         except Exception as e:
-            print(f"GitHub API request failed: {e}")
+            logger.info(f"GitHub API request failed: {e}")
             return None

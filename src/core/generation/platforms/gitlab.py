@@ -8,6 +8,7 @@ using the GitLab API with caching and temporary local clones to avoid rate limit
 import base64
 import hashlib
 import json
+import logging
 import os
 import shutil
 import subprocess
@@ -15,6 +16,8 @@ import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 from dotenv import load_dotenv
 
@@ -77,16 +80,16 @@ class GitLabExtractor(ProjectExtractor):
         if self.is_authenticated:
             self.rate_limit_remaining = 2000  # Authenticated rate limit
             if not GitLabExtractor._auth_message_printed:
-                print(
+                logger.info(
                     "✅ GitLab authentication enabled - using 2,000 requests/hour rate limit"
                 )
                 GitLabExtractor._auth_message_printed = True
         else:
             if not GitLabExtractor._auth_message_printed:
-                print(
-                    "⚠️  GitLab authentication not found - using 20 requests/hour rate limit"
+                logger.warning(
+                    "GitLab authentication not found - using 20 requests/hour rate limit"
                 )
-                print(
+                logger.warning(
                     "   To increase rate limits, set GITLAB_TOKEN environment variable or use --gitlab-token flag"
                 )
                 GitLabExtractor._auth_message_printed = True
@@ -214,7 +217,7 @@ class GitLabExtractor(ProjectExtractor):
         except Exception as e:
             # Try to use local clone even if API fails
             error_msg = f"GitLab API failed ({e}), attempting local clone fallback"
-            print(f"Warning: {error_msg}")
+            logger.warning(f"{error_msg}")
             self.add_error(error_msg)
 
             # Extract owner and repo from URL
@@ -270,7 +273,7 @@ class GitLabExtractor(ProjectExtractor):
                     self._cleanup_repository(clone_path)
 
             # If local clone also fails, use mock data
-            print("Warning: Both API and local clone failed, using mock data")
+            logger.warning("Both API and local clone failed, using mock data")
 
             metadata = {
                 "name": repo,
@@ -349,8 +352,8 @@ class GitLabExtractor(ProjectExtractor):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             clone_dir = self.temp_dir / f"repo_{url_hash}_{timestamp}"
 
-            print(f"Cloning GitLab repository: {url}")
-            print(f"Target directory: {clone_dir}")
+            logger.info(f"Cloning GitLab repository: {url}")
+            logger.info(f"Target directory: {clone_dir}")
 
             # Clone repository with timeout
             result = subprocess.run(
@@ -369,17 +372,17 @@ class GitLabExtractor(ProjectExtractor):
             )
 
             if result.returncode == 0:
-                print(f"Successfully cloned repository to {clone_dir}")
+                logger.info(f"Successfully cloned repository to {clone_dir}")
                 return clone_dir
             else:
-                print(f"Git clone failed: {result.stderr}")
+                logger.info(f"Git clone failed: {result.stderr}")
                 return None
 
         except subprocess.TimeoutExpired:
-            print(f"Git clone timed out after 2 minutes for {url}")
+            logger.info(f"Git clone timed out after 2 minutes for {url}")
             return None
         except Exception as e:
-            print(f"Git clone error: {e}")
+            logger.info(f"Git clone error: {e}")
             return None
 
     def _cleanup_repository(self, repo_path: Path):
@@ -393,7 +396,7 @@ class GitLabExtractor(ProjectExtractor):
             if repo_path.exists():
                 shutil.rmtree(repo_path)
         except Exception as e:
-            print(f"Cleanup error: {e}")
+            logger.info(f"Cleanup error: {e}")
 
     async def _fetch_project_metadata(self, owner: str, repo: str) -> Dict[str, Any]:
         """
@@ -690,29 +693,29 @@ class GitLabExtractor(ProjectExtractor):
                     "X-RateLimit-Remaining", "0"
                 )
                 rate_limit_reset = response.headers.get("X-RateLimit-Reset", "0")
-                print(
+                logger.info(
                     f"GitLab API rate limited. Remaining: {rate_limit_remaining}, Reset: {rate_limit_reset}"
                 )
                 if not self.is_authenticated:
-                    print(
+                    logger.info(
                         "💡 Tip: Set GITLAB_TOKEN environment variable to increase rate limit from 20 to 2,000 requests/hour"
                     )
                 return None
             elif response.status_code == 401:
-                print("GitLab API authentication failed - check your token")
+                logger.info("GitLab API authentication failed - check your token")
                 return None
             elif response.status_code == 404:
                 # 404 is expected for non-existent projects - don't print as error
-                print(f"GitLab API 404: Project not found or not accessible")
+                logger.info(f"GitLab API 404: Project not found or not accessible")
                 return None
             else:
-                print(f"GitLab API error: {response.status_code}")
+                logger.info(f"GitLab API error: {response.status_code}")
                 try:
                     error_data = response.json()
-                    print(f"Error details: {error_data}")
+                    logger.info(f"Error details: {error_data}")
                 except:
-                    print(f"Error response: {response.text[:200]}")
+                    logger.info(f"Error response: {response.text[:200]}")
                 return None
         except Exception as e:
-            print(f"GitLab API request failed: {e}")
+            logger.info(f"GitLab API request failed: {e}")
             return None

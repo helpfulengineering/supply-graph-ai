@@ -21,10 +21,13 @@ Key Components:
 - ManifestGeneration: Complete generation results
 """
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
+
+logger = logging.getLogger(__name__)
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -1697,7 +1700,7 @@ class ManifestGeneration:
             return compressed_bom
         except Exception as e:
             # Fallback to simple summary if compression fails
-            print(f"Warning: BOM compression failed: {e}")
+            logger.warning(f"BOM compression failed: {e}")
             return {
                 "id": full_bom.get("id", "unknown"),
                 "name": full_bom.get("name", "Project BOM"),
@@ -1780,7 +1783,7 @@ class ManifestGeneration:
 
                 categories[category] = categories.get(category, 0) + 1
         except Exception as e:
-            print(f"Warning: Component categorization failed: {e}")
+            logger.warning(f"Component categorization failed: {e}")
             categories = {"other": len(components) if components else 0}
 
         return categories

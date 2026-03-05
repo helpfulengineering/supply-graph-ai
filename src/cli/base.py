@@ -322,16 +322,21 @@ class CLIContext:
         self.command_name = None
 
     def log(self, message: str, level: str = "info"):
-        """Log message with appropriate level"""
+        """Log message with appropriate level.
+
+        When output_format is 'json' all non-error messages are routed to stderr
+        so that stdout remains a clean JSON stream that can be captured with >.
+        """
         if self.verbose or level in ["error", "warning", "success"]:
+            json_mode = self.output_format == "json"
             if level == "error":
                 click.echo(f"❌ {message}", err=True)
             elif level == "warning":
                 click.echo(f"⚠️  {message}", err=True)
             elif level == "success":
-                click.echo(f"✅ {message}")
+                click.echo(f"✅ {message}", err=json_mode)
             else:
-                click.echo(f"ℹ️  {message}")
+                click.echo(f"ℹ️  {message}", err=json_mode)
 
     def update_llm_config(self, **kwargs):
         """Update LLM configuration"""

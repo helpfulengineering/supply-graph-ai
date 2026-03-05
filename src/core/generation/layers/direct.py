@@ -143,6 +143,22 @@ class DirectMatcher(BaseGenerationLayer):
                 raw_source="no_version_found",
             )
 
+        # Keywords from repository topics (GitHub/GitLab API field)
+        topics = metadata.get("topics", [])
+        if topics and isinstance(topics, list):
+            clean_topics = [t.strip() for t in topics if t and t.strip()]
+            if clean_topics:
+                confidence = self.calculate_confidence(
+                    "keywords", clean_topics, "direct_mapping"
+                )
+                fields["keywords"] = FieldGeneration(
+                    value=clean_topics,
+                    confidence=confidence,
+                    source_layer=GenerationLayer.DIRECT,
+                    generation_method="direct_mapping",
+                    raw_source="metadata.topics",
+                )
+
         return fields
 
     def _extract_file_fields(

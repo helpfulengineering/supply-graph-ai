@@ -745,11 +745,11 @@ async def generate_from_url(
     request: OKHGenerateRequest, okh_service: OKHService = Depends(get_okh_service)
 ):
     """
-    Generate OKH manifest from repository URL
+    Generate OKH manifest from repository URL or local clone path
 
-    Generates an OpenKnowHow manifest from a repository URL by analyzing
-    the repository structure, metadata, and content. Supports GitHub and GitLab
-    repositories with optional interactive review.
+    Accepts either a remote repository URL (GitHub / GitLab) or an absolute path
+    to an already-cloned local directory on the server filesystem.  Analyzes the
+    repository structure, metadata, and content to produce an OKH manifest.
 
     The generation process includes:
     - URL validation and platform detection
@@ -772,9 +772,13 @@ async def generate_from_url(
     - Optional interactive review for field validation
     """
     try:
-        # Call service to generate manifest from URL
+        # Call service to generate manifest from URL or local path
         result = await okh_service.generate_from_url(
-            url=request.url, skip_review=request.skip_review, verbose=request.verbose
+            url=request.url,
+            skip_review=request.skip_review,
+            verbose=request.verbose,
+            clone=request.clone,
+            save_clone=request.save_clone,
         )
 
         return OKHGenerateResponse(**result)
