@@ -371,6 +371,28 @@ async def export_okw_schema(http_request: Request = None):
         )
 
 
+@router.get(
+    "/template",
+    summary="Get blank OKW facility template",
+    description="""
+    Return a blank OKW facility template as a JSON object.
+
+    All fields are shown with their zero/empty/null defaults so the user can
+    fill them in and then validate with ``POST /api/okw/validate``.
+    """,
+)
+async def get_okw_template(http_request: Request = None):
+    """Return a blank OKW facility template dict."""
+    from ...utils.template_builder import okw_blank_template
+
+    template = okw_blank_template()
+    return {
+        "success": True,
+        "template": template,
+        "model_name": "ManufacturingFacility",
+    }
+
+
 @router.get("/{id}", response_model=OKWResponse)
 async def get_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
@@ -948,6 +970,61 @@ async def extract_capabilities(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.post(
+    "/create",
+    response_model=OKWUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create OKW Facility from JSON",
+    description="""
+    Create and store an OKW facility from a JSON body.
+
+    Accepts a facility dictionary (e.g. collected via the interactive CLI wizard),
+    validates it, and stores it. Returns the stored facility id and metadata.
+    """,
+)
+async def create_okw_facility(
+    request: OKWValidateRequest,
+    okw_service: OKWService = Depends(get_okw_service),
+    http_request: Request = None,
+):
+    """Create and store an OKW facility from a JSON dict."""
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    try:
+        facility = ManufacturingFacility.from_dict(request.content)
+        try:
+            facility.validate()
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"OKW validation failed: {str(e)}",
+            )
+
+        result = await okw_service.create(facility)
+        result_dict = result.to_dict() if hasattr(result, "to_dict") else result
+        okw_response = OKWResponse(**result_dict)
+
+        return OKWUploadResponse(
+            success=True,
+            message="OKW facility created and stored successfully",
+            facility=okw_response,
+            facility_id=str(facility.id),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error creating OKW facility: {str(e)}",
+            extra={"request_id": request_id},
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating OKW facility: {str(e)}",
         )
 
 

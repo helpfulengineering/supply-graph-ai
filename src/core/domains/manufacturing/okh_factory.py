@@ -1,7 +1,9 @@
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher
 from src.core.domains.manufacturing.okh_orchestrator import OKHOrchestrator
-from src.core.domains.manufacturing.okh_validator import OKHValidator
+from src.core.domains.manufacturing.validation.compatibility import (
+    ManufacturingOKHValidatorCompat,
+)
 from src.core.models.okh import OKHManifest
 
 
@@ -21,7 +23,7 @@ class OKHFactory:
     @staticmethod
     def create_validator():
         """Create an OKH validator instance"""
-        return OKHValidator()
+        return ManufacturingOKHValidatorCompat()
 
     @staticmethod
     def create_orchestrator(config_path=None):

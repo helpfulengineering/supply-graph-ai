@@ -17,10 +17,12 @@ from ..models.okh import MaterialSpec, OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger
 from .model_validator import (
-    ValidationResult,
+    ModelValidationResult,
     validate_okh_manifest,
     validate_okw_facility,
 )
+
+ValidationResult = ModelValidationResult  # local alias for this module
 
 logger = get_logger(__name__)
 

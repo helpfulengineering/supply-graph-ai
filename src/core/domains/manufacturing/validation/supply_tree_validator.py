@@ -4,8 +4,9 @@ Supply tree validator for manufacturing domain.
 This module provides a supply tree validator for the manufacturing domain.
 """
 
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
+from ....models.okh import OKHManifest
 from ....models.supply_trees import SupplyTree
 from ....validation.context import ValidationContext
 from ....validation.engine import Validator
@@ -112,3 +113,90 @@ class ManufacturingSupplyTreeValidator(Validator):
                 field="confidence_score",
                 code="invalid_confidence_score",
             )
+
+    # ------------------------------------------------------------------
+    # OKH-aware supply tree validation (sync, for compatibility layer)
+    # ------------------------------------------------------------------
+
+    def validate_supply_tree(
+        self, supply_tree: SupplyTree, okh_manifest: OKHManifest
+    ) -> Dict[str, Any]:
+        """
+        Validate a supply tree against an OKH manifest (sync, legacy-style result).
+
+        Checks that all process requirements extracted from the manifest are
+        covered by the supply tree's declared capabilities, and returns a
+        dict with ``valid``, ``issues``, ``warnings``, and ``confidence`` keys.
+        """
+        result: Dict[str, Any] = {
+            "valid": True,
+            "issues": [],
+            "warnings": [],
+            "confidence": 0.0,
+        }
+
+        # Basic structural checks
+        if not supply_tree.facility_name:
+            result["valid"] = False
+            result["issues"].append("Supply tree missing facility_name")
+
+        if not supply_tree.okh_reference:
+            result["valid"] = False
+            result["issues"].append("Supply tree missing okh_reference")
+
+        if supply_tree.confidence_score < 0.0 or supply_tree.confidence_score > 1.0:
+            result["valid"] = False
+            result["issues"].append("confidence_score must be between 0.0 and 1.0")
+
+        # Check process requirements against declared capabilities
+        process_reqs = okh_manifest.extract_requirements()
+        for req in process_reqs:
+            if not self._is_requirement_satisfied(req, supply_tree):
+                if getattr(req, "is_required", True):
+                    result["valid"] = False
+                    result["issues"].append(
+                        f"Required process not satisfied: {req.process_name}"
+                    )
+                else:
+                    result["warnings"].append(
+                        f"Optional process not satisfied: {req.process_name}"
+                    )
+
+        result["confidence"] = self._calculate_confidence(supply_tree, okh_manifest)
+        return result
+
+    def _is_requirement_satisfied(
+        self, requirement: Any, supply_tree: SupplyTree
+    ) -> bool:
+        """Return True if the process requirement is covered by the supply tree."""
+        process_name = getattr(requirement, "process_name", "").lower()
+        if not process_name:
+            return False
+
+        for capability in supply_tree.capabilities_used:
+            if process_name in capability.lower():
+                return True
+
+        return False
+
+    def _calculate_confidence(
+        self, supply_tree: SupplyTree, okh_manifest: OKHManifest
+    ) -> float:
+        """
+        Combine the supply tree's own confidence score with the ratio of
+        satisfied OKH process requirements.
+
+        Weights: 60 % requirement coverage, 40 % native confidence score.
+        """
+        process_reqs = okh_manifest.extract_requirements()
+        if not process_reqs:
+            return supply_tree.confidence_score
+
+        satisfied = sum(
+            1
+            for req in process_reqs
+            if self._is_requirement_satisfied(req, supply_tree)
+        )
+        requirement_coverage = satisfied / len(process_reqs)
+
+        return 0.6 * requirement_coverage + 0.4 * supply_tree.confidence_score

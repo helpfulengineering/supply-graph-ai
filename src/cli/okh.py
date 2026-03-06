@@ -106,38 +106,9 @@ async def _display_validation_results(
 
 def _detect_domain_from_manifest_data(data: Dict[str, Any]) -> str:
     """Detect domain from manifest data structure."""
-    # First check for explicit domain field
-    if "domain" in data and data["domain"]:
-        return data["domain"]
+    from src.core.utils.domain_detection import detect_domain
 
-    # Check for cooking indicators
-    cooking_keywords = [
-        "recipe",
-        "cooking",
-        "baking",
-        "ingredient",
-        "food",
-        "meal",
-        "kitchen",
-        "oven",
-        "stove",
-    ]
-    content_lower = (
-        data.get("function", "") + " " + data.get("description", "")
-    ).lower()
-    if any(keyword in content_lower for keyword in cooking_keywords):
-        return "cooking"
-
-    # Check for OKH/manufacturing indicators
-    if (
-        "title" in data
-        and "version" in data
-        and ("manufacturing_specs" in data or "manufacturing_processes" in data)
-    ):
-        return "manufacturing"
-
-    # Default to manufacturing for backward compatibility
-    return "manufacturing"
+    return detect_domain(data)
 
 
 async def _display_retrieval_results(
@@ -1407,29 +1378,17 @@ async def export(
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_export, fallback_export)
 
-        # Extract schema from result
-        schema = result.get("schema", result)
+        # Extract schema from result (API returns "json_schema", fallback returns "schema")
+        schema = result.get("json_schema") or result.get("schema", result)
 
-        # Save to file if output specified
+        # Save to file if output specified, otherwise print schema to stdout
         if output:
             output_path = Path(output)
             with open(output_path, "w") as f:
                 json.dump(schema, f, indent=2)
             cli_ctx.log(f"✅ Schema exported to: {output_path}", "success")
         else:
-            # Display schema
-            if output_format == "json":
-                output_data = format_llm_output(result, cli_ctx)
-                click.echo(output_data)
-            else:
-                cli_ctx.log("✅ OKH JSON Schema exported successfully", "success")
-                cli_ctx.log(
-                    f"   Schema Version: {result.get('schema_version', 'N/A')}", "info"
-                )
-                cli_ctx.log(
-                    f"   Model Name: {result.get('model_name', 'OKHManifest')}", "info"
-                )
-                cli_ctx.log(f"   Use --output to save to file", "info")
+            click.echo(json.dumps(schema, indent=2))
 
         cli_ctx.end_command_tracking()
 
@@ -2045,3 +2004,202 @@ async def fix(
     except Exception as e:
         cli_ctx.log(f"Fix failed: {str(e)}", "error")
         raise
+
+
+@okh_group.command(name="template")
+@click.option("--output", "-o", type=click.Path(), help="Save template to file")
+@click.option(
+    "--output-format",
+    default="json",
+    type=click.Choice(["json", "toml"]),
+    help="Output format",
+)
+@click.pass_context
+def okh_template(ctx, output: Optional[str], output_format: str):
+    """Output a blank OKH manifest template.
+
+    Generates a complete, empty OKH manifest with all fields shown at their
+    default/null values. Fill in the blanks and use ``ohm okh validate`` to
+    check the result.
+
+    \b
+    Examples:
+      # Print template to stdout
+      ohm okh template
+
+      # Save template to file
+      ohm okh template --output my-project.okh.json
+    """
+    from ..core.utils.template_builder import okh_blank_template, strip_none_for_toml
+
+    template = okh_blank_template()
+
+    if output_format == "toml":
+        try:
+            import tomli_w
+
+            content = tomli_w.dumps(strip_none_for_toml(template))
+        except ImportError:
+            click.echo(
+                "Error: tomli_w is required for TOML output. Install it with: pip install tomli_w",
+                err=True,
+            )
+            raise SystemExit(1)
+        output_bytes = content.encode("utf-8")
+        if output:
+            Path(output).write_bytes(output_bytes)
+            click.echo(f"Template saved to: {output}")
+        else:
+            click.echo(content)
+    else:
+        content = json.dumps(template, indent=2, default=str)
+        if output:
+            Path(output).write_text(content)
+            click.echo(f"Template saved to: {output}")
+        else:
+            click.echo(content)
+
+
+@okh_group.command(name="create-interactive")
+@click.option(
+    "--output", "-o", type=click.Path(), help="Save result to file instead of storing"
+)
+@click.option(
+    "--store/--no-store",
+    default=True,
+    help="Store the manifest after creation (default: true)",
+)
+@click.option(
+    "--output-format",
+    default="text",
+    type=click.Choice(["text", "json"]),
+    help="Output format",
+)
+@click.pass_context
+def create_interactive(ctx, output: Optional[str], store: bool, output_format: str):
+    """Interactively create an OKH manifest.
+
+    Prompts for required fields, then optional fields (press Enter to skip any
+    optional field). The resulting manifest is saved to a file or stored.
+
+    \b
+    Examples:
+      # Create and store a manifest interactively
+      ohm okh create-interactive
+
+      # Create and save to file (without storing)
+      ohm okh create-interactive --no-store --output my-manifest.toml
+    """
+    import asyncio
+
+    from ..core.models.okh import OKHManifest
+    from ..core.services.okh_service import OKHService
+
+    cli_ctx = ctx.obj
+
+    click.echo("\n=== OKH Manifest Interactive Creator ===")
+    click.echo(
+        "Required fields are marked [required]. Press Enter to skip optional fields.\n"
+    )
+
+    # --- Required fields ---
+    title = click.prompt("Project title [required]")
+    version = click.prompt("Version (e.g. 1.0.0) [required]")
+    documentation_language = click.prompt(
+        "Documentation language [required]", default="en"
+    )
+    function = click.prompt("Function / purpose [required]")
+    licensor_name = click.prompt("Licensor (name) [required]")
+    click.echo("Common licenses: MIT, Apache-2.0, GPL-3.0, CC-BY-4.0, CERN-OHL-S-2.0")
+    hardware_license = click.prompt("Hardware license [required]")
+
+    # --- Optional fields ---
+    click.echo("\n--- Optional fields (Enter to skip) ---")
+    repo = click.prompt("Repository URL", default="", show_default=False) or None
+    description = click.prompt("Description", default="", show_default=False) or None
+    documentation_license = (
+        click.prompt("Documentation license", default="", show_default=False) or None
+    )
+    software_license = (
+        click.prompt("Software license", default="", show_default=False) or None
+    )
+    org_name = click.prompt("Organisation name", default="", show_default=False) or None
+    keywords_raw = click.prompt(
+        "Keywords (comma-separated)", default="", show_default=False
+    )
+    keywords = (
+        [k.strip() for k in keywords_raw.split(",") if k.strip()]
+        if keywords_raw
+        else []
+    )
+
+    # Build the manifest dict
+    license_dict: dict = {"hardware": hardware_license}
+    if documentation_license:
+        license_dict["documentation"] = documentation_license
+    if software_license:
+        license_dict["software"] = software_license
+
+    manifest_dict: dict = {
+        "title": title,
+        "version": version,
+        "documentation_language": documentation_language,
+        "function": function,
+        "licensor": licensor_name,
+        "license": license_dict,
+    }
+    if repo:
+        manifest_dict["repo"] = repo
+    if description:
+        manifest_dict["description"] = description
+    if org_name:
+        manifest_dict["organisation"] = org_name
+    if keywords:
+        manifest_dict["keywords"] = keywords
+
+    click.echo("\n=== Review ===")
+    click.echo(json.dumps(manifest_dict, indent=2))
+
+    if not click.confirm("\nSave this manifest?", default=True):
+        click.echo("Cancelled.")
+        return
+
+    # Save to file if requested
+    if output:
+        output_path = Path(output)
+        with open(output_path, "w") as f:
+            json.dump(manifest_dict, f, indent=2)
+        click.echo(f"Manifest saved to: {output_path}")
+
+    # Store via API/service if requested
+    if store:
+
+        async def _store():
+            async def http_create():
+                response = await cli_ctx.api_client.request(
+                    "POST", "/api/okh/create", json_data={"content": manifest_dict}
+                )
+                return response
+
+            async def fallback_create():
+                okh_manifest = OKHManifest.from_dict(manifest_dict)
+                okh_service = await OKHService.get_instance()
+                result = await okh_service.create(okh_manifest)
+                return (
+                    result.to_dict()
+                    if hasattr(result, "to_dict")
+                    else {"success": True, "manifest": result}
+                )
+
+            command = SmartCommand(cli_ctx)
+            return await command.execute_with_fallback(http_create, fallback_create)
+
+        try:
+            result = asyncio.get_event_loop().run_until_complete(_store())
+            if output_format == "json":
+                click.echo(json.dumps(result, indent=2, default=str))
+            else:
+                manifest_id = result.get("id") or result.get("manifest_id", "unknown")
+                click.echo(f"✅ Manifest created and stored (id: {manifest_id})")
+        except Exception as e:
+            click.echo(f"❌ Failed to store manifest: {str(e)}", err=True)

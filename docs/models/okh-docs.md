@@ -9,7 +9,7 @@ The OKH ecosystem consists of several components working together:
 - **OKH Model** (`okh.py`) - Core data structures representing OKH manifests
 - **OKH Extractor** (`okh_extractor.py`) - Extracts structured requirements from OKH data
 - **OKH Matcher** (`okh_matcher.py`) - Matches OKH requirements with capabilities
-- **OKH Validator** (`okh_validator.py`) - Validates OKH manifests and matches
+- **Validator framework** (`validation/okh_validator.py`, `validation/compatibility.py`) - Validates OKH manifests and supply trees using the new rule-based framework
 - **OKH Orchestrator** (`okh_orchestrator.py`) - Coordinates the extraction, matching, and validation
 - **OKH Factory** (`okh_factory.py`) - Creates and manages OKH components
 
@@ -24,7 +24,6 @@ class OKHManifest:
     """Primary OKH manifest structure"""
     # Required fields
     title: str
-    repo: str  # URL to repository
     version: str
     license: License
     licensor: Union[str, Person, List[Union[str, Person]]]
@@ -67,20 +66,25 @@ class OKHManifest:
 
 #### Key Properties
 - `title` - Working title of the hardware
-- `repo` - Reference to repository containing technical documentation
 - `version` - Version of the module (semantic versioning recommended)
 - `license` - License information for hardware/documentation/software
 - `licensor` - Original creator or licensor
 - `documentation_language` - IETF BCP 47 language tag
 - `function` - Functional description and purpose
 - `id` - Unique identifier for the manifest (UUID)
+- `repo` - Reference to repository containing technical documentation *(optional)*
 
 #### Key Methods
 
 - `validate()` - Validates that all required fields are present and properly formatted
 - `to_dict()` - Converts the manifest to a dictionary format
 - `from_dict()` - Creates an OKHManifest instance from a dictionary
+- `from_toml(filepath)` - Loads a manifest from a TOML file
+- `to_toml(filepath)` - Saves the manifest to a TOML file
 - `extract_requirements()` - Extracts process requirements for matching
+- `has_tsdc(tsdc_code)` - Returns True if the manifest uses a given TSDC code
+- `get_package_name()` - Returns the canonical `org/project` package identifier
+- `get_package_path(base_dir)` - Returns the full versioned package path
 
 ### 2. License
 License information for different aspects of the module.
@@ -429,14 +433,23 @@ supply_tree = matcher.generate_supply_tree(okh_manifest, capabilities)
 ```
 
 ### OKH Validator
-The OKH Validator ensures the correctness of OKH manifests and supply trees:
+
+OKH validation uses a two-layer architecture:
+
+**`ManufacturingOKHValidator`** — async, rule-based manifest validator (new framework).  
+**`ManufacturingOKHValidatorCompat`** — sync compatibility wrapper used by the factory,
+orchestrator, and service registry. Delegates to `ManufacturingOKHValidator` internally.  
+**`ManufacturingSupplyTreeValidator`** — validates supply trees and checks process-requirement
+coverage against the manifest's declared capabilities.
 
 ```python
-from src.core.domains.manufacturing.okh_validator import OKHValidator
+from src.core.domains.manufacturing.validation.compatibility import (
+    ManufacturingOKHValidatorCompat,
+)
 
-validator = OKHValidator()
+validator = ManufacturingOKHValidatorCompat()
 
-# Validate OKH manifest
+# Validate OKH manifest (legacy-style dict result)
 manifest_results = validator.validate_okh_manifest(okh_manifest)
 if manifest_results["valid"]:
     print(f"Manifest is valid with completeness score: {manifest_results['completeness_score']}")
@@ -444,8 +457,14 @@ if manifest_results["valid"]:
 # Validate supply tree
 tree_results = validator.validate_supply_tree(supply_tree, okh_manifest)
 if tree_results["valid"]:
-    print(f"Supply tree is valid with confidence: {tree_results['confidence']}")
+    print(f"Supply tree valid, confidence: {tree_results['confidence']}")
 ```
+
+For the higher-level `validate_okh_manifest()` / `validate_okw_facility()` entry points
+(used by the service layer and API), see `src/core/validation/model_validator.py` which
+returns a `ModelValidationResult` with `valid`, `errors`, `warnings`, `suggestions`, and
+`details` fields. Use `.to_api_format()` to convert to the external API format (which uses
+`is_valid` instead of `valid`).
 
 ### OKH Orchestrator
 The OKH Orchestrator coordinates the entire matching process:
@@ -537,12 +556,13 @@ manifest.parts.append(
 
 # Use the OKH framework components
 factory = OKHFactory()
-validator = factory.create_validator()
+validator = factory.create_validator()  # Returns ManufacturingOKHValidatorCompat
 matcher = factory.create_matcher()
 
-# Validate the manifest
-validation_result = validator.validate_okh_manifest(manifest)
-if validation_result["valid"]:
+# Validate the manifest (service-level validation)
+from src.core.validation.model_validator import validate_okh_manifest
+result = validate_okh_manifest(manifest.to_dict(), quality_level="professional")
+if result.valid:
     # Match with capabilities
     capabilities = [...] # List of capabilities
     supply_tree = matcher.generate_supply_tree(manifest, capabilities)
@@ -550,6 +570,11 @@ if validation_result["valid"]:
     # Validate supply tree
     tree_validation = validator.validate_supply_tree(supply_tree, manifest)
     print(f"Supply tree confidence: {tree_validation['confidence']}")
+
+# Packaging helpers (in src/core/models/package.py)
+from src.core.models.package import get_package_name, get_package_path
+print(get_package_name(manifest))       # e.g. "community/my-project"
+print(get_package_path(manifest))       # e.g. "packages/community/my-project/1.0.0"
 ```
 
 ## TSDC (Technology-Specific Documentation Criteria)

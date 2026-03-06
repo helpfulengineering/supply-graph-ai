@@ -956,30 +956,17 @@ async def export(
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_export, fallback_export)
 
-        # Extract schema from result
-        schema = result.get("schema", result)
+        # Extract schema from result (API returns "json_schema", fallback returns "schema")
+        schema = result.get("json_schema") or result.get("schema", result)
 
-        # Save to file if output specified
+        # Save to file if output specified, otherwise print schema to stdout
         if output:
             output_path = Path(output)
             with open(output_path, "w") as f:
                 json.dump(schema, f, indent=2)
             cli_ctx.log(f"✅ Schema exported to: {output_path}", "success")
         else:
-            # Display schema
-            if output_format == "json":
-                output_data = format_llm_output(result, cli_ctx)
-                click.echo(output_data)
-            else:
-                cli_ctx.log("✅ OKW JSON Schema exported successfully", "success")
-                cli_ctx.log(
-                    f"   Schema Version: {result.get('schema_version', 'N/A')}", "info"
-                )
-                cli_ctx.log(
-                    f"   Model Name: {result.get('model_name', 'ManufacturingFacility')}",
-                    "info",
-                )
-                cli_ctx.log(f"   Use --output to save to file", "info")
+            click.echo(json.dumps(schema, indent=2))
 
         cli_ctx.end_command_tracking()
 
@@ -1650,3 +1637,199 @@ async def list_files(
                         f"Warning: Error during storage cleanup: {cleanup_error}",
                         "warning",
                     )
+
+
+@okw_group.command(name="template")
+@click.option("--output", "-o", type=click.Path(), help="Save template to file")
+@click.option(
+    "--output-format",
+    default="json",
+    type=click.Choice(["json", "toml"]),
+    help="Output format",
+)
+@click.pass_context
+def okw_template(ctx, output: Optional[str], output_format: str):
+    """Output a blank OKW facility template.
+
+    Generates a complete, empty OKW facility manifest with all fields shown at
+    their default/null values. Fill in the blanks and use ``ohm okw validate``
+    to check the result.
+
+    \b
+    Examples:
+      # Print template to stdout
+      ohm okw template
+
+      # Save template to file
+      ohm okw template --output my-facility.okw.json
+    """
+    from ..core.utils.template_builder import okw_blank_template, strip_none_for_toml
+
+    template = okw_blank_template()
+
+    if output_format == "toml":
+        try:
+            import tomli_w
+
+            content = tomli_w.dumps(strip_none_for_toml(template))
+        except ImportError:
+            click.echo(
+                "Error: tomli_w is required for TOML output. Install it with: pip install tomli_w",
+                err=True,
+            )
+            raise SystemExit(1)
+        output_bytes = content.encode("utf-8")
+        if output:
+            Path(output).write_bytes(output_bytes)
+            click.echo(f"Template saved to: {output}")
+        else:
+            click.echo(content)
+    else:
+        content = json.dumps(template, indent=2, default=str)
+        if output:
+            Path(output).write_text(content)
+            click.echo(f"Template saved to: {output}")
+        else:
+            click.echo(content)
+
+
+@okw_group.command(name="create-interactive")
+@click.option(
+    "--output", "-o", type=click.Path(), help="Save result to file instead of storing"
+)
+@click.option(
+    "--store/--no-store",
+    default=True,
+    help="Store the facility after creation (default: true)",
+)
+@click.option(
+    "--output-format",
+    default="text",
+    type=click.Choice(["text", "json"]),
+    help="Output format",
+)
+@click.pass_context
+def create_interactive(ctx, output: Optional[str], store: bool, output_format: str):
+    """Interactively create an OKW facility manifest.
+
+    Prompts for required fields, then optional fields (press Enter to skip any
+    optional field). The resulting facility is saved to a file or stored.
+
+    \b
+    Examples:
+      # Create and store a facility interactively
+      ohm okw create-interactive
+
+      # Create and save to file (without storing)
+      ohm okw create-interactive --no-store --output my-facility.json
+    """
+    cli_ctx = ctx.obj
+
+    click.echo("\n=== OKW Facility Interactive Creator ===")
+    click.echo(
+        "Required fields are marked [required]. Press Enter to skip optional fields.\n"
+    )
+
+    # --- Required fields ---
+    name = click.prompt("Facility name [required]")
+    city = click.prompt("City [required]")
+    country = click.prompt("Country [required]")
+    status_choices = ["Active", "Planned", "Temporary Closure", "Closed"]
+    click.echo(f"Facility status options: {', '.join(status_choices)}")
+    facility_status = click.prompt("Facility status [required]", default="Active")
+
+    # --- Optional fields ---
+    click.echo("\n--- Optional fields (Enter to skip) ---")
+    description = click.prompt("Description", default="", show_default=False) or None
+    street = click.prompt("Street address", default="", show_default=False) or None
+    access_choices = [
+        "Restricted",
+        "Restricted with public hours",
+        "Shared space",
+        "Public",
+        "Membership",
+    ]
+    click.echo(f"Access type options: {', '.join(access_choices)}")
+    access_type = click.prompt("Access type", default="Restricted", show_default=True)
+    owner_name = (
+        click.prompt("Owner/organisation name", default="", show_default=False) or None
+    )
+    website = click.prompt("Owner website", default="", show_default=False) or None
+    email = click.prompt("Contact email", default="", show_default=False) or None
+    opening_hours = (
+        click.prompt(
+            "Opening hours (e.g. Mon-Fri 09:00-18:00)", default="", show_default=False
+        )
+        or None
+    )
+
+    # Build the facility dict
+    address: dict = {"city": city, "country": country}
+    if street:
+        address["street"] = street
+
+    facility_dict: dict = {
+        "name": name,
+        "location": {"address": address, "city": city, "country": country},
+        "facility_status": facility_status,
+        "access_type": access_type,
+    }
+    if description:
+        facility_dict["description"] = description
+    if opening_hours:
+        facility_dict["opening_hours"] = opening_hours
+    if owner_name:
+        owner: dict = {"name": owner_name}
+        if website:
+            owner["website"] = website
+        if email:
+            owner["contact"] = {"email": email}
+        facility_dict["owner"] = owner
+
+    click.echo("\n=== Review ===")
+    click.echo(json.dumps(facility_dict, indent=2))
+
+    if not click.confirm("\nSave this facility?", default=True):
+        click.echo("Cancelled.")
+        return
+
+    # Save to file if requested
+    if output:
+        output_path = Path(output)
+        with open(output_path, "w") as f:
+            json.dump(facility_dict, f, indent=2)
+        click.echo(f"Facility saved to: {output_path}")
+
+    # Store via API/service if requested
+    if store:
+        import asyncio
+
+        async def _store():
+            async def http_create():
+                response = await cli_ctx.api_client.request(
+                    "POST", "/api/okw/create", json_data={"content": facility_dict}
+                )
+                return response
+
+            async def fallback_create():
+                facility = ManufacturingFacility.from_dict(facility_dict)
+                okw_service = await OKWService.get_instance()
+                result = await okw_service.create(facility)
+                return (
+                    result.to_dict()
+                    if hasattr(result, "to_dict")
+                    else {"success": True, "facility": result}
+                )
+
+            command = SmartCommand(cli_ctx)
+            return await command.execute_with_fallback(http_create, fallback_create)
+
+        try:
+            result = asyncio.get_event_loop().run_until_complete(_store())
+            if output_format == "json":
+                click.echo(json.dumps(result, indent=2, default=str))
+            else:
+                facility_id = result.get("id") or result.get("facility_id", "unknown")
+                click.echo(f"✅ Facility created and stored (id: {facility_id})")
+        except Exception as e:
+            click.echo(f"❌ Failed to store facility: {str(e)}", err=True)

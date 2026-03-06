@@ -547,7 +547,9 @@ class ManufacturingOKHValidator(Validator):
     def validate_supply_tree(
         self, supply_tree: SupplyTree, okh_manifest: OKHManifest
     ) -> Dict[str, Any]:
-        """Legacy method for supply tree validation"""
-        # This would be implemented in the supply tree validator
-        # For now, return a basic result
-        return {"valid": True, "confidence": 0.8, "issues": [], "warnings": []}
+        """Legacy method for supply tree validation — delegates to ManufacturingSupplyTreeValidator"""
+        from .supply_tree_validator import ManufacturingSupplyTreeValidator
+
+        return ManufacturingSupplyTreeValidator().validate_supply_tree(
+            supply_tree, okh_manifest
+        )

@@ -11,7 +11,9 @@ from ..domains.cooking.validators import CookingValidator
 from ..domains.manufacturing.okh_extractor import OKHExtractor
 from ..domains.manufacturing.okh_matcher import OKHMatcher
 from ..domains.manufacturing.okh_orchestrator import OKHOrchestrator
-from ..domains.manufacturing.okh_validator import OKHValidator
+from ..domains.manufacturing.validation.compatibility import (
+    ManufacturingOKHValidatorCompat,
+)
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
 
@@ -329,7 +331,7 @@ def register_manufacturing_domain():
         domain_name="manufacturing",
         extractor=OKHExtractor(),
         matcher=OKHMatcher(),
-        validator=OKHValidator(),
+        validator=ManufacturingOKHValidatorCompat(),
         metadata=metadata,
         orchestrator=OKHOrchestrator(),
     )
