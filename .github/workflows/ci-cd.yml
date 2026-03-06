@@ -25,6 +25,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Fetch the real branch so we can push auto-fixes back.
+          # github.head_ref is set on pull_request events (the source branch);
+          # github.ref_name is set on push events.
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -56,26 +62,19 @@ jobs:
         run: |
           mypy src/ deploy/ --ignore-missing-imports || true
 
-      - name: Check repository maps are up to date
+      - name: Update repository maps if needed
         run: |
           echo "Generating repository maps..."
           python scripts/generate_repo_map.py
-          
-          echo "Checking if maps need to be updated..."
+
           if ! git diff --quiet .repo-map.md; then
-            echo "❌ Repository maps are out of date!"
-            echo ""
-            echo "The following files have changed:"
-            git diff --name-only .repo-map.md
-            echo ""
-            echo "Please run the following commands locally and commit the changes:"
-            echo "  python scripts/generate_repo_map.py"
-            echo "  git add .repo-map.md"
-            echo "  git commit -m 'chore: update repository maps'"
-            echo ""
-            echo "Diff:"
-            git diff .repo-map.md
-            exit 1
+            echo "Repository maps were out of date. Auto-updating..."
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .repo-map.md
+            git commit -m "chore: auto-update repository maps [skip ci]"
+            git push
+            echo "✅ Repository maps updated and committed"
           else
             echo "✅ Repository maps are up to date"
           fi
