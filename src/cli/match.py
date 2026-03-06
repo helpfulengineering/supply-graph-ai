@@ -1214,24 +1214,9 @@ async def _read_input_file(file_path: str) -> Optional[Dict[str, Any]]:
 
 def _detect_domain_from_data(data: Dict[str, Any]) -> str:
     """Detect domain from input data structure."""
-    # First check for explicit domain field
-    if "domain" in data and data["domain"]:
-        return data["domain"]
+    from src.core.utils.domain_detection import detect_domain
 
-    # Check for OKH/manufacturing indicators
-    if (
-        "title" in data
-        and "version" in data
-        and ("manufacturing_specs" in data or "manufacturing_processes" in data)
-    ):
-        return "manufacturing"
-
-    # Check for recipe/cooking indicators
-    if "ingredients" in data and "instructions" in data and "name" in data:
-        return "cooking"
-
-    # Default to manufacturing for backward compatibility
-    return "manufacturing"
+    return detect_domain(data)
 
 
 def _parse_match_filters(

@@ -211,3 +211,28 @@ def sanitize_package_name(name: str) -> str:
     sanitized = re.sub(r"-+", "-", sanitized)
     # Remove leading/trailing hyphens
     return sanitized.strip("-")
+
+
+def get_package_name(manifest: Any) -> str:
+    """
+    Derive the package name (``org/project``) for an OKH manifest.
+
+    Accepts any object with ``organization`` and ``title`` attributes,
+    mirroring the structure of ``OKHManifest``.
+    """
+    if manifest.organization:
+        org = manifest.organization
+        org_name = org if isinstance(org, str) else org.name
+    else:
+        org_name = "community"
+
+    return f"{sanitize_package_name(org_name)}/{sanitize_package_name(manifest.title)}"
+
+
+def get_package_path(manifest: Any, base_dir: str = "packages") -> str:
+    """
+    Return the full versioned package path for an OKH manifest.
+
+    Example: ``packages/community/my-project/1.0.0``
+    """
+    return f"{base_dir}/{get_package_name(manifest)}/{manifest.version}"

@@ -45,6 +45,10 @@ class Address:
     country: Optional[str] = None
     postcode: Optional[str] = None
 
+    def to_dict(self) -> Dict:
+        """Convert to dictionary, omitting None values"""
+        return {k: v for k, v in self.__dict__.items() if v is not None}
+
 
 @dataclass
 class What3Words:
@@ -69,9 +73,9 @@ class Location:
         """Convert to dictionary"""
         result = {}
         if self.address:
-            result["address"] = {
-                k: v for k, v in self.address.__dict__.items() if v is not None
-            }
+            addr_dict = self.address.to_dict()
+            if addr_dict:
+                result["address"] = addr_dict
         if self.gps_coordinates:
             result["gps_coordinates"] = self.gps_coordinates
         if self.directions:
@@ -98,6 +102,10 @@ class Contact:
     email: Optional[str] = None
     whatsapp: Optional[str] = None
 
+    def to_dict(self) -> Dict:
+        """Convert to dictionary, omitting None values"""
+        return {k: v for k, v in self.__dict__.items() if v is not None}
+
 
 @dataclass
 class SocialMedia:
@@ -107,6 +115,17 @@ class SocialMedia:
     twitter: Optional[str] = None
     instagram: Optional[str] = None
     other_urls: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary, omitting None scalar values and empty lists"""
+        result = {}
+        for key in ("facebook", "twitter", "instagram"):
+            val = getattr(self, key)
+            if val is not None:
+                result[key] = val
+        if self.other_urls:
+            result["other_urls"] = self.other_urls
+        return result
 
 
 @dataclass
@@ -145,16 +164,16 @@ class Agent:
             result["images"] = self.images
 
         # Add contact info if any field is set
-        contact_dict = {k: v for k, v in self.contact.__dict__.items() if v is not None}
-        if contact_dict:
-            result["contact"] = contact_dict
+        if self.contact:
+            contact_dict = self.contact.to_dict()
+            if contact_dict:
+                result["contact"] = contact_dict
 
         # Add social media if any field is set
-        social_dict = {
-            k: v for k, v in self.social_media.__dict__.items() if v is not None
-        }
-        if social_dict:
-            result["social_media"] = social_dict
+        if self.social_media:
+            social_dict = self.social_media.to_dict()
+            if social_dict:
+                result["social_media"] = social_dict
 
         return result
 
@@ -167,6 +186,17 @@ class CircularEconomy:
     description: Optional[str] = None
     by_products: List[str] = field(default_factory=list)
 
+    def to_dict(self) -> Dict:
+        """Convert to dictionary. Returns empty dict when applies_principles is False."""
+        if not self.applies_principles:
+            return {}
+        result: Dict = {"applies_principles": True}
+        if self.description:
+            result["description"] = self.description
+        if self.by_products:
+            result["by_products"] = self.by_products
+        return result
+
 
 @dataclass
 class HumanCapacity:
@@ -174,6 +204,12 @@ class HumanCapacity:
 
     headcount: Optional[int] = None
     # Maker fields to be added in future version
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary. Returns empty dict when no capacity data is set."""
+        if self.headcount is None:
+            return {}
+        return {"headcount": self.headcount}
 
 
 @dataclass
@@ -185,6 +221,21 @@ class InnovationSpace:
     services: List[str] = field(default_factory=list)
     footfall: Optional[int] = None
     residencies: bool = False
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary, omitting unset/empty fields"""
+        result = {}
+        if self.staff is not None:
+            result["staff"] = self.staff
+        if self.learning_resources:
+            result["learning_resources"] = self.learning_resources
+        if self.services:
+            result["services"] = self.services
+        if self.footfall is not None:
+            result["footfall"] = self.footfall
+        if self.residencies:
+            result["residencies"] = True
+        return result
 
 
 @dataclass
@@ -328,6 +379,24 @@ class RecordData:
     verified_by: Optional[Agent] = None
     data_collection_method: Optional[str] = None
 
+    def to_dict(self) -> Dict:
+        """Convert to dictionary with ISO-formatted datetime fields"""
+        result: Dict = {
+            "date_created": self.date_created.isoformat(),
+            "created_by": self.created_by.to_dict(),
+        }
+        if self.last_updated:
+            result["last_updated"] = self.last_updated.isoformat()
+        if self.updated_by:
+            result["updated_by"] = self.updated_by.to_dict()
+        if self.date_verified:
+            result["date_verified"] = self.date_verified.isoformat()
+        if self.verified_by:
+            result["verified_by"] = self.verified_by.to_dict()
+        if self.data_collection_method:
+            result["data_collection_method"] = self.data_collection_method
+        return result
+
 
 @dataclass
 class ManufacturingFacility:
@@ -438,67 +507,20 @@ class ManufacturingFacility:
             result["customer_reviews"] = self.customer_reviews
 
         # Sub-property collections
-        # Circular Economy
-        ce_dict = {}
-        if self.circular_economy.applies_principles:
-            ce_dict["applies_principles"] = True
-            if self.circular_economy.description:
-                ce_dict["description"] = self.circular_economy.description
-            if self.circular_economy.by_products:
-                ce_dict["by_products"] = self.circular_economy.by_products
-
+        ce_dict = self.circular_economy.to_dict()
         if ce_dict:
             result["circular_economy"] = ce_dict
 
-        # Human Capacity
-        hc_dict = {}
-        if self.human_capacity.headcount:
-            hc_dict["headcount"] = self.human_capacity.headcount
-
+        hc_dict = self.human_capacity.to_dict()
         if hc_dict:
             result["human_capacity"] = hc_dict
 
-        # Innovation Space
-        is_dict = {}
-        if self.innovation_space.staff:
-            is_dict["staff"] = self.innovation_space.staff
-        if self.innovation_space.learning_resources:
-            is_dict["learning_resources"] = self.innovation_space.learning_resources
-        if self.innovation_space.services:
-            is_dict["services"] = self.innovation_space.services
-        if self.innovation_space.footfall:
-            is_dict["footfall"] = self.innovation_space.footfall
-        if self.innovation_space.residencies:
-            is_dict["residencies"] = True
-
+        is_dict = self.innovation_space.to_dict()
         if is_dict:
             result["innovation_space"] = is_dict
 
-        # Record data
         if self.record_data:
-            record_data_dict = {
-                "date_created": self.record_data.date_created.isoformat(),
-                "created_by": self.record_data.created_by.to_dict(),
-            }
-
-            if self.record_data.last_updated:
-                record_data_dict["last_updated"] = (
-                    self.record_data.last_updated.isoformat()
-                )
-            if self.record_data.updated_by:
-                record_data_dict["updated_by"] = self.record_data.updated_by.to_dict()
-            if self.record_data.date_verified:
-                record_data_dict["date_verified"] = (
-                    self.record_data.date_verified.isoformat()
-                )
-            if self.record_data.verified_by:
-                record_data_dict["verified_by"] = self.record_data.verified_by.to_dict()
-            if self.record_data.data_collection_method:
-                record_data_dict["data_collection_method"] = (
-                    self.record_data.data_collection_method
-                )
-
-            result["record_data"] = record_data_dict
+            result["record_data"] = self.record_data.to_dict()
 
         # Domain field
         if self.domain:
@@ -791,3 +813,69 @@ class ManufacturingFacility:
             facility.affiliations = affiliations_list
 
         return facility
+
+    def validate(self) -> bool:
+        """
+        Validate that all required fields are present and properly formatted.
+        Returns True if valid, raises ValueError if invalid.
+        """
+        required = {
+            "name": self.name,
+            "location": self.location,
+            "facility_status": self.facility_status,
+        }
+        missing = [k for k, v in required.items() if not v]
+        if missing:
+            raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+        if not isinstance(self.facility_status, FacilityStatus):
+            raise ValueError(
+                f"facility_status must be a FacilityStatus enum value, "
+                f"got {type(self.facility_status)}"
+            )
+        if not isinstance(self.access_type, AccessType):
+            raise ValueError(
+                f"access_type must be an AccessType enum value, "
+                f"got {type(self.access_type)}"
+            )
+        return True
+
+    @classmethod
+    def from_toml(cls, filepath: str) -> "ManufacturingFacility":
+        """Load a ManufacturingFacility from a TOML file"""
+        import tomli
+
+        with open(filepath, "rb") as f:
+            data = tomli.load(f)
+
+        return cls.from_dict(data)
+
+    def to_toml(self, filepath: str) -> None:
+        """Save the facility to a TOML file"""
+        import tomli_w
+
+        with open(filepath, "wb") as f:
+            tomli_w.dump(self.to_dict(), f)
+
+    def has_process(self, process_name: str) -> bool:
+        """
+        Check if the facility supports a given manufacturing process.
+
+        Matches against manufacturing_processes (exact or substring) and
+        equipment capability descriptions.
+        """
+        process_lower = process_name.lower()
+
+        for process_url in self.manufacturing_processes:
+            if process_lower in process_url.lower():
+                return True
+
+        for item in self.equipment:
+            if process_lower in item.equipment_type.lower():
+                return True
+            if item.capabilities:
+                for cap in item.capabilities:
+                    if process_lower in cap.lower():
+                        return True
+
+        return False

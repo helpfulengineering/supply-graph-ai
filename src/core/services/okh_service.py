@@ -481,6 +481,7 @@ class OKHService(BaseService["OKHService"]):
             await self.ensure_initialized()
 
             from pathlib import Path as _Path
+
             from ..generation.platforms.local_git import LocalGitExtractor
 
             # --- Local path input: skip all network extraction ---

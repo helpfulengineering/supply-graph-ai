@@ -4,7 +4,7 @@ Common validation utilities for model dataclasses.
 This module provides standardized validation functions that:
 1. Parse input data into canonical dataclass instances
 2. Validate the dataclass instances
-3. Return standardized ValidationResult objects
+3. Return standardized ModelValidationResult objects
 
 All validation should reference the canonical dataclass definitions:
 - OKHManifest for OKH files
@@ -23,8 +23,17 @@ logger = get_logger(__name__)
 
 
 @dataclass
-class ValidationResult:
-    """Standardized validation result for model validation"""
+class ModelValidationResult:
+    """
+    Standardized validation result for OKH/OKW model validation.
+
+    Naming convention
+    -----------------
+    * ``valid`` — the internal Python attribute (bool).
+    * ``to_dict()`` serialises as ``{"valid": ...}`` for internal use.
+    * ``to_api_format()`` serialises as ``{"is_valid": ...}`` for external API
+      responses.
+    """
 
     valid: bool
     errors: List[str] = field(default_factory=list)
@@ -46,7 +55,7 @@ class ValidationResult:
         self.suggestions.append(suggestion)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
+        """Convert to dictionary (uses ``valid`` key — internal format)"""
         return {
             "valid": self.valid,
             "errors": self.errors,
@@ -56,7 +65,7 @@ class ValidationResult:
         }
 
     def to_api_format(self) -> Dict[str, Any]:
-        """Convert to API ValidationResult format (from api/models/base.py)"""
+        """Convert to API response format (uses ``is_valid`` key — external format)"""
         from ..api.models.base import ErrorDetail
 
         # Calculate score based on errors and warnings
@@ -81,12 +90,16 @@ class ValidationResult:
         }
 
 
+# Backward-compatible alias — prefer ModelValidationResult in new code
+ValidationResult = ModelValidationResult
+
+
 def validate_okh_manifest(
     content: Dict[str, Any],
     quality_level: str = "professional",
     strict_mode: bool = False,
     domain: Optional[str] = None,
-) -> ValidationResult:
+) -> ModelValidationResult:
     """
     Validate OKH manifest content against the canonical OKHManifest dataclass.
 
@@ -99,7 +112,7 @@ def validate_okh_manifest(
     Returns:
         ValidationResult with validation status, errors, warnings, and suggestions
     """
-    result = ValidationResult(valid=True)
+    result = ModelValidationResult(valid=True)
     result.details["quality_level"] = quality_level
     result.details["strict_mode"] = strict_mode
     result.details["model_type"] = "OKHManifest"
@@ -161,7 +174,7 @@ def validate_okw_facility(
     content: Dict[str, Any],
     quality_level: str = "professional",
     strict_mode: bool = False,
-) -> ValidationResult:
+) -> ModelValidationResult:
     """
     Validate OKW facility content against the canonical ManufacturingFacility dataclass.
 
@@ -173,7 +186,7 @@ def validate_okw_facility(
     Returns:
         ValidationResult with validation status, errors, warnings, and suggestions
     """
-    result = ValidationResult(valid=True)
+    result = ModelValidationResult(valid=True)
     result.details["quality_level"] = quality_level
     result.details["strict_mode"] = strict_mode
     result.details["model_type"] = "ManufacturingFacility"
@@ -219,38 +232,17 @@ def validate_okw_facility(
 
 
 def _detect_okh_domain_from_manifest(manifest: OKHManifest) -> str:
-    """Detect domain from manifest content"""
-    # Check explicit domain field first
-    if manifest.domain:
-        return manifest.domain
+    """Detect domain from an OKHManifest instance using the shared utility."""
+    from ..utils.domain_detection import detect_domain
 
-    # Check for cooking indicators
-    cooking_keywords = [
-        "recipe",
-        "cooking",
-        "baking",
-        "ingredient",
-        "food",
-        "meal",
-        "kitchen",
-        "oven",
-        "stove",
-    ]
-    content_lower = (
-        (manifest.function or "").lower() + " " + (manifest.description or "").lower()
-    )
-    if any(keyword in content_lower for keyword in cooking_keywords):
-        return "cooking"
-
-    # Default to manufacturing
-    return "manufacturing"
+    return detect_domain(manifest.to_dict())
 
 
 def _validate_okh_quality_level(
     manifest: OKHManifest,
     quality_level: str,
     strict_mode: bool,
-    result: ValidationResult,
+    result: ModelValidationResult,
     domain: str = "manufacturing",
 ) -> None:
     """Validate OKH manifest against quality-level specific rules"""
@@ -381,7 +373,7 @@ def _validate_okh_quality_level(
 
 
 def _validate_okw_required_fields(
-    facility: ManufacturingFacility, result: ValidationResult
+    facility: ManufacturingFacility, result: ModelValidationResult
 ) -> None:
     """Validate OKW facility required fields"""
     if not facility.name:
@@ -398,7 +390,7 @@ def _validate_okw_quality_level(
     facility: ManufacturingFacility,
     quality_level: str,
     strict_mode: bool,
-    result: ValidationResult,
+    result: ModelValidationResult,
 ) -> None:
     """Validate OKW facility against quality-level specific rules"""
     # Required fields by quality level
@@ -586,7 +578,7 @@ def _calculate_okw_completeness(
 def _generate_okh_suggestions(
     manifest: OKHManifest,
     quality_level: str,
-    result: ValidationResult,
+    result: ModelValidationResult,
     domain: str = "manufacturing",
 ) -> None:
     """Generate suggestions for improving OKH manifest"""
@@ -629,7 +621,9 @@ def _generate_okh_suggestions(
             )
 
 
-def _validate_okh_metadata(manifest: OKHManifest, result: ValidationResult) -> None:
+def _validate_okh_metadata(
+    manifest: OKHManifest, result: ModelValidationResult
+) -> None:
     """Validate metadata structure and content for issues"""
     manifest_dict = manifest.to_dict()
     metadata = manifest_dict.get("metadata", {})
@@ -726,7 +720,7 @@ def _validate_okh_metadata(manifest: OKHManifest, result: ValidationResult) -> N
 
 
 def _generate_okw_suggestions(
-    facility: ManufacturingFacility, quality_level: str, result: ValidationResult
+    facility: ManufacturingFacility, quality_level: str, result: ModelValidationResult
 ) -> None:
     """Generate suggestions for improving OKW facility"""
     facility_dict = facility.to_dict()

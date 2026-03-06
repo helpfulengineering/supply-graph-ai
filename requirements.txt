@@ -72,3 +72,6 @@ pydeck>=0.8.0
 # document text extraction
 pypdf>=3.0.0  # PDF text extraction (formerly PyPDF2)
 python-docx>=1.0.0  # DOCX text extraction
+
+# TOML support
+tomli_w>=1.2.0

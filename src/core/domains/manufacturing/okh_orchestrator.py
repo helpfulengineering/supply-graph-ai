@@ -4,7 +4,9 @@ from typing import Any, Dict, List, Optional
 
 from src.core.domains.manufacturing.okh_extractor import OKHExtractor
 from src.core.domains.manufacturing.okh_matcher import OKHMatcher, OKHRequirement
-from src.core.domains.manufacturing.okh_validator import OKHValidator
+from src.core.domains.manufacturing.validation.compatibility import (
+    ManufacturingOKHValidatorCompat,
+)
 from src.core.models.base.base_orchestrator import BaseOrchestrator, MatchStatus
 from src.core.models.base.base_types import (
     Capability,
@@ -50,7 +52,7 @@ class OKHOrchestrator(BaseOrchestrator):
 
         # Initialize domain-specific components
         self.extractor = OKHExtractor()
-        self.validator = OKHValidator()
+        self.validator = ManufacturingOKHValidatorCompat()
 
     def match(
         self,

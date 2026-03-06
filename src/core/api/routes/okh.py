@@ -161,6 +161,24 @@ async def export_okh_schema(http_request: Request = None):
         )
 
 
+@router.get(
+    "/template",
+    summary="Get blank OKH manifest template",
+    description="""
+    Return a blank OKH manifest template as a JSON object.
+
+    All fields are shown with their zero/empty/null defaults so the user can
+    fill them in and then validate with ``POST /api/okh/validate``.
+    """,
+)
+async def get_okh_template(http_request: Request = None):
+    """Return a blank OKH manifest template dict."""
+    from ...utils.template_builder import okh_blank_template
+
+    template = okh_blank_template()
+    return {"success": True, "template": template, "model_name": "OKHManifest"}
+
+
 @router.get("/{id}", response_model=OKHResponse)
 async def get_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
@@ -551,6 +569,63 @@ async def extract_requirements(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while extracting requirements",
+        )
+
+
+@router.post(
+    "/create",
+    response_model=OKHUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create OKH Manifest from JSON",
+    description="""
+    Create and store an OKH manifest from a JSON body.
+
+    Accepts a manifest dictionary (e.g. collected via the interactive CLI wizard),
+    validates it, and stores it. Returns the stored manifest id and metadata.
+    """,
+)
+async def create_okh_manifest(
+    request: OKHValidateRequest,
+    okh_service: OKHService = Depends(get_okh_service),
+    http_request: Request = None,
+):
+    """Create and store an OKH manifest from a JSON dict."""
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    try:
+        from ...models.okh import OKHManifest
+
+        okh_manifest = OKHManifest.from_dict(request.content)
+        try:
+            okh_manifest.validate()
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"OKH validation failed: {str(e)}",
+            )
+
+        result = await okh_service.create(okh_manifest.to_dict())
+        result_dict = result.to_dict()
+        okh_response = OKHResponse(**result_dict)
+
+        return OKHUploadResponse(
+            success=True,
+            message="OKH manifest created and stored successfully",
+            manifest=okh_response,
+            manifest_id=str(okh_manifest.id),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            f"Error creating OKH manifest: {str(e)}",
+            extra={"request_id": request_id},
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating OKH manifest: {str(e)}",
         )
 
 

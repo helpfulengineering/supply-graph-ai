@@ -56,8 +56,12 @@ class ManufacturingFacility:
 - `certifications` - Quality certifications and standards compliance
 
 #### Key Methods
-- `to_dict()` - Convert to dictionary representation
-- `from_dict()` - Create a facility from a dictionary
+- `validate()` - Validates required fields; raises `ValueError` if invalid
+- `to_dict()` - Convert to dictionary representation (all sub-objects delegate to their own `to_dict()`)
+- `from_dict(data)` - Create a facility from a dictionary
+- `from_toml(filepath)` - Load a facility from a TOML file
+- `to_toml(filepath)` - Save the facility to a TOML file
+- `has_process(process_name)` - Returns True if the facility supports the given process (checked against `manufacturing_processes` and equipment capabilities)
 
 ### 2. Equipment
 Detailed specification of manufacturing equipment.
@@ -105,6 +109,8 @@ class Equipment:
 ### 3. Location
 Location information with multiple addressing options.
 
+All sub-classes below expose a `to_dict()` method that omits `None` / empty values.
+
 ```python
 @dataclass
 class Address:
@@ -116,6 +122,7 @@ class Address:
     region: Optional[str] = None
     country: Optional[str] = None
     postcode: Optional[str] = None
+    # to_dict() → dict of non-None fields
 
 @dataclass
 class What3Words:
@@ -132,6 +139,7 @@ class Location:
     what3words: Optional[What3Words] = None
     city: Optional[str] = None
     country: Optional[str] = None
+    # to_dict() → delegates to Address.to_dict() and What3Words
 ```
 
 ### 4. Agent
@@ -146,6 +154,7 @@ class Contact:
     fax: Optional[str] = None
     email: Optional[str] = None
     whatsapp: Optional[str] = None
+    # to_dict() → dict of non-None fields
 
 @dataclass
 class SocialMedia:
@@ -185,7 +194,9 @@ class Material:
 
 ### 6. Supporting Classes
 
-Several additional classes provide specific information about facility capabilities:
+Several additional classes provide specific information about facility capabilities.
+All of these classes expose a `to_dict()` method. `ManufacturingFacility.to_dict()`
+delegates to each of these instead of serialising inline.
 
 ```python
 @dataclass
@@ -194,11 +205,13 @@ class CircularEconomy:
     applies_principles: bool = False
     description: Optional[str] = None
     by_products: List[str] = field(default_factory=list)
+    # to_dict() → {} when applies_principles is False; otherwise includes set fields
 
 @dataclass
 class HumanCapacity:
     """Human capacity information"""
     headcount: Optional[int] = None
+    # to_dict() → {} when headcount is None
 
 @dataclass
 class InnovationSpace:
@@ -208,6 +221,7 @@ class InnovationSpace:
     services: List[str] = field(default_factory=list)
     footfall: Optional[int] = None
     residencies: bool = False
+    # to_dict() → dict of non-default / non-empty fields
 
 @dataclass
 class RecordData:
@@ -219,6 +233,7 @@ class RecordData:
     date_verified: Optional[datetime] = None
     verified_by: Optional[Agent] = None
     data_collection_method: Optional[str] = None
+    # to_dict() → dates as ISO strings; optional fields omitted when None
 ```
 
 ## Enums and Constants
@@ -279,7 +294,9 @@ graph TD
 
 ## Serialization
 
-ManufacturingFacility and related classes support serialization to and from dictionaries:
+All classes in the OKW model expose `to_dict()` methods. Sub-object serialisation
+is fully delegated — `ManufacturingFacility.to_dict()` calls each sub-class's own
+`to_dict()` rather than serialising inline.
 
 ### to_dict() Method
 The `to_dict()` method converts the facility to a dictionary:
@@ -523,3 +540,52 @@ def convert_to_capabilities(facility: ManufacturingFacility) -> List[Capability]
 ```
 
 When used with the Open Hardware Manager, OKW facilities can be matched with OKH requirements to generate valid manufacturing solutions in the form of Supply Trees.
+
+## TOML Support
+
+`ManufacturingFacility` supports round-trip serialisation to TOML (requires
+`tomli` for reading and `tomli_w` for writing):
+
+```python
+# Save to TOML
+facility.to_toml("facility.okw.toml")
+
+# Load from TOML
+restored = ManufacturingFacility.from_toml("facility.okw.toml")
+```
+
+## Process Capability Check
+
+```python
+# Check if a facility supports a process (case-insensitive substring match)
+if facility.has_process("3d printing"):
+    print("Facility can 3D print")
+```
+
+The check searches both `manufacturing_processes` URLs and equipment capability
+descriptions.
+
+## CLI Commands
+
+| Command | Description |
+|---|---|
+| `ohm okw validate <file>` | Validate a facility file |
+| `ohm okw create <file>` | Store a facility from a file |
+| `ohm okw get <id>` | Retrieve a stored facility |
+| `ohm okw list` | List stored facilities |
+| `ohm okw fix <file>` | Auto-fix common validation issues |
+| `ohm okw export` | Export the OKW JSON Schema |
+| `ohm okw template` | Output a blank facility template |
+| `ohm okw create-interactive` | Interactively build a new facility |
+
+## API Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/okw/export` | Export OKW JSON Schema |
+| `GET` | `/api/okw/template` | Get blank facility template |
+| `POST` | `/api/okw/create` | Create facility from JSON body |
+| `POST` | `/api/okw/validate` | Validate a facility dict |
+| `POST` | `/api/okw/upload` | Upload a facility file |
+| `GET` | `/api/okw/{id}` | Get a stored facility |
+| `DELETE` | `/api/okw/{id}` | Delete a stored facility |
