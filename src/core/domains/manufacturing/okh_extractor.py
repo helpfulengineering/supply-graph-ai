@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 from ...models.base.base_extractors import (
     BaseExtractor,
@@ -157,6 +158,31 @@ class OKHExtractor(BaseExtractor):
         """Validate and refine extracted requirements"""
         return extracted_data
 
+    @staticmethod
+    def _normalize_process(process: str) -> str:
+        """Normalize a process identifier to a human-readable name.
+
+        Handles Wikipedia TSDC URLs by extracting the article title and
+        converting underscores to spaces. Non-URL strings are returned as-is.
+
+        Examples:
+          "https://en.wikipedia.org/wiki/Laser_cutting" -> "Laser cutting"
+          "https://en.wikipedia.org/wiki/Fused_filament_fabrication" -> "Fused filament fabrication"
+          "LASER" -> "LASER"
+        """
+        if not process:
+            return process
+        try:
+            parsed = urlparse(process)
+            if parsed.scheme in ("http", "https") and parsed.netloc:
+                path = parsed.path.rstrip("/")
+                # Take only the final path segment (wiki article name)
+                article = path.split("/")[-1]
+                return article.replace("_", " ")
+        except Exception:
+            pass
+        return process
+
     def _initial_parse_capabilities(self, content: Dict[str, Any]) -> Dict:
         """Initial parsing of capabilities data"""
         return content
@@ -193,6 +219,9 @@ class OKHExtractor(BaseExtractor):
                         processes.extend(eq["manufacturing_processes"])
                     else:
                         processes.append(eq["manufacturing_processes"])
+
+        # Normalize process identifiers (e.g. Wikipedia URLs → human-readable names)
+        processes = [self._normalize_process(p) for p in processes]
 
         # Remove duplicates while preserving order
         processes = list(dict.fromkeys(processes))

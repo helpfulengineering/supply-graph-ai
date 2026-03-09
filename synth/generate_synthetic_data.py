@@ -5,6 +5,12 @@ Synthetic Data Generator for OKH and OKW Models
 This script generates realistic synthetic data for testing the matching engine.
 It can create both OKH manifests and OKW facilities with configurable complexity levels.
 
+Alignment: Uses the same canonical models as the rest of the codebase (src.core.models.okh,
+src.core.models.okw, src.core.domains.cooking.models). Run from project root so path
+hacks resolve correctly: `python synth/generate_synthetic_data.py ...`. Generated OKW
+files are valid for ohm okw validate and matching; OKH files for ohm okh validate and
+ohm match requirements.
+
 Usage:
     python generate_synthetic_data.py --type okh --count 10 --complexity complex --output-dir ./data
     python generate_synthetic_data.py --type okw --count 20 --complexity mixed --output-dir ./facilities

@@ -420,6 +420,17 @@ async def requirements(
                     from ..core.services.okw_service import OKWService
 
                     okw_service = await OKWService.get_instance()
+                    # Log which storage we're using (helps debug "no facilities" when remote is populated)
+                    try:
+                        from ...config.storage_config import get_default_storage_config
+
+                        cfg = get_default_storage_config()
+                        cli_ctx.log(
+                            f"Loading facilities from storage: provider={cfg.provider}, container/bucket={cfg.bucket_name}",
+                            "info",
+                        )
+                    except Exception:
+                        pass
                     filter_params = {}
                     if filters.get("access_type"):
                         filter_params["access_type"] = filters.get("access_type")
@@ -431,6 +442,10 @@ async def requirements(
                         filter_params["location"] = filters.get("location")
                     facilities, _ = await okw_service.list(
                         filter_params=filter_params if filter_params else None
+                    )
+                    cli_ctx.log(
+                        f"Loaded {len(facilities)} facility(ies) from storage",
+                        "info",
                     )
 
                 # Apply additional filters that aren't supported by okw_service.list()
@@ -1336,7 +1351,10 @@ async def _display_match_results(
     else:
         # Table format
         for i, solution in enumerate(solutions, 1):
-            # Handle both old format (direct match dict) and new format (solution with tree/facility)
+            # Extract facility name and confidence from whatever dict structure is present.
+            # SupplyTreeSolution.to_dict() nests facility_name under "tree" (single-tree
+            # backward-compat key) or "all_trees[0]".  Older formats may use "facility.name"
+            # or a top-level "name" key.
             if "facility" in solution:
                 facility = solution.get("facility", {})
                 facility_name = (
@@ -1345,6 +1363,17 @@ async def _display_match_results(
                     else getattr(facility, "name", "Unknown Facility")
                 )
                 confidence = solution.get("confidence", 0)
+            elif "tree" in solution and isinstance(solution["tree"], dict):
+                facility_name = solution["tree"].get("facility_name", "Unknown Facility")
+                confidence = solution.get("score", solution["tree"].get("confidence_score", 0))
+            elif solution.get("all_trees"):
+                first_tree = solution["all_trees"][0]
+                facility_name = (
+                    first_tree.get("facility_name", "Unknown Facility")
+                    if isinstance(first_tree, dict)
+                    else "Unknown Facility"
+                )
+                confidence = solution.get("score", 0)
             else:
                 facility_name = solution.get("name", "Unknown Facility")
                 confidence = solution.get("confidence", solution.get("score", 0))
