@@ -167,78 +167,82 @@ class OKWService(BaseService["OKWService"]):
             f"Listing manufacturing facilities (page={page}, page_size={page_size})"
         )
 
-        if self.storage:
-            # Use smart discovery to find OKW files
-            discovery = SmartFileDiscovery(self.storage.manager)
-            file_infos = await discovery.discover_files("okw")
+        if not self.storage:
+            return [], 0
+        if not self.storage.manager:
+            logger.warning(
+                "Storage manager is None (storage configure may have failed). "
+                "Check logs for 'Failed to configure storage'. Returning 0 facilities."
+            )
+            return [], 0
 
-            logger.info(f"Found {len(file_infos)} OKW files using smart discovery")
+        # Use smart discovery to find OKW files
+        discovery = SmartFileDiscovery(self.storage.manager)
+        file_infos = await discovery.discover_files("okw")
 
-            # Process files and deduplicate by facility ID
-            # Use a dict to track unique facilities by ID (keep most recently modified)
-            facilities_by_id: Dict[UUID, ManufacturingFacility] = {}
-            file_info_by_id: Dict[UUID, Any] = {}
+        logger.info(f"Found {len(file_infos)} OKW files using smart discovery")
 
-            for file_info in file_infos:
-                try:
-                    data = await self.storage.manager.get_object(file_info.key)
-                    content = data.decode("utf-8")
-                    okw_data = json.loads(content)
+        # Process files and deduplicate by facility ID
+        facilities_by_id: Dict[UUID, ManufacturingFacility] = {}
+        file_info_by_id: Dict[UUID, Any] = {}
 
-                    # Skip files that are kitchen-shaped — they belong to list_kitchens()
-                    if KitchenCapability.is_kitchen_data(okw_data):
-                        logger.debug(f"Skipping kitchen file {file_info.key} in list()")
-                        continue
+        for file_info in file_infos:
+            try:
+                data = await self.storage.manager.get_object(file_info.key)
+                content = data.decode("utf-8")
+                okw_data = json.loads(content)
 
-                    # Validate and fix UUID issues
-                    fixed_okw_data = UUIDValidator.validate_and_fix_okw_data(okw_data)
-
-                    facility = ManufacturingFacility.from_dict(fixed_okw_data)
-                    facility_id = facility.id
-
-                    # If we haven't seen this ID, or this file is more recent, keep it
-                    if facility_id not in facilities_by_id:
-                        facilities_by_id[facility_id] = facility
-                        file_info_by_id[facility_id] = file_info
-                    else:
-                        # Compare last_modified dates to keep the most recent
-                        existing_modified = (
-                            file_info_by_id[facility_id].last_modified
-                            if hasattr(file_info_by_id[facility_id], "last_modified")
-                            else None
-                        )
-                        current_modified = (
-                            file_info.last_modified
-                            if hasattr(file_info, "last_modified")
-                            else None
-                        )
-
-                        if current_modified and (
-                            not existing_modified
-                            or current_modified > existing_modified
-                        ):
-                            facilities_by_id[facility_id] = facility
-                            file_info_by_id[facility_id] = file_info
-                            logger.debug(
-                                f"Replacing facility {facility_id} with more recent version from {file_info.key}"
-                            )
-                except Exception as e:
-                    logger.error(f"Failed to load OKW file {file_info.key}: {e}")
+                # Skip files that are kitchen-shaped — they belong to list_kitchens()
+                if KitchenCapability.is_kitchen_data(okw_data):
+                    logger.debug(f"Skipping kitchen file {file_info.key} in list()")
                     continue
 
-            # Convert dict values to list and apply pagination
-            unique_facilities = list(facilities_by_id.values())
-            start_idx = (page - 1) * page_size
-            end_idx = start_idx + page_size
-            paginated_facilities = unique_facilities[start_idx:end_idx]
+                # Validate and fix UUID issues
+                fixed_okw_data = UUIDValidator.validate_and_fix_okw_data(okw_data)
 
-            logger.info(
-                f"Found {len(file_infos)} OKW files, {len(unique_facilities)} unique facilities (page {page}: {len(paginated_facilities)} facilities)"
-            )
+                facility = ManufacturingFacility.from_dict(fixed_okw_data)
+                facility_id = facility.id
 
-            return paginated_facilities, len(unique_facilities)
+                # If we haven't seen this ID, or this file is more recent, keep it
+                if facility_id not in facilities_by_id:
+                    facilities_by_id[facility_id] = facility
+                    file_info_by_id[facility_id] = file_info
+                else:
+                    # Compare last_modified dates to keep the most recent
+                    existing_modified = (
+                        file_info_by_id[facility_id].last_modified
+                        if hasattr(file_info_by_id[facility_id], "last_modified")
+                        else None
+                    )
+                    current_modified = (
+                        file_info.last_modified
+                        if hasattr(file_info, "last_modified")
+                        else None
+                    )
 
-        return [], 0
+                    if current_modified and (
+                        not existing_modified or current_modified > existing_modified
+                    ):
+                        facilities_by_id[facility_id] = facility
+                        file_info_by_id[facility_id] = file_info
+                        logger.debug(
+                            f"Replacing facility {facility_id} with more recent version from {file_info.key}"
+                        )
+            except Exception as e:
+                logger.error(f"Failed to load OKW file {file_info.key}: {e}")
+                continue
+
+        # Convert dict values to list and apply pagination
+        unique_facilities = list(facilities_by_id.values())
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paginated_facilities = unique_facilities[start_idx:end_idx]
+
+        logger.info(
+            f"Found {len(file_infos)} OKW files, {len(unique_facilities)} unique facilities (page {page}: {len(paginated_facilities)} facilities)"
+        )
+
+        return paginated_facilities, len(unique_facilities)
 
     async def list_facilities(
         self,

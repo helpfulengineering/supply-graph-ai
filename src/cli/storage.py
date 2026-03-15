@@ -463,7 +463,9 @@ async def populate(
                 with open(file_path, "r", encoding="utf-8") as f:
                     manifest_data = json.load(f)
 
-                stored_path = await organizer.store_okh_manifest(manifest_data)
+                stored_path = await organizer.store_okh_manifest(
+                    manifest_data, blob_name=file_path.name
+                )
                 stored_files.append(("OKH", file_path.name, stored_path))
                 cli_ctx.log(
                     f"  ✅ Stored OKH: {file_path.name} -> {stored_path}", "success"
@@ -478,7 +480,9 @@ async def populate(
                 with open(file_path, "r", encoding="utf-8") as f:
                     facility_data = json.load(f)
 
-                stored_path = await organizer.store_okw_facility(facility_data)
+                stored_path = await organizer.store_okw_facility(
+                    facility_data, blob_name=file_path.name
+                )
                 stored_files.append(("OKW", file_path.name, stored_path))
                 cli_ctx.log(
                     f"  ✅ Stored OKW: {file_path.name} -> {stored_path}", "success"

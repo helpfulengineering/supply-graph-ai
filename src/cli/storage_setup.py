@@ -165,8 +165,10 @@ async def populate_synthetic_data(
                 with open(file_path, "r", encoding="utf-8") as f:
                     manifest_data = json.load(f)
 
-                # Store using organizer
-                stored_path = await organizer.store_okh_manifest(manifest_data)
+                # Store using organizer (preserve human-readable blob name)
+                stored_path = await organizer.store_okh_manifest(
+                    manifest_data, blob_name=file_path.name
+                )
                 stored_files.append(("OKH", file_path.name, stored_path))
                 print(f"  ✅ Stored OKH: {file_path.name} -> {stored_path}")
             except Exception as e:
@@ -178,8 +180,10 @@ async def populate_synthetic_data(
                 with open(file_path, "r", encoding="utf-8") as f:
                     facility_data = json.load(f)
 
-                # Store using organizer
-                stored_path = await organizer.store_okw_facility(facility_data)
+                # Store using organizer (preserve human-readable blob name)
+                stored_path = await organizer.store_okw_facility(
+                    facility_data, blob_name=file_path.name
+                )
                 stored_files.append(("OKW", file_path.name, stored_path))
                 print(f"  ✅ Stored OKW: {file_path.name} -> {stored_path}")
             except Exception as e:

@@ -344,14 +344,24 @@ class MatchingService:
             )
 
             if not req_list:
-                logger.warning("No valid requirements to check")
+                logger.debug("No valid requirements to check")
                 return False
 
             if not cap_list:
-                logger.warning("No valid capabilities to check against")
+                logger.debug("No valid capabilities to check against")
                 return False
 
-            # Check if ALL requirements can be satisfied by the capabilities
+            # Partial-match threshold: a facility must satisfy this fraction of
+            # requirement occurrences to be considered a candidate.  Using
+            # occurrence counts (not deduplicated) ensures that the dominant
+            # process type carries the most weight — e.g. a laser-cut project
+            # with 5 "LASER" requirements and 1 "Assembly" requirement scores
+            # 83 % against a laser cutting facility (5/6 > 0.6).
+            PARTIAL_MATCH_THRESHOLD = 0.6
+
+            total_reqs = 0
+            satisfied_reqs = 0
+
             for req in req_list:
                 raw_req_process = req.get("process_name", "").strip()
                 req_process = (
@@ -361,7 +371,7 @@ class MatchingService:
                     logger.debug(f"Skipping empty requirement: {req}")
                     continue
 
-                # Track if this requirement has a match
+                total_reqs += 1
                 requirement_satisfied = False
 
                 for cap in cap_list:
@@ -384,7 +394,7 @@ class MatchingService:
                             },
                         )
                         requirement_satisfied = True
-                        break  # Found a match for this requirement, move to next requirement
+                        break
 
                     # Try Layer 2: Heuristic Matching
                     if await self._heuristic_match(req_process, cap_process, domain):
@@ -397,7 +407,7 @@ class MatchingService:
                             },
                         )
                         requirement_satisfied = True
-                        break  # Found a match for this requirement, move to next requirement
+                        break
 
                     # Try Layer 3: NLP Matching
                     if await self._nlp_match(req_process, cap_process, domain):
@@ -410,11 +420,12 @@ class MatchingService:
                             },
                         )
                         requirement_satisfied = True
-                        break  # Found a match for this requirement, move to next requirement
+                        break
 
-                # If this requirement has no match, the facility cannot satisfy all requirements
-                if not requirement_satisfied:
-                    logger.info(
+                if requirement_satisfied:
+                    satisfied_reqs += 1
+                else:
+                    logger.debug(
                         f"Requirement '{req.get('process_name')}' has no matching capability",
                         extra={
                             "requirement_process": req.get("process_name"),
@@ -424,11 +435,19 @@ class MatchingService:
                             ],
                         },
                     )
-                    return False
 
-            # All requirements have matches
-            logger.info("All requirements satisfied by capabilities")
-            return True
+            if total_reqs == 0:
+                logger.warning("No valid requirements to evaluate")
+                return False
+
+            coverage = satisfied_reqs / total_reqs
+            passed = coverage >= PARTIAL_MATCH_THRESHOLD
+            logger.info(
+                f"Requirement coverage: {satisfied_reqs}/{total_reqs} "
+                f"({coverage:.0%}) — {'PASS' if passed else 'FAIL'} "
+                f"(threshold {PARTIAL_MATCH_THRESHOLD:.0%})"
+            )
+            return passed
 
         except Exception as e:
             logger.error(
@@ -1600,10 +1619,10 @@ class MatchingService:
         logger.info("Registering domains for fallback mode...")
 
         try:
-            # Import domain components
-            from ...domains.manufacturing.okh_extractor import OKHExtractor
-            from ...domains.manufacturing.okh_matcher import OKHMatcher
-            from ...domains.manufacturing.validation.compatibility import (
+            # Import domain components (.. = src.core from this package)
+            from ..domains.manufacturing.okh_extractor import OKHExtractor
+            from ..domains.manufacturing.okh_matcher import OKHMatcher
+            from ..domains.manufacturing.validation.compatibility import (
                 ManufacturingOKHValidatorCompat,
             )
             from ..domains.cooking.extractors import CookingExtractor

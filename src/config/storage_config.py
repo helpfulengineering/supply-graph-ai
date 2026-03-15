@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Dict, Optional
 
 from dotenv import load_dotenv
@@ -8,8 +9,30 @@ from src.core.storage.base import StorageConfig
 
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
+
+def _find_project_env() -> Optional[Path]:
+    """Find .env by walking up from this file (e.g. project root has .env)."""
+    try:
+        current = Path(__file__).resolve().parent
+        for _ in range(6):
+            env_file = current / ".env"
+            if env_file.is_file():
+                return env_file
+            current = current.parent
+            if not current or current == current.parent:
+                break
+    except Exception:
+        pass
+    return None
+
+
+# Load environment variables: prefer project root .env so storage config is correct
+# regardless of process cwd (e.g. when running `ohm` from any directory).
+_env_path = _find_project_env()
+if _env_path:
+    load_dotenv(dotenv_path=_env_path)
+else:
+    load_dotenv()
 
 
 class StorageConfigError(Exception):
