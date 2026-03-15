@@ -344,11 +344,11 @@ class MatchingService:
             )
 
             if not req_list:
-                logger.warning("No valid requirements to check")
+                logger.debug("No valid requirements to check")
                 return False
 
             if not cap_list:
-                logger.warning("No valid capabilities to check against")
+                logger.debug("No valid capabilities to check against")
                 return False
 
             # Partial-match threshold: a facility must satisfy this fraction of
@@ -1619,10 +1619,10 @@ class MatchingService:
         logger.info("Registering domains for fallback mode...")
 
         try:
-            # Import domain components
-            from ...domains.manufacturing.okh_extractor import OKHExtractor
-            from ...domains.manufacturing.okh_matcher import OKHMatcher
-            from ...domains.manufacturing.validation.compatibility import (
+            # Import domain components (.. = src.core from this package)
+            from ..domains.manufacturing.okh_extractor import OKHExtractor
+            from ..domains.manufacturing.okh_matcher import OKHMatcher
+            from ..domains.manufacturing.validation.compatibility import (
                 ManufacturingOKHValidatorCompat,
             )
             from ..domains.cooking.extractors import CookingExtractor

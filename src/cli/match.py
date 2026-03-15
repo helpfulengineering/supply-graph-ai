@@ -1364,8 +1364,12 @@ async def _display_match_results(
                 )
                 confidence = solution.get("confidence", 0)
             elif "tree" in solution and isinstance(solution["tree"], dict):
-                facility_name = solution["tree"].get("facility_name", "Unknown Facility")
-                confidence = solution.get("score", solution["tree"].get("confidence_score", 0))
+                facility_name = solution["tree"].get(
+                    "facility_name", "Unknown Facility"
+                )
+                confidence = solution.get(
+                    "score", solution["tree"].get("confidence_score", 0)
+                )
             elif solution.get("all_trees"):
                 first_tree = solution["all_trees"][0]
                 facility_name = (

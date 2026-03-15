@@ -221,8 +221,7 @@ class OKWService(BaseService["OKWService"]):
                     )
 
                     if current_modified and (
-                        not existing_modified
-                        or current_modified > existing_modified
+                        not existing_modified or current_modified > existing_modified
                     ):
                         facilities_by_id[facility_id] = facility
                         file_info_by_id[facility_id] = file_info

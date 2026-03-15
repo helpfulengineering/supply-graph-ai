@@ -15,6 +15,7 @@ following the same pattern as the generation system's NLP layer.
 import asyncio
 import logging
 import re
+import warnings
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional
 
@@ -374,8 +375,14 @@ class NLPMatcher(BaseMatchingLayer):
                 doc1 = nlp(context_enhanced_text1)
                 doc2 = nlp(context_enhanced_text2)
 
-                # Calculate semantic similarity
-                similarity = doc1.similarity(doc2)
+                # Calculate semantic similarity (suppress spaCy W008 empty-vectors warning)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings(
+                        "ignore",
+                        message=".*empty vectors.*",
+                        category=UserWarning,
+                    )
+                    similarity = doc1.similarity(doc2)
 
                 # Apply domain-specific boosting for known manufacturing terms
                 domain_boost = self._calculate_domain_boost(text1, text2)

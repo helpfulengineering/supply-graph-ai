@@ -55,7 +55,9 @@ async def main():
         print(f"Storage provider: {config.provider}, bucket/path: {config.bucket_name}")
         return 0
 
-    print(f"Validating {len(facilities)} OKW facilities (quality={args.quality_level}, strict={args.strict})")
+    print(
+        f"Validating {len(facilities)} OKW facilities (quality={args.quality_level}, strict={args.strict})"
+    )
     print()
 
     valid_count = 0
@@ -90,7 +92,9 @@ async def main():
             print(f"  ✗ {name}: invalid — {'; '.join(result.errors[:3])}")
 
     print()
-    print(f"Summary: {valid_count} valid, {invalid_count} invalid (total {len(facilities)})")
+    print(
+        f"Summary: {valid_count} valid, {invalid_count} invalid (total {len(facilities)})"
+    )
     if errors_summary:
         print("\nErrors by facility:")
         for name, errs in errors_summary:
