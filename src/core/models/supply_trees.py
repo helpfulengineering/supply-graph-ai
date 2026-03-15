@@ -381,28 +381,36 @@ class SupplyTree:
         if hasattr(manifest, "materials") and manifest.materials:
             materials_required = [str(material) for material in manifest.materials]
 
-        # Extract capabilities from facility
+        # Extract capabilities from facility (manufacturing has .equipment; cooking/kitchen may not)
         capabilities_used = []
-        for equipment in facility.equipment:
-            if hasattr(equipment, "manufacturing_process"):
+        equipment = getattr(facility, "equipment", None) or []
+        for equipment_item in equipment:
+            if hasattr(equipment_item, "manufacturing_process"):
                 # manufacturing_process is a string, not a list
-                if isinstance(equipment.manufacturing_process, str):
-                    capabilities_used.append(equipment.manufacturing_process)
-                elif isinstance(equipment.manufacturing_process, list):
-                    capabilities_used.extend(equipment.manufacturing_process)
-            if hasattr(equipment, "manufacturing_processes"):
+                if isinstance(equipment_item.manufacturing_process, str):
+                    capabilities_used.append(equipment_item.manufacturing_process)
+                elif isinstance(equipment_item.manufacturing_process, list):
+                    capabilities_used.extend(equipment_item.manufacturing_process)
+            if hasattr(equipment_item, "manufacturing_processes"):
                 # manufacturing_processes is a list
-                if isinstance(equipment.manufacturing_processes, list):
-                    capabilities_used.extend(equipment.manufacturing_processes)
+                if isinstance(equipment_item.manufacturing_processes, list):
+                    capabilities_used.extend(equipment_item.manufacturing_processes)
 
-        # Create metadata
+        # Create metadata (domain from facility if present, e.g. cooking)
+        domain = getattr(facility, "domain", None)
+        if not domain and hasattr(facility, "to_dict"):
+            domain = facility.to_dict().get("domain", "manufacturing")
+        if not domain:
+            domain = "manufacturing"
         metadata = {
             "okh_title": manifest.title,
             "facility_name": facility.name or f"Facility {str(facility.id)[:8]}",
             "generation_method": "simplified_matching",
-            "domain": "manufacturing",
-            "equipment_count": len(facility.equipment),
-            "process_count": len(manifest.manufacturing_processes or []),
+            "domain": domain,
+            "equipment_count": len(equipment),
+            "process_count": len(
+                getattr(manifest, "manufacturing_processes", None) or []
+            ),
         }
 
         # Get OKW reference (facility ID or name)

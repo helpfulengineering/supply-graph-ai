@@ -4,8 +4,8 @@ Auto-fix utilities for OKH manifest validation issues.
 This module provides functionality to automatically fix warnings and errors
 detected by the validation engine.
 
-All fixes are applied through the canonical dataclass models (OKHManifest, ManufacturingFacility)
-to ensure consistency and proper validation.
+All fixes are applied through the canonical dataclass models (OKHManifest, ManufacturingFacility,
+KitchenCapability) to ensure consistency and proper validation.
 """
 
 import copy
@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from ..domains.cooking.models import KitchenCapability
 from ..models.okh import MaterialSpec, OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger
@@ -754,6 +755,56 @@ def auto_fix_okw_facility(
         report.remaining_warnings = report.original_warnings
         report.remaining_errors = report.original_errors
 
+    return fixed_content, report
+
+
+def auto_fix_kitchen_capability(
+    content: Dict[str, Any],
+    dry_run: bool = False,
+) -> Tuple[Dict[str, Any], FixReport]:
+    """
+    Round-trip kitchen capability content through the canonical KitchenCapability model.
+
+    Use this to update existing kitchen/recipe JSON files to the canonical format,
+    including adding or correcting the ``domain`` field (e.g. ``"domain": "cooking"``).
+    All fixes are applied by parsing into KitchenCapability and serialising back
+    with to_dict(), so the output matches the canonical data model.
+
+    Args:
+        content: Raw kitchen capability content (dictionary).
+        dry_run: If True, return the canonical form without modifying the report
+            as if changes were applied.
+
+    Returns:
+        Tuple of (fixed_content, fix_report). fixed_content is the canonical
+        dictionary (with domain and other model fields). fix_report has
+        fixes_applied empty (round-trip is not reported as discrete fixes)
+        and remaining_errors/remaining_warnings at 0 on success.
+    """
+    report = FixReport()
+    report.original_warnings = 0
+    report.original_errors = 0
+
+    try:
+        capability = KitchenCapability.from_dict(content)
+    except Exception as e:
+        logger.error(f"Failed to parse content as KitchenCapability: {str(e)}")
+        report.fixes_skipped.append(
+            Fix(
+                type="parse_error",
+                description=f"Failed to parse content as KitchenCapability: {str(e)}",
+                field_path="",
+                confidence=0.0,
+                warning_code="PARSE_ERROR",
+            )
+        )
+        report.remaining_errors = 1
+        report.remaining_warnings = 0
+        return content, report
+
+    fixed_content = capability.to_dict()
+    report.remaining_warnings = 0
+    report.remaining_errors = 0
     return fixed_content, report
 
 

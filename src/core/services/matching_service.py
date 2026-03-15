@@ -1010,8 +1010,8 @@ class MatchingService:
                         facility_capabilities.append(facility.manufacturing_processes)
 
                 # SECONDARY: Also check equipment processes (for backward compatibility)
-                # But these are less reliable as they may be too specific
-                for equipment in facility.equipment:
+                # KitchenCapability and other capability types may not have .equipment
+                for equipment in getattr(facility, "equipment", None) or []:
                     if hasattr(equipment, "manufacturing_process"):
                         if isinstance(equipment.manufacturing_process, str):
                             facility_capabilities.append(
@@ -1162,7 +1162,8 @@ class MatchingService:
                 # Ensure confidence is between 0 and 1
                 confidence_score = max(0.0, min(1.0, confidence_score))
             else:
-                confidence_score = 0.0
+                # No process list (e.g. cooking recipe): use default when match was already approved by _can_satisfy_requirements
+                confidence_score = 0.7 if domain == "cooking" else 0.0
 
             # Use the simplified factory method
             supply_tree = SupplyTree.from_facility_and_manifest(
@@ -1700,7 +1701,14 @@ class MatchingService:
             return okh_manifest.domain
 
         # 3. Check facilities domain (if all have same domain)
-        facility_domains = {f.domain for f in facilities if f.domain}
+        def _facility_domain(f: Any) -> Optional[str]:
+            if hasattr(f, "domain") and f.domain:
+                return f.domain
+            if hasattr(f, "to_dict"):
+                return f.to_dict().get("domain")
+            return None
+
+        facility_domains = {d for f in facilities for d in (_facility_domain(f),) if d}
         if len(facility_domains) == 1:
             return facility_domains.pop()
 

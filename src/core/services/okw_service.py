@@ -154,8 +154,8 @@ class OKWService(BaseService["OKWService"]):
         """List manufacturing facilities found under the ``okw/`` prefix.
 
         Returns only ``ManufacturingFacility`` objects.  Any file under
-        ``okw/`` that is identified as kitchen-shaped by
-        ``KitchenCapability.is_kitchen_data()`` is skipped and logged at
+        ``okw/`` that is identified as cooking capability (by
+        ``KitchenCapability.is_cooking_capability()``) is skipped and logged at
         DEBUG level so the two capability types remain strictly separated.
 
         Returns:
@@ -192,8 +192,8 @@ class OKWService(BaseService["OKWService"]):
                 content = data.decode("utf-8")
                 okw_data = json.loads(content)
 
-                # Skip files that are kitchen-shaped — they belong to list_kitchens()
-                if KitchenCapability.is_kitchen_data(okw_data):
+                # Skip files that are cooking capabilities — they belong to list_kitchens()
+                if KitchenCapability.is_cooking_capability(okw_data):
                     logger.debug(f"Skipping kitchen file {file_info.key} in list()")
                     continue
 
@@ -275,12 +275,12 @@ class OKWService(BaseService["OKWService"]):
         """Return all kitchen capabilities found under the ``okw/`` prefix.
 
         Returns only ``KitchenCapability`` objects.  Any file under
-        ``okw/`` that is *not* identified as kitchen-shaped by
-        ``KitchenCapability.is_kitchen_data()`` (e.g. a manufacturing
+        ``okw/`` that is *not* identified as cooking capability by
+        ``KitchenCapability.is_cooking_capability()`` (e.g. a manufacturing
         facility file) is skipped and logged at DEBUG level.
 
         Mirrors the structure of ``list()`` but:
-        - Only returns files that pass ``KitchenCapability.is_kitchen_data()``.
+        - Only returns files that pass ``KitchenCapability.is_cooking_capability()``.
         - Deduplicates by ``KitchenCapability.id``, keeping the most-recently
           modified file when the same ID appears at multiple paths.
         """
@@ -304,7 +304,7 @@ class OKWService(BaseService["OKWService"]):
                 content = data.decode("utf-8")
                 raw = json.loads(content)
 
-                if not KitchenCapability.is_kitchen_data(raw):
+                if not KitchenCapability.is_cooking_capability(raw):
                     logger.debug(
                         f"Skipping non-kitchen file {file_info.key} in list_kitchens()"
                     )

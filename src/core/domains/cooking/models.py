@@ -27,6 +27,7 @@ class KitchenCapability:
     appliances: List[str] = field(default_factory=list)
     tools: List[str] = field(default_factory=list)
     ingredients: List[str] = field(default_factory=list)
+    domain: str = "cooking"
 
     # ------------------------------------------------------------------ #
     # Factory / serialisation                                              #
@@ -49,6 +50,7 @@ class KitchenCapability:
             appliances=list(data.get("appliances", [])),
             tools=list(data.get("tools", [])),
             ingredients=list(data.get("ingredients", [])),
+            domain=str(data.get("domain", "cooking")),
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -64,7 +66,7 @@ class KitchenCapability:
             "appliances": list(self.appliances),
             "tools": list(self.tools),
             "ingredients": list(self.ingredients),
-            "domain": "cooking",
+            "domain": self.domain,
         }
 
     # ------------------------------------------------------------------ #
@@ -87,3 +89,21 @@ class KitchenCapability:
         if _MANUFACTURING_DISCRIMINATOR in data:
             return False
         return bool(_KITCHEN_FIELDS & data.keys())
+
+    @staticmethod
+    def is_cooking_capability(data: Dict[str, Any]) -> bool:
+        """Return ``True`` when *data* should be treated as a cooking capability.
+
+        Domain-first: if ``domain`` is set, it overrides heuristic shape.
+        - ``domain == "manufacturing"`` → False (treat as manufacturing).
+        - ``domain == "cooking"`` → True (treat as cooking).
+        - Otherwise fall back to ``is_kitchen_data(data)``.
+        """
+        if not data:
+            return False
+        domain = data.get("domain")
+        if domain == "manufacturing":
+            return False
+        if domain == "cooking":
+            return True
+        return KitchenCapability.is_kitchen_data(data)
