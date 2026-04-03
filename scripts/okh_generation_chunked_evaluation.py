@@ -60,13 +60,17 @@ def _summarize(report: Dict[str, Any]) -> Dict[str, Any]:
         avg_seconds = sum(float(r.get("seconds", 0.0)) for r in ok_rows) / ok_count
         avg_conf = (
             sum(
-                float((r.get("heuristic_quality") or {}).get("generation_confidence", 0.0))
+                float(
+                    (r.get("heuristic_quality") or {}).get("generation_confidence", 0.0)
+                )
                 for r in ok_rows
             )
             / ok_count
         )
         avg_presence = (
-            sum(_field_presence_score(r.get("heuristic_quality") or {}) for r in ok_rows)
+            sum(
+                _field_presence_score(r.get("heuristic_quality") or {}) for r in ok_rows
+            )
             / ok_count
         )
     else:

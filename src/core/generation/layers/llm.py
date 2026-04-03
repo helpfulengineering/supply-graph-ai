@@ -402,7 +402,9 @@ The OKH manifest is designed to maximize interoperability and discoverability in
                         "Analyze repository content and return a complete, valid OKH manifest "
                         "JSON. Required: title, version, function, and a non-empty description."
                     ),
-                    payload_sections=[LLMPayloadSection(name="analysis_prompt", text=prompt)],
+                    payload_sections=[
+                        LLMPayloadSection(name="analysis_prompt", text=prompt)
+                    ],
                     request_type=LLMRequestType.GENERATION,
                     config=config,
                     reduce_output_schema=ChunkedLLMReduceSchema,

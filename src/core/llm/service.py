@@ -273,7 +273,9 @@ class LLMService(BaseService["LLMService"]):
         provider: Optional[LLMProviderType] = None,
     ) -> LLMResponse:
         """Generate from structured sections without chunking orchestration."""
-        prompt = self._build_structured_prompt(request.instruction, request.payload_sections)
+        prompt = self._build_structured_prompt(
+            request.instruction, request.payload_sections
+        )
         return await self.generate(
             prompt=prompt,
             request_type=request.request_type,
@@ -295,7 +297,9 @@ class LLMService(BaseService["LLMService"]):
         This first implementation prioritizes deterministic behavior and
         safety (sequential map stage) over throughput.
         """
-        config = chunking_config or ChunkingConfig(max_chunk_tokens=2000, overlap_tokens=0)
+        config = chunking_config or ChunkingConfig(
+            max_chunk_tokens=2000, overlap_tokens=0
+        )
         chunks: List[str] = []
         checkpoint_root = (
             checkpoint_dir.resolve()
@@ -354,7 +358,11 @@ class LLMService(BaseService["LLMService"]):
             map_valid = self._validate_response_schema(
                 map_content, request.map_output_schema
             )
-            if not map_valid and request.map_output_schema and request.repair_attempts > 0:
+            if (
+                not map_valid
+                and request.map_output_schema
+                and request.repair_attempts > 0
+            ):
                 repaired = await self._attempt_schema_repair(
                     invalid_content=map_content,
                     schema_model=request.map_output_schema,

@@ -9,8 +9,7 @@ from typing import Callable, Dict, Iterable, Literal, Optional, Protocol
 class TokenEstimator(Protocol):
     """Protocol for token estimation functions."""
 
-    def __call__(self, text: str) -> int:
-        ...
+    def __call__(self, text: str) -> int: ...
 
 
 def default_token_estimator(text: str) -> int:
@@ -63,7 +62,11 @@ class ChunkingConfig:
 
     max_chunk_tokens: int
     overlap_tokens: int = 0
-    boundary_preference: Iterable[BoundaryPreference] = ("paragraph", "line", "character")
+    boundary_preference: Iterable[BoundaryPreference] = (
+        "paragraph",
+        "line",
+        "character",
+    )
 
     def __post_init__(self) -> None:
         if self.max_chunk_tokens <= 0:

@@ -428,9 +428,7 @@ class ManifestGeneration:
         if isinstance(keywords_out, list) and len(keywords_out) == 0:
             topics = (self.project_data.metadata or {}).get("topics") or []
             if isinstance(topics, list) and topics:
-                keywords_out = [
-                    str(t).strip() for t in topics if t and str(t).strip()
-                ]
+                keywords_out = [str(t).strip() for t in topics if t and str(t).strip()]
 
         # Generate deterministic UUID based on repo URL
         repo_url = fields_dict.get("repo", "")

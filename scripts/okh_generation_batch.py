@@ -127,7 +127,9 @@ def _parse_args() -> argparse.Namespace:
         default="",
         help="Comma-separated repo ids (e.g. repo-001,repo-002)",
     )
-    p.add_argument("--limit", type=int, default=0, help="Max repos after filters (0=all)")
+    p.add_argument(
+        "--limit", type=int, default=0, help="Max repos after filters (0=all)"
+    )
     p.add_argument(
         "--skip-existing",
         action="store_true",
@@ -141,7 +143,9 @@ def _parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def _select_repos(data: Dict[str, Any], args: argparse.Namespace) -> List[Dict[str, Any]]:
+def _select_repos(
+    data: Dict[str, Any], args: argparse.Namespace
+) -> List[Dict[str, Any]]:
     only = {x.strip() for x in args.only_ids.split(",") if x.strip()}
     out: List[Dict[str, Any]] = []
     for repo in data.get("repos", []):
@@ -162,8 +166,8 @@ async def _run() -> int:
     args = _parse_args()
     if args.llm_chunked_mode and not args.use_llm:
         raise SystemExit("--llm-chunked-mode requires --use-llm")
-    layer_tag = args.layer if args.layer is not None else (
-        "4L" if args.use_llm else "3L"
+    layer_tag = (
+        args.layer if args.layer is not None else ("4L" if args.use_llm else "3L")
     )
     use_clone = bool(args.clone) and not args.no_clone
     if not args.clone and not args.no_clone:

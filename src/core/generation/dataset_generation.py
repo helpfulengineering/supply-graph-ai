@@ -92,7 +92,9 @@ async def generate_manifest_for_repository(
             project_data = await generator.extract_project(url, persist_path=persist)
         else:
             _log("Fetching project data via platform API", "info")
-            token = github_token if github_token is not None else os.getenv("GITHUB_TOKEN")
+            token = (
+                github_token if github_token is not None else os.getenv("GITHUB_TOKEN")
+            )
             if platform == PlatformType.GITHUB:
                 generator = GitHubExtractor(github_token=token)
             elif platform == PlatformType.GITLAB:
