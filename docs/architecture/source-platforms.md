@@ -14,7 +14,7 @@ OHM is intended to support **multiple host sites** for ingesting open hardware p
 | Platform | URL patterns | Extractor | Notes |
 |----------|--------------|-----------|--------|
 | **GitHub** | `github.com/{owner}/{repo}` | `GitHubExtractor` | Primary target for repo-based ingestion. |
-| **GitLab** | `gitlab.com/...` (including subgroups) | `GitLabExtractor` | GitLab.com and self-hosted GitLab URLs. |
+| **GitLab** | `gitlab.com/...` (including subgroups); self-hosted `https://{host}/...` when `{host}` is listed in `GITLAB_SELF_HOSTED_HOSTS` | `GitLabExtractor` | API base is `{scheme}://{host}/api/v4`. See `notes/self-hosted-gitlab-plan.md`. |
 
 These are the only two platforms for which `OKHService.generate_from_url` will run end-to-end; all others currently raise “Unsupported platform.”
 

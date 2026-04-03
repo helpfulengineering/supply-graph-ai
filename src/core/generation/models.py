@@ -424,6 +424,12 @@ class ManifestGeneration:
         for field_name, field_gen in self.generated_fields.items():
             fields_dict[field_name] = field_gen.value
 
+        keywords_out = fields_dict.get("keywords") or []
+        if isinstance(keywords_out, list) and len(keywords_out) == 0:
+            topics = (self.project_data.metadata or {}).get("topics") or []
+            if isinstance(topics, list) and topics:
+                keywords_out = [str(t).strip() for t in topics if t and str(t).strip()]
+
         # Generate deterministic UUID based on repo URL
         repo_url = fields_dict.get("repo", "")
         if repo_url:
@@ -446,7 +452,7 @@ class ManifestGeneration:
             "description": fields_dict.get("description", ""),
             "function": fields_dict.get("function", ""),
             "intended_use": fields_dict.get("intended_use", ""),
-            "keywords": fields_dict.get("keywords", []),
+            "keywords": keywords_out if isinstance(keywords_out, list) else [],
             "contact": fields_dict.get("contact", {}),
             "organization": fields_dict.get("organization", {}),
             "development_stage": fields_dict.get("development_stage", "development"),
@@ -746,7 +752,19 @@ class ManifestGeneration:
                 isinstance(materials_value[0], dict)
                 and "material_id" in materials_value[0]
             ):
-                return materials_value  # Already correct format
+                seen_ids: set = set()
+                deduped: List[Dict[str, Any]] = []
+                for row in materials_value:
+                    if not isinstance(row, dict):
+                        deduped.append(row)
+                        continue
+                    mid = row.get("material_id")
+                    if mid is not None and mid in seen_ids:
+                        continue
+                    if mid is not None:
+                        seen_ids.add(mid)
+                    deduped.append(row)
+                return deduped
 
         # If string array, convert to MaterialSpec
         if isinstance(materials_value, list):
@@ -1026,6 +1044,7 @@ class ManifestGeneration:
         needs_cleaning = (
             len(name) > 60  # Very long names are likely sentences
             or ", then" in name.lower()
+            or ", but if" in name.lower()
             or ". then" in name.lower()
             or " to install" in name.lower()
             or " to " in name.lower()
@@ -1519,6 +1538,36 @@ class ManifestGeneration:
         else:
             return matches >= 1 and len(comp_words[0]) >= 4
 
+    @staticmethod
+    def _coerce_process_label(process: Any) -> Optional[str]:
+        """Normalize manufacturing_processes entries (str or stray dict) to a display name."""
+        if isinstance(process, str):
+            s = process.strip()
+            return s if s else None
+        if isinstance(process, dict):
+            for key in ("process_name", "name", "title"):
+                v = process.get(key)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+        return None
+
+    @staticmethod
+    def _coerce_tool_label(tool: Any) -> Optional[str]:
+        """Normalize tool_list entries: strings from NLP/README or dict refs from file patterns."""
+        if isinstance(tool, str):
+            s = tool.strip()
+            return s if s else None
+        if isinstance(tool, dict):
+            from pathlib import Path
+
+            t = tool.get("title")
+            if isinstance(t, str) and t.strip():
+                return t.strip()
+            p = tool.get("path")
+            if isinstance(p, str) and p.strip():
+                return Path(p).name
+        return None
+
     def _generate_manufacturing_specs(
         self, fields_dict: Dict[str, Any], project_data: ProjectData
     ) -> Dict[str, Any]:
@@ -1535,7 +1584,23 @@ class ManifestGeneration:
         Returns:
             ManufacturingSpec dictionary
         """
-        processes = fields_dict.get("manufacturing_processes", [])
+        processes_raw = fields_dict.get("manufacturing_processes", [])
+        if not isinstance(processes_raw, list):
+            processes_raw = []
+        processes: List[str] = []
+        for p in processes_raw:
+            label = self._coerce_process_label(p)
+            if label:
+                processes.append(label)
+
+        tools_raw = fields_dict.get("tool_list", [])
+        if not isinstance(tools_raw, list):
+            tools_raw = []
+        tool_strings: List[str] = []
+        for t in tools_raw:
+            tl = self._coerce_tool_label(t)
+            if tl:
+                tool_strings.append(tl)
 
         # Identify joining processes (processes that join materials)
         joining_keywords = [
@@ -1557,9 +1622,7 @@ class ManifestGeneration:
         process_requirements = []
         for process in processes:
             # Extract tools for this process from tool_list
-            required_tools = self._extract_tools_for_process(
-                process, fields_dict.get("tool_list", [])
-            )
+            required_tools = self._extract_tools_for_process(process, tool_strings)
 
             process_requirements.append(
                 {
@@ -1590,8 +1653,7 @@ class ManifestGeneration:
 
         Args:
             process_name: Name of the manufacturing process
-            process_name_lower: Lowercase version of process name
-            tool_list: List of available tools
+            tool_list: List of available tool names (strings only; callers should coerce)
 
         Returns:
             List of relevant tools
@@ -1611,6 +1673,8 @@ class ManifestGeneration:
 
         # Find relevant tools
         for tool in tool_list:
+            if not isinstance(tool, str):
+                continue
             tool_lower = tool.lower()
             # Check if tool matches process keywords
             for proc_key, tool_keywords in tool_mappings.items():
@@ -1913,6 +1977,10 @@ class LayerConfig:
             "fallback_to_nlp": True,  # Fallback to NLP if LLM fails
             "cost_tracking": True,
             "max_cost_per_request": 0.10,  # $0.10 max per request
+            # chunked_mode_enabled is intentionally absent here (auto-detect default).
+            # Set to True to force chunking; False to force it off.
+            "chunk_max_tokens": 4000,  # Payload budget per chunk; also the auto-detect threshold
+            "chunk_overlap_tokens": 256,  # Overlap for chunk continuity
             "prompt_templates": {
                 "field_extraction": "Extract {field} from the following project information:",
                 "content_analysis": "Analyze the following content and extract key information:",

@@ -56,6 +56,7 @@ markers = [
     "slow: tests that take more than 10 seconds",
     "llm: tests requiring LLM API access",
     "benchmark: performance benchmark tests",
+    "okh_dataset: OKH generation dataset / clone manifest regression (tests/data/okh_generation)",
 ]
 
 [tool.black]

@@ -19,7 +19,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ...llm.models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
+from pydantic import BaseModel, ConfigDict, Field
+from ...llm.chunking import ChunkingConfig, default_token_estimator
+from ...llm.models.requests import (
+    LLMPayloadSection,
+    LLMRequest,
+    LLMRequestConfig,
+    LLMRequestType,
+    LLMStructuredRequest,
+)
 from ...llm.models.responses import LLMResponseStatus
 from ...llm.providers.base import LLMProviderType
 from ...llm.service import LLMService, LLMServiceConfig
@@ -29,6 +37,17 @@ from .base import BaseGenerationLayer, LayerResult
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+
+class ChunkedLLMReduceSchema(BaseModel):
+    """Minimal schema guardrail for chunked reduce output."""
+
+    model_config = ConfigDict(extra="allow")
+
+    title: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    function: str = Field(min_length=1)
+    description: str = Field(min_length=1)
 
 
 class LLMGenerationLayer(BaseGenerationLayer):
@@ -368,17 +387,38 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             # Build analysis prompt
             prompt = self._build_analysis_prompt(project_data, context_file)
 
-            # Create LLM request config
+            # Create LLM request config. Full OKH JSON (description/function/intended_use
+            # plus bom/parts/software) often exceeds 4k completion tokens; truncation yields
+            # invalid JSON and triggers partial extraction (noisy warnings, weaker fields).
             config = LLMRequestConfig(
-                max_tokens=4000,
+                max_tokens=8000,
                 temperature=0.1,  # Low temperature for consistent output
-                timeout=60,
+                timeout=120,
             )
 
-            # Execute LLM request
-            response = await self.llm_service.generate(
-                prompt=prompt, request_type=LLMRequestType.GENERATION, config=config
-            )
+            if self._should_use_chunked_mode(prompt):
+                structured_request = LLMStructuredRequest(
+                    instruction=(
+                        "Analyze repository content and return a complete, valid OKH manifest "
+                        "JSON. Required: title, version, function, and a non-empty description."
+                    ),
+                    payload_sections=[
+                        LLMPayloadSection(name="analysis_prompt", text=prompt)
+                    ],
+                    request_type=LLMRequestType.GENERATION,
+                    config=config,
+                    reduce_output_schema=ChunkedLLMReduceSchema,
+                    trace_context=None,
+                )
+                response = await self.llm_service.generate_with_chunked_payload(
+                    structured_request,
+                    chunking_config=self._build_chunking_config(),
+                )
+            else:
+                # Execute LLM request
+                response = await self.llm_service.generate(
+                    prompt=prompt, request_type=LLMRequestType.GENERATION, config=config
+                )
 
             if response.status != LLMResponseStatus.SUCCESS:
                 raise RuntimeError(f"LLM generation failed: {response.error_message}")
@@ -392,6 +432,39 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             error_msg = f"LLM analysis failed: {str(e)}"
             result.add_error(error_msg)
             logger.error(error_msg, exc_info=True)
+
+    def _should_use_chunked_mode(self, prompt: str) -> bool:
+        """Return True when the chunked map-reduce workflow should be used.
+
+        Decision order:
+        1. Explicit ``chunked_mode_enabled=True``  → always chunk.
+        2. Explicit ``chunked_mode_enabled=False`` → never chunk.
+        3. Key absent (auto)                       → chunk when the estimated
+           token count of *prompt* exceeds ``chunk_max_tokens``.
+        """
+        llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
+        explicit = llm_cfg.get("chunked_mode_enabled")  # None when absent
+        if explicit is True:
+            return True
+        if explicit is False:
+            return False
+        # Auto-detect: chunk when the prompt won't fit in a single chunk budget.
+        max_chunk_tokens = int(llm_cfg.get("chunk_max_tokens", 4000))
+        estimated = default_token_estimator(prompt)
+        return estimated > max_chunk_tokens
+
+    def _build_chunking_config(self) -> ChunkingConfig:
+        """Build chunking config from layer LLM config with safe defaults."""
+        llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
+        max_tokens = int(llm_cfg.get("chunk_max_tokens", 4000))
+        overlap_tokens = int(llm_cfg.get("chunk_overlap_tokens", 256))
+        # Guard against misconfiguration that violates ChunkingConfig constraints.
+        if overlap_tokens >= max_tokens:
+            overlap_tokens = max(0, max_tokens - 1)
+        return ChunkingConfig(
+            max_chunk_tokens=max_tokens,
+            overlap_tokens=overlap_tokens,
+        )
 
     def _build_analysis_prompt(
         self, project_data: ProjectData, context_file: Path

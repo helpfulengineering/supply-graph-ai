@@ -89,7 +89,15 @@ class LocalGitExtractor(ProjectExtractor):
             "git://",
         ]
 
-        return any(pattern in url.lower() for pattern in git_patterns)
+        low = url.lower()
+        if any(pattern in low for pattern in git_patterns):
+            return True
+        from ..gitlab_instance import is_gitlab_http_clone_url, normalize_http_url
+
+        try:
+            return is_gitlab_http_clone_url(normalize_http_url(url))
+        except Exception:
+            return False
 
     def _clone_repository(self, url: str) -> Optional[Path]:
         """
@@ -163,12 +171,17 @@ class LocalGitExtractor(ProjectExtractor):
         Returns:
             PlatformType enum value
         """
-        if "github.com" in url.lower():
+        low = url.lower()
+        if "github.com" in low:
             return PlatformType.GITHUB
-        elif "gitlab.com" in url.lower():
-            return PlatformType.GITLAB
-        else:
-            return PlatformType.UNKNOWN
+        from ..gitlab_instance import is_gitlab_http_clone_url, normalize_http_url
+
+        try:
+            if is_gitlab_http_clone_url(normalize_http_url(url)):
+                return PlatformType.GITLAB
+        except Exception:
+            pass
+        return PlatformType.UNKNOWN
 
     def _extract_repo_info(self, url: str) -> tuple[str, str]:
         """
@@ -341,7 +354,11 @@ class LocalGitExtractor(ProjectExtractor):
         return None
 
     async def _fetch_gitlab_supplementary_metadata(
-        self, owner: str, repo: str
+        self,
+        owner: str,
+        repo: str,
+        *,
+        api_base_url: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Fetch lightweight metadata from the GitLab API to supplement local clone extraction.
@@ -359,48 +376,67 @@ class LocalGitExtractor(ProjectExtractor):
         """
         result: Dict[str, Any] = {}
         token = self._load_gitlab_token_from_env()
-        headers: Dict[str, str] = {}
+        # Align with GitLabExtractor (Bearer) and common PAT style (PRIVATE-TOKEN).
+        auth_headers: Dict[str, str] = {}
         if token:
-            headers["PRIVATE-TOKEN"] = token
+            auth_headers["PRIVATE-TOKEN"] = token
+            auth_headers["Authorization"] = f"Bearer {token}"
 
         # GitLab requires URL-encoded project path (owner%2Frepo)
         from urllib.parse import quote
 
         encoded_path = quote(f"{owner}/{repo}", safe="")
+        base = (api_base_url or "https://gitlab.com/api/v4").rstrip("/")
+        proj_url = f"{base}/projects/{encoded_path}"
+        rel_url = f"{base}/projects/{encoded_path}/releases"
+
+        # Try authenticated first, then unauthenticated (public projects on self-hosted
+        # often reject a gitlab.com token with 401; unauthenticated API may still work).
+        header_attempts = (auth_headers, {}) if token else ({},)
 
         try:
             import httpx
 
-            async with httpx.AsyncClient(headers=headers, timeout=10.0) as client:
-                # Project endpoint: tag_list (topics), description, name
-                proj_response = await client.get(
-                    f"https://gitlab.com/api/v4/projects/{encoded_path}"
-                )
-                if proj_response.status_code == 200:
-                    proj_data = proj_response.json()
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                proj_data = None
+                for hdr in header_attempts:
+                    proj_response = await client.get(proj_url, headers=hdr)
+                    if proj_response.status_code == 200:
+                        proj_data = proj_response.json()
+                        break
+                    if proj_response.status_code in (401, 403) and hdr and token:
+                        logger.debug(
+                            "GitLab supplementary: project fetch rejected auth; "
+                            "retrying without token (public project?)"
+                        )
+                        continue
+                    if proj_response.status_code in (401, 403):
+                        logger.warning(
+                            f"GitLab supplementary fetch: HTTP {proj_response.status_code} "
+                            f"for project metadata — skipping"
+                        )
+                        return result
+
+                if proj_data:
                     topics = proj_data.get("tag_list", []) or proj_data.get(
                         "topics", []
                     )
                     if topics:
                         result["topics"] = topics
-                elif proj_response.status_code in (401, 403):
-                    logger.warning(
-                        f"GitLab supplementary fetch: auth/rate-limit issue "
-                        f"(HTTP {proj_response.status_code}) — skipping"
-                    )
-                    return result
 
-                # Latest release endpoint: tag_name for version
-                rel_response = await client.get(
-                    f"https://gitlab.com/api/v4/projects/{encoded_path}/releases",
-                    params={"per_page": 1},
-                )
-                if rel_response.status_code == 200:
-                    releases = rel_response.json()
-                    if releases and isinstance(releases, list):
-                        tag = releases[0].get("tag_name")
-                        if tag:
-                            result["tag_name"] = tag
+                for hdr in header_attempts:
+                    rel_response = await client.get(
+                        rel_url, params={"per_page": 1}, headers=hdr
+                    )
+                    if rel_response.status_code == 200:
+                        releases = rel_response.json()
+                        if releases and isinstance(releases, list):
+                            tag = releases[0].get("tag_name")
+                            if tag:
+                                result["tag_name"] = tag
+                        break
+                    if rel_response.status_code in (401, 403) and hdr and token:
+                        continue
 
         except Exception as e:
             logger.warning(
@@ -616,8 +652,12 @@ class LocalGitExtractor(ProjectExtractor):
                 if supplementary:
                     metadata.update(supplementary)
             elif platform == PlatformType.GITLAB:
+                from ..gitlab_instance import gitlab_api_v4_base_url
+                from ..url_router import URLRouter
+
+                gl_base = gitlab_api_v4_base_url(URLRouter().normalize_url(url))
                 supplementary = await self._fetch_gitlab_supplementary_metadata(
-                    owner, repo
+                    owner, repo, api_base_url=gl_base
                 )
                 if supplementary:
                     metadata.update(supplementary)
@@ -1027,8 +1067,16 @@ class LocalGitExtractor(ProjectExtractor):
                 if supplementary:
                     metadata.update(supplementary)
             elif platform == PlatformType.GITLAB:
+                gl_base = None
+                if source_url.startswith(("http://", "https://")):
+                    from ..gitlab_instance import gitlab_api_v4_base_url
+                    from ..url_router import URLRouter
+
+                    gl_base = gitlab_api_v4_base_url(
+                        URLRouter().normalize_url(source_url)
+                    )
                 supplementary = await self._fetch_gitlab_supplementary_metadata(
-                    owner, repo
+                    owner, repo, api_base_url=gl_base
                 )
                 if supplementary:
                     metadata.update(supplementary)

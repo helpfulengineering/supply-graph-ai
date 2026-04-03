@@ -23,6 +23,34 @@ from .base import BaseGenerationLayer, LayerResult
 
 logger = logging.getLogger(__name__)
 
+# Excluded from full-repository content pattern scans: LICENSE/COPYING matches generic
+# regexes such as ``purpose ...`` (GPL) and pollutes ``function`` / ``intended_use``.
+_LICENSE_LIKE_BASENAMES = frozenset(
+    {
+        "license",
+        "license.txt",
+        "license.md",
+        "licence",
+        "licence.txt",
+        "licence.md",
+        "copying",
+        "copying.txt",
+        "copying.md",
+        "notice",
+        "notice.txt",
+    }
+)
+
+
+def _is_license_like_file_path(path: str) -> bool:
+    if not path:
+        return False
+    base = path.rsplit("/", 1)[-1].lower()
+    if base in _LICENSE_LIKE_BASENAMES:
+        return True
+    stem = base.split(".", 1)[0]
+    return stem in ("license", "licence", "copying", "notice")
+
 
 @dataclass
 class FilePattern:
@@ -462,6 +490,16 @@ class HeuristicMatcher(BaseGenerationLayer):
             "without limitation",
             "as is",
             "as available",
+            "infringe",
+            "induce you",
+            "take away your",
+            "take away you",
+            "general public license",
+            "gnu general",
+            "section to",
+            "infringe any",
+            "software patents",
+            "verbatim copies",
         ]
 
         # Phrases that indicate assembly instructions, not function
@@ -502,62 +540,46 @@ class HeuristicMatcher(BaseGenerationLayer):
                 pattern, readme_content, re.DOTALL | re.MULTILINE
             )
             if function_match:
-                # Handle patterns with different numbers of capturing groups
+                function_text = None
                 try:
                     if function_match.groups() and len(function_match.groups()) >= 1:
-                        # Use the last group (usually the most descriptive)
                         function_text = function_match.group(-1).strip()
-                    else:
-                        # No capturing groups, skip this pattern
-                        continue
                 except (IndexError, AttributeError) as e:
-                    # Handle "no such group" or other regex errors gracefully
                     logger.debug(f"Regex group access error in function pattern: {e}")
                     continue
-                    # Clean up the text - remove extra whitespace and newlines
-                    function_text = re.sub(r"\s+", " ", function_text)
+                if not function_text:
+                    continue
 
-                    # Validate: must be a complete, meaningful sentence
-                    # Check if it contains license disclaimer phrases - skip if so
-                    if any(
-                        phrase in function_text.lower() for phrase in license_phrases
-                    ):
-                        continue
-                    # Check if it contains assembly instruction phrases - skip if so
-                    if any(
-                        phrase in function_text.lower() for phrase in assembly_phrases
-                    ):
-                        continue
-                    # Must start with a capital letter (complete sentence)
-                    if not function_text[0].isupper():
-                        continue
-                    # Must contain meaningful words (not just fragments)
-                    words = function_text.split()
-                    if len(words) < 5:  # Too short to be meaningful
-                        continue
-                    # Check for sentence completeness - should end with punctuation or be substantial
-                    if len(function_text) < 30:  # Too short
-                        continue
+                function_text = re.sub(r"\s+", " ", function_text)
+                if any(phrase in function_text.lower() for phrase in license_phrases):
+                    continue
+                if any(phrase in function_text.lower() for phrase in assembly_phrases):
+                    continue
+                if not function_text[0].isupper():
+                    continue
+                words = function_text.split()
+                if len(words) < 5:
+                    continue
+                if len(function_text) < 30:
+                    continue
 
-                    # Remove excessive punctuation but keep basic punctuation
-                    function_text = re.sub(r"[^\w\s\-.,()]", "", function_text)
-                    # Ensure we have a reasonable length and it's not just formatting
-                    if (
-                        len(function_text) > 30
-                        and len(function_text) < 500
-                        and not function_text.startswith("=")
-                    ):
-                        confidence = self.calculate_confidence(
-                            "function", function_text, "content_analysis"
-                        )
-                        result.add_field(
-                            "function",
-                            function_text,
-                            confidence,
-                            "readme_function_extraction",
-                            "Extracted from README project description",
-                        )
-                        break
+                function_text = re.sub(r"[^\w\s\-.,()]", "", function_text)
+                if (
+                    len(function_text) > 30
+                    and len(function_text) < 500
+                    and not function_text.startswith("=")
+                ):
+                    confidence = self.calculate_confidence(
+                        "function", function_text, "content_analysis"
+                    )
+                    result.add_field(
+                        "function",
+                        function_text,
+                        confidence,
+                        "readme_function_extraction",
+                        "Extracted from README project description",
+                    )
+                    break
 
         # Extract intended use - look for specific use cases
         # Exclude license disclaimer phrases and assembly instructions
@@ -584,62 +606,52 @@ class HeuristicMatcher(BaseGenerationLayer):
                 pattern, readme_content, re.DOTALL | re.MULTILINE
             )
             if intended_use_match:
-                # Handle patterns with different numbers of capturing groups
+                intended_use_text = None
                 try:
                     if (
                         intended_use_match.groups()
                         and len(intended_use_match.groups()) >= 1
                     ):
                         intended_use_text = intended_use_match.group(1).strip()
-                    else:
-                        # No capturing groups, skip this pattern
-                        continue
                 except (IndexError, AttributeError) as e:
-                    # Handle "no such group" or other regex errors gracefully
                     logger.debug(
                         f"Regex group access error in intended_use pattern: {e}"
                     )
                     continue
-                    # Check if it contains license disclaimer phrases - skip if so
-                    if any(
-                        phrase in intended_use_text.lower()
-                        for phrase in license_phrases
-                    ):
-                        continue
-                    # Check if it contains assembly instruction phrases - skip if so
-                    if any(
-                        phrase in intended_use_text.lower()
-                        for phrase in assembly_phrases
-                    ):
-                        continue
-                    # Clean up the text - remove extra whitespace and newlines
-                    intended_use_text = re.sub(r"\s+", " ", intended_use_text)
-                    # Must contain meaningful words (not just fragments)
-                    words = intended_use_text.split()
-                    if len(words) < 4:  # Too short to be meaningful
-                        continue
-                    # Check for sentence completeness
-                    if len(intended_use_text) < 25:  # Too short
-                        continue
-                    # Remove excessive punctuation but keep basic punctuation
-                    intended_use_text = re.sub(r"[^\w\s\-.,()]", "", intended_use_text)
-                    # Ensure we have a reasonable length and it's not just formatting
-                    if (
-                        len(intended_use_text) > 25
-                        and len(intended_use_text) < 500
-                        and not intended_use_text.startswith("=")
-                    ):
-                        confidence = self.calculate_confidence(
-                            "intended_use", intended_use_text, "content_analysis"
-                        )
-                        result.add_field(
-                            "intended_use",
-                            intended_use_text,
-                            confidence,
-                            "readme_intended_use_extraction",
-                            "Extracted from README intended use description",
-                        )
-                        break
+                if not intended_use_text:
+                    continue
+
+                if any(
+                    phrase in intended_use_text.lower() for phrase in license_phrases
+                ):
+                    continue
+                if any(
+                    phrase in intended_use_text.lower() for phrase in assembly_phrases
+                ):
+                    continue
+                intended_use_text = re.sub(r"\s+", " ", intended_use_text)
+                words = intended_use_text.split()
+                if len(words) < 4:
+                    continue
+                if len(intended_use_text) < 25:
+                    continue
+                intended_use_text = re.sub(r"[^\w\s\-.,()]", "", intended_use_text)
+                if (
+                    len(intended_use_text) > 25
+                    and len(intended_use_text) < 500
+                    and not intended_use_text.startswith("=")
+                ):
+                    confidence = self.calculate_confidence(
+                        "intended_use", intended_use_text, "content_analysis"
+                    )
+                    result.add_field(
+                        "intended_use",
+                        intended_use_text,
+                        confidence,
+                        "readme_intended_use_extraction",
+                        "Extracted from README intended use description",
+                    )
+                    break
 
         # Skip keywords extraction in heuristic layer - leave for NLP/LLM layers
         # Keywords require semantic understanding that regex cannot provide
@@ -831,11 +843,16 @@ class HeuristicMatcher(BaseGenerationLayer):
         """Apply content patterns to extract additional information"""
         all_content = ""
 
-        # Combine all file content
+        # Combine file content (omit license/copyright texts — they false-trigger patterns)
         for file_info in project_data.files:
+            if _is_license_like_file_path(file_info.path):
+                continue
             all_content += file_info.content + "\n"
 
         for doc_info in project_data.documentation:
+            doc_path = getattr(doc_info, "path", None) or doc_info.title or ""
+            if _is_license_like_file_path(doc_path):
+                continue
             all_content += doc_info.content + "\n"
 
         # Apply patterns

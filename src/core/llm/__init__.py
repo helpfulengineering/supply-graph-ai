@@ -18,11 +18,27 @@ selection, request routing, and response processing.
 """
 
 from .models.metrics import LLMMetrics
-from .models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
+from .models.requests import (
+    LLMPayloadSection,
+    LLMRequest,
+    LLMRequestConfig,
+    LLMRequestType,
+    LLMStructuredRequest,
+    LLMTraceContext,
+)
 from .models.responses import LLMResponse, LLMResponseStatus
 from .providers.anthropic import AnthropicProvider
 from .providers.base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 from .service import LLMService, LLMServiceConfig
+from .chunking import (
+    ChunkingConfig,
+    TextChunk,
+    TokenBudget,
+    TokenBudgetPolicy,
+    build_token_budget,
+    default_token_estimator,
+    split_text_into_chunks,
+)
 
 __all__ = [
     "BaseLLMProvider",
@@ -32,9 +48,19 @@ __all__ = [
     "LLMRequest",
     "LLMRequestConfig",
     "LLMRequestType",
+    "LLMPayloadSection",
+    "LLMTraceContext",
+    "LLMStructuredRequest",
     "LLMResponse",
     "LLMResponseStatus",
     "LLMMetrics",
     "LLMService",
     "LLMServiceConfig",
+    "TextChunk",
+    "ChunkingConfig",
+    "TokenBudget",
+    "TokenBudgetPolicy",
+    "build_token_budget",
+    "default_token_estimator",
+    "split_text_into_chunks",
 ]

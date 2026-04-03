@@ -1,0 +1,308 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-04-03T01:49:19.031653+00:00",
+  "repositories_file": "tests/data/okh_generation/repositories.json",
+  "summary": {
+    "total_repo_entries": 26,
+    "layer": "3L",
+    "counts_by_status": {
+      "skipped_no_generated_manifest": 2,
+      "skipped_no_ground_truth": 24
+    },
+    "compared_count": 0,
+    "avg_blocking_accuracy_compared": null,
+    "avg_blocking_presence_completeness_compared": null
+  },
+  "by_documentation_quality": {},
+  "by_domain": {},
+  "repos": [
+    {
+      "id": "repo-001",
+      "url": "https://github.com/nasa-jpl/open-source-rover",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "excellent",
+      "domain": "robotics",
+      "project_structure": "monorepo",
+      "ground_truth_path": "tests/data/okh_generation/ground_truth/repo-001.json",
+      "status": "skipped_no_generated_manifest",
+      "expected_generated_path": "tests/data/okh_generation/clones/repo-001-3L.json"
+    },
+    {
+      "id": "repo-002",
+      "url": "https://gitlab.com/openflexure/openflexure-microscope",
+      "platform": "gitlab",
+      "platform_supported": true,
+      "documentation_quality": "excellent",
+      "domain": "optical-instruments",
+      "project_structure": "standard",
+      "ground_truth_path": "tests/data/okh_generation/ground_truth/repo-002.json",
+      "status": "skipped_no_generated_manifest",
+      "expected_generated_path": "tests/data/okh_generation/clones/repo-002-3L.json"
+    },
+    {
+      "id": "repo-003",
+      "url": "https://github.com/evanman83/OURS-project",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "good",
+      "domain": "robotics",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-004",
+      "url": "https://github.com/FourThievesVinegar/solderless-microlab",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "good",
+      "domain": "biotech",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-005",
+      "url": "https://github.com/openmv/openmv",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "excellent",
+      "domain": "electronics",
+      "project_structure": "monorepo",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-006",
+      "url": "https://github.com/biomurph/Mouse",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "electronics",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-007",
+      "url": "https://github.com/tjko/fanpico",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "good",
+      "domain": "firmware",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-008",
+      "url": "https://github.com/beagleboard/beaglebone-black",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "excellent",
+      "domain": "electronics",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-009",
+      "url": "https://github.com/prusa3d/Original-Prusa-i3",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "excellent",
+      "domain": "mechanical",
+      "project_structure": "monorepo",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-010",
+      "url": "https://github.com/sparkfun/RedBoard",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "good",
+      "domain": "electronics",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-011",
+      "url": "https://github.com/cnlohr/ch32v003fun",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "good",
+      "domain": "electronics",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "repo-012",
+      "url": "https://github.com/keebio/iris-case",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "mechanical",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-centrifuge",
+      "url": "https://gitlab.waag.org/biohack/BHA_Centrifuge",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-bioreactor",
+      "url": "https://gitlab.waag.org/biohack/BHA_Bioreactor",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-gelbox",
+      "url": "https://gitlab.waag.org/biohack/BHA_GelBox",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-incubator",
+      "url": "https://gitlab.waag.org/biohack/BHA_Incubator",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-microscope",
+      "url": "https://gitlab.waag.org/biohack/BHA_Microscope",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "optical-instruments",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-peristaltic-pump",
+      "url": "https://gitlab.waag.org/biohack/BHA_PeristalticPump",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-photobioreactor",
+      "url": "https://gitlab.waag.org/biohack/BHA_Photobioreactor",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-stirrer",
+      "url": "https://gitlab.waag.org/biohack/BHA_Stirrer",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-spectrophotometer",
+      "url": "https://gitlab.waag.org/biohack/BHA_Spectrophotometer",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "optical-instruments",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-syringe-pump",
+      "url": "https://gitlab.waag.org/biohack/BHA_SyringePump",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-thermocycler",
+      "url": "https://gitlab.waag.org/biohack/BHA_Thermocycler",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "biotech",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-webcam-microscope",
+      "url": "https://gitlab.waag.org/biohack/BHA_Webcam_Microscope",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "optical-instruments",
+      "project_structure": "minimal",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "bha-biohackboard",
+      "url": "https://gitlab.waag.org/biohack/BioHackBoard",
+      "platform": "gitlab-selfhosted",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "electronics",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    },
+    {
+      "id": "air-quality-sensor-nrf52840-v2-ed3",
+      "url": "https://github.com/smartboxchannel/eON-AQSENS_213_V2_ED3-EFEKTALAB",
+      "platform": "github",
+      "platform_supported": true,
+      "documentation_quality": "moderate",
+      "domain": "electronics",
+      "project_structure": "standard",
+      "ground_truth_path": null,
+      "status": "skipped_no_ground_truth"
+    }
+  ]
+}

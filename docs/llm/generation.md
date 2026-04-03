@@ -73,6 +73,31 @@ config = LayerConfig(
 )
 ```
 
+### Chunked Mode (large repositories)
+
+For repositories whose content exceeds the provider's context window, enable chunked mode. This replaces the single-prompt call with a map-reduce workflow that splits input into overlapping chunks, extracts facts per chunk, and synthesizes a final manifest.
+
+```python
+from src.core.generation.models import LayerConfig
+
+config = LayerConfig(
+    use_llm=True,
+    llm_config={
+        "provider": "anthropic",
+        "model": "claude-sonnet-4-5-20250929",
+        "max_tokens": 8000,
+        "temperature": 0.1,
+        "timeout": 120,
+        # Enable chunked map-reduce mode
+        "chunked_mode_enabled": True,
+        "chunk_max_tokens": 4000,       # token budget per chunk
+        "chunk_overlap_tokens": 256,    # overlap between chunks
+    }
+)
+```
+
+See the [Chunked Mode guide](chunked-mode.md) for a full reference including batch script usage, quality evaluation, and operational guidance.
+
 ### Advanced Configuration
 
 ```python
