@@ -150,163 +150,132 @@ Core features work but lack comprehensive real-world validation. This phase esta
 
 ---
 
-## Phase 2: Output Quality Improvements
+## Phase 2: Output Quality & Demo Readiness
 
 ### Overview
-OHM generates extensive data, but the quality, completeness, and utility of outputs can be significantly enhanced.
 
-### 2.1 Matching Results Enhancement
+Phase 2 is scoped around the **May 23, 2026 Open Hardware Summit talk** ([Building Supply Chain Mesh Networks](https://2026.oshwa.org/talks/110-nathan-parker/)). The talk demonstrates how OKH/OKW standards, automated matching, and supply tree generation enable resilient supply chain mesh networks — directly addressing the coordination failures exposed by the COVID-19 crisis.
 
-**Objective**: Make matching results more informative and actionable
+The demo flow: take a real COVID-era open hardware repo → generate a complete OKH manifest → match against available facilities → display the supply tree. The audience is the OSHWA community: hardware-literate makers, open-source advocates, and disaster-response practitioners who will evaluate whether this is credible, real infrastructure.
 
-#### Tasks:
-- [ ] **Result completeness**
-  - Ensure all relevant facility details are included
-  - Add missing capability information
-  - Include contextual metadata (location, certifications, lead times)
-  - Provide fallback/alternative suggestions
-  
-- [ ] **Result accuracy**
-  - Validate facility capability claims
-  - Cross-reference requirements with capabilities
-  - Identify and flag uncertain matches
-  - Add data freshness indicators
-  
-- [ ] **Result usefulness**
-  - Prioritize results by relevance and confidence
-  - Include actionable next steps
-  - Add contact information and booking workflows
-  - Provide comparison matrices for facilities
+**Feature freeze: May 8, 2026.** Only stability fixes after that date.
 
-#### Deliverables:
-- Enhanced match result schema
-- Quality scoring for match results
-- Actionable output format
-
-#### GitHub Issues:
-- Enhance match results with complete facility details
-- Add validation for facility capability claims
-- Implement result prioritization and ranking
-- Include actionable next steps in match results
+**Detail**: See `notes/phase2-plan.md` for timeline, target demo repositories, and per-item acceptance criteria.
 
 ---
 
-### 2.2 OKH Manifest Quality
+### 2.1 LLM Prompt Tuning (carried from 1.3.2)
 
-**Objective**: Improve quality of generated and validated OKH manifests
+**Objective**: Manifests generated live on stage must be complete and credible to a hardware-literate audience.
 
 #### Tasks:
-- [ ] **Manifest completeness**
-  - Encourage/enforce critical field completion
-  - Suggest values for optional fields
-  - Validate cross-field consistency
-  - Provide field-level quality indicators
-  
-- [ ] **Manifest accuracy**
-  - Verify technical specifications
-  - Validate standard compliance
-  - Check unit consistency
-  - Flag suspicious or unlikely values
-  
-- [ ] **Manifest usability**
-  - Add helpful descriptions and documentation
-  - Provide examples for complex fields
-  - Include validation explanations
-  - Suggest improvements and best practices
+- [ ] Tune extraction prompts for hardware-specific fields: `bom`, `manufacturing-files`, `license`, `documentation-language`, `standards-used`
+- [ ] Improve handling of sparse or minimally-documented repos (common in crisis hardware projects)
+- [ ] Verify consistent output across providers (Anthropic, OpenAI, local Ollama)
+- [ ] Batch evaluation against canary corpus; gate on no regression vs. Phase 1 baseline
 
 #### Deliverables:
-- Enhanced OKH validation system
-- Manifest quality scoring
-- Automated improvement suggestions
-
-#### GitHub Issues:
-- Implement manifest completeness checking and suggestions
-- Add technical specification verification
-- Create manifest quality scoring system
-- Provide automated improvement suggestions
+- Tuned prompt templates with version history
+- Evaluation report showing field-level completeness vs. baseline
 
 ---
 
-### 2.3 Supply Tree Quality
+### 2.2 Confidence Indicators on Generated Fields (carried from 1.3.4)
 
-**Objective**: Ensure supply trees are complete, correct, and usable
+**Objective**: A technical audience trusts a system more when it honestly signals uncertainty.
 
 #### Tasks:
-- [ ] **Supply tree validation**
-  - Verify all requirements are addressed
-  - Check facility capability coverage
-  - Validate process dependencies
-  - Avoid timeline feasibility requirements in minimal mode
-  
-- [ ] **Supply tree optimization**
-  - Identify bottlenecks and constraints
-  - Suggest process improvements
-  - Optimize for cost/time/quality tradeoffs
-  - Provide alternative supply tree options
-  
-- [ ] **Supply tree documentation**
-  - Clear explanation of each node
-  - Reasoning for facility selections
-  - Risk assessment and mitigation
-  - Implementation guidance
+- [ ] Surface per-field confidence scores in manifest JSON output
+- [ ] Add top-level `generation_confidence` summary and `low_confidence_fields` list
+- [ ] CLI: display confidence alongside field values in `--verbose` mode
+- [ ] API: include confidence metadata in the manifest response envelope
 
 #### Deliverables:
-- Supply tree validation framework
-- Optimization algorithms
-- Comprehensive documentation templates
-
-#### GitHub Issues:
-- Implement supply tree validation system
-- Add supply tree optimization algorithms
-- Create supply tree documentation templates
-- Provide alternative supply tree suggestions
+- Confidence visible in JSON output, CLI, and API response
+- No regression in generation accuracy
 
 ---
 
-## System Mode Configuration
+### 2.3 Matching Result Enhancement
 
-### Overview
-OHM must operate in environments with limited or unreliable data (developing regions, conflict zones, disaster response). We need a centralized configuration mechanism to control how strict validations are and what minimum acceptable metrics apply when evaluating supply tree solutions.
+**Objective**: The match output is one of the two core things being demonstrated — it must be readable, complete, and credible.
 
-### Objectives
-- Provide a single, centralized “System Mode” configuration integrated with existing config management
-- Support preset modes (Minimal, Standard, Strict) and custom profiles
-- Allow any validation metric to define minimum acceptable thresholds
-
-### Tasks:
-- [ ] **Define System Mode schema**
-  - Mode identifiers (minimal, standard, strict)
-  - Per-metric minimum thresholds
-  - Flags to enable/disable validation classes
-- [ ] **Integrate with config management**
-  - Config file support and overrides
-  - Environment variable support
-  - CLI overrides for temporary mode changes
-- [ ] **Apply System Mode to validations**
-  - Supply tree validation uses mode thresholds
-  - Matching outputs and OKH quality checks respect mode settings
-  - Safe defaults for low‑data environments
-- [ ] **Preset modes**
-  - Minimal: coverage + dependency checks only
-  - Standard: adds quality context checks
-  - Strict: enables all validations and thresholds
-- [ ] **Documentation**
-  - Mode definitions and when to use them
-  - Example configuration profiles
-  - Guidance for low‑data environments
+#### Tasks:
+- [ ] Ensure all relevant facility details are included in match results (capabilities, location, certifications)
+- [ ] Improve result ranking: sort by confidence + capability coverage
+- [ ] Add a human-readable match summary per result (what matched, what was missing, overall fit)
+- [ ] API: add `match_summary` and `coverage_gaps` fields to match result schema
+- [ ] CLI: make `--explain` output the default in verbose mode
 
 #### Deliverables:
-- System Mode schema + config integration
-- Preset modes + custom profile support
+- Enhanced match result schema with ranking and summaries
+- Updated CLI verbose output
+
+---
+
+### 2.4 End-to-End Pipeline Reliability
+
+**Objective**: The full repo URL to manifest to match to supply tree flow must work without errors on stage.
+
+#### Tasks:
+- [ ] Run the full pipeline on 5 COVID-era hardware repos; document and fix any failures
+- [ ] Ensure graceful error handling at each stage (no uncaught exceptions, clear fallback messaging)
+- [ ] Verify pipeline works with both Anthropic and local Ollama model
+- [ ] Time the end-to-end flow; target under 90 seconds for live generation
+
+#### Deliverables:
+- Zero crashes on 5 target repos
+- Graceful degradation when fields cannot be extracted
+
+---
+
+### 2.5 System Mode: Minimal / Standard / Strict
+
+**Objective**: Maps directly to the disaster-response narrative. "In a crisis, you run Minimal mode — coverage and dependency checks only — because a partial supply tree in 10 seconds beats a perfect one in 10 minutes."
+
+#### Tasks:
+- [ ] Define centralized `SystemMode` config with preset modes: `minimal`, `standard`, `strict`
+- [ ] `minimal`: coverage + dependency checks only; relaxed thresholds; designed for low-data, off-grid, crisis contexts
+- [ ] `standard`: adds quality and completeness checks (current default behavior)
+- [ ] `strict`: all validations and thresholds enforced
+- [ ] CLI: `--mode minimal|standard|strict` flag
+- [ ] Apply mode to supply tree validation, matching thresholds, and manifest quality checks
+- [ ] Documentation with humanitarian use-case framing
+
+#### Deliverables:
+- System Mode schema and config integration
+- Preset modes with CLI flag
 - Validation framework updated to honor System Mode
 
-#### GitHub Issues:
-- Define System Mode schema and config integration
-- Implement preset modes and custom profiles
-- Apply System Mode to validation pipelines
-- Document System Mode usage and examples
+---
+
+### 2.6 CI Regression Hooks (carried from 1.3.1 Phase C)
+
+**Objective**: Prevent regressions in the weeks before the talk.
+
+#### Tasks:
+- [ ] Parametrized e2e tests for generation pipeline (ground-truth repos)
+- [ ] Regression flag if required-field completeness drops below Phase 1 baseline
+- [ ] CI gate on the chunked canary evaluation script
+
+#### Deliverables:
+- CI runs clean on main branch
+- Automated regression detection for generation quality
 
 ---
+
+### Deferred to Phase 3
+
+The following items from the original Phase 2 roadmap are deferred. They have lower demo impact relative to effort, or require more than 6 weeks to execute well.
+
+| Item | Notes |
+|------|-------|
+| 1.3.1 Phase B2 — ground truth expansion | Internal quality tooling; not visible in demo |
+| 1.3.3 — Automated quality checks on manifests | Internal; low demo value |
+| OKH manifest quality scoring and suggestions | Useful but not critical for demo narrative |
+| Supply tree quality optimization | Complex; current supply tree sufficient for demo |
+| Phase 3 — Visualization | High demo value but needs more than 6 weeks |
+
 
 ## Phase 3: Human-Readable Data & Visualization
 
@@ -942,19 +911,24 @@ Design versioning ensures end users can discover, validate, and pull specific ve
 
 ## Timeline & Phases
 
-### Q1 2026 (Jan-Mar)
-- **Focus**: Quality & Testing, Output Quality Improvements
-- **Milestones**: 
-  - Complete real-world test suite
-  - Matching service quality baseline established
-  - OKH generation improvements deployed
-
-### Q2 2026 (Apr-Jun)
-- **Focus**: Human-Readable Data & Visualization, OBM Requirements
+### Q1 2026 (Jan-Mar) — Phase 1 (Complete)
+- **Focus**: Quality & Testing
 - **Milestones**:
-  - LLM summarization service live
-  - Initial visualization components deployed
-  - OBM architecture finalized
+  - Real-world test suite complete
+  - Matching service quality baseline established (F1 0.807 to 0.992)
+  - LLM chunking architecture implemented; all canary quality gates passing
+
+### Q2 2026 (Apr-Jun) — Phase 2 (Active)
+- **Focus**: Output Quality & Demo Readiness
+- **Hard deadline**: May 23, 2026 — Open Hardware Summit talk
+- **Feature freeze**: May 8, 2026
+- **Milestones**:
+  - LLM prompt tuning complete; generation quality improved
+  - Confidence indicators visible in manifest output
+  - Matching result enhancement with ranking and summaries
+  - System Mode (Minimal/Standard/Strict) implemented
+  - End-to-end pipeline reliable on COVID-era hardware repos
+  - Post-demo: Phase 3 scoping begins
 
 ### Q3 2026 (Jul-Sep)
 - **Focus**: OBM Implementation, OHM/OBM Integration
