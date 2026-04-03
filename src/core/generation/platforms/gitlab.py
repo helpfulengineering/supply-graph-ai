@@ -172,47 +172,54 @@ class GitLabExtractor(ProjectExtractor):
                 raise ValueError(f"Invalid GitLab URL: {url}")
 
             # Extract owner and repo from URL
+            from ..gitlab_instance import gitlab_api_v4_base_url
             from ..url_router import URLRouter
 
             router = URLRouter()
+            normalized = router.normalize_url(url)
             owner, repo = router.extract_repo_info(url)
 
-            # Clone repository locally for analysis
-            clone_path = self._clone_repository(url)
-            if not clone_path:
-                raise Exception("Failed to clone repository locally")
-
+            prev_base = self.base_url
+            self.base_url = gitlab_api_v4_base_url(normalized)
             try:
-                # Fetch metadata from GitLab API with caching
-                metadata = await self._fetch_project_metadata(owner, repo)
+                # Clone repository locally for analysis
+                clone_path = self._clone_repository(url)
+                if not clone_path:
+                    raise Exception("Failed to clone repository locally")
 
-                # Scan local repository for files
-                files = self._scan_local_repository(clone_path)
+                try:
+                    # Fetch metadata from GitLab API with caching
+                    metadata = await self._fetch_project_metadata(owner, repo)
 
-                # Build documentation list
-                documentation = self._build_documentation_list(files)
+                    # Scan local repository for files
+                    files = self._scan_local_repository(clone_path)
 
-                # Build raw content
-                raw_content = self._build_raw_content(files)
+                    # Build documentation list
+                    documentation = self._build_documentation_list(files)
 
+                    # Build raw content
+                    raw_content = self._build_raw_content(files)
+
+                finally:
+                    # Clean up cloned repository
+                    self._cleanup_repository(clone_path)
+
+                # Create ProjectData and end metrics tracking
+                project_data = ProjectData(
+                    platform=PlatformType.GITLAB,
+                    url=url,
+                    metadata=metadata,
+                    files=files,
+                    documentation=documentation,
+                    raw_content=raw_content,
+                )
+
+                # End metrics tracking
+                self.end_extraction(success=True, files_count=len(files))
+
+                return project_data
             finally:
-                # Clean up cloned repository
-                self._cleanup_repository(clone_path)
-
-            # Create ProjectData and end metrics tracking
-            project_data = ProjectData(
-                platform=PlatformType.GITLAB,
-                url=url,
-                metadata=metadata,
-                files=files,
-                documentation=documentation,
-                raw_content=raw_content,
-            )
-
-            # End metrics tracking
-            self.end_extraction(success=True, files_count=len(files))
-
-            return project_data
+                self.base_url = prev_base
 
         except Exception as e:
             # Try to use local clone even if API fails
@@ -333,8 +340,10 @@ class GitLabExtractor(ProjectExtractor):
             return project_data
 
     def validate_url(self, url: str) -> bool:
-        """Validate that the URL is a GitLab repository URL"""
-        return "gitlab.com" in url and "/" in url.split("gitlab.com/")[-1]
+        """Validate that the URL is a GitLab repository URL (gitlab.com or allowlisted self-hosted)."""
+        from ..gitlab_instance import is_gitlab_http_clone_url, normalize_http_url
+
+        return is_gitlab_http_clone_url(normalize_http_url(url))
 
     def _clone_repository(self, url: str) -> Optional[Path]:
         """

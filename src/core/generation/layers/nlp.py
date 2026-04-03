@@ -233,7 +233,7 @@ class NLPMatcher(BaseGenerationLayer):
                 "Machining tools",
             ),
             EntityPattern(
-                r"\b(screwdriver|wrench|pliers|file|sandpaper)\b",
+                r"\b(screwdriver|wrench|pliers|metal file|needle file|sandpaper)\b",
                 "tool",
                 "tool_list",
                 0.7,
@@ -509,6 +509,15 @@ class NLPMatcher(BaseGenerationLayer):
             "without limitation",
             "as is",
             "as available",
+            "infringe",
+            "induce you",
+            "take away your",
+            "take away you",
+            "general public license",
+            "gnu general",
+            "section to",
+            "verbatim copies",
+            "most software are",
             "pushing",
             "inserting",
             "screwing",
@@ -593,6 +602,15 @@ class NLPMatcher(BaseGenerationLayer):
             "without limitation",
             "as is",
             "as available",
+            "infringe",
+            "induce you",
+            "take away your",
+            "take away you",
+            "general public license",
+            "gnu general",
+            "section to",
+            "verbatim copies",
+            "most software are",
             "pushing",
             "inserting",
             "screwing",
@@ -842,12 +860,17 @@ class NLPMatcher(BaseGenerationLayer):
         """Extract required tools using entity patterns"""
         tools = set()
 
+        noise_tools = frozenset({"file", "the", "a", "an"})
+
         for pattern in self.tool_patterns:
             matches = re.findall(pattern.pattern, content, re.IGNORECASE)
             for match in matches:
                 if isinstance(match, tuple):
                     match = match[0]
-                tools.add(match.strip())
+                cleaned = match.strip()
+                if cleaned.lower() in noise_tools:
+                    continue
+                tools.add(cleaned)
 
         return list(tools)
 

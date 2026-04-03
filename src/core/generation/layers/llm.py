@@ -368,11 +368,13 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             # Build analysis prompt
             prompt = self._build_analysis_prompt(project_data, context_file)
 
-            # Create LLM request config
+            # Create LLM request config. Full OKH JSON (description/function/intended_use
+            # plus bom/parts/software) often exceeds 4k completion tokens; truncation yields
+            # invalid JSON and triggers partial extraction (noisy warnings, weaker fields).
             config = LLMRequestConfig(
-                max_tokens=4000,
+                max_tokens=8000,
                 temperature=0.1,  # Low temperature for consistent output
-                timeout=60,
+                timeout=120,
             )
 
             # Execute LLM request

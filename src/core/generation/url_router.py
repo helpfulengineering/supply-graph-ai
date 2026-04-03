@@ -88,6 +88,12 @@ class URLRouter:
                 if re.search(pattern, normalized_url):
                     return platform
 
+        # Self-hosted GitLab (allowlisted hostnames only)
+        from .gitlab_instance import is_allowlisted_self_hosted_gitlab_url
+
+        if is_allowlisted_self_hosted_gitlab_url(normalized_url):
+            return PlatformType.GITLAB
+
         return PlatformType.UNKNOWN
 
     def validate_url(self, url: str) -> bool:
@@ -169,27 +175,15 @@ class URLRouter:
                 return match.group(1), match.group(2)
 
         elif platform == PlatformType.GITLAB:
-            # Try patterns in order of specificity (most specific first)
-            # We need to try the 3-group patterns first, then fall back to 2-group patterns
-            patterns_to_try = [
-                r"gitlab\.com/([^/]+)/([^/]+)/([^/]+)\.git",
-                r"gitlab\.com/([^/]+)/([^/]+)/([^/]+)",
-                r"gitlab\.com/([^/]+)/([^/]+)\.git",
-                r"gitlab\.com/([^/]+)/([^/]+)",
-            ]
+            from .gitlab_instance import extract_gitlab_owner_repo_from_path
 
-            for pattern in patterns_to_try:
-                match = re.search(pattern, normalized_url)
-                if match:
-                    if len(match.groups()) == 2:
-                        # Simple owner/repo structure
-                        return match.group(1), match.group(2)
-                    elif len(match.groups()) == 3:
-                        # Nested group structure: group/subgroup/project
-                        # For GitLab API, we need to URL-encode the full path
-                        group_path = f"{match.group(1)}/{match.group(2)}"
-                        project_name = match.group(3)
-                        return group_path, project_name
+            parsed = urlparse(normalized_url)
+            try:
+                return extract_gitlab_owner_repo_from_path(parsed.path)
+            except ValueError as e:
+                raise ValueError(
+                    "Cannot extract repo info from URL: invalid format"
+                ) from e
 
         elif platform == PlatformType.HACKADAY:
             pattern = self._platform_patterns[platform][0]
