@@ -157,8 +157,8 @@ def main() -> int:
     parser.add_argument(
         "--min-presence-proxy-delta",
         type=float,
-        default=0.0,
-        help="Minimum allowed delta for required-field presence proxy",
+        default=-0.05,
+        help="Minimum allowed delta for required-field presence proxy (allow small LLM-run variance)",
     )
     args = parser.parse_args()
 

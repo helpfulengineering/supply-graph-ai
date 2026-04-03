@@ -19,7 +19,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ...llm.chunking import ChunkingConfig
+from pydantic import BaseModel, ConfigDict, Field
+from ...llm.chunking import ChunkingConfig, default_token_estimator
 from ...llm.models.requests import (
     LLMPayloadSection,
     LLMRequest,
@@ -36,6 +37,17 @@ from .base import BaseGenerationLayer, LayerResult
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+
+class ChunkedLLMReduceSchema(BaseModel):
+    """Minimal schema guardrail for chunked reduce output."""
+
+    model_config = ConfigDict(extra="allow")
+
+    title: str = Field(min_length=1)
+    version: str = Field(min_length=1)
+    function: str = Field(min_length=1)
+    description: str = Field(min_length=1)
 
 
 class LLMGenerationLayer(BaseGenerationLayer):
@@ -384,15 +396,16 @@ The OKH manifest is designed to maximize interoperability and discoverability in
                 timeout=120,
             )
 
-            if self._is_chunked_mode_enabled():
+            if self._should_use_chunked_mode(prompt):
                 structured_request = LLMStructuredRequest(
                     instruction=(
-                        "Analyze repository content and return a valid OKH manifest JSON "
-                        "following the requirements below."
+                        "Analyze repository content and return a complete, valid OKH manifest "
+                        "JSON. Required: title, version, function, and a non-empty description."
                     ),
                     payload_sections=[LLMPayloadSection(name="analysis_prompt", text=prompt)],
                     request_type=LLMRequestType.GENERATION,
                     config=config,
+                    reduce_output_schema=ChunkedLLMReduceSchema,
                     trace_context=None,
                 )
                 response = await self.llm_service.generate_with_chunked_payload(
@@ -418,10 +431,25 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             result.add_error(error_msg)
             logger.error(error_msg, exc_info=True)
 
-    def _is_chunked_mode_enabled(self) -> bool:
-        """Return True when the LLM chunked workflow feature flag is enabled."""
+    def _should_use_chunked_mode(self, prompt: str) -> bool:
+        """Return True when the chunked map-reduce workflow should be used.
+
+        Decision order:
+        1. Explicit ``chunked_mode_enabled=True``  → always chunk.
+        2. Explicit ``chunked_mode_enabled=False`` → never chunk.
+        3. Key absent (auto)                       → chunk when the estimated
+           token count of *prompt* exceeds ``chunk_max_tokens``.
+        """
         llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
-        return bool(llm_cfg.get("chunked_mode_enabled", False))
+        explicit = llm_cfg.get("chunked_mode_enabled")  # None when absent
+        if explicit is True:
+            return True
+        if explicit is False:
+            return False
+        # Auto-detect: chunk when the prompt won't fit in a single chunk budget.
+        max_chunk_tokens = int(llm_cfg.get("chunk_max_tokens", 4000))
+        estimated = default_token_estimator(prompt)
+        return estimated > max_chunk_tokens
 
     def _build_chunking_config(self) -> ChunkingConfig:
         """Build chunking config from layer LLM config with safe defaults."""

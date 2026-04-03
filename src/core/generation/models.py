@@ -1979,8 +1979,9 @@ class LayerConfig:
             "fallback_to_nlp": True,  # Fallback to NLP if LLM fails
             "cost_tracking": True,
             "max_cost_per_request": 0.10,  # $0.10 max per request
-            "chunked_mode_enabled": False,  # Feature flag (off by default)
-            "chunk_max_tokens": 4000,  # Payload budget per chunk when chunked mode is enabled
+            # chunked_mode_enabled is intentionally absent here (auto-detect default).
+            # Set to True to force chunking; False to force it off.
+            "chunk_max_tokens": 4000,  # Payload budget per chunk; also the auto-detect threshold
             "chunk_overlap_tokens": 256,  # Overlap for chunk continuity
             "prompt_templates": {
                 "field_extraction": "Extract {field} from the following project information:",

@@ -147,6 +147,7 @@ This shows:
 - [Quick Start](llm-quick-start.md) - Getting started with using the LLM Service
 - [LLM Service](llm-service.md) - Complete docs on LLM Service
 - [Generation Layer](generation.md) - OKH manifest generation with LLM
+- [Chunked Mode](chunked-mode.md) - Map-reduce chunking for large repositories
 - [Matching Layer](../matching/index.md) - Facility matching with LLM enhancement
 - [Examples](examples.md) - Usage examples and best practices
 
