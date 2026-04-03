@@ -21,13 +21,24 @@ interface for all LLM operations across the system.
 """
 
 import asyncio
+import hashlib
+import json
 import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
+from pydantic import BaseModel, ValidationError
 from ..services.base import BaseService, ServiceConfig, ServiceStatus
 from ..utils.logging import get_logger
-from .models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
+from .chunking import ChunkingConfig, split_text_into_chunks
+from .models.requests import (
+    LLMPayloadSection,
+    LLMRequest,
+    LLMRequestConfig,
+    LLMRequestType,
+    LLMStructuredRequest,
+)
 from .models.responses import LLMResponse, LLMResponseStatus
 from .providers.anthropic import AnthropicProvider
 from .providers.aws_bedrock import AWSBedrockProvider
@@ -255,6 +266,290 @@ class LLMService(BaseService["LLMService"]):
             return await self._generate_with_fallback(
                 prompt, request_type, config, provider
             )
+
+    async def generate_structured(
+        self,
+        request: LLMStructuredRequest,
+        provider: Optional[LLMProviderType] = None,
+    ) -> LLMResponse:
+        """Generate from structured sections without chunking orchestration."""
+        prompt = self._build_structured_prompt(request.instruction, request.payload_sections)
+        return await self.generate(
+            prompt=prompt,
+            request_type=request.request_type,
+            config=request.config,
+            provider=provider,
+        )
+
+    async def generate_with_chunked_payload(
+        self,
+        request: LLMStructuredRequest,
+        chunking_config: Optional[ChunkingConfig] = None,
+        provider: Optional[LLMProviderType] = None,
+        checkpoint_dir: Optional[Path] = None,
+        cache_enabled: bool = True,
+    ) -> LLMResponse:
+        """
+        Generate using a simple map->reduce chunked workflow.
+
+        This first implementation prioritizes deterministic behavior and
+        safety (sequential map stage) over throughput.
+        """
+        config = chunking_config or ChunkingConfig(max_chunk_tokens=2000, overlap_tokens=0)
+        chunks: List[str] = []
+        checkpoint_root = (
+            checkpoint_dir.resolve()
+            if (cache_enabled and checkpoint_dir is not None)
+            else None
+        )
+        if checkpoint_root is not None:
+            checkpoint_root.mkdir(parents=True, exist_ok=True)
+
+        for section in request.payload_sections:
+            if section.chunkable:
+                section_chunks = split_text_into_chunks(
+                    section.text, config, source_id=section.name
+                )
+                chunks.extend(c.text for c in section_chunks)
+            else:
+                chunks.append(section.text)
+
+        map_outputs: List[str] = []
+        cache_hit_count = 0
+        repair_count = 0
+        for idx, chunk_text in enumerate(chunks, start=1):
+            cache_file: Optional[Path] = None
+            if checkpoint_root is not None:
+                cache_key = self._build_map_cache_key(
+                    instruction=request.instruction,
+                    request_type=request.request_type.value,
+                    chunk_text=chunk_text,
+                    config=request.config,
+                    schema_model=request.map_output_schema,
+                    provider=provider,
+                )
+                cache_file = checkpoint_root / f"{cache_key}.json"
+                cached_output = self._load_cached_map_output(
+                    cache_file, request.map_output_schema
+                )
+                if cached_output is not None:
+                    map_outputs.append(cached_output)
+                    cache_hit_count += 1
+                    continue
+
+            map_prompt = (
+                f"{request.instruction}\n\n"
+                f"[Map stage chunk {idx}/{len(chunks)}]\n"
+                f"{chunk_text}"
+            )
+            map_resp = await self.generate(
+                prompt=map_prompt,
+                request_type=request.request_type,
+                config=request.config,
+                provider=provider,
+            )
+            if not map_resp.is_success:
+                return map_resp
+            map_content = map_resp.content
+            map_valid = self._validate_response_schema(
+                map_content, request.map_output_schema
+            )
+            if not map_valid and request.map_output_schema and request.repair_attempts > 0:
+                repaired = await self._attempt_schema_repair(
+                    invalid_content=map_content,
+                    schema_model=request.map_output_schema,
+                    request_type=request.request_type,
+                    config=request.config,
+                    provider=provider,
+                )
+                if repaired and self._validate_response_schema(
+                    repaired, request.map_output_schema
+                ):
+                    map_content = repaired
+                    repair_count += 1
+                else:
+                    return self._schema_error_response(
+                        stage=f"map chunk {idx}",
+                        provider=provider,
+                        model_hint=map_resp.metadata.model,
+                    )
+            map_outputs.append(map_content)
+            if cache_file is not None:
+                self._store_cached_map_output(cache_file, map_content)
+
+        reduce_prompt = (
+            f"{request.instruction}\n\n"
+            "Synthesize the final response from these map-stage outputs:\n\n"
+            + "\n\n".join(map_outputs)
+        )
+        reduce_resp = await self.generate(
+            prompt=reduce_prompt,
+            request_type=request.request_type,
+            config=request.config,
+            provider=provider,
+        )
+        reduce_content = reduce_resp.content
+        reduce_valid = self._validate_response_schema(
+            reduce_content, request.reduce_output_schema
+        )
+        if (
+            reduce_resp.is_success
+            and not reduce_valid
+            and request.reduce_output_schema
+            and request.repair_attempts > 0
+        ):
+            repaired = await self._attempt_schema_repair(
+                invalid_content=reduce_content,
+                schema_model=request.reduce_output_schema,
+                request_type=request.request_type,
+                config=request.config,
+                provider=provider,
+            )
+            if repaired and self._validate_response_schema(
+                repaired, request.reduce_output_schema
+            ):
+                reduce_content = repaired
+                repair_count += 1
+                reduce_resp.content = reduce_content
+            else:
+                return self._schema_error_response(
+                    stage="reduce",
+                    provider=provider,
+                    model_hint=reduce_resp.metadata.model,
+                )
+
+        if reduce_resp.metadata and isinstance(reduce_resp.metadata.metadata, dict):
+            reduce_resp.metadata.metadata["chunk_count"] = len(chunks)
+            reduce_resp.metadata.metadata["map_success_count"] = len(map_outputs)
+            reduce_resp.metadata.metadata["workflow"] = "map_reduce_chunked_v1"
+            reduce_resp.metadata.metadata["repair_count"] = repair_count
+            reduce_resp.metadata.metadata["cache_hit_count"] = cache_hit_count
+        return reduce_resp
+
+    @staticmethod
+    def _build_structured_prompt(
+        instruction: str, payload_sections: List[LLMPayloadSection]
+    ) -> str:
+        """Build a deterministic prompt from structured sections."""
+        parts: List[str] = [instruction.strip(), "", "Payload sections:"]
+        for section in payload_sections:
+            parts.append(f"\n[{section.name}]\n{section.text}")
+        return "\n".join(parts)
+
+    @staticmethod
+    def _validate_response_schema(
+        content: str, schema_model: Optional[Type[BaseModel]]
+    ) -> bool:
+        """Validate JSON content against a Pydantic model when provided."""
+        if schema_model is None:
+            return True
+        try:
+            schema_model.model_validate_json(content)
+            return True
+        except (ValidationError, json.JSONDecodeError, ValueError, TypeError):
+            return False
+
+    async def _attempt_schema_repair(
+        self,
+        invalid_content: str,
+        schema_model: Type[BaseModel],
+        request_type: LLMRequestType,
+        config: LLMRequestConfig,
+        provider: Optional[LLMProviderType],
+    ) -> Optional[str]:
+        """Ask the model to repair invalid JSON to match the provided schema."""
+        repair_prompt = (
+            "Repair the following invalid JSON so it matches the schema. "
+            "Return only valid JSON and no extra text.\n\n"
+            f"Schema:\n{json.dumps(schema_model.model_json_schema(), indent=2)}\n\n"
+            f"Invalid JSON:\n{invalid_content}"
+        )
+        repair_resp = await self.generate(
+            prompt=repair_prompt,
+            request_type=request_type,
+            config=config,
+            provider=provider,
+        )
+        if not repair_resp.is_success:
+            return None
+        return repair_resp.content
+
+    @staticmethod
+    def _schema_error_response(
+        stage: str,
+        provider: Optional[LLMProviderType],
+        model_hint: Optional[str] = None,
+    ) -> LLMResponse:
+        """Build a standardized schema validation failure response."""
+        from .models.responses import LLMResponseMetadata
+
+        metadata = LLMResponseMetadata(
+            provider=provider.value if provider else "unknown",
+            model=model_hint or "unknown",
+            tokens_used=0,
+            cost=0.0,
+            processing_time=0.0,
+            metadata={"stage": stage, "error_type": "schema_validation_failed"},
+        )
+        return LLMResponse(
+            content="",
+            status=LLMResponseStatus.ERROR,
+            metadata=metadata,
+            error_message=f"Schema validation failed during {stage}",
+        )
+
+    @staticmethod
+    def _build_map_cache_key(
+        instruction: str,
+        request_type: str,
+        chunk_text: str,
+        config: LLMRequestConfig,
+        schema_model: Optional[Type[BaseModel]],
+        provider: Optional[LLMProviderType],
+    ) -> str:
+        """Build a deterministic idempotency key for map-stage chunk cache."""
+        schema_name = schema_model.__name__ if schema_model else "none"
+        provider_name = provider.value if provider else "default"
+        key_material = "|".join(
+            [
+                instruction.strip(),
+                request_type,
+                chunk_text,
+                provider_name,
+                str(config.max_tokens),
+                str(config.temperature),
+                str(config.top_p),
+                schema_name,
+            ]
+        )
+        return hashlib.sha256(key_material.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _load_cached_map_output(
+        cache_file: Path, schema_model: Optional[Type[BaseModel]]
+    ) -> Optional[str]:
+        """Load cached map output if present and schema-valid."""
+        if not cache_file.is_file():
+            return None
+        try:
+            payload = json.loads(cache_file.read_text(encoding="utf-8"))
+            content = payload.get("map_output")
+            if not isinstance(content, str) or not content.strip():
+                return None
+            if schema_model is not None:
+                schema_model.model_validate_json(content)
+            return content
+        except Exception:
+            return None
+
+    @staticmethod
+    def _store_cached_map_output(cache_file: Path, content: str) -> None:
+        """Persist map-stage output to cache."""
+        payload = {
+            "map_output": content,
+            "created_at": datetime.now().isoformat(),
+        }
+        cache_file.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
     async def _generate_with_fallback(
         self,

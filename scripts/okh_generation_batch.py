@@ -25,6 +25,7 @@ Options:
     --only-ids a,b   Comma-separated repo ids
     --skip-existing  Skip if output manifest already exists
     --save-clones    Persist git clones under clones/repos/<id>/
+    --llm-chunked-mode  Enable chunked LLM path (feature-flag; requires --use-llm)
 """
 
 from __future__ import annotations
@@ -94,6 +95,23 @@ def _parse_args() -> argparse.Namespace:
         help="Enable 4-layer generation (LLM)",
     )
     p.add_argument(
+        "--llm-chunked-mode",
+        action="store_true",
+        help="Enable chunked LLM mode in generation layer (feature flag; requires --use-llm)",
+    )
+    p.add_argument(
+        "--llm-chunk-max-tokens",
+        type=int,
+        default=0,
+        help="Override chunk max tokens when --llm-chunked-mode is enabled (0 = default)",
+    )
+    p.add_argument(
+        "--llm-chunk-overlap-tokens",
+        type=int,
+        default=0,
+        help="Override chunk overlap tokens when --llm-chunked-mode is enabled (0 = default)",
+    )
+    p.add_argument(
         "--verbose-metadata",
         action="store_true",
         help="Include per-file metadata in manifests (CLI --verbose)",
@@ -142,6 +160,8 @@ def _select_repos(data: Dict[str, Any], args: argparse.Namespace) -> List[Dict[s
 
 async def _run() -> int:
     args = _parse_args()
+    if args.llm_chunked_mode and not args.use_llm:
+        raise SystemExit("--llm-chunked-mode requires --use-llm")
     layer_tag = args.layer if args.layer is not None else (
         "4L" if args.use_llm else "3L"
     )
@@ -195,6 +215,15 @@ async def _run() -> int:
                 save_clone=save_clone,
                 use_llm=args.use_llm,
                 include_file_metadata=args.verbose_metadata,
+                llm_chunked_mode_enabled=bool(args.use_llm and args.llm_chunked_mode),
+                llm_chunk_max_tokens=(
+                    args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
+                ),
+                llm_chunk_overlap_tokens=(
+                    args.llm_chunk_overlap_tokens
+                    if args.llm_chunk_overlap_tokens > 0
+                    else None
+                ),
             )
             manifest = result.to_okh_manifest()
             manifest_path.write_text(
@@ -254,6 +283,13 @@ async def _run() -> int:
         "use_clone": use_clone,
         "save_clones": bool(args.save_clones),
         "use_llm": bool(args.use_llm),
+        "llm_chunked_mode": bool(args.use_llm and args.llm_chunked_mode),
+        "llm_chunk_max_tokens": (
+            args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
+        ),
+        "llm_chunk_overlap_tokens": (
+            args.llm_chunk_overlap_tokens if args.llm_chunk_overlap_tokens > 0 else None
+        ),
         "selected_count": len(selected),
         "processed_count": len(rows),
         "error_count": errors,

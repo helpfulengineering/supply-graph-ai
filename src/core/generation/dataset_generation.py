@@ -40,6 +40,9 @@ async def generate_manifest_for_repository(
     use_llm: bool = False,
     use_bom_normalization: bool = True,
     include_file_metadata: bool = False,
+    llm_chunked_mode_enabled: bool = False,
+    llm_chunk_max_tokens: Optional[int] = None,
+    llm_chunk_overlap_tokens: Optional[int] = None,
     log: Optional[LogFn] = None,
 ) -> ManifestGeneration:
     """
@@ -53,6 +56,9 @@ async def generate_manifest_for_repository(
         use_llm: Enable LLM layer (4-layer mode).
         use_bom_normalization: Enable BOM normalization (matches CLI default).
         include_file_metadata: Per-file metadata in manifest (CLI ``--verbose``).
+        llm_chunked_mode_enabled: Feature-flag chunked LLM mode for generation layer.
+        llm_chunk_max_tokens: Optional override for per-chunk payload budget.
+        llm_chunk_overlap_tokens: Optional override for chunk overlap.
         log: Optional ``(message, level)`` callback; default uses module logger.
     """
     _log = log or _default_log
@@ -98,6 +104,11 @@ async def generate_manifest_for_repository(
     config = LayerConfig()
     config.use_llm = use_llm
     config.use_bom_normalization = use_bom_normalization
+    config.llm_config["chunked_mode_enabled"] = bool(llm_chunked_mode_enabled)
+    if llm_chunk_max_tokens is not None:
+        config.llm_config["chunk_max_tokens"] = int(llm_chunk_max_tokens)
+    if llm_chunk_overlap_tokens is not None:
+        config.llm_config["chunk_overlap_tokens"] = int(llm_chunk_overlap_tokens)
     engine = GenerationEngine(config=config)
     _log("Running generation engine", "info")
     return await engine.generate_manifest_async(

@@ -19,7 +19,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from ...llm.models.requests import LLMRequest, LLMRequestConfig, LLMRequestType
+from ...llm.chunking import ChunkingConfig
+from ...llm.models.requests import (
+    LLMPayloadSection,
+    LLMRequest,
+    LLMRequestConfig,
+    LLMRequestType,
+    LLMStructuredRequest,
+)
 from ...llm.models.responses import LLMResponseStatus
 from ...llm.providers.base import LLMProviderType
 from ...llm.service import LLMService, LLMServiceConfig
@@ -377,10 +384,26 @@ The OKH manifest is designed to maximize interoperability and discoverability in
                 timeout=120,
             )
 
-            # Execute LLM request
-            response = await self.llm_service.generate(
-                prompt=prompt, request_type=LLMRequestType.GENERATION, config=config
-            )
+            if self._is_chunked_mode_enabled():
+                structured_request = LLMStructuredRequest(
+                    instruction=(
+                        "Analyze repository content and return a valid OKH manifest JSON "
+                        "following the requirements below."
+                    ),
+                    payload_sections=[LLMPayloadSection(name="analysis_prompt", text=prompt)],
+                    request_type=LLMRequestType.GENERATION,
+                    config=config,
+                    trace_context=None,
+                )
+                response = await self.llm_service.generate_with_chunked_payload(
+                    structured_request,
+                    chunking_config=self._build_chunking_config(),
+                )
+            else:
+                # Execute LLM request
+                response = await self.llm_service.generate(
+                    prompt=prompt, request_type=LLMRequestType.GENERATION, config=config
+                )
 
             if response.status != LLMResponseStatus.SUCCESS:
                 raise RuntimeError(f"LLM generation failed: {response.error_message}")
@@ -394,6 +417,24 @@ The OKH manifest is designed to maximize interoperability and discoverability in
             error_msg = f"LLM analysis failed: {str(e)}"
             result.add_error(error_msg)
             logger.error(error_msg, exc_info=True)
+
+    def _is_chunked_mode_enabled(self) -> bool:
+        """Return True when the LLM chunked workflow feature flag is enabled."""
+        llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
+        return bool(llm_cfg.get("chunked_mode_enabled", False))
+
+    def _build_chunking_config(self) -> ChunkingConfig:
+        """Build chunking config from layer LLM config with safe defaults."""
+        llm_cfg = getattr(self.layer_config, "llm_config", {}) or {}
+        max_tokens = int(llm_cfg.get("chunk_max_tokens", 4000))
+        overlap_tokens = int(llm_cfg.get("chunk_overlap_tokens", 256))
+        # Guard against misconfiguration that violates ChunkingConfig constraints.
+        if overlap_tokens >= max_tokens:
+            overlap_tokens = max(0, max_tokens - 1)
+        return ChunkingConfig(
+            max_chunk_tokens=max_tokens,
+            overlap_tokens=overlap_tokens,
+        )
 
     def _build_analysis_prompt(
         self, project_data: ProjectData, context_file: Path
