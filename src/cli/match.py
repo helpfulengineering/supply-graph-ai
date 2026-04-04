@@ -102,6 +102,34 @@ def match_group():
         "If nested components detected and max_depth=0, uses configured default depth"
     ),
 )
+@click.option(
+    "--allow-facility-combinations",
+    is_flag=True,
+    default=False,
+    help=(
+        "Allow aggregated multi-facility solutions for manufacturing when no single "
+        "facility can satisfy all process requirements."
+    ),
+)
+@click.option(
+    "--max-facilities-per-solution",
+    type=int,
+    default=3,
+    help="Maximum facilities in one composite solution (default: 3).",
+)
+@click.option(
+    "--combination-strategy",
+    type=click.Choice(["greedy"]),
+    default="greedy",
+    show_default=True,
+    help="Composite solver strategy.",
+)
+@click.option(
+    "--no-alternative-solutions",
+    is_flag=True,
+    default=False,
+    help="Return only the top composite solution instead of alternatives.",
+)
 @click.option("--output", "-o", help="Output file path")
 @click.option(
     "--save-solution",
@@ -183,6 +211,9 @@ def match_group():
       
       # Nested matching with custom depth
       ohm match requirements my-design.okh.json --max-depth 5
+
+      # Composite matching across multiple facilities
+      ohm match requirements my-design.okh.json --allow-facility-combinations --max-facilities-per-solution 3
       
       # Auto-detect nested matching
       ohm match requirements my-design.okh.json --auto-detect-depth
@@ -217,6 +248,10 @@ async def requirements(
     max_results: int,
     max_depth: int,
     auto_detect_depth: bool,
+    allow_facility_combinations: bool,
+    max_facilities_per_solution: int,
+    combination_strategy: str,
+    no_alternative_solutions: bool,
     output: Optional[str],
     verbose: bool,
     output_format: str,
@@ -283,6 +318,10 @@ async def requirements(
             "max_depth": max_depth,
             "auto_detect_depth": auto_detect_depth,
             "include_explanation": include_explanation,
+            "allow_facility_combinations": allow_facility_combinations,
+            "max_facilities_per_solution": max_facilities_per_solution,
+            "combination_strategy": combination_strategy,
+            "return_alternative_solutions": not no_alternative_solutions,
         }
 
         # Add solution storage parameters if requested

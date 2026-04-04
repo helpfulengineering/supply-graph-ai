@@ -103,6 +103,9 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
     # Enhanced metadata
     matching_metrics: Optional[dict] = None
     validation_results: Optional[List[BaseValidationResult]] = None
+    match_summary: Optional[Dict[str, Any]] = None
+    coverage_gaps: Optional[List[str]] = None
+    match_summary_text: Optional[str] = None
 
 
 class ValidationResult(BaseModel):

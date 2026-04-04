@@ -934,8 +934,14 @@ You can also explicitly specify the domain using the `--domain` option.
 - `--location TEXT` - Filter by location (city, country, or region)
 - `--capabilities TEXT` - Comma-separated list of required capabilities
 - `--materials TEXT` - Comma-separated list of required materials
-- `--min-confidence FLOAT` - Minimum confidence threshold (0.0-1.0, default: 0.7)
+- `--min-confidence FLOAT` - Minimum confidence threshold (0.0-1.0, default: 0.3)
 - `--max-results INTEGER` - Maximum number of results (default: 10)
+- `--max-depth INTEGER` - BOM matching depth (0 = single-level, >0 = nested component matching)
+- `--auto-detect-depth` - Auto-enable nested matching when manifest contains nested components
+- `--allow-facility-combinations` - Enable aggregated multi-facility matching for manufacturing
+- `--max-facilities-per-solution INTEGER` - Cap facilities used in one composite solution (default: 3)
+- `--combination-strategy [greedy]` - Composite solver strategy
+- `--no-alternative-solutions` - Return only the top composite solution
 - `--output, -o TEXT` - Output file path
 - `--use-llm` - Enable LLM integration for enhanced matching
 - `--llm-provider [anthropic|openai|google|azure|local]` - LLM provider
@@ -969,6 +975,12 @@ ohm match requirements my-design.okh.json --min-confidence 0.9
 # Match with LLM enhancement
 ohm match requirements my-design.okh.json --use-llm --quality-level professional
 
+# Composite matching across multiple facilities
+ohm match requirements my-design.okh.json --allow-facility-combinations --max-facilities-per-solution 3
+
+# Composite matching returning only best solution
+ohm match requirements my-design.okh.json --allow-facility-combinations --no-alternative-solutions
+
 # Save results to file
 ohm match requirements my-design.okh.json --output matches.json
 ```
@@ -980,6 +992,7 @@ The command displays matching facilities with:
 - Confidence score
 - Match type (manufacturing or cooking)
 - Location (if available)
+- Structured summary metadata (`match_summary`, `coverage_gaps`) in JSON mode
 
 **Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ohm okw get` to retrieve facility details.
 

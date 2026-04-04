@@ -1151,7 +1151,13 @@ The endpoint automatically detects the domain from the input data:
   
   // Optional Matching Parameters
   "min_confidence": 0.5,
-  "max_results": 10
+  "max_results": 10,
+
+  // Facility-combination controls (API-first)
+  "allow_facility_combinations": false,
+  "max_facilities_per_solution": 3,
+  "return_alternative_solutions": true,
+  "combination_strategy": "greedy"
 }
 ```
 
@@ -1218,6 +1224,11 @@ The endpoint returns a wrapped response with the following structure:
 - `total_solutions`: Total number of matching solutions found
 - `matching_metrics`: Breakdown of match types
 - `validation_results`: Validation results for each solution
+- `match_summary`: Structured summary object for API consumers (mode, counts, coverage, and combination flags)
+- `coverage_gaps`: Uncovered process requirements, if any
+- `match_summary_text`: Human-readable rendering of `match_summary` (for logs and quick inspection)
+  - `match_summary.coverage_gap_counts`: Multiplicity of each uncovered requirement
+  - `match_summary.warnings`: Non-fatal warnings (e.g. composite fallback to single-facility matching)
 
 **Status:**  **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
 
