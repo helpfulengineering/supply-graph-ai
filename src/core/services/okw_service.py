@@ -73,6 +73,8 @@ class OKWService(BaseService["OKWService"]):
 
             # Store directly under okw/ using the facility UUID as the filename.
             # No subdirectory is enforced; users may organise beneath okw/ freely.
+            # SmartFileDiscovery uses directory-prefix listing as its primary
+            # strategy, so no special suffix is required for discoverability.
             if self.storage and self.storage.manager:
                 filename = f"okw/{str(facility.id)}.json"
 

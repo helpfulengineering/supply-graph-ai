@@ -206,11 +206,19 @@ class SmartFileDiscovery:
                         },
                     )
                     return files
+                else:
+                    logger.debug(
+                        f"Strategy {strategy.__name__} returned 0 files for {file_type!r}, "
+                        "trying next strategy"
+                    )
             except Exception as e:
                 logger.warning(f"Strategy {strategy.__name__} failed: {e}")
                 continue
 
-        logger.info(f"No {file_type} files found using any strategy")
+        logger.warning(
+            f"No {file_type!r} files found using any of the "
+            f"{len(self.discovery_strategies)} discovery strategies"
+        )
         return []
 
     async def discover_all_files(self) -> List[FileInfo]:
@@ -252,8 +260,18 @@ class SmartFileDiscovery:
                 )
                 files.append(file_info)
 
+            if not files:
+                logger.warning(
+                    f"Directory-structure discovery found 0 files for prefix {prefix!r}. "
+                    "Check that the storage provider is reachable and that objects exist "
+                    "under this prefix."
+                )
         except Exception as e:
-            logger.debug(f"Directory structure discovery failed for {file_type}: {e}")
+            logger.warning(
+                f"Directory-structure discovery failed for {file_type!r} "
+                f"(prefix={prefix!r}): {e}",
+                exc_info=True,
+            )
 
         return files
 

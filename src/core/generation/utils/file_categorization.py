@@ -46,30 +46,73 @@ class FileCategorizationRules:
 
     def _init_extension_patterns(self) -> None:
         """Initialize extension-based categorization patterns."""
-        # Manufacturing files (for machines)
+        # Unambiguously machine-ready manufacturing files.
+        # These can be fed directly to fabrication equipment without further conversion.
         self.manufacturing_extensions = {
-            ".3mf",
-            ".stl",
-            ".step",
-            ".stp",
-            ".gcode",
-            ".nc",
-            ".amf",
+            # CNC / milling / routing G-code variants
+            ".gcode",  # FDM slicer output and generic G-code
+            ".bgcode",  # Binary G-code (Prusa Slicer)
+            ".nc",  # CNC G-code (FANUC / generic)
+            ".tap",  # CNC G-code (Mach3 / Haas)
+            ".cnc",  # CNC G-code (generic)
+            ".ngc",  # LinuxCNC G-code
+            # PCB fabrication
+            ".gbr",  # Gerber copper/silk/mask layers
+            ".ger",  # Gerber (alternate extension)
+            ".drl",  # Excellon drill file
+            ".xln",  # Excellon drill file (alternate extension)
+            # 3D-print–ready formats (sent to slicer or printer directly)
+            ".3mf",  # 3D Manufacturing Format (slicer-ready)
+            ".amf",  # Additive Manufacturing Format
         }
 
-        # Design files (source CAD)
+        # Grey-zone extensions: not machine-ready on their own, but commonly serve
+        # as the final shared manufacturing artifact in open-hardware repos.
+        # Classification falls back to directory context (see _categorize_by_extension).
+        self.grey_zone_extensions = {
+            ".stl",  # 3D mesh — needs slicing, but is the de-facto 3DP handoff artifact
+            ".dxf",  # 2D vector — fed directly to many laser-cutter controllers
+        }
+
+        # Design files (source CAD / neutral exchange formats).
+        # These require a conversion step before a machine can use them.
         self.design_extensions = {
-            ".scad",
-            ".fcstd",
-            ".blend",
-            ".f3d",
-            ".iges",
-            ".dxf",
-            ".dwg",
-            ".kicad_pcb",
-            ".kicad_mod",
-            ".sch",
-            ".brd",
+            ".scad",  # OpenSCAD source
+            ".fcstd",  # FreeCAD project
+            ".blend",  # Blender project
+            ".f3d",  # Fusion 360 design
+            ".iges",  # IGES neutral CAD exchange
+            ".step",  # STEP neutral CAD exchange
+            ".stp",  # STEP (alternate extension)
+            ".dwg",  # AutoCAD native format
+            ".kicad_pcb",  # KiCad PCB layout
+            ".kicad_mod",  # KiCad footprint
+            ".sch",  # EDA schematic
+            ".brd",  # Eagle PCB design
+        }
+
+        # Manufacturing-context directory names for grey-zone extension resolution.
+        # A .stl/.dxf inside any of these is treated as a manufacturing file.
+        self.manufacturing_context_dirs = {
+            "cam",
+            "output",
+            "export",
+            "exports",
+            "fab",
+            "fabrication",
+            "manufacturing",
+            "production",
+            "gcode",
+            "gerbers",
+            "gerber",
+            "drill",
+            "stl",
+            "stls",
+            "print",
+            "prints",
+            "cut",
+            "cuts",
+            "laser",
         }
 
         # Documentation files (require content analysis)
@@ -91,6 +134,30 @@ class FileCategorizationRules:
 
     def _init_directory_patterns(self) -> None:
         """Initialize directory-based categorization patterns."""
+        # Directories that unambiguously contain manufacturing-ready files.
+        # Any file found here is classified MANUFACTURING_FILES at high confidence,
+        # regardless of extension.
+        self.manufacturing_files_dirs = {
+            "cam",
+            "gcode",
+            "gcodes",
+            "gerbers",
+            "gerber",
+            "drill",
+            "fab",
+            "fabrication",
+            "manufacturing",
+            "production",
+            "output",
+            "export",
+            "exports",
+            "stl",
+            "stls",
+            "cut",
+            "cuts",
+            "laser",
+        }
+
         # Making instructions (for humans)
         self.making_instructions_dirs = {
             "manual",
@@ -101,7 +168,6 @@ class FileCategorizationRules:
             "assembly",
             "assemblies",
             "making",
-            "fabrication",
         }
 
         # Design files
@@ -320,13 +386,46 @@ class FileCategorizationRules:
         self, file_ext: str, path_lower: str
     ) -> Optional[FileCategorizationResult]:
         """Categorize file by extension."""
-        # Manufacturing files (high confidence)
+        # Unambiguous manufacturing files (high confidence)
         if file_ext in self.manufacturing_extensions:
             return FileCategorizationResult(
                 documentation_type=DocumentationType.MANUFACTURING_FILES,
                 confidence=0.9,
                 excluded=False,
                 reason=f"File extension {file_ext} indicates manufacturing file",
+            )
+
+        # Grey-zone extensions (.stl, .dxf): use directory context to decide.
+        # If the parent directory signals manufacturing intent, classify as manufacturing;
+        # otherwise fall back to manufacturing (safe default per project convention).
+        if file_ext in self.grey_zone_extensions:
+            path_parts = [p.lower() for p in Path(path_lower).parts[:-1]]
+            in_design_dir = any(d in path_parts for d in self.design_dirs)
+            in_mfg_dir = any(d in path_parts for d in self.manufacturing_context_dirs)
+
+            if in_design_dir and not in_mfg_dir:
+                return FileCategorizationResult(
+                    documentation_type=DocumentationType.DESIGN_FILES,
+                    confidence=0.8,
+                    excluded=False,
+                    reason=(
+                        f"Grey-zone extension {file_ext} found in design directory"
+                        " — classified as design file"
+                    ),
+                )
+            # Default to manufacturing (most practical for open-hardware repos)
+            return FileCategorizationResult(
+                documentation_type=DocumentationType.MANUFACTURING_FILES,
+                confidence=0.8,
+                excluded=False,
+                reason=(
+                    f"Grey-zone extension {file_ext}"
+                    + (
+                        " in manufacturing-context directory"
+                        if in_mfg_dir
+                        else " — defaulting to manufacturing"
+                    )
+                ),
             )
 
         # Design files (high confidence)
@@ -372,6 +471,15 @@ class FileCategorizationRules:
         path_parts = (
             [part.lower() for part in path_obj.parts[:-1]] if path_obj.parts else []
         )
+
+        # Manufacturing files — dedicated fabrication output directories take highest priority
+        if any(dir_name in path_parts for dir_name in self.manufacturing_files_dirs):
+            return FileCategorizationResult(
+                documentation_type=DocumentationType.MANUFACTURING_FILES,
+                confidence=0.9,
+                excluded=False,
+                reason="File in manufacturing output directory",
+            )
 
         # Making instructions - check if any directory component matches
         if any(dir_name in path_parts for dir_name in self.making_instructions_dirs):

@@ -505,12 +505,30 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
    - Distinguish between main parts and sub-components
    - Use file structure and documentation to determine part hierarchy
    - Map 3D models, PCBs, and assemblies to appropriate part categories
-7. **CRITICAL: Software Repository Detection**
+7. **CRITICAL: Manufacturing Files Detection**
+   - Look for files used directly in production (not just design files):
+     - CNC/milling: G-code files (.gcode, .nc, .cnc, .tap), toolpath files
+     - 3D printing: Sliced files (.gcode, .bgcode), print-ready STLs referenced as production files
+     - PCB fabrication: Gerber files (.gbr, .ger, zip of Gerbers), drill files (.drl, .xln), pick-and-place files
+     - Laser cutting: DXF/SVG files referenced as cutting files
+     - Assembly: Assembly guides, jigs, fixtures referenced in manufacturing context
+   - Reference these in the `manufacturing_files` field as a list of file paths or URLs
+   - If no dedicated manufacturing files exist but design files serve that purpose, reference them
+8. **CRITICAL: Standards Detection**
+   - Scan README and documentation for references to standards, certifications, and compliance:
+     - Safety standards: ISO, IEC, EN, ANSI, ASTM, UL
+     - Medical: FDA, CE marking, ISO 13485, ISO 80601, MDR
+     - Electronics: IPC, RoHS, REACH, FCC, CE, IC
+     - Open hardware: OSHWA certification, OSI-approved licenses
+     - Domain-specific: ASME, AWS (welding), NIST, MIL-SPEC
+   - Populate `standards_used` as a list of standard identifiers (e.g. ["ISO 9001", "CE", "RoHS"])
+   - If no explicit standards are mentioned, leave the field empty rather than guessing
+9. **CRITICAL: Software Repository Detection**
    - Look for software repository references in README
    - Detect patterns like "code can be found in [repository]" or "software repository"
    - Handle GitHub-specific patterns (separate repos for hardware/software)
    - Be context-aware: GitHub projects often separate hardware/software repos
-8. Update context file with extracted information
+10. Update context file with extracted information
 
 ### Phase 3: Schema Mapping
 1. Reference the OKH schema for field requirements
@@ -526,13 +544,24 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
    - Include part names, IDs, source files (STL, CAD), materials, dimensions
    - Distinguish between main parts and sub-components
    - Use file structure to identify part relationships
-6. **CRITICAL: Software Field Population**
+6. **CRITICAL: Manufacturing Files Field Population**
+   - Populate `manufacturing_files` with production-ready files identified in Phase 2
+   - Each entry should be a file path or URL (relative to repo root or absolute)
+   - Examples: ["gerbers/board_v2.zip", "gcode/part_a.gcode", "dxf/panel_cut.dxf"]
+   - If project is 3D-print-only, list the STL/3MF files intended for printing
+   - Do NOT leave this field empty if any fabrication files exist
+7. **CRITICAL: Standards Field Population**
+   - Populate `standards_used` as a list of standard identifiers found in Phase 2
+   - Use short, canonical identifiers: ["CE", "RoHS", "ISO 13485", "OSHWA"]
+   - Only include standards explicitly referenced in the documentation
+   - Leave empty if no standards are mentioned — do not fabricate entries
+8. **CRITICAL: Software Field Population**
    - Detect software repository references in README/documentation
    - Handle GitHub-specific patterns (separate hardware/software repos)
    - Include software repository URLs and descriptions
    - Be context-aware of platform differences (GitHub vs Thingiverse)
-7. Validate field formats and content
-8. Document mapping decisions in context file
+9. Validate field formats and content
+10. Document mapping decisions in context file
 
 ### Phase 4: Quality Assurance
 1. Verify completeness of all required fields
@@ -553,21 +582,32 @@ You are an expert OKH (Open Know-How) manifest generator specializing in open-so
 
 ## ENHANCED ANALYSIS DATA - USE THIS DATA TO POPULATE FIELDS:
 BOM Files Found: {len(project_info.get('bom_files', []))}
-Part Files Found: {len(project_info.get('part_files', []))}
+Manufacturing Candidate Files Found: {len(project_info.get('manufacturing_files', []))}
+Design Source Files Found: {len(project_info.get('design_source_files', []))}
 Software Indicators: {project_info.get('software_indicators', {})}
 
 SPECIFIC BOM FILES TO USE:
 {chr(10).join(project_info.get('bom_files', [])[:10])}
 
-SPECIFIC PART FILES TO USE:
-{chr(10).join(project_info.get('part_files', [])[:10])}
+MANUFACTURING CANDIDATE FILES (G-code, Gerbers, STL, DXF, 3MF — production-ready outputs):
+{chr(10).join(project_info.get('manufacturing_files', [])[:20])}
+→ Use these to populate the 'manufacturing_files' field.
+→ G-code (.gcode, .nc, .tap), Gerbers (.gbr, .ger), drill files (.drl, .xln) are unambiguously machine-ready.
+→ STL/.3MF are the de-facto manufacturing handoff for 3D printing repos (include them).
+→ DXF files are the de-facto manufacturing handoff for laser-cutting repos (include them).
+→ STEP/STP/IGES files are design sources — do NOT put them in manufacturing_files.
+
+DESIGN SOURCE FILES (STEP, IGES, SCAD, KiCad, FreeCAD — require conversion before production):
+{chr(10).join(project_info.get('design_source_files', [])[:20])}
+→ Use these for the 'parts[].source' field (source CAD reference), NOT for manufacturing_files.
 
 SPECIFIC SOFTWARE REFERENCES TO USE:
 {chr(10).join(project_info.get('software_indicators', {}).get('software_references', [])[:5])}
 
 MANDATORY REQUIREMENTS:
 - You MUST use the BOM files listed above to populate the 'bom' field
-- You MUST use the part files listed above to populate the 'parts' field  
+- You MUST use the MANUFACTURING CANDIDATE FILES above for 'manufacturing_files'
+- You MUST use the DESIGN SOURCE FILES above for 'parts[].source' references
 - You MUST use the software references listed above to populate the 'software' field
 - These fields CANNOT be empty or 'NOT_FOUND'
 - If you cannot find specific data, construct reasonable entries based on the file names and project context
@@ -597,8 +637,22 @@ MANDATORY REQUIREMENTS:
 ### Parts Detection Examples:
 - **Main Parts**: Chassis, wheels, motors, control board, mast
 - **Sub-parts**: Screws, brackets, connectors, mounting hardware
-- **File Mapping**: "chassis.stl" → chassis part, "wheel_assembly.step" → wheel assembly
+- **File Mapping**: "chassis.stl" → chassis part (manufacturing file + parts entry), "wheel_assembly.step" → parts source file (design source, NOT manufacturing_files)
 - **Material Detection**: "3D printed PLA", "aluminum bracket", "steel screws"
+
+### Manufacturing Files Detection Examples:
+- **PCB project**: Gerber zip in `fabrication/` or `gerbers/` → `manufacturing_files: ["fabrication/board_v1.zip"]`
+- **3D print project**: STL files used directly for printing → `manufacturing_files: ["stl/part_a.stl", "stl/part_b.stl"]`
+- **CNC project**: G-code or toolpath files → `manufacturing_files: ["cnc/pocket_cut.gcode"]`
+- **Laser cut project**: DXF/SVG cut files → `manufacturing_files: ["laser/panel.dxf"]`
+- **No dedicated files**: If only CAD source files exist, reference them and note they require export
+
+### Standards Detection Examples:
+- **Medical device**: "FDA Emergency Use Authorization" → `standards_used: ["FDA EUA"]`
+- **CE-marked**: "This product is CE certified" → `standards_used: ["CE"]`
+- **Electronics**: "RoHS compliant, meets FCC Part 15" → `standards_used: ["RoHS", "FCC Part 15"]`
+- **Open hardware**: "OSHWA certified" → `standards_used: ["OSHWA"]`
+- **No standards mentioned**: Leave `standards_used` as an empty list `[]`
 
 ### Software Repository Detection Examples:
 - **GitHub Pattern**: "All code can be found in the osr-rover-code repository"
@@ -616,7 +670,7 @@ Use {context_file} as your scratchpad for analysis.
    - If no explicit BOM, construct from parts/materials in documentation
    - NEVER leave bom field empty - always provide a BOM reference or constructed BOM
 3. **CRITICAL: Parts Field - DO NOT leave empty**
-   - Use part_files array to identify main hardware components
+   - Use the DESIGN SOURCE FILES and MANUFACTURING CANDIDATE FILES lists to identify main hardware components
    - Map 3D models (.stl, .step) to parts with materials and dimensions
    - Distinguish between main parts and sub-components
    - NEVER leave parts field empty - always populate with detected parts
@@ -645,9 +699,10 @@ Use {context_file} as your scratchpad for analysis.
         # Get documentation
         documentation = [doc.title for doc in project_data.documentation]
 
-        # Analyze files for BOM, parts, and software detection
+        # Analyze files for BOM, design sources, manufacturing candidates, and software
         bom_files = self._find_bom_files(project_data)
-        part_files = self._find_part_files(project_data)
+        manufacturing_files = self._find_manufacturing_candidate_files(project_data)
+        design_source_files = self._find_design_source_files(project_data)
         software_indicators = self._find_software_indicators(project_data)
 
         return {
@@ -657,15 +712,14 @@ Use {context_file} as your scratchpad for analysis.
                 project_data.platform.value if project_data.platform else "unknown"
             ),
             "description": project_data.metadata.get("description", ""),
-            "readme_content": (
-                readme_content[:3000] if readme_content else None
-            ),  # Increased for better analysis
+            "readme_content": readme_content[:3000] if readme_content else None,
             "file_structure": file_structure,
             "documentation": documentation,
             "files_count": len(project_data.files),
             "documentation_count": len(project_data.documentation),
             "bom_files": bom_files,
-            "part_files": part_files,
+            "manufacturing_files": manufacturing_files,
+            "design_source_files": design_source_files,
             "software_indicators": software_indicators,
         }
 
@@ -685,10 +739,7 @@ Use {context_file} as your scratchpad for analysis.
 
     def _get_file_structure(self, project_data: ProjectData) -> List[str]:
         """Get simplified file structure for LLM analysis"""
-        structure = []
-        for file_info in project_data.files[:50]:  # Limit to first 50 files
-            structure.append(file_info.path)
-        return structure
+        return [file_info.path for file_info in project_data.files]
 
     def _find_bom_files(self, project_data: ProjectData) -> List[str]:
         """Find BOM-related files in the project"""
@@ -712,34 +763,122 @@ Use {context_file} as your scratchpad for analysis.
 
         return bom_files
 
-    def _find_part_files(self, project_data: ProjectData) -> List[str]:
-        """Find part-related files (3D models, CAD files, etc.)"""
-        part_extensions = [
+    def _find_manufacturing_candidate_files(
+        self, project_data: ProjectData
+    ) -> List[str]:
+        """Return files that are likely manufacturing-ready outputs.
+
+        Includes unambiguously machine-ready formats (G-code, Gerbers, drill files,
+        3MF/AMF) plus grey-zone formats (STL, DXF) that are the de-facto production
+        handoff artifact in 3D-print and laser-cutting repos.
+        """
+        manufacturing_extensions = {
+            # Unambiguous machine-ready formats
+            ".gcode",
+            ".bgcode",
+            ".nc",
+            ".tap",
+            ".cnc",
+            ".ngc",
+            ".gbr",
+            ".ger",
+            ".drl",
+            ".xln",
+            ".3mf",
+            ".amf",
+            # Grey-zone: practical manufacturing handoff for FDM / laser cutting
             ".stl",
+            ".dxf",
+        }
+        manufacturing_dir_keywords = {
+            "cam",
+            "gcode",
+            "gcodes",
+            "gerbers",
+            "gerber",
+            "drill",
+            "fab",
+            "fabrication",
+            "manufacturing",
+            "production",
+            "output",
+            "export",
+            "exports",
+            "stl",
+            "stls",
+            "cut",
+            "cuts",
+            "laser",
+            "print",
+            "prints",
+        }
+
+        results = []
+        for file_info in project_data.files:
+            path_lower = file_info.path.lower()
+            ext = "." + path_lower.rsplit(".", 1)[-1] if "." in path_lower else ""
+            parts = path_lower.replace("\\", "/").split("/")
+
+            in_mfg_dir = any(p in manufacturing_dir_keywords for p in parts[:-1])
+
+            if ext in manufacturing_extensions or in_mfg_dir:
+                results.append(file_info.path)
+
+        return results
+
+    def _find_design_source_files(self, project_data: ProjectData) -> List[str]:
+        """Return files that are design sources (CAD, neutral-exchange, schematics).
+
+        These require a conversion step before a machine can use them.  They map
+        to the OKH ``parts[].source`` field, not to ``manufacturing_files``.
+        """
+        design_extensions = {
             ".step",
             ".stp",
+            ".iges",  # Neutral CAD exchange
+            ".scad",
+            ".fcstd",
+            ".f3d",
+            ".blend",  # Parametric / 3D CAD source
+            ".kicad_pcb",
+            ".kicad_mod",
+            ".sch",
+            ".brd",  # EDA
+            ".dwg",  # AutoCAD native
             ".obj",
-            ".ply",
-            ".3mf",
-            ".cad",
-            ".dxf",
-        ]
-        part_keywords = ["part", "component", "assembly", "model", "design"]
+            ".ply",  # Generic mesh (rarely production-ready)
+        }
+        design_dir_keywords = {
+            "cad",
+            "source",
+            "source_files",
+            "design",
+            "designs",
+            "model",
+            "models",
+            "3d",
+            "openscad",
+            "freecad",
+            "fusion",
+            "solidworks",
+            "inventor",
+            "sketchup",
+        }
+        part_keywords = {"part", "component", "assembly"}
 
-        part_files = []
+        results = []
         for file_info in project_data.files:
-            file_path_lower = file_info.path.lower()
+            path_lower = file_info.path.lower()
+            ext = "." + path_lower.rsplit(".", 1)[-1] if "." in path_lower else ""
+            parts = path_lower.replace("\\", "/").split("/")
 
-            # Check for part file extensions
-            if any(file_path_lower.endswith(ext) for ext in part_extensions):
-                part_files.append(file_info.path)
-                continue
+            in_design_dir = any(p in design_dir_keywords for p in parts[:-1])
+            has_part_keyword = any(kw in path_lower for kw in part_keywords)
 
-            # Check for part-related keywords in path
-            if any(keyword in file_path_lower for keyword in part_keywords):
-                part_files.append(file_info.path)
+            if ext in design_extensions or in_design_dir or has_part_keyword:
+                results.append(file_info.path)
 
-        return part_files[:20]  # Limit to first 20 part files
+        return results
 
     def _find_software_indicators(self, project_data: ProjectData) -> Dict[str, Any]:
         """Find software-related indicators in the project"""

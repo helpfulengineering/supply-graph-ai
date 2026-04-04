@@ -235,8 +235,19 @@ class LocalStorageProvider(StorageProvider):
         delimiter: Optional[str] = None,
         max_keys: Optional[int] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
-        """List objects in the filesystem"""
+        """List objects in the filesystem.
+
+        All files that match the prefix are yielded, regardless of whether a
+        ``.meta`` sidecar file exists.  When metadata is missing the entry is
+        populated from filesystem ``stat`` values so that files written outside
+        of ``put_object`` (e.g. manually copied, or written by an older version
+        of the service) are still discoverable.
+        """
         await self.ensure_connected()
+
+        # Normalise prefix separator to forward slash so that prefix strings
+        # like "okw/" match correctly on all platforms.
+        normalised_prefix = prefix.replace(os.sep, "/") if prefix else None
 
         count = 0
         for root, _, files in os.walk(self.base_path):
@@ -244,19 +255,38 @@ class LocalStorageProvider(StorageProvider):
                 if file.endswith(".meta"):
                     continue
 
-                rel_path = os.path.relpath(os.path.join(root, file), self.base_path)
-                if prefix and not rel_path.startswith(prefix):
+                abs_path = os.path.join(root, file)
+                rel_path = os.path.relpath(abs_path, self.base_path)
+                # Always use forward slashes for storage keys so that callers
+                # on Windows and Unix see consistent key strings.
+                key = rel_path.replace(os.sep, "/")
+
+                if normalised_prefix and not key.startswith(normalised_prefix):
                     continue
 
+                # Prefer persisted metadata; fall back to filesystem stats so
+                # that files without a sidecar are never silently skipped.
                 metadata = await self._load_metadata(rel_path)
                 if metadata:
                     yield {
-                        "key": rel_path,
+                        "key": key,
                         "size": metadata.size,
                         "last_modified": metadata.modified_at,
                         "etag": metadata.etag,
                         "metadata": metadata.metadata,
                     }
+                else:
+                    try:
+                        stat = os.stat(abs_path)
+                        yield {
+                            "key": key,
+                            "size": stat.st_size,
+                            "last_modified": datetime.fromtimestamp(stat.st_mtime),
+                            "etag": None,
+                            "metadata": {},
+                        }
+                    except OSError:
+                        continue
 
                 count += 1
                 if max_keys and count >= max_keys:

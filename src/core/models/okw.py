@@ -873,9 +873,7 @@ class ManufacturingFacility:
         for item in self.equipment:
             if process_lower in item.equipment_type.lower():
                 return True
-            if item.capabilities:
-                for cap in item.capabilities:
-                    if process_lower in cap.lower():
-                        return True
+            if process_lower in item.manufacturing_process.lower():
+                return True
 
         return False

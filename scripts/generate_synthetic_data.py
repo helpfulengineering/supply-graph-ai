@@ -7,7 +7,7 @@ It can create both OKH manifests and OKW facilities with configurable complexity
 
 Alignment: Uses the same canonical models as the rest of the codebase (src.core.models.okh,
 src.core.models.okw, src.core.domains.cooking.models). Run from project root so path
-hacks resolve correctly: `python synth/generate_synthetic_data.py ...`. Generated OKW
+hacks resolve correctly: `python scripts/generate_synthetic_data.py ...`. Generated OKW
 files are valid for ohm okw validate and matching; OKH files for ohm okh validate and
 ohm match requirements.
 
@@ -2239,7 +2239,8 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.MEMBERSHIP,
                 "certification_type": "makerspace",
             },
-            "LASER": {
+            # TSDC code: LAS (laser_cutting)
+            "LAS": {
                 "name_prefix": "Laser Cutting Facility",
                 "description": "Specialized in laser cutting and engraving services",
                 "equipment_types": ["Laser cutter"],
@@ -2248,6 +2249,7 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.MEMBERSHIP,
                 "certification_type": "makerspace",
             },
+            # TSDC code: SHEET (sheet_metal_forming)
             "SHEET": {
                 "name_prefix": "Sheet Metal Fabrication Facility",
                 "description": "Specialized in sheet metal forming and fabrication",
@@ -2257,7 +2259,8 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.RESTRICTED,
                 "certification_type": "industrial",
             },
-            "Assembly": {
+            # TSDC code: ASM (assembly)
+            "ASM": {
                 "name_prefix": "Assembly Facility",
                 "description": "Specialized in product assembly and integration",
                 "equipment_types": ["Assembly station", "Testing equipment"],
@@ -2266,6 +2269,47 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.RESTRICTED,
                 "certification_type": "professional",
             },
+            # TSDC code: MEC (mechanical_assembly)
+            "MEC": {
+                "name_prefix": "Mechanical Assembly Facility",
+                "description": "Specialized in mechanical assembly and subassembly",
+                "equipment_types": ["Assembly station", "Torque wrench", "Press"],
+                "related_processes": ["Quality Control"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "professional",
+            },
+            # TSDC code: WEL (welding)
+            "WEL": {
+                "name_prefix": "Welding Facility",
+                "description": "Specialized in welding and metal joining operations",
+                "equipment_types": ["MIG welder", "TIG welder", "Plasma cutter"],
+                "related_processes": ["Grinding", "Surface Finishing"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "industrial",
+            },
+            # TSDC code: POST (post_processing)
+            "POST": {
+                "name_prefix": "Post-Processing Facility",
+                "description": "Specialized in surface finishing and post-processing",
+                "equipment_types": ["Sand blaster", "Polisher", "Paint booth"],
+                "related_processes": ["Deburring", "Quality Control"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "industrial",
+            },
+            # TSDC code: CIR (electronic_circuitry)
+            "CIR": {
+                "name_prefix": "Electronic Circuitry Facility",
+                "description": "Specialized in electronic circuitry and embedded systems",
+                "equipment_types": ["Soldering station", "Oscilloscope", "Multimeter"],
+                "related_processes": ["Testing", "Quality Control"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "electronics",
+            },
+            # Display name (no TSDC): Electronics Assembly
             "Electronics Assembly": {
                 "name_prefix": "Electronics Assembly Facility",
                 "description": "Specialized in PCB assembly and electronics manufacturing",
@@ -2275,6 +2319,7 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.RESTRICTED,
                 "certification_type": "electronics",
             },
+            # Display name (no TSDC): Precision Machining
             "Precision Machining": {
                 "name_prefix": "Precision Machining Facility",
                 "description": "Specialized in high-precision machining operations",
@@ -2288,6 +2333,7 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.RESTRICTED,
                 "certification_type": "professional",
             },
+            # Display name (no TSDC): Clean Room Assembly
             "Clean Room Assembly": {
                 "name_prefix": "Clean Room Assembly Facility",
                 "description": "Specialized in clean room assembly for sensitive components",
@@ -2301,37 +2347,107 @@ class OKWGenerator(SyntheticDataGenerator):
                 "access_type": AccessType.RESTRICTED,
                 "certification_type": "industrial",
             },
+            # Display name (no TSDC): Soldering
+            "Soldering": {
+                "name_prefix": "Soldering and Electronics Assembly Facility",
+                "description": "Specialized in soldering, through-hole assembly, and hand assembly",
+                "equipment_types": [
+                    "Soldering station",
+                    "Hot air rework",
+                    "Fume extractor",
+                ],
+                "related_processes": ["Testing", "Quality Control"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.MEMBERSHIP,
+                "certification_type": "electronics",
+            },
+            # Display name (no TSDC): Testing
+            "Testing": {
+                "name_prefix": "Testing and Quality Facility",
+                "description": "Specialized in functional testing and quality assurance",
+                "equipment_types": ["Test bench", "Oscilloscope", "Multimeter", "AOI"],
+                "related_processes": ["Quality Control"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "professional",
+            },
+            # Display name (no TSDC): Drilling
+            "Drilling": {
+                "name_prefix": "Drilling and Machining Facility",
+                "description": "Specialized in drilling, boring, and hole-making operations",
+                "equipment_types": ["Drill press", "CNC drill", "Boring machine"],
+                "related_processes": ["Deburring", "Quality Control"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "machining",
+            },
+            # Display name (no TSDC): Grinding
+            "Grinding": {
+                "name_prefix": "Grinding and Surface Finishing Facility",
+                "description": "Specialized in surface grinding, cylindrical grinding, and finishing",
+                "equipment_types": [
+                    "Surface grinder",
+                    "Cylindrical grinder",
+                    "Belt grinder",
+                ],
+                "related_processes": ["Deburring", "Polishing"],
+                "batch_size": BatchSize.SMALL,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "machining",
+            },
+            # Display name (no TSDC): Bending
+            "Bending": {
+                "name_prefix": "Metal Bending and Forming Facility",
+                "description": "Specialized in metal bending, forming, and roll forming",
+                "equipment_types": ["Press brake", "Roll former", "Tube bender"],
+                "related_processes": ["Welding", "Deburring"],
+                "batch_size": BatchSize.MEDIUM,
+                "access_type": AccessType.RESTRICTED,
+                "certification_type": "industrial",
+            },
         }
 
-        # Process name to Wikipedia URL mapping
-        # Uses the canonical taxonomy for normalization, with Wikipedia slugs
-        # for backward compatibility with OKW data format
+        # Process name to Wikipedia URL mapping.
+        # Keys are the specialization template keys (TSDC codes or display names) plus
+        # common freetext values that may appear in OKH manufacturing_processes strings.
+        # Values are Wikipedia article slugs (appended to https://en.wikipedia.org/wiki/).
+        # The canonical source of truth for process definitions is src.core.taxonomy.
         self.process_mapping = {
-            "PCB": "Printed_circuit_board",
-            "CNC": "Machining",
+            # TSDC codes (primary keys used by analyze_okh_process_requirements)
             "3DP": "Fused_filament_fabrication",
-            "3D Printing": "Fused_filament_fabrication",
-            "FDM": "Fused_filament_fabrication",
-            "SLA": "Stereolithography",
-            "LASER": "Laser_cutting",
-            "Laser Cutting": "Laser_cutting",
+            "CNC": "Machining",
+            "LAS": "Laser_cutting",
+            "PCB": "Printed_circuit_board",
+            "ASM": "Assembly_line",
+            "MEC": "Mechanical_assembly",
+            "WEL": "Welding",
             "SHEET": "Sheet_metal_forming",
-            "Sheet Metal": "Sheet_metal_forming",
-            "Assembly": "Assembly_line",
+            "POST": "Post-processing",
+            "CIR": "Electronic_circuit",
+            # Display names for processes without TSDC codes
             "Electronics Assembly": "Electronics_manufacturing",
             "Precision Machining": "Machining",
             "Clean Room Assembly": "Assembly_line",
+            "Soldering": "Soldering",
             "Testing": "Test_equipment",
+            "Drilling": "Drilling",
+            "Grinding": "Grinding_machine",
+            "Bending": "Bending_(metalworking)",
             "Deburring": "Deburring",
             "Surface Finishing": "Surface_finish",
             "Quality Control": "Quality_control",
             "Packaging": "Packaging_and_labeling",
-            "Post-processing": "Post-processing",
+            # Freetext aliases from OKH manufacturing_processes strings
+            "3D Printing": "Fused_filament_fabrication",
+            "FDM": "Fused_filament_fabrication",
+            "SLA": "Stereolithography",
+            "Laser Cutting": "Laser_cutting",
+            "LASER": "Laser_cutting",  # legacy alias
+            "Assembly": "Assembly_line",  # legacy alias
+            "Sheet Metal": "Sheet_metal_forming",
             "Welding": "Welding",
+            "Post-processing": "Post-processing",
         }
-        # Note: This mapping is kept for backward compatibility with existing
-        # OKW JSON format which uses Wikipedia slugs in process URIs.
-        # The canonical source of truth is src.core.taxonomy.process_taxonomy.
 
         # Capacity metrics templates
         self.capacity_metrics = {
@@ -3302,15 +3418,22 @@ class OKWGenerator(SyntheticDataGenerator):
         Generate a facility specialized in a specific process.
 
         Args:
-            specialization: Process specialization (e.g., "PCB", "CNC", "3DP")
-            facility_index: Index for naming (e.g., "PCB Fabrication Facility 1")
+            specialization: Process specialization key. Accepted values are TSDC codes
+                (e.g., "ASM", "LAS", "3DP", "CNC", "PCB", "SHEET", "MEC", "WEL",
+                "POST", "CIR") or display names for processes without TSDC codes
+                (e.g., "Electronics Assembly", "Precision Machining", "Soldering",
+                "Testing", "Drilling", "Grinding", "Bending", "Clean Room Assembly").
+            facility_index: Index for naming (e.g., "3D Printing Facility 1")
             location: Optional location (if None, generates a new one)
 
         Returns:
             ManufacturingFacility specialized in the given process
         """
         if specialization not in self.specialized_templates:
-            raise ValueError(f"Unknown specialization: {specialization}")
+            raise ValueError(
+                f"Unknown specialization: {specialization!r}. "
+                f"Valid keys: {sorted(self.specialized_templates)}"
+            )
 
         template = self.specialized_templates[specialization]
 
@@ -3459,6 +3582,13 @@ class OKWGenerator(SyntheticDataGenerator):
         used_locations = set() if ensure_geographic_diversity else None
 
         for process, count in required_processes.items():
+            if process not in self.specialized_templates:
+                print(
+                    f"Warning: No specialized template for {process!r} — skipping. "
+                    f"Valid keys: {sorted(self.specialized_templates)}"
+                )
+                continue
+
             for i in range(1, count + 1):
                 # Generate location with diversity
                 location = None
@@ -3862,7 +3992,15 @@ def analyze_okh_process_requirements(
     """
     Analyze OKH manifests to extract all unique process requirements.
 
-    Returns a dictionary mapping process names to recommended facility counts.
+    Returns a dictionary mapping specialization keys to recommended facility counts.
+    Keys are TSDC codes (e.g., "ASM", "LAS", "3DP", "PCB", "CNC", "SHEET", "MEC",
+    "WEL", "POST", "CIR") for processes that have a TSDC code in the taxonomy, or
+    display names (e.g., "Electronics Assembly", "Soldering", "Testing") for the rest.
+    These keys align with the ``specialized_templates`` dict in ``OKWGenerator`` so
+    that the result can be passed directly to ``generate_coordinated_facilities``.
+    Processes that normalize to a key not present in ``specialized_templates`` are
+    skipped by ``generate_coordinated_facilities`` with a warning.
+
     Each process gets at least 2 facilities (for redundancy), with more for
     commonly used processes.
 
@@ -3870,7 +4008,7 @@ def analyze_okh_process_requirements(
         okh_manifests: List of OKHManifest objects to analyze
 
     Returns:
-        Dict mapping process names to facility counts (e.g., {"PCB": 3, "CNC": 3})
+        Dict mapping specialization keys to facility counts (e.g., {"PCB": 3, "ASM": 3})
     """
     all_processes = set()
 
