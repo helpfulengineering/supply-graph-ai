@@ -1130,7 +1130,7 @@ async def generate_from_url(
         # Convert to appropriate format
         if format == "okh":
             result = (
-                raw_result.to_okh_manifest()
+                raw_result.to_okh_manifest(include_field_confidence=verbose)
                 if hasattr(raw_result, "to_okh_manifest")
                 else raw_result
             )
@@ -1139,7 +1139,7 @@ async def generate_from_url(
                 "success": True,
                 "message": "Manifest generated successfully",
                 "manifest": (
-                    raw_result.to_okh_manifest()
+                    raw_result.to_okh_manifest(include_field_confidence=verbose)
                     if hasattr(raw_result, "to_okh_manifest")
                     else raw_result.to_dict()
                 ),
@@ -1153,7 +1153,7 @@ async def generate_from_url(
         else:
             # For json/yaml formats, use to_okh_manifest() to get full OKH structure
             result = (
-                raw_result.to_okh_manifest()
+                raw_result.to_okh_manifest(include_field_confidence=verbose)
                 if hasattr(raw_result, "to_okh_manifest")
                 else raw_result.to_dict()
             )

@@ -1,0 +1,149 @@
+{
+  "id": "71a521ea-1131-43a9-8f8c-876d1fd993d1",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "7472",
+      "street": "Hill Union",
+      "city": "Columbus",
+      "region": "NY",
+      "country": "US",
+      "postcode": "10061"
+    },
+    "gps_coordinates": "39.9622601, -83.0007065",
+    "city": "Columbus",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Large-scale manufacturing facility",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "VTC-20",
+      "condition": "Fair",
+      "quantity": 2,
+      "power_rating": 6247,
+      "maintenance_schedule": "Every 8 months",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "2439",
+              "street": "Adrian Cliffs",
+              "city": "New York",
+              "region": "OK",
+              "country": "US",
+              "postcode": "15043"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5346",
+              "street": "Andrea Park",
+              "city": "Seattle",
+              "region": "ME",
+              "country": "US",
+              "postcode": "62835"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "directions": "Located behind Clark Ltd",
+            "city": "Seattle",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 4,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 950",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 353",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Generic",
+      "model": "Model 664",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 3729,
+  "storage_capacity": "846 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IATF 16949",
+    "ISO 45001",
+    "ISO 9001:2015",
+    "AS9100"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Entire model baby hand offer firm similar.",
+    "by_products": [
+      "seek"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 10
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.713796",
+    "created_by": {
+      "name": "Montes-Rice",
+      "contact_person": "Dana Lambert",
+      "bio": "Established in 1999, we specialize in Implemented actuating neural-net",
+      "mailing_list": "hillscott@lists.hooper.com",
+      "contact": {
+        "mobile": "+1-202-996-9822",
+        "email": "info@neal.org"
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

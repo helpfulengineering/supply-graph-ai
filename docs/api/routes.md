@@ -1151,7 +1151,13 @@ The endpoint automatically detects the domain from the input data:
   
   // Optional Matching Parameters
   "min_confidence": 0.5,
-  "max_results": 10
+  "max_results": 10,
+
+  // Facility-combination controls (API-first)
+  "allow_facility_combinations": false,
+  "max_facilities_per_solution": 3,
+  "return_alternative_solutions": true,
+  "combination_strategy": "greedy"
 }
 ```
 
@@ -1212,12 +1218,20 @@ The endpoint returns a wrapped response with the following structure:
   - `facility`: Complete facility/kitchen information
   - `facility_id`: **Unique identifier** for the facility (required for API operations)
   - `facility_name`: Human-readable facility name
+  - `facility_ids`: List of facility IDs participating in the solution (**composite solutions only**)
+  - `facility_names`: List of facility names participating in the solution (**composite solutions only**)
+  - `facility_details`: List of `{facility_id, facility_name, facility}` objects (**composite solutions only**)
   - `match_type`: Domain type ("manufacturing" or "cooking")
   - `confidence`: Match confidence score (0.0-1.0)
-  - `rank`: Solution rank (1 = best match)
+  - `rank`: Solution rank (1 = best match, stable after confidence filtering and result limiting)
 - `total_solutions`: Total number of matching solutions found
 - `matching_metrics`: Breakdown of match types
 - `validation_results`: Validation results for each solution
+- `match_summary`: Structured summary object for API consumers (mode, counts, coverage, and combination flags)
+- `coverage_gaps`: Uncovered process requirements, if any
+- `match_summary_text`: Human-readable rendering of `match_summary` (for logs and quick inspection)
+  - `match_summary.coverage_gap_counts`: Multiplicity of each uncovered requirement
+  - `match_summary.warnings`: Non-fatal warnings (e.g. composite fallback to single-facility matching)
 
 **Status:**  **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
 

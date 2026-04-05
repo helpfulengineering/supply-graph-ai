@@ -1,0 +1,210 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "3facb3ad-b011-4af5-ac67-90b2044504bc",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/colemandaniel/laser-cut-acrylic-display-case",
+  "version": "2.7.6",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Natalie Cooper",
+    "email": "christina27@example.com",
+    "affiliation": "Garza-Bush",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "joshuawise"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Something prepare everybody price night interview off sound.",
+  "keywords": [
+    "open-source",
+    "assembly",
+    "mount",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Carrie Jackson",
+    "email": null,
+    "affiliation": "Vasquez LLC",
+    "social": []
+  },
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/maureen33/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/stanleyhudson/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/slee/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/thomasmark/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/millerteresa/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/michael09/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/amy76/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/cbrown/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting bed",
+    "Focus lens",
+    "Exhaust system",
+    "Heat shrink",
+    "Screwdriver set",
+    "Laser cutter",
+    "Air assist",
+    "Pliers",
+    "Wrench set",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "76W",
+          "speed": "844 mm/min",
+          "passes": 2
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Live wrong when up difference likely why remember."
+      }
+    ],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": "Manufacturing notes: Sport dog card."
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "9f82afc8-ba79-484a-b8ad-0a2ebca891cf",
+      "source": [],
+      "export": [
+        "https://github.com/jhill/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/erica96/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": {
+        "length": 48,
+        "width": 111,
+        "height": 7
+      },
+      "mass": 399.37,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

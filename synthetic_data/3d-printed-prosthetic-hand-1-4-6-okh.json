@@ -1,0 +1,276 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "77310495-0f19-49d4-ba6f-c83fcc653fd0",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/jglenn/3d-printed-prosthetic-hand",
+  "version": "1.4.6",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Diana Murphy",
+    "email": "lawrence91@example.org",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "irwinandrew"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "keywords": [
+    "documented",
+    "mount",
+    "bearing"
+  ],
+  "contributors": [
+    {
+      "name": "Stephanie Taylor",
+      "email": "amitchell@example.org",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "vcruz"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Brown Ltd",
+    "url": "https://nash-sanford.com",
+    "email": null
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-7",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/bgalloway/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/cynthiaschaefer/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/jill34/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/pmorales/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/laurie40/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/hillroy/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/williamsnicholas/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/matthew36/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.5"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Nozzle",
+    "Screwdriver set",
+    "3D printer",
+    "Wrench set",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 509.83,
+      "unit": "m³",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 297.12,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 122.89,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "bom": "https://github.com/mejiatracie/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "99a17014-b5b8-4a55-b8bf-489825459ab0",
+      "source": [],
+      "export": [
+        "https://github.com/moranamanda/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": {
+        "length": 61,
+        "width": 46,
+        "height": 66
+      },
+      "mass": 318.36,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "5be25bd2-83d5-498f-ba62-e44dff066b7a",
+      "source": [
+        "https://github.com/alexander92/project/raw/main/models/housing.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/lopezcassandra/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/johnsonlinda/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": {
+        "length": 24,
+        "width": 49,
+        "height": 93
+      },
+      "mass": 544.78,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "c7a27546-34ab-445a-a770-2b0d1706ed38",
+      "source": [
+        "https://github.com/xgarcia/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/hernandezdarlene/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 76,
+        "width": 159,
+        "height": 45
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

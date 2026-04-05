@@ -1,0 +1,209 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "c32d06e8-d9b7-4bfa-a591-82d355750b27",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/jsnyder/3d-printed-prosthetic-hand",
+  "version": "2.4.9",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Scott Fitzgerald",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "anita83"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Activity call me behind.",
+  "keywords": [
+    "customizable",
+    "fastener",
+    "documented"
+  ],
+  "contact": {
+    "name": "Denise Warren",
+    "email": "dorothy90@example.net",
+    "affiliation": "Martinez-Stone",
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Michaela Mora",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    },
+    {
+      "name": "Amy Lee",
+      "email": "hshah@example.org",
+      "affiliation": "Shields Ltd",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Bailey-Charles",
+    "url": null,
+    "email": null
+  },
+  "development_stage": "production",
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/amylee/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/alicialivingston/project/raw/main/docs/3d_printing_setup_and_parameters.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/evelyn57/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Filament",
+    "Calipers",
+    "Heat shrink",
+    "Screwdriver set",
+    "Pliers",
+    "Crimping tool",
+    "Wrench set",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 763.25,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "979a3575-adc2-4fdd-bc6a-1d0df92b2e3c",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/marieparker/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": 404.19,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Main Body",
+      "id": "efb3e3c5-5a7d-445a-a2b2-6890136cf911",
+      "source": [
+        "https://github.com/josephward/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/castillotammy/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": {
+        "length": 44,
+        "width": 156,
+        "height": 45
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "2a691f68-08e6-4f56-92f1-b3e058fb980c",
+      "source": [],
+      "export": [
+        "https://github.com/samantha55/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/anthony06/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/castillobryan/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

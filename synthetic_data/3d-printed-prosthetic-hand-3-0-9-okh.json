@@ -1,0 +1,290 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "3d23e37c-ccd9-45d4-a37a-f48a979edaca",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/travisschultz/3d-printed-prosthetic-hand",
+  "version": "3.0.9",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Kyle Colon",
+    "email": null,
+    "affiliation": "Gaines, Carey and Ramirez",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "rodriguezvirginia"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Scene pick adult education seem.",
+  "keywords": [
+    "documented",
+    "open-source",
+    "mount",
+    "bearing",
+    "bracket"
+  ],
+  "contributors": [
+    {
+      "name": "Cassandra Woods",
+      "email": "regina41@example.org",
+      "affiliation": "Martinez-Joseph",
+      "social": []
+    },
+    {
+      "name": "Jesse Perez",
+      "email": null,
+      "affiliation": "Robbins and Sons",
+      "social": []
+    }
+  ],
+  "development_stage": "production",
+  "manufacturing_files": [],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/william84/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/bflores/project/raw/main/docs/technical_drawings.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/kenneththompson/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/whitney20/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/wigginseric/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Deburring tool",
+    "Crimping tool",
+    "Heat gun",
+    "Wrench set",
+    "Heat shrink",
+    "Build plate",
+    "Screwdriver set",
+    "Filament"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": {
+      "length": 413,
+      "width": 350,
+      "height": 155
+    },
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "30%",
+          "temperature": "202°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Cut campaign can him raise project situation."
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "620e8dae-eba9-4d17-b404-cab3668677a2",
+      "source": [
+        "https://github.com/joyce03/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/browngerald/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/edwardssean/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 169,
+        "width": 144,
+        "height": 58
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "a5e2ff18-cee4-44cd-a2a3-97f4bf5b19d8",
+      "source": [
+        "https://github.com/georgelarry/project/raw/main/models/base.stl"
+      ],
+      "export": [
+        "https://github.com/cassandragreen/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/jamesschneider/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": 871.21,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "0b75b512-0d23-4e9d-9916-f3ad1900e18b",
+      "source": [],
+      "export": [
+        "https://github.com/joshuaphillips/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/robertscarrie/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": "https://github.com/johnstonjessica/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "84c62986-5950-4bdb-a804-feb685fcb04c",
+      "source": [
+        "https://github.com/qjackson/project/raw/main/models/mount.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/oholmes/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

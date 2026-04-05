@@ -1,0 +1,241 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "45aa5a96-63d1-45e2-8429-2c0de1e6f92d",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/andersonlisa/3d-printed-prosthetic-hand",
+  "version": "2.0.3",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Kurt Smith",
+    "email": null,
+    "affiliation": "Gardner-Saunders",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "hughestheresa"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "keywords": [
+    "mount",
+    "gear",
+    "customizable",
+    "open-source"
+  ],
+  "contributors": [
+    {
+      "name": "Valerie Williams",
+      "email": null,
+      "affiliation": "Lopez-Freeman",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "nwilson"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Stevens LLC",
+    "url": "https://flowers-collins.com",
+    "email": "contact@estes.info"
+  },
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/louis64/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/austinwilliam/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/whitemary/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/ashley25/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/ramirezjoseph/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/jacksonnathan/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Crimping tool",
+    "Heat gun",
+    "3D printer",
+    "Cable ties",
+    "Wrench set",
+    "Nozzle",
+    "Heat shrink",
+    "Screwdriver set",
+    "Pliers"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 637.52,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "50%",
+          "temperature": "242°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Professor when shake dog success almost stand contain."
+  },
+  "bom": "https://github.com/morenojohn/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "bf43b95e-171e-401c-b961-94489d952c7b",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 26,
+        "width": 193,
+        "height": 38
+      },
+      "mass": 360.54,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "b922c071-98e4-4fa4-812b-2a184212ded0",
+      "source": [],
+      "export": [
+        "https://github.com/brandon07/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/aaronfletcher/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": {
+        "length": 21,
+        "width": 148,
+        "height": 57
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

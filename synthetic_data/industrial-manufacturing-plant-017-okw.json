@@ -1,0 +1,182 @@
+{
+  "id": "763071e1-6174-42a5-93ba-b3e456e04282",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "4609",
+      "street": "Robert Port",
+      "city": "Phoenix",
+      "region": "WY",
+      "country": "US",
+      "postcode": "96912"
+    },
+    "gps_coordinates": "33.4484367, -112.074141",
+    "city": "Phoenix",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Shaw Ltd",
+    "location": {
+      "address": {
+        "number": "3566",
+        "street": "Mitchell Roads",
+        "city": "Houston",
+        "region": "NE",
+        "country": "US",
+        "postcode": "98471"
+      },
+      "gps_coordinates": "29.7589382, -95.3676974",
+      "directions": "Located near Howell Group",
+      "city": "Houston",
+      "country": "US"
+    },
+    "contact_person": "Ronald Dawson",
+    "bio": "Established in 2001, we specialize in Persevering 3rdgeneration forecast",
+    "website": "https://miller.com",
+    "mailing_list": "corey42@lists.pearson.com",
+    "contact": {
+      "landline": "+1-592-424-2009",
+      "mobile": "+1-295-220-4535",
+      "whatsapp": "+1-813-515-6000"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://navarro.org"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-17:00",
+  "description": "Large-scale manufacturing facility",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "PCNC 440",
+      "serial_number": "SN347849",
+      "condition": "Excellent",
+      "quantity": 2,
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "5752",
+              "street": "Miller Squares",
+              "city": "Fort Worth",
+              "region": "VT",
+              "country": "US",
+              "postcode": "93760"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located near Vang, Wyatt and Harris",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2437",
+              "street": "Wells Divide",
+              "city": "Fort Worth",
+              "region": "MD",
+              "country": "US",
+              "postcode": "27926"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located across from Martinez-Ingram",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "5730",
+              "street": "Todd View",
+              "city": "Boston",
+              "region": "MT",
+              "country": "US",
+              "postcode": "74403"
+            },
+            "gps_coordinates": "42.3588336, -71.0578303",
+            "city": "Boston",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand A",
+      "model": "Model 112",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 720",
+      "condition": "Good"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Generic",
+      "model": "Model 842",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "floor_size": 3887,
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "maintenance_schedule": "Every 2 months",
+  "typical_products": [
+    "Extended incremental core"
+  ],
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.715071",
+    "created_by": {
+      "name": "Price LLC",
+      "contact_person": "Eric Nielsen",
+      "bio": "Established in 1992, we specialize in Versatile asymmetric capability",
+      "contact": {
+        "email": "info@robinson.com"
+      },
+      "social_media": {
+        "instagram": "@andrew09"
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

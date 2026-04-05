@@ -1,0 +1,12 @@
+{
+  "id": "64i7_1",
+  "name": "64I7",
+  "quantity": 6.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "doc/VentMonATesterMonitor.pdf",
+    "confidence": 0.5
+  }
+}

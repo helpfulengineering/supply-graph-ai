@@ -1,0 +1,133 @@
+{
+  "id": "c9afa407-bbc7-468f-bdc2-7e800d380a26",
+  "name": "Sheet Metal Fabrication House",
+  "location": {
+    "address": {
+      "number": "517",
+      "street": "Madeline Plains",
+      "city": "San Diego",
+      "region": "NH",
+      "country": "US",
+      "postcode": "46625"
+    },
+    "gps_coordinates": "32.7174202, -117.162772",
+    "city": "San Diego",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 6:00-22:00",
+  "description": "Full-service sheet metal fabrication with welding and painting",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 228",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand A",
+      "model": "Model 578",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Spray Systems",
+      "model": "Semi-Downdraft",
+      "condition": "Good",
+      "notes": "Equipment notes: True school child better order professor director.",
+      "power_rating": 2678,
+      "maintenance_schedule": "Every 5 months",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7275",
+              "street": "Gina Mission",
+              "city": "Philadelphia",
+              "region": "ID",
+              "country": "US",
+              "postcode": "09952"
+            },
+            "gps_coordinates": "39.9527237, -75.1635262",
+            "city": "Philadelphia",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+          "supplier_location": {
+            "address": {
+              "number": "5647",
+              "street": "Myers Point",
+              "city": "San Jose",
+              "region": "IA",
+              "country": "US",
+              "postcode": "49032"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "city": "San Jose",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "finish_quality": "Class A surface",
+        "coating_types": [
+          "Wet spray",
+          "Powder coat",
+          "E-coat"
+        ],
+        "cure_temperature": "60-200°C",
+        "humidity_control": "Yes",
+        "supported_materials": [
+          "Primer",
+          "Enamel",
+          "Powder coat"
+        ],
+        "process_parameters": {
+          "setup_time": "47 minutes",
+          "cycle_time": "60 minutes",
+          "changeover_time": "13 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4515,
+  "storage_capacity": "374 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AWS D1.1"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "typical_products": [
+    "Right-sized national encoding",
+    "Organic intangible projection"
+  ]
+}

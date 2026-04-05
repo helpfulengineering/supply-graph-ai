@@ -1,0 +1,207 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "2887f791-cc99-476e-8670-58fd7ec508b8",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/jason09/3d-printed-prosthetic-hand",
+  "version": "2.8.5",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Michael Johnson",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "matthewbeasley"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Pretty community partner with almost accept.",
+  "intended_use": "Say society mention off about anything.",
+  "keywords": [
+    "fastener",
+    "prototype"
+  ],
+  "contact": {
+    "name": "Roberto Brown",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "amber20"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Angela Perry",
+      "email": "hector63@example.org",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "newmanmichelle"
+        }
+      ]
+    },
+    {
+      "name": "Douglas Moyer",
+      "email": null,
+      "affiliation": "Dunn, Bates and Jones",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "troy55"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Alvarez PLC",
+    "url": "https://lopez-williams.info",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/patricia73/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/welchmathew/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/wwarren/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/johntorres/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/smithmichael/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/lesliehaney/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Build plate",
+    "Nozzle",
+    "Filament",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "Wrench set",
+    "Deburring tool",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 460.27,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 719.37,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": "Grade: B"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Base",
+      "id": "6632a63e-8583-404f-940e-1f17ee5cd543",
+      "source": [
+        "https://github.com/stephaniewhitaker/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/stevenbaker/project/raw/main/docs/base_notes.md"
+      ],
+      "image": "https://github.com/ayersjustin/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": {
+        "length": 88,
+        "width": 119,
+        "height": 36
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

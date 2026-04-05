@@ -195,6 +195,12 @@ async def match_requirements_to_capabilities(
                 detail=f"Unsupported domain: {domain}",
             )
 
+        required_processes: List[str] = []
+        if domain == "manufacturing" and isinstance(requirements_data, OKHManifest):
+            required_processes = _extract_required_processes_from_manifest(
+                requirements_data
+            )
+
         # 3. Get available facilities with filtering
         facilities = await _get_filtered_facilities(
             storage_service, request, request_id, domain=domain
@@ -247,6 +253,9 @@ async def match_requirements_to_capabilities(
                 domain=domain,
                 okh_service=okh_service,
             )
+            # Some tests/mocks return a single object; normalize for robustness.
+            if not isinstance(solutions, (set, list, tuple)):
+                solutions = {solutions} if solutions else set()
 
             # Pick the best-scoring solution for response formatting
             best_solution = max(solutions, key=lambda s: s.score) if solutions else None
@@ -254,7 +263,12 @@ async def match_requirements_to_capabilities(
             # Format nested response
             processing_time = (datetime.now() - start_time).total_seconds()
             response_data = await _format_nested_response(
-                best_solution, request, request_id, processing_time, storage_service
+                best_solution,
+                request,
+                request_id,
+                processing_time,
+                storage_service,
+                required_processes=required_processes,
             )
 
             total_trees = sum(len(s.all_trees) for s in solutions)
@@ -337,6 +351,37 @@ async def match_requirements_to_capabilities(
                 },
                 "validation_results": validation_results_dicts,
             }
+
+            matched_processes = _collect_matched_processes_from_solutions(solutions)
+            composite_applied = any(bool(s.get("is_composite")) for s in solutions)
+            summary_warnings: List[str] = []
+            if request.allow_facility_combinations and not composite_applied:
+                summary_warnings.append(
+                    "Facility-combination mode was requested but no composite solution was returned."
+                )
+            match_summary, coverage_gaps = _build_match_summary(
+                required_processes=required_processes,
+                matched_processes=matched_processes,
+                solution_count=len(solutions),
+                matching_mode="single-level",
+                request=request,
+                composite_applied=composite_applied,
+                warnings=summary_warnings,
+            )
+            response_data["match_summary"] = match_summary
+            response_data["coverage_gaps"] = coverage_gaps
+            response_data["match_summary_text"] = render_match_summary(match_summary)
+            logger.info(
+                "Match summary generated",
+                extra={
+                    "request_id": request_id,
+                    "matching_mode": "single-level",
+                    "solution_count": len(solutions),
+                    "coverage_ratio": match_summary.get("coverage_ratio"),
+                    "coverage_gaps": coverage_gaps,
+                    "facility_combination_applied": composite_applied,
+                },
+            )
 
             # Auto-save solution if requested (save best solution for single-level)
             if request.save_solution and storage_service and solutions:
@@ -1123,18 +1168,134 @@ def _has_nested_components(okh_manifest: OKHManifest) -> bool:
     return False
 
 
+def _extract_required_processes_from_manifest(okh_manifest: OKHManifest) -> List[str]:
+    """Extract manufacturing process requirements from an OKH manifest."""
+    try:
+        domain_services = DomainRegistry.get_domain_services("manufacturing")
+        extractor = domain_services.extractor
+        extraction_result = extractor.extract_requirements(okh_manifest.to_dict())
+        requirements = (
+            extraction_result.data.content.get("process_requirements", [])
+            if extraction_result.data and extraction_result.data.content
+            else []
+        )
+        process_names: List[str] = []
+        for req in requirements:
+            if isinstance(req, dict):
+                process_name = str(req.get("process_name", "")).strip()
+            else:
+                process_name = str(req).strip()
+            if process_name:
+                process_names.append(process_name)
+        return process_names
+    except Exception:
+        return []
+
+
+def _collect_matched_processes_from_solutions(solutions: List[dict]) -> List[str]:
+    """Collect process-like capability names from single-level solution payloads."""
+    values: List[str] = []
+    for solution in solutions:
+        tree = solution.get("tree", {}) or {}
+        capabilities = tree.get("capabilities_used", []) or []
+        for cap in capabilities:
+            cap_text = str(cap).strip()
+            if cap_text:
+                values.append(cap_text)
+    return values
+
+
+def _collect_matched_processes_from_trees(trees: List[Any]) -> List[str]:
+    """Collect process-like capability names from nested tree models."""
+    values: List[str] = []
+    for tree in trees:
+        capabilities = getattr(tree, "capabilities_used", []) or []
+        for cap in capabilities:
+            cap_text = str(cap).strip()
+            if cap_text:
+                values.append(cap_text)
+    return values
+
+
+def _build_match_summary(
+    required_processes: List[str],
+    matched_processes: List[str],
+    solution_count: int,
+    matching_mode: str,
+    request: MatchRequest,
+    composite_applied: bool = False,
+    warnings: Optional[List[str]] = None,
+) -> tuple[Dict[str, Any], List[str]]:
+    """Build structured match summary and coverage gaps."""
+    required_norm = [p.strip().lower() for p in required_processes if str(p).strip()]
+    matched_norm = [p.strip().lower() for p in matched_processes if str(p).strip()]
+
+    # Basic substring check is resilient to URI-like capabilities.
+    covered: List[str] = []
+    uncovered: List[str] = []
+    for process in required_processes:
+        needle = process.strip().lower()
+        if not needle:
+            continue
+        if any(needle in cap or cap in needle for cap in matched_norm):
+            covered.append(process)
+        else:
+            uncovered.append(process)
+
+    required_count = len(required_norm)
+    covered_count = len(covered)
+    coverage_ratio = (covered_count / required_count) if required_count > 0 else 1.0
+
+    unique_coverage_gaps: List[str] = []
+    coverage_gap_counts: Dict[str, int] = {}
+    for gap in uncovered:
+        coverage_gap_counts[gap] = coverage_gap_counts.get(gap, 0) + 1
+        if gap not in unique_coverage_gaps:
+            unique_coverage_gaps.append(gap)
+
+    summary = {
+        "matching_mode": matching_mode,
+        "solution_count": solution_count,
+        "required_process_count": required_count,
+        "covered_process_count": covered_count,
+        "coverage_ratio": round(coverage_ratio, 3),
+        "facility_combination_requested": bool(request.allow_facility_combinations),
+        "facility_combination_applied": bool(composite_applied),
+        "max_facilities_per_solution": request.max_facilities_per_solution,
+        "return_alternative_solutions": bool(request.return_alternative_solutions),
+        "combination_strategy": request.combination_strategy,
+        "coverage_gap_counts": coverage_gap_counts,
+        "warnings": warnings or [],
+    }
+    return summary, unique_coverage_gaps
+
+
+def render_match_summary(match_summary: Dict[str, Any]) -> str:
+    """Render a compact human-readable line from a structured match summary."""
+    return (
+        f"mode={match_summary.get('matching_mode')} "
+        f"solutions={match_summary.get('solution_count')} "
+        f"coverage={match_summary.get('covered_process_count')}/"
+        f"{match_summary.get('required_process_count')} "
+        f"({match_summary.get('coverage_ratio')}) "
+        f"combinations_requested={match_summary.get('facility_combination_requested')} "
+        f"combinations_applied={match_summary.get('facility_combination_applied')}"
+    )
+
+
 async def _format_nested_response(
     solution,
     request: MatchRequest,
     request_id: Optional[str],
     processing_time: float,
     storage_service: Optional[StorageService] = None,
+    required_processes: Optional[List[str]] = None,
 ) -> dict:
     """Format nested matching response with optional tree filtering"""
     from ..error_handlers import create_success_response
 
     # Apply tree filtering if any filters are specified
-    filtered_trees = solution.all_trees
+    filtered_trees = solution.all_trees if solution else []
     filters_applied = False
 
     # Check if any tree filters are specified
@@ -1156,7 +1317,7 @@ async def _format_nested_response(
     # Apply min_confidence filter if specified (always apply for nested matching)
     apply_min_confidence = request.min_confidence is not None
 
-    if has_tree_filters or apply_min_confidence:
+    if solution and (has_tree_filters or apply_min_confidence):
         filters_applied = True
         filtered_trees = []
 
@@ -1228,18 +1389,24 @@ async def _format_nested_response(
         )
 
     # Create solution dict with filtered or original trees
-    solution_dict = solution.to_dict()
+    solution_dict = solution.to_dict() if solution else {}
 
     # Handle include_trees flag
     if not request.include_trees:
         # Return metadata only (counts, IDs) without full tree objects
         solution_dict["all_trees"] = []  # Remove full tree data
         solution_dict["tree_count"] = (
-            len(filtered_trees) if filters_applied else len(solution.all_trees)
+            len(filtered_trees)
+            if filters_applied
+            else len(solution.all_trees if solution else [])
         )
         solution_dict["tree_ids"] = [
             str(tree.id)
-            for tree in (filtered_trees if filters_applied else solution.all_trees)
+            for tree in (
+                filtered_trees
+                if filters_applied
+                else (solution.all_trees if solution else [])
+            )
         ]
         solution_dict["filtered"] = filters_applied
     else:
@@ -1248,7 +1415,9 @@ async def _format_nested_response(
             # Create a new solution dict with filtered trees
             solution_dict["all_trees"] = [tree.to_dict() for tree in filtered_trees]
             solution_dict["tree_count"] = len(filtered_trees)
-            solution_dict["original_tree_count"] = len(solution.all_trees)
+            solution_dict["original_tree_count"] = len(
+                solution.all_trees if solution else []
+            )
             solution_dict["filtered"] = True
         else:
             # Use original solution dict (already has all_trees)
@@ -1260,8 +1429,21 @@ async def _format_nested_response(
         "processing_time": processing_time,
     }
 
-    if request.include_validation and solution.validation_result:
+    if request.include_validation and solution and solution.validation_result:
         response_data["validation_result"] = solution.validation_result.to_dict()
+
+    matched_processes = _collect_matched_processes_from_trees(filtered_trees)
+    match_summary, coverage_gaps = _build_match_summary(
+        required_processes=required_processes or [],
+        matched_processes=matched_processes,
+        solution_count=1 if solution else 0,
+        matching_mode="nested",
+        request=request,
+        composite_applied=False,
+    )
+    response_data["match_summary"] = match_summary
+    response_data["coverage_gaps"] = coverage_gaps
+    response_data["match_summary_text"] = render_match_summary(match_summary)
 
     # Auto-save solution if requested
     if request.save_solution and storage_service:
@@ -1659,26 +1841,94 @@ async def _perform_enhanced_matching(
                     "Requirements data must be OKHManifest for manufacturing domain"
                 )
 
-            solutions = await matching_service.find_matches_with_manifest(
-                okh_manifest=requirements_data,
-                facilities=facilities,
-                explicit_domain=domain,
-            )
+            composite_warning: Optional[str] = None
+            if request.allow_facility_combinations:
+                try:
+                    solutions = await matching_service.find_composite_matches_with_manifest(
+                        okh_manifest=requirements_data,
+                        facilities=facilities,
+                        max_facilities_per_solution=request.max_facilities_per_solution
+                        or 3,
+                        return_alternative_solutions=bool(
+                            request.return_alternative_solutions
+                        ),
+                        combination_strategy=request.combination_strategy or "greedy",
+                        explicit_domain=domain,
+                    )
+                    if not solutions:
+                        composite_warning = "Composite solver returned no solutions; falling back to single-facility matching."
+                        logger.info(
+                            composite_warning,
+                            extra={"request_id": request_id, "domain": domain},
+                        )
+                        solutions = await matching_service.find_matches_with_manifest(
+                            okh_manifest=requirements_data,
+                            facilities=facilities,
+                            explicit_domain=domain,
+                        )
+                except Exception as composite_error:
+                    composite_warning = (
+                        "Composite solver error; falling back to single-facility matching: "
+                        f"{type(composite_error).__name__}: {composite_error}"
+                    )
+                    logger.warning(
+                        composite_warning,
+                        extra={"request_id": request_id, "domain": domain},
+                        exc_info=True,
+                    )
+                    solutions = await matching_service.find_matches_with_manifest(
+                        okh_manifest=requirements_data,
+                        facilities=facilities,
+                        explicit_domain=domain,
+                    )
+            else:
+                solutions = await matching_service.find_matches_with_manifest(
+                    okh_manifest=requirements_data,
+                    facilities=facilities,
+                    explicit_domain=domain,
+                )
 
             # Convert SupplyTreeSolution objects to dict format expected by API
             results = []
             for solution in solutions:
+                representative_tree = None
+                if getattr(solution, "all_trees", None):
+                    representative_tree = max(
+                        solution.all_trees, key=lambda t: t.confidence_score
+                    )
+                elif hasattr(solution, "tree"):
+                    representative_tree = solution.tree
+
+                if not representative_tree:
+                    continue
+
                 # Extract facility information from the solution
                 facility_name = (
-                    solution.tree.facility_name
-                    if solution.tree.facility_name
+                    representative_tree.facility_name
+                    if representative_tree.facility_name
                     else "Unknown Facility"
                 )
 
                 # Try to find the facility in the facilities list to get its ID
                 facility_id = None
                 facility_data = None
+                representative_okw_ref = (
+                    str(representative_tree.okw_reference)
+                    if getattr(representative_tree, "okw_reference", None)
+                    else None
+                )
                 for facility in facilities:
+                    if (
+                        representative_okw_ref
+                        and str(getattr(facility, "id", "")) == representative_okw_ref
+                    ):
+                        facility_id = representative_okw_ref
+                        facility_data = (
+                            facility.to_dict()
+                            if hasattr(facility, "to_dict")
+                            else facility
+                        )
+                        break
                     if hasattr(facility, "name") and facility.name == facility_name:
                         facility_id = str(facility.id)
                         facility_data = facility.to_dict()
@@ -1694,8 +1944,8 @@ async def _perform_enhanced_matching(
                 # If we couldn't find the facility, try to extract from tree metadata
                 if not facility_id:
                     facility_id = (
-                        solution.tree.metadata.get("facility_id")
-                        if solution.tree.metadata
+                        representative_tree.metadata.get("facility_id")
+                        if representative_tree.metadata
                         else None
                     )
                     if not facility_id:
@@ -1706,20 +1956,84 @@ async def _perform_enhanced_matching(
                         facility_id = str(uuid4())[:8]
 
                 # Create solution dict in expected format
+                if not facility_data:
+                    facility_data = {
+                        "id": facility_id,
+                        "name": facility_name,
+                    }
+                elif isinstance(facility_data, dict):
+                    facility_data.setdefault("id", facility_id)
+                    facility_data.setdefault("name", facility_name)
+
                 solution_dict = {
-                    "tree": solution.tree.to_dict(),
-                    "facility": facility_data if facility_data else {},
+                    "tree": representative_tree.to_dict(),
+                    "facility": facility_data,
                     "facility_id": facility_id,
                     "facility_name": facility_name,
                     "match_type": "manufacturing",
                     "confidence": (
-                        solution.tree.confidence_score
-                        if solution.tree.confidence_score
+                        representative_tree.confidence_score
+                        if representative_tree.confidence_score
                         else solution.score
                     ),
                     "score": solution.score,
                     "metrics": solution.metrics,
                 }
+                if len(getattr(solution, "all_trees", [])) > 1:
+                    solution_dict["facility_ids"] = [
+                        str(tree.okw_reference)
+                        for tree in solution.all_trees
+                        if getattr(tree, "okw_reference", None)
+                    ]
+                    solution_dict["facility_names"] = [
+                        tree.facility_name for tree in solution.all_trees
+                    ]
+                    solution_dict["is_composite"] = True
+                    solution_dict["solution"] = solution.to_dict()
+                    facility_details = []
+                    for tree in solution.all_trees:
+                        tree_facility_data = None
+                        tree_facility_id = (
+                            str(tree.okw_reference) if tree.okw_reference else None
+                        )
+                        for facility in facilities:
+                            if (
+                                tree_facility_id
+                                and str(getattr(facility, "id", "")) == tree_facility_id
+                            ):
+                                tree_facility_data = (
+                                    facility.to_dict()
+                                    if hasattr(facility, "to_dict")
+                                    else facility
+                                )
+                                break
+                            if (
+                                hasattr(facility, "name")
+                                and facility.name == tree.facility_name
+                            ):
+                                tree_facility_data = (
+                                    facility.to_dict()
+                                    if hasattr(facility, "to_dict")
+                                    else facility
+                                )
+                                if not tree_facility_id:
+                                    tree_facility_id = str(getattr(facility, "id", ""))
+                                break
+                        if not tree_facility_data:
+                            tree_facility_data = {
+                                "id": tree_facility_id,
+                                "name": tree.facility_name,
+                            }
+                        facility_details.append(
+                            {
+                                "facility_id": tree_facility_id,
+                                "facility_name": tree.facility_name,
+                                "facility": tree_facility_data or {},
+                            }
+                        )
+                    solution_dict["facility_details"] = facility_details
+                if composite_warning:
+                    solution_dict["warning"] = composite_warning
                 results.append(solution_dict)
 
             # Add match explanations if requested

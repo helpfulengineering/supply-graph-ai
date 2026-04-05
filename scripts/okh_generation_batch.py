@@ -117,6 +117,11 @@ def _parse_args() -> argparse.Namespace:
         help="Include per-file metadata in manifests (CLI --verbose)",
     )
     p.add_argument(
+        "--include-confidence",
+        action="store_true",
+        help="Include per-field confidence scores in manifest metadata (development aid; off by default)",
+    )
+    p.add_argument(
         "--core-only",
         action="store_true",
         help="Only entries with core_for_regression: true",
@@ -229,7 +234,9 @@ async def _run() -> int:
                     else None
                 ),
             )
-            manifest = result.to_okh_manifest()
+            manifest = result.to_okh_manifest(
+                include_field_confidence=args.include_confidence
+            )
             manifest_path.write_text(
                 json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",

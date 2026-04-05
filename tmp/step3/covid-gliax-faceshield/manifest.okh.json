@@ -1,0 +1,187 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "3130af43-8ae5-5527-ab9c-57a4658d7d02",
+  "title": "Face Shield",
+  "repo": "https://github.com/GliaX/faceshield",
+  "version": "1.0.0",
+  "license": {
+    "hardware": "GPL-3.0",
+    "documentation": "GPL-3.0",
+    "software": "GPL-3.0"
+  },
+  "description": "",
+  "function": "is to edit the commit",
+  "intended_use": "1 minute in warm bleach solution in well-ventilated area",
+  "keywords": [],
+  "contact": {},
+  "organization": {
+    "name": "GliaX"
+  },
+  "development_stage": "development",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "headpiece.stl",
+      "path": "source/stl/headpiece.stl"
+    }
+  ],
+  "design_files": [
+    {
+      "title": "facesheet-large.svg",
+      "path": "facesheet-large.svg"
+    },
+    {
+      "title": "facesheet-small.svg",
+      "path": "facesheet-small.svg"
+    },
+    {
+      "title": "DECONTAMINATION.md",
+      "path": "DECONTAMINATION.md"
+    },
+    {
+      "title": "headpiece.FCStd",
+      "path": "source/cad/headpiece.FCStd"
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "instructions_bilingual.png",
+      "path": "instructions_bilingual.png"
+    },
+    {
+      "title": "instructions.jpg",
+      "path": "instructions.jpg"
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "PrusaSlicer",
+    "printer"
+  ],
+  "manufacturing_processes": [
+    "3D Printing",
+    "Laser Cutting",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "mat-plastic",
+      "name": "plastic",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-filament",
+      "name": "filament",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-petg",
+      "name": "PETG",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-abs",
+      "name": "ABS",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [],
+    "process_requirements": [
+      {
+        "process_name": "3D Printing",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [
+          "printer"
+        ],
+        "notes": ""
+      },
+      {
+        "process_name": "Laser Cutting",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Assembly",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "outer_dimensions": null,
+    "notes": ""
+  },
+  "bom": {
+    "id": "f6b29003-c4c6-4f6e-849f-909bf484ebe8",
+    "name": "Face Shield BOM",
+    "summary": {
+      "total_components": 1,
+      "total_quantity": 1.0,
+      "categories": {
+        "other": 1
+      },
+      "average_confidence": 0.9
+    },
+    "external_file": "bom/bom.json",
+    "metadata": {
+      "generated_at": "2026-04-05T14:41:52.411946Z",
+      "generation_method": "bom_normalization",
+      "source_count": 1
+    }
+  },
+  "standards_used": [],
+  "tsdc": [],
+  "parts": [
+    {
+      "id": "head_piece_1",
+      "name": "head piece",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {
+    "generated_at": "2026-04-05T14:41:52.414267Z",
+    "generation_confidence": 0.47,
+    "low_confidence_fields": [
+      "repo",
+      "readme",
+      "organization",
+      "function",
+      "intended_use",
+      "materials",
+      "documentation_language",
+      "tool_list",
+      "content_classification"
+    ],
+    "missing_required_fields": [
+      "licensor"
+    ],
+    "generation_method": "automated_extraction"
+  },
+  "documentation_language": "en",
+  "licensor": {
+    "name": "GliaX",
+    "url": null,
+    "email": null
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b6b6e310-6cc0-42f7-a58e-529e65cc3e3d",
+  "title": "CNC Machined Aluminum Bracket",
+  "repo": "https://github.com/staylor/cnc-machined-aluminum-bracket",
+  "version": "1.7.0",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Bethany Miller",
+    "email": null,
+    "affiliation": "Blackburn-Montes",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jennifer17"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Precision mounting bracket for industrial equipment",
+  "description": "A cnc machined aluminum bracket designed for Finally space role and film city amount.",
+  "intended_use": "Money view find.",
+  "keywords": [
+    "gear",
+    "mount",
+    "customizable",
+    "bearing"
+  ],
+  "contributors": [
+    {
+      "name": "Madeline Washington",
+      "email": null,
+      "affiliation": "Jackson Group",
+      "social": []
+    },
+    {
+      "name": "Jason Garrison",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "ikelly"
+        }
+      ]
+    },
+    {
+      "name": "Michael Pena",
+      "email": null,
+      "affiliation": "Wong-Miller",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Rowe, Sherman and Hodge",
+    "url": "https://lee-dunn.com",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/bellthomas/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/plowery/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/kimberlyford/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/eugene41/project/raw/main/docs/technical_drawings.f3d",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for CNC Machined Aluminum Bracket",
+      "path": "https://github.com/nbennett/project/raw/main/docs/assembly_guide_for_cnc_machined_aluminum_bracket.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "CNC Machining Instructions",
+      "path": "https://github.com/carlos35/project/raw/main/docs/cnc_machining_instructions.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/browncody/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.0"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting tools",
+    "Workholding",
+    "Dial indicator"
+  ],
+  "manufacturing_processes": [
+    "CNC",
+    "Deburring",
+    "Anodizing"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 629.66,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": {
+      "length": 336,
+      "width": 439,
+      "height": 58
+    },
+    "process_requirements": [
+      {
+        "process_name": "CNC",
+        "parameters": {
+          "tolerance": "±0.05mm",
+          "surface_finish": "Ra 3.2μm",
+          "cutting_speed": "209 m/min"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.01mm",
+          "surface_roughness": "Ra 1.6μm max"
+        },
+        "required_tools": [
+          "CNC mill",
+          "Cutting tools",
+          "CMM"
+        ],
+        "notes": "Process notes: Four project look ago woman offer worry."
+      }
+    ],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "CNC"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "6690189a-6e40-468e-8e41-b25464bb2709",
+      "source": [
+        "https://github.com/leetraci/project/raw/main/models/bracket.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/zimmermanjoseph/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "d7246c61-ea33-4a02-9b49-d79d68ed7daf",
+      "source": [],
+      "export": [
+        "https://github.com/michellecook/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/michaeltyler/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 57,
+        "width": 24,
+        "height": 6
+      },
+      "mass": 743.56,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "7242c5ca-79fd-494a-8627-6aeffc97e628",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/lchapman/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Aluminum 6061",
+      "outer_dimensions": {
+        "length": 37,
+        "width": 166,
+        "height": 72
+      },
+      "mass": 372.36,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "692d77b4-a66e-44f8-814e-bfa61c6aaa79",
+      "source": [
+        "https://github.com/yvettesteele/project/raw/main/models/frame.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/smithrobert/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Cutting fluid",
+      "outer_dimensions": {
+        "length": 96,
+        "width": 128,
+        "height": 73
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 3.2μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

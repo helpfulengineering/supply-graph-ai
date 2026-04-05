@@ -53,6 +53,7 @@ addopts = "-v --tb=short"
 asyncio_mode = "strict"
 markers = [
     "e2e: end-to-end canonical workflow tests",
+    "integration: integration tests that may require services or seeded data",
     "slow: tests that take more than 10 seconds",
     "llm: tests requiring LLM API access",
     "benchmark: performance benchmark tests",

@@ -1,0 +1,291 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "b399dc98-e47d-4bb8-80af-3e22f00796ce",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/jessicabell/arduino-based-iot-sensor-node",
+  "version": "2.7.3",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Diana Contreras",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "es",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Certain rather way hit finish set.",
+  "keywords": [
+    "reproducible",
+    "customizable",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Mary Smith",
+    "email": "lwatkins@example.com",
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Stacey Hunter",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "jessicaadams"
+        }
+      ]
+    },
+    {
+      "name": "Heidi Guerra",
+      "email": null,
+      "affiliation": "Williams, Finley and Rangel",
+      "social": []
+    },
+    {
+      "name": "Perry Anderson",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Bray-Herrera",
+    "url": "https://morris.org",
+    "email": "contact@mccarthy.com"
+  },
+  "technology_readiness_level": "TRL-4",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/mathewsthomas/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/maldonadogary/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.8"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/sheilabowers/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/lwright/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/webertyler/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/hendersondorothy/project/raw/main/docs/pcb_assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/ggonzalez/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/johnsonmaurice/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "PCB mill",
+    "Nozzle",
+    "Oscilloscope",
+    "Filament",
+    "Calipers",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "3D printer",
+    "Deburring tool",
+    "Pick and place",
+    "Reflow oven"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 234.62,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "PCB",
+        "parameters": {
+          "board_thickness": "2.0mm",
+          "copper_thickness": "35μm",
+          "layers": 4
+        },
+        "validation_criteria": {
+          "trace_width": "≥0.1mm",
+          "via_diameter": "≥0.2mm"
+        },
+        "required_tools": [
+          "PCB mill",
+          "Soldering station",
+          "Multimeter"
+        ],
+        "notes": "Process notes: Education turn investment represent vote particularly perform."
+      },
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "50%",
+          "temperature": "208°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Result ago subject believe."
+      }
+    ],
+    "quality_standards": [],
+    "notes": "Manufacturing notes: Middle understand magazine."
+  },
+  "bom": "https://github.com/amyli/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "FCC Part 15",
+      "publisher": "FCC",
+      "reference": "47 CFR Part 15",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "PCB"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "96384fd7-e861-49ca-9fd5-51df88de7669",
+      "source": [
+        "https://github.com/jenniferdelgado/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/edward02/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/stephanie77/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": null,
+      "mass": 18.46,
+      "manufacturing_params": {
+        "board_thickness": "1.6mm",
+        "copper_thickness": "35μm"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "051d3bec-dff1-4909-8482-a410236831b9",
+      "source": [
+        "https://github.com/dustinwright/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/kaneamy/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [
+        "https://github.com/dominicbrown/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": "https://github.com/debbie74/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "FR4",
+      "outer_dimensions": null,
+      "mass": 155.09,
+      "manufacturing_params": {
+        "board_thickness": "0.8mm",
+        "copper_thickness": "35μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -90,6 +90,36 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         description="Include per-facility match explanations (which layer/rule matched each requirement).",
     )
 
+    # Facility-combination controls (API-first, Phase 1)
+    allow_facility_combinations: Optional[bool] = Field(
+        False,
+        description=(
+            "Enable facility-combination matching mode for manufacturing. "
+            "When enabled, the service may return aggregated multi-facility solutions "
+            "instead of requiring one facility to satisfy all process requirements."
+        ),
+    )
+    max_facilities_per_solution: Optional[int] = Field(
+        3,
+        ge=1,
+        le=20,
+        description="Maximum number of facilities allowed in a single aggregated solution.",
+    )
+    return_alternative_solutions: Optional[bool] = Field(
+        True,
+        description=(
+            "If True, return multiple ranked alternatives when available. "
+            "If False, return only the top-ranked solution."
+        ),
+    )
+    combination_strategy: Optional[str] = Field(
+        "greedy",
+        description=(
+            "Strategy identifier for facility-combination solver. "
+            "Current values are forward-compatible; 'greedy' is the default."
+        ),
+    )
+
     # Solution storage options
     save_solution: Optional[bool] = Field(
         False,
@@ -184,6 +214,10 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
                 "max_depth": 0,  # 0 = single-level, > 0 = nested matching
                 "auto_detect_depth": False,
                 "include_validation": True,
+                "allow_facility_combinations": False,
+                "max_facilities_per_solution": 3,
+                "return_alternative_solutions": True,
+                "combination_strategy": "greedy",
                 "use_llm": True,
                 "llm_provider": "anthropic",
                 "llm_model": "claude-sonnet-4-5",

@@ -1,0 +1,220 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "f2e1b48c-27cd-4566-8705-0fc8dcd05efe",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/davidkramer/laser-cut-acrylic-display-case",
+  "version": "3.5.0",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Jennifer Lucas",
+    "email": "richardsanchez@example.net",
+    "affiliation": "Hammond Group",
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Bar stand wrong cup partner fund.",
+  "keywords": [
+    "modular",
+    "fastener",
+    "prototype"
+  ],
+  "contact": {
+    "name": "Logan Burton",
+    "email": null,
+    "affiliation": "Kline-Francis",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "mmartin"
+      }
+    ]
+  },
+  "development_stage": "prototype",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/edgar92/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.5"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/shafferemma/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/jonathanjordan/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/ibauer/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/yatesjoseph/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/orussell/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.1"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting bed",
+    "Focus lens",
+    "Exhaust system",
+    "Heat shrink",
+    "Laser cutter",
+    "Crimping tool",
+    "Material guides",
+    "Pliers"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "77W",
+          "speed": "410 mm/min",
+          "passes": 3
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "a7a56052-b883-46d5-95f9-6a2ba32396a8",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/stephen66/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": 527.4,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "a2c80bed-de27-4b86-bf38-aa2517f1e8cf",
+      "source": [
+        "https://github.com/david25/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/johngates/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/william40/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 30,
+        "width": 13,
+        "height": 9
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

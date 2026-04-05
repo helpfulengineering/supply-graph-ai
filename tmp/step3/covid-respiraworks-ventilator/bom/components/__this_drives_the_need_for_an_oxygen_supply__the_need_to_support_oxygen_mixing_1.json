@@ -1,0 +1,12 @@
+{
+  "id": "__this_drives_the_need_for_an_oxygen_supply__the_need_to_support_oxygen_mixing_1",
+  "name": "- this drives the need for an oxygen supply, the need to support oxygen mixing",
+  "quantity": 2.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "design/design-rationales.md",
+    "confidence": 0.7
+  }
+}

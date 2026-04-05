@@ -1,0 +1,12 @@
+{
+  "id": "thumb_screws__which_go_into_threaded_inserts__right_now_were_using_standard_26",
+  "name": "thumb screws, which go into threaded inserts. Right now were using standard",
+  "quantity": 20.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "manufacturing/internals/filter_panel/filter_holder/README.md",
+    "confidence": 0.7
+  }
+}

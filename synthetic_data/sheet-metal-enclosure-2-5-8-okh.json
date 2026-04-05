@@ -1,0 +1,244 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "098aba8e-6d10-4299-b4d7-aba763a611a8",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/christophermcclure/sheet-metal-enclosure",
+  "version": "2.5.8",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Michael Mitchell",
+    "email": "james94@example.org",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "michael03"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "keywords": [
+    "bracket",
+    "housing",
+    "reproducible",
+    "customizable"
+  ],
+  "contact": {
+    "name": "Gregory Melton",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "tfarrell"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Jill Davis",
+      "email": "qcontreras@example.net",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "davistyler"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Rodriguez, Pollard and Lambert",
+    "url": "https://salazar.net",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/christopheranderson/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/idavis/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/suarezleslie/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/dgonzalez/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/dana17/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/angelamiller/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/dakotaduarte/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/ncarter/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Shear",
+    "Punch press",
+    "Welder",
+    "Heat shrink",
+    "Screwdriver set",
+    "Pliers",
+    "Wrench set",
+    "Drill press",
+    "Sheet metal brake"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 308.89,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": {
+      "length": 55,
+      "width": 258,
+      "height": 69
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "0b681b17-69a8-4758-a84e-d94d9d50a990",
+      "source": [],
+      "export": [
+        "https://github.com/patricklambert/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/galvanelizabeth/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 110,
+        "width": 189,
+        "height": 17
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "a58af0a0-9a20-4588-9ddb-fdfb8eb7267e",
+      "source": [],
+      "export": [
+        "https://github.com/davidmedina/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/angelawilliams/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/bennettaustin/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 145,
+        "width": 175,
+        "height": 21
+      },
+      "mass": 952.61,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

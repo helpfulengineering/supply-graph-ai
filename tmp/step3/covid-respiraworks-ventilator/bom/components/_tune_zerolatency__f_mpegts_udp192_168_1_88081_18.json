@@ -1,0 +1,12 @@
+{
+  "id": "_tune_zerolatency__f_mpegts_udp192_168_1_88081_18",
+  "name": "-tune zerolatency -f mpegts udp192.168.1.88081",
+  "quantity": 264.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "software/controller/integration_tests/webcam/README.md",
+    "confidence": 0.45
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "status": "success",
+  "message": "Matching completed successfully",
+  "timestamp": "2026-04-04T23:26:54.849924",
+  "request_id": "d82ddf78-c30d-4e6a-a896-75816c465604",
+  "data": {
+    "solutions": [
+      {
+        "tree": {
+          "id": "f076051a-9730-4e86-8d65-63901055cd53",
+          "facility_name": "Facility Ranked",
+          "okh_reference": "8b71e3d8-58ca-41cf-83f4-0587c4d2fcc4",
+          "okw_reference": null,
+          "confidence_score": 0.91,
+          "estimated_cost": null,
+          "estimated_time": null,
+          "materials_required": [],
+          "capabilities_used": [
+            "3DP"
+          ],
+          "match_type": "unknown",
+          "metadata": {},
+          "creation_time": "2026-04-04T23:26:50.483623",
+          "parent_tree_id": null,
+          "child_tree_ids": [],
+          "component_id": null,
+          "component_name": null,
+          "component_quantity": null,
+          "component_unit": null,
+          "depends_on": [],
+          "required_by": [],
+          "production_stage": "final",
+          "assembly_location": null,
+          "depth": 0,
+          "component_path": []
+        },
+        "facility": {
+          "id": "620a8ffc",
+          "name": "Facility Ranked"
+        },
+        "facility_id": "620a8ffc",
+        "facility_name": "Facility Ranked",
+        "match_type": "manufacturing",
+        "confidence": 0.91,
+        "score": 0.91,
+        "metrics": {},
+        "rank": 1,
+        "processing_timestamp": "2026-04-04T23:26:54.849669"
+      }
+    ],
+    "total_solutions": 1,
+    "matching_mode": "single-level",
+    "processing_time": 3.862515,
+    "matching_metrics": {
+      "direct_matches": 0,
+      "heuristic_matches": 0,
+      "nlp_matches": 0,
+      "llm_matches": 0
+    },
+    "validation_results": [
+      {
+        "is_valid": true,
+        "score": 0.91,
+        "errors": [],
+        "warnings": [],
+        "suggestions": []
+      }
+    ],
+    "match_summary": {
+      "matching_mode": "single-level",
+      "solution_count": 1,
+      "required_process_count": 0,
+      "covered_process_count": 0,
+      "coverage_ratio": 1.0,
+      "facility_combination_requested": false,
+      "facility_combination_applied": false,
+      "max_facilities_per_solution": 3,
+      "return_alternative_solutions": true,
+      "combination_strategy": "greedy",
+      "coverage_gap_counts": {},
+      "warnings": []
+    },
+    "coverage_gaps": [],
+    "match_summary_text": "mode=single-level solutions=1 coverage=0/0 (1.0) combinations_requested=False combinations_applied=False"
+  },
+  "metadata": {
+    "processing_time": 3.8627731800079346,
+    "timestamp": "2026-04-04T23:26:54.849930"
+  }
+}

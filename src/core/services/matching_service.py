@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID
 
 from src.config.settings import MAX_DEPTH
@@ -274,6 +274,246 @@ class MatchingService:
                 exc_info=True,
             )
             raise
+
+    async def find_composite_matches_with_manifest(
+        self,
+        okh_manifest: OKHManifest,
+        facilities: List[ManufacturingFacility],
+        max_facilities_per_solution: int = 3,
+        return_alternative_solutions: bool = True,
+        combination_strategy: str = "greedy",
+        explicit_domain: Optional[str] = None,
+    ) -> Set[SupplyTreeSolution]:
+        """
+        Build aggregate multi-facility solutions when one facility is insufficient.
+
+        Phase 2 implementation:
+        - Uses a greedy set-cover strategy over extracted process requirements.
+        - Returns one or more `SupplyTreeSolution` objects with metadata including
+          `coverage_ratio` and `coverage_gaps`.
+        """
+        await self.ensure_initialized()
+
+        if max_facilities_per_solution < 1:
+            max_facilities_per_solution = 1
+        if not facilities:
+            logger.warning(
+                "Composite matching requested with empty facility pool",
+                extra={"manifest_id": str(getattr(okh_manifest, "id", None))},
+            )
+            return set()
+
+        if combination_strategy != "greedy":
+            logger.warning(
+                "Unsupported combination strategy requested; falling back to greedy",
+                extra={"requested_strategy": combination_strategy},
+            )
+            combination_strategy = "greedy"
+
+        domain = await self._detect_domain_for_matching(
+            okh_manifest, facilities, explicit_domain
+        )
+        if domain != "manufacturing":
+            # For now, composite mode is manufacturing-focused.
+            return await self.find_matches_with_manifest(
+                okh_manifest=okh_manifest,
+                facilities=facilities,
+                explicit_domain=domain,
+            )
+
+        domain_services = DomainRegistry.get_domain_services(domain)
+        extractor = domain_services.extractor
+
+        extraction_result = extractor.extract_requirements(okh_manifest.to_dict())
+        requirements = (
+            extraction_result.data.content.get("process_requirements", [])
+            if extraction_result.data
+            else []
+        )
+        if not requirements and getattr(okh_manifest, "manufacturing_processes", None):
+            requirements = [
+                {"process_name": process_name}
+                for process_name in okh_manifest.manufacturing_processes
+                if isinstance(process_name, str) and process_name.strip()
+            ]
+        req_list = self._normalize_requirement_list(requirements)
+        if not req_list:
+            logger.warning(
+                "Composite matching aborted: no process requirements extracted",
+                extra={
+                    "manifest_id": str(getattr(okh_manifest, "id", None)),
+                    "manifest_title": getattr(okh_manifest, "title", None),
+                },
+            )
+            return set()
+
+        requirement_names = [
+            (r.get("process_name", "") if isinstance(r, dict) else str(r))
+            for r in req_list
+        ]
+
+        candidate_data: List[Dict[str, Any]] = []
+        for facility in facilities:
+            facility_data = facility.to_dict()
+            ext_cap = extractor.extract_capabilities(facility_data)
+            capabilities = (
+                ext_cap.data.content.get("capabilities", [])
+                if ext_cap.data and ext_cap.data.content
+                else []
+            )
+            if (
+                not capabilities
+                and hasattr(facility, "manufacturing_processes")
+                and facility.manufacturing_processes
+            ):
+                capabilities = [
+                    {"process_name": process_name}
+                    for process_name in facility.manufacturing_processes
+                    if isinstance(process_name, str) and process_name.strip()
+                ]
+            cap_list = self._normalize_capability_list(capabilities)
+            covered_indices = await self._covered_requirement_indices(
+                req_list=req_list,
+                cap_list=cap_list,
+                domain=domain,
+            )
+            if covered_indices:
+                candidate_data.append(
+                    {
+                        "facility": facility,
+                        "covered_indices": covered_indices,
+                    }
+                )
+
+        if not candidate_data:
+            logger.info(
+                "Composite matching found zero candidate facilities",
+                extra={
+                    "manifest_id": str(getattr(okh_manifest, "id", None)),
+                    "requirement_count": len(req_list),
+                    "facility_count": len(facilities),
+                },
+            )
+            return set()
+
+        async def build_solution(
+            seed_idx: Optional[int] = None,
+        ) -> Optional[SupplyTreeSolution]:
+            uncovered = set(range(len(req_list)))
+            selected: List[Dict[str, Any]] = []
+
+            if seed_idx is not None and 0 <= seed_idx < len(candidate_data):
+                seeded = candidate_data[seed_idx]
+                gain = len(seeded["covered_indices"] & uncovered)
+                if gain > 0:
+                    selected.append(seeded)
+                    uncovered -= seeded["covered_indices"]
+
+            while uncovered and len(selected) < max_facilities_per_solution:
+                best_idx = None
+                best_gain = 0
+                best_total_cover = 0
+                for idx, candidate in enumerate(candidate_data):
+                    if candidate in selected:
+                        continue
+                    gain = len(candidate["covered_indices"] & uncovered)
+                    total_cover = len(candidate["covered_indices"])
+                    if gain > best_gain or (
+                        gain == best_gain and total_cover > best_total_cover
+                    ):
+                        best_gain = gain
+                        best_total_cover = total_cover
+                        best_idx = idx
+
+                if best_idx is None or best_gain <= 0:
+                    break
+
+                winner = candidate_data[best_idx]
+                selected.append(winner)
+                uncovered -= winner["covered_indices"]
+
+            if not selected:
+                return None
+
+            trees: List[SupplyTree] = []
+            covered_union: Set[int] = set()
+            for item in selected:
+                facility = item["facility"]
+                covered_union |= item["covered_indices"]
+                tree = await self._generate_supply_tree(okh_manifest, facility, domain)
+                tree.metadata = tree.metadata or {}
+                tree.metadata["composite_matching"] = True
+                tree.metadata["covered_requirements"] = sorted(item["covered_indices"])
+                trees.append(tree)
+
+            coverage_ratio = len(covered_union) / len(req_list) if req_list else 0.0
+            coverage_gaps = [
+                requirement_names[i]
+                for i in sorted(set(range(len(req_list))) - covered_union)
+                if requirement_names[i]
+            ]
+
+            score = (
+                sum(tree.confidence_score for tree in trees) / len(trees)
+                if trees
+                else 0.0
+            )
+            solution = SupplyTreeSolution.from_nested_trees(
+                all_trees=trees,
+                root_trees=trees,
+                component_mapping={},
+                score=score,
+                metrics={
+                    "facility_count": len(trees),
+                    "required_process_count": len(req_list),
+                    "covered_process_count": len(covered_union),
+                },
+                metadata={
+                    "matching_mode": "facility-combination",
+                    "combination_strategy": combination_strategy,
+                    "coverage_ratio": round(coverage_ratio, 3),
+                    "coverage_gaps": coverage_gaps,
+                    "coverage_complete": len(coverage_gaps) == 0,
+                    "max_facilities_per_solution": max_facilities_per_solution,
+                    "selected_facilities": [tree.facility_name for tree in trees],
+                },
+            )
+            return solution
+
+        candidate_order = sorted(
+            range(len(candidate_data)),
+            key=lambda i: len(candidate_data[i]["covered_indices"]),
+            reverse=True,
+        )
+        seeds = [None]
+        if return_alternative_solutions:
+            seeds.extend(candidate_order[: min(3, len(candidate_order))])
+
+        solutions: Set[SupplyTreeSolution] = set()
+        seen_signatures: Set[Tuple[str, ...]] = set()
+        for seed in seeds:
+            solution = await build_solution(seed_idx=seed)
+            if not solution:
+                continue
+            signature = tuple(
+                sorted(str(tree.okw_reference) for tree in solution.all_trees)
+            )
+            if signature in seen_signatures:
+                continue
+            seen_signatures.add(signature)
+            solutions.add(solution)
+
+        logger.info(
+            "Composite matching completed",
+            extra={
+                "manifest_id": str(getattr(okh_manifest, "id", None)),
+                "solution_count": len(solutions),
+                "candidate_facility_count": len(candidate_data),
+                "max_facilities_per_solution": max_facilities_per_solution,
+                "combination_strategy": combination_strategy,
+            },
+        )
+        return solutions
 
     async def _can_satisfy_requirements(
         self,
@@ -609,6 +849,78 @@ class MatchingService:
         if not req_list or not cap_list:
             return None, None
         return req_list, cap_list
+
+    def _normalize_capability_list(
+        self, capabilities: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Normalize capability objects to dict list."""
+        cap_list: List[Dict[str, Any]] = []
+        for cap in capabilities:
+            if isinstance(cap, dict):
+                cap_list.append(cap)
+            elif hasattr(cap, "type") or hasattr(cap, "process_name"):
+                process_name = getattr(cap, "process_name", None) or getattr(
+                    cap, "type", ""
+                )
+                cap_list.append(
+                    {
+                        "process_name": process_name,
+                        "parameters": getattr(cap, "parameters", {}),
+                        "validation_criteria": getattr(cap, "validation_criteria", {}),
+                        "required_tools": getattr(cap, "required_tools", []),
+                    }
+                )
+        return cap_list
+
+    def _normalize_requirement_list(
+        self, requirements: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Normalize requirement objects to dict list."""
+        req_list: List[Dict[str, Any]] = []
+        for req in requirements:
+            if isinstance(req, dict):
+                req_list.append(req)
+            elif hasattr(req, "process_name"):
+                req_list.append(
+                    {
+                        "process_name": req.process_name,
+                        "parameters": getattr(req, "parameters", {}),
+                        "validation_criteria": getattr(req, "validation_criteria", {}),
+                        "required_tools": getattr(req, "required_tools", []),
+                    }
+                )
+        return req_list
+
+    async def _covered_requirement_indices(
+        self,
+        req_list: List[Dict[str, Any]],
+        cap_list: List[Dict[str, Any]],
+        domain: str,
+    ) -> Set[int]:
+        """Return requirement indexes covered by capability list."""
+        covered: Set[int] = set()
+        for idx, req in enumerate(req_list):
+            raw_req = req.get("process_name", "").strip()
+            req_process = self._normalize_process_name(raw_req).lower().strip()
+            if not req_process:
+                continue
+
+            for cap in cap_list:
+                raw_cap = cap.get("process_name", "").strip()
+                cap_process = self._normalize_process_name(raw_cap).lower().strip()
+                if not cap_process:
+                    continue
+
+                if await self._direct_match(req_process, cap_process, domain):
+                    covered.add(idx)
+                    break
+                if await self._heuristic_match(req_process, cap_process, domain):
+                    covered.add(idx)
+                    break
+                if await self._nlp_match(req_process, cap_process, domain):
+                    covered.add(idx)
+                    break
+        return covered
 
     async def get_match_explanation(
         self,
@@ -2219,7 +2531,7 @@ class MatchingService:
             )
         ]
 
-        # CRITICAL: Log component processes in the main message so it's always visible
+        # Log component process shape for diagnostics.
         logger.info(
             f"Matching component '{component.name}' to {len(facilities)} facilities | "
             f"Component processes: {component_processes} | "
@@ -2236,9 +2548,11 @@ class MatchingService:
         )
 
         if non_uri_processes:
-            logger.error(
-                f"CRITICAL: Component '{component.name}' has non-URI processes! "
-                f"non_uri_processes={non_uri_processes}, all_processes={component_processes}",
+            # Non-URI processes are expected for many manifests after normalization.
+            # Keep this visible for debugging, but do not emit as an ERROR.
+            logger.warning(
+                f"Component '{component.name}' includes non-URI process labels "
+                f"(accepted): {non_uri_processes}",
                 extra={
                     "component_id": component.id,
                     "component_name": component.name,

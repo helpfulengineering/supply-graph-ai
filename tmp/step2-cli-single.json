@@ -1,0 +1,153 @@
+{
+  "solutions": [
+    {
+      "all_trees": [
+        {
+          "id": "5a79028a-20e9-4d74-b400-3a8df2b43191",
+          "facility_name": "Laser Fabrication Lab",
+          "okh_reference": "14ea636e-a8dc-4872-9eff-5ad859732af1",
+          "okw_reference": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+          "confidence_score": 1.0,
+          "estimated_cost": null,
+          "estimated_time": null,
+          "materials_required": [
+            "MaterialSpec(material_id='PETG', name='Polyethylene Terephthalate Glycol', quantity=529.55, unit='g', notes='Grade: A')",
+            "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=399.44, unit='m\u00b2', notes='Grade: B')",
+            "MaterialSpec(material_id='ABS', name='Acrylonitrile Butadiene Styrene', quantity=359.21, unit='g', notes='Grade: C')",
+            "MaterialSpec(material_id='FR4', name='FR4 PCB Material', quantity=316.0, unit='m\u00b2', notes=None)"
+          ],
+          "capabilities_used": [
+            "https://en.wikipedia.org/wiki/Laser_cutting",
+            "https://en.wikipedia.org/wiki/Assembly_line",
+            "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "https://en.wikipedia.org/wiki/Welder",
+            "https://en.wikipedia.org/wiki/Painting"
+          ],
+          "match_type": "direct",
+          "metadata": {
+            "okh_title": "Laser Cut Acrylic Display Case",
+            "facility_name": "Laser Fabrication Lab",
+            "generation_method": "simplified_matching",
+            "domain": "manufacturing",
+            "equipment_count": 5,
+            "process_count": 2
+          },
+          "creation_time": "2026-04-04T23:45:26.515137",
+          "parent_tree_id": null,
+          "child_tree_ids": [],
+          "component_id": null,
+          "component_name": null,
+          "component_quantity": null,
+          "component_unit": null,
+          "depends_on": [],
+          "required_by": [],
+          "production_stage": "final",
+          "assembly_location": null,
+          "depth": 0,
+          "component_path": []
+        }
+      ],
+      "root_trees": [
+        {
+          "id": "5a79028a-20e9-4d74-b400-3a8df2b43191",
+          "facility_name": "Laser Fabrication Lab",
+          "okh_reference": "14ea636e-a8dc-4872-9eff-5ad859732af1",
+          "okw_reference": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+          "confidence_score": 1.0,
+          "estimated_cost": null,
+          "estimated_time": null,
+          "materials_required": [
+            "MaterialSpec(material_id='PETG', name='Polyethylene Terephthalate Glycol', quantity=529.55, unit='g', notes='Grade: A')",
+            "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=399.44, unit='m\u00b2', notes='Grade: B')",
+            "MaterialSpec(material_id='ABS', name='Acrylonitrile Butadiene Styrene', quantity=359.21, unit='g', notes='Grade: C')",
+            "MaterialSpec(material_id='FR4', name='FR4 PCB Material', quantity=316.0, unit='m\u00b2', notes=None)"
+          ],
+          "capabilities_used": [
+            "https://en.wikipedia.org/wiki/Laser_cutting",
+            "https://en.wikipedia.org/wiki/Assembly_line",
+            "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "https://en.wikipedia.org/wiki/Welder",
+            "https://en.wikipedia.org/wiki/Painting"
+          ],
+          "match_type": "direct",
+          "metadata": {
+            "okh_title": "Laser Cut Acrylic Display Case",
+            "facility_name": "Laser Fabrication Lab",
+            "generation_method": "simplified_matching",
+            "domain": "manufacturing",
+            "equipment_count": 5,
+            "process_count": 2
+          },
+          "creation_time": "2026-04-04T23:45:26.515137",
+          "parent_tree_id": null,
+          "child_tree_ids": [],
+          "component_id": null,
+          "component_name": null,
+          "component_quantity": null,
+          "component_unit": null,
+          "depends_on": [],
+          "required_by": [],
+          "production_stage": "final",
+          "assembly_location": null,
+          "depth": 0,
+          "component_path": []
+        }
+      ],
+      "score": 1.0,
+      "metrics": {
+        "facility_count": 1,
+        "requirement_count": 7,
+        "capability_count": 8
+      },
+      "metadata": {},
+      "is_nested": false,
+      "tree": {
+        "id": "5a79028a-20e9-4d74-b400-3a8df2b43191",
+        "facility_name": "Laser Fabrication Lab",
+        "okh_reference": "14ea636e-a8dc-4872-9eff-5ad859732af1",
+        "okw_reference": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+        "confidence_score": 1.0,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='PETG', name='Polyethylene Terephthalate Glycol', quantity=529.55, unit='g', notes='Grade: A')",
+          "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=399.44, unit='m\u00b2', notes='Grade: B')",
+          "MaterialSpec(material_id='ABS', name='Acrylonitrile Butadiene Styrene', quantity=359.21, unit='g', notes='Grade: C')",
+          "MaterialSpec(material_id='FR4', name='FR4 PCB Material', quantity=316.0, unit='m\u00b2', notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Laser_cutting",
+          "https://en.wikipedia.org/wiki/Assembly_line",
+          "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+          "https://en.wikipedia.org/wiki/Welder",
+          "https://en.wikipedia.org/wiki/Painting"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "Laser Cut Acrylic Display Case",
+          "facility_name": "Laser Fabrication Lab",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 5,
+          "process_count": 2
+        },
+        "creation_time": "2026-04-04T23:45:26.515137",
+        "parent_tree_id": null,
+        "child_tree_ids": [],
+        "component_id": null,
+        "component_name": null,
+        "component_quantity": null,
+        "component_unit": null,
+        "depends_on": [],
+        "required_by": [],
+        "production_stage": "final",
+        "assembly_location": null,
+        "depth": 0,
+        "component_path": []
+      },
+      "rank": 1
+    }
+  ],
+  "total_solutions": 1,
+  "matching_mode": "single-level"
+}

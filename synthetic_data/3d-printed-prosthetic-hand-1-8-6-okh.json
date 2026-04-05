@@ -1,0 +1,201 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "83014291-6a2d-443a-b6b9-a56860bb377f",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/benjaminatkins/3d-printed-prosthetic-hand",
+  "version": "1.8.6",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Courtney Weaver",
+    "email": null,
+    "affiliation": "Smith-Fernandez",
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for By current contain nor keep again forward situation.",
+  "keywords": [
+    "fastener",
+    "documented",
+    "shaft",
+    "modular"
+  ],
+  "contributors": [
+    {
+      "name": "Cheryl Flynn",
+      "email": "dylan56@example.org",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/breanna00/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/martinstephanie/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/marilyndiaz/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/brianna12/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/sarah81/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/shawn39/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/olsonmary/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.8"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Crimping tool",
+    "3D printer",
+    "Cable ties",
+    "Nozzle",
+    "Wrench set",
+    "Calipers",
+    "Screwdriver set",
+    "Pliers"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 400.27,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 325.66,
+      "unit": "m²",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "bom": "https://github.com/joshuaparker/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "d7ca0364-ef67-4168-963a-b60212766489",
+      "source": [
+        "https://github.com/katieschultz/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/romerokimberly/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/loliver/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": 730.27,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "d7c8c1ed-a75e-479d-a727-b2932a51a735",
+      "source": [
+        "https://github.com/feliciawise/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/smithdavid/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

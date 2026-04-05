@@ -1,0 +1,250 @@
+{
+  "id": "9840622b-0647-475f-a2ab-55d365f2205b",
+  "name": "Full-Service CNC Shop",
+  "location": {
+    "address": {
+      "number": "7221",
+      "street": "Fitzgerald Lock",
+      "city": "San Antonio",
+      "region": "UT",
+      "country": "US",
+      "postcode": "77500"
+    },
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "directions": "Located near Stephens-Harper",
+    "city": "San Antonio",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Houston-Smith",
+    "location": {
+      "address": {
+        "number": "3428",
+        "street": "Ramos Meadows",
+        "city": "Los Angeles",
+        "region": "OH",
+        "country": "US",
+        "postcode": "79862"
+      },
+      "gps_coordinates": "34.0536909, -118.242766",
+      "directions": "Located near Gardner-Mcdowell",
+      "city": "Los Angeles",
+      "country": "US"
+    },
+    "website": "https://russell.info",
+    "mailing_list": "randallcynthia@lists.clark-gutierrez.com",
+    "contact": {
+      "landline": "+1-444-639-8703",
+      "email": "info@williams.com",
+      "whatsapp": "+1-596-231-5760"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/michellegriffin",
+      "twitter": "@elizabeth17"
+    }
+  },
+  "description": "End-to-end CNC machining with deburring and anodizing finishing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "VTC-20",
+      "serial_number": "SN981609",
+      "condition": "Good",
+      "notes": "Equipment notes: East article poor sound.",
+      "quantity": 2,
+      "throughput": "19 parts/hour",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7377",
+              "street": "Carol Station",
+              "city": "San Antonio",
+              "region": "VI",
+              "country": "US",
+              "postcode": "79928"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9877",
+              "street": "Simpson Ports",
+              "city": "Jacksonville",
+              "region": "MD",
+              "country": "US",
+              "postcode": "19464"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.020mm",
+        "supported_materials": [
+          "Steel",
+          "Plastic"
+        ],
+        "process_parameters": {
+          "setup_time": "25 minutes",
+          "cycle_time": "22 minutes",
+          "changeover_time": "19 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Deburring_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Deburring",
+      "make": "Grind Master",
+      "model": "RSA 600",
+      "serial_number": "SN696726",
+      "condition": "Needs Maintenance",
+      "quantity": 1,
+      "power_rating": 9961,
+      "maintenance_schedule": "Every 11 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Brass",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B"
+        }
+      ],
+      "detailed_capabilities": {
+        "edge_quality": "Ra 0.4-1.6μm",
+        "processing_speed": "1-5 m/min",
+        "max_part_thickness": "100mm",
+        "supported_materials": [
+          "Brass",
+          "Steel",
+          "Aluminum"
+        ],
+        "process_parameters": {
+          "setup_time": "101 minutes",
+          "cycle_time": "47 minutes",
+          "changeover_time": "20 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Anodizing_line",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Anodizing",
+      "make": "Henkel",
+      "model": "Hard Anodize Pro",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Nor partner bring health.",
+      "throughput": "30 parts/hour",
+      "power_rating": 5008,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_6061",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_7075",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3185",
+              "street": "Ann Oval",
+              "city": "New York",
+              "region": "HI",
+              "country": "US",
+              "postcode": "94250"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "directions": "Located across from Stevens LLC",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_2024",
+          "manufacturer": "Brand A"
+        }
+      ],
+      "detailed_capabilities": {
+        "coating_thickness": "5-75μm",
+        "colors": [
+          "Clear",
+          "Black",
+          "Red",
+          "Blue",
+          "Gold"
+        ],
+        "hardness": "200-600 HV",
+        "mil_spec": "MIL-A-8625",
+        "supported_materials": [
+          "Aluminum 6061",
+          "Aluminum 7075"
+        ],
+        "process_parameters": {
+          "setup_time": "98 minutes",
+          "cycle_time": "41 minutes",
+          "changeover_time": "39 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/Deburring_station",
+    "https://en.wikipedia.org/wiki/Anodizing_line"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "storage_capacity": "405 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "human_capacity": {
+    "headcount": 2
+  }
+}

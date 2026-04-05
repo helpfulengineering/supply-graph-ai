@@ -1,0 +1,12 @@
+{
+  "id": "623045_1_12_a_623045_1_12_b_5",
+  "name": "623045.1.12.a 623045.1.12.b",
+  "quantity": 2009.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "docs/software/SDP.rst",
+    "confidence": 0.7
+  }
+}

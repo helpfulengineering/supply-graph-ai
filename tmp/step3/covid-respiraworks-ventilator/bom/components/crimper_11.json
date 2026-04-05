@@ -1,0 +1,12 @@
+{
+  "id": "crimper_11",
+  "name": "Crimper",
+  "quantity": 3.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "docs/wiring/oxygen_sensor.rst",
+    "confidence": 0.55
+  }
+}

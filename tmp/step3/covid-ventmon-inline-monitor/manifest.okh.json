@@ -1,0 +1,718 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "d7a73ccf-d36e-54fb-861e-bf4f768d7bfc",
+  "title": "VentMon T0.5",
+  "repo": "https://github.com/PubInv/ventmon-ventilator-inline-test-monitor",
+  "version": "0.3.1",
+  "license": {
+    "hardware": "NOASSERTION",
+    "documentation": "NOASSERTION",
+    "software": "NOASSERTION"
+  },
+  "description": "VentMon T0.5 The VentMon is an OSHWA certified open source hardware, US002353 !OSHWA_VENTMON VentMon T0.5 ![DOI](https://zenodo.org/badge/latestdoi/248134220) Note: The previous version, the VentMon T0.3, has been published in HardwareX with extensive build instructions",
+  "function": "of the VentMon was to support pandemic response teams",
+  "intended_use": ": The original purpose of the VentMon was to support pandemic response teams",
+  "keywords": [],
+  "contact": {},
+  "organization": {
+    "name": "PubInv"
+  },
+  "development_stage": "development",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [],
+  "design_files": [
+    {
+      "title": "ventmon-okh.yml",
+      "path": "ventmon-okh.yml"
+    },
+    {
+      "title": "Movitation.md",
+      "path": "Movitation.md"
+    },
+    {
+      "title": "Meta-process for Open Source Ventilator Deployment.svg",
+      "path": "Meta-process for Open Source Ventilator Deployment.svg"
+    },
+    {
+      "title": "InlineVentMonitor.svg",
+      "path": "InlineVentMonitor.svg"
+    },
+    {
+      "title": "InlineVentMonitor (1).png",
+      "path": "InlineVentMonitor (1).png"
+    },
+    {
+      "title": "VentilatorTestFixture.svg",
+      "path": "VentilatorTestFixture.svg"
+    },
+    {
+      "title": "Validation Tests.xlsx",
+      "path": "ValidationTestSuites/Validation Tests.xlsx"
+    },
+    {
+      "title": "Validation Tests.ods",
+      "path": "ValidationTestSuites/Validation Tests.ods"
+    },
+    {
+      "title": "FLOSSVentDevelopmentProcessv6@1x.png",
+      "path": "images/FLOSSVentDevelopmentProcessv6@1x.png"
+    },
+    {
+      "title": "prototype_3.JPG",
+      "path": "images/prototype_3.JPG"
+    },
+    {
+      "title": "FLOSSVentDevelopmentProcessv6.pdf",
+      "path": "images/FLOSSVentDevelopmentProcessv6.pdf"
+    },
+    {
+      "title": "prototype_2.JPG",
+      "path": "images/prototype_2.JPG"
+    },
+    {
+      "title": "prototype_0.JPG",
+      "path": "images/prototype_0.JPG"
+    },
+    {
+      "title": "prototype_1.JPG",
+      "path": "images/prototype_1.JPG"
+    },
+    {
+      "title": "prototype_4.JPG",
+      "path": "images/prototype_4.JPG"
+    },
+    {
+      "title": "VentMon_OSHWA.svg",
+      "path": "images/VentMon_OSHWA.svg"
+    },
+    {
+      "title": "Block Architecture.svg",
+      "path": "images/Block Architecture.svg"
+    },
+    {
+      "title": "VentMonSystemDiagram.png",
+      "path": "images/VentMonSystemDiagram.png"
+    },
+    {
+      "title": "PressureSensorElectricalBlockDiagram.png",
+      "path": "images/PressureSensorElectricalBlockDiagram.png"
+    },
+    {
+      "title": "FLOSSVentDevelopmentProcessv6@2x.png",
+      "path": "images/FLOSSVentDevelopmentProcessv6@2x.png"
+    },
+    {
+      "title": "FLOSSVentDevelopmentProcessv6@3x.png",
+      "path": "images/FLOSSVentDevelopmentProcessv6@3x.png"
+    },
+    {
+      "title": "VentMon_OSHWA.png",
+      "path": "images/VentMon_OSHWA.png"
+    },
+    {
+      "title": "esp32_huzzah_pinout.png",
+      "path": "datasheets/esp32_huzzah_pinout.png"
+    },
+    {
+      "title": "adafruit-feather-huzzah-esp8266.pdf",
+      "path": "datasheets/adafruit-feather-huzzah-esp8266.pdf"
+    },
+    {
+      "title": "adafruit-wiz5500-wiznet-ethernet-featherwing.pdf",
+      "path": "datasheets/adafruit-wiz5500-wiznet-ethernet-featherwing.pdf"
+    },
+    {
+      "title": "SFM3400.pdf",
+      "path": "datasheets/SFM3400.pdf"
+    },
+    {
+      "title": "BME680-Datasheet.pdf",
+      "path": "datasheets/BME680-Datasheet.pdf"
+    },
+    {
+      "title": "adafruit-bme680-humidity-temperature-barometic-pre-1396558.pdf",
+      "path": "datasheets/adafruit-bme680-humidity-temperature-barometic-pre-1396558.pdf"
+    },
+    {
+      "title": "Sensirion_Mass_Flow_Meters_SFM3200_Datasheet.pdf",
+      "path": "datasheets/Sensirion_Mass_Flow_Meters_SFM3200_Datasheet.pdf"
+    },
+    {
+      "title": "VentMonFirmware.ino",
+      "path": "VentMonFirmware/VentMonFirmware.ino"
+    },
+    {
+      "title": "VentMonNotes.txt",
+      "path": "pi/VentMonNotes.txt"
+    },
+    {
+      "title": "debug.cfg",
+      "path": "VentMonFirmware_T0.5_mothballed/debug.cfg"
+    },
+    {
+      "title": "esp32.svd",
+      "path": "VentMonFirmware_T0.5_mothballed/esp32.svd"
+    },
+    {
+      "title": "debug_custom.json",
+      "path": "VentMonFirmware_T0.5_mothballed/debug_custom.json"
+    },
+    {
+      "title": "bme_standoffs.JPG",
+      "path": "doc/bme_standoffs.JPG"
+    },
+    {
+      "title": "VentMonForHardwareX.pdf",
+      "path": "doc/VentMonForHardwareX.pdf"
+    },
+    {
+      "title": "AuthorResponseToReviewers.pdf",
+      "path": "doc/AuthorResponseToReviewers.pdf"
+    },
+    {
+      "title": "PCBVentMon.JPG",
+      "path": "doc/PCBVentMon.JPG"
+    },
+    {
+      "title": "UserManaul.md",
+      "path": "doc/UserManaul.md"
+    },
+    {
+      "title": "VentMonATesterMonitor.bib",
+      "path": "doc/VentMonATesterMonitor.bib"
+    },
+    {
+      "title": "bmeinbox.JPG",
+      "path": "doc/bmeinbox.JPG"
+    },
+    {
+      "title": "hotglue.JPG",
+      "path": "doc/hotglue.JPG"
+    },
+    {
+      "title": "Graphical Abstract VentMon Overall Architecture.pdf",
+      "path": "doc/Graphical Abstract VentMon Overall Architecture.pdf"
+    },
+    {
+      "title": "finished_flow_cable.JPG",
+      "path": "doc/finished_flow_cable.JPG"
+    },
+    {
+      "title": "ziptie.JPG",
+      "path": "doc/ziptie.JPG"
+    },
+    {
+      "title": "VentDisplayExample.png",
+      "path": "doc/VentDisplayExample.png"
+    },
+    {
+      "title": "bme_1.JPG",
+      "path": "doc/bme_1.JPG"
+    },
+    {
+      "title": "qwiic_bottom.JPG",
+      "path": "doc/qwiic_bottom.JPG"
+    },
+    {
+      "title": "VentMonForHardwareX.tex",
+      "path": "doc/VentMonForHardwareX.tex"
+    },
+    {
+      "title": "bme_and_qwiic_cable.JPG",
+      "path": "doc/bme_and_qwiic_cable.JPG"
+    },
+    {
+      "title": "VentMonOverallArchitecture.png",
+      "path": "doc/VentMonOverallArchitecture.png"
+    },
+    {
+      "title": "adapters_1.JPG",
+      "path": "doc/adapters_1.JPG"
+    },
+    {
+      "title": "ethernet_wing.JPG",
+      "path": "doc/ethernet_wing.JPG"
+    },
+    {
+      "title": "VentMonATesterMonitor.tex",
+      "path": "doc/VentMonATesterMonitor.tex"
+    },
+    {
+      "title": "adapters_2.JPG",
+      "path": "doc/adapters_2.JPG"
+    },
+    {
+      "title": "DataLakeMainPage.png",
+      "path": "doc/DataLakeMainPage.png"
+    },
+    {
+      "title": "qwiic_top.JPG",
+      "path": "doc/qwiic_top.JPG"
+    },
+    {
+      "title": "bme_qwiic_cable.JPG",
+      "path": "doc/bme_qwiic_cable.JPG"
+    },
+    {
+      "title": "flow_4.JPG",
+      "path": "doc/flow_4.JPG"
+    },
+    {
+      "title": "VentMon.bib",
+      "path": "doc/VentMon.bib"
+    },
+    {
+      "title": "SampleBreathPlot.png",
+      "path": "doc/SampleBreathPlot.png"
+    },
+    {
+      "title": "usb_qwiic.JPG",
+      "path": "doc/usb_qwiic.JPG"
+    },
+    {
+      "title": "flow_1.JPG",
+      "path": "doc/flow_1.JPG"
+    },
+    {
+      "title": "flow_3.JPG",
+      "path": "doc/flow_3.JPG"
+    },
+    {
+      "title": "flow_2.JPG",
+      "path": "doc/flow_2.JPG"
+    },
+    {
+      "title": "bme_diagram.jpg",
+      "path": "doc/bme_diagram.jpg"
+    },
+    {
+      "title": "VentMonATesterMonitor.pdf",
+      "path": "doc/VentMonATesterMonitor.pdf"
+    },
+    {
+      "title": "flow_cable.JPG",
+      "path": "doc/flow_cable.JPG"
+    },
+    {
+      "title": "Rob.pirds",
+      "path": "breath_data/Rob.pirds"
+    },
+    {
+      "title": "RobFM3200NoLung.pirds",
+      "path": "breath_data/RobFM3200NoLung.pirds"
+    },
+    {
+      "title": "RobFM3200FillingTestLung.pirds",
+      "path": "breath_data/RobFM3200FillingTestLung.pirds"
+    },
+    {
+      "title": "VentMon_samplestructure.ino",
+      "path": "refactored/VentMon_samplestructure/VentMon_samplestructure.ino"
+    },
+    {
+      "title": "ventmon_t0.3.sch",
+      "path": "design/pcb/ventmon_t0.3.sch"
+    },
+    {
+      "title": "ventmon_t0.3.brd",
+      "path": "design/pcb/ventmon_t0.3.brd"
+    },
+    {
+      "title": "bottomDrill03.svg",
+      "path": "design/templates/bottomDrill03.svg"
+    },
+    {
+      "title": "bottomDrill03.pdf",
+      "path": "design/templates/bottomDrill03.pdf"
+    },
+    {
+      "title": "PressureCoupling.stl",
+      "path": "design/3dparts/PressureCoupling.stl"
+    },
+    {
+      "title": "bme280_hat.scad",
+      "path": "design/3dparts/bme280_hat.scad"
+    },
+    {
+      "title": "BarbGenerator-v3.scad",
+      "path": "design/3dparts/BarbGenerator-v3.scad"
+    },
+    {
+      "title": "PressureCoupling.scad",
+      "path": "design/3dparts/PressureCoupling.scad"
+    },
+    {
+      "title": "bme280_hat_two_port.stl",
+      "path": "design/3dparts/bme280_hat_two_port.stl"
+    },
+    {
+      "title": "ventmon_t0.5.sch",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5.sch"
+    },
+    {
+      "title": "ventmon_t0.5e.brd",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5e.brd"
+    },
+    {
+      "title": "ventmon_t0.5c.brd",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5c.brd"
+    },
+    {
+      "title": "ventmon_t0.5i.sch",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5i.sch"
+    },
+    {
+      "title": "ventmon_t0.5b.brd",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5b.brd"
+    },
+    {
+      "title": "ventmon_t0.5e.sch",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5e.sch"
+    },
+    {
+      "title": "ventmon_t0.5i.brd",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5i.brd"
+    },
+    {
+      "title": "ventmon_t0.5c.sch",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5c.sch"
+    },
+    {
+      "title": "ventmon_t0.5b.sch",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5b.sch"
+    },
+    {
+      "title": "ventmon_t0.5.brd",
+      "path": "design/pcb/ventmon_T0.5/ventmon_t0.5.brd"
+    },
+    {
+      "title": "bosch-bme280.lbr",
+      "path": "design/pcb/libraries/bosch-bme280.lbr"
+    },
+    {
+      "title": "HSCDRRT001PD2A3.lbr",
+      "path": "design/pcb/libraries/HSCDRRT001PD2A3.lbr"
+    },
+    {
+      "title": "MJ-3536N.lbr",
+      "path": "design/pcb/libraries/MJ-3536N.lbr"
+    },
+    {
+      "title": "Wuerth_Elektronik_eiSos_V4.lbr",
+      "path": "design/pcb/libraries/Wuerth_Elektronik_eiSos_V4.lbr"
+    },
+    {
+      "title": "ventmon_t0.42.brd",
+      "path": "design/pcb/ventmon_T0.4/ventmon_t0.42.brd"
+    },
+    {
+      "title": "ventmon_t0.42.sch",
+      "path": "design/pcb/ventmon_T0.4/ventmon_t0.42.sch"
+    },
+    {
+      "title": "VentMonSwitches.brd",
+      "path": "design/pcb/switch_pcb/VentMonSwitches.brd"
+    },
+    {
+      "title": "VentMonSwitches.sch",
+      "path": "design/pcb/switch_pcb/VentMonSwitches.sch"
+    },
+    {
+      "title": "Manifold_T0.5.55.stl",
+      "path": "design/3dparts/T0.5/Manifold_T0.5.55.stl"
+    },
+    {
+      "title": "Cap_T0.5.66.stl",
+      "path": "design/3dparts/T0.5/Cap_T0.5.66.stl"
+    },
+    {
+      "title": "VentMon0.5.scad",
+      "path": "design/3dparts/T0.5/VentMon0.5.scad"
+    },
+    {
+      "title": "Buttons_T0.5.54.stl",
+      "path": "design/3dparts/T0.5/Buttons_T0.5.54.stl"
+    },
+    {
+      "title": "Nozzle_T0.5.66.stl",
+      "path": "design/3dparts/T0.5/Nozzle_T0.5.66.stl"
+    },
+    {
+      "title": "Case_T0.5.48.stl",
+      "path": "design/3dparts/T0.5/Case_T0.5.48.stl"
+    },
+    {
+      "title": "VentMon Top V0.48.stl",
+      "path": "design/3dparts/T0.4/VentMon Top V0.48.stl"
+    },
+    {
+      "title": "VentMon Bottom V0.48.stl",
+      "path": "design/3dparts/T0.4/VentMon Bottom V0.48.stl"
+    },
+    {
+      "title": "VentMonT0.4v56.f3z",
+      "path": "design/3dparts/T0.4/VentMonT0.4v56.f3z"
+    },
+    {
+      "title": "BME Hat.stl",
+      "path": "design/3dparts/T0.4/BME Hat.stl"
+    },
+    {
+      "title": "FinalConfiguration.JPG",
+      "path": "pi/mounting-bracket-idea/FinalConfiguration.JPG"
+    },
+    {
+      "title": "BasicParts.JPG",
+      "path": "pi/mounting-bracket-idea/BasicParts.JPG"
+    },
+    {
+      "title": "BracketInPlace.JPG",
+      "path": "pi/mounting-bracket-idea/BracketInPlace.JPG"
+    },
+    {
+      "title": "ScreenRear(VESA-D75mm).JPG",
+      "path": "pi/mounting-bracket-idea/ScreenRear(VESA-D75mm).JPG"
+    },
+    {
+      "title": "README.md",
+      "path": "pi/mounting-bracket-idea/README.md"
+    },
+    {
+      "title": "README.md~",
+      "path": "pi/mounting-bracket-idea/README.md~"
+    },
+    {
+      "title": "BracketAsBezel.JPG",
+      "path": "pi/mounting-bracket-idea/BracketAsBezel.JPG"
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "FLOSS Build Model.png",
+      "path": "FLOSS Build Model.png"
+    },
+    {
+      "title": "FLOSS Build Model.pdf",
+      "path": "FLOSS Build Model.pdf"
+    },
+    {
+      "title": "FLOSS Build Model.sketch",
+      "path": "FLOSS Build Model.sketch"
+    },
+    {
+      "title": "final_assembly_with_tape.JPG",
+      "path": "doc/final_assembly_with_tape.JPG"
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [
+    {
+      "title": "oxygenTest.ino",
+      "path": "testing/oxygenTest/oxygenTest.ino"
+    },
+    {
+      "title": "bme680Test.ino",
+      "path": "testing/bme680Test/bme680Test.ino"
+    }
+  ],
+  "publications": [],
+  "tool_list": [
+    "are the primary users of the VentMon. Additionally",
+    "it is completely and transparently open source",
+    "so any team can adopt the design and incorporate it into their own devices to provide the same data in an integrated way."
+  ],
+  "manufacturing_processes": [
+    "3D Printing",
+    "Soldering",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "mat-sensor",
+      "name": "sensor",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-led",
+      "name": "led",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-connector",
+      "name": "connector",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-the-arduino-ide",
+      "name": "the Arduino IDE",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-cable",
+      "name": "cable",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-raspberry-pi",
+      "name": "Raspberry PI",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-esp32",
+      "name": "ESP32",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-wire",
+      "name": "wire",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-arduino",
+      "name": "Arduino",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Soldering"
+    ],
+    "process_requirements": [
+      {
+        "process_name": "3D Printing",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Soldering",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      },
+      {
+        "process_name": "Assembly",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "outer_dimensions": null,
+    "notes": ""
+  },
+  "bom": {
+    "id": "d140dbbf-fdb3-4b3e-8a3d-51204fcb8294",
+    "name": "VentMon T0.5 BOM",
+    "summary": {
+      "total_components": 1,
+      "total_quantity": 6.0,
+      "categories": {
+        "other": 1
+      },
+      "average_confidence": 0.5
+    },
+    "external_file": "bom/bom.json",
+    "metadata": {
+      "generated_at": "2026-04-05T14:45:18.830383Z",
+      "generation_method": "bom_normalization",
+      "source_count": 1
+    }
+  },
+  "standards_used": [],
+  "tsdc": [],
+  "parts": [
+    {
+      "id": "64i7_1",
+      "name": "64I7",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [
+    {
+      "release": "refactored/VentMon.h",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "refactored/PIRDSEvent.h",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "refactored/VentMon.cpp",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "refactored/PIRDSEvent.cpp",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "data_server/test_send_cloud.py",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "data_server/server_test_random_data.py",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "data_server/data_server.py",
+      "installation_guide": "README.md"
+    },
+    {
+      "release": "pi/localventmon.py",
+      "installation_guide": "README.md"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-05T14:45:18.834400Z",
+    "generation_confidence": 0.42,
+    "low_confidence_fields": [
+      "repo",
+      "readme",
+      "license",
+      "organization",
+      "tool_list",
+      "function",
+      "intended_use",
+      "materials",
+      "documentation_language",
+      "description",
+      "content_classification"
+    ],
+    "missing_required_fields": [
+      "licensor"
+    ],
+    "generation_method": "automated_extraction"
+  },
+  "documentation_language": "en",
+  "licensor": {
+    "name": "PubInv",
+    "url": null,
+    "email": null
+  }
+}

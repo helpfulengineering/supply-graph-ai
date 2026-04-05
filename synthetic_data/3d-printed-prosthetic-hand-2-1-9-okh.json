@@ -1,0 +1,180 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "f19d7584-1724-4bed-af52-a59a7ca75f12",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/taylorgreene/3d-printed-prosthetic-hand",
+  "version": "2.1.9",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Eileen Vargas",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "david44"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Including expect term live realize.",
+  "keywords": [
+    "shaft",
+    "fastener",
+    "assembly",
+    "documented",
+    "modular"
+  ],
+  "contact": {
+    "name": "Robert Foster",
+    "email": null,
+    "affiliation": "Little Inc",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "beckernicholas"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Brittany Murphy",
+      "email": "jameswright@example.org",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/birdjoshua/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/theresaharrington/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/tsims/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/harrisphilip/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/cantrelljames/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/shannon30/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/matthewbush/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Nozzle",
+    "Filament",
+    "Calipers",
+    "Screwdriver set",
+    "Pliers",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 425.49,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "bom": "https://github.com/klinemolly/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "a2125984-18ad-423e-a034-942f137ff952",
+      "source": [
+        "https://github.com/oyates/project/raw/main/models/bracket.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": 750.69,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

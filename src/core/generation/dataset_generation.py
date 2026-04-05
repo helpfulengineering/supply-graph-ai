@@ -106,7 +106,8 @@ async def generate_manifest_for_repository(
     config = LayerConfig()
     config.use_llm = use_llm
     config.use_bom_normalization = use_bom_normalization
-    config.llm_config["chunked_mode_enabled"] = bool(llm_chunked_mode_enabled)
+    if llm_chunked_mode_enabled is not None:
+        config.llm_config["chunked_mode_enabled"] = bool(llm_chunked_mode_enabled)
     if llm_chunk_max_tokens is not None:
         config.llm_config["chunk_max_tokens"] = int(llm_chunk_max_tokens)
     if llm_chunk_overlap_tokens is not None:

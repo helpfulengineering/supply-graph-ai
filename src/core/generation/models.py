@@ -414,7 +414,7 @@ class ManifestGeneration:
             "missing_fields": self.missing_fields,
         }
 
-    def to_okh_manifest(self) -> Dict[str, Any]:
+    def to_okh_manifest(self, include_field_confidence: bool = False) -> Dict[str, Any]:
         """Convert to proper OKH manifest format"""
         import uuid
         from datetime import datetime
@@ -500,8 +500,19 @@ class ManifestGeneration:
             "metadata": {
                 "generated_at": datetime.now().isoformat() + "Z",
                 "generation_confidence": round(self.quality_report.overall_quality, 2),
+                "low_confidence_fields": self.quality_report.low_confidence_fields,
                 "missing_required_fields": self.missing_fields,
                 "generation_method": "automated_extraction",
+                **(
+                    {
+                        "field_confidence": {
+                            k: round(v, 3)
+                            for k, v in sorted(self.confidence_scores.items())
+                        }
+                    }
+                    if include_field_confidence
+                    else {}
+                ),
             },
         }
 

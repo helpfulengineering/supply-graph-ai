@@ -1,0 +1,219 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "c0c701db-5db2-4ba3-ad63-7c38356bb959",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/moorekristin/arduino-based-iot-sensor-node",
+  "version": "2.5.7",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Betty Anderson DVM",
+    "email": "danielpatel@example.com",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jon86"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Your beautiful stuff.",
+  "keywords": [
+    "bracket",
+    "reproducible",
+    "documented"
+  ],
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/washingtonjoseph/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/lisaturner/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/gabriel19/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/qmartinez/project/raw/main/docs/pcb_assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/david46/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/ugay/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/markdominguez/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.1"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Build plate",
+    "Nozzle",
+    "Oscilloscope",
+    "Filament",
+    "Screwdriver set",
+    "Pliers",
+    "3D printer",
+    "Crimping tool",
+    "Wrench set",
+    "Soldering station",
+    "Reflow oven",
+    "Multimeter",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 780.09,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": 159.36,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "PCB"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "945af959-1461-40ae-b03d-11b68d668786",
+      "source": [],
+      "export": [
+        "https://github.com/davisjulie/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/fitzgeralddonald/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/fkey/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": {
+        "length": 65,
+        "width": 130,
+        "height": 78
+      },
+      "mass": 691.59,
+      "manufacturing_params": {
+        "board_thickness": "1.6mm",
+        "copper_thickness": "35μm"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "12a8b52c-ec1c-4409-8553-afae84e0b5ac",
+      "source": [],
+      "export": [
+        "https://github.com/dominguezjacob/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/nicolecook/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/mperez/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "FR4",
+      "outer_dimensions": {
+        "length": 37,
+        "width": 91,
+        "height": 61
+      },
+      "mass": 199.73,
+      "manufacturing_params": {
+        "board_thickness": "0.8mm",
+        "copper_thickness": "35μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

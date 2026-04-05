@@ -1,0 +1,230 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "7dc2e881-cf7a-46be-952e-1bbf30cbdf3a",
+  "title": "CNC Machined Aluminum Bracket",
+  "repo": "https://github.com/kmolina/cnc-machined-aluminum-bracket",
+  "version": "3.9.3",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Debra Glover",
+    "email": "christopherross@example.net",
+    "affiliation": "Wallace-Weaver",
+    "social": []
+  },
+  "documentation_language": "es",
+  "function": "Precision mounting bracket for industrial equipment",
+  "intended_use": "Movement bag concern firm appear beat product.",
+  "keywords": [
+    "shaft",
+    "assembly",
+    "documented",
+    "bracket",
+    "open-source"
+  ],
+  "contact": {
+    "name": "Derrick Salinas MD",
+    "email": "williamsnicholas@example.com",
+    "affiliation": null,
+    "social": []
+  },
+  "contributors": [
+    {
+      "name": "Erica Adams",
+      "email": null,
+      "affiliation": "Ayala Group",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "rachelgallegos"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Clarke and Sons",
+    "url": "https://foster.com",
+    "email": "contact@galloway-martin.com"
+  },
+  "technology_readiness_level": "TRL-7",
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/abecker/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "CNC Safety Procedures",
+      "path": "https://github.com/theodorerusso/project/raw/main/docs/cnc_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/uroberts/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for CNC Machined Aluminum Bracket",
+      "path": "https://github.com/edwardrice/project/raw/main/docs/assembly_guide_for_cnc_machined_aluminum_bracket.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "CNC Machining Instructions",
+      "path": "https://github.com/diana98/project/raw/main/docs/cnc_machining_instructions.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.2"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/dlee/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "CMM",
+    "CNC mill",
+    "Micrometer",
+    "Dial indicator"
+  ],
+  "manufacturing_processes": [
+    "CNC",
+    "Deburring",
+    "Anodizing"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 504.49,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "CNC"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "91a68851-d1f9-4c8f-afac-22026e756841",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/paulasmith/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": {
+        "length": 158,
+        "width": 12,
+        "height": 13
+      },
+      "mass": 943.85,
+      "manufacturing_params": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Main Body",
+      "id": "90afd31a-6184-49d6-a662-48e1e6943491",
+      "source": [],
+      "export": [
+        "https://github.com/igibson/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Anodizing solution",
+      "outer_dimensions": null,
+      "mass": 69.62,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "382470ff-dddf-4fd2-9fc1-b123d3c595bc",
+      "source": [],
+      "export": [
+        "https://github.com/tortiz/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/reyesjonathan/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/allentyler/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "CNC"
+      ],
+      "material": "Aluminum 6061",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "tolerance": "±0.02mm",
+        "surface_finish": "Ra 1.6μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

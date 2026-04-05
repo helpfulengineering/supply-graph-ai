@@ -1,0 +1,24 @@
+{
+  "id": "d140dbbf-fdb3-4b3e-8a3d-51204fcb8294",
+  "name": "VentMon T0.5 BOM",
+  "components": [
+    {
+      "id": "64i7_1",
+      "name": "64I7",
+      "quantity": 6.0,
+      "unit": "pcs",
+      "requirements": {},
+      "metadata": {
+        "source": "readme_bom",
+        "file_path": "doc/VentMonATesterMonitor.pdf",
+        "confidence": 0.5
+      }
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-05T14:45:18.830383Z",
+    "source_count": 1,
+    "final_count": 1,
+    "generation_method": "bom_normalization"
+  }
+}
