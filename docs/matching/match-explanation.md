@@ -11,6 +11,7 @@ When matching requirements to facilities, you can request **per-facility explana
   ```bash
   ohm match requirements my-design.okh.json --explain
   ```
+  In current CLI behavior, `--verbose` also enables explanation output automatically for `match requirements`.
   Explanations are printed under each facility in table output; in JSON output they appear as `explanation` and `explanation_human` on each solution.
 
 ### Manual testing with synthetic data (no server/storage)

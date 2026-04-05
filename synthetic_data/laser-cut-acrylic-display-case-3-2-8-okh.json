@@ -1,0 +1,200 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "ffb8f8b1-a380-4c08-8d11-b70b9d1a58a1",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/michael42/laser-cut-acrylic-display-case",
+  "version": "3.2.8",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Dana Cunningham",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "de",
+  "function": "Protective display case for electronic components",
+  "description": "A laser cut acrylic display case designed for Your history case between since positive.",
+  "keywords": [
+    "bracket",
+    "gear",
+    "fastener",
+    "prototype"
+  ],
+  "contact": {
+    "name": "Adam Patel",
+    "email": "dustinkennedy@example.org",
+    "affiliation": null,
+    "social": []
+  },
+  "development_stage": "production",
+  "manufacturing_files": [
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/lgreene/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.5"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/dwatson/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/browningashley/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.4"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/erikpratt/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/wernerchristopher/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/ycortez/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Exhaust system",
+    "Heat shrink",
+    "Pliers",
+    "Air assist",
+    "Material guides",
+    "Wrench set",
+    "Crimping tool",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 805.3,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "bom": "https://github.com/dscott/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "dc7f84ce-9075-4ca7-bb1b-f062d38cfddf",
+      "source": [
+        "https://github.com/simmonsjoshua/project/raw/main/models/main_body.stl"
+      ],
+      "export": [
+        "https://github.com/davidcampbell/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [
+        "https://github.com/davidramirez/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 103,
+        "width": 191,
+        "height": 57
+      },
+      "mass": 565.28,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "41dfb7e7-7c87-45c3-9f68-e9c7394f405a",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Housing",
+      "id": "a23b08ac-0612-43ca-84e5-0d36a1173be9",
+      "source": [
+        "https://github.com/yjohnson/project/raw/main/models/housing.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 43,
+        "width": 63,
+        "height": 18
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

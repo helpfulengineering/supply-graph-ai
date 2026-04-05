@@ -1,0 +1,486 @@
+{
+  "solutions": [
+    {
+      "tree": {
+        "id": "f47ebf9d-ebef-484f-a1db-ee60a831b615",
+        "facility_name": "Assembly Facility 4",
+        "okh_reference": "4fe74c03-6cd0-513f-90dc-0675e9d521c2",
+        "okw_reference": "6e4d2f6f-f915-4f3f-83d7-347f14eed7d0",
+        "confidence_score": 1.0,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='mat-rubber', name='Rubber', quantity=None, unit=None, notes=None)",
+          "MaterialSpec(material_id='mat-fasteners', name='fasteners', quantity=None, unit=None, notes=None)",
+          "MaterialSpec(material_id='mat-foam', name='foam', quantity=None, unit=None, notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Assembly_line",
+          "https://en.wikipedia.org/wiki/Testing_equipment"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "RespiraWorks Open Source Ventilator",
+          "facility_name": "Assembly Facility 4",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 2,
+          "process_count": 1,
+          "composite_matching": true,
+          "covered_requirements": [
+            0,
+            1
+          ]
+        },
+        "creation_time": "2026-04-05T21:44:20.474994",
+        "parent_tree_id": null,
+        "child_tree_ids": [],
+        "component_id": null,
+        "component_name": null,
+        "component_quantity": null,
+        "component_unit": null,
+        "depends_on": [],
+        "required_by": [],
+        "production_stage": "final",
+        "assembly_location": null,
+        "depth": 0,
+        "component_path": []
+      },
+      "facility": {
+        "id": "6e4d2f6f-f915-4f3f-83d7-347f14eed7d0",
+        "name": "Assembly Facility 4",
+        "location": {
+          "address": {
+            "number": "5516",
+            "street": "Tyler Greens",
+            "city": "Seattle",
+            "region": "WY",
+            "country": "US",
+            "postcode": "05694"
+          },
+          "gps_coordinates": "47.6038321, -122.330062",
+          "city": "Seattle",
+          "country": "US"
+        },
+        "facility_status": "Active",
+        "description": "Specialized in product assembly and integration",
+        "date_founded": "2005-10-24",
+        "access_type": "Restricted",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+            "make": "Festo",
+            "model": "Modular Bench",
+            "condition": "Fair",
+            "maintenance_schedule": "Every 2 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Fasteners"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Cables"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Connectors"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+            "make": "Generic",
+            "model": "Model 111",
+            "condition": "Fair"
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/Assembly_line"
+        ],
+        "typical_batch_size": "50 -- 500 units",
+        "floor_size": 524,
+        "storage_capacity": "956 cubic meters",
+        "typical_materials": [],
+        "certifications": [
+          "NADCAP",
+          "AS9100",
+          "ISO 9001:2015"
+        ],
+        "uninterrupted_power_supply": true
+      },
+      "facility_id": "6e4d2f6f-f915-4f3f-83d7-347f14eed7d0",
+      "facility_name": "Assembly Facility 4",
+      "match_type": "manufacturing",
+      "confidence": 1.0,
+      "score": 1.0,
+      "metrics": {
+        "facility_count": 1,
+        "required_process_count": 2,
+        "covered_process_count": 2
+      },
+      "rank": 1,
+      "processing_timestamp": "2026-04-05T21:44:20.475168"
+    },
+    {
+      "tree": {
+        "id": "f6e0e117-8add-4545-8e67-ac730b82e273",
+        "facility_name": "Assembly Facility 3",
+        "okh_reference": "4fe74c03-6cd0-513f-90dc-0675e9d521c2",
+        "okw_reference": "40d9e277-3139-49c1-97b9-f0d629a78771",
+        "confidence_score": 1.0,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='mat-rubber', name='Rubber', quantity=None, unit=None, notes=None)",
+          "MaterialSpec(material_id='mat-fasteners', name='fasteners', quantity=None, unit=None, notes=None)",
+          "MaterialSpec(material_id='mat-foam', name='foam', quantity=None, unit=None, notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Assembly_line",
+          "https://en.wikipedia.org/wiki/Testing_equipment"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "RespiraWorks Open Source Ventilator",
+          "facility_name": "Assembly Facility 3",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 2,
+          "process_count": 1,
+          "composite_matching": true,
+          "covered_requirements": [
+            0,
+            1
+          ]
+        },
+        "creation_time": "2026-04-05T21:44:20.472539",
+        "parent_tree_id": null,
+        "child_tree_ids": [],
+        "component_id": null,
+        "component_name": null,
+        "component_quantity": null,
+        "component_unit": null,
+        "depends_on": [],
+        "required_by": [],
+        "production_stage": "final",
+        "assembly_location": null,
+        "depth": 0,
+        "component_path": []
+      },
+      "facility": {
+        "id": "40d9e277-3139-49c1-97b9-f0d629a78771",
+        "name": "Assembly Facility 3",
+        "location": {
+          "address": {
+            "number": "5935",
+            "street": "Glenda Underpass",
+            "city": "Charlotte",
+            "region": "SC",
+            "country": "US",
+            "postcode": "23908"
+          },
+          "gps_coordinates": "35.2272086, -80.8430827",
+          "city": "Charlotte",
+          "country": "US"
+        },
+        "facility_status": "Active",
+        "contact": {
+          "name": "Chambers-Morales",
+          "bio": "Established in 1997, we specialize in Self-enabling interactive projection",
+          "website": "https://jensen-johnson.com",
+          "mailing_list": "rossmalik@lists.collins-garcia.biz",
+          "contact": {
+            "mobile": "+1-660-348-9370",
+            "whatsapp": "+1-941-450-4397"
+          },
+          "social_media": {
+            "facebook": "https://facebook.com/nicholasbarrett",
+            "twitter": "@phamdaniel",
+            "instagram": "@tstewart",
+            "other_urls": [
+              "https://ramos-mcdonald.com"
+            ]
+          }
+        },
+        "description": "Specialized in product assembly and integration",
+        "date_founded": "2010-10-09",
+        "access_type": "Restricted",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+            "make": "Bosch Rexroth",
+            "model": "Flex Station",
+            "serial_number": "SN442340",
+            "condition": "Needs Maintenance",
+            "notes": "Equipment notes: Into industry agree hour room.",
+            "quantity": 4,
+            "throughput": "16 parts/hour",
+            "power_rating": 3489,
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Fasteners"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+                "manufacturer": "Brand B"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Cables"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Connectors",
+                "brand": "Industrial"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+            "make": "Brand A",
+            "model": "Model 469",
+            "condition": "Good"
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/Assembly_line"
+        ],
+        "typical_batch_size": "50 -- 500 units",
+        "floor_size": 2997,
+        "typical_materials": [],
+        "certifications": [
+          "ISO 9001:2015",
+          "NADCAP",
+          "ISO 14001",
+          "AS9100"
+        ],
+        "maintenance_schedule": "Every 1 months"
+      },
+      "facility_id": "40d9e277-3139-49c1-97b9-f0d629a78771",
+      "facility_name": "Assembly Facility 3",
+      "match_type": "manufacturing",
+      "confidence": 1.0,
+      "score": 1.0,
+      "metrics": {
+        "facility_count": 1,
+        "required_process_count": 2,
+        "covered_process_count": 2
+      },
+      "rank": 2,
+      "processing_timestamp": "2026-04-05T21:44:20.475169"
+    },
+    {
+      "tree": {
+        "id": "47b9bd1b-d592-41f9-8424-d3cc441add4b",
+        "facility_name": "Assembly Facility 2",
+        "okh_reference": "4fe74c03-6cd0-513f-90dc-0675e9d521c2",
+        "okw_reference": "01f2700b-c02d-4cd1-b1bd-df8fa26e9590",
+        "confidence_score": 1.0,
+        "estimated_cost": null,
+        "estimated_time": null,
+        "materials_required": [
+          "MaterialSpec(material_id='mat-rubber', name='Rubber', quantity=None, unit=None, notes=None)",
+          "MaterialSpec(material_id='mat-fasteners', name='fasteners', quantity=None, unit=None, notes=None)",
+          "MaterialSpec(material_id='mat-foam', name='foam', quantity=None, unit=None, notes=None)"
+        ],
+        "capabilities_used": [
+          "https://en.wikipedia.org/wiki/Assembly_line",
+          "https://en.wikipedia.org/wiki/Testing_equipment"
+        ],
+        "match_type": "direct",
+        "metadata": {
+          "okh_title": "RespiraWorks Open Source Ventilator",
+          "facility_name": "Assembly Facility 2",
+          "generation_method": "simplified_matching",
+          "domain": "manufacturing",
+          "equipment_count": 2,
+          "process_count": 1,
+          "composite_matching": true,
+          "covered_requirements": [
+            0,
+            1
+          ]
+        },
+        "creation_time": "2026-04-05T21:44:20.467730",
+        "parent_tree_id": null,
+        "child_tree_ids": [],
+        "component_id": null,
+        "component_name": null,
+        "component_quantity": null,
+        "component_unit": null,
+        "depends_on": [],
+        "required_by": [],
+        "production_stage": "final",
+        "assembly_location": null,
+        "depth": 0,
+        "component_path": []
+      },
+      "facility": {
+        "id": "01f2700b-c02d-4cd1-b1bd-df8fa26e9590",
+        "name": "Assembly Facility 2",
+        "location": {
+          "address": {
+            "number": "8987",
+            "street": "George Overpass",
+            "city": "Austin",
+            "region": "MS",
+            "country": "US",
+            "postcode": "59624"
+          },
+          "gps_coordinates": "30.2711286, -97.7436995",
+          "directions": "Located near Yu, Kennedy and Graham",
+          "city": "Austin",
+          "country": "US"
+        },
+        "facility_status": "Active",
+        "contact": {
+          "name": "White-Arnold",
+          "contact_person": "Sabrina Black",
+          "bio": "Established in 2016, we specialize in Universal analyzing toolset",
+          "website": "https://schneider.com",
+          "mailing_list": "isaac15@lists.reynolds-torres.info",
+          "contact": {
+            "landline": "+1-353-360-4108",
+            "mobile": "+1-932-263-7704",
+            "email": "info@graham.com"
+          },
+          "social_media": {
+            "facebook": "https://facebook.com/joeljones",
+            "twitter": "@susan79",
+            "other_urls": [
+              "https://baldwin-escobar.com"
+            ]
+          }
+        },
+        "opening_hours": "Mon-Fri: 6:00-18:00",
+        "description": "Specialized in product assembly and integration",
+        "date_founded": "2011-05-11",
+        "access_type": "Restricted",
+        "equipment": [
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+            "make": "Festo",
+            "model": "Manual Cell",
+            "serial_number": "SN962963",
+            "condition": "Fair",
+            "notes": "Equipment notes: Dark sometimes build likely teacher.",
+            "quantity": 1,
+            "throughput": "96 parts/hour",
+            "maintenance_schedule": "Every 6 months",
+            "materials_worked": [
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+                "manufacturer": "Premium"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Cables",
+                "manufacturer": "Brand A",
+                "brand": "Industrial"
+              },
+              {
+                "material_type": "https://en.wikipedia.org/wiki/Connectors",
+                "manufacturer": "Brand A",
+                "brand": "Professional"
+              }
+            ]
+          },
+          {
+            "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+            "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+            "make": "Brand A",
+            "model": "Model 732",
+            "condition": "Good"
+          }
+        ],
+        "manufacturing_processes": [
+          "https://en.wikipedia.org/wiki/Assembly_line"
+        ],
+        "typical_batch_size": "50 -- 500 units",
+        "floor_size": 317,
+        "typical_materials": [],
+        "certifications": [
+          "AS9100",
+          "NADCAP",
+          "OHSAS 18001"
+        ],
+        "road_access": true,
+        "typical_products": [
+          "Horizontal zero-defect infrastructure",
+          "Adaptive needs-based encoding",
+          "Persevering tertiary software",
+          "Intuitive zero-defect groupware",
+          "Centralized cohesive encryption"
+        ]
+      },
+      "facility_id": "01f2700b-c02d-4cd1-b1bd-df8fa26e9590",
+      "facility_name": "Assembly Facility 2",
+      "match_type": "manufacturing",
+      "confidence": 1.0,
+      "score": 1.0,
+      "metrics": {
+        "facility_count": 1,
+        "required_process_count": 2,
+        "covered_process_count": 2
+      },
+      "rank": 3,
+      "processing_timestamp": "2026-04-05T21:44:20.475169"
+    }
+  ],
+  "total_solutions": 3,
+  "matching_mode": "single-level",
+  "processing_time": 5.345298,
+  "matching_metrics": {
+    "direct_matches": 3,
+    "heuristic_matches": 0,
+    "nlp_matches": 0,
+    "llm_matches": 0
+  },
+  "validation_results": [
+    {
+      "is_valid": true,
+      "score": 1.0,
+      "errors": [],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "is_valid": true,
+      "score": 1.0,
+      "errors": [],
+      "warnings": [],
+      "suggestions": []
+    },
+    {
+      "is_valid": true,
+      "score": 1.0,
+      "errors": [],
+      "warnings": [],
+      "suggestions": []
+    }
+  ],
+  "match_summary": {
+    "matching_mode": "single-level",
+    "solution_count": 3,
+    "required_process_count": 2,
+    "covered_process_count": 2,
+    "coverage_ratio": 1.0,
+    "facility_combination_requested": true,
+    "facility_combination_applied": false,
+    "max_facilities_per_solution": 3,
+    "return_alternative_solutions": true,
+    "combination_strategy": "greedy",
+    "coverage_gap_counts": {},
+    "warnings": [
+      "Facility-combination mode was requested but no composite solution was returned."
+    ]
+  },
+  "coverage_gaps": [],
+  "match_summary_text": "mode=single-level solutions=3 coverage=2/2 (1.0) combinations_requested=True combinations_applied=False"
+}

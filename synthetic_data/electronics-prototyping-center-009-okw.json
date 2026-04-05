@@ -1,0 +1,192 @@
+{
+  "id": "c5834572-f752-4fba-bfd2-98c13991c24f",
+  "name": "Electronics Prototyping Center",
+  "location": {
+    "address": {
+      "number": "2230",
+      "street": "Lowe Springs",
+      "city": "San Antonio",
+      "region": "MA",
+      "country": "US",
+      "postcode": "67698"
+    },
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "directions": "Located across from Hobbs, Mcconnell and Hernandez",
+    "city": "San Antonio",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Rosario, Garcia and White",
+    "contact_person": "David Murray",
+    "languages": [
+      "en"
+    ],
+    "images": [
+      "images/go.jpg",
+      "images/expert.jpg",
+      "images/affect.jpg"
+    ],
+    "contact": {
+      "landline": "+1-921-248-1311",
+      "mobile": "+1-877-523-7060",
+      "whatsapp": "+1-916-643-6325"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://rogers-wade.org",
+        "https://joseph-salazar.com"
+      ]
+    }
+  },
+  "description": "Integrated PCB assembly, 3D printing, and product assembly",
+  "date_founded": "1998-05-16",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Pick_and_place",
+      "make": "Generic",
+      "model": "Model 954",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Creality",
+      "model": "Ender 3",
+      "condition": "Excellent",
+      "quantity": 4,
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Premium",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU"
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.6
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Bosch Rexroth",
+      "model": "Semi-Auto Line",
+      "condition": "Good",
+      "quantity": 5,
+      "power_rating": 3988,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "7760",
+              "street": "Shelby Keys",
+              "city": "San Francisco",
+              "region": "KS",
+              "country": "US",
+              "postcode": "54739"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "directions": "Located behind Juarez LLC",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "608",
+              "street": "Kelly Squares",
+              "city": "Los Angeles",
+              "region": "AZ",
+              "country": "US",
+              "postcode": "90832"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "manufacturer": "Brand A"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Pick_and_place",
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "IPC-J-STD-001",
+    "IPC-A-610",
+    "RoHS Compliance"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 1 months",
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Free enter American international.",
+    "by_products": [
+      "building",
+      "camera",
+      "recognize"
+    ]
+  },
+  "innovation_space": {
+    "staff": 2,
+    "footfall": 78
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.701332",
+    "created_by": {
+      "name": "Simpson-Powell",
+      "contact_person": "Richard Williams",
+      "mailing_list": "jamesgibson@lists.sanders.biz",
+      "images": [
+        "images/assume.jpg",
+        "images/me.jpg",
+        "images/free.jpg"
+      ],
+      "contact": {
+        "landline": "+1-475-771-5392"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/steveferrell",
+        "twitter": "@eriksmith",
+        "other_urls": [
+          "https://thomas.com"
+        ]
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

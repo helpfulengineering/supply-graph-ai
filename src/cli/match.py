@@ -269,6 +269,10 @@ async def requirements(
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("match-requirements")
 
+    # Keep explain output aligned with verbose mode ergonomics.
+    if verbose and not include_explanation:
+        include_explanation = True
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
         use_llm=use_llm,
@@ -575,6 +579,8 @@ async def requirements(
                         solutions, key=lambda s: s.score, reverse=True
                     )
                     solution_dicts = [s.to_dict() for s in solutions_list]
+                    for idx, solution_dict in enumerate(solution_dicts, start=1):
+                        solution_dict["rank"] = idx
                     total_trees = sum(len(s.all_trees) for s in solutions_list)
                     result = {
                         "solutions": solution_dicts,
@@ -684,8 +690,11 @@ async def requirements(
                             # Continue without failing the match
 
                     if results_list:
+                        solution_dicts = [r.to_dict() for r in results_list]
+                        for idx, solution_dict in enumerate(solution_dicts, start=1):
+                            solution_dict["rank"] = idx
                         result = {
-                            "solutions": [r.to_dict() for r in results_list],
+                            "solutions": solution_dicts,
                             "total_solutions": len(results_list),
                             "matching_mode": "single-level",
                         }
@@ -1421,7 +1430,8 @@ async def _display_match_results(
                 facility_name = solution.get("name", "Unknown Facility")
                 confidence = solution.get("confidence", solution.get("score", 0))
 
-            click.echo(f"\n{i}. {facility_name}")
+            rank = solution.get("rank", i)
+            click.echo(f"\n{rank}. {facility_name}")
 
             # Show facility ID if available
             facility_id = solution.get("facility_id")

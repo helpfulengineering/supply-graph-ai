@@ -1,0 +1,367 @@
+{
+  "id": "ab67b029-e2fd-478b-b97b-43a421f59b92",
+  "name": "Additive Manufacturing Center",
+  "location": {
+    "address": {
+      "number": "7250",
+      "street": "Sergio Spurs",
+      "city": "Boston",
+      "region": "IA",
+      "country": "US",
+      "postcode": "61226"
+    },
+    "gps_coordinates": "42.3588336, -71.0578303",
+    "city": "Boston",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Herrera, Wang and Martinez",
+    "location": {
+      "address": {
+        "number": "9443",
+        "street": "Deborah Walk",
+        "city": "Seattle",
+        "region": "RI",
+        "country": "US",
+        "postcode": "61219"
+      },
+      "gps_coordinates": "47.6038321, -122.330062",
+      "directions": "Located across from Mcmahon-Griffin",
+      "city": "Seattle",
+      "country": "US"
+    },
+    "contact_person": "Aaron Hodges",
+    "bio": "Established in 1998, we specialize in Extended zero-defect leverage",
+    "website": "https://jones.org",
+    "languages": [
+      "fr"
+    ],
+    "mailing_list": "harrisonlori@lists.mcbride.com",
+    "images": [
+      "images/art.jpg",
+      "images/concern.jpg"
+    ],
+    "contact": {
+      "landline": "+1-774-997-2738"
+    },
+    "social_media": {
+      "instagram": "@lisa74",
+      "other_urls": [
+        "https://fowler-clayton.com",
+        "https://salas-norris.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Benton-Wood",
+    "bio": "Established in 2008, we specialize in Reactive object-oriented capacity",
+    "mailing_list": "kevincraig@lists.daniels.info",
+    "contact": {
+      "mobile": "+1-730-400-5684",
+      "email": "info@sanchez-sanchez.biz"
+    },
+    "social_media": {
+      "instagram": "@michaelgreen",
+      "other_urls": [
+        "https://henderson.org",
+        "https://jordan-davidson.info"
+      ]
+    }
+  },
+  "description": "Advanced additive manufacturing with post-processing and assembly",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "S5",
+      "serial_number": "SN211464",
+      "condition": "Fair",
+      "quantity": 5,
+      "power_rating": 6231,
+      "maintenance_schedule": "Every 1 months",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "6409",
+              "street": "Roger Grove",
+              "city": "San Jose",
+              "region": "MO",
+              "country": "US",
+              "postcode": "97863"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "directions": "Located near Cook, Scott and Hart",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "7983",
+              "street": "Jessica Tunnel",
+              "city": "San Francisco",
+              "region": "AZ",
+              "country": "US",
+              "postcode": "57593"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "brand": "Industrial"
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.6,
+      "detailed_capabilities": {
+        "layer_height_range": "0.1-0.3mm",
+        "print_speed": "20-100mm/s",
+        "temperature_range": "200-280°C",
+        "bed_temperature": "60-100°C",
+        "supported_formats": [
+          "STL",
+          "OBJ",
+          "3MF"
+        ],
+        "supported_materials": [
+          "PETG",
+          "TPU"
+        ],
+        "process_parameters": {
+          "setup_time": "20 minutes",
+          "cycle_time": "42 minutes",
+          "changeover_time": "43 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 889",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Post-processing_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Post-processing",
+      "make": "Bel Air",
+      "model": "Powershot C",
+      "serial_number": "SN685049",
+      "condition": "Fair",
+      "notes": "Equipment notes: Sea us case remain market ask save.",
+      "quantity": 2,
+      "throughput": "17 parts/hour",
+      "maintenance_schedule": "Every 9 months",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Nylon",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1507",
+              "street": "Harrington Vista",
+              "city": "Phoenix",
+              "region": "NE",
+              "country": "US",
+              "postcode": "11926"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located across from Nielsen, Turner and Carr",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Resin",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3684",
+              "street": "Mary Ridges",
+              "city": "Houston",
+              "region": "NM",
+              "country": "US",
+              "postcode": "15295"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "directions": "Located behind Joseph-Miller",
+            "city": "Houston",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "surface_smoothing": "Ra 1.0-3.0μm",
+        "support_removal": "Automated",
+        "vapor_smoothing": "Yes",
+        "dyeing": "Yes",
+        "supported_materials": [
+          "ABS",
+          "Nylon",
+          "Resin",
+          "PLA",
+          "PETG"
+        ],
+        "process_parameters": {
+          "setup_time": "101 minutes",
+          "cycle_time": "57 minutes",
+          "changeover_time": "35 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Semi-Auto Line",
+      "condition": "Fair",
+      "notes": "Equipment notes: Red scientist all sort.",
+      "quantity": 3,
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "supplier_location": {
+            "address": {
+              "number": "2065",
+              "street": "Cindy Vista",
+              "city": "Austin",
+              "region": "MA",
+              "country": "US",
+              "postcode": "54933"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "directions": "Located across from Ware, Jones and Smith",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3594",
+              "street": "Walls Course",
+              "city": "Charlotte",
+              "region": "MO",
+              "country": "US",
+              "postcode": "33574"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Industrial"
+        }
+      ],
+      "detailed_capabilities": {
+        "assembly_types": [
+          "Mechanical",
+          "Electrical",
+          "Mixed"
+        ],
+        "torque_control": "0.1-50 Nm",
+        "esd_protection": "Yes",
+        "test_integration": "Functional test points",
+        "supported_materials": [
+          "Fasteners",
+          "Connectors",
+          "Cables",
+          "Adhesives"
+        ],
+        "process_parameters": {
+          "setup_time": "59 minutes",
+          "cycle_time": "14 minutes",
+          "changeover_time": "25 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/Post-processing_station",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2282,
+  "storage_capacity": "295 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 14001",
+    "OHSAS 18001",
+    "AS9100"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Network technology foot author experience six.",
+    "by_products": [
+      "apply",
+      "capital"
+    ]
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.712758",
+    "created_by": {
+      "name": "Howell, Flores and Williamson",
+      "website": "https://anderson-farrell.net",
+      "languages": [
+        "fr",
+        "de"
+      ],
+      "contact": {
+        "landline": "+1-748-358-6043",
+        "whatsapp": "+1-474-772-3425"
+      },
+      "social_media": {
+        "facebook": "https://facebook.com/kristin11"
+      }
+    },
+    "data_collection_method": "Interview"
+  }
+}

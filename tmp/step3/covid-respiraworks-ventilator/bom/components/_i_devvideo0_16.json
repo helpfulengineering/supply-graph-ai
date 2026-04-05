@@ -1,0 +1,12 @@
+{
+  "id": "_i_devvideo0_16",
+  "name": "-i devvideo0",
+  "quantity": 2.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "software/controller/integration_tests/webcam/README.md",
+    "confidence": 0.45
+  }
+}

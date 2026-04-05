@@ -1218,9 +1218,12 @@ The endpoint returns a wrapped response with the following structure:
   - `facility`: Complete facility/kitchen information
   - `facility_id`: **Unique identifier** for the facility (required for API operations)
   - `facility_name`: Human-readable facility name
+  - `facility_ids`: List of facility IDs participating in the solution (**composite solutions only**)
+  - `facility_names`: List of facility names participating in the solution (**composite solutions only**)
+  - `facility_details`: List of `{facility_id, facility_name, facility}` objects (**composite solutions only**)
   - `match_type`: Domain type ("manufacturing" or "cooking")
   - `confidence`: Match confidence score (0.0-1.0)
-  - `rank`: Solution rank (1 = best match)
+  - `rank`: Solution rank (1 = best match, stable after confidence filtering and result limiting)
 - `total_solutions`: Total number of matching solutions found
 - `matching_metrics`: Breakdown of match types
 - `validation_results`: Validation results for each solution

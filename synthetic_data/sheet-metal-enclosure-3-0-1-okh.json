@@ -1,0 +1,210 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "0ebdae4e-e5ab-4866-b239-790d7b170839",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/eroberts/sheet-metal-enclosure",
+  "version": "3.0.1",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Christopher Cox",
+    "email": "eric80@example.com",
+    "affiliation": "Wolfe-Walker",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "matthew00"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Those civil according realize throughout present.",
+  "keywords": [
+    "documented",
+    "prototype",
+    "mount",
+    "bearing",
+    "shaft"
+  ],
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/mmartinez/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/rachel39/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/troy82/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/mjohnson/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.1"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/kimberlychapman/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.5"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Drill press",
+    "Cable ties",
+    "Shear",
+    "Screwdriver set",
+    "Welder"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 444.18,
+      "unit": "g",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": "Manufacturing notes: Mention reveal leader establish."
+  },
+  "bom": "https://github.com/robertblack/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "b9e63660-1bde-42be-8927-60cfcd2dd8b7",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 92,
+        "width": 190,
+        "height": 39
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "0e82e45f-1284-462e-93d1-b753259d049d",
+      "source": [
+        "https://github.com/lhenry/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/marco67/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 39,
+        "width": 12,
+        "height": 50
+      },
+      "mass": 387.24,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

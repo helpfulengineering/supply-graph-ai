@@ -1,0 +1,261 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "1601c5f3-4ce2-40f3-8761-d4b6e0918229",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/vanessapotts/3d-printed-prosthetic-hand",
+  "version": "3.5.7",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Paul Patel",
+    "email": null,
+    "affiliation": "Brown, Kim and Meadows",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "kdavis"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "intended_use": "Yes choice why even culture.",
+  "keywords": [
+    "shaft",
+    "modular",
+    "customizable",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Robert Sanford",
+    "email": null,
+    "affiliation": "Baker-Garcia",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "andreajimenez"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Keith Carpenter",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "michael84"
+        }
+      ]
+    },
+    {
+      "name": "Linda Gordon",
+      "email": null,
+      "affiliation": "Hunt and Sons",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Nelson Inc",
+    "url": null,
+    "email": "contact@cook.com"
+  },
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-3",
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/williamschmidt/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/andrewdavid/project/raw/main/docs/regulatory_compliance_statement.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/kingcharles/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/bthomas/project/raw/main/docs/technical_drawings.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/cole95/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.0"
+      }
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/robin28/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Build plate",
+    "Nozzle",
+    "Calipers",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "Crimping tool",
+    "Wrench set",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: B"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "b6e8de87-a059-45d1-9bdb-f1e55be0bad3",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/smorgan/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "1b31a9f3-7143-452b-a09f-3b08bf4269c4",
+      "source": [
+        "https://github.com/betty66/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/turnercory/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/stevensonmichelle/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": 24.66,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "ac1421a9-6ff9-47a9-9cfb-df59279b391b",
+      "source": [
+        "https://github.com/saunderssheri/project/raw/main/models/frame.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/eduke/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": {
+        "length": 68,
+        "width": 137,
+        "height": 76
+      },
+      "mass": 363.64,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -942,6 +942,7 @@ You can also explicitly specify the domain using the `--domain` option.
 - `--max-facilities-per-solution INTEGER` - Cap facilities used in one composite solution (default: 3)
 - `--combination-strategy [greedy]` - Composite solver strategy
 - `--no-alternative-solutions` - Return only the top composite solution
+- `--explain` - Include structured and human-readable per-solution explanations in output
 - `--output, -o TEXT` - Output file path
 - `--use-llm` - Enable LLM integration for enhanced matching
 - `--llm-provider [anthropic|openai|google|azure|local]` - LLM provider
@@ -951,6 +952,9 @@ You can also explicitly specify the domain using the `--domain` option.
 - `--json` - Output results in JSON format
 - `--table` - Output results in table format
 - `--verbose, -v` - Enable verbose output
+
+**Verbose behavior note:**
+- In `match requirements`, `--verbose` automatically enables explanation output (equivalent to `--explain`) so diagnostics are consistently shown during interactive debugging.
 
 **Examples:**
 ```bash
@@ -987,8 +991,10 @@ ohm match requirements my-design.okh.json --output matches.json
 
 **Output:**
 The command displays matching facilities with:
+- Rank (`1` = best match)
 - Facility name
 - **Full facility ID (UUID)** - required for `ohm okw get` command
+- Composite detail bundle (`facility_details`) in JSON mode when a solution spans multiple facilities
 - Confidence score
 - Match type (manufacturing or cooking)
 - Location (if available)

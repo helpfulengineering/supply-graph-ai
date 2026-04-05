@@ -1,0 +1,204 @@
+{
+  "id": "4f6c028b-aefb-435b-90d2-155ce6bdf16d",
+  "name": "Industrial Manufacturing Plant",
+  "location": {
+    "address": {
+      "number": "8535",
+      "street": "Teresa Streets",
+      "city": "Boston",
+      "region": "PR",
+      "country": "US",
+      "postcode": "62671"
+    },
+    "gps_coordinates": "42.3588336, -71.0578303",
+    "directions": "Located behind Harrison Inc",
+    "city": "Boston",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "contact": {
+    "name": "Lopez, Jackson and Snyder",
+    "contact_person": "Donna Taylor",
+    "languages": [
+      "es",
+      "de"
+    ],
+    "contact": {
+      "mobile": "+1-216-865-6824",
+      "email": "info@adams-miller.biz"
+    },
+    "social_media": {
+      "instagram": "@dandrews",
+      "other_urls": [
+        "https://roberts.biz"
+      ]
+    }
+  },
+  "description": "Large-scale manufacturing facility",
+  "date_founded": "2008-04-02",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "PCNC 440",
+      "serial_number": "SN595868",
+      "condition": "Needs Maintenance",
+      "quantity": 2,
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "5385",
+              "street": "Jon Neck",
+              "city": "San Diego",
+              "region": "NC",
+              "country": "US",
+              "postcode": "37324"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3252",
+              "street": "Carpenter Ranch",
+              "city": "Austin",
+              "region": "RI",
+              "country": "US",
+              "postcode": "16226"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8845",
+              "street": "Lori Trace",
+              "city": "San Francisco",
+              "region": "MN",
+              "country": "US",
+              "postcode": "70845"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "directions": "Located near Wilson, Nash and Duarte",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 659",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand B",
+      "model": "Model 311",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Generic",
+      "model": "Model 645",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder"
+  ],
+  "typical_batch_size": "500 -- 5000 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 6 months",
+  "typical_products": [
+    "Adaptive next generation synergy",
+    "Cross-platform 6thgeneration framework",
+    "Focused methodical policy"
+  ],
+  "innovation_space": {
+    "staff": 6,
+    "services": [
+      "Intuitive 24hour paradigm"
+    ],
+    "footfall": 34,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.699901",
+    "created_by": {
+      "name": "Lopez-Ross",
+      "location": {
+        "address": {
+          "number": "5584",
+          "street": "Curry Ranch",
+          "city": "San Antonio",
+          "region": "NM",
+          "country": "US",
+          "postcode": "84016"
+        },
+        "gps_coordinates": "29.4246002, -98.4951405",
+        "directions": "Located near Griffin, Reid and Anderson",
+        "city": "San Antonio",
+        "country": "US"
+      },
+      "contact_person": "Veronica Donovan",
+      "bio": "Established in 2015, we specialize in User-friendly tangible artificial intelligence",
+      "languages": [
+        "fr",
+        "de",
+        "en"
+      ],
+      "mailing_list": "mmorales@lists.carson-morgan.com",
+      "images": [
+        "images/quite.jpg",
+        "images/them.jpg",
+        "images/race.jpg"
+      ],
+      "contact": {
+        "mobile": "+1-962-483-2403",
+        "email": "info@lozano.com",
+        "whatsapp": "+1-363-280-1619"
+      }
+    },
+    "data_collection_method": "Direct observation"
+  }
+}

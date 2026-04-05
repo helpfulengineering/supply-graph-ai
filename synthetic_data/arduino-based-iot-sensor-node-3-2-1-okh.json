@@ -1,0 +1,227 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "7c6d870b-a0e3-49e0-9de2-a201640cb736",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/mindy31/arduino-based-iot-sensor-node",
+  "version": "3.2.1",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Stephanie Shaw",
+    "email": "rogerslaura@example.com",
+    "affiliation": "Barrett Group",
+    "social": []
+  },
+  "documentation_language": "es",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Hot particularly poor political world.",
+  "intended_use": "Fish than skill.",
+  "keywords": [
+    "reproducible",
+    "fastener"
+  ],
+  "contributors": [
+    {
+      "name": "Christopher Watkins",
+      "email": "hawkinsrobert@example.net",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/rioseileen/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.4"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/kwest/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.9"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/aolsen/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Electrical Testing Protocol",
+      "path": "https://github.com/randall70/project/raw/main/docs/electrical_testing_protocol.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/vmorgan/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.0"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/david38/project/raw/main/docs/pcb_assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/vanessamorse/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/jamesmyers/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/yrush/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Build plate",
+    "Oscilloscope",
+    "Filament",
+    "Calipers",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "3D printer",
+    "Crimping tool",
+    "Wrench set",
+    "Soldering station",
+    "Pick and place",
+    "Reflow oven",
+    "Multimeter",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": 793.58,
+      "unit": "m²",
+      "notes": "Grade: C"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "standard_title": "IPC-A-610",
+      "publisher": "IPC",
+      "reference": "IPC-A-610",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP",
+    "PCB"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "81da4959-fda5-4610-8462-eee6a2f9c19c",
+      "source": [
+        "https://github.com/olee/project/raw/main/models/cover.stl"
+      ],
+      "export": [
+        "https://github.com/steven62/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/youngrebecca/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "FR4",
+      "outer_dimensions": {
+        "length": 24,
+        "width": 189,
+        "height": 82
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "board_thickness": "0.8mm",
+        "copper_thickness": "35μm"
+      }
+    },
+    {
+      "name": "Main Body",
+      "id": "3978cb33-a27e-4425-b6f5-3cb1a38cbc0d",
+      "source": [
+        "https://github.com/jrivera/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/wilsonjohn/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Electronic components",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

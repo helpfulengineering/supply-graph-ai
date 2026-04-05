@@ -1,0 +1,204 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "4d77067c-0a35-48c6-a1e4-8d51ce64059d",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/thunter/laser-cut-acrylic-display-case",
+  "version": "3.9.9",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Bobby Saunders",
+    "email": "jeremyjoseph@example.org",
+    "affiliation": "Palmer, Rowe and Brown",
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Yeah foreign product nice hit.",
+  "keywords": [
+    "assembly",
+    "documented",
+    "housing",
+    "bracket",
+    "open-source"
+  ],
+  "contact": {
+    "name": "Donald Walters",
+    "email": null,
+    "affiliation": "Mcdonald-Holmes",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "pamela94"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Russell Gibbs",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Burns Group",
+    "url": "https://park-butler.net",
+    "email": null
+  },
+  "technology_readiness_level": "TRL-2",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/lwhite/project/raw/main/docs/assembly_guide.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/samantha88/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/wmiller/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/mitchelljohn/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/williamsjamie/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.5"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/uknox/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting bed",
+    "Focus lens",
+    "Exhaust system",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "Air assist",
+    "Crimping tool",
+    "Wrench set"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "abe31eef-0ae4-4dbb-9ba6-abceed55e3a0",
+      "source": [
+        "https://github.com/tranlisa/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 47,
+        "width": 98,
+        "height": 70
+      },
+      "mass": 656.45,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "fb148c66-b9aa-4992-8ebe-8a136e1d7205",
+      "source": [],
+      "export": [
+        "https://github.com/davismatthew/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/ernest26/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 100,
+        "width": 190,
+        "height": 14
+      },
+      "mass": 395.47,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

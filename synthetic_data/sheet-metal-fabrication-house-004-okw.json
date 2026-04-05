@@ -1,0 +1,141 @@
+{
+  "id": "2cec2c81-a773-4af7-8889-6238e7b5a5f9",
+  "name": "Sheet Metal Fabrication House",
+  "location": {
+    "address": {
+      "number": "4498",
+      "street": "Thomas Ford",
+      "city": "Los Angeles",
+      "region": "PR",
+      "country": "US",
+      "postcode": "45730"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 9:00-18:00",
+  "description": "Full-service sheet metal fabrication with welding and painting",
+  "date_founded": "1998-10-26",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Brand A",
+      "model": "Model 979",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 992",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Col-Met",
+      "model": "Downdraft",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Image song also get lose close.",
+      "throughput": "47 parts/hour",
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2136",
+              "street": "Moreno Camp",
+              "city": "Charlotte",
+              "region": "TX",
+              "country": "US",
+              "postcode": "76776"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2790",
+              "street": "Christopher Run",
+              "city": "Phoenix",
+              "region": "AL",
+              "country": "US",
+              "postcode": "34906"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "directions": "Located near Anderson, Ward and Griffin",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+          "supplier_location": {
+            "address": {
+              "number": "2757",
+              "street": "Webster Tunnel",
+              "city": "Boston",
+              "region": "KS",
+              "country": "US",
+              "postcode": "32998"
+            },
+            "gps_coordinates": "42.3588336, -71.0578303",
+            "directions": "Located near Cooley LLC",
+            "city": "Boston",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "finish_quality": "Class A surface",
+        "coating_types": [
+          "Wet spray",
+          "Powder coat",
+          "E-coat"
+        ],
+        "cure_temperature": "60-200°C",
+        "humidity_control": "Yes",
+        "supported_materials": [
+          "Epoxy",
+          "Powder coat",
+          "Primer"
+        ],
+        "process_parameters": {
+          "setup_time": "77 minutes",
+          "cycle_time": "16 minutes",
+          "changeover_time": "10 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "road_access": true
+}

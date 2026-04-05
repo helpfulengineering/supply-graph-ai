@@ -1,0 +1,253 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "1067a706-5c48-4a99-b71b-48746122511e",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/stephanie98/3d-printed-prosthetic-hand",
+  "version": "2.1.5",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Angela Brown",
+    "email": null,
+    "affiliation": "Edwards-Brown",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "snyderrichard"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "keywords": [
+    "housing",
+    "customizable"
+  ],
+  "contact": {
+    "name": "Jason Foster",
+    "email": null,
+    "affiliation": "Stone Group",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "tbarker"
+      }
+    ]
+  },
+  "organization": {
+    "name": "Lee, Ewing and Ross",
+    "url": "https://perkins-young.com",
+    "email": null
+  },
+  "development_stage": "beta",
+  "technology_readiness_level": "TRL-3",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/justin99/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.3"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/andrew97/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/zachary99/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.1"
+      }
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/xmejia/project/raw/main/docs/standards_compliance_documentation.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/scoleman/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/maddendonald/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/robertsullivan/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/opennington/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Build plate",
+    "Nozzle",
+    "Calipers",
+    "Heat shrink",
+    "Screwdriver set",
+    "Pliers",
+    "3D printer",
+    "Crimping tool",
+    "Wrench set",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": 435.87,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 154.59,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 675.93,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.1mm",
+          "infill": "50%",
+          "temperature": "234°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Worry behavior establish."
+      }
+    ],
+    "quality_standards": [
+      "CE"
+    ],
+    "notes": ""
+  },
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "6f082273-6059-4e2b-9a9d-80c3b5e79db5",
+      "source": [
+        "https://github.com/deborahwalker/project/raw/main/models/frame.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/nicholasmyers/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/hallstephanie/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Cover",
+      "id": "75552b3a-d5bf-49d5-a34c-7b4e1d67b2fd",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/lcasey/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": {
+        "length": 188,
+        "width": 52,
+        "height": 46
+      },
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

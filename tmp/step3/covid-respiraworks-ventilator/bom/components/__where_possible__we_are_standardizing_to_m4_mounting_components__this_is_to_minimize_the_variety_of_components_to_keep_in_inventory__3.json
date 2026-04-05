@@ -1,0 +1,12 @@
+{
+  "id": "__where_possible__we_are_standardizing_to_m4_mounting_components__this_is_to_minimize_the_variety_of_components_to_keep_in_inventory__3",
+  "name": "- where possible, we are standardizing to M4 mounting components. This is to minimize the variety of components to keep in inventory.",
+  "quantity": 4.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "manufacturing/README.md",
+    "confidence": 0.7
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "_framerate_15__i_devvideo0_13",
+  "name": "-framerate 15 -i devvideo0",
+  "quantity": 2.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "software/controller/integration_tests/webcam/README.md",
+    "confidence": 0.45
+  }
+}

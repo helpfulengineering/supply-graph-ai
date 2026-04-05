@@ -1,0 +1,201 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "a2833cc7-dc69-41ed-b617-a860594981e6",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/ylambert/sheet-metal-enclosure",
+  "version": "2.0.3",
+  "license": {
+    "hardware": "TAPR-OHL-1.0",
+    "documentation": "CC-BY-4.0",
+    "software": "Apache-2.0"
+  },
+  "licensor": {
+    "name": "Mark Ortiz",
+    "email": null,
+    "affiliation": "Holmes, Hodge and Cooper",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "osalazar"
+      }
+    ]
+  },
+  "documentation_language": "it",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "intended_use": "Home page investment mention nor enter.",
+  "keywords": [
+    "assembly",
+    "reproducible",
+    "fastener",
+    "documented"
+  ],
+  "contributors": [
+    {
+      "name": "Ashley Morris DDS",
+      "email": "jeremyaguirre@example.com",
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "bruce89"
+        }
+      ]
+    },
+    {
+      "name": "Andrew Smith",
+      "email": null,
+      "affiliation": "Marquez, Mcclure and Huang",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "howellnathan"
+        }
+      ]
+    }
+  ],
+  "organization": {
+    "name": "Grant PLC",
+    "url": null,
+    "email": "contact@johnson-herman.com"
+  },
+  "technology_readiness_level": "TRL-6",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/ryan52/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/bullockheather/project/raw/main/docs/bill_of_materials.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/dbenton/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/harrysingleton/project/raw/main/docs/standards_compliance_documentation.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/lopezkayla/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Shear",
+    "Grinder",
+    "Welder",
+    "Screwdriver set",
+    "Crimping tool",
+    "Drill press",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Mount",
+      "id": "e8dc5678-4d85-45df-9483-9bae1135d27b",
+      "source": [
+        "https://github.com/lisa67/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/dennis37/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/sarah34/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/gregoryvillarreal/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 189,
+        "width": 14,
+        "height": 99
+      },
+      "mass": 974.53,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

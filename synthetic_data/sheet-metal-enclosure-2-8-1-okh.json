@@ -1,0 +1,294 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "a4f5a2c7-a36f-4e9a-88c6-d0bb6efd3114",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/bjackson/sheet-metal-enclosure",
+  "version": "2.8.1",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Brian Rodriguez MD",
+    "email": null,
+    "affiliation": "Powell and Sons",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "jessica79"
+      }
+    ]
+  },
+  "documentation_language": "de",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Learn meet position special final economy.",
+  "intended_use": "Defense age claim list seek last.",
+  "keywords": [
+    "assembly",
+    "open-source",
+    "modular"
+  ],
+  "contact": {
+    "name": "Joshua Richards",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "sherryhamilton"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Ms. Amy Raymond DDS",
+      "email": "shawn08@example.com",
+      "affiliation": "Cochran-Garza",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "nicholas79"
+        }
+      ]
+    }
+  ],
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/alopez/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/cookdaniel/project/raw/main/docs/bill_of_materials.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/benjamincameron/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/turnerisaac/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.2"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/uedwards/project/raw/main/docs/technical_drawings.iges",
+      "type": "design-files",
+      "metadata": {
+        "version": "v1.4"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/clynn/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/andrewsdana/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Grinder",
+    "Sheet metal brake",
+    "Shear"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Adhesive"
+    ],
+    "outer_dimensions": {
+      "length": 179,
+      "width": 464,
+      "height": 179
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "ISO 9001"
+    ],
+    "notes": "Manufacturing notes: Then campaign seek run government cold investment."
+  },
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Frame",
+      "id": "41394bfa-7532-44a0-81c7-8421a0ff5e09",
+      "source": [
+        "https://github.com/michaelrogers/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/smithheather/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/benjamin13/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "0c459d78-766f-4c33-9506-465f0674a9ee",
+      "source": [
+        "https://github.com/mcmillanrickey/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/tyler41/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": {
+        "length": 197,
+        "width": 62,
+        "height": 85
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "70d91a52-f0fd-4110-ae9e-739a43dbd3c9",
+      "source": [
+        "https://github.com/mark02/project/raw/main/models/bracket.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/austingiles/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/michaelkim/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 57,
+        "width": 64,
+        "height": 66
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "3629e900-9c85-4bda-9a61-e954ae0c31b2",
+      "source": [],
+      "export": [
+        "https://github.com/smithlaura/project/raw/main/exports/main_body.step"
+      ],
+      "auxiliary": [
+        "https://github.com/donnagonzales/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": "https://github.com/brookscharles/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 85,
+        "width": 151,
+        "height": 60
+      },
+      "mass": 739.77,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Mount",
+      "id": "50853b5e-5afb-4512-90f1-c796641d6029",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/otanner/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": "https://github.com/smithteresa/project/raw/main/images/mount.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

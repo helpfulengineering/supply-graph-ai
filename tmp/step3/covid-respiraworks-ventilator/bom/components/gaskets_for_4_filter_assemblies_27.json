@@ -1,0 +1,12 @@
+{
+  "id": "gaskets_for_4_filter_assemblies_27",
+  "name": "gaskets for 4 filter assemblies",
+  "quantity": 8.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "manufacturing/internals/filter_panel/filter_holder/README.md",
+    "confidence": 0.45
+  }
+}

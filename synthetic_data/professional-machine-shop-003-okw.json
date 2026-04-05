@@ -1,0 +1,148 @@
+{
+  "id": "376edfcd-e7cd-4f65-964a-29a197f19139",
+  "name": "Professional Machine Shop",
+  "location": {
+    "address": {
+      "number": "3095",
+      "street": "Jane Union",
+      "city": "Austin",
+      "region": "MS",
+      "country": "US",
+      "postcode": "30094"
+    },
+    "gps_coordinates": "30.2711286, -97.7436995",
+    "city": "Austin",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Nelson PLC",
+    "contact_person": "Oscar Moody",
+    "website": "https://hendricks.com",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "mailing_list": "shannonmurray@lists.george.com",
+    "contact": {
+      "email": "info@ramos.com",
+      "whatsapp": "+1-581-208-7985"
+    },
+    "social_media": {
+      "twitter": "@kathleen31",
+      "other_urls": [
+        "https://johnson.com",
+        "https://walker-barrett.net"
+      ]
+    }
+  },
+  "description": "Commercial machining facility with precision equipment",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Haas",
+      "model": "PCNC 440",
+      "condition": "Needs Maintenance",
+      "maintenance_schedule": "Every 6 months",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6990",
+              "street": "Alyssa Tunnel",
+              "city": "Fort Worth",
+              "region": "KY",
+              "country": "US",
+              "postcode": "53900"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located across from Wallace PLC",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "supplier_location": {
+            "address": {
+              "number": "5526",
+              "street": "Steele Square",
+              "city": "Denver",
+              "region": "VT",
+              "country": "US",
+              "postcode": "35518"
+            },
+            "gps_coordinates": "39.7392364, -104.984862",
+            "directions": "Located behind Thomas Ltd",
+            "city": "Denver",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9440",
+              "street": "Kenneth Orchard",
+              "city": "Indianapolis",
+              "region": "NE",
+              "country": "US",
+              "postcode": "99806"
+            },
+            "gps_coordinates": "39.7683331, -86.1583502",
+            "directions": "Located near Mitchell, Dixon and Ruiz",
+            "city": "Indianapolis",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 400
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 444",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 611",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/CNC_lathe",
+    "https://en.wikipedia.org/wiki/Surface_grinder"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2111,
+  "storage_capacity": "163 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "AS9100"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 3 months",
+  "human_capacity": {
+    "headcount": 35
+  }
+}

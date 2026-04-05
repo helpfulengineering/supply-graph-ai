@@ -1,0 +1,325 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "9876e15d-637f-42b7-9415-8af18425e992",
+  "title": "Arduino-based IoT Sensor Node",
+  "repo": "https://github.com/caleb86/arduino-based-iot-sensor-node",
+  "version": "3.1.0",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Philip Butler",
+    "email": "jeffrey90@example.net",
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Environmental monitoring device with temperature, humidity, and air quality sensors",
+  "description": "A arduino-based iot sensor node designed for Support country mind for.",
+  "intended_use": "Democrat fact amount ok research central.",
+  "keywords": [
+    "gear",
+    "open-source",
+    "modular"
+  ],
+  "development_stage": "deprecated",
+  "technology_readiness_level": "TRL-3",
+  "manufacturing_files": [
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/austingrant/project/raw/main/docs/regulatory_compliance_statement.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/paulstevens/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/nunezsusan/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Arduino-based IoT Sensor Node",
+      "path": "https://github.com/joyclark/project/raw/main/docs/assembly_guide_for_arduino-based_iot_sensor_node.pdf",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "PCB Assembly Guide",
+      "path": "https://github.com/xcampbell/project/raw/main/docs/pcb_assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/cynthia42/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/desiree74/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.7"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Deburring tool",
+    "Build plate",
+    "Nozzle",
+    "Oscilloscope",
+    "Filament",
+    "Heat shrink",
+    "Pliers",
+    "Crimping tool",
+    "Wrench set",
+    "Soldering station",
+    "Pick and place",
+    "Reflow oven",
+    "Multimeter",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "PCB",
+    "3DP",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 571.87,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": null,
+      "unit": "m³",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 420.98,
+      "unit": "m³",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit"
+    ],
+    "outer_dimensions": {
+      "length": 284,
+      "width": 84,
+      "height": 151
+    },
+    "process_requirements": [
+      {
+        "process_name": "PCB",
+        "parameters": {
+          "board_thickness": "2.0mm",
+          "copper_thickness": "35μm",
+          "layers": 1
+        },
+        "validation_criteria": {
+          "trace_width": "≥0.1mm",
+          "via_diameter": "≥0.2mm"
+        },
+        "required_tools": [
+          "PCB mill",
+          "Soldering station",
+          "Multimeter"
+        ],
+        "notes": ""
+      },
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.2mm",
+          "infill": "20%",
+          "temperature": "247°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Return gun system even radio month now."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": ""
+  },
+  "bom": "https://github.com/paulgaines/project/raw/main/docs/bom_arduino-based_iot_sensor_node.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "FCC Part 15",
+      "publisher": "FCC",
+      "reference": "47 CFR Part 15",
+      "certifications": []
+    },
+    {
+      "standard_title": "IEC 61000",
+      "publisher": "IEC",
+      "reference": "IEC 61000",
+      "certifications": [
+        {
+          "type": "testing",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP",
+    "PCB"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "f9cf4d9e-96df-4cf4-bf68-a5e3ead115b3",
+      "source": [
+        "https://github.com/linda34/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/fishernicholas/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/julie06/project/raw/main/images/housing.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PLA",
+      "outer_dimensions": null,
+      "mass": 786.18,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "d2196b21-b411-4553-94a3-e17f0afb5513",
+      "source": [
+        "https://github.com/william02/project/raw/main/models/frame.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/stevenanderson/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": "https://github.com/candice27/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "FR4",
+      "outer_dimensions": {
+        "length": 25,
+        "width": 70,
+        "height": 23
+      },
+      "mass": 323.99,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "64f6eae7-99a4-4bf6-b2cb-4641e99d6288",
+      "source": [
+        "https://github.com/alanmiller/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/morgan52/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "FR4",
+      "outer_dimensions": null,
+      "mass": 155.99,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "10%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Frame",
+      "id": "a1c5be84-a20a-481a-a0e2-3b4df7681547",
+      "source": [
+        "https://github.com/adamthomas/project/raw/main/models/frame.stl"
+      ],
+      "export": [
+        "https://github.com/johnlewis/project/raw/main/exports/frame.step"
+      ],
+      "auxiliary": [
+        "https://github.com/roberto71/project/raw/main/docs/frame_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "PCB"
+      ],
+      "material": "Copper",
+      "outer_dimensions": {
+        "length": 87,
+        "width": 195,
+        "height": 33
+      },
+      "mass": 341.4,
+      "manufacturing_params": {
+        "board_thickness": "0.8mm",
+        "copper_thickness": "35μm"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

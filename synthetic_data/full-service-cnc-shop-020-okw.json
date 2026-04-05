@@ -1,0 +1,319 @@
+{
+  "id": "ec798a72-0a80-4c90-970f-72a2b819cd7d",
+  "name": "Full-Service CNC Shop",
+  "location": {
+    "address": {
+      "number": "9483",
+      "street": "Bennett Knoll",
+      "city": "Los Angeles",
+      "region": "AL",
+      "country": "US",
+      "postcode": "41704"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Harris LLC",
+    "location": {
+      "address": {
+        "number": "8471",
+        "street": "Micheal Well",
+        "city": "Fort Worth",
+        "region": "AS",
+        "country": "US",
+        "postcode": "28697"
+      },
+      "gps_coordinates": "32.753177, -97.3327459",
+      "directions": "Located behind Nixon, Gordon and Morales",
+      "city": "Fort Worth",
+      "country": "US"
+    },
+    "bio": "Established in 1991, we specialize in Right-sized multimedia emulation",
+    "website": "https://sanchez.net",
+    "mailing_list": "andrearamirez@lists.sawyer.com",
+    "contact": {
+      "landline": "+1-827-936-2093",
+      "mobile": "+1-493-271-8284",
+      "whatsapp": "+1-544-995-6168"
+    },
+    "social_media": {
+      "instagram": "@davidgregory",
+      "other_urls": [
+        "https://anderson.com",
+        "https://davidson.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Johnson Inc",
+    "languages": [
+      "es",
+      "de",
+      "fr"
+    ],
+    "mailing_list": "lisaarellano@lists.jefferson.com",
+    "contact": {
+      "landline": "+1-327-507-9123",
+      "whatsapp": "+1-746-944-8352"
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-21:00",
+  "description": "End-to-end CNC machining with deburring and anodizing finishing",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "VTC-20",
+      "condition": "Fair",
+      "notes": "Equipment notes: Where gun both several player evidence development.",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "supplier_location": {
+            "address": {
+              "number": "1687",
+              "street": "Jackson Village",
+              "city": "Philadelphia",
+              "region": "MA",
+              "country": "US",
+              "postcode": "67860"
+            },
+            "gps_coordinates": "39.9527237, -75.1635262",
+            "directions": "Located near Gallegos PLC",
+            "city": "Philadelphia",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "3956",
+              "street": "Jessica Garden",
+              "city": "San Diego",
+              "region": "OH",
+              "country": "US",
+              "postcode": "01918"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5322",
+              "street": "Zamora Mall",
+              "city": "Dallas",
+              "region": "ND",
+              "country": "US",
+              "postcode": "07194"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "city": "Dallas",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 800,
+      "detailed_capabilities": {
+        "tolerance": "±0.01mm",
+        "surface_finish": "Ra 0.8-3.2μm",
+        "spindle_speed": "1000-12000 RPM",
+        "feed_rate": "100-2000 mm/min",
+        "tool_changer": "Automatic",
+        "tolerance_range": "±0.015mm",
+        "supported_materials": [
+          "Steel",
+          "Plastic",
+          "Wood"
+        ],
+        "process_parameters": {
+          "setup_time": "110 minutes",
+          "cycle_time": "49 minutes",
+          "changeover_time": "41 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Deburring_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Deburring",
+      "make": "RSA",
+      "model": "MCSB 300",
+      "serial_number": "SN388522",
+      "condition": "Excellent",
+      "quantity": 4,
+      "usage_levels": "Low",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5147",
+              "street": "Cheryl Crescent",
+              "city": "Fort Worth",
+              "region": "MT",
+              "country": "US",
+              "postcode": "69282"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located across from Taylor, Anderson and Gray",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Brass",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A"
+        }
+      ],
+      "detailed_capabilities": {
+        "edge_quality": "Ra 0.4-1.6μm",
+        "processing_speed": "1-5 m/min",
+        "max_part_thickness": "100mm",
+        "supported_materials": [
+          "Aluminum",
+          "Plastic",
+          "Brass",
+          "Steel"
+        ],
+        "process_parameters": {
+          "setup_time": "114 minutes",
+          "cycle_time": "49 minutes",
+          "changeover_time": "26 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Anodizing_line",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Anodizing",
+      "make": "Alufinish",
+      "model": "Type II Line",
+      "condition": "Excellent",
+      "quantity": 5,
+      "maintenance_schedule": "Every 6 months",
+      "usage_levels": "Low",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_6061",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_7075"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_2024",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2613",
+              "street": "Duran Crossing",
+              "city": "Seattle",
+              "region": "FL",
+              "country": "US",
+              "postcode": "40558"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "directions": "Located near Rivera LLC",
+            "city": "Seattle",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "coating_thickness": "5-75μm",
+        "colors": [
+          "Clear",
+          "Black",
+          "Red",
+          "Blue",
+          "Gold"
+        ],
+        "hardness": "200-600 HV",
+        "mil_spec": "MIL-A-8625",
+        "supported_materials": [
+          "Aluminum 7075",
+          "Aluminum 6061",
+          "Aluminum 2024"
+        ],
+        "process_parameters": {
+          "setup_time": "111 minutes",
+          "cycle_time": "11 minutes",
+          "changeover_time": "23 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/Deburring_station",
+    "https://en.wikipedia.org/wiki/Anodizing_line"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "NADCAP"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "typical_products": [
+    "Decentralized dynamic alliance"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Whatever decade major security assume evening.",
+    "by_products": [
+      "building",
+      "visit",
+      "series"
+    ]
+  },
+  "human_capacity": {
+    "headcount": 47
+  },
+  "innovation_space": {
+    "staff": 9,
+    "learning_resources": [
+      "Future-proofed mission-critical project",
+      "Configurable intermediate data-warehouse"
+    ],
+    "services": [
+      "Stand-alone next generation Internet solution"
+    ],
+    "footfall": 63,
+    "residencies": true
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "id": "75621f61-116f-48f6-a337-b20030a02e3d",
+  "name": "Laser Fabrication Lab",
+  "location": {
+    "address": {
+      "number": "9859",
+      "street": "Abigail Trail",
+      "city": "San Francisco",
+      "region": "NY",
+      "country": "US",
+      "postcode": "84472"
+    },
+    "gps_coordinates": "37.7879363, -122.4075201",
+    "directions": "Located near Diaz LLC",
+    "city": "San Francisco",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Fox, Johnson and Brown",
+    "location": {
+      "address": {
+        "number": "266",
+        "street": "Alyssa Mount",
+        "city": "Chicago",
+        "region": "WY",
+        "country": "US",
+        "postcode": "90276"
+      },
+      "gps_coordinates": "41.8755616, -87.6244212",
+      "city": "Chicago",
+      "country": "US"
+    },
+    "contact_person": "Elaine Rodriguez",
+    "website": "https://hernandez-pham.com",
+    "languages": [
+      "fr",
+      "es"
+    ],
+    "images": [
+      "images/community.jpg",
+      "images/water.jpg"
+    ]
+  },
+  "opening_hours": "Mon-Fri: 9:00-22:00",
+  "description": "Laser cutting and engraving with product assembly services",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "Speedy 300",
+      "serial_number": "SN658585",
+      "condition": "Fair",
+      "notes": "Equipment notes: Guy daughter knowledge himself because.",
+      "throughput": "93 parts/hour",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "4900",
+              "street": "George Wells",
+              "city": "Charlotte",
+              "region": "UT",
+              "country": "US",
+              "postcode": "40516"
+            },
+            "gps_coordinates": "35.2272086, -80.8430827",
+            "directions": "Located behind Watkins-Huffman",
+            "city": "Charlotte",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "3998",
+              "street": "Young Forks",
+              "city": "Jacksonville",
+              "region": "FL",
+              "country": "US",
+              "postcode": "21022"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "city": "Jacksonville",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Premium",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "supplier_location": {
+            "address": {
+              "number": "2573",
+              "street": "Carol Flats",
+              "city": "San Diego",
+              "region": "OK",
+              "country": "US",
+              "postcode": "38051"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located near Simmons, Johnson and Page",
+            "city": "San Diego",
+            "country": "US"
+          }
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Wood",
+          "Acrylic",
+          "Fabric"
+        ],
+        "process_parameters": {
+          "setup_time": "30 minutes",
+          "cycle_time": "27 minutes",
+          "changeover_time": "16 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "FlexLink",
+      "model": "Modular Bench",
+      "condition": "Excellent",
+      "notes": "Equipment notes: However hotel recently fast present course any.",
+      "quantity": 5,
+      "throughput": "42 parts/hour",
+      "power_rating": 5819,
+      "usage_levels": "Low",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "7283",
+              "street": "Jimenez Road",
+              "city": "San Jose",
+              "region": "TN",
+              "country": "US",
+              "postcode": "90014"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "directions": "Located near Jackson, Gonzales and Lewis",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Professional"
+        }
+      ],
+      "detailed_capabilities": {
+        "assembly_types": [
+          "Mechanical",
+          "Electrical",
+          "Mixed"
+        ],
+        "torque_control": "0.1-50 Nm",
+        "esd_protection": "Yes",
+        "test_integration": "Functional test points",
+        "supported_materials": [
+          "Connectors",
+          "Adhesives",
+          "Fasteners"
+        ],
+        "process_parameters": {
+          "setup_time": "101 minutes",
+          "cycle_time": "56 minutes",
+          "changeover_time": "14 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "971 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "AS9100",
+    "NADCAP"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months",
+  "typical_products": [
+    "Mandatory high-level artificial intelligence",
+    "Multi-lateral eco-centric benchmark"
+  ],
+  "human_capacity": {
+    "headcount": 26
+  },
+  "innovation_space": {
+    "staff": 5,
+    "services": [
+      "Team-oriented bi-directional secured line",
+      "Right-sized dynamic pricing structure",
+      "Sharable context-sensitive concept",
+      "Intuitive 24/7 collaboration",
+      "User-centric zero administration contingency"
+    ],
+    "footfall": 56,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:37.096369",
+    "created_by": {
+      "name": "Johnson, Long and Adams",
+      "location": {
+        "address": {
+          "number": "1760",
+          "street": "Eric Stream",
+          "city": "Houston",
+          "region": "OH",
+          "country": "US",
+          "postcode": "80931"
+        },
+        "gps_coordinates": "29.7589382, -95.3676974",
+        "city": "Houston",
+        "country": "US"
+      },
+      "contact_person": "Sheila Scott",
+      "bio": "Established in 2011, we specialize in Pre-emptive solution-oriented monitoring",
+      "mailing_list": "racheljackson@lists.mejia.biz",
+      "contact": {
+        "email": "info@cain.com"
+      },
+      "social_media": {
+        "twitter": "@joshua56"
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

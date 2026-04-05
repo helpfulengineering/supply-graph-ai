@@ -1,0 +1,194 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "a51b1e52-3bea-4782-9455-026d59914f6d",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/sean25/laser-cut-acrylic-display-case",
+  "version": "2.0.2",
+  "license": {
+    "hardware": "Solderpad-Hardware-0.51",
+    "documentation": "CC-BY-4.0",
+    "software": "BSD-3-Clause"
+  },
+  "licensor": {
+    "name": "Dr. Luis Greene",
+    "email": "gdecker@example.org",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "ethomas"
+      }
+    ]
+  },
+  "documentation_language": "es",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Ball we question bad.",
+  "keywords": [
+    "bracket",
+    "prototype"
+  ],
+  "contributors": [
+    {
+      "name": "Roberto Valdez",
+      "email": "ralphclark@example.org",
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/xstewart/project/raw/main/docs/assembly_guide.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/zvalenzuela/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/olsoneric/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/williamsmary/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.7"
+      }
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/andrewstevens/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v1.1"
+      }
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/rojasdaniel/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/yharvey/project/raw/main/docs/technical_drawings.step",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.3"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/callahannicole/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.8"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/smithrachel/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.3"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting bed",
+    "Focus lens",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "Air assist",
+    "Laser cutter",
+    "Crimping tool"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "PLA",
+      "name": "Polylactic Acid",
+      "quantity": 237.57,
+      "unit": "g",
+      "notes": "Grade: C"
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "f568269b-3ed8-4ba7-bcfa-e547b09e5f55",
+      "source": [
+        "https://github.com/samuellarsen/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/andrea52/project/raw/main/docs/main_body_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 104,
+        "width": 194,
+        "height": 83
+      },
+      "mass": 709.16,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

@@ -1,0 +1,257 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "76b3641a-a67b-4250-bc0f-d546286c1254",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/laura81/3d-printed-prosthetic-hand",
+  "version": "1.0.9",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Nathan Murphy",
+    "email": "kmclaughlin@example.org",
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "fr",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "description": "A 3d printed prosthetic hand designed for Part so hit best yourself maintain writer new.",
+  "intended_use": "Religious doctor top allow.",
+  "keywords": [
+    "gear",
+    "prototype",
+    "bearing"
+  ],
+  "contributors": [
+    {
+      "name": "Gloria Kelly",
+      "email": "michaelsavage@example.com",
+      "affiliation": "Fields, Henderson and Aguilar",
+      "social": []
+    },
+    {
+      "name": "Natalie Hines",
+      "email": "johnmartin@example.org",
+      "affiliation": "Ortiz Inc",
+      "social": []
+    }
+  ],
+  "organization": {
+    "name": "Hayes, Rodriguez and Faulkner",
+    "url": "https://martinez.com",
+    "email": "contact@parker.com"
+  },
+  "development_stage": "prototype",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/rebeccaryan/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v2.2"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/hansendustin/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/dkim/project/raw/main/docs/3d_printing_setup_and_parameters.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.7"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/victorcampbell/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/jennifergonzalez/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Nozzle",
+    "Filament",
+    "Screwdriver set",
+    "Heat shrink",
+    "3D printer",
+    "Wrench set",
+    "Deburring tool",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 788.72,
+      "unit": "m³",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "3DP",
+        "parameters": {
+          "layer_height": "0.3mm",
+          "infill": "20%",
+          "temperature": "236°C"
+        },
+        "validation_criteria": {
+          "dimensional_accuracy": "±0.1mm",
+          "surface_finish": "Ra 3.2μm"
+        },
+        "required_tools": [
+          "3D printer",
+          "Filament",
+          "Calipers"
+        ],
+        "notes": "Process notes: Choice investment action fire trial."
+      }
+    ],
+    "quality_standards": [],
+    "notes": "Manufacturing notes: Speak interview also rule poor."
+  },
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Main Body",
+      "id": "cb786b21-d668-4676-8200-45b7d54e010f",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/carolyn25/project/raw/main/images/main_body.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Bracket",
+      "id": "b74c2f8f-b9de-4a5f-8a6c-48961412726f",
+      "source": [
+        "https://github.com/stevenmartinez/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/brittany04/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [],
+      "image": "https://github.com/watsonmichelle/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": 534.46,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "b7fd4d55-a1ad-4ad6-b932-e6b24551eee1",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/howard94/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": 838.79,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "09bfbd23-96fa-4aaa-a449-21b5989bb39a",
+      "source": [
+        "https://github.com/hillamanda/project/raw/main/models/mount.stl"
+      ],
+      "export": [
+        "https://github.com/huynhaaron/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/kelseywilson/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "PETG",
+      "outer_dimensions": null,
+      "mass": 368.2,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

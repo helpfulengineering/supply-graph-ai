@@ -1,0 +1,2607 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "4fe74c03-6cd0-513f-90dc-0675e9d521c2",
+  "title": "RespiraWorks Open Source Ventilator",
+  "repo": "https://github.com/RespiraWorks/Ventilator",
+  "version": "0.3",
+  "license": {
+    "hardware": "Apache-2.0",
+    "documentation": "Apache-2.0",
+    "software": "Apache-2.0"
+  },
+  "description": "RespiraWorks is a 501(c)(3) non-profit organization with over 200 contributors worldwide working to design a low-cost and open-source ventilator for communities underserved by the global supply chain",
+  "function": "al implementation and design theory of the system",
+  "intended_use": "all hardware and software components of the RespiraWorks open source ventilator",
+  "keywords": [
+    "cad",
+    "covid-19",
+    "kicad",
+    "manufacturing",
+    "medical-devices",
+    "open-source",
+    "pcb-design",
+    "software",
+    "ventilator",
+    "ventilator-designs"
+  ],
+  "contact": {},
+  "organization": {
+    "name": "RespiraWorks"
+  },
+  "development_stage": "development",
+  "technology_readiness_level": "TRL-1",
+  "manufacturing_files": [
+    {
+      "title": "global_params.ipt",
+      "path": "manufacturing/global_params.ipt"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/README.md"
+    },
+    {
+      "title": "peripherals.md",
+      "path": "manufacturing/peripherals.md"
+    },
+    {
+      "title": "purchasing_guidelines.md",
+      "path": "manufacturing/purchasing_guidelines.md"
+    },
+    {
+      "title": "ventilator.iam",
+      "path": "manufacturing/ventilator.iam"
+    },
+    {
+      "title": "AnyCubic_Photon_support_Blu_Clear.cfg",
+      "path": "manufacturing/methods/AnyCubic_Photon_support_Blu_Clear.cfg"
+    },
+    {
+      "title": "AnyCubic_Photon_Siraya_Blu_Clear_2_profile.cfg",
+      "path": "manufacturing/methods/AnyCubic_Photon_Siraya_Blu_Clear_2_profile.cfg"
+    },
+    {
+      "title": "AnyCubic_Photon_Fast7_+_tenacious3_profile.cfg",
+      "path": "manufacturing/methods/AnyCubic_Photon_Fast7_+_tenacious3_profile.cfg"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/methods/README.md"
+    },
+    {
+      "title": "AnyCubic_Photon_Siraya_fast_profile.cfg",
+      "path": "manufacturing/methods/AnyCubic_Photon_Siraya_fast_profile.cfg"
+    },
+    {
+      "title": "Elegoo_Mars_70fast_30tenacious_profile.cfg",
+      "path": "manufacturing/methods/Elegoo_Mars_70fast_30tenacious_profile.cfg"
+    },
+    {
+      "title": "rendering_smaller.jpg",
+      "path": "manufacturing/images/rendering_smaller.jpg"
+    },
+    {
+      "title": "India_back_smaller.jpg",
+      "path": "manufacturing/images/India_back_smaller.jpg"
+    },
+    {
+      "title": "India_full_smaller.jpg",
+      "path": "manufacturing/images/India_full_smaller.jpg"
+    },
+    {
+      "title": "California_front_smaller.jpg",
+      "path": "manufacturing/images/California_front_smaller.jpg"
+    },
+    {
+      "title": "California_back_smaller.jpg",
+      "path": "manufacturing/images/California_back_smaller.jpg"
+    },
+    {
+      "title": "assembled_smaller.jpg",
+      "path": "manufacturing/images/assembled_smaller.jpg"
+    },
+    {
+      "title": "bottom.ipt",
+      "path": "manufacturing/enclosure/bottom.ipt"
+    },
+    {
+      "title": "side.ipt",
+      "path": "manufacturing/enclosure/side.ipt"
+    },
+    {
+      "title": "side_assembly.idw",
+      "path": "manufacturing/enclosure/side_assembly.idw"
+    },
+    {
+      "title": "internal_volume.ipt",
+      "path": "manufacturing/enclosure/internal_volume.ipt"
+    },
+    {
+      "title": "side_part.idw",
+      "path": "manufacturing/enclosure/side_part.idw"
+    },
+    {
+      "title": "enclosure.iam",
+      "path": "manufacturing/enclosure/enclosure.iam"
+    },
+    {
+      "title": "side_left_assembly.idw",
+      "path": "manufacturing/enclosure/side_left_assembly.idw"
+    },
+    {
+      "title": "side_left.ipt",
+      "path": "manufacturing/enclosure/side_left.ipt"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/enclosure/README.md"
+    },
+    {
+      "title": "front.idw",
+      "path": "manufacturing/enclosure/front.idw"
+    },
+    {
+      "title": "back.idw",
+      "path": "manufacturing/enclosure/back.idw"
+    },
+    {
+      "title": "front.ipt",
+      "path": "manufacturing/enclosure/front.ipt"
+    },
+    {
+      "title": "logo_white.png",
+      "path": "manufacturing/enclosure/logo_white.png"
+    },
+    {
+      "title": "bottom_part.idw",
+      "path": "manufacturing/enclosure/bottom_part.idw"
+    },
+    {
+      "title": "bottom_assembly.idw",
+      "path": "manufacturing/enclosure/bottom_assembly.idw"
+    },
+    {
+      "title": "bottom.iam",
+      "path": "manufacturing/enclosure/bottom.iam"
+    },
+    {
+      "title": "side.iam",
+      "path": "manufacturing/enclosure/side.iam"
+    },
+    {
+      "title": "back.ipt",
+      "path": "manufacturing/enclosure/back.ipt"
+    },
+    {
+      "title": "side_left.iam",
+      "path": "manufacturing/enclosure/side_left.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/wiring/README.md"
+    },
+    {
+      "title": "internals.iam",
+      "path": "manufacturing/internals/internals.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/README.md"
+    },
+    {
+      "title": "touchscreen.ipt",
+      "path": "manufacturing/third_party/touchscreen.ipt"
+    },
+    {
+      "title": "80mm_fan_slim.ipt",
+      "path": "manufacturing/third_party/80mm_fan_slim.ipt"
+    },
+    {
+      "title": "stepper_NEMA17_D-cut.ipt",
+      "path": "manufacturing/third_party/stepper_NEMA17_D-cut.ipt"
+    },
+    {
+      "title": "handle.ipt",
+      "path": "manufacturing/third_party/handle.ipt"
+    },
+    {
+      "title": "80mm_fan_housing.ipt",
+      "path": "manufacturing/third_party/80mm_fan_housing.ipt"
+    },
+    {
+      "title": "regulator_SMC_SRH3000-N02_mounting_nut.ipt",
+      "path": "manufacturing/third_party/regulator_SMC_SRH3000-N02_mounting_nut.ipt"
+    },
+    {
+      "title": "80mm_cooling_fan.iam",
+      "path": "manufacturing/third_party/80mm_cooling_fan.iam"
+    },
+    {
+      "title": "blower_driver_ws1208_pcb.jpg",
+      "path": "manufacturing/third_party/blower_driver_ws1208_pcb.jpg"
+    },
+    {
+      "title": "blower_ws7040.ipt",
+      "path": "manufacturing/third_party/blower_ws7040.ipt"
+    },
+    {
+      "title": "80mm_fan_blades.ipt",
+      "path": "manufacturing/third_party/80mm_fan_blades.ipt"
+    },
+    {
+      "title": "regulator_SMC_SRH3000-N02_body.ipt",
+      "path": "manufacturing/third_party/regulator_SMC_SRH3000-N02_body.ipt"
+    },
+    {
+      "title": "solenoid_Uflow_IBV19M.ipt",
+      "path": "manufacturing/third_party/solenoid_Uflow_IBV19M.ipt"
+    },
+    {
+      "title": "blower_driver_wm.ipt",
+      "path": "manufacturing/third_party/blower_driver_wm.ipt"
+    },
+    {
+      "title": "blower_TKFan_BA7050H.ipt",
+      "path": "manufacturing/third_party/blower_TKFan_BA7050H.ipt"
+    },
+    {
+      "title": "cooling_fan_guard_80mm.ipt",
+      "path": "manufacturing/third_party/cooling_fan_guard_80mm.ipt"
+    },
+    {
+      "title": "80mm_air_vent_filter.ipt",
+      "path": "manufacturing/third_party/80mm_air_vent_filter.ipt"
+    },
+    {
+      "title": "solenoid_SMC_PVQ31-6G-40-01N.ipt",
+      "path": "manufacturing/third_party/solenoid_SMC_PVQ31-6G-40-01N.ipt"
+    },
+    {
+      "title": "oxygen_sensor_GO-040.ipt",
+      "path": "manufacturing/third_party/oxygen_sensor_GO-040.ipt"
+    },
+    {
+      "title": "blower_driver_ws1208.ipt",
+      "path": "manufacturing/third_party/blower_driver_ws1208.ipt"
+    },
+    {
+      "title": "relief_valve_VRVI-250.ipt",
+      "path": "manufacturing/third_party/relief_valve_VRVI-250.ipt"
+    },
+    {
+      "title": "regulator_SMC_SRH3000-N02.iam",
+      "path": "manufacturing/third_party/regulator_SMC_SRH3000-N02.iam"
+    },
+    {
+      "title": "insert1.jpg",
+      "path": "manufacturing/methods/images/insert1.jpg"
+    },
+    {
+      "title": "insert2.jpg",
+      "path": "manufacturing/methods/images/insert2.jpg"
+    },
+    {
+      "title": "drawing_bottom.jpg",
+      "path": "manufacturing/enclosure/images/drawing_bottom.jpg"
+    },
+    {
+      "title": "rendering_back.jpg",
+      "path": "manufacturing/enclosure/images/rendering_back.jpg"
+    },
+    {
+      "title": "drawing_back.jpg",
+      "path": "manufacturing/enclosure/images/drawing_back.jpg"
+    },
+    {
+      "title": "drawing_front.jpg",
+      "path": "manufacturing/enclosure/images/drawing_front.jpg"
+    },
+    {
+      "title": "rendering_front.jpg",
+      "path": "manufacturing/enclosure/images/rendering_front.jpg"
+    },
+    {
+      "title": "drawing_side.jpg",
+      "path": "manufacturing/enclosure/images/drawing_side.jpg"
+    },
+    {
+      "title": "cooling_fan.iam",
+      "path": "manufacturing/enclosure/cooling_fan/cooling_fan.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/enclosure/cooling_fan/README.md"
+    },
+    {
+      "title": "inside.jpg",
+      "path": "manufacturing/enclosure/cooling_fan/images/inside.jpg"
+    },
+    {
+      "title": "outside.jpg",
+      "path": "manufacturing/enclosure/cooling_fan/images/outside.jpg"
+    },
+    {
+      "title": "blower_control_cable.jpg",
+      "path": "manufacturing/wiring/images/blower_control_cable.jpg"
+    },
+    {
+      "title": "psol_cable_drawing_image.jpg",
+      "path": "manufacturing/wiring/images/psol_cable_drawing_image.jpg"
+    },
+    {
+      "title": "blower_power_cable.jpg",
+      "path": "manufacturing/wiring/images/blower_power_cable.jpg"
+    },
+    {
+      "title": "oxygen_sensor_cable.jpg",
+      "path": "manufacturing/wiring/images/oxygen_sensor_cable.jpg"
+    },
+    {
+      "title": "stepper_labels.jpg",
+      "path": "manufacturing/wiring/images/stepper_labels.jpg"
+    },
+    {
+      "title": "psol_cable.jpg",
+      "path": "manufacturing/wiring/images/psol_cable.jpg"
+    },
+    {
+      "title": "main_power_cable_process1.jpg",
+      "path": "manufacturing/wiring/images/main_power_cable_process1.jpg"
+    },
+    {
+      "title": "main_power_cable_process2.jpg",
+      "path": "manufacturing/wiring/images/main_power_cable_process2.jpg"
+    },
+    {
+      "title": "main_power_cable_process3.jpg",
+      "path": "manufacturing/wiring/images/main_power_cable_process3.jpg"
+    },
+    {
+      "title": "pigtails.jpg",
+      "path": "manufacturing/wiring/images/pigtails.jpg"
+    },
+    {
+      "title": "oxygen_sensor_cable_drawing_image.jpg",
+      "path": "manufacturing/wiring/images/oxygen_sensor_cable_drawing_image.jpg"
+    },
+    {
+      "title": "blower_power_cable_drawing_image.jpg",
+      "path": "manufacturing/wiring/images/blower_power_cable_drawing_image.jpg"
+    },
+    {
+      "title": "blower_control_cable_drawing_image.jpg",
+      "path": "manufacturing/wiring/images/blower_control_cable_drawing_image.jpg"
+    },
+    {
+      "title": "data_port_panel_acrylic.ipt",
+      "path": "manufacturing/internals/back_panel/data_port_panel_acrylic.ipt"
+    },
+    {
+      "title": "main_power_panel.iam",
+      "path": "manufacturing/internals/back_panel/main_power_panel.iam"
+    },
+    {
+      "title": "back_panel.iam",
+      "path": "manufacturing/internals/back_panel/back_panel.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/back_panel/README.md"
+    },
+    {
+      "title": "back_panel_acrylic.idw",
+      "path": "manufacturing/internals/back_panel/back_panel_acrylic.idw"
+    },
+    {
+      "title": "back_panel_acrylic.ipt",
+      "path": "manufacturing/internals/back_panel/back_panel_acrylic.ipt"
+    },
+    {
+      "title": "oxygen_inlet.iam",
+      "path": "manufacturing/internals/back_panel/oxygen_inlet.iam"
+    },
+    {
+      "title": "main_power_panel_acrylic.ipt",
+      "path": "manufacturing/internals/back_panel/main_power_panel_acrylic.ipt"
+    },
+    {
+      "title": "data_port_panel.iam",
+      "path": "manufacturing/internals/back_panel/data_port_panel.iam"
+    },
+    {
+      "title": "back_panel.idw",
+      "path": "manufacturing/internals/back_panel/back_panel.idw"
+    },
+    {
+      "title": "tube60deg.jpg",
+      "path": "manufacturing/internals/custom_tubing_adapters/tube60deg.jpg"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/custom_tubing_adapters/README.md"
+    },
+    {
+      "title": "tube90deg.jpg",
+      "path": "manufacturing/internals/custom_tubing_adapters/tube90deg.jpg"
+    },
+    {
+      "title": "u_bend_tubing_adapter.ipt",
+      "path": "manufacturing/internals/custom_tubing_adapters/u_bend_tubing_adapter.ipt"
+    },
+    {
+      "title": "venturi_assembly.iam",
+      "path": "manufacturing/internals/venturi/venturi_assembly.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/venturi/README.md"
+    },
+    {
+      "title": "venturi.ipt",
+      "path": "manufacturing/internals/venturi/venturi.ipt"
+    },
+    {
+      "title": "venturi.idw",
+      "path": "manufacturing/internals/venturi/venturi.idw"
+    },
+    {
+      "title": "sensor_tubes_1.jpg",
+      "path": "manufacturing/internals/images/sensor_tubes_1.jpg"
+    },
+    {
+      "title": "rendering_smaller.jpg",
+      "path": "manufacturing/internals/images/rendering_smaller.jpg"
+    },
+    {
+      "title": "sensor_tubes_3.jpg",
+      "path": "manufacturing/internals/images/sensor_tubes_3.jpg"
+    },
+    {
+      "title": "sensor_tubes_2.jpg",
+      "path": "manufacturing/internals/images/sensor_tubes_2.jpg"
+    },
+    {
+      "title": "bottom_smaller.jpg",
+      "path": "manufacturing/internals/images/bottom_smaller.jpg"
+    },
+    {
+      "title": "process_1.jpg",
+      "path": "manufacturing/internals/images/process_1.jpg"
+    },
+    {
+      "title": "process_3.jpg",
+      "path": "manufacturing/internals/images/process_3.jpg"
+    },
+    {
+      "title": "process_2.jpg",
+      "path": "manufacturing/internals/images/process_2.jpg"
+    },
+    {
+      "title": "top_smaller.jpg",
+      "path": "manufacturing/internals/images/top_smaller.jpg"
+    },
+    {
+      "title": "process_4.jpg",
+      "path": "manufacturing/internals/images/process_4.jpg"
+    },
+    {
+      "title": "pcb_assembly.iam",
+      "path": "manufacturing/internals/electronics/pcb_assembly.iam"
+    },
+    {
+      "title": "electronics_support_frame_part.idw",
+      "path": "manufacturing/internals/electronics/electronics_support_frame_part.idw"
+    },
+    {
+      "title": "electronics_support_frame_assembly.idw",
+      "path": "manufacturing/internals/electronics/electronics_support_frame_assembly.idw"
+    },
+    {
+      "title": "electronics_panel.iam",
+      "path": "manufacturing/internals/electronics/electronics_panel.iam"
+    },
+    {
+      "title": "electronics_support_frame.iam",
+      "path": "manufacturing/internals/electronics/electronics_support_frame.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/electronics/README.md"
+    },
+    {
+      "title": "stepper_setup.md",
+      "path": "manufacturing/internals/electronics/stepper_setup.md"
+    },
+    {
+      "title": "raspberrypi_assembly.iam",
+      "path": "manufacturing/internals/electronics/raspberrypi_assembly.iam"
+    },
+    {
+      "title": "electronics_support_frame.ipt",
+      "path": "manufacturing/internals/electronics/electronics_support_frame.ipt"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/regulator/README.md"
+    },
+    {
+      "title": "equipment_tray_acrylic.ipt",
+      "path": "manufacturing/internals/tray/equipment_tray_acrylic.ipt"
+    },
+    {
+      "title": "equipment_bracket_part.idw",
+      "path": "manufacturing/internals/tray/equipment_bracket_part.idw"
+    },
+    {
+      "title": "equipment_bracket.iam",
+      "path": "manufacturing/internals/tray/equipment_bracket.iam"
+    },
+    {
+      "title": "equipment_tray.iam",
+      "path": "manufacturing/internals/tray/equipment_tray.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/tray/README.md"
+    },
+    {
+      "title": "equipment_bracket_assembly.idw",
+      "path": "manufacturing/internals/tray/equipment_bracket_assembly.idw"
+    },
+    {
+      "title": "equipment_bracket.ipt",
+      "path": "manufacturing/internals/tray/equipment_bracket.ipt"
+    },
+    {
+      "title": "equipment_bracket_flat.idw",
+      "path": "manufacturing/internals/tray/equipment_bracket_flat.idw"
+    },
+    {
+      "title": "oxygen_relief_manifold.ipt",
+      "path": "manufacturing/internals/manifold/oxygen_relief_manifold.ipt"
+    },
+    {
+      "title": "oxygen_relief_manifold.idw",
+      "path": "manufacturing/internals/manifold/oxygen_relief_manifold.idw"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/manifold/README.md"
+    },
+    {
+      "title": "oxygen_relief_assembly.iam",
+      "path": "manufacturing/internals/manifold/oxygen_relief_assembly.iam"
+    },
+    {
+      "title": "blower_check_valve.iam",
+      "path": "manufacturing/internals/air_check_valve/blower_check_valve.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/air_check_valve/README.md"
+    },
+    {
+      "title": "filter_panel_assembly.idw",
+      "path": "manufacturing/internals/filter_panel/filter_panel_assembly.idw"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/filter_panel/README.md"
+    },
+    {
+      "title": "filter_panel_acrylic_plate.idw",
+      "path": "manufacturing/internals/filter_panel/filter_panel_acrylic_plate.idw"
+    },
+    {
+      "title": "filter_panel_assembly.iam",
+      "path": "manufacturing/internals/filter_panel/filter_panel_assembly.iam"
+    },
+    {
+      "title": "filter_panel_acrylic_plate.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_panel_acrylic_plate.ipt"
+    },
+    {
+      "title": "display_support_frame.iam",
+      "path": "manufacturing/internals/display_panel/display_support_frame.iam"
+    },
+    {
+      "title": "display_support_frame_part.idw",
+      "path": "manufacturing/internals/display_panel/display_support_frame_part.idw"
+    },
+    {
+      "title": "display_panel.iam",
+      "path": "manufacturing/internals/display_panel/display_panel.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/display_panel/README.md"
+    },
+    {
+      "title": "display_panel_acrylic_plate.idw",
+      "path": "manufacturing/internals/display_panel/display_panel_acrylic_plate.idw"
+    },
+    {
+      "title": "display_support_frame_assembly.idw",
+      "path": "manufacturing/internals/display_panel/display_support_frame_assembly.idw"
+    },
+    {
+      "title": "display_panel_acrylic_plate.ipt",
+      "path": "manufacturing/internals/display_panel/display_panel_acrylic_plate.ipt"
+    },
+    {
+      "title": "display_support_frame.ipt",
+      "path": "manufacturing/internals/display_panel/display_support_frame.ipt"
+    },
+    {
+      "title": "oxygen_mixer_printed.jpg",
+      "path": "manufacturing/internals/mixer/oxygen_mixer_printed.jpg"
+    },
+    {
+      "title": "oxygen_mixer_rendering.jpg",
+      "path": "manufacturing/internals/mixer/oxygen_mixer_rendering.jpg"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/mixer/README.md"
+    },
+    {
+      "title": "oxygen_mixer.ipt",
+      "path": "manufacturing/internals/mixer/oxygen_mixer.ipt"
+    },
+    {
+      "title": "battery_holder.ipt",
+      "path": "manufacturing/internals/battery/battery_holder.ipt"
+    },
+    {
+      "title": "battery_holder.iam",
+      "path": "manufacturing/internals/battery/battery_holder.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/PSOL/README.md"
+    },
+    {
+      "title": "PSOL.iam",
+      "path": "manufacturing/internals/PSOL/PSOL.iam"
+    },
+    {
+      "title": "blower_ws7040_retainer.ipt",
+      "path": "manufacturing/internals/blower/blower_ws7040_retainer.ipt"
+    },
+    {
+      "title": "blower_base.ipt",
+      "path": "manufacturing/internals/blower/blower_base.ipt"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/blower/README.md"
+    },
+    {
+      "title": "blower.iam",
+      "path": "manufacturing/internals/blower/blower.iam"
+    },
+    {
+      "title": "blower_tkfan_retainer.ipt",
+      "path": "manufacturing/internals/blower/blower_tkfan_retainer.ipt"
+    },
+    {
+      "title": "pinch_valve_assembly.iam",
+      "path": "manufacturing/internals/pinch_valve/pinch_valve_assembly.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/pinch_valve/README.md"
+    },
+    {
+      "title": "tube_stand_in.ipt",
+      "path": "manufacturing/internals/pinch_valve/tube_stand_in.ipt"
+    },
+    {
+      "title": "pinch_valve_rotor.ipt",
+      "path": "manufacturing/internals/pinch_valve/pinch_valve_rotor.ipt"
+    },
+    {
+      "title": "pinch_valve_base.ipt",
+      "path": "manufacturing/internals/pinch_valve/pinch_valve_base.ipt"
+    },
+    {
+      "title": "rendering.jpg",
+      "path": "manufacturing/internals/back_panel/images/rendering.jpg"
+    },
+    {
+      "title": "drawing.jpg",
+      "path": "manufacturing/internals/back_panel/images/drawing.jpg"
+    },
+    {
+      "title": "Venturi Assembly-o2.iam",
+      "path": "manufacturing/internals/venturi/venturi_assembly/Venturi Assembly-o2.iam"
+    },
+    {
+      "title": "Venturi Assembly-exhale.iam",
+      "path": "manufacturing/internals/venturi/venturi_assembly/Venturi Assembly-exhale.iam"
+    },
+    {
+      "title": "Venturi Assembly-inhale.iam",
+      "path": "manufacturing/internals/venturi/venturi_assembly/Venturi Assembly-inhale.iam"
+    },
+    {
+      "title": "venturi-pizza.ipt",
+      "path": "manufacturing/internals/venturi/venturi/venturi-pizza.ipt"
+    },
+    {
+      "title": "venturi-influx.ipt",
+      "path": "manufacturing/internals/venturi/venturi/venturi-influx.ipt"
+    },
+    {
+      "title": "venturi-exhale.ipt",
+      "path": "manufacturing/internals/venturi/venturi/venturi-exhale.ipt"
+    },
+    {
+      "title": "venturi-o2.ipt",
+      "path": "manufacturing/internals/venturi/venturi/venturi-o2.ipt"
+    },
+    {
+      "title": "venturi_oxygen_influx.jpg",
+      "path": "manufacturing/internals/venturi/images/venturi_oxygen_influx.jpg"
+    },
+    {
+      "title": "venturi_assembly_rendering.jpg",
+      "path": "manufacturing/internals/venturi/images/venturi_assembly_rendering.jpg"
+    },
+    {
+      "title": "pneumotachograph_compare.png",
+      "path": "manufacturing/internals/venturi/images/pneumotachograph_compare.png"
+    },
+    {
+      "title": "v1_cross_section.jpg",
+      "path": "manufacturing/internals/venturi/images/v1_cross_section.jpg"
+    },
+    {
+      "title": "venturi_generic.jpg",
+      "path": "manufacturing/internals/venturi/images/venturi_generic.jpg"
+    },
+    {
+      "title": "venturi_exhale.jpg",
+      "path": "manufacturing/internals/venturi/images/venturi_exhale.jpg"
+    },
+    {
+      "title": "venturi_air_influx.jpg",
+      "path": "manufacturing/internals/venturi/images/venturi_air_influx.jpg"
+    },
+    {
+      "title": "v1_solid.jpg",
+      "path": "manufacturing/internals/venturi/images/v1_solid.jpg"
+    },
+    {
+      "title": "v1_assembly_tools.jpg",
+      "path": "manufacturing/internals/venturi/images/v1_assembly_tools.jpg"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/README.md"
+    },
+    {
+      "title": "pcbreathe-bringup-venturi-char.ino",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/pcbreathe-bringup-venturi-char.ino"
+    },
+    {
+      "title": "ptg-venturi-i2c-0607-x1-labchart.txt",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/ptg-venturi-i2c-0607-x1-labchart.txt"
+    },
+    {
+      "title": "pcb-blower-driver.jpg",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/pcb-blower-driver.jpg"
+    },
+    {
+      "title": "flow-compare.PNG",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/flow-compare.PNG"
+    },
+    {
+      "title": "ptg-venturi-i2c-0607-x1-pcb.txt",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/ptg-venturi-i2c-0607-x1-pcb.txt"
+    },
+    {
+      "title": "flow-regression.PNG",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/flow-regression.PNG"
+    },
+    {
+      "title": "pressure-sensor-compare.PNG",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/pressure-sensor-compare.PNG"
+    },
+    {
+      "title": "adinstruments-pneumotachograph.jpg",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/adinstruments-pneumotachograph.jpg"
+    },
+    {
+      "title": "blower-venturi.jpg",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/blower-venturi.jpg"
+    },
+    {
+      "title": "quad-fit-compare.PNG",
+      "path": "manufacturing/internals/venturi/characterization-tests/06072020/assets/quad-fit-compare.PNG"
+    },
+    {
+      "title": "rendering.jpg",
+      "path": "manufacturing/internals/electronics/images/rendering.jpg"
+    },
+    {
+      "title": "two_steppers_moving.gif",
+      "path": "manufacturing/internals/electronics/images/two_steppers_moving.gif"
+    },
+    {
+      "title": "rendering.jpg",
+      "path": "manufacturing/internals/tray/images/rendering.jpg"
+    },
+    {
+      "title": "acrylic_rendering.jpg",
+      "path": "manufacturing/internals/tray/images/acrylic_rendering.jpg"
+    },
+    {
+      "title": "drawing.jpg",
+      "path": "manufacturing/internals/tray/images/drawing.jpg"
+    },
+    {
+      "title": "acrylic_drawing.jpg",
+      "path": "manufacturing/internals/tray/images/acrylic_drawing.jpg"
+    },
+    {
+      "title": "oxygen_relief_assembly_rendering.jpg",
+      "path": "manufacturing/internals/manifold/images/oxygen_relief_assembly_rendering.jpg"
+    },
+    {
+      "title": "oxygen_relief_assembly_printed.jpg",
+      "path": "manufacturing/internals/manifold/images/oxygen_relief_assembly_printed.jpg"
+    },
+    {
+      "title": "oxygen_relief_manifold.jpg",
+      "path": "manufacturing/internals/manifold/images/oxygen_relief_manifold.jpg"
+    },
+    {
+      "title": "oxygen_relief_manifold_printed.jpg",
+      "path": "manufacturing/internals/manifold/images/oxygen_relief_manifold_printed.jpg"
+    },
+    {
+      "title": "oxygen_relief_manifold_rendering.jpg",
+      "path": "manufacturing/internals/manifold/images/oxygen_relief_manifold_rendering.jpg"
+    },
+    {
+      "title": "filter_panel_assembly.jpg",
+      "path": "manufacturing/internals/filter_panel/images/filter_panel_assembly.jpg"
+    },
+    {
+      "title": "rendering.jpg",
+      "path": "manufacturing/internals/filter_panel/images/rendering.jpg"
+    },
+    {
+      "title": "panel2.jpg",
+      "path": "manufacturing/internals/filter_panel/images/panel2.jpg"
+    },
+    {
+      "title": "panel1.jpg",
+      "path": "manufacturing/internals/filter_panel/images/panel1.jpg"
+    },
+    {
+      "title": "filter_panel_acrylic.jpg",
+      "path": "manufacturing/internals/filter_panel/images/filter_panel_acrylic.jpg"
+    },
+    {
+      "title": "filter_panel_acrylic_rendering.jpg",
+      "path": "manufacturing/internals/filter_panel/images/filter_panel_acrylic_rendering.jpg"
+    },
+    {
+      "title": "filter_assembly.iam",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_assembly.iam"
+    },
+    {
+      "title": "filter_cover.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_cover.ipt"
+    },
+    {
+      "title": "filter_gasket.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_gasket.ipt"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/filter_panel/filter_holder/README.md"
+    },
+    {
+      "title": "filter_stand-in.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_stand-in.ipt"
+    },
+    {
+      "title": "filter_housing.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_housing.ipt"
+    },
+    {
+      "title": "rendered_outlet_cut.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/rendered_outlet_cut.jpg"
+    },
+    {
+      "title": "rendered_patient.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/rendered_patient.jpg"
+    },
+    {
+      "title": "rendered_patient_cut.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/rendered_patient_cut.jpg"
+    },
+    {
+      "title": "rendered_outlet.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/rendered_outlet.jpg"
+    },
+    {
+      "title": "parts.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/parts.jpg"
+    },
+    {
+      "title": "assembled.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/assembled.jpg"
+    },
+    {
+      "title": "MakeGasket2.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/MakeGasket2.jpg"
+    },
+    {
+      "title": "printed_set.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/printed_set.jpg"
+    },
+    {
+      "title": "roomba1.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/roomba1.jpg"
+    },
+    {
+      "title": "roomba2.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/roomba2.jpg"
+    },
+    {
+      "title": "MakeGasket4.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/MakeGasket4.jpg"
+    },
+    {
+      "title": "MakeGasket5.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/MakeGasket5.jpg"
+    },
+    {
+      "title": "MakeGasket6.jpg",
+      "path": "manufacturing/internals/filter_panel/filter_holder/images/MakeGasket6.jpg"
+    },
+    {
+      "title": "filter_cover-02.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_cover/filter_cover-02.ipt"
+    },
+    {
+      "title": "filter_cover-01.ipt",
+      "path": "manufacturing/internals/filter_panel/filter_holder/filter_cover/filter_cover-01.ipt"
+    },
+    {
+      "title": "filter_assembly-02.iam",
+      "path": "manufacturing/internals/filter_panel/filter_holder/Filter assembly/filter_assembly-02.iam"
+    },
+    {
+      "title": "filter_assembly-01.iam",
+      "path": "manufacturing/internals/filter_panel/filter_holder/Filter assembly/filter_assembly-01.iam"
+    },
+    {
+      "title": "display_panel_assembly_rendering.jpg",
+      "path": "manufacturing/internals/display_panel/images/display_panel_assembly_rendering.jpg"
+    },
+    {
+      "title": "support_frame_drawing.jpg",
+      "path": "manufacturing/internals/display_panel/images/support_frame_drawing.jpg"
+    },
+    {
+      "title": "uflow_tapping_1.jpg",
+      "path": "manufacturing/internals/PSOL/images/uflow_tapping_1.jpg"
+    },
+    {
+      "title": "uflow_tapping_2.jpg",
+      "path": "manufacturing/internals/PSOL/images/uflow_tapping_2.jpg"
+    },
+    {
+      "title": "blower_gasket.png",
+      "path": "manufacturing/internals/blower/images/blower_gasket.png"
+    },
+    {
+      "title": "integrated.jpg",
+      "path": "manufacturing/internals/blower/images/integrated.jpg"
+    },
+    {
+      "title": "blower_assembly.jpg",
+      "path": "manufacturing/internals/blower/images/blower_assembly.jpg"
+    },
+    {
+      "title": "tubing_adapter_holding_plate.jpg",
+      "path": "manufacturing/internals/blower/images/tubing_adapter_holding_plate.jpg"
+    },
+    {
+      "title": "blower_mounting.jpg",
+      "path": "manufacturing/internals/blower/images/blower_mounting.jpg"
+    },
+    {
+      "title": "tubing_adapter_holding_plate_drawing.jpg",
+      "path": "manufacturing/internals/blower/images/tubing_adapter_holding_plate_drawing.jpg"
+    },
+    {
+      "title": "tubing_adapter_gasket.png",
+      "path": "manufacturing/internals/blower/images/tubing_adapter_gasket.png"
+    },
+    {
+      "title": "driver_mounting_plate.jpg",
+      "path": "manufacturing/internals/blower/images/driver_mounting_plate.jpg"
+    },
+    {
+      "title": "tubing_adapter.jpg",
+      "path": "manufacturing/internals/blower/images/tubing_adapter.jpg"
+    },
+    {
+      "title": "assembly_rendering.jpg",
+      "path": "manufacturing/internals/blower/images/assembly_rendering.jpg"
+    },
+    {
+      "title": "tubing_adapter_rendering.jpg",
+      "path": "manufacturing/internals/blower/images/tubing_adapter_rendering.jpg"
+    },
+    {
+      "title": "blower_driver_mounting.jpg",
+      "path": "manufacturing/internals/blower/images/blower_driver_mounting.jpg"
+    },
+    {
+      "title": "blower_holding_plate.jpg",
+      "path": "manufacturing/internals/blower/images/blower_holding_plate.jpg"
+    },
+    {
+      "title": "blower_mounting4.jpg",
+      "path": "manufacturing/internals/blower/images/blower_mounting4.jpg"
+    },
+    {
+      "title": "blower_mounting2.jpg",
+      "path": "manufacturing/internals/blower/images/blower_mounting2.jpg"
+    },
+    {
+      "title": "blower_mounting3.jpg",
+      "path": "manufacturing/internals/blower/images/blower_mounting3.jpg"
+    },
+    {
+      "title": "blower_base-ws7040.ipt",
+      "path": "manufacturing/internals/blower/blower_base/blower_base-ws7040.ipt"
+    },
+    {
+      "title": "blower_base-tkfan.ipt",
+      "path": "manufacturing/internals/blower/blower_base/blower_base-tkfan.ipt"
+    },
+    {
+      "title": "fan-test-setup-diagram.jpg",
+      "path": "manufacturing/internals/blower/characterization-tests/fan-test-setup-diagram.jpg"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/blower/characterization-tests/README.md"
+    },
+    {
+      "title": "blower-tkfan.iam",
+      "path": "manufacturing/internals/blower/blower/blower-tkfan.iam"
+    },
+    {
+      "title": "blower-ws7040.iam",
+      "path": "manufacturing/internals/blower/blower/blower-ws7040.iam"
+    },
+    {
+      "title": "README.md",
+      "path": "manufacturing/internals/blower/characterization-tests/20200505/README.md"
+    },
+    {
+      "title": "flow-test-21818.pkl",
+      "path": "manufacturing/internals/blower/characterization-tests/20200505/assets/flow-test-21818.pkl"
+    },
+    {
+      "title": "flow-test-24000.pkl",
+      "path": "manufacturing/internals/blower/characterization-tests/20200505/assets/flow-test-24000.pkl"
+    },
+    {
+      "title": "flow-test-26666.pkl",
+      "path": "manufacturing/internals/blower/characterization-tests/20200505/assets/flow-test-26666.pkl"
+    },
+    {
+      "title": "rendered_assembly_smaller.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/rendered_assembly_smaller.jpg"
+    },
+    {
+      "title": "rotor.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/rotor.jpg"
+    },
+    {
+      "title": "rendered_rotor.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/rendered_rotor.jpg"
+    },
+    {
+      "title": "rendered_assembly.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/rendered_assembly.jpg"
+    },
+    {
+      "title": "full_assembly.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/full_assembly.jpg"
+    },
+    {
+      "title": "components.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/components.jpg"
+    },
+    {
+      "title": "assembled.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/assembled.jpg"
+    },
+    {
+      "title": "assembled_smaller.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/assembled_smaller.jpg"
+    },
+    {
+      "title": "animation.gif",
+      "path": "manufacturing/internals/pinch_valve/images/animation.gif"
+    },
+    {
+      "title": "rendered_base.jpg",
+      "path": "manufacturing/internals/pinch_valve/images/rendered_base.jpg"
+    },
+    {
+      "title": "M4_thumbscrew_24mm.ipt",
+      "path": "manufacturing/third_party/hardware/M4_thumbscrew_24mm.ipt"
+    },
+    {
+      "title": "M2.5_washer_8mm.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_washer_8mm.ipt"
+    },
+    {
+      "title": "M3_screw_6mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M3_screw_6mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_screw_10mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_10mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_screw_40mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_40mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_washer_9mm.ipt",
+      "path": "manufacturing/third_party/hardware/M4_washer_9mm.ipt"
+    },
+    {
+      "title": "M3_screw_10mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M3_screw_10mm_button_hex.ipt"
+    },
+    {
+      "title": "M2.5_standoff_10mm.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_standoff_10mm.ipt"
+    },
+    {
+      "title": "M4_heat_set_insert_long.ipt",
+      "path": "manufacturing/third_party/hardware/M4_heat_set_insert_long.ipt"
+    },
+    {
+      "title": "M4_screw_14mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_14mm_button_hex.ipt"
+    },
+    {
+      "title": "M3_washer_9mm.ipt",
+      "path": "manufacturing/third_party/hardware/M3_washer_9mm.ipt"
+    },
+    {
+      "title": "M4_screw_50mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_50mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_spacer_30mm.ipt",
+      "path": "manufacturing/third_party/hardware/M4_spacer_30mm.ipt"
+    },
+    {
+      "title": "M4_thumbscrew.ipt",
+      "path": "manufacturing/third_party/hardware/M4_thumbscrew.ipt"
+    },
+    {
+      "title": "M4_PEM_nut_thick.ipt",
+      "path": "manufacturing/third_party/hardware/M4_PEM_nut_thick.ipt"
+    },
+    {
+      "title": "M6_rubber_bumper.ipt",
+      "path": "manufacturing/third_party/hardware/M6_rubber_bumper.ipt"
+    },
+    {
+      "title": "M2.5_screw_8mm_thread_forming_torx_plus.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_screw_8mm_thread_forming_torx_plus.ipt"
+    },
+    {
+      "title": "M3_locknut.ipt",
+      "path": "manufacturing/third_party/hardware/M3_locknut.ipt"
+    },
+    {
+      "title": "M4_screw_45mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_45mm_button_hex.ipt"
+    },
+    {
+      "title": "M6_PEM_nut_thin.ipt",
+      "path": "manufacturing/third_party/hardware/M6_PEM_nut_thin.ipt"
+    },
+    {
+      "title": "M2.5_standoff_22mm.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_standoff_22mm.ipt"
+    },
+    {
+      "title": "unc4-40_screw_5-16_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/unc4-40_screw_5-16_button_hex.ipt"
+    },
+    {
+      "title": "rivet_3mm.ipt",
+      "path": "manufacturing/third_party/hardware/rivet_3mm.ipt"
+    },
+    {
+      "title": "M3_screw_8mm_flat_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M3_screw_8mm_flat_hex.ipt"
+    },
+    {
+      "title": "M4_washer_12mm.ipt",
+      "path": "manufacturing/third_party/hardware/M4_washer_12mm.ipt"
+    },
+    {
+      "title": "M2.5_screw_6mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_screw_6mm_button_hex.ipt"
+    },
+    {
+      "title": "M2.5_washer_5mm.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_washer_5mm.ipt"
+    },
+    {
+      "title": "M4_screw_16mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_16mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_locknut.ipt",
+      "path": "manufacturing/third_party/hardware/M4_locknut.ipt"
+    },
+    {
+      "title": "M4_screw_6mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_6mm_button_hex.ipt"
+    },
+    {
+      "title": "M5_screw_30mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M5_screw_30mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_heat_set_insert_short.ipt",
+      "path": "manufacturing/third_party/hardware/M4_heat_set_insert_short.ipt"
+    },
+    {
+      "title": "M4_screw_18mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_18mm_button_hex.ipt"
+    },
+    {
+      "title": "M2.5_screw_14mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_screw_14mm_button_hex.ipt"
+    },
+    {
+      "title": "bearing_625-ZZ.ipt",
+      "path": "manufacturing/third_party/hardware/bearing_625-ZZ.ipt"
+    },
+    {
+      "title": "M4_screw_8mm_button_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M4_screw_8mm_button_hex.ipt"
+    },
+    {
+      "title": "M4_hex_nut.ipt",
+      "path": "manufacturing/third_party/hardware/M4_hex_nut.ipt"
+    },
+    {
+      "title": "M2.5_washer_6mm.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_washer_6mm.ipt"
+    },
+    {
+      "title": "M4_PEM_nut_thin.ipt",
+      "path": "manufacturing/third_party/hardware/M4_PEM_nut_thin.ipt"
+    },
+    {
+      "title": "M2.5_locknut.ipt",
+      "path": "manufacturing/third_party/hardware/M2.5_locknut.ipt"
+    },
+    {
+      "title": "M3_screw_14mm_flat_hex.ipt",
+      "path": "manufacturing/third_party/hardware/M3_screw_14mm_flat_hex.ipt"
+    },
+    {
+      "title": "pcb_rev_a.ipt",
+      "path": "manufacturing/third_party/electronics/pcb_rev_a.ipt"
+    },
+    {
+      "title": "battery_lipo_4s3p.ipt",
+      "path": "manufacturing/third_party/electronics/battery_lipo_4s3p.ipt"
+    },
+    {
+      "title": "raspberrypi.ipt",
+      "path": "manufacturing/third_party/electronics/raspberrypi.ipt"
+    },
+    {
+      "title": "power_DIN_KPJX-PM-4S.ipt",
+      "path": "manufacturing/third_party/electronics/power_DIN_KPJX-PM-4S.ipt"
+    },
+    {
+      "title": "MicroSD.ipt",
+      "path": "manufacturing/third_party/electronics/MicroSD.ipt"
+    },
+    {
+      "title": "SensorDaughterCard.ipt",
+      "path": "manufacturing/third_party/electronics/SensorDaughterCard.ipt"
+    },
+    {
+      "title": "battery_holder_BX0027.ipt",
+      "path": "manufacturing/third_party/electronics/battery_holder_BX0027.ipt"
+    },
+    {
+      "title": "barbed_fitting_3-4_x_3-8.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_fitting_3-4_x_3-8.ipt"
+    },
+    {
+      "title": "barbed_fitting_1-4_x_1-8nptm.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_fitting_1-4_x_1-8nptm.ipt"
+    },
+    {
+      "title": "barbed_fitting_3-8_x_1-2nptm.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_fitting_3-8_x_1-2nptm.ipt"
+    },
+    {
+      "title": "brass_fitting_1-8bsptm_1-4nptf.ipt",
+      "path": "manufacturing/third_party/pneumatics/brass_fitting_1-8bsptm_1-4nptf.ipt"
+    },
+    {
+      "title": "through_wall_fitting_1-8NPTf_nut.ipt",
+      "path": "manufacturing/third_party/pneumatics/through_wall_fitting_1-8NPTf_nut.ipt"
+    },
+    {
+      "title": "through_wall_fitting_1-8NPTf.iam",
+      "path": "manufacturing/third_party/pneumatics/through_wall_fitting_1-8NPTf.iam"
+    },
+    {
+      "title": "barbed_elbow_3-4in.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_elbow_3-4in.ipt"
+    },
+    {
+      "title": "barbed_fitting_5-8_x_1-2nptm.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_fitting_5-8_x_1-2nptm.ipt"
+    },
+    {
+      "title": "through_wall_fitting_1-8NPTf_washer.ipt",
+      "path": "manufacturing/third_party/pneumatics/through_wall_fitting_1-8NPTf_washer.ipt"
+    },
+    {
+      "title": "barbed_fitting_3-32in_x_10UNFm.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_fitting_3-32in_x_10UNFm.ipt"
+    },
+    {
+      "title": "check_valve_1-2npt_plastic.ipt",
+      "path": "manufacturing/third_party/pneumatics/check_valve_1-2npt_plastic.ipt"
+    },
+    {
+      "title": "through_wall_fitting_1-8NPTf_through_nut.ipt",
+      "path": "manufacturing/third_party/pneumatics/through_wall_fitting_1-8NPTf_through_nut.ipt"
+    },
+    {
+      "title": "push_to_connect_8mm_x_1-8nptm.ipt",
+      "path": "manufacturing/third_party/pneumatics/push_to_connect_8mm_x_1-8nptm.ipt"
+    },
+    {
+      "title": "wye_splitter_3-32in.ipt",
+      "path": "manufacturing/third_party/pneumatics/wye_splitter_3-32in.ipt"
+    },
+    {
+      "title": "barbed_fitting_1-4_x_1-4nptm.ipt",
+      "path": "manufacturing/third_party/pneumatics/barbed_fitting_1-4_x_1-4nptm.ipt"
+    },
+    {
+      "title": "USB_typeA_male_contact_support.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_male_contact_support.ipt"
+    },
+    {
+      "title": "USB_typeA_elbow.iam",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_elbow.iam"
+    },
+    {
+      "title": "USB_typeA_male_connector.iam",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_male_connector.iam"
+    },
+    {
+      "title": "USB_typeA_female.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_female.ipt"
+    },
+    {
+      "title": "USB_typeA_male_outer_contact.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_male_outer_contact.ipt"
+    },
+    {
+      "title": "USB_typeA_elbow_moulding.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_elbow_moulding.ipt"
+    },
+    {
+      "title": "USB_typeA_male_inner_contact.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_male_inner_contact.ipt"
+    },
+    {
+      "title": "USB_typeA_plug_moulding.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_plug_moulding.ipt"
+    },
+    {
+      "title": "USB_typeA_male_engagement.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_male_engagement.ipt"
+    },
+    {
+      "title": "USB_typeA_pigtail_moulding.ipt",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_pigtail_moulding.ipt"
+    },
+    {
+      "title": "USB_typeA_plug.iam",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_plug.iam"
+    },
+    {
+      "title": "USB_typeA_pigtail_port.iam",
+      "path": "manufacturing/third_party/electronics/usb_parts/USB_typeA_pigtail_port.iam"
+    },
+    {
+      "title": "rj45_pigtail_port_moulding.ipt",
+      "path": "manufacturing/third_party/electronics/ethernet/rj45_pigtail_port_moulding.ipt"
+    },
+    {
+      "title": "rj45_port_f.ipt",
+      "path": "manufacturing/third_party/electronics/ethernet/rj45_port_f.ipt"
+    },
+    {
+      "title": "rj45_right_angled_m.ipt",
+      "path": "manufacturing/third_party/electronics/ethernet/rj45_right_angled_m.ipt"
+    },
+    {
+      "title": "rj45_pigtail_port.iam",
+      "path": "manufacturing/third_party/electronics/ethernet/rj45_pigtail_port.iam"
+    },
+    {
+      "title": "JWMW11A1-rocker.ipt",
+      "path": "manufacturing/third_party/electronics/JWMW11RA1A/JWMW11A1-rocker.ipt"
+    },
+    {
+      "title": "JWMWA-body.ipt",
+      "path": "manufacturing/third_party/electronics/JWMW11RA1A/JWMWA-body.ipt"
+    },
+    {
+      "title": "JWMW11A1A-rocker_ins.ipt",
+      "path": "manufacturing/third_party/electronics/JWMW11RA1A/JWMW11A1A-rocker_ins.ipt"
+    },
+    {
+      "title": "JWMW11RA1A.iam",
+      "path": "manufacturing/third_party/electronics/JWMW11RA1A/JWMW11RA1A.iam"
+    },
+    {
+      "title": "JWMW11.ipt",
+      "path": "manufacturing/third_party/electronics/JWMW11RA1A/JWMW11.ipt"
+    }
+  ],
+  "design_files": [
+    {
+      "title": "open_source.md",
+      "path": "open_source.md"
+    },
+    {
+      "title": "modelica.md",
+      "path": "design/modelica.md"
+    },
+    {
+      "title": "README.md",
+      "path": "design/README.md"
+    },
+    {
+      "title": "conop.md",
+      "path": "design/conop.md"
+    },
+    {
+      "title": "design-rationales.md",
+      "path": "design/design-rationales.md"
+    },
+    {
+      "title": "index.rst",
+      "path": "docs/index.rst"
+    },
+    {
+      "title": "lychee.toml",
+      "path": "docs/lychee.toml"
+    },
+    {
+      "title": "Makefile",
+      "path": "docs/Makefile"
+    },
+    {
+      "title": "pyproject.toml",
+      "path": "docs/pyproject.toml"
+    },
+    {
+      "title": "README.md",
+      "path": "docs/README.md"
+    },
+    {
+      "title": "make.bat",
+      "path": "docs/make.bat"
+    },
+    {
+      "title": "poetry.lock",
+      "path": "docs/poetry.lock"
+    },
+    {
+      "title": "Doxyfile",
+      "path": "docs/Doxyfile"
+    },
+    {
+      "title": "docs.sh",
+      "path": "docs/docs.sh"
+    },
+    {
+      "title": "Ventilator.sch",
+      "path": "pcb/Ventilator.sch"
+    },
+    {
+      "title": "power_3.3V_LDO.sch",
+      "path": "pcb/power_3.3V_LDO.sch"
+    },
+    {
+      "title": "power_vsys.sch",
+      "path": "pcb/power_vsys.sch"
+    },
+    {
+      "title": "sensors_pressure_daughterboard.sch",
+      "path": "pcb/sensors_pressure_daughterboard.sch"
+    },
+    {
+      "title": "driver_solenoid.pro",
+      "path": "pcb/driver_solenoid.pro"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/bom.ini"
+    },
+    {
+      "title": "sensors_o2_temp.sch",
+      "path": "pcb/sensors_o2_temp.sch"
+    },
+    {
+      "title": "fpga.sch",
+      "path": "pcb/fpga.sch"
+    },
+    {
+      "title": "Ventilator.kicad_pcb",
+      "path": "pcb/Ventilator.kicad_pcb"
+    },
+    {
+      "title": "alarms.sch",
+      "path": "pcb/alarms.sch"
+    },
+    {
+      "title": "battery_charger.sch",
+      "path": "pcb/battery_charger.sch"
+    },
+    {
+      "title": "sensors_pressure.sch",
+      "path": "pcb/sensors_pressure.sch"
+    },
+    {
+      "title": "stm_programmer.sch",
+      "path": "pcb/stm_programmer.sch"
+    },
+    {
+      "title": "ui_computer.sch",
+      "path": "pcb/ui_computer.sch"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/fp-lib-table"
+    },
+    {
+      "title": "Ventilator.pro",
+      "path": "pcb/Ventilator.pro"
+    },
+    {
+      "title": "battery_balancer.sch",
+      "path": "pcb/battery_balancer.sch"
+    },
+    {
+      "title": "Ventilator.net",
+      "path": "pcb/Ventilator.net"
+    },
+    {
+      "title": "system_monitor_adc.sch",
+      "path": "pcb/system_monitor_adc.sch"
+    },
+    {
+      "title": "driver_solenoid.sch",
+      "path": "pcb/driver_solenoid.sch"
+    },
+    {
+      "title": "power.sch",
+      "path": "pcb/power.sch"
+    },
+    {
+      "title": "indicators.sch",
+      "path": "pcb/indicators.sch"
+    },
+    {
+      "title": "README.md",
+      "path": "pcb/README.md"
+    },
+    {
+      "title": "sensors_temp_ntc.sch",
+      "path": "pcb/sensors_temp_ntc.sch"
+    },
+    {
+      "title": "cycle_controller.sch",
+      "path": "pcb/cycle_controller.sch"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sym-lib-table"
+    },
+    {
+      "title": "misc.sch",
+      "path": "pcb/misc.sch"
+    },
+    {
+      "title": "driver_stepper.sch",
+      "path": "pcb/driver_stepper.sch"
+    },
+    {
+      "title": "power_5V_buck.sch",
+      "path": "pcb/power_5V_buck.sch"
+    },
+    {
+      "title": "battery_controller.sch",
+      "path": "pcb/battery_controller.sch"
+    },
+    {
+      "title": "sensors_temp_rtd.sch",
+      "path": "pcb/sensors_temp_rtd.sch"
+    },
+    {
+      "title": "VentilatorPCB-RevA-Angled-Render.jpg",
+      "path": "pcb/VentilatorPCB-RevA-Angled-Render.jpg"
+    },
+    {
+      "title": "user_documentation.md",
+      "path": "quality-assurance/user_documentation.md"
+    },
+    {
+      "title": "README.md",
+      "path": "quality-assurance/README.md"
+    },
+    {
+      "title": "characterization-test-plan.md",
+      "path": "quality-assurance/characterization-test-plan.md"
+    },
+    {
+      "title": "config.yml",
+      "path": ".circleci/config.yml"
+    },
+    {
+      "title": "functional_block_diagram.png",
+      "path": "design/images/functional_block_diagram.png"
+    },
+    {
+      "title": "modelon_gui.png",
+      "path": "design/images/modelon_gui.png"
+    },
+    {
+      "title": "modelon_ventilator.png",
+      "path": "design/images/modelon_ventilator.png"
+    },
+    {
+      "title": "modelon_flow_curves.png",
+      "path": "design/images/modelon_flow_curves.png"
+    },
+    {
+      "title": "README.md",
+      "path": "design/mechanical/README.md"
+    },
+    {
+      "title": "README.md",
+      "path": "design/electrical-system/README.md"
+    },
+    {
+      "title": "README.md",
+      "path": "design/pneumatic-system/README.md"
+    },
+    {
+      "title": "gui_animation.gif",
+      "path": "design/electrical-system/images/gui_animation.gif"
+    },
+    {
+      "title": "electrical_circuit_diagram.png",
+      "path": "design/electrical-system/images/electrical_circuit_diagram.png"
+    },
+    {
+      "title": "system_block_diagram.png",
+      "path": "design/electrical-system/images/system_block_diagram.png"
+    },
+    {
+      "title": "air_oxy_mixing.png",
+      "path": "design/pneumatic-system/images/air_oxy_mixing.png"
+    },
+    {
+      "title": "flow_control_diagram_proposed.png",
+      "path": "design/pneumatic-system/images/flow_control_diagram_proposed.png"
+    },
+    {
+      "title": "blower_assembly.png",
+      "path": "design/pneumatic-system/images/blower_assembly.png"
+    },
+    {
+      "title": "pinch_valve.svg",
+      "path": "design/pneumatic-system/images/pinch_valve.svg"
+    },
+    {
+      "title": "inflow_venturi.png",
+      "path": "design/pneumatic-system/images/inflow_venturi.png"
+    },
+    {
+      "title": "pneumatic_diagram.png",
+      "path": "design/pneumatic-system/images/pneumatic_diagram.png"
+    },
+    {
+      "title": "oxygen_path.png",
+      "path": "design/pneumatic-system/images/oxygen_path.png"
+    },
+    {
+      "title": "flow_control_diagram_current.png",
+      "path": "design/pneumatic-system/images/flow_control_diagram_current.png"
+    },
+    {
+      "title": "pneumatic_diagram.svg",
+      "path": "design/pneumatic-system/images/pneumatic_diagram.svg"
+    },
+    {
+      "title": "venturi.svg",
+      "path": "design/pneumatic-system/images/venturi.svg"
+    },
+    {
+      "title": "peep_control_assembly.png",
+      "path": "design/pneumatic-system/images/peep_control_assembly.png"
+    },
+    {
+      "title": "index.rst",
+      "path": "docs/hardware/index.rst"
+    },
+    {
+      "title": "hardware_requirements.rst",
+      "path": "docs/hardware/hardware_requirements.rst"
+    },
+    {
+      "title": "index.rst",
+      "path": "docs/purchasing/index.rst"
+    },
+    {
+      "title": "purchasing-guidelines.rst",
+      "path": "docs/purchasing/purchasing-guidelines.rst"
+    },
+    {
+      "title": "README.md",
+      "path": "docs/purchasing/README.md"
+    },
+    {
+      "title": "numbering-schema.rst",
+      "path": "docs/purchasing/numbering-schema.rst"
+    },
+    {
+      "title": "parts.json",
+      "path": "docs/purchasing/parts.json"
+    },
+    {
+      "title": "contributing.rst",
+      "path": "docs/contributing/contributing.rst"
+    },
+    {
+      "title": "CLA.rst",
+      "path": "docs/contributing/CLA.rst"
+    },
+    {
+      "title": "index.rst",
+      "path": "docs/wiring/index.rst"
+    },
+    {
+      "title": "power_entry.rst",
+      "path": "docs/wiring/power_entry.rst"
+    },
+    {
+      "title": "oxygen_sensor.yml",
+      "path": "docs/wiring/oxygen_sensor.yml"
+    },
+    {
+      "title": "blower_TK_BA7050H12B.yml",
+      "path": "docs/wiring/blower_TK_BA7050H12B.yml"
+    },
+    {
+      "title": "README.md",
+      "path": "docs/wiring/README.md"
+    },
+    {
+      "title": "blower_TK_BA7050H12B.rst",
+      "path": "docs/wiring/blower_TK_BA7050H12B.rst"
+    },
+    {
+      "title": "oxygen_sensor.rst",
+      "path": "docs/wiring/oxygen_sensor.rst"
+    },
+    {
+      "title": "power_entry.yml",
+      "path": "docs/wiring/power_entry.yml"
+    },
+    {
+      "title": "index.rst",
+      "path": "docs/system/index.rst"
+    },
+    {
+      "title": "covent_19.rst",
+      "path": "docs/system/covent_19.rst"
+    },
+    {
+      "title": "system_requirements.rst",
+      "path": "docs/system/system_requirements.rst"
+    },
+    {
+      "title": "my_theme.css",
+      "path": "docs/assets/my_theme.css"
+    },
+    {
+      "title": "index.rst",
+      "path": "docs/process/index.rst"
+    },
+    {
+      "title": "requirements_management.rst",
+      "path": "docs/process/requirements_management.rst"
+    },
+    {
+      "title": "KyconPinout-KPJX-PM-4S.png",
+      "path": "docs/wiring/images/KyconPinout-KPJX-PM-4S.png"
+    },
+    {
+      "title": "ventilation_modes.md",
+      "path": "software/design/ventilation_modes.md"
+    },
+    {
+      "title": "UI_requirements.md",
+      "path": "software/design/UI_requirements.md"
+    },
+    {
+      "title": "milestone_alpha.md",
+      "path": "software/design/milestone_alpha.md"
+    },
+    {
+      "title": "milestone_v0.2.md",
+      "path": "software/design/milestone_v0.2.md"
+    },
+    {
+      "title": "README.md",
+      "path": "software/design/README.md"
+    },
+    {
+      "title": "embedded_software_testing.md",
+      "path": "software/design/embedded_software_testing.md"
+    },
+    {
+      "title": "GUI_alarm_subsystem.md",
+      "path": "software/design/GUI_alarm_subsystem.md"
+    },
+    {
+      "title": "GUI_architecture.md",
+      "path": "software/design/GUI_architecture.md"
+    },
+    {
+      "title": "controller_architecture.md",
+      "path": "software/design/controller_architecture.md"
+    },
+    {
+      "title": "module_diagram.png",
+      "path": "software/design/images/module_diagram.png"
+    },
+    {
+      "title": "GUI_architecture.png",
+      "path": "software/design/images/GUI_architecture.png"
+    },
+    {
+      "title": "alarms_table.png",
+      "path": "software/design/images/alarms_table.png"
+    },
+    {
+      "title": "controller_architecture.png",
+      "path": "software/design/images/controller_architecture.png"
+    },
+    {
+      "title": "controller_architecture.dot",
+      "path": "software/design/images/controller_architecture.dot"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/indicator-board/bom.ini"
+    },
+    {
+      "title": "indicator-board.pro",
+      "path": "pcb/indicator-board/indicator-board.pro"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/indicator-board/fp-lib-table"
+    },
+    {
+      "title": "indicator-board.sch",
+      "path": "pcb/indicator-board/indicator-board.sch"
+    },
+    {
+      "title": "indicator-board.kicad_pcb",
+      "path": "pcb/indicator-board/indicator-board.kicad_pcb"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/indicator-board/sym-lib-table"
+    },
+    {
+      "title": "stm32_test.ino",
+      "path": "pcb/bringup-software/stm32_test.ino"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004,10dp_common/bom.ini"
+    },
+    {
+      "title": "pressure_mpxv5004,10dp.kicad_pcb",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004,10dp_common/pressure_mpxv5004,10dp.kicad_pcb"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004,10dp_common/fp-lib-table"
+    },
+    {
+      "title": "pressure_mpxv5004,10dp.pro",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004,10dp_common/pressure_mpxv5004,10dp.pro"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004,10dp_common/sym-lib-table"
+    },
+    {
+      "title": "pressure_mpxv5004,10dp.sch",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004,10dp_common/pressure_mpxv5004,10dp.sch"
+    },
+    {
+      "title": "pressure_mpxv5004dp.kicad_pcb",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004dp/pressure_mpxv5004dp.kicad_pcb"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004dp/bom.ini"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004dp/fp-lib-table"
+    },
+    {
+      "title": "pressure_mpxv5004dp.pro",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004dp/pressure_mpxv5004dp.pro"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004dp/sym-lib-table"
+    },
+    {
+      "title": "pressure_mpxv5004dp.sch",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5004dp/pressure_mpxv5004dp.sch"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/sensor-daughterboards/pressure_ms4525do/bom.ini"
+    },
+    {
+      "title": "pressure_ms4525do.pro",
+      "path": "pcb/sensor-daughterboards/pressure_ms4525do/pressure_ms4525do.pro"
+    },
+    {
+      "title": "pressure_ms4525do.sch",
+      "path": "pcb/sensor-daughterboards/pressure_ms4525do/pressure_ms4525do.sch"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_ms4525do/fp-lib-table"
+    },
+    {
+      "title": "pressure_ms4525do.kicad_pcb",
+      "path": "pcb/sensor-daughterboards/pressure_ms4525do/pressure_ms4525do.kicad_pcb"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_ms4525do/sym-lib-table"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5010dp/bom.ini"
+    },
+    {
+      "title": "pressure_mpxv5010dp.pro",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5010dp/pressure_mpxv5010dp.pro"
+    },
+    {
+      "title": "pressure_mpxv5010dp.sch",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5010dp/pressure_mpxv5010dp.sch"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5010dp/fp-lib-table"
+    },
+    {
+      "title": "pressure_mpxv5010dp.kicad_pcb",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5010dp/pressure_mpxv5010dp.kicad_pcb"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpxv5010dp/sym-lib-table"
+    },
+    {
+      "title": "pressure_XGZP6897A.kicad_pro",
+      "path": "pcb/sensor-daughterboards/pressure_XGZP6897A/pressure_XGZP6897A.kicad_pro"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/sensor-daughterboards/pressure_XGZP6897A/bom.ini"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_XGZP6897A/fp-lib-table"
+    },
+    {
+      "title": "pressure_XGZP6897A.sch",
+      "path": "pcb/sensor-daughterboards/pressure_XGZP6897A/pressure_XGZP6897A.sch"
+    },
+    {
+      "title": "pressure_XGZP6897A.kicad_pcb",
+      "path": "pcb/sensor-daughterboards/pressure_XGZP6897A/pressure_XGZP6897A.kicad_pcb"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_XGZP6897A/sym-lib-table"
+    },
+    {
+      "title": "pressure_mpx5700ap,gp.sch",
+      "path": "pcb/sensor-daughterboards/pressure_mpx5700ap,gp/pressure_mpx5700ap,gp.sch"
+    },
+    {
+      "title": "bom.ini",
+      "path": "pcb/sensor-daughterboards/pressure_mpx5700ap,gp/bom.ini"
+    },
+    {
+      "title": "pressure_mpx5700ap,gp.kicad_pcb",
+      "path": "pcb/sensor-daughterboards/pressure_mpx5700ap,gp/pressure_mpx5700ap,gp.kicad_pcb"
+    },
+    {
+      "title": "fp-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpx5700ap,gp/fp-lib-table"
+    },
+    {
+      "title": "pressure_mpx5700ap,gp.pro",
+      "path": "pcb/sensor-daughterboards/pressure_mpx5700ap,gp/pressure_mpx5700ap,gp.pro"
+    },
+    {
+      "title": "sym-lib-table",
+      "path": "pcb/sensor-daughterboards/pressure_mpx5700ap,gp/sym-lib-table"
+    }
+  ],
+  "making_instructions": [],
+  "operating_instructions": [],
+  "technical_specifications": [
+    {
+      "title": "README.md",
+      "path": "software/controller/test/README.md"
+    },
+    {
+      "title": "README.md",
+      "path": "quality-assurance/testing/README.md"
+    },
+    {
+      "title": "life_leader.png",
+      "path": "quality-assurance/testing/images/life_leader.png"
+    },
+    {
+      "title": "README.md",
+      "path": "quality-assurance/testing/pizza_build/README.md"
+    },
+    {
+      "title": "README.md",
+      "path": "quality-assurance/testing/test_lung/README.md"
+    },
+    {
+      "title": "pinch_valves_back.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/pinch_valves_back.jpg"
+    },
+    {
+      "title": "blower_attached.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/blower_attached.jpg"
+    },
+    {
+      "title": "pizza-pneumatics.eps",
+      "path": "quality-assurance/testing/pizza_build/images/pizza-pneumatics.eps"
+    },
+    {
+      "title": "oxy_tee_unattached.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/oxy_tee_unattached.jpg"
+    },
+    {
+      "title": "exhale_attached.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/exhale_attached.jpg"
+    },
+    {
+      "title": "blower_driver.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/blower_driver.jpg"
+    },
+    {
+      "title": "test_lung.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/test_lung.jpg"
+    },
+    {
+      "title": "oxy_tee_attached.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/oxy_tee_attached.jpg"
+    },
+    {
+      "title": "base_legs.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/base_legs.jpg"
+    },
+    {
+      "title": "photo-pinch.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/photo-pinch.jpg"
+    },
+    {
+      "title": "base_marked.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/base_marked.jpg"
+    },
+    {
+      "title": "pcb1.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/pcb1.jpg"
+    },
+    {
+      "title": "3_pizzas_small.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/3_pizzas_small.jpg"
+    },
+    {
+      "title": "pcb2.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/pcb2.jpg"
+    },
+    {
+      "title": "sensor_tubing4.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/sensor_tubing4.jpg"
+    },
+    {
+      "title": "sensor_tubing1.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/sensor_tubing1.jpg"
+    },
+    {
+      "title": "stepper_connection1.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/stepper_connection1.jpg"
+    },
+    {
+      "title": "pizza-diagram.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/pizza-diagram.jpg"
+    },
+    {
+      "title": "assembled.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/assembled.jpg"
+    },
+    {
+      "title": "sensor_tubing2.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/sensor_tubing2.jpg"
+    },
+    {
+      "title": "stepper_connection2.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/stepper_connection2.jpg"
+    },
+    {
+      "title": "photo-advanced.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/photo-advanced.jpg"
+    },
+    {
+      "title": "stepper_connection3.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/stepper_connection3.jpg"
+    },
+    {
+      "title": "sensor_tubing3.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/sensor_tubing3.jpg"
+    },
+    {
+      "title": "pizza-pneumatics.png",
+      "path": "quality-assurance/testing/pizza_build/images/pizza-pneumatics.png"
+    },
+    {
+      "title": "blower_unattached.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/blower_unattached.jpg"
+    },
+    {
+      "title": "exhale_unattached.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/exhale_unattached.jpg"
+    },
+    {
+      "title": "stepper_boards.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/stepper_boards.jpg"
+    },
+    {
+      "title": "pinch_valves_front.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/pinch_valves_front.jpg"
+    },
+    {
+      "title": "photo-solenoid.jpg",
+      "path": "quality-assurance/testing/pizza_build/images/photo-solenoid.jpg"
+    },
+    {
+      "title": "test-lung-4.jpg",
+      "path": "quality-assurance/testing/test_lung/assets/test-lung-4.jpg"
+    },
+    {
+      "title": "test-lung-2.jpg",
+      "path": "quality-assurance/testing/test_lung/assets/test-lung-2.jpg"
+    },
+    {
+      "title": "test-lung-3.jpg",
+      "path": "quality-assurance/testing/test_lung/assets/test-lung-3.jpg"
+    },
+    {
+      "title": "test-lung-1.jpg",
+      "path": "quality-assurance/testing/test_lung/assets/test-lung-1.jpg"
+    },
+    {
+      "title": "patient_tubing_adapter.jpg",
+      "path": "quality-assurance/testing/test_lung/assets/patient_tubing_adapter.jpg"
+    },
+    {
+      "title": "patient_tubing_adapter.ipt",
+      "path": "quality-assurance/testing/test_lung/assets/patient_tubing_adapter.ipt"
+    },
+    {
+      "title": "basic_test_lung_assembly.jpg",
+      "path": "quality-assurance/testing/test_lung/assets/basic_test_lung_assembly.jpg"
+    }
+  ],
+  "publications": [],
+  "tool_list": [
+    "CAD"
+  ],
+  "manufacturing_processes": [
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "mat-rubber",
+      "name": "Rubber",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-fasteners",
+      "name": "fasteners",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    },
+    {
+      "material_id": "mat-foam",
+      "name": "foam",
+      "quantity": null,
+      "unit": null,
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [],
+    "process_requirements": [
+      {
+        "process_name": "Assembly",
+        "parameters": {},
+        "validation_criteria": {},
+        "required_tools": [],
+        "notes": ""
+      }
+    ],
+    "quality_standards": [],
+    "outer_dimensions": null,
+    "notes": ""
+  },
+  "bom": {
+    "id": "c6262120-d63a-4482-b80d-0ffe3edecd13",
+    "name": "RespiraWorks Open Source Ventilator BOM",
+    "summary": {
+      "total_components": 27,
+      "total_quantity": 18048.1,
+      "categories": {
+        "other": 20,
+        "sensors": 1,
+        "electronics": 2,
+        "fasteners": 4
+      },
+      "average_confidence": 0.6
+    },
+    "external_file": "bom/bom.json",
+    "metadata": {
+      "generated_at": "2026-04-05T14:44:05.374278Z",
+      "generation_method": "bom_normalization",
+      "source_count": 27
+    }
+  },
+  "standards_used": [],
+  "tsdc": [],
+  "parts": [
+    {
+      "id": "a23147c9-3b52-589d-bf06-ef8f96741939",
+      "name": "- this drives the need for an oxygen supply",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "system_and_a_one_way_valve_in_2",
+      "name": "system and a one way valve in",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "a7c3ba1f-d8c3-ccfa-8b69-d8f9513b3c9a",
+      "name": "- where possible",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "sensor_characterization_4",
+      "name": "sensor characterization",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "623045_1_12_a_623045_1_12_b_5",
+      "name": "623045.1.12.a 623045.1.12.b",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "5fa84096-645f-ad7e-7175-cde4ac570e76",
+      "name": "definitions.",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "474938a4-1edf-5255-b3a0-ec51d379ed1f",
+      "name": "and 623047.2.2.a.",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "19bbfaa4-aae4-3af9-028b-691eb60e3056",
+      "name": "623047.3.1",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "6033d236-1198-e1fd-f249-d90834748110",
+      "name": "and 623048.2.3.",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "crimper_refte_microfit_crimper_10",
+      "name": "Crimper refte-microfit-crimper",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "crimper_11",
+      "name": "Crimper",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "79c87b14-f188-401f-f345-5e366cec9290",
+      "name": "(or simply v4l2) input device",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "1f64e388-e5fe-c96a-3867-e9cf8efe6457",
+      "name": "-framerate 15 -i devvideo0",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "44bdddb6-64e8-aa14-4e12-85fb6e1d32d6",
+      "name": "-ar 16000 -i hw1,0",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "output3_mkv_15",
+      "name": "output3.mkv",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "_i_devvideo0_16",
+      "name": "-i devvideo0",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "976d17db-0658-a258-aaec-379e4a3c38b5",
+      "name": "-tune zerolatency -f mpegts udp192",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "22awg_15cm_a13_19",
+      "name": "22AWG 15cm A13",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "male_2_54mm_crimp_pins_a10_20",
+      "name": "male 2.54mm crimp pins A10",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "14mm_screws_a13_21",
+      "name": "14mm screws A13",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "lock_nuts_a17_22",
+      "name": "lock nuts A17",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "cc094e98-d745-ce9a-09fa-eb228747d1b7",
+      "name": "series",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "a5cfdd35-0619-7680-008b-f38563989178",
+      "name": "mm EPDM foam or 1.5 mm 60 durometer rubber",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "screws_25",
+      "name": "screws",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "e00f2f42-2ede-afb9-f32e-2ec7872c414c",
+      "name": "thumb screws",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "gaskets_for_4_filter_assemblies_27",
+      "name": "gaskets for 4 filter assemblies",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    },
+    {
+      "id": "253fd4b2-39d2-b2c0-bdcb-a42f864dedd8",
+      "name": "hardware A11-13",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "tsdc": [],
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [
+    {
+      "release": "0.1.0",
+      "installation_guide": "README.md"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-04-05T14:44:05.420255Z",
+    "generation_confidence": 0.47,
+    "low_confidence_fields": [
+      "repo",
+      "keywords",
+      "readme",
+      "organization",
+      "function",
+      "intended_use",
+      "documentation_language",
+      "description",
+      "tool_list",
+      "content_classification"
+    ],
+    "missing_required_fields": [
+      "licensor"
+    ],
+    "generation_method": "automated_extraction"
+  },
+  "documentation_language": "en",
+  "licensor": {
+    "name": "RespiraWorks",
+    "url": null,
+    "email": null
+  }
+}

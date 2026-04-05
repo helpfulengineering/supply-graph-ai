@@ -1,0 +1,246 @@
+{
+  "id": "12697d12-9a4e-4ae5-9933-3800fb2bc1c2",
+  "name": "Laser Fabrication Lab",
+  "location": {
+    "address": {
+      "number": "6441",
+      "street": "Wilkinson Burg",
+      "city": "San Antonio",
+      "region": "HI",
+      "country": "US",
+      "postcode": "48044"
+    },
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "directions": "Located near Castro-Kane",
+    "city": "San Antonio",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Ashley-Miller",
+    "contact_person": "Patricia Sutton",
+    "website": "https://hudson.biz",
+    "languages": [
+      "de",
+      "fr"
+    ],
+    "mailing_list": "victoria96@lists.reed-cardenas.com",
+    "images": [
+      "images/same.jpg",
+      "images/young.jpg",
+      "images/much.jpg"
+    ],
+    "contact": {
+      "landline": "+1-646-395-2450",
+      "mobile": "+1-685-463-3626",
+      "whatsapp": "+1-506-643-7577"
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-22:00",
+  "description": "Laser cutting and engraving with product assembly services",
+  "access_type": "Membership",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "LS-1630",
+      "condition": "Excellent",
+      "quantity": 2,
+      "power_rating": 4574,
+      "maintenance_schedule": "Every 1 months",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "7715",
+              "street": "Peterson Haven",
+              "city": "Houston",
+              "region": "MS",
+              "country": "US",
+              "postcode": "60290"
+            },
+            "gps_coordinates": "29.7589382, -95.3676974",
+            "city": "Houston",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "9336",
+              "street": "Castillo Prairie",
+              "city": "San Diego",
+              "region": "VI",
+              "country": "US",
+              "postcode": "03102"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located near Ramirez, Arias and Jacobs",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Professional"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 600,
+      "detailed_capabilities": {
+        "cutting_thickness": "0.1-25mm",
+        "engraving_depth": "0.1-2mm",
+        "cutting_speed": "1-1000 mm/min",
+        "resolution": "1000 DPI",
+        "supported_formats": [
+          "DXF",
+          "AI",
+          "PDF"
+        ],
+        "supported_materials": [
+          "Wood",
+          "Leather",
+          "Fabric",
+          "Acrylic"
+        ],
+        "process_parameters": {
+          "setup_time": "25 minutes",
+          "cycle_time": "49 minutes",
+          "changeover_time": "16 minutes"
+        }
+      }
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "FlexLink",
+      "model": "Modular Bench",
+      "serial_number": "SN811666",
+      "condition": "Needs Maintenance",
+      "throughput": "86 parts/hour",
+      "maintenance_schedule": "Every 12 months",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8570",
+              "street": "Boyd Street",
+              "city": "San Diego",
+              "region": "MP",
+              "country": "US",
+              "postcode": "12740"
+            },
+            "gps_coordinates": "32.7174202, -117.162772",
+            "directions": "Located across from Young-French",
+            "city": "San Diego",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "supplier_location": {
+            "address": {
+              "number": "5342",
+              "street": "Weber Curve",
+              "city": "Fort Worth",
+              "region": "OK",
+              "country": "US",
+              "postcode": "60904"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        }
+      ],
+      "detailed_capabilities": {
+        "assembly_types": [
+          "Mechanical",
+          "Electrical",
+          "Mixed"
+        ],
+        "torque_control": "0.1-50 Nm",
+        "esd_protection": "Yes",
+        "test_integration": "Functional test points",
+        "supported_materials": [
+          "Cables",
+          "Connectors",
+          "Adhesives"
+        ],
+        "process_parameters": {
+          "setup_time": "64 minutes",
+          "cycle_time": "16 minutes",
+          "changeover_time": "21 minutes"
+        }
+      }
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutter",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "NADCAP",
+    "OHSAS 18001",
+    "ISO 9001:2015"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 5 months",
+  "typical_products": [
+    "Exclusive asynchronous attitude",
+    "Vision-oriented executive middleware",
+    "Organic 24/7 superstructure"
+  ],
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.705200",
+    "created_by": {
+      "name": "Robinson-Mendoza",
+      "website": "https://garcia.com",
+      "mailing_list": "tiffanytodd@lists.elliott.com",
+      "images": [
+        "images/law.jpg"
+      ],
+      "contact": {
+        "landline": "+1-235-949-8420",
+        "email": "info@figueroa.com"
+      },
+      "social_media": {
+        "instagram": "@derekmann",
+        "other_urls": [
+          "https://bush-edwards.com",
+          "https://watson.com"
+        ]
+      }
+    },
+    "data_collection_method": "Survey"
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "id": "bf577a2f-51b9-4831-8116-ea86cb9a8e76",
+  "name": "Sheet Metal Fabrication House",
+  "location": {
+    "address": {
+      "number": "2268",
+      "street": "Mckee Meadows",
+      "city": "Philadelphia",
+      "region": "IL",
+      "country": "US",
+      "postcode": "44206"
+    },
+    "gps_coordinates": "39.9527237, -75.1635262",
+    "city": "Philadelphia",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Stewart-Miller",
+    "location": {
+      "address": {
+        "number": "2331",
+        "street": "Raymond Pike",
+        "city": "Fort Worth",
+        "region": "WV",
+        "country": "US",
+        "postcode": "99037"
+      },
+      "gps_coordinates": "32.753177, -97.3327459",
+      "directions": "Located across from Sloan, Benjamin and Patterson",
+      "city": "Fort Worth",
+      "country": "US"
+    },
+    "contact_person": "Patrick Anderson",
+    "mailing_list": "reevesrobert@lists.santiago.net",
+    "images": [
+      "images/paper.jpg"
+    ],
+    "contact": {
+      "landline": "+1-621-934-7347",
+      "mobile": "+1-445-732-1084"
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-17:00",
+  "description": "Full-service sheet metal fabrication with welding and painting",
+  "access_type": "Restricted",
+  "wheelchair_accessibility": "Fully accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 138",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 146",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Accudraft",
+      "model": "Cross-Draft",
+      "serial_number": "SN988543",
+      "condition": "Fair",
+      "throughput": "79 parts/hour",
+      "power_rating": 9784,
+      "maintenance_schedule": "Every 5 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3954",
+              "street": "Woods Crescent",
+              "city": "Fort Worth",
+              "region": "VT",
+              "country": "US",
+              "postcode": "15134"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "8336",
+              "street": "Matthew Garden",
+              "city": "New York",
+              "region": "MN",
+              "country": "US",
+              "postcode": "51207"
+            },
+            "gps_coordinates": "40.7127281, -74.0060152",
+            "city": "New York",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "8738",
+              "street": "Brian Glens",
+              "city": "Philadelphia",
+              "region": "WI",
+              "country": "US",
+              "postcode": "32170"
+            },
+            "gps_coordinates": "39.9527237, -75.1635262",
+            "city": "Philadelphia",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "4255",
+              "street": "Richard Mills",
+              "city": "Columbus",
+              "region": "MI",
+              "country": "US",
+              "postcode": "18086"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "directions": "Located near Hooper and Sons",
+            "city": "Columbus",
+            "country": "US"
+          }
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4102,
+  "storage_capacity": "628 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "maintenance_schedule": "Every 3 months",
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: With father some western painting probably sometimes."
+  },
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Exclusive web-enabled framework",
+      "Cloned solution-oriented Graphic Interface",
+      "Upgradable local algorithm",
+      "Operative 5thgeneration methodology",
+      "Front-line regional initiative"
+    ],
+    "services": [
+      "Right-sized encompassing capability"
+    ],
+    "footfall": 49,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.702927",
+    "created_by": {
+      "name": "Gomez, Walker and Spencer",
+      "images": [
+        "images/program.jpg",
+        "images/after.jpg",
+        "images/house.jpg"
+      ],
+      "contact": {
+        "landline": "+1-484-614-5406",
+        "mobile": "+1-256-232-5626",
+        "email": "info@morgan-walton.com",
+        "whatsapp": "+1-255-321-1037"
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

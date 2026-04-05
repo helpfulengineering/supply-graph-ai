@@ -1,0 +1,223 @@
+{
+  "id": "49d712cd-03ef-4f0d-8490-a072e87617b2",
+  "name": "Full-Service CNC Shop",
+  "location": {
+    "address": {
+      "number": "9663",
+      "street": "Reginald Squares",
+      "city": "Columbus",
+      "region": "AK",
+      "country": "US",
+      "postcode": "14920"
+    },
+    "gps_coordinates": "39.9622601, -83.0007065",
+    "directions": "Located across from Peterson and Sons",
+    "city": "Columbus",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "description": "End-to-end CNC machining with deburring and anodizing finishing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "PCNC 440",
+      "serial_number": "SN533263",
+      "condition": "Needs Maintenance",
+      "throughput": "61 parts/hour",
+      "tolerance_class": "ISO 2768-f",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "3208",
+              "street": "Bennett Drive",
+              "city": "Phoenix",
+              "region": "RI",
+              "country": "US",
+              "postcode": "41412"
+            },
+            "gps_coordinates": "33.4484367, -112.074141",
+            "city": "Phoenix",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "supplier_location": {
+            "address": {
+              "number": "8976",
+              "street": "Jared Points",
+              "city": "Fort Worth",
+              "region": "GU",
+              "country": "US",
+              "postcode": "46056"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "directions": "Located behind Jackson-Crosby",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Standard"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Deburring_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Deburring",
+      "make": "Grind Master",
+      "model": "Series 71",
+      "condition": "Excellent",
+      "power_rating": 4351,
+      "maintenance_schedule": "Every 2 months",
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "3296",
+              "street": "Castro Causeway",
+              "city": "Austin",
+              "region": "WV",
+              "country": "US",
+              "postcode": "99216"
+            },
+            "gps_coordinates": "30.2711286, -97.7436995",
+            "city": "Austin",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Brass",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "brand": "Professional"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Anodizing_line",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Anodizing",
+      "make": "Chemetall",
+      "model": "Hard Anodize Pro",
+      "serial_number": "SN990218",
+      "condition": "Good",
+      "throughput": "46 parts/hour",
+      "power_rating": 5145,
+      "maintenance_schedule": "Every 2 months",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_6061",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3226",
+              "street": "James Underpass",
+              "city": "Columbus",
+              "region": "OK",
+              "country": "US",
+              "postcode": "84672"
+            },
+            "gps_coordinates": "39.9622601, -83.0007065",
+            "city": "Columbus",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_7075",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4049",
+              "street": "Tim Lodge",
+              "city": "Fort Worth",
+              "region": "NM",
+              "country": "US",
+              "postcode": "60791"
+            },
+            "gps_coordinates": "32.753177, -97.3327459",
+            "city": "Fort Worth",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum_2024",
+          "manufacturer": "Generic",
+          "brand": "Professional"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/CNC_mill",
+    "https://en.wikipedia.org/wiki/Deburring_station",
+    "https://en.wikipedia.org/wiki/Anodizing_line"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001",
+    "NADCAP"
+  ],
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Virtual 6thgeneration forecast"
+  ],
+  "circular_economy": {
+    "applies_principles": true,
+    "by_products": [
+      "one",
+      "several"
+    ]
+  },
+  "innovation_space": {
+    "staff": 6,
+    "services": [
+      "Face-to-face even-keeled Graphic Interface",
+      "Persevering analyzing toolset",
+      "Innovative fresh-thinking array",
+      "Multi-tiered radical synergy"
+    ],
+    "footfall": 88,
+    "residencies": true
+  },
+  "record_data": {
+    "date_created": "2026-04-04T18:25:59.716013",
+    "created_by": {
+      "name": "Hall Ltd",
+      "contact": {
+        "mobile": "+1-592-987-9539",
+        "email": "info@haney.info"
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

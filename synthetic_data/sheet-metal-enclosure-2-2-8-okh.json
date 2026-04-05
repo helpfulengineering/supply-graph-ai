@@ -1,0 +1,229 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "15b786d9-d18d-4003-81e9-80d7268d78fd",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/sabrina75/sheet-metal-enclosure",
+  "version": "2.2.8",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Dalton Walton",
+    "email": "wendy43@example.com",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "wilsontimothy"
+      }
+    ]
+  },
+  "documentation_language": "en",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Benefit determine billion now contain live read hard.",
+  "intended_use": "To his small particular.",
+  "keywords": [
+    "shaft",
+    "modular",
+    "gear",
+    "customizable"
+  ],
+  "contact": {
+    "name": "Evelyn Swanson",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "technology_readiness_level": "TRL-9",
+  "manufacturing_files": [
+    {
+      "title": "Assembly Guide",
+      "path": "https://github.com/bobbycurtis/project/raw/main/docs/assembly_guide.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Bill of Materials",
+      "path": "https://github.com/crystalgutierrez/project/raw/main/docs/bill_of_materials.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v3.7"
+      }
+    },
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/qbaxter/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/darinjohnson/project/raw/main/docs/3d_model.stl",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.6"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/kchavez/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.4"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/dvargas/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v1.8"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/rogerscatherine/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.6"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/theresa17/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Sheet metal brake",
+    "Punch press",
+    "Welder",
+    "Shear"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "ABS",
+      "name": "Acrylonitrile Butadiene Styrene",
+      "quantity": 268.98,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 844.59,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: B"
+    },
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": null
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Welding"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [],
+    "quality_standards": [],
+    "notes": ""
+  },
+  "bom": "https://github.com/andersonjustin/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "DIN 7168",
+      "publisher": "DIN",
+      "reference": "DIN 7168",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "c97fdf0c-8e37-4d31-9ef7-6bd7c3e59c36",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": 973.87,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "f63b73f4-848e-4b21-875b-86090814beb0",
+      "source": [
+        "https://github.com/conleybradley/project/raw/main/models/bracket.stl"
+      ],
+      "export": [
+        "https://github.com/qsimmons/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/melaniefranco/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/angela11/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": null,
+      "mass": 733.18,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

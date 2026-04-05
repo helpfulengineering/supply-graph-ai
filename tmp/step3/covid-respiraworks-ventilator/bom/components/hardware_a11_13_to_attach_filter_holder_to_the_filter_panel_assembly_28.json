@@ -1,0 +1,13 @@
+{
+  "id": "hardware_a11_13_to_attach_filter_holder_to_the_filter_panel_assembly_28",
+  "name": "hardware A11-13 to attach filter holder to the filter panel assembly",
+  "quantity": 4.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "manufacturing/internals/filter_panel/filter_holder/README.md",
+    "confidence": 0.45,
+    "file_reference": ".."
+  }
+}

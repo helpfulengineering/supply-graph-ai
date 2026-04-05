@@ -1,0 +1,307 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "02039300-ff9d-4111-bf13-29d26000923c",
+  "title": "Sheet Metal Enclosure",
+  "repo": "https://github.com/brianahowell/sheet-metal-enclosure",
+  "version": "2.0.0",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Brandon Harrell",
+    "email": null,
+    "affiliation": "Ramos Group",
+    "social": []
+  },
+  "documentation_language": "de",
+  "function": "Weatherproof enclosure for outdoor electronics",
+  "description": "A sheet metal enclosure designed for Believe issue network clear.",
+  "intended_use": "This chair successful small.",
+  "keywords": [
+    "documented",
+    "bearing"
+  ],
+  "contact": {
+    "name": "Michelle Ruiz",
+    "email": null,
+    "affiliation": "Hubbard-Young",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "ghill"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Mark Curtis",
+      "email": "dustin02@example.com",
+      "affiliation": "Berger-Morris",
+      "social": []
+    },
+    {
+      "name": "Craig Richard",
+      "email": null,
+      "affiliation": null,
+      "social": [
+        {
+          "platform": "github",
+          "handle": "rachel97"
+        }
+      ]
+    }
+  ],
+  "development_stage": "prototype",
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/matthewmartinez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v1.5"
+      }
+    },
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/rachael84/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.9"
+      }
+    },
+    {
+      "title": "SHEET Safety Procedures",
+      "path": "https://github.com/holly86/project/raw/main/docs/sheet_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v3.0"
+      }
+    }
+  ],
+  "design_files": [],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Sheet Metal Enclosure",
+      "path": "https://github.com/qsalinas/project/raw/main/docs/assembly_guide_for_sheet_metal_enclosure.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/elizabeth50/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {
+        "version": "v3.9"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/tdavis/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.7"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Shear",
+    "Grinder",
+    "Punch press",
+    "Heat shrink",
+    "Sheet metal brake",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "SHEET",
+    "Welding",
+    "Painting"
+  ],
+  "materials": [
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": null,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 300.19,
+      "unit": "m³",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "TPU",
+      "name": "Thermoplastic Polyurethane",
+      "quantity": 162.31,
+      "unit": "g",
+      "notes": "Grade: A"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Press-fit"
+    ],
+    "outer_dimensions": {
+      "length": 164,
+      "width": 145,
+      "height": 98
+    },
+    "process_requirements": [],
+    "quality_standards": [
+      "FCC"
+    ],
+    "notes": "Manufacturing notes: Total scientist per."
+  },
+  "bom": "https://github.com/kara96/project/raw/main/docs/bom_sheet_metal_enclosure.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    },
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ASME Y14.5",
+      "publisher": "ASME",
+      "reference": "ASME Y14.5",
+      "certifications": []
+    },
+    {
+      "standard_title": "ISO 2768",
+      "publisher": "ISO",
+      "reference": "ISO 2768",
+      "certifications": [
+        {
+          "type": "certification",
+          "status": "valid"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "SHEET"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "3aeb2770-3edf-42f8-8ddf-2109a2b5682b",
+      "source": [],
+      "export": [
+        "https://github.com/sdiaz/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/amber93/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/gstevens/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": null,
+      "mass": 583.59,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Frame",
+      "id": "ac55b598-15a7-41ce-99ab-43fb0037bed5",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/jamesjoshua/project/raw/main/images/frame.jpg",
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Welding wire",
+      "outer_dimensions": {
+        "length": 180,
+        "width": 30,
+        "height": 73
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "5fe2a95e-2910-4dab-aece-f79d864ba767",
+      "source": [],
+      "export": [
+        "https://github.com/vanessa75/project/raw/main/exports/base.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Paint",
+      "outer_dimensions": {
+        "length": 120,
+        "width": 164,
+        "height": 49
+      },
+      "mass": 988.14,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "3cf46175-8d2a-4234-9a7d-744465f54165",
+      "source": [],
+      "export": [
+        "https://github.com/matthew39/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Primer",
+      "outer_dimensions": {
+        "length": 192,
+        "width": 164,
+        "height": 11
+      },
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "ceb382f8-df36-4813-8e4d-4ffc59ec0fcb",
+      "source": [],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "SHEET"
+      ],
+      "material": "Steel sheet",
+      "outer_dimensions": {
+        "length": 100,
+        "width": 91,
+        "height": 22
+      },
+      "mass": 206.51,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

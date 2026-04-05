@@ -1,0 +1,231 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "a750dfc4-b9e2-4908-9dbb-d4edd9aa6260",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/amanda65/laser-cut-acrylic-display-case",
+  "version": "2.9.5",
+  "license": {
+    "hardware": "CERN-OHL-S-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Benjamin Ballard",
+    "email": null,
+    "affiliation": "Horton, Sanchez and Duncan",
+    "social": []
+  },
+  "documentation_language": "it",
+  "function": "Protective display case for electronic components",
+  "keywords": [
+    "housing",
+    "documented"
+  ],
+  "contributors": [
+    {
+      "name": "Erin Sutton",
+      "email": null,
+      "affiliation": "Bernard-Schwartz",
+      "social": [
+        {
+          "platform": "github",
+          "handle": "egreen"
+        }
+      ]
+    }
+  ],
+  "manufacturing_files": [
+    {
+      "title": "Quality Control Checklist",
+      "path": "https://github.com/jennarodriguez/project/raw/main/docs/quality_control_checklist.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/hooperluke/project/raw/main/docs/3d_model.iges",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/esparzagina/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.5"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/gregory65/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.1"
+      }
+    },
+    {
+      "title": "Quality Control and Testing Procedures",
+      "path": "https://github.com/leslie95/project/raw/main/docs/quality_control_and_testing_procedures.pdf",
+      "type": "technical-specifications",
+      "metadata": {}
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/tabitha93/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting bed",
+    "Screwdriver set",
+    "Heat shrink",
+    "Pliers",
+    "Air assist",
+    "Material guides",
+    "Crimping tool",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": 183.55,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "standards_used": [
+    {
+      "standard_title": "RoHS Compliance",
+      "publisher": "EU",
+      "reference": "RoHS 2011/65/EU",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Housing",
+      "id": "04835cd0-2e49-4305-a164-1331afcbfeab",
+      "source": [
+        "https://github.com/marcia10/project/raw/main/models/housing.stl"
+      ],
+      "export": [
+        "https://github.com/melanieharrison/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 120,
+        "width": 136,
+        "height": 22
+      },
+      "mass": 60.23,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "bbf7745c-1a76-4aea-b80a-a2a1b8022dd1",
+      "source": [
+        "https://github.com/angela66/project/raw/main/models/cover.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/rangelmaria/project/raw/main/images/cover.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": null,
+      "mass": 433.21,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Cover",
+      "id": "347d78d0-3f19-435f-b7c4-845b65bd8c8e",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/jonesrobert/project/raw/main/docs/cover_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 65,
+        "width": 106,
+        "height": 28
+      },
+      "mass": 721.65,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Main Body",
+      "id": "ecba5c23-f38c-480e-8a34-f606c613a6c7",
+      "source": [
+        "https://github.com/lisa19/project/raw/main/models/main_body.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Acrylic sheet",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Base",
+      "id": "080544ac-00ea-44b5-b900-e0391e306570",
+      "source": [
+        "https://github.com/nsmith/project/raw/main/models/base.stl"
+      ],
+      "export": [],
+      "auxiliary": [],
+      "image": "https://github.com/umeyer/project/raw/main/images/base.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

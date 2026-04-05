@@ -1,0 +1,12 @@
+{
+  "id": "and_623048_2_3__9",
+  "name": "and 623048.2.3.",
+  "quantity": 5.5,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "docs/software/SDP.rst",
+    "confidence": 0.7
+  }
+}

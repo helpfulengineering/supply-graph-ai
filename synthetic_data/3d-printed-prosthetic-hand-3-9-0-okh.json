@@ -1,0 +1,289 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "2f9ea852-9acd-43e6-9d8f-4534f90913fe",
+  "title": "3D Printed Prosthetic Hand",
+  "repo": "https://github.com/thomas44/3d-printed-prosthetic-hand",
+  "version": "3.9.0",
+  "license": {
+    "hardware": "CERN-OHL-P-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "LGPL-3.0-or-later"
+  },
+  "licensor": {
+    "name": "Carla Powers",
+    "email": "qhodge@example.org",
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "mcdowellrichard"
+      }
+    ]
+  },
+  "documentation_language": "fr",
+  "function": "Functional prosthetic hand for upper limb amputees",
+  "keywords": [
+    "shaft",
+    "bearing",
+    "gear",
+    "documented",
+    "customizable"
+  ],
+  "contact": {
+    "name": "Laura Mueller",
+    "email": null,
+    "affiliation": null,
+    "social": [
+      {
+        "platform": "github",
+        "handle": "aferguson"
+      }
+    ]
+  },
+  "contributors": [
+    {
+      "name": "Katie Davis MD",
+      "email": null,
+      "affiliation": null,
+      "social": []
+    }
+  ],
+  "technology_readiness_level": "TRL-5",
+  "manufacturing_files": [
+    {
+      "title": "Regulatory Compliance Statement",
+      "path": "https://github.com/garrett65/project/raw/main/docs/regulatory_compliance_statement.md",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "Standards Compliance Documentation",
+      "path": "https://github.com/sanchezharold/project/raw/main/docs/standards_compliance_documentation.pdf",
+      "type": "manufacturing-files",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/millernoah/project/raw/main/docs/3d_model.f3d",
+      "type": "design-files",
+      "metadata": {
+        "version": "v3.8"
+      }
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/adamsmith/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {}
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for 3D Printed Prosthetic Hand",
+      "path": "https://github.com/ngarcia/project/raw/main/docs/assembly_guide_for_3d_printed_prosthetic_hand.docx",
+      "type": "manufacturing-files",
+      "metadata": {}
+    },
+    {
+      "title": "3D Printing Setup and Parameters",
+      "path": "https://github.com/johnsonjames/project/raw/main/docs/3d_printing_setup_and_parameters.md",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.4"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/tina39/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Heat gun",
+    "Nozzle",
+    "Filament",
+    "Calipers",
+    "Screwdriver set",
+    "Pliers",
+    "3D printer",
+    "Crimping tool",
+    "Wrench set",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "3DP",
+    "Post-processing",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "PETG",
+      "name": "Polyethylene Terephthalate Glycol",
+      "quantity": null,
+      "unit": "g",
+      "notes": "Grade: A"
+    },
+    {
+      "material_id": "Wood",
+      "name": "Hardwood",
+      "quantity": 187.74,
+      "unit": "m³",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    }
+  ],
+  "bom": "https://github.com/nguyenjose/project/raw/main/docs/bom_3d_printed_prosthetic_hand.csv",
+  "standards_used": [
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    }
+  ],
+  "tsdc": [
+    "3DP"
+  ],
+  "parts": [
+    {
+      "name": "Cover",
+      "id": "29518f15-6b6a-4bd4-9a91-17394d0a4603",
+      "source": [],
+      "export": [
+        "https://github.com/georgesara/project/raw/main/exports/cover.step"
+      ],
+      "auxiliary": [],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Nylon",
+      "outer_dimensions": null,
+      "mass": 111.14,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Mount",
+      "id": "1aeacea1-9e7f-4a09-9833-7b2938b544f9",
+      "source": [],
+      "export": [
+        "https://github.com/lewisjohn/project/raw/main/exports/mount.step"
+      ],
+      "auxiliary": [
+        "https://github.com/bishopmichelle/project/raw/main/docs/mount_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": null,
+      "mass": 793.11,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "20%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "e661b97f-88f9-4c0a-aef7-23b90d1540bf",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/david58/project/raw/main/docs/base_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Screws",
+      "outer_dimensions": null,
+      "mass": null,
+      "manufacturing_params": {
+        "layer_height": "0.3mm",
+        "infill": "30%",
+        "support": "required"
+      }
+    },
+    {
+      "name": "Base",
+      "id": "12a0a1f9-7999-4c1d-97e0-a76b9569747a",
+      "source": [],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/veronica40/project/raw/main/docs/base_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "TPU",
+      "outer_dimensions": null,
+      "mass": 531.7,
+      "manufacturing_params": {
+        "layer_height": "0.1mm",
+        "infill": "20%",
+        "support": "not_required"
+      }
+    },
+    {
+      "name": "Housing",
+      "id": "4ff2a9e4-1802-47a1-908a-26346ae69932",
+      "source": [],
+      "export": [
+        "https://github.com/maria29/project/raw/main/exports/housing.step"
+      ],
+      "auxiliary": [
+        "https://github.com/michaelvelazquez/project/raw/main/docs/housing_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "3DP"
+      ],
+      "material": "Cables",
+      "outer_dimensions": null,
+      "mass": 624.82,
+      "manufacturing_params": {
+        "layer_height": "0.2mm",
+        "infill": "10%",
+        "support": "not_required"
+      }
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

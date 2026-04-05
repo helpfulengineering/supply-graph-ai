@@ -1956,9 +1956,18 @@ async def _perform_enhanced_matching(
                         facility_id = str(uuid4())[:8]
 
                 # Create solution dict in expected format
+                if not facility_data:
+                    facility_data = {
+                        "id": facility_id,
+                        "name": facility_name,
+                    }
+                elif isinstance(facility_data, dict):
+                    facility_data.setdefault("id", facility_id)
+                    facility_data.setdefault("name", facility_name)
+
                 solution_dict = {
                     "tree": representative_tree.to_dict(),
-                    "facility": facility_data if facility_data else {},
+                    "facility": facility_data,
                     "facility_id": facility_id,
                     "facility_name": facility_name,
                     "match_type": "manufacturing",
@@ -1987,15 +1996,34 @@ async def _perform_enhanced_matching(
                         tree_facility_id = (
                             str(tree.okw_reference) if tree.okw_reference else None
                         )
-                        if tree_facility_id:
-                            for facility in facilities:
-                                if str(getattr(facility, "id", "")) == tree_facility_id:
-                                    tree_facility_data = (
-                                        facility.to_dict()
-                                        if hasattr(facility, "to_dict")
-                                        else facility
-                                    )
-                                    break
+                        for facility in facilities:
+                            if (
+                                tree_facility_id
+                                and str(getattr(facility, "id", "")) == tree_facility_id
+                            ):
+                                tree_facility_data = (
+                                    facility.to_dict()
+                                    if hasattr(facility, "to_dict")
+                                    else facility
+                                )
+                                break
+                            if (
+                                hasattr(facility, "name")
+                                and facility.name == tree.facility_name
+                            ):
+                                tree_facility_data = (
+                                    facility.to_dict()
+                                    if hasattr(facility, "to_dict")
+                                    else facility
+                                )
+                                if not tree_facility_id:
+                                    tree_facility_id = str(getattr(facility, "id", ""))
+                                break
+                        if not tree_facility_data:
+                            tree_facility_data = {
+                                "id": tree_facility_id,
+                                "name": tree.facility_name,
+                            }
                         facility_details.append(
                             {
                                 "facility_id": tree_facility_id,

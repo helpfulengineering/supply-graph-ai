@@ -1,0 +1,228 @@
+{
+  "id": "f036db86-5d40-419a-b9c5-15f1364ff17a",
+  "name": "Sheet Metal Fabrication House",
+  "location": {
+    "address": {
+      "number": "2734",
+      "street": "Glenn Turnpike",
+      "city": "San Antonio",
+      "region": "MN",
+      "country": "US",
+      "postcode": "00517"
+    },
+    "gps_coordinates": "29.4246002, -98.4951405",
+    "city": "San Antonio",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Gutierrez, Flores and Wolfe",
+    "location": {
+      "address": {
+        "number": "8556",
+        "street": "Miles Flats",
+        "city": "San Antonio",
+        "region": "NC",
+        "country": "US",
+        "postcode": "79726"
+      },
+      "gps_coordinates": "29.4246002, -98.4951405",
+      "directions": "Located near Walker, Alexander and Romero",
+      "city": "San Antonio",
+      "country": "US"
+    },
+    "contact_person": "Jane Wallace",
+    "website": "https://vazquez.com",
+    "languages": [
+      "de",
+      "fr",
+      "en"
+    ],
+    "images": [
+      "images/especially.jpg"
+    ],
+    "contact": {
+      "email": "info@jones.com"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/ortizronald",
+      "twitter": "@jonessamuel"
+    }
+  },
+  "contact": {
+    "name": "Powell Group",
+    "location": {
+      "address": {
+        "number": "5720",
+        "street": "White Shoals",
+        "city": "Seattle",
+        "region": "NC",
+        "country": "US",
+        "postcode": "15370"
+      },
+      "gps_coordinates": "47.6038321, -122.330062",
+      "directions": "Located near Nash and Sons",
+      "city": "Seattle",
+      "country": "US"
+    },
+    "contact_person": "Monica Bruce",
+    "bio": "Established in 2013, we specialize in Customer-focused attitude-oriented hierarchy",
+    "website": "https://rodriguez.com",
+    "contact": {
+      "mobile": "+1-578-251-2756",
+      "email": "info@ford-johns.biz",
+      "whatsapp": "+1-524-622-6108"
+    },
+    "social_media": {
+      "twitter": "@ksmith",
+      "other_urls": [
+        "https://galloway.biz"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-17:00",
+  "description": "Full-service sheet metal fabrication with welding and painting",
+  "date_founded": "2002-03-02",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+      "make": "Generic",
+      "model": "Model 714",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+      "make": "Brand B",
+      "model": "Model 871",
+      "condition": "Good",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+      "make": "Col-Met",
+      "model": "Semi-Downdraft",
+      "condition": "Needs Maintenance",
+      "throughput": "39 parts/hour",
+      "power_rating": 5710,
+      "maintenance_schedule": "Every 5 months",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Primer",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "8812",
+              "street": "Scott Ville",
+              "city": "Dallas",
+              "region": "WY",
+              "country": "US",
+              "postcode": "60141"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "directions": "Located across from White-Bean",
+            "city": "Dallas",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Enamel",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2371",
+              "street": "Monroe Circle",
+              "city": "Seattle",
+              "region": "DC",
+              "country": "US",
+              "postcode": "19186"
+            },
+            "gps_coordinates": "47.6038321, -122.330062",
+            "city": "Seattle",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "8088",
+              "street": "Martinez Landing",
+              "city": "Los Angeles",
+              "region": "PA",
+              "country": "US",
+              "postcode": "03367"
+            },
+            "gps_coordinates": "34.0536909, -118.242766",
+            "directions": "Located behind Hood-Mckinney",
+            "city": "Los Angeles",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Epoxy"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+    "https://en.wikipedia.org/wiki/Welder",
+    "https://en.wikipedia.org/wiki/Paint_booth"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2196,
+  "storage_capacity": "286 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 14001",
+    "OHSAS 18001"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Distributed holistic extranet",
+    "Public-key 24hour Graphical User Interface"
+  ],
+  "record_data": {
+    "date_created": "2026-04-04T18:25:55.933486",
+    "created_by": {
+      "name": "Rodriguez PLC",
+      "location": {
+        "address": {
+          "number": "4836",
+          "street": "Bolton Common",
+          "city": "Indianapolis",
+          "region": "IA",
+          "country": "US",
+          "postcode": "77561"
+        },
+        "gps_coordinates": "39.7683331, -86.1583502",
+        "city": "Indianapolis",
+        "country": "US"
+      },
+      "contact_person": "Amy Perez",
+      "website": "https://mitchell-carey.com",
+      "contact": {
+        "mobile": "+1-259-912-7340",
+        "email": "info@williams.com",
+        "whatsapp": "+1-686-438-6831"
+      },
+      "social_media": {
+        "other_urls": [
+          "https://mayer.biz"
+        ]
+      }
+    },
+    "data_collection_method": "Website"
+  }
+}

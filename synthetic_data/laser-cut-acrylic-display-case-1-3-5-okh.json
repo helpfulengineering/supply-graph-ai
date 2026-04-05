@@ -1,0 +1,244 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "d535460a-b366-4e0d-8812-372f4dc794eb",
+  "title": "Laser Cut Acrylic Display Case",
+  "repo": "https://github.com/taylor60/laser-cut-acrylic-display-case",
+  "version": "1.3.5",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-SA-4.0",
+    "software": "MIT"
+  },
+  "licensor": {
+    "name": "Melissa Perez",
+    "email": null,
+    "affiliation": null,
+    "social": []
+  },
+  "documentation_language": "en",
+  "function": "Protective display case for electronic components",
+  "intended_use": "Collection figure official network small itself.",
+  "keywords": [
+    "housing",
+    "shaft",
+    "fastener",
+    "prototype"
+  ],
+  "contact": {
+    "name": "Charles Caldwell",
+    "email": "allen63@example.org",
+    "affiliation": "Reid, Simon and Hanson",
+    "social": [
+      {
+        "platform": "github",
+        "handle": "richard13"
+      }
+    ]
+  },
+  "organization": {
+    "name": "Anderson Inc",
+    "url": "https://miller.com",
+    "email": null
+  },
+  "development_stage": "deprecated",
+  "manufacturing_files": [
+    {
+      "title": "General Safety and Risk Assessment",
+      "path": "https://github.com/omarquez/project/raw/main/docs/general_safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    },
+    {
+      "title": "LASER Safety Procedures",
+      "path": "https://github.com/vfrederick/project/raw/main/docs/laser_safety_procedures.pdf",
+      "type": "risk-assessment",
+      "metadata": {}
+    }
+  ],
+  "design_files": [
+    {
+      "title": "3D Model",
+      "path": "https://github.com/gregory57/project/raw/main/docs/3d_model.dxf",
+      "type": "design-files",
+      "metadata": {}
+    },
+    {
+      "title": "Technical Drawings",
+      "path": "https://github.com/stephen85/project/raw/main/docs/technical_drawings.dxf",
+      "type": "design-files",
+      "metadata": {
+        "version": "v2.0"
+      }
+    }
+  ],
+  "making_instructions": [
+    {
+      "title": "Assembly Guide for Laser Cut Acrylic Display Case",
+      "path": "https://github.com/ahamilton/project/raw/main/docs/assembly_guide_for_laser_cut_acrylic_display_case.docx",
+      "type": "manufacturing-files",
+      "metadata": {
+        "version": "v2.3"
+      }
+    },
+    {
+      "title": "Safety and Risk Assessment",
+      "path": "https://github.com/shannon54/project/raw/main/docs/safety_and_risk_assessment.pdf",
+      "type": "risk-assessment",
+      "metadata": {
+        "version": "v2.6"
+      }
+    }
+  ],
+  "operating_instructions": [],
+  "technical_specifications": [],
+  "publications": [],
+  "tool_list": [
+    "Cutting bed",
+    "Exhaust system",
+    "Screwdriver set",
+    "Heat shrink",
+    "Air assist",
+    "Material guides",
+    "Wrench set",
+    "Crimping tool",
+    "Cable ties"
+  ],
+  "manufacturing_processes": [
+    "LASER",
+    "Assembly"
+  ],
+  "materials": [
+    {
+      "material_id": "Al6061",
+      "name": "Aluminum 6061-T6",
+      "quantity": null,
+      "unit": "kg",
+      "notes": "Grade: C"
+    },
+    {
+      "material_id": "FR4",
+      "name": "FR4 PCB Material",
+      "quantity": 111.1,
+      "unit": "m²",
+      "notes": null
+    },
+    {
+      "material_id": "Steel",
+      "name": "Mild Steel",
+      "quantity": null,
+      "unit": "kg",
+      "notes": null
+    },
+    {
+      "material_id": "Acrylic",
+      "name": "Acrylic Sheet",
+      "quantity": null,
+      "unit": "m²",
+      "notes": "Grade: C"
+    }
+  ],
+  "manufacturing_specs": {
+    "joining_processes": [
+      "Screws"
+    ],
+    "outer_dimensions": null,
+    "process_requirements": [
+      {
+        "process_name": "LASER",
+        "parameters": {
+          "power": "58W",
+          "speed": "902 mm/min",
+          "passes": 1
+        },
+        "validation_criteria": {
+          "cut_quality": "Clean edges, no burrs",
+          "dimensional_accuracy": "±0.05mm"
+        },
+        "required_tools": [
+          "Laser cutter",
+          "Air assist",
+          "Calipers"
+        ],
+        "notes": "Process notes: Author attorney tonight interesting trip manager."
+      }
+    ],
+    "quality_standards": [
+      "RoHS"
+    ],
+    "notes": ""
+  },
+  "bom": "https://github.com/thompsonellen/project/raw/main/docs/bom_laser_cut_acrylic_display_case.csv",
+  "standards_used": [
+    {
+      "standard_title": "ISO 9001:2015",
+      "publisher": "ISO",
+      "reference": "ISO 9001:2015",
+      "certifications": [
+        {
+          "type": "compliance",
+          "status": "required"
+        }
+      ]
+    },
+    {
+      "standard_title": "CE Marking",
+      "publisher": "EU",
+      "reference": "CE",
+      "certifications": []
+    }
+  ],
+  "tsdc": [
+    "LASER"
+  ],
+  "parts": [
+    {
+      "name": "Bracket",
+      "id": "0e6f61a3-b3a6-43b4-9d68-ae39e68e27df",
+      "source": [],
+      "export": [
+        "https://github.com/fwilliams/project/raw/main/exports/bracket.step"
+      ],
+      "auxiliary": [
+        "https://github.com/sherrigarner/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": null,
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Hinges",
+      "outer_dimensions": {
+        "length": 40,
+        "width": 29,
+        "height": 99
+      },
+      "mass": 407.35,
+      "manufacturing_params": {}
+    },
+    {
+      "name": "Bracket",
+      "id": "6205addd-495b-49e5-ba0b-6268feaabef1",
+      "source": [
+        "https://github.com/xgay/project/raw/main/models/bracket.stl"
+      ],
+      "export": [],
+      "auxiliary": [
+        "https://github.com/scole/project/raw/main/docs/bracket_notes.md"
+      ],
+      "image": "https://github.com/lesliebaker/project/raw/main/images/bracket.jpg",
+      "tsdc": [
+        "LASER"
+      ],
+      "material": "Adhesive",
+      "outer_dimensions": {
+        "length": 185,
+        "width": 11,
+        "height": 39
+      },
+      "mass": 9.46,
+      "manufacturing_params": {}
+    }
+  ],
+  "sub_parts": [],
+  "software": [],
+  "metadata": {}
+}

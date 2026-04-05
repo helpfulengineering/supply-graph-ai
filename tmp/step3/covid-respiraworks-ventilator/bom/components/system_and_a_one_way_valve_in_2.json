@@ -1,0 +1,12 @@
+{
+  "id": "system_and_a_one_way_valve_in_2",
+  "name": "system and a one way valve in",
+  "quantity": 2.0,
+  "unit": "pcs",
+  "requirements": {},
+  "metadata": {
+    "source": "readme_bom",
+    "file_path": "design/design-rationales.md",
+    "confidence": 0.45
+  }
+}

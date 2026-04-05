@@ -2531,7 +2531,7 @@ class MatchingService:
             )
         ]
 
-        # CRITICAL: Log component processes in the main message so it's always visible
+        # Log component process shape for diagnostics.
         logger.info(
             f"Matching component '{component.name}' to {len(facilities)} facilities | "
             f"Component processes: {component_processes} | "
@@ -2548,9 +2548,11 @@ class MatchingService:
         )
 
         if non_uri_processes:
-            logger.error(
-                f"CRITICAL: Component '{component.name}' has non-URI processes! "
-                f"non_uri_processes={non_uri_processes}, all_processes={component_processes}",
+            # Non-URI processes are expected for many manifests after normalization.
+            # Keep this visible for debugging, but do not emit as an ERROR.
+            logger.warning(
+                f"Component '{component.name}' includes non-URI process labels "
+                f"(accepted): {non_uri_processes}",
                 extra={
                     "component_id": component.id,
                     "component_name": component.name,

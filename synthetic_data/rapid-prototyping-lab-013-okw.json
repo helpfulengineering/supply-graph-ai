@@ -1,0 +1,220 @@
+{
+  "id": "a8677f1d-7a33-411e-ab09-b536d3ca833e",
+  "name": "Rapid Prototyping Lab",
+  "location": {
+    "address": {
+      "number": "1429",
+      "street": "Mckay Creek",
+      "city": "Los Angeles",
+      "region": "DE",
+      "country": "US",
+      "postcode": "90818"
+    },
+    "gps_coordinates": "34.0536909, -118.242766",
+    "city": "Los Angeles",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Roberts and Sons",
+    "bio": "Established in 1997, we specialize in Right-sized empowering task-force",
+    "website": "https://lopez.com",
+    "languages": [
+      "es",
+      "de",
+      "en"
+    ],
+    "contact": {
+      "landline": "+1-570-692-1766",
+      "mobile": "+1-517-886-9034",
+      "email": "info@romero.com"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/holtemily",
+      "instagram": "@matthewwilson"
+    }
+  },
+  "contact": {
+    "name": "Webb-Simpson",
+    "contact_person": "Manuel Carter",
+    "mailing_list": "belldaniel@lists.beck.com",
+    "contact": {
+      "landline": "+1-432-270-7800",
+      "mobile": "+1-367-878-8911",
+      "email": "info@garza.com"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/huntaudrey",
+      "twitter": "@wrogers",
+      "instagram": "@casedennis"
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-21:00",
+  "description": "University research facility for rapid prototyping",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Partially accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "i3 MK3S+",
+      "condition": "Excellent",
+      "maintenance_schedule": "Every 6 months",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "supplier_location": {
+            "address": {
+              "number": "3783",
+              "street": "Lawrence Valleys",
+              "city": "Dallas",
+              "region": "ND",
+              "country": "US",
+              "postcode": "04059"
+            },
+            "gps_coordinates": "32.7762719, -96.7968559",
+            "directions": "Located behind Ryan Group",
+            "city": "Dallas",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "8389",
+              "street": "Michael Wells",
+              "city": "San Francisco",
+              "region": "NM",
+              "country": "US",
+              "postcode": "87921"
+            },
+            "gps_coordinates": "37.7879363, -122.4075201",
+            "city": "San Francisco",
+            "country": "US"
+          }
+        }
+      ],
+      "build_volume": 64000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 664",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "PCNC 440",
+      "condition": "Fair",
+      "quantity": 1,
+      "maintenance_schedule": "Every 10 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "8060",
+              "street": "Tanner Mountains",
+              "city": "Denver",
+              "region": "NM",
+              "country": "US",
+              "postcode": "19310"
+            },
+            "gps_coordinates": "39.7392364, -104.984862",
+            "city": "Denver",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2621",
+              "street": "Mcgrath Plain",
+              "city": "San Jose",
+              "region": "CT",
+              "country": "US",
+              "postcode": "46846"
+            },
+            "gps_coordinates": "37.3361663, -121.890591",
+            "directions": "Located near Alexander, Gilbert and Ray",
+            "city": "San Jose",
+            "country": "US"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "6319",
+              "street": "Larry Meadows",
+              "city": "San Antonio",
+              "region": "WA",
+              "country": "US",
+              "postcode": "23184"
+            },
+            "gps_coordinates": "29.4246002, -98.4951405",
+            "directions": "Located across from Murphy Group",
+            "city": "San Antonio",
+            "country": "US"
+          }
+        }
+      ],
+      "axes": 5,
+      "working_surface": 400
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/CNC_mill"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1514,
+  "storage_capacity": "154 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Research Grade"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 6 months",
+  "human_capacity": {
+    "headcount": 33
+  },
+  "innovation_space": {
+    "staff": 2,
+    "learning_resources": [
+      "Focused 3rdgeneration alliance",
+      "Multi-tiered responsive service-desk",
+      "Ameliorated intangible orchestration",
+      "Customer-focused uniform info-mediaries"
+    ],
+    "footfall": 39
+  }
+}
