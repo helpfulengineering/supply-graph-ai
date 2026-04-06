@@ -7,7 +7,7 @@ process taxonomy at runtime.
 
 from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from ....core.taxonomy import (
     DEFAULT_TAXONOMY_PATH,
@@ -16,6 +16,7 @@ from ....core.taxonomy import (
     validate_definitions,
 )
 from ..constants.openapi import RESPONSES_400_500
+from ..error_handlers import create_success_response
 from ...utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -32,7 +33,7 @@ router = APIRouter(
     summary="Get current taxonomy",
     description="Returns all processes in the current taxonomy with their definitions.",
 )
-async def get_taxonomy() -> Dict[str, Any]:
+async def get_taxonomy(http_request: Request = None) -> Any:
     """Return the full taxonomy as JSON."""
     all_ids = sorted(taxonomy.get_all_canonical_ids())
 
@@ -52,14 +53,17 @@ async def get_taxonomy() -> Dict[str, Any]:
             }
         )
 
-    return {
-        "status": "ok",
-        "data": {
+    return create_success_response(
+        message="Taxonomy retrieved successfully",
+        data={
             "total": len(processes),
             "source": str(taxonomy._source_path or "built-in"),
             "processes": processes,
         },
-    }
+        request_id=(
+            getattr(http_request.state, "request_id", None) if http_request else None
+        ),
+    )
 
 
 @router.post(
@@ -71,7 +75,7 @@ async def get_taxonomy() -> Dict[str, Any]:
         "is preserved."
     ),
 )
-async def reload_taxonomy() -> Dict[str, Any]:
+async def reload_taxonomy(http_request: Request = None) -> Any:
     """Reload the taxonomy from the default YAML file."""
     try:
         result = taxonomy.reload()
@@ -92,11 +96,13 @@ async def reload_taxonomy() -> Dict[str, Any]:
             detail=f"Failed to reload taxonomy: {e}",
         )
 
-    return {
-        "status": "ok",
-        "message": "Taxonomy reloaded successfully",
-        "data": result,
-    }
+    return create_success_response(
+        message="Taxonomy reloaded successfully",
+        data=result,
+        request_id=(
+            getattr(http_request.state, "request_id", None) if http_request else None
+        ),
+    )
 
 
 @router.get(
@@ -104,7 +110,7 @@ async def reload_taxonomy() -> Dict[str, Any]:
     summary="Validate taxonomy YAML",
     description="Validate the current taxonomy YAML file without applying changes.",
 )
-async def validate_taxonomy() -> Dict[str, Any]:
+async def validate_taxonomy(http_request: Request = None) -> Any:
     """Validate the default YAML file and return results."""
     path = DEFAULT_TAXONOMY_PATH
 
@@ -117,18 +123,32 @@ async def validate_taxonomy() -> Dict[str, Any]:
     try:
         definitions = load_from_yaml(path)
     except Exception as e:
-        return {
-            "status": "error",
-            "valid": False,
-            "errors": [f"Failed to parse YAML: {e}"],
-        }
+        return create_success_response(
+            message="Taxonomy validation completed",
+            data={
+                "valid": False,
+                "total_processes": 0,
+                "errors": [f"Failed to parse YAML: {e}"],
+                "source": str(path),
+            },
+            request_id=(
+                getattr(http_request.state, "request_id", None)
+                if http_request
+                else None
+            ),
+        )
 
     errors = validate_definitions(definitions)
 
-    return {
-        "status": "ok" if not errors else "error",
-        "valid": len(errors) == 0,
-        "total_processes": len(definitions),
-        "errors": errors,
-        "source": str(path),
-    }
+    return create_success_response(
+        message="Taxonomy validation completed",
+        data={
+            "valid": len(errors) == 0,
+            "total_processes": len(definitions),
+            "errors": errors,
+            "source": str(path),
+        },
+        request_id=(
+            getattr(http_request.state, "request_id", None) if http_request else None
+        ),
+    )

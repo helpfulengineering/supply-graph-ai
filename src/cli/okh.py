@@ -25,6 +25,7 @@ from .base import (
     log_llm_usage,
 )
 from .decorators import standard_cli_command
+from .progress import emit_status_line
 
 
 @click.group()
@@ -1011,11 +1012,24 @@ async def generate_from_url(
     )
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Loading repository input",
+            index=1,
+            total=4,
+        )
         cli_ctx.log(f"🔍 Analyzing repository: {url}", "info")
 
         # Log LLM usage if enabled
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "OKH generation from URL")
+
+        emit_status_line(
+            output_format=output_format,
+            step="Extracting project data and generating manifest",
+            index=2,
+            total=4,
+        )
 
         async def http_generate():
             """Generate via HTTP API"""
@@ -1125,6 +1139,12 @@ async def generate_from_url(
         if unified_bom and hasattr(raw_result, "unified_bom_mode"):
             raw_result.unified_bom_mode = True
 
+        emit_status_line(
+            output_format=output_format,
+            step="Formatting manifest output",
+            index=3,
+            total=4,
+        )
         # Convert to appropriate format
         if format == "okh":
             result = (
@@ -1157,6 +1177,12 @@ async def generate_from_url(
             )
 
         # Handle output
+        emit_status_line(
+            output_format=output_format,
+            step="Writing output artifacts",
+            index=4,
+            total=4,
+        )
         if output:
             output_path = Path(output)
 

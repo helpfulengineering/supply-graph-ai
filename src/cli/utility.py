@@ -71,7 +71,11 @@ async def _display_contexts_results(
     cli_ctx: CLIContext, result: dict, domain: str, output_format: str
 ):
     """Display contexts results."""
-    contexts = result.get("contexts", [])
+    contexts_payload = result.get("data") if isinstance(result, dict) else None
+    if isinstance(contexts_payload, dict):
+        contexts = contexts_payload.get("contexts", [])
+    else:
+        contexts = result.get("contexts", []) if isinstance(result, dict) else []
 
     if output_format == "json":
         output_data = format_llm_output(result, cli_ctx)

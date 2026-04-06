@@ -28,7 +28,7 @@ from ..models.base import ErrorCode, ErrorDetail, ValidationResult
 
 # Import consolidated utility models
 from ..models.utility.request import ContextFilterRequest, DomainFilterRequest
-from ..models.utility.response import Context, ContextsResponse, Domain
+from ..models.utility.response import Context, Domain
 
 # Set up logging
 logger = get_logger(__name__)
@@ -150,7 +150,6 @@ async def get_domains(
 
 @router.get(
     "/contexts",
-    response_model=ContextsResponse,
     summary="List Validation Contexts",
     description="""
     Get validation contexts for a specific domain with enhanced capabilities.
@@ -163,6 +162,7 @@ async def get_domains(
     - Validation
     """,
 )
+@api_endpoint(success_message="Contexts retrieved successfully", include_metrics=True)
 @track_performance("utility_contexts")
 @llm_endpoint(
     default_provider="anthropic", default_model="claude-sonnet-4-5", track_costs=True
@@ -175,7 +175,7 @@ async def get_contexts(
     ),
     filter_params: ContextFilterRequest = Depends(),
     http_request: Request = None,
-):
+) -> Any:
     """Enhanced context listing with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -236,13 +236,6 @@ async def get_contexts(
         # Calculate processing time
         processing_time = (datetime.now() - start_time).total_seconds()
 
-        # Create enhanced response using the proper ContextsResponse structure
-        response_data = {
-            "contexts": [context.model_dump(mode="json") for context in contexts],
-            "processing_time": processing_time,
-            "validation_results": await _validate_utility_result(contexts, request_id),
-        }
-
         logger.info(
             f"Contexts retrieved successfully for domain: {domain}",
             extra={
@@ -254,12 +247,16 @@ async def get_contexts(
             },
         )
 
-        return ContextsResponse(
-            contexts=contexts,
-            message="Contexts retrieved successfully",
-            processing_time=processing_time,
-            validation_results=await _validate_utility_result(contexts, request_id),
-        )
+        validation_results = await _validate_utility_result(contexts, request_id)
+
+        return {
+            "contexts": [context.model_dump(mode="json") for context in contexts],
+            "processing_time": processing_time,
+            "validation_results": [
+                vr.model_dump(mode="json") if hasattr(vr, "model_dump") else vr
+                for vr in validation_results
+            ],
+        }
 
     except HTTPException:
         raise

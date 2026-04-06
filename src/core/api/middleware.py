@@ -8,7 +8,8 @@ logging, and performance monitoring across all API endpoints.
 import time
 import uuid
 
-from fastapi import Request, Response
+from fastapi import Request, Response, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from ..utils.logging import get_logger
@@ -284,11 +285,13 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
                     },
                 )
 
-                from fastapi import HTTPException, status
-
-                raise HTTPException(
+                # Return a direct response instead of raising from middleware.
+                # Raising here can be wrapped in ExceptionGroup by the middleware
+                # stack and surfaced as 500 in some execution paths.
+                return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Rate limit exceeded. Please try again later.",
+                    content={"detail": "Rate limit exceeded. Please try again later."},
+                    headers={"Retry-After": "60"},
                 )
 
             self.request_counts[client_ip]["count"] += 1

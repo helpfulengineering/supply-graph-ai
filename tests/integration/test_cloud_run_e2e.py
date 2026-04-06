@@ -21,6 +21,8 @@ from uuid import uuid4
 import pytest
 import requests
 
+pytestmark = pytest.mark.quarantine
+
 # Test configuration
 SERVICE_URL = os.getenv("SERVICE_URL", "")
 API_KEY = os.getenv("API_KEY", "")

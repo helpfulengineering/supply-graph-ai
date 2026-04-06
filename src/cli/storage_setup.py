@@ -12,6 +12,7 @@ from uuid import uuid4
 
 from src.core.utils.logging import get_logger
 
+from .progress import emit_status_line
 from ..config.storage_config import (
     StorageConfig,
     create_storage_config,
@@ -374,29 +375,59 @@ async def test_matching_system():
         return False
 
 
-async def main():
+async def main(output_format: str = "text"):
     """Main setup function"""
     print("🚀 Setting up Supply Graph AI Storage System")
     print("=" * 50)
 
     try:
         # Step 1: Setup directory structure
+        emit_status_line(
+            output_format,
+            "Setting up storage directory structure",
+            1,
+            5,
+        )
         print("\n1. Setting up directory structure...")
         await setup_storage_structure()
 
         # Step 2: Test smart discovery
+        emit_status_line(
+            output_format,
+            "Testing smart discovery before sample data",
+            2,
+            5,
+        )
         print("\n2. Testing smart discovery...")
         await test_smart_discovery()
 
         # Step 3: Create sample data
+        emit_status_line(
+            output_format,
+            "Creating sample storage data",
+            3,
+            5,
+        )
         print("\n3. Creating sample data...")
-        sample_data = await create_sample_data()
+        await create_sample_data()
 
         # Step 4: Test smart discovery with data
+        emit_status_line(
+            output_format,
+            "Re-testing smart discovery with sample data",
+            4,
+            5,
+        )
         print("\n4. Testing smart discovery with sample data...")
         await test_smart_discovery()
 
         # Step 5: Test matching system
+        emit_status_line(
+            output_format,
+            "Testing matching system integration",
+            5,
+            5,
+        )
         print("\n5. Testing matching system...")
         matching_success = await test_matching_system()
 

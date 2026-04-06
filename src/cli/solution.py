@@ -12,6 +12,7 @@ import click
 
 from .base import CLIContext
 from .decorators import standard_cli_command
+from .progress import emit_status_line
 
 
 @click.group()
@@ -101,6 +102,12 @@ async def save(
     cli_ctx: CLIContext = ctx.obj
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Loading solution input",
+            index=1,
+            total=3,
+        )
         # Read solution file
         cli_ctx.log(f"Reading solution file: {solution_file}", "info")
         with open(solution_file, "r") as f:
@@ -130,10 +137,22 @@ async def save(
 
         # Make API request
         endpoint = f"/api/supply-tree/solution/{solution_uuid}/save"
+        emit_status_line(
+            output_format=output_format,
+            step="Saving solution to storage",
+            index=2,
+            total=3,
+        )
         response = await cli_ctx.api_client.request(
             "POST", endpoint, json_data=request_body
         )
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=3,
+            total=3,
+        )
         if output_format == "json":
             click.echo(json.dumps(response, indent=2))
         else:
@@ -195,6 +214,12 @@ async def load(
     cli_ctx: CLIContext = ctx.obj
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Requesting solution from storage",
+            index=1,
+            total=3,
+        )
         # Make API request
         endpoint = f"/api/supply-tree/solution/{solution_id}"
         response = await cli_ctx.api_client.request("GET", endpoint)
@@ -204,6 +229,18 @@ async def load(
         if isinstance(solution_data, dict) and "result" in solution_data:
             solution_data = solution_data["result"]
 
+        emit_status_line(
+            output_format=output_format,
+            step="Preparing output payload",
+            index=2,
+            total=3,
+        )
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=3,
+            total=3,
+        )
         # Write to file or stdout
         if output:
             cli_ctx.log(f"Writing solution to: {output}", "info")
@@ -288,6 +325,12 @@ async def list_solutions(
     cli_ctx: CLIContext = ctx.obj
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Preparing list filters",
+            index=1,
+            total=3,
+        )
         # Build query parameters
         params = {}
         if okh_id:
@@ -313,6 +356,12 @@ async def list_solutions(
 
         # Make API request
         endpoint = "/api/supply-tree/solutions"
+        emit_status_line(
+            output_format=output_format,
+            step="Fetching solutions from storage",
+            index=2,
+            total=3,
+        )
         response = await cli_ctx.api_client.request("GET", endpoint, params=params)
 
         # Extract solutions list
@@ -324,6 +373,12 @@ async def list_solutions(
         else:
             solutions = []
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=3,
+            total=3,
+        )
         if output_format == "json":
             click.echo(json.dumps(solutions, indent=2))
         else:
@@ -384,8 +439,20 @@ async def delete(
     try:
         # Make API request
         endpoint = f"/api/supply-tree/solution/{solution_id}"
+        emit_status_line(
+            output_format=output_format,
+            step="Deleting solution from storage",
+            index=1,
+            total=2,
+        )
         response = await cli_ctx.api_client.request("DELETE", endpoint)
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=2,
+            total=2,
+        )
         if output_format == "json":
             click.echo(json.dumps(response, indent=2))
         else:
@@ -432,6 +499,12 @@ async def check(
     cli_ctx: CLIContext = ctx.obj
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Requesting staleness status",
+            index=1,
+            total=2,
+        )
         # Build query parameters
         params = {}
         if max_age_days is not None:
@@ -446,6 +519,12 @@ async def check(
         if isinstance(data, dict) and "result" in data:
             data = data["result"]
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=2,
+            total=2,
+        )
         if output_format == "json":
             click.echo(json.dumps(data, indent=2))
         else:
@@ -510,10 +589,22 @@ async def extend(
 
         # Make API request
         endpoint = f"/api/supply-tree/solution/{solution_id}/extend"
+        emit_status_line(
+            output_format=output_format,
+            step="Extending solution TTL",
+            index=1,
+            total=2,
+        )
         response = await cli_ctx.api_client.request(
             "POST", endpoint, json_data=request_body
         )
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=2,
+            total=2,
+        )
         if output_format == "json":
             click.echo(json.dumps(response, indent=2))
         else:
@@ -583,6 +674,12 @@ async def cleanup(
     cli_ctx: CLIContext = ctx.obj
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Preparing cleanup request",
+            index=1,
+            total=2,
+        )
         # Prepare request body
         request_body = {"dry_run": dry_run}
         if max_age_days is not None:
@@ -601,6 +698,12 @@ async def cleanup(
         if isinstance(data, dict) and "result" in data:
             data = data["result"]
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=2,
+            total=2,
+        )
         if output_format == "json":
             click.echo(json.dumps(data, indent=2))
         else:
