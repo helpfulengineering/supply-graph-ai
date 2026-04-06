@@ -944,6 +944,7 @@ You can also explicitly specify the domain using the `--domain` option.
 - `--no-alternative-solutions` - Return only the top composite solution
 - `--explain` - Include structured and human-readable per-solution explanations in output
 - `--human-summary` - Include multi-level human-readable summaries in output
+- `--human-summary-profile [balanced|executive|analyst]` - Select summary detail profile when human summary is enabled (default: `balanced`)
 - `--output, -o TEXT` - Output file path
 - `--use-llm` - Enable LLM integration for enhanced matching
 - `--llm-provider [anthropic|openai|google|azure|local]` - LLM provider
@@ -957,6 +958,7 @@ You can also explicitly specify the domain using the `--domain` option.
 **Verbose behavior note:**
 - In `match requirements`, `--verbose` automatically enables explanation output (equivalent to `--explain`) so diagnostics are consistently shown during interactive debugging.
 - In `match requirements`, `--verbose` also enables human-readable multi-level summaries (equivalent to `--human-summary`).
+- Selecting a non-default `--human-summary-profile` automatically enables `--human-summary` for usability.
 - In non-JSON output, `match requirements` prints **Guidance** lines when API suggestions are present; `--verbose` shows all guidance items and machine-readable suggestion codes.
 
 ### Progress Indicators Contract
@@ -1008,6 +1010,9 @@ ohm match requirements my-design.okh.json --min-confidence 0.9
 # Match with LLM enhancement
 ohm match requirements my-design.okh.json --use-llm --quality-level professional
 
+# Match with executive summary profile
+ohm match requirements my-design.okh.json --human-summary-profile executive
+
 # Composite matching across multiple facilities
 ohm match requirements my-design.okh.json --allow-facility-combinations --max-facilities-per-solution 3
 
@@ -1030,6 +1035,8 @@ The command displays matching facilities with:
 - Structured summary metadata (`match_summary`, `coverage_gaps`) in JSON mode
 - Structured guidance metadata (`suggestions`, `suggestion_codes`) in JSON mode
 - Multi-level human summary object (`human_summary`) in JSON mode when requested
+- `human_summary.profile` and deterministic `human_summary.key_insights` buckets (`risks`, `opportunities`, `recommendations`) in JSON mode
+- In verbose non-JSON mode, summary disclosure includes profile and key insight buckets
 - In non-JSON mode, guidance is printed as a compact preview and expanded in verbose mode
 
 **Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ohm okw get` to retrieve facility details.

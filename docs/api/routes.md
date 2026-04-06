@@ -87,13 +87,17 @@ All API routes use an error handling system with:
 ### Success Response Format
 ```json
 {
-  "success": true,
+  "status": "success",
   "message": "Operation completed successfully",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_123456789",
   "data": {
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "title": "Example Resource"
   },
-  "request_id": "req_123456789"
+  "metadata": {
+    "processing_time": 0.042
+  }
 }
 ```
 
@@ -1153,6 +1157,7 @@ The endpoint automatically detects the domain from the input data:
   "min_confidence": 0.5,
   "max_results": 10,
   "include_human_summary": false,
+  "human_summary_profile": "balanced",
 
   // Facility-combination controls (API-first)
   "allow_facility_combinations": false,
@@ -1243,8 +1248,13 @@ The endpoint returns a wrapped response with the following structure:
   - `human_summary.executive`: Non-technical one-line overview
   - `human_summary.technical`: Compact practitioner-oriented summary
   - `human_summary.detailed`: List of detailed bullet items (gaps, warnings, top facilities)
-  - `match_summary.coverage_gap_counts`: Multiplicity of each uncovered requirement
-  - `match_summary.warnings`: Non-fatal warnings (e.g. composite fallback to single-facility matching)
+  - `human_summary.profile`: Applied profile (`balanced`, `executive`, or `analyst`)
+  - `human_summary.key_insights`: Deterministic first-pass insight buckets
+    - `human_summary.key_insights.risks`: Potential blockers and uncovered requirements
+    - `human_summary.key_insights.opportunities`: Near-matches and optimization upside
+    - `human_summary.key_insights.recommendations`: Suggested next actions
+- `match_summary.coverage_gap_counts`: Multiplicity of each uncovered requirement
+- `match_summary.warnings`: Non-fatal warnings (e.g. composite fallback to single-facility matching)
 
 **Canonical contract constants for maintainers:**
 - Match suggestion codes: `src/core/api/models/match/suggestion_codes.py`
@@ -2228,13 +2238,16 @@ All successful API responses follow this standardized format:
 
 ```json
 {
-  "success": true,
+  "status": "success",
   "message": "Operation completed successfully",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_123456789",
   "data": {
     // Response data here
   },
-  "request_id": "req_123456789",
-  "timestamp": "2024-01-15T10:30:00Z"
+  "metadata": {
+    "processing_time": 0.123
+  }
 }
 ```
 
@@ -2258,24 +2271,26 @@ All error responses follow this standardized format:
 ```
 
 ### LLM Integration Response Structure
-Routes with LLM integration include additional metadata:
+Routes with LLM integration include additional metadata under `metadata`:
 
 ```json
 {
-  "success": true,
+  "status": "success",
   "message": "Operation completed successfully",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "request_id": "req_123456789",
   "data": {
     // Response data here
   },
-  "llm_metadata": {
-    "provider": "anthropic",
-    "model": "claude-3-sonnet",
-    "quality_level": "professional",
+  "metadata": {
     "processing_time": 1.23,
-    "tokens_used": 150
-  },
-  "request_id": "req_123456789",
-  "timestamp": "2024-01-15T10:30:00Z"
+    "llm_metadata": {
+      "provider": "anthropic",
+      "model": "claude-3-sonnet",
+      "quality_level": "professional",
+      "tokens_used": 150
+    }
+  }
 }
 ```
 

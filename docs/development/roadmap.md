@@ -298,28 +298,28 @@ The following items from the original Phase 2 roadmap are deferred. They have lo
 ### Overview
 OHM generates highly technical data that is difficult for humans to parse and understand. This phase focuses on making data accessible, interpretable, and actionable.
 
-**Status (April 2026): Active. 3.1 and 3.3 implementation in progress; 3.2 pending.**
+**Status (April 2026): Complete for current scope. 3.1 and 3.3 are closed out; 3.2 visualization remains deferred as a separate follow-on track.**
 
 ### 3.1 Data Abstraction & Summarization
 
 **Objective**: Transform technical data into human-understandable summaries
 
-**Status (April 2026): In progress. Initial API/CLI summarization slices are implemented and validated; remaining work focuses on deeper insight extraction and role-specific abstraction behavior.**
+**Status (April 2026): Complete for current scope. Deterministic key insights, role-oriented summary profiles, and API/CLI summary disclosure are implemented and validated.**
 
 #### Tasks:
-- [ ] **LLM-powered summarization**
+- [ ] **LLM-powered summarization** (future enhancement)
   - Natural language explanations of matching results
   - Executive summaries of supply trees
   - Plain language facility descriptions
   - Requirement/capability comparison narratives
   
-- [ ] **Key insight extraction**
+- [x] **Key insight extraction**
   - Identify critical information automatically
   - Highlight risks and opportunities
   - Surface actionable recommendations
   - Provide decision-support summaries
   
-- [ ] **Multi-level abstraction**
+- [x] **Multi-level abstraction**
   - Executive overview (non-technical)
   - Technical summary (for practitioners)
   - Detailed data (for deep analysis)
@@ -341,6 +341,8 @@ OHM generates highly technical data that is difficult for humans to parse and un
 ### 3.2 Data Visualization
 
 **Objective**: Create visual representations of OHM data
+
+**Status (April 2026): Deferred. Not part of the completed 3.1/3.3 closeout scope.**
 
 #### Tasks:
 - [ ] **Matching visualization**
@@ -384,16 +386,16 @@ OHM generates highly technical data that is difficult for humans to parse and un
 
 **Objective**: Make OHM more accessible through improved interfaces
 
-**Status (April 2026): In progress. API and CLI formatting improvements are partially implemented; web UI remains optional/future.**
+**Status (April 2026): Complete for current scope. API and CLI formatting/disclosure improvements are complete; web UI remains optional/future.**
 
 #### Tasks:
-- [ ] **API response formatting**
+- [x] **API response formatting**
   - Human-readable response structure
   - Consistent formatting across endpoints
   - Helpful error messages and suggestions
   - Progressive disclosure of detail
   
-- [ ] **CLI output improvements**
+- [x] **CLI output improvements**
   - Improved table formatting
   - Color-coded indicators
   - Progress bars and status updates
@@ -417,6 +419,11 @@ OHM generates highly technical data that is difficult for humans to parse and un
 - Design web UI prototype and gather user feedback
 
 ---
+
+### Next Up After Phase 3
+
+With Phase 3 closeout complete for the current scope, the next primary roadmap
+track is **Phase 4.1: OBM Requirements & Architecture**.
 
 ## Phase 4: Business Logic Separation - Open Business Manager (OBM)
 
