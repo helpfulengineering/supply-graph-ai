@@ -959,6 +959,32 @@ You can also explicitly specify the domain using the `--domain` option.
 - In `match requirements`, `--verbose` also enables human-readable multi-level summaries (equivalent to `--human-summary`).
 - In non-JSON output, `match requirements` prints **Guidance** lines when API suggestions are present; `--verbose` shows all guidance items and machine-readable suggestion codes.
 
+### Progress Indicators Contract
+
+OHM CLI progress output follows a deterministic contract for human-readable modes:
+
+- **Format:** `Status [i/n]: <step>`
+- **Scope:** emitted for selected long-running commands
+- **JSON safety:** suppressed when `--json` is used, so output remains machine-parseable
+
+### Progress Coverage (Current)
+
+Progress status lines are currently implemented for:
+
+- `ohm match requirements`
+- `ohm match rules import`
+- `ohm match rules export`
+- `ohm okh generate-from-url`
+- `ohm storage setup`
+- `ohm storage populate`
+- `ohm solution save`
+- `ohm solution load`
+- `ohm solution list`
+- `ohm solution delete`
+- `ohm solution check`
+- `ohm solution extend`
+- `ohm solution cleanup`
+
 **Examples:**
 ```bash
 # Match OKH requirements (manufacturing domain)

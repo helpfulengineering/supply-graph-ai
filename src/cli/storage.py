@@ -21,6 +21,7 @@ from ..core.services.storage_service import StorageService
 from ..core.storage.organizer import StorageOrganizer
 from ..core.utils.logging import get_logger
 from .decorators import standard_cli_command
+from .progress import emit_status_line
 
 logger = get_logger(__name__)
 
@@ -164,6 +165,12 @@ async def setup(
     cli_ctx.start_command_tracking("storage-setup")
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Preparing storage configuration",
+            index=1,
+            total=3,
+        )
         # For local provider, --storage-path takes precedence over --bucket
         if provider == "local" and storage_path:
             bucket_name = storage_path
@@ -219,10 +226,22 @@ async def setup(
                 cli_ctx.log(f"Region: {region}", "info")
 
         # Initialize storage service
+        emit_status_line(
+            output_format=output_format,
+            step="Initializing storage service",
+            index=2,
+            total=3,
+        )
         storage_service = await StorageService.get_instance()
         await storage_service.configure(storage_config)
 
         # Create organizer and setup structure
+        emit_status_line(
+            output_format=output_format,
+            step="Creating storage directory structure",
+            index=3,
+            total=3,
+        )
         organizer = StorageOrganizer(storage_service.manager)
         result = await organizer.create_directory_structure()
 
@@ -375,6 +394,12 @@ async def populate(
     cli_ctx.start_command_tracking("storage-populate")
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Preparing storage configuration",
+            index=1,
+            total=4,
+        )
         # For local provider, --storage-path takes precedence over --bucket
         if provider == "local" and storage_path:
             bucket_name = storage_path
@@ -444,6 +469,12 @@ async def populate(
             cli_ctx.log(f"Bucket: {storage_config.bucket_name}", "info")
 
         # Initialize storage service
+        emit_status_line(
+            output_format=output_format,
+            step="Initializing storage service",
+            index=2,
+            total=4,
+        )
         storage_service = await StorageService.get_instance()
         await storage_service.configure(storage_config)
 
@@ -451,6 +482,12 @@ async def populate(
         organizer = StorageOrganizer(storage_service.manager)
 
         # Load and store files (recursively search subdirectories)
+        emit_status_line(
+            output_format=output_format,
+            step="Scanning and storing synthetic data",
+            index=3,
+            total=4,
+        )
         okh_files = list(data_dir.rglob("*okh*.json"))
         okw_files = list(data_dir.rglob("*okw*.json"))
 
@@ -491,6 +528,12 @@ async def populate(
                 errors.append(error_msg)
                 cli_ctx.log(f"  ❌ {error_msg}", "error")
 
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering population summary",
+            index=4,
+            total=4,
+        )
         if output_format == "json":
             output_data = {
                 "status": "success" if not errors else "partial",

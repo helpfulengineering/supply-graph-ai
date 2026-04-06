@@ -26,6 +26,7 @@ from .base import (
     log_llm_usage,
 )
 from .decorators import standard_cli_command
+from .progress import emit_status_line
 
 
 @click.group()
@@ -294,6 +295,13 @@ async def requirements(
     )
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Loading input and preparing request",
+            index=1,
+            total=3,
+        )
+
         # Check if input is a URL
         is_url = _is_url(input_file)
 
@@ -1006,6 +1014,12 @@ async def requirements(
                 raise click.ClickException(f"Unsupported domain: {detected_domain}")
 
         # Execute matching with fallback
+        emit_status_line(
+            output_format=output_format,
+            step="Running matching operation",
+            index=2,
+            total=3,
+        )
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_match, fallback_match)
 
@@ -1015,6 +1029,12 @@ async def requirements(
             result = await fallback_match()
 
         # Process and display results
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering output",
+            index=3,
+            total=3,
+        )
         await _display_match_results(cli_ctx, result, output, output_format)
 
         cli_ctx.end_command_tracking()
@@ -2204,12 +2224,24 @@ async def rules_import(
     cli_ctx.start_command_tracking("rules-import")
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Loading import input",
+            index=1,
+            total=3,
+        )
         # If no file provided, reload from filesystem
         if not file:
             request_data = {}
             if domain:
                 request_data["domain"] = domain
 
+            emit_status_line(
+                output_format=output_format,
+                step="Submitting import request",
+                index=2,
+                total=3,
+            )
             response = await cli_ctx.api_client.request(
                 "POST", "/api/match/rules/import", json_data=request_data
             )
@@ -2219,6 +2251,12 @@ async def rules_import(
             if output_format == "json":
                 click.echo(json.dumps(data, indent=2))
             else:
+                emit_status_line(
+                    output_format=output_format,
+                    step="Rendering import results",
+                    index=3,
+                    total=3,
+                )
                 cli_ctx.log("Rules reloaded successfully from filesystem", "success")
                 click.echo(f"\nReload Results:")
                 click.echo(
@@ -2257,6 +2295,12 @@ async def rules_import(
         if domain:
             request_data["domain"] = domain
 
+        emit_status_line(
+            output_format=output_format,
+            step="Submitting import request",
+            index=2,
+            total=3,
+        )
         response = await cli_ctx.api_client.request(
             "POST", "/api/match/rules/import", json_data=request_data
         )
@@ -2266,6 +2310,12 @@ async def rules_import(
         if output_format == "json":
             click.echo(json.dumps(data, indent=2))
         else:
+            emit_status_line(
+                output_format=output_format,
+                step="Rendering import results",
+                index=3,
+                total=3,
+            )
             if dry_run:
                 cli_ctx.log("Dry-run completed (no changes applied)", "info")
             else:
@@ -2329,6 +2379,12 @@ async def rules_export(
     cli_ctx.start_command_tracking("rules-export")
 
     try:
+        emit_status_line(
+            output_format=output_format,
+            step="Preparing export request",
+            index=1,
+            total=3,
+        )
         # Build query parameters for GET request
         params = {
             "format": format,
@@ -2341,6 +2397,12 @@ async def rules_export(
         query_string = "&".join([f"{k}={v}" for k, v in params.items()])
         endpoint = f"/api/match/rules/export?{query_string}"
 
+        emit_status_line(
+            output_format=output_format,
+            step="Fetching export payload",
+            index=2,
+            total=3,
+        )
         response = await cli_ctx.api_client.request("POST", endpoint)
 
         data = response.get("data", {})
@@ -2349,6 +2411,12 @@ async def rules_export(
         output_path = Path(output_file)
         output_path.write_text(content)
 
+        emit_status_line(
+            output_format=output_format,
+            step="Writing export file",
+            index=3,
+            total=3,
+        )
         if output_format == "json":
             click.echo(
                 json.dumps(
