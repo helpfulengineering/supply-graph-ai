@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -93,6 +93,14 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         description=(
             "Include multi-level human-readable summaries in the response. "
             "When enabled, the API returns executive, technical, and detailed summary views."
+        ),
+    )
+    human_summary_profile: Literal["balanced", "executive", "analyst"] = Field(
+        "balanced",
+        description=(
+            "Role-oriented summary profile used when include_human_summary=true. "
+            "'balanced' keeps the default mixed view, 'executive' favors concise business framing, "
+            "and 'analyst' adds extra quantitative detail."
         ),
     )
 
@@ -221,6 +229,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
                 "auto_detect_depth": False,
                 "include_validation": True,
                 "include_human_summary": False,
+                "human_summary_profile": "balanced",
                 "allow_facility_combinations": False,
                 "max_facilities_per_solution": 3,
                 "return_alternative_solutions": True,

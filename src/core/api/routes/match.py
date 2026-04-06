@@ -1317,6 +1317,7 @@ def _build_optional_human_summary(
         match_summary=match_summary,
         coverage_gaps=coverage_gaps,
         solutions=solutions,
+        summary_profile=getattr(request, "human_summary_profile", "balanced"),
     )
 
 

@@ -2360,11 +2360,8 @@ async def list_supply_trees(
     summary="Update Supply Tree",
     description="Update an existing supply tree with enhanced capabilities.",
 )
-# @api_endpoint(
-#     success_message="Supply tree updated successfully",
-#     include_metrics=True
-# )
-# @track_performance("supply_tree_update")
+@api_endpoint(success_message="Supply tree updated successfully", include_metrics=True)
+@track_performance("supply_tree_update")
 async def update_supply_tree(
     request: SupplyTreeCreateRequest,
     id: UUID = Path(..., title="The ID of the supply tree"),
@@ -2655,11 +2652,7 @@ async def delete_supply_tree(
             extra={"request_id": request_id, "supply_tree_id": str(id)},
         )
 
-        return create_success_response(
-            message=f"Supply tree with ID {id} deleted successfully",
-            data={},
-            request_id=request_id,
-        )
+        return {"deleted": True, "id": str(id)}
 
     except HTTPException:
         raise
@@ -2865,11 +2858,7 @@ async def validate_supply_tree(
             },
         )
 
-        return create_success_response(
-            message="Supply tree validation completed successfully",
-            data=validation_response,
-            request_id=request_id,
-        )
+        return validation_response
 
     except HTTPException:
         raise

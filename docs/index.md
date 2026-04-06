@@ -19,6 +19,10 @@
 ### Development Plans
 * [Developer Guide](development/developer-guide.md)
 
+### Testing
+* [Test Harness Standards](testing/harness-standards.md)
+* [Canonical Test Workflows](testing/workflows/README.md)
+
 ### Data Models
 * [Data Models](models/index.md)
     * [Supply Trees](models/supply-tree.md)

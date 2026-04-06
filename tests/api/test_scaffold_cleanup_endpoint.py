@@ -5,6 +5,7 @@ from pathlib import Path
 
 import httpx
 import pytest
+from fastapi import FastAPI
 
 # Ensure repository root on path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
@@ -20,10 +21,12 @@ if __name__ == "__main__":
 
 
 def _get_app():
-    # Lazy import to avoid heavy app import in test collection
-    from src.core.main import app as fastapi_app
+    # Lazy import to avoid heavy app import in test collection/startup
+    from src.core.main import api_v1
 
-    return fastapi_app
+    isolated_app = FastAPI()
+    isolated_app.mount("/v1", api_v1)
+    return isolated_app
 
 
 async def _create_scaffold(tmp_path: Path) -> Path:
