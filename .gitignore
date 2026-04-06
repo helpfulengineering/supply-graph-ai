@@ -183,9 +183,12 @@ temp_matching_context/
 temp_context/
 projects/
 tmp/
+.ruff_cache/
+synthetic_data/
+
 
 #cursor files
-.cursorrules
+.cursor/*
 
 # credentials
 service-account.json

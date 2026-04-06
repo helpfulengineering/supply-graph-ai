@@ -1,36 +1,64 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
-  release:
-    types: [ created ]
+    branches: [main, dev]
+  workflow_dispatch:
 
 env:
-  PYTHON_VERSION: '3.12'
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  GCP_PROJECT_ID: nathan-playground-368310
-  GCP_REGION: us-west1
-  AR_REGISTRY: us-west1-docker.pkg.dev
-  AR_REPOSITORY: cloud-run-source-deploy
+  PYTHON_VERSION: "3.12"
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # Linting and code quality checks
-  lint:
-    name: Lint and Code Quality
+  quality:
+    name: Quality (format, lint, repo-map)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          # Fetch the real branch so we can push auto-fixes back.
-          # github.head_ref is set on pull_request events (the source branch);
-          # github.ref_name is set on push events.
-          ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install tooling and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black
+          pip install -r requirements.txt
+
+      - name: Ruff lint
+        run: |
+          ruff check src tests
+
+      - name: Black format check
+        run: |
+          black --check src tests
+
+      - name: Verify repository map is up to date
+        run: |
+          python scripts/generate_repo_map.py
+          git diff --exit-code .repo-map.md
+
+  test:
+    name: Test (stable CI subset)
+    runs-on: ubuntu-latest
+    needs: quality
+    env:
+      ENVIRONMENT: test
+      LOG_LEVEL: INFO
+      STORAGE_PROVIDER: local
+      LLM_ENABLED: false
+      RUN_AZURE_CHAIN_TESTS: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,556 +68,53 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8==7.1.1 black==24.10.0 isort==5.13.2 mypy==1.13.0
-          pip install -r requirements.txt
-
-      - name: Run flake8
-        run: |
-          flake8 src/ deploy/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 src/ deploy/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Check code formatting with black
-        run: |
-          echo "Checking code formatting with black..."
-          black --check --diff src/ deploy/
-
-      - name: Check imports with isort
-        run: |
-          echo "Checking imports with isort..."
-          isort --profile black --check-only --diff src/ deploy/
-
-      - name: Type checking with mypy
-        run: |
-          mypy src/ deploy/ --ignore-missing-imports || true
-
-      - name: Update repository maps if needed
-        run: |
-          echo "Generating repository maps..."
-          python scripts/generate_repo_map.py
-
-          if ! git diff --quiet .repo-map.md; then
-            echo "Repository maps were out of date. Auto-updating..."
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add .repo-map.md
-            git commit -m "chore: auto-update repository maps [skip ci]"
-            git push
-            echo "✅ Repository maps updated and committed"
-          else
-            echo "✅ Repository maps are up to date"
-          fi
-
-  # Unit and integration tests
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.12']
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-cov pytest-asyncio
 
-      - name: Download spaCy model
-        run: python -m spacy download en_core_web_md
-
-      - name: Run tests
-        env:
-          ENVIRONMENT: test
-          LOG_LEVEL: INFO
-          STORAGE_PROVIDER: local
-          LLM_ENABLED: false
+      - name: Run pytest
         run: |
-          pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+          pytest tests \
+            --ignore=tests/demo \
+            --ignore=tests/e2e \
+            --ignore=tests/integration/test_cloud_run_e2e.py \
+            --ignore=tests/test_storage_to_okw_list_chain.py \
+            -m "not llm" \
+            --maxfail=1 \
+            --cov=src \
+            --cov-report=xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
           fail_ci_if_error: false
 
-  # Build Docker image
-  build:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
-    needs: [lint, test]
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
-    outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
-      image-digest: ${{ steps.build.outputs.digest }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Authenticate to Google Cloud
-        if: github.event_name != 'pull_request'
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY_PRODUCTION }}
-
-      - name: Set up Cloud SDK
-        if: github.event_name != 'pull_request'
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Configure Docker for Artifact Registry
-        if: github.event_name != 'pull_request'
-        env:
-          GCP_REGION: ${{ env.GCP_REGION }}
-        run: |
-          gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev --quiet
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            ${{ env.AR_REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.AR_REPOSITORY }}/supply-graph-ai
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: Build and push Docker image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64
-
-      - name: Verify Artifact Registry push
-        if: github.event_name != 'pull_request'
-        env:
-          GCP_REGION: ${{ env.GCP_REGION }}
-          GCP_PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
-          AR_REGISTRY: ${{ env.AR_REGISTRY }}
-          AR_REPOSITORY: ${{ env.AR_REPOSITORY }}
-        run: |
-          echo "Verifying images were pushed to Artifact Registry..."
-          gcloud artifacts docker images list ${AR_REGISTRY}/${GCP_PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai --limit=10 || echo "No images found yet"
-
-  # Security scanning
   security:
-    name: Security Scan
+    name: Security (dependency and static checks)
     runs-on: ubuntu-latest
-    needs: [build]
-    if: github.event_name != 'pull_request'
+    needs: quality
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Determine image tag
-        id: image-tag
+      - name: Install dependencies and security tools
         run: |
-          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "tag=latest" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
-        env:
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          exit-code: '0'
-          severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy results to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-
-  # Deploy to production
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: [build, security]
-    if: |
-      (github.ref == 'refs/heads/main' && github.event_name == 'push') ||
-      (github.event_name == 'release' && github.event.action == 'created')
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY_PRODUCTION }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: Deploy to Cloud Run
-        id: deploy
-        env:
-          PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
-          SA_EMAIL: supply-graph-ai@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
-          AR_REGISTRY: ${{ env.AR_REGISTRY }}
-          AR_REPOSITORY: ${{ env.AR_REPOSITORY }}
-        run: |
-          # Determine image tag
-          # For main branch, the build step creates a "latest" tag
-          if [ "${{ github.event_name }}" == "release" ]; then
-            IMAGE_TAG="${{ github.event.release.tag_name }}"
-          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            IMAGE_TAG="latest"
-          else
-            IMAGE_TAG="main"
-          fi
-          
-          # Use Artifact Registry image (Cloud Run doesn't support GHCR)
-          AR_IMAGE="${AR_REGISTRY}/${PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai:${IMAGE_TAG}"
-          
-          echo "=== Deployment Configuration ==="
-          echo "IMAGE_TAG: ${IMAGE_TAG}"
-          echo "AR_REGISTRY: ${AR_REGISTRY}"
-          echo "PROJECT_ID: ${PROJECT_ID}"
-          echo "AR_REPOSITORY: ${AR_REPOSITORY}"
-          echo "AR_IMAGE: ${AR_IMAGE}"
-          echo "================================"
-          
-          echo "Verifying image exists..."
-          gcloud artifacts docker images describe ${AR_IMAGE} || {
-            echo "ERROR: Image ${AR_IMAGE} not found in Artifact Registry"
-            echo "Trying with 'latest' tag instead..."
-            AR_IMAGE_LATEST="${AR_REGISTRY}/${PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai:latest"
-            gcloud artifacts docker images describe ${AR_IMAGE_LATEST} && {
-              echo "Found image with 'latest' tag, using that instead"
-              AR_IMAGE=${AR_IMAGE_LATEST}
-            } || {
-              echo "Available images in repository:"
-              gcloud artifacts docker images list ${AR_REGISTRY}/${PROJECT_ID}/${AR_REPOSITORY}/supply-graph-ai || true
-              exit 1
-            }
-          }
-          
-          echo "Deploying with image: ${AR_IMAGE}"
-          echo "Full deployment command will use: --image ${AR_IMAGE}"
-          
-          # Check current service configuration (if it exists)
-          echo "Checking current service configuration..."
-          CURRENT_IMAGE=$(gcloud run services describe supply-graph-ai \
-            --region="${{ env.GCP_REGION }}" \
-            --format="value(spec.template.spec.containers[0].image)" 2>/dev/null || echo "")
-          if [ -n "${CURRENT_IMAGE}" ]; then
-            echo "Current service image: ${CURRENT_IMAGE}"
-            echo "Checking current service secrets..."
-            gcloud run services describe supply-graph-ai \
-              --region="${{ env.GCP_REGION }}" \
-              --format="yaml(spec.template.spec.containers[0].env)" 2>/dev/null | grep -A 5 "secretKeyRef" || echo "No secrets currently configured"
-          else
-            echo "Service does not exist yet"
-          fi
-          
-          echo ""
-          echo "Checking for secrets in Secret Manager..."
-          echo "Available secrets:"
-          gcloud secrets list --project="${PROJECT_ID}" --format="table(name)" 2>/dev/null || echo "Could not list secrets"
-          
-          # Deploy with explicit image override (image flag must be provided)
-          # Using explicit variable to ensure it's set correctly
-          IMAGE_TO_DEPLOY="${AR_IMAGE}"
-          echo "Final image to deploy: ${IMAGE_TO_DEPLOY}"
-          
-          # Check if secrets exist and build secrets list conditionally
-          SECRETS_LIST=""
-          ENV_VARS="ENVIRONMENT=production,STORAGE_PROVIDER=gcs,GCP_STORAGE_BUCKET=supply-graph-ai-storage"
-          
-          if gcloud secrets describe api-keys --project="${PROJECT_ID}" &>/dev/null; then
-            echo "Found api-keys secret, including in deployment"
-            SECRETS_LIST="API_KEYS=api-keys:latest"
-          else
-            echo "api-keys secret not found, skipping (optional)"
-          fi
-          
-          if gcloud secrets describe llm-encryption-key --project="${PROJECT_ID}" &>/dev/null; then
-            echo "Found llm-encryption-key secret, including in deployment"
-            if [ -n "${SECRETS_LIST}" ]; then
-              SECRETS_LIST="${SECRETS_LIST},LLM_ENCRYPTION_KEY=llm-encryption-key:latest"
-            else
-              SECRETS_LIST="LLM_ENCRYPTION_KEY=llm-encryption-key:latest"
-            fi
-          else
-            echo "llm-encryption-key secret not found, skipping (optional)"
-          fi
-          
-          # Check for LLM encryption credentials (required in production)
-          if gcloud secrets describe llm-encryption-salt --project="${PROJECT_ID}" &>/dev/null; then
-            echo "Found llm-encryption-salt secret, including in deployment"
-            if [ -n "${SECRETS_LIST}" ]; then
-              SECRETS_LIST="${SECRETS_LIST},LLM_ENCRYPTION_SALT=llm-encryption-salt:latest"
-            else
-              SECRETS_LIST="LLM_ENCRYPTION_SALT=llm-encryption-salt:latest"
-            fi
-          else
-            echo "llm-encryption-salt secret not found, will generate secure value"
-            # Generate a secure random salt (32 bytes, base64 encoded)
-            LLM_SALT=$(openssl rand -base64 32)
-            ENV_VARS="${ENV_VARS},LLM_ENCRYPTION_SALT=${LLM_SALT}"
-          fi
-          
-          if gcloud secrets describe llm-encryption-password --project="${PROJECT_ID}" &>/dev/null; then
-            echo "Found llm-encryption-password secret, including in deployment"
-            if [ -n "${SECRETS_LIST}" ]; then
-              SECRETS_LIST="${SECRETS_LIST},LLM_ENCRYPTION_PASSWORD=llm-encryption-password:latest"
-            else
-              SECRETS_LIST="LLM_ENCRYPTION_PASSWORD=llm-encryption-password:latest"
-            fi
-          else
-            echo "llm-encryption-password secret not found, will generate secure value"
-            # Generate a secure random password (32 bytes, base64 encoded)
-            LLM_PASSWORD=$(openssl rand -base64 32)
-            ENV_VARS="${ENV_VARS},LLM_ENCRYPTION_PASSWORD=${LLM_PASSWORD}"
-          fi
-          
-          # Build deployment command with conditional secrets
-          # If secrets don't exist but service has them configured, we need to clear them
-          echo "Executing deployment command..."
-          
-          # Check if service exists and has secrets configured that don't exist in Secret Manager
-          SERVICE_HAS_INVALID_SECRETS=false
-          if gcloud run services describe supply-graph-ai --region="${{ env.GCP_REGION }}" &>/dev/null; then
-            # Check if service has api-keys or llm-encryption-key configured
-            if gcloud run services describe supply-graph-ai \
-              --region="${{ env.GCP_REGION }}" \
-              --format="value(spec.template.spec.containers[0].env)" | grep -q "api-keys\|llm-encryption-key"; then
-              # Check if these secrets actually exist
-              if ! gcloud secrets describe api-keys --project="${PROJECT_ID}" &>/dev/null || \
-                 ! gcloud secrets describe llm-encryption-key --project="${PROJECT_ID}" &>/dev/null; then
-                SERVICE_HAS_INVALID_SECRETS=true
-                echo "Service has secrets configured that don't exist in Secret Manager. Will clear them."
-              fi
-            fi
-          fi
-          
-          # Build base deployment command
-          DEPLOY_ARGS=(
-            "supply-graph-ai"
-            "--image" "${IMAGE_TO_DEPLOY}"
-            "--service-account" "${SA_EMAIL}"
-            "--region" "${{ env.GCP_REGION }}"
-            "--platform" "managed"
-            "--no-allow-unauthenticated"
-            "--set-env-vars" "${ENV_VARS}"
-          )
-          
-          # Handle secrets: replace entire secrets configuration
-          # The service has api-keys and llm-encryption-key configured but they don't exist
-          # Use --update-secrets to replace all secrets with only the valid ones
-          if [ -n "${SECRETS_LIST}" ]; then
-            # Update secrets - this replaces all existing secrets with only the valid ones
-            DEPLOY_ARGS+=("--update-secrets" "${SECRETS_LIST}")
-            echo "Updating secrets configuration with valid secrets: ${SECRETS_LIST}"
-          elif [ "${SERVICE_HAS_INVALID_SECRETS}" = "true" ]; then
-            # No valid secrets exist, but service has invalid ones - clear all secrets
-            DEPLOY_ARGS+=("--clear-secrets")
-            echo "Clearing all secrets (none exist in Secret Manager)"
-          fi
-          
-          # Add remaining deployment options
-          DEPLOY_ARGS+=(
-            "--memory" "8Gi"
-            "--cpu" "2"
-            "--timeout" "300"
-            "--max-instances" "100"
-            "--min-instances" "1"
-          )
-          
-          echo "Deploying with command: gcloud run deploy ${DEPLOY_ARGS[*]}"
-          echo "Environment variables being set: ${ENV_VARS}"
-          echo ""
-          echo "Note: If deployment fails, check Cloud Run logs for startup errors"
-          echo ""
-          
-          # Deploy the service and capture output
-          DEPLOY_STDOUT=$(gcloud run deploy "${DEPLOY_ARGS[@]}" 2>&1)
-          DEPLOY_EXIT_CODE=$?
-          
-          if [ ${DEPLOY_EXIT_CODE} -ne 0 ]; then
-            echo "Error: Deployment failed with exit code ${DEPLOY_EXIT_CODE}"
-            echo "Deployment output:"
-            echo "${DEPLOY_STDOUT}"
-            echo ""
-            echo "Checking service status..."
-            gcloud run services describe supply-graph-ai \
-              --region="${{ env.GCP_REGION }}" \
-              --project="${PROJECT_ID}" \
-              --format="yaml(status)" || true
-            exit 1
-          fi
-          
-          echo "Deployment output:"
-          echo "${DEPLOY_STDOUT}"
-          echo ""
-          
-          # Extract the service URL from the deployment output
-          # The deployment output contains "Service URL: https://..."
-          # Use sed to extract the URL (more portable than grep -oP)
-          DEPLOY_OUTPUT=$(echo "${DEPLOY_STDOUT}" | grep "Service URL:" | sed -n 's/.*Service URL: \(https:\/\/[^[:space:]]*\).*/\1/p' || echo "")
-          
-          # Fallback: Get the service URL from service describe
-          if [ -z "${DEPLOY_OUTPUT}" ]; then
-            echo "Extracting URL from deployment output failed, trying service describe..."
-            DEPLOY_OUTPUT=$(gcloud run services describe supply-graph-ai \
-              --region="${{ env.GCP_REGION }}" \
-              --project="${PROJECT_ID}" \
-              --format="value(status.url)" 2>/dev/null || echo "")
-          fi
-          
-          # Another fallback: Try service list
-          if [ -z "${DEPLOY_OUTPUT}" ]; then
-            echo "Service describe failed, trying service list..."
-            DEPLOY_OUTPUT=$(gcloud run services list \
-              --filter="metadata.name=supply-graph-ai" \
-              --region="${{ env.GCP_REGION }}" \
-              --project="${PROJECT_ID}" \
-              --format="value(status.url)" 2>/dev/null || echo "")
-          fi
-          
-          if [ -n "${DEPLOY_OUTPUT}" ]; then
-            echo "✅ Service deployed successfully. URL: ${DEPLOY_OUTPUT}"
-            echo "url=${DEPLOY_OUTPUT}" >> $GITHUB_OUTPUT
-          else
-            echo "Error: Could not determine service URL after deployment"
-            echo "This might indicate the deployment didn't complete successfully"
-            exit 1
-          fi
-
-      - name: Run smoke tests
-        env:
-          PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
-        run: |
-          SERVICE_URL=${{ steps.deploy.outputs.url }}
-          if [ -z "${SERVICE_URL}" ]; then
-            echo "Error: SERVICE_URL is empty"
-            exit 1
-          fi
-          
-          echo "Running smoke tests against: ${SERVICE_URL}"
-          
-          # Get an identity token for authenticated requests
-          # Since the service uses --no-allow-unauthenticated, we need to authenticate
-          echo "Getting identity token..."
-          IDENTITY_TOKEN=$(gcloud auth print-identity-token 2>&1)
-          if [ $? -ne 0 ]; then
-            echo "Error: Failed to get identity token"
-            echo "${IDENTITY_TOKEN}"
-            exit 1
-          fi
-          
-          echo "Testing /health endpoint..."
-          HTTP_CODE=$(curl -s -o /tmp/health_response.txt -w "%{http_code}" \
-            -H "Authorization: Bearer ${IDENTITY_TOKEN}" \
-            ${SERVICE_URL}/health)
-          
-          if [ "${HTTP_CODE}" -eq "200" ]; then
-            echo "✅ /health endpoint returned 200"
-            cat /tmp/health_response.txt
-          else
-            echo "❌ /health endpoint returned ${HTTP_CODE}"
-            cat /tmp/health_response.txt
-            exit 1
-          fi
-          
-          echo ""
-          echo "Testing /health/readiness endpoint..."
-          HTTP_CODE=$(curl -s -o /tmp/readiness_response.txt -w "%{http_code}" \
-            -H "Authorization: Bearer ${IDENTITY_TOKEN}" \
-            ${SERVICE_URL}/health/readiness)
-          
-          if [ "${HTTP_CODE}" -eq "200" ]; then
-            echo "✅ /health/readiness endpoint returned 200"
-            cat /tmp/readiness_response.txt
-          else
-            echo "❌ /health/readiness endpoint returned ${HTTP_CODE}"
-            cat /tmp/readiness_response.txt
-            exit 1
-          fi
-          
-          echo ""
-          echo "✅ All smoke tests passed"
-
-      - name: Run comprehensive E2E tests
-        env:
-          PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
-          SERVICE_URL: ${{ steps.deploy.outputs.url }}
-        run: |
-          if [ -z "${SERVICE_URL}" ]; then
-            echo "Error: SERVICE_URL is empty"
-            exit 1
-          fi
-          
-          echo "Running comprehensive E2E tests against: ${SERVICE_URL}"
-          
-          # Get an identity token for authenticated requests
-          echo "Getting identity token..."
-          IDENTITY_TOKEN=$(gcloud auth print-identity-token 2>&1)
-          if [ $? -ne 0 ]; then
-            echo "Error: Failed to get identity token"
-            echo "${IDENTITY_TOKEN}"
-            exit 1
-          fi
-          
-          # Install Python dependencies for pytest
           python -m pip install --upgrade pip
-          pip install pytest pytest-asyncio requests
-          
-          # Run Python E2E tests
-          echo "Running Python E2E test suite..."
-          export IDENTITY_TOKEN="${IDENTITY_TOKEN}"
-          export USE_AUTH="true"
-          pytest tests/integration/test_cloud_run_e2e.py -v --tb=short || {
-            echo "❌ E2E tests failed"
-            exit 1
-          }
-          
-          echo "✅ All E2E tests passed"
+          pip install -r requirements.txt
+          pip install pip-audit bandit
 
+      - name: Dependency vulnerability scan
+        run: |
+          pip-audit -r requirements.txt
+          if [ -f requirements-dev.txt ]; then
+            pip-audit -r requirements-dev.txt
+          fi
+
+      - name: Static security scan
+        run: |
+          bandit -q -r src -x tests

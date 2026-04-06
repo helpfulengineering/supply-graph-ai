@@ -57,8 +57,8 @@ COPY src/ ./src/
 # Copy configuration files
 COPY config/ ./config/
 
-# Copy entrypoint and other necessary files
-COPY docker-entrypoint.sh gunicorn.conf.py run.py ./
+# Copy entrypoint and runtime config
+COPY deploy/docker/docker-entrypoint.sh deploy/docker/gunicorn.conf.py ./
 
 # Install the package in editable mode (creates 'ohm' command)
 RUN pip install --no-cache-dir -e .

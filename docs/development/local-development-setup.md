@@ -42,7 +42,7 @@ open-hardware-manager/
 │   └── docs/
 └── supply-graph-ai/                   # FastAPI matching engine
     ├── src/                          # Python source code
-    ├── run.py                        # Server entry point
+    ├── docker-compose.yml            # Local service orchestration
     └── requirements.txt              # Python dependencies
 ```
 
@@ -108,7 +108,7 @@ mkdir -p logs
 
 #### Step 6: Start the Server
 ```bash
-python run.py
+docker compose up --build ohm-api
 ```
 
 The server will start on **http://localhost:8001**
@@ -229,7 +229,7 @@ conda activate supply-graph-ai
 # If using venv:
 # source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-python run.py
+docker compose up --build ohm-api
 ```
 
 #### Terminal 2: Backend (Azure Functions)
@@ -390,7 +390,7 @@ If the frontend can't connect to the backend:
 For Supply Graph AI:
 ```bash
 export LOG_LEVEL=DEBUG
-python run.py
+docker compose up --build ohm-api
 ```
 
 For Frontend:
@@ -412,7 +412,7 @@ export default defineNuxtConfig({
 ### 1. Hot Reloading
 - **Frontend**: Nuxt provides hot reloading by default
 - **Backend**: Azure Functions restarts automatically on file changes
-- **Supply Graph AI**: Use `reload=True` in `run.py` for auto-restart
+- **Supply Graph AI**: Use `docker compose up` for containerized development
 
 ### 2. API Testing
 - Use the interactive docs at http://localhost:8001/docs

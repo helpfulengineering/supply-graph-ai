@@ -8,7 +8,6 @@ import yaml
 
 from src.config import settings
 
-
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
 from ..generation.models import PlatformType
