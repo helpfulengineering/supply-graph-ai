@@ -13,11 +13,11 @@ start_api() {
     echo "Host: $API_HOST"
     echo "Port: $API_PORT"
     echo "Environment: ${ENVIRONMENT:-${ENV:-development}}"
-    
+
     # Determine if we should use Gunicorn (production) or uvicorn (development)
     ENVIRONMENT=${ENVIRONMENT:-${ENV:-development}}
     USE_GUNICORN=${USE_GUNICORN:-"auto"}
-    
+
     # Auto-detect: use Gunicorn in production, uvicorn in development
     if [ "$USE_GUNICORN" = "auto" ]; then
         if [ "$ENVIRONMENT" = "production" ]; then
@@ -26,7 +26,7 @@ start_api() {
             USE_GUNICORN="false"
         fi
     fi
-    
+
     if [ "$USE_GUNICORN" = "true" ] || [ "$USE_GUNICORN" = "1" ]; then
         echo "Starting with Gunicorn (production mode)..."
         echo "=== Port Configuration Debug ==="
@@ -65,7 +65,7 @@ start_api() {
 run_cli() {
     echo "Running Open Hardware Manager CLI..."
     shift  # Remove the first argument (mode)
-    
+
     # If no arguments provided, show help
     # Use the installed 'ohm' command if available, otherwise fall back to module execution
     if [ $# -eq 0 ]; then

@@ -6,7 +6,6 @@ It implements high-confidence mappings for fields that can be directly extracted
 from platform APIs and file structures.
 """
 
-import re
 from typing import Any, Dict, Optional
 
 from ..models import (

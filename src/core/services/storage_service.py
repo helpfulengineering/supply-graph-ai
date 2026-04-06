@@ -6,7 +6,17 @@ from uuid import UUID, uuid4
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
+from ..matching.match_modes import MATCH_MODE_SINGLE_LEVEL
 from ..storage.base import StorageConfig
+from ..storage.constants import (
+    DEFAULT_SOLUTION_TTL_DAYS,
+    STORAGE_OBJECT_TYPE_SOLUTION_METADATA,
+    STORAGE_OBJECT_TYPE_SUPPLY_TREE,
+    STORAGE_OBJECT_TYPE_SUPPLY_TREE_SOLUTION,
+    SUPPLY_TREE_SOLUTIONS_METADATA_PREFIX,
+    build_solution_key,
+    build_solution_metadata_key,
+)
 from ..storage.manager import StorageManager
 
 logger = logging.getLogger(__name__)
@@ -160,7 +170,7 @@ class StorageService:
             data=data,
             content_type="application/json",
             metadata={
-                "type": "supply_tree",
+                "type": STORAGE_OBJECT_TYPE_SUPPLY_TREE,
                 "id": str(tree.id),
                 "okh_reference": tree.okh_reference,
             },
@@ -255,13 +265,15 @@ class StorageService:
         data = json.dumps(solution_data).encode("utf-8")
 
         # Generate storage key
-        key = f"supply-tree-solutions/{solution_id}.json"
+        key = build_solution_key(solution_id)
 
         # Prepare metadata for object storage
         object_metadata = {
-            "type": "supply_tree_solution",
+            "type": STORAGE_OBJECT_TYPE_SUPPLY_TREE_SOLUTION,
             "id": str(solution_id),
-            "matching_mode": solution.metadata.get("matching_mode", "single-level"),
+            "matching_mode": solution.metadata.get(
+                "matching_mode", MATCH_MODE_SINGLE_LEVEL
+            ),
             "tree_count": str(len(solution.all_trees)),
             "component_count": str(
                 len(solution.component_mapping) if solution.component_mapping else 0
@@ -278,14 +290,16 @@ class StorageService:
 
         # Create metadata file
         now = datetime.now()
-        ttl = ttl_days if ttl_days is not None else 30
+        ttl = ttl_days if ttl_days is not None else DEFAULT_SOLUTION_TTL_DAYS
         expires_at = now + timedelta(days=ttl)
 
         metadata = {
             "id": str(solution_id),
             "okh_id": solution.metadata.get("okh_id"),
             "okh_title": solution.metadata.get("okh_title"),
-            "matching_mode": solution.metadata.get("matching_mode", "single-level"),
+            "matching_mode": solution.metadata.get(
+                "matching_mode", MATCH_MODE_SINGLE_LEVEL
+            ),
             "tree_count": len(solution.all_trees),
             "component_count": (
                 len(solution.component_mapping) if solution.component_mapping else 0
@@ -301,14 +315,17 @@ class StorageService:
             "tags": tags or [],
         }
 
-        metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+        metadata_key = build_solution_metadata_key(solution_id)
         metadata_data = json.dumps(metadata).encode("utf-8")
 
         await self.manager.put_object(
             key=metadata_key,
             data=metadata_data,
             content_type="application/json",
-            metadata={"type": "solution_metadata", "id": str(solution_id)},
+            metadata={
+                "type": STORAGE_OBJECT_TYPE_SOLUTION_METADATA,
+                "id": str(solution_id),
+            },
         )
 
         return solution_id
@@ -318,7 +335,7 @@ class StorageService:
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
-        key = f"supply-tree-solutions/{solution_id}.json"
+        key = build_solution_key(solution_id)
 
         try:
             data = await self.manager.get_object(key)
@@ -370,7 +387,7 @@ class StorageService:
 
         try:
             async for obj in self.manager.list_objects(
-                prefix="supply-tree-solutions/metadata/"
+                prefix=f"{SUPPLY_TREE_SOLUTIONS_METADATA_PREFIX}/"
             ):
                 # Skip .gitkeep and other non-JSON files
                 if not obj["key"].endswith(".json"):
@@ -494,8 +511,8 @@ class StorageService:
             raise RuntimeError("Storage service not configured")
 
         # Delete both solution file and metadata file
-        solution_key = f"supply-tree-solutions/{solution_id}.json"
-        metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+        solution_key = build_solution_key(solution_id)
+        metadata_key = build_solution_metadata_key(solution_id)
 
         # Delete both files, return True if at least one was deleted
         solution_deleted = await self.manager.delete_object(solution_key)
@@ -521,7 +538,7 @@ class StorageService:
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
-        metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+        metadata_key = build_solution_metadata_key(solution_id)
 
         try:
             data = await self.manager.get_object(metadata_key)
@@ -545,7 +562,7 @@ class StorageService:
                 return (True, f"too_old_{age_days}_days")
 
             # Check default TTL
-            ttl_days = metadata.get("ttl_days", 30)
+            ttl_days = metadata.get("ttl_days", DEFAULT_SOLUTION_TTL_DAYS)
             if age_days > ttl_days:
                 return (True, f"exceeded_ttl_{ttl_days}_days")
 
@@ -568,7 +585,7 @@ class StorageService:
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
-        metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+        metadata_key = build_solution_metadata_key(solution_id)
 
         try:
             data = await self.manager.get_object(metadata_key)
@@ -599,7 +616,7 @@ class StorageService:
 
         try:
             async for obj in self.manager.list_objects(
-                prefix="supply-tree-solutions/metadata/"
+                prefix=f"{SUPPLY_TREE_SOLUTIONS_METADATA_PREFIX}/"
             ):
                 if not obj["key"].endswith(".json"):
                     continue
@@ -671,7 +688,7 @@ class StorageService:
         for solution_id in stale_ids:
             if not dry_run:
                 # Get size before deletion
-                solution_key = f"supply-tree-solutions/{solution_id}.json"
+                solution_key = build_solution_key(solution_id)
                 try:
                     data = await self.manager.get_object(solution_key)
                     freed_space += len(data)
@@ -710,7 +727,7 @@ class StorageService:
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
-        metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+        metadata_key = build_solution_metadata_key(solution_id)
 
         try:
             data = await self.manager.get_object(metadata_key)
@@ -724,12 +741,14 @@ class StorageService:
             else:
                 # Calculate from created_at if expires_at is missing
                 created_at = datetime.fromisoformat(metadata.get("created_at"))
-                current_ttl = metadata.get("ttl_days", 30)
+                current_ttl = metadata.get("ttl_days", DEFAULT_SOLUTION_TTL_DAYS)
                 new_expires = created_at + timedelta(days=current_ttl + additional_days)
 
             metadata["expires_at"] = new_expires.isoformat()
             metadata["updated_at"] = datetime.now().isoformat()
-            metadata["ttl_days"] = metadata.get("ttl_days", 30) + additional_days
+            metadata["ttl_days"] = (
+                metadata.get("ttl_days", DEFAULT_SOLUTION_TTL_DAYS) + additional_days
+            )
 
             # Save updated metadata
             await self.manager.put_object(
@@ -769,18 +788,18 @@ class StorageService:
 
         for solution_id in stale_ids:
             try:
-                solution_key = f"supply-tree-solutions/{solution_id}.json"
-                metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+                solution_key = build_solution_key(solution_id)
+                metadata_key = build_solution_metadata_key(solution_id)
 
                 # Archive solution file
                 archived_solution_key = (
-                    f"{archive_prefix}supply-tree-solutions/{solution_id}.json"
+                    f"{archive_prefix}{build_solution_key(solution_id)}"
                 )
                 await self.manager.copy_object(solution_key, archived_solution_key)
 
                 # Archive metadata file
                 archived_metadata_key = (
-                    f"{archive_prefix}supply-tree-solutions/metadata/{solution_id}.json"
+                    f"{archive_prefix}{build_solution_metadata_key(solution_id)}"
                 )
                 await self.manager.copy_object(metadata_key, archived_metadata_key)
 
@@ -829,7 +848,7 @@ class StorageService:
                 age = await self.get_solution_age(solution_id)
 
                 # Load metadata for expiration info
-                metadata_key = f"supply-tree-solutions/metadata/{solution_id}.json"
+                metadata_key = build_solution_metadata_key(solution_id)
                 try:
                     data = await self.manager.get_object(metadata_key)
                     meta = json.loads(data.decode("utf-8"))

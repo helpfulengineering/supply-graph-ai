@@ -7,7 +7,7 @@ This module provides data models for LLM responses and metadata.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 
 class LLMResponseStatus(Enum):

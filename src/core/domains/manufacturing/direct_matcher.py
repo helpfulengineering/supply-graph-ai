@@ -5,7 +5,6 @@ This module implements the MfgDirectMatcher for the manufacturing domain,
 providing specialized direct matching for materials, components, and tools.
 """
 
-import re
 from typing import Any, Dict, List, Set
 
 from ...matching.direct_matcher import DirectMatcher

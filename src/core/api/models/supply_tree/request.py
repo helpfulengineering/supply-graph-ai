@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # Import base classes for enhanced functionality
 from ..base import BaseAPIRequest, LLMRequestMixin

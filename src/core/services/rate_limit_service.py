@@ -6,7 +6,6 @@ Provides sliding window rate limiting with per-IP and per-user support.
 
 import time
 from collections import defaultdict
-from datetime import datetime
 from threading import Lock
 from typing import Any, Dict, List, Optional, Tuple
 

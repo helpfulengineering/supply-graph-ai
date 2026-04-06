@@ -7,7 +7,7 @@ in OKH and OKW files.
 
 import logging
 import re
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict
 from uuid import UUID, uuid4
 
 logger = logging.getLogger(__name__)

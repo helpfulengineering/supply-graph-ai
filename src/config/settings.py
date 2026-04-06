@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from src.core.storage.base import StorageConfig
 
+from .auth_constants import AUTH_MODE_HYBRID
 from .llm_config import get_llm_config, is_llm_enabled, validate_llm_config
 from .storage_config import StorageConfigError, get_default_storage_config
 
@@ -171,7 +172,9 @@ if ENVIRONMENT == "production":
     #     )
 
 # Authentication Configuration
-AUTH_MODE = _get_secret_or_env("AUTH_MODE", "hybrid")  # "env", "storage", "hybrid"
+AUTH_MODE = _get_secret_or_env(
+    "AUTH_MODE", AUTH_MODE_HYBRID
+)  # "env", "storage", "hybrid"
 AUTH_ENABLE_STORAGE = _get_secret_or_env("AUTH_ENABLE_STORAGE", "true").lower() in (
     "true",
     "1",

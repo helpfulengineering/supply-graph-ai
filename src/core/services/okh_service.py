@@ -8,8 +8,6 @@ import yaml
 
 from src.config import settings
 
-from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
-
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
 from ..generation.models import PlatformType
@@ -19,7 +17,7 @@ from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
 from ..storage.smart_discovery import FileInfo, SmartFileDiscovery
 from ..utils.logging import get_logger
-from ..validation.context import ValidationContext
+from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
 from .base import BaseService, ServiceConfig
 from .storage_service import StorageService
@@ -438,7 +436,7 @@ class OKHService(BaseService["OKHService"]):
                         "severity": "error",
                         "message": error,
                         "path": [],
-                        "code": "VALIDATION_ERROR",
+                        "code": VALIDATION_ERROR_CODE,
                     }
                     for error in validation_result.errors
                 ]
@@ -447,7 +445,7 @@ class OKHService(BaseService["OKHService"]):
                         "severity": "warning",
                         "message": warning,
                         "path": [],
-                        "code": "VALIDATION_WARNING",
+                        "code": VALIDATION_WARNING_CODE,
                     }
                     for warning in validation_result.warnings
                 ],

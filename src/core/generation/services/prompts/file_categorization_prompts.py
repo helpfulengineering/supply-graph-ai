@@ -6,9 +6,7 @@ The prompts include comprehensive DocumentationType definitions, examples, and d
 """
 
 from pathlib import Path
-from typing import Optional
 
-from ....models.okh import DocumentationType
 from ...models import AnalysisDepth, FileInfo
 from ...utils.file_categorization import FileCategorizationResult
 

@@ -6,12 +6,12 @@ the new validation framework.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from ....models.supply_trees import SupplyTree
 from ....validation.context import ValidationContext
 from ....validation.engine import Validator
-from ....validation.result import ValidationError, ValidationResult, ValidationWarning
+from ....validation.result import ValidationResult
 from ....validation.rules.cooking import CookingValidationRules
 
 

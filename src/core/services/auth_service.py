@@ -15,6 +15,7 @@ import bcrypt
 from fastapi import HTTPException, status
 
 from src.config import settings
+from src.config.auth_constants import AUTH_MODE_ENV, AUTH_MODE_HYBRID, AUTH_MODE_STORAGE
 
 from ..models.auth import APIKey, APIKeyCreate, APIKeyResponse, AuthenticatedUser
 from ..services.storage_service import StorageService
@@ -119,16 +120,16 @@ class AuthenticationService:
             HTTPException with 401 if invalid/expired/revoked
         """
         # Check AUTH_MODE setting to determine which sources to check
-        auth_mode = getattr(settings, "AUTH_MODE", "hybrid")
+        auth_mode = getattr(settings, "AUTH_MODE", AUTH_MODE_HYBRID)
 
         # Check environment variable keys if mode allows
-        if auth_mode in ("env", "hybrid"):
+        if auth_mode in (AUTH_MODE_ENV, AUTH_MODE_HYBRID):
             env_user = self._check_env_keys(token)
             if env_user:
                 return env_user
 
         # Check storage-based keys if mode allows
-        if auth_mode in ("storage", "hybrid"):
+        if auth_mode in (AUTH_MODE_STORAGE, AUTH_MODE_HYBRID):
             if self._auth_storage:
                 try:
                     # List all keys and find matching one

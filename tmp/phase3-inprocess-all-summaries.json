@@ -1,0 +1,756 @@
+{
+  "status": "success",
+  "message": "Matching completed successfully",
+  "timestamp": "2026-04-05T15:22:41.121741",
+  "request_id": "fb6ac39f-9037-46c9-91b8-bfcbede828eb",
+  "data": {
+    "solutions": [
+      {
+        "tree": {
+          "id": "c8ee7f78-0b6c-432a-b1a7-21aeac713c38",
+          "facility_name": "Laser Fabrication Lab",
+          "okh_reference": "14ea636e-a8dc-4872-9eff-5ad859732af1",
+          "okw_reference": "085611ad-30a3-4daf-9900-9892c12995fc",
+          "confidence_score": 1.0,
+          "estimated_cost": null,
+          "estimated_time": null,
+          "materials_required": [
+            "MaterialSpec(material_id='PETG', name='Polyethylene Terephthalate Glycol', quantity=529.55, unit='g', notes='Grade: A')",
+            "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=399.44, unit='m\u00b2', notes='Grade: B')",
+            "MaterialSpec(material_id='ABS', name='Acrylonitrile Butadiene Styrene', quantity=359.21, unit='g', notes='Grade: C')",
+            "MaterialSpec(material_id='FR4', name='FR4 PCB Material', quantity=316.0, unit='m\u00b2', notes=None)"
+          ],
+          "capabilities_used": [
+            "https://en.wikipedia.org/wiki/Laser_cutting",
+            "https://en.wikipedia.org/wiki/Assembly_line"
+          ],
+          "match_type": "direct",
+          "metadata": {
+            "okh_title": "Laser Cut Acrylic Display Case",
+            "facility_name": "Laser Fabrication Lab",
+            "generation_method": "simplified_matching",
+            "domain": "manufacturing",
+            "equipment_count": 2,
+            "process_count": 2,
+            "composite_matching": true,
+            "covered_requirements": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          "creation_time": "2026-04-05T15:22:41.063764",
+          "parent_tree_id": null,
+          "child_tree_ids": [],
+          "component_id": null,
+          "component_name": null,
+          "component_quantity": null,
+          "component_unit": null,
+          "depends_on": [],
+          "required_by": [],
+          "production_stage": "final",
+          "assembly_location": null,
+          "depth": 0,
+          "component_path": []
+        },
+        "facility": {
+          "id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+          "name": "Laser Fabrication Lab",
+          "location": {
+            "address": {
+              "number": "8493",
+              "street": "Walker Orchard",
+              "city": "Jacksonville",
+              "region": "IL",
+              "country": "US",
+              "postcode": "87044"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "directions": "Located behind Jimenez-Becker",
+            "city": "Jacksonville",
+            "country": "US"
+          },
+          "facility_status": "Active",
+          "contact": {
+            "name": "Robinson, Herrera and Taylor",
+            "contact": {
+              "mobile": "+1-792-223-1945",
+              "email": "info@hansen-duncan.com"
+            },
+            "social_media": {
+              "facebook": "https://facebook.com/sarahstone",
+              "twitter": "@reevessuzanne",
+              "other_urls": [
+                "https://perry.com",
+                "https://green.com"
+              ]
+            }
+          },
+          "description": "Laser cutting and engraving with product assembly services",
+          "access_type": "Membership",
+          "equipment": [
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+              "make": "Trotec",
+              "model": "Fusion Pro",
+              "serial_number": "SN254891",
+              "condition": "Needs Maintenance",
+              "notes": "Equipment notes: Direction pick bring nature become store past explain.",
+              "power_rating": 9371,
+              "maintenance_schedule": "Every 12 months",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+                  "manufacturer": "Brand A",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Wood",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Fabric",
+                  "manufacturer": "Brand B",
+                  "brand": "Professional"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Leather",
+                  "brand": "Professional"
+                }
+              ]
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+              "make": "Bosch Rexroth",
+              "model": "Modular Bench",
+              "condition": "Needs Maintenance",
+              "notes": "Equipment notes: Music cultural something do rich.",
+              "quantity": 3,
+              "throughput": "79 parts/hour",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+                  "manufacturer": "Brand B"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Cables",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Connectors"
+                }
+              ]
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+              "make": "Brand B",
+              "model": "Model 206",
+              "condition": "Excellent"
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+              "make": "Brand A",
+              "model": "Model 297",
+              "condition": "Excellent"
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+              "make": "Accudraft",
+              "model": "Downdraft",
+              "condition": "Good",
+              "throughput": "5 parts/hour",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Primer",
+                  "manufacturer": "Generic"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Enamel",
+                  "manufacturer": "Brand A",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+                  "manufacturer": "Premium",
+                  "brand": "Industrial"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+                  "manufacturer": "Brand A",
+                  "brand": "Industrial"
+                }
+              ]
+            }
+          ],
+          "manufacturing_processes": [
+            "https://en.wikipedia.org/wiki/Laser_cutter",
+            "https://en.wikipedia.org/wiki/Assembly_station",
+            "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "https://en.wikipedia.org/wiki/Welder",
+            "https://en.wikipedia.org/wiki/Paint_booth"
+          ],
+          "typical_batch_size": "0 -- 50 units",
+          "floor_size": 2127,
+          "storage_capacity": "711 cubic meters",
+          "typical_materials": [],
+          "certifications": [
+            "ISO 9001:2015",
+            "OHSAS 18001",
+            "NADCAP"
+          ],
+          "road_access": true,
+          "typical_products": [
+            "Right-sized client-driven encryption"
+          ],
+          "human_capacity": {
+            "headcount": 1
+          }
+        },
+        "facility_id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+        "facility_name": "Laser Fabrication Lab",
+        "match_type": "manufacturing",
+        "confidence": 1.0,
+        "score": 1.0,
+        "metrics": {
+          "facility_count": 1,
+          "required_process_count": 7,
+          "covered_process_count": 7
+        },
+        "rank": 1,
+        "processing_timestamp": "2026-04-05T15:22:41.121380"
+      },
+      {
+        "tree": {
+          "id": "d4efd727-26e4-4d71-8c68-5be3ce354923",
+          "facility_name": "Laser Fabrication Lab",
+          "okh_reference": "14ea636e-a8dc-4872-9eff-5ad859732af1",
+          "okw_reference": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+          "confidence_score": 1.0,
+          "estimated_cost": null,
+          "estimated_time": null,
+          "materials_required": [
+            "MaterialSpec(material_id='PETG', name='Polyethylene Terephthalate Glycol', quantity=529.55, unit='g', notes='Grade: A')",
+            "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=399.44, unit='m\u00b2', notes='Grade: B')",
+            "MaterialSpec(material_id='ABS', name='Acrylonitrile Butadiene Styrene', quantity=359.21, unit='g', notes='Grade: C')",
+            "MaterialSpec(material_id='FR4', name='FR4 PCB Material', quantity=316.0, unit='m\u00b2', notes=None)"
+          ],
+          "capabilities_used": [
+            "https://en.wikipedia.org/wiki/Laser_cutting",
+            "https://en.wikipedia.org/wiki/Assembly_line",
+            "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "https://en.wikipedia.org/wiki/Welder",
+            "https://en.wikipedia.org/wiki/Painting"
+          ],
+          "match_type": "direct",
+          "metadata": {
+            "okh_title": "Laser Cut Acrylic Display Case",
+            "facility_name": "Laser Fabrication Lab",
+            "generation_method": "simplified_matching",
+            "domain": "manufacturing",
+            "equipment_count": 5,
+            "process_count": 2,
+            "composite_matching": true,
+            "covered_requirements": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          "creation_time": "2026-04-05T15:22:40.996211",
+          "parent_tree_id": null,
+          "child_tree_ids": [],
+          "component_id": null,
+          "component_name": null,
+          "component_quantity": null,
+          "component_unit": null,
+          "depends_on": [],
+          "required_by": [],
+          "production_stage": "final",
+          "assembly_location": null,
+          "depth": 0,
+          "component_path": []
+        },
+        "facility": {
+          "id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+          "name": "Laser Fabrication Lab",
+          "location": {
+            "address": {
+              "number": "8493",
+              "street": "Walker Orchard",
+              "city": "Jacksonville",
+              "region": "IL",
+              "country": "US",
+              "postcode": "87044"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "directions": "Located behind Jimenez-Becker",
+            "city": "Jacksonville",
+            "country": "US"
+          },
+          "facility_status": "Active",
+          "contact": {
+            "name": "Robinson, Herrera and Taylor",
+            "contact": {
+              "mobile": "+1-792-223-1945",
+              "email": "info@hansen-duncan.com"
+            },
+            "social_media": {
+              "facebook": "https://facebook.com/sarahstone",
+              "twitter": "@reevessuzanne",
+              "other_urls": [
+                "https://perry.com",
+                "https://green.com"
+              ]
+            }
+          },
+          "description": "Laser cutting and engraving with product assembly services",
+          "access_type": "Membership",
+          "equipment": [
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+              "make": "Trotec",
+              "model": "Fusion Pro",
+              "serial_number": "SN254891",
+              "condition": "Needs Maintenance",
+              "notes": "Equipment notes: Direction pick bring nature become store past explain.",
+              "power_rating": 9371,
+              "maintenance_schedule": "Every 12 months",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+                  "manufacturer": "Brand A",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Wood",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Fabric",
+                  "manufacturer": "Brand B",
+                  "brand": "Professional"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Leather",
+                  "brand": "Professional"
+                }
+              ]
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+              "make": "Bosch Rexroth",
+              "model": "Modular Bench",
+              "condition": "Needs Maintenance",
+              "notes": "Equipment notes: Music cultural something do rich.",
+              "quantity": 3,
+              "throughput": "79 parts/hour",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+                  "manufacturer": "Brand B"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Cables",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Connectors"
+                }
+              ]
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+              "make": "Brand B",
+              "model": "Model 206",
+              "condition": "Excellent"
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+              "make": "Brand A",
+              "model": "Model 297",
+              "condition": "Excellent"
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+              "make": "Accudraft",
+              "model": "Downdraft",
+              "condition": "Good",
+              "throughput": "5 parts/hour",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Primer",
+                  "manufacturer": "Generic"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Enamel",
+                  "manufacturer": "Brand A",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+                  "manufacturer": "Premium",
+                  "brand": "Industrial"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+                  "manufacturer": "Brand A",
+                  "brand": "Industrial"
+                }
+              ]
+            }
+          ],
+          "manufacturing_processes": [
+            "https://en.wikipedia.org/wiki/Laser_cutter",
+            "https://en.wikipedia.org/wiki/Assembly_station",
+            "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "https://en.wikipedia.org/wiki/Welder",
+            "https://en.wikipedia.org/wiki/Paint_booth"
+          ],
+          "typical_batch_size": "0 -- 50 units",
+          "floor_size": 2127,
+          "storage_capacity": "711 cubic meters",
+          "typical_materials": [],
+          "certifications": [
+            "ISO 9001:2015",
+            "OHSAS 18001",
+            "NADCAP"
+          ],
+          "road_access": true,
+          "typical_products": [
+            "Right-sized client-driven encryption"
+          ],
+          "human_capacity": {
+            "headcount": 1
+          }
+        },
+        "facility_id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+        "facility_name": "Laser Fabrication Lab",
+        "match_type": "manufacturing",
+        "confidence": 1.0,
+        "score": 1.0,
+        "metrics": {
+          "facility_count": 1,
+          "required_process_count": 7,
+          "covered_process_count": 7
+        },
+        "rank": 2,
+        "processing_timestamp": "2026-04-05T15:22:41.121382"
+      },
+      {
+        "tree": {
+          "id": "9713e26e-52aa-4793-b5c5-88698f55d932",
+          "facility_name": "Laser Fabrication Lab",
+          "okh_reference": "14ea636e-a8dc-4872-9eff-5ad859732af1",
+          "okw_reference": "12ba5643-e1a5-48f5-8739-43ace6521c40",
+          "confidence_score": 1.0,
+          "estimated_cost": null,
+          "estimated_time": null,
+          "materials_required": [
+            "MaterialSpec(material_id='PETG', name='Polyethylene Terephthalate Glycol', quantity=529.55, unit='g', notes='Grade: A')",
+            "MaterialSpec(material_id='Acrylic', name='Acrylic Sheet', quantity=399.44, unit='m\u00b2', notes='Grade: B')",
+            "MaterialSpec(material_id='ABS', name='Acrylonitrile Butadiene Styrene', quantity=359.21, unit='g', notes='Grade: C')",
+            "MaterialSpec(material_id='FR4', name='FR4 PCB Material', quantity=316.0, unit='m\u00b2', notes=None)"
+          ],
+          "capabilities_used": [
+            "https://en.wikipedia.org/wiki/Laser_cutting",
+            "https://en.wikipedia.org/wiki/Assembly_line",
+            "https://en.wikipedia.org/wiki/Machining",
+            "https://en.wikipedia.org/wiki/Deburring",
+            "https://en.wikipedia.org/wiki/Anodizing"
+          ],
+          "match_type": "direct",
+          "metadata": {
+            "okh_title": "Laser Cut Acrylic Display Case",
+            "facility_name": "Laser Fabrication Lab",
+            "generation_method": "simplified_matching",
+            "domain": "manufacturing",
+            "equipment_count": 5,
+            "process_count": 2,
+            "composite_matching": true,
+            "covered_requirements": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          "creation_time": "2026-04-05T15:22:41.121084",
+          "parent_tree_id": null,
+          "child_tree_ids": [],
+          "component_id": null,
+          "component_name": null,
+          "component_quantity": null,
+          "component_unit": null,
+          "depends_on": [],
+          "required_by": [],
+          "production_stage": "final",
+          "assembly_location": null,
+          "depth": 0,
+          "component_path": []
+        },
+        "facility": {
+          "id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+          "name": "Laser Fabrication Lab",
+          "location": {
+            "address": {
+              "number": "8493",
+              "street": "Walker Orchard",
+              "city": "Jacksonville",
+              "region": "IL",
+              "country": "US",
+              "postcode": "87044"
+            },
+            "gps_coordinates": "30.3262247, -81.6579179",
+            "directions": "Located behind Jimenez-Becker",
+            "city": "Jacksonville",
+            "country": "US"
+          },
+          "facility_status": "Active",
+          "contact": {
+            "name": "Robinson, Herrera and Taylor",
+            "contact": {
+              "mobile": "+1-792-223-1945",
+              "email": "info@hansen-duncan.com"
+            },
+            "social_media": {
+              "facebook": "https://facebook.com/sarahstone",
+              "twitter": "@reevessuzanne",
+              "other_urls": [
+                "https://perry.com",
+                "https://green.com"
+              ]
+            }
+          },
+          "description": "Laser cutting and engraving with product assembly services",
+          "access_type": "Membership",
+          "equipment": [
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+              "make": "Trotec",
+              "model": "Fusion Pro",
+              "serial_number": "SN254891",
+              "condition": "Needs Maintenance",
+              "notes": "Equipment notes: Direction pick bring nature become store past explain.",
+              "power_rating": 9371,
+              "maintenance_schedule": "Every 12 months",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+                  "manufacturer": "Brand A",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Wood",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Fabric",
+                  "manufacturer": "Brand B",
+                  "brand": "Professional"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Leather",
+                  "brand": "Professional"
+                }
+              ]
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+              "make": "Bosch Rexroth",
+              "model": "Modular Bench",
+              "condition": "Needs Maintenance",
+              "notes": "Equipment notes: Music cultural something do rich.",
+              "quantity": 3,
+              "throughput": "79 parts/hour",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+                  "manufacturer": "Brand B"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Cables",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Connectors"
+                }
+              ]
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+              "make": "Brand B",
+              "model": "Model 206",
+              "condition": "Excellent"
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Welder",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Welder",
+              "make": "Brand A",
+              "model": "Model 297",
+              "condition": "Excellent"
+            },
+            {
+              "equipment_type": "https://en.wikipedia.org/wiki/Paint_booth",
+              "manufacturing_process": "https://en.wikipedia.org/wiki/Painting",
+              "make": "Accudraft",
+              "model": "Downdraft",
+              "condition": "Good",
+              "throughput": "5 parts/hour",
+              "materials_worked": [
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Primer",
+                  "manufacturer": "Generic"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Enamel",
+                  "manufacturer": "Brand A",
+                  "brand": "Standard"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Powder_coat",
+                  "manufacturer": "Premium",
+                  "brand": "Industrial"
+                },
+                {
+                  "material_type": "https://en.wikipedia.org/wiki/Epoxy",
+                  "manufacturer": "Brand A",
+                  "brand": "Industrial"
+                }
+              ]
+            }
+          ],
+          "manufacturing_processes": [
+            "https://en.wikipedia.org/wiki/Laser_cutter",
+            "https://en.wikipedia.org/wiki/Assembly_station",
+            "https://en.wikipedia.org/wiki/Sheet_metal_brake",
+            "https://en.wikipedia.org/wiki/Welder",
+            "https://en.wikipedia.org/wiki/Paint_booth"
+          ],
+          "typical_batch_size": "0 -- 50 units",
+          "floor_size": 2127,
+          "storage_capacity": "711 cubic meters",
+          "typical_materials": [],
+          "certifications": [
+            "ISO 9001:2015",
+            "OHSAS 18001",
+            "NADCAP"
+          ],
+          "road_access": true,
+          "typical_products": [
+            "Right-sized client-driven encryption"
+          ],
+          "human_capacity": {
+            "headcount": 1
+          }
+        },
+        "facility_id": "8bdf8ad3-6c0b-489a-af1e-296f8b270b26",
+        "facility_name": "Laser Fabrication Lab",
+        "match_type": "manufacturing",
+        "confidence": 1.0,
+        "score": 1.0,
+        "metrics": {
+          "facility_count": 1,
+          "required_process_count": 7,
+          "covered_process_count": 7
+        },
+        "rank": 3,
+        "processing_timestamp": "2026-04-05T15:22:41.121383"
+      }
+    ],
+    "total_solutions": 3,
+    "matching_mode": "single-level",
+    "processing_time": 9.683843,
+    "matching_metrics": {
+      "direct_matches": 3,
+      "heuristic_matches": 0,
+      "nlp_matches": 0,
+      "llm_matches": 0
+    },
+    "validation_results": [
+      {
+        "is_valid": true,
+        "score": 1.0,
+        "errors": [],
+        "warnings": [],
+        "suggestions": []
+      },
+      {
+        "is_valid": true,
+        "score": 1.0,
+        "errors": [],
+        "warnings": [],
+        "suggestions": []
+      },
+      {
+        "is_valid": true,
+        "score": 1.0,
+        "errors": [],
+        "warnings": [],
+        "suggestions": []
+      }
+    ],
+    "match_summary": {
+      "matching_mode": "single-level",
+      "solution_count": 3,
+      "required_process_count": 7,
+      "covered_process_count": 7,
+      "coverage_ratio": 1.0,
+      "facility_combination_requested": true,
+      "facility_combination_applied": false,
+      "max_facilities_per_solution": 3,
+      "return_alternative_solutions": true,
+      "combination_strategy": "greedy",
+      "coverage_gap_counts": {},
+      "warnings": [
+        "Facility-combination mode was requested but no composite solution was returned."
+      ]
+    },
+    "coverage_gaps": [],
+    "match_summary_text": "mode=single-level solutions=3 coverage=7/7 (1.0) combinations_requested=True combinations_applied=False",
+    "human_summary": {
+      "executive": "3 candidate solution(s) found; coverage 7/7 (1.000).",
+      "technical": "mode=single-level; solutions=3; covered_processes=7/7; facility_combinations=requested:True,applied:False",
+      "detailed": [
+        "Top facilities: Laser Fabrication Lab (confidence=1.00); Laser Fabrication Lab (confidence=1.00); Laser Fabrication Lab (confidence=1.00)",
+        "Warnings: Facility-combination mode was requested but no composite solution was returned."
+      ]
+    }
+  },
+  "metadata": {
+    "processing_time": 9.684215068817139,
+    "timestamp": "2026-04-05T15:22:41.121746"
+  }
+}

@@ -19,9 +19,7 @@ for file processing, text analysis, and confidence calculation.
 
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from ..models import FieldGeneration, FileInfo
 from ..models import GenerationLayer as LayerType

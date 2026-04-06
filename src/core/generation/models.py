@@ -22,7 +22,6 @@ Key Components:
 """
 
 import logging
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
@@ -31,13 +30,11 @@ logger = logging.getLogger(__name__)
 from typing import (
     TYPE_CHECKING,
     Any,
-    Callable,
     Dict,
     Generic,
     List,
     Optional,
     TypeVar,
-    Union,
 )
 
 if TYPE_CHECKING:
@@ -1188,7 +1185,6 @@ class ManifestGeneration:
         Returns:
             Valid UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
         """
-        import hashlib
 
         from ..validation.uuid_validator import UUIDValidator
 

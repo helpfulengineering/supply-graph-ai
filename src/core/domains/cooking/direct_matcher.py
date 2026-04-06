@@ -5,11 +5,10 @@ This module implements the CookingDirectMatcher for the cooking domain,
 providing specialized direct matching for ingredients, equipment, and techniques.
 """
 
-import re
 from typing import Any, Dict, List, Set
 
 from ...matching.direct_matcher import DirectMatcher
-from ...matching.layers.base import MatchingResult, MatchMetadata, MatchQuality
+from ...matching.layers.base import MatchingResult
 
 
 class CookingDirectMatcher(DirectMatcher):

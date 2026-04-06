@@ -80,8 +80,8 @@ pip install -e .
 # Verify installation
 ohm --help
 
-# Start the API server with hot-reload
-python run.py
+# Start the API server (recommended)
+docker compose up --build ohm-api
 
 # Or use uvicorn directly for more control
 uvicorn src.core.main:app --reload --host 0.0.0.0 --port 8001
@@ -191,7 +191,7 @@ supply-graph-ai/
 │   └── ohm                 # Development CLI entrypoint (fallback)
 ├── pyproject.toml          # Package configuration (creates 'ohm' command via pip install -e .)
 ├── requirements.txt        # Project dependencies
-└── run.py                  # FastAPI server on uvicorn
+└── docker-compose.yml      # Local service orchestration
 ```
 
 ## Running the Application
@@ -222,7 +222,7 @@ Note: You may need to add a directory called "logs" locally if the command below
 
 ```bash
 # Start the FastAPI server
-python run.py
+docker compose up --build ohm-api
 
 # Visit the API documentation at:
 # http://127.0.0.1:8001/v1/docs

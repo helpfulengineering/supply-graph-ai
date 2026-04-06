@@ -6,14 +6,13 @@ that integrates with the new validation framework.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from ....models.base.base_types import Capability, Requirement
 from ....models.okw import ManufacturingFacility
 from ....taxonomy import taxonomy
 from ....validation.context import ValidationContext
 from ....validation.engine import Validator
-from ....validation.result import ValidationError, ValidationResult, ValidationWarning
+from ....validation.result import ValidationResult
 from ....validation.rules.manufacturing import ManufacturingValidationRules
 
 

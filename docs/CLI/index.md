@@ -943,6 +943,7 @@ You can also explicitly specify the domain using the `--domain` option.
 - `--combination-strategy [greedy]` - Composite solver strategy
 - `--no-alternative-solutions` - Return only the top composite solution
 - `--explain` - Include structured and human-readable per-solution explanations in output
+- `--human-summary` - Include multi-level human-readable summaries in output
 - `--output, -o TEXT` - Output file path
 - `--use-llm` - Enable LLM integration for enhanced matching
 - `--llm-provider [anthropic|openai|google|azure|local]` - LLM provider
@@ -955,6 +956,8 @@ You can also explicitly specify the domain using the `--domain` option.
 
 **Verbose behavior note:**
 - In `match requirements`, `--verbose` automatically enables explanation output (equivalent to `--explain`) so diagnostics are consistently shown during interactive debugging.
+- In `match requirements`, `--verbose` also enables human-readable multi-level summaries (equivalent to `--human-summary`).
+- In non-JSON output, `match requirements` prints **Guidance** lines when API suggestions are present; `--verbose` shows all guidance items and machine-readable suggestion codes.
 
 **Examples:**
 ```bash
@@ -999,6 +1002,9 @@ The command displays matching facilities with:
 - Match type (manufacturing or cooking)
 - Location (if available)
 - Structured summary metadata (`match_summary`, `coverage_gaps`) in JSON mode
+- Structured guidance metadata (`suggestions`, `suggestion_codes`) in JSON mode
+- Multi-level human summary object (`human_summary`) in JSON mode when requested
+- In non-JSON mode, guidance is printed as a compact preview and expanded in verbose mode
 
 **Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ohm okw get` to retrieve facility details.
 

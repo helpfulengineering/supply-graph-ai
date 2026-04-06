@@ -16,19 +16,22 @@ from fastapi import (
     UploadFile,
     status,
 )
-from pydantic import Field
 
 from ...models.okw import ManufacturingFacility
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
+from ..constants.client_errors import (
+    ERROR_NO_FILE_PROVIDED,
+    ERROR_UNSUPPORTED_YAML_JSON_FILE,
+    format_invalid_file_format_detail,
+)
+from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
-    api_endpoint,
     paginated_response,
     track_performance,
-    validate_request,
 )
-from ..error_handlers import create_error_response, create_success_response
+from ..error_handlers import create_error_response
 
 # Import new standardized components
 from ..models.base import (
@@ -55,12 +58,7 @@ logger = get_logger(__name__)
 # Create router with standardized patterns
 router = APIRouter(
     tags=["okw"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_422_500,
 )
 
 
@@ -1051,13 +1049,13 @@ async def upload_okw_file(
     try:
         # Validate file type
         if not okw_file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
+            raise HTTPException(status_code=400, detail=ERROR_NO_FILE_PROVIDED)
 
         file_extension = okw_file.filename.lower().split(".")[-1]
         if file_extension not in ["yaml", "yml", "json"]:
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported file type. Please upload a YAML (.yaml, .yml) or JSON (.json) file",
+                detail=ERROR_UNSUPPORTED_YAML_JSON_FILE,
             )
 
         # Read and parse the file content
@@ -1071,7 +1069,7 @@ async def upload_okw_file(
                 okw_data = yaml.safe_load(content_str)
         except (json.JSONDecodeError, yaml.YAMLError) as e:
             raise HTTPException(
-                status_code=400, detail=f"Invalid file format: {str(e)}"
+                status_code=400, detail=format_invalid_file_format_detail(e)
             )
 
         # Convert to ManufacturingFacility

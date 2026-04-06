@@ -21,6 +21,7 @@ from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
+from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -75,12 +76,7 @@ async def get_okw_service() -> OKWService:
 router = APIRouter(
     prefix="/api/supply-tree",
     tags=["supply-tree"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_422_500,
 )
 
 # Note: Enhanced models have been consolidated into the base models in request.py and response.py

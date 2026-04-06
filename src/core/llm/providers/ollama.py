@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
-from ..models.requests import LLMRequest, LLMRequestConfig
+from ..models.requests import LLMRequest
 from ..models.responses import LLMResponse, LLMResponseMetadata, LLMResponseStatus
 from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
-from uuid import UUID, uuid4
+from uuid import UUID
 
 # Cooking-specific fields that distinguish a kitchen file from a manufacturing
 # facility file.  At least one of these keys must be present for a JSON blob

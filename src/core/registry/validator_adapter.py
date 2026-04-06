@@ -10,9 +10,7 @@ from typing import TYPE_CHECKING, Optional
 from ..models.base.base_types import BaseValidator, Capability, Requirement
 
 if TYPE_CHECKING:
-    from ..validation.context import ValidationContext
     from ..validation.engine import Validator as ValidationEngineValidator
-    from ..validation.result import ValidationResult
 
 
 class ValidatorAdapter(BaseValidator):

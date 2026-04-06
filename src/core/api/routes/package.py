@@ -4,17 +4,15 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse
-from pydantic import Field
-
-from src.config import settings
 
 # Import existing models and services
 from ...models.okh import OKHManifest
-from ...models.package import BuildOptions, PackageMetadata
+from ...models.package import BuildOptions
 from ...packaging.remote_storage import PackageRemoteStorage
 from ...services.okh_service import OKHService
 from ...services.package_service import PackageService
 from ...utils.logging import get_logger
+from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -28,7 +26,6 @@ from ..error_handlers import create_error_response, create_success_response
 from ..models.base import (
     PaginatedResponse,
     PaginationParams,
-    SuccessResponse,
     ValidationResult,
 )
 
@@ -39,12 +36,10 @@ from ..models.package.request import (
     PackagePushRequest,
 )
 from ..models.package.response import (
-    PackageListResponse,
     PackageMetadataResponse,
     PackagePullResponse,
     PackagePushResponse,
     PackageResponse,
-    PackageVerificationResponse,
 )
 
 logger = get_logger(__name__)
@@ -53,12 +48,7 @@ logger = get_logger(__name__)
 router = APIRouter(
     prefix="/api/package",
     tags=["package"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_422_500,
 )
 
 

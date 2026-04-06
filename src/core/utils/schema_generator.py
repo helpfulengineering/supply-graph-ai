@@ -6,15 +6,14 @@ using Pydantic's schema generation capabilities.
 """
 
 import inspect
-from dataclasses import MISSING, dataclass, fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass
 from datetime import date, datetime
 from enum import Enum
 from typing import Any, Dict, Optional, Type
 from uuid import UUID
 
 try:
-    from pydantic import TypeAdapter, create_model
-    from pydantic.json_schema import JsonSchemaValue
+    from pydantic import TypeAdapter
 except ImportError:
     raise ImportError(
         "Pydantic is required for schema generation. Install with: pip install pydantic"

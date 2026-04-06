@@ -16,6 +16,11 @@ from fastapi.responses import JSONResponse
 # MetricsTracker is available but not currently used in decorators
 # from ..errors.metrics import MetricsTracker
 from ..utils.logging import get_logger
+from .constants.headers import (
+    HEADER_RATE_LIMIT_LIMIT,
+    HEADER_RATE_LIMIT_REMAINING,
+    HEADER_RATE_LIMIT_RESET,
+)
 from .error_handlers import create_error_response
 from .models.base import APIStatus, PaginatedResponse, PaginationInfo, PaginationParams
 
@@ -110,13 +115,13 @@ def api_endpoint(
                     response = JSONResponse(
                         status_code=status.HTTP_200_OK, content=response_data
                     )
-                    response.headers["X-RateLimit-Limit"] = str(
+                    response.headers[HEADER_RATE_LIMIT_LIMIT] = str(
                         rate_limit_info["limit"]
                     )
-                    response.headers["X-RateLimit-Remaining"] = str(
+                    response.headers[HEADER_RATE_LIMIT_REMAINING] = str(
                         rate_limit_info["remaining"]
                     )
-                    response.headers["X-RateLimit-Reset"] = str(
+                    response.headers[HEADER_RATE_LIMIT_RESET] = str(
                         rate_limit_info["reset_time"]
                     )
                     return response
@@ -371,8 +376,6 @@ def cache_response(ttl_seconds: int = 300, cache_key_prefix: str = None):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            import hashlib
-            import json
 
             from ..services.cache_service import get_cache_service
 
@@ -522,11 +525,13 @@ def rate_limit(requests_per_minute: int = 60, per_user: bool = False):
                 )
 
                 # Add rate limit headers
-                response.headers["X-RateLimit-Limit"] = str(rate_limit_info["limit"])
-                response.headers["X-RateLimit-Remaining"] = str(
+                response.headers[HEADER_RATE_LIMIT_LIMIT] = str(
+                    rate_limit_info["limit"]
+                )
+                response.headers[HEADER_RATE_LIMIT_REMAINING] = str(
                     rate_limit_info["remaining"]
                 )
-                response.headers["X-RateLimit-Reset"] = str(
+                response.headers[HEADER_RATE_LIMIT_RESET] = str(
                     rate_limit_info["reset_time"]
                 )
 
@@ -542,11 +547,13 @@ def rate_limit(requests_per_minute: int = 60, per_user: bool = False):
 
             # Add rate limit headers to response if it's already a JSONResponse
             if isinstance(result, JSONResponse):
-                result.headers["X-RateLimit-Limit"] = str(rate_limit_info["limit"])
-                result.headers["X-RateLimit-Remaining"] = str(
+                result.headers[HEADER_RATE_LIMIT_LIMIT] = str(rate_limit_info["limit"])
+                result.headers[HEADER_RATE_LIMIT_REMAINING] = str(
                     rate_limit_info["remaining"]
                 )
-                result.headers["X-RateLimit-Reset"] = str(rate_limit_info["reset_time"])
+                result.headers[HEADER_RATE_LIMIT_RESET] = str(
+                    rate_limit_info["reset_time"]
+                )
             # If result is a dict, api_endpoint decorator will handle headers via request.state.rate_limit_info
 
             return result

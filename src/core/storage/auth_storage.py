@@ -11,6 +11,7 @@ from uuid import UUID
 
 from ..models.auth import APIKey
 from ..services.storage_service import StorageService
+from .constants import AUTH_API_KEYS_PREFIX, STORAGE_OBJECT_TYPE_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ class AuthStorage:
             storage_service: StorageService instance for persistence
         """
         self.storage_service = storage_service
-        self._storage_prefix = "auth/api-keys"
+        self._storage_prefix = AUTH_API_KEYS_PREFIX
 
     async def save_key(self, key: APIKey) -> None:
         """
@@ -57,7 +58,11 @@ class AuthStorage:
             key=storage_key,
             data=data,
             content_type="application/json",
-            metadata={"type": "api_key", "key_id": str(key.key_id), "name": key.name},
+            metadata={
+                "type": STORAGE_OBJECT_TYPE_API_KEY,
+                "key_id": str(key.key_id),
+                "name": key.name,
+            },
         )
 
     async def load_key(self, key_id: UUID) -> Optional[APIKey]:

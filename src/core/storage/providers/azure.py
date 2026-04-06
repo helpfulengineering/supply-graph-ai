@@ -42,7 +42,7 @@ class AzureBlobProvider(StorageProvider):
         if not self._connected:
             try:
                 # Lazy import Azure modules to avoid memory leaks
-                from azure.storage.blob.aio import BlobServiceClient, ContainerClient
+                from azure.storage.blob.aio import BlobServiceClient
 
                 # Get credentials from config
                 account_name = self.config.credentials.get("account_name")

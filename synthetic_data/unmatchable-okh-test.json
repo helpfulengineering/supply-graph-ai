@@ -1,0 +1,19 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "22222222-2222-2222-2222-222222222222",
+  "title": "Unmatchable OKH Test Fixture",
+  "repo": "https://github.com/example/unmatchable-okh-test",
+  "version": "0.1.0",
+  "license": {
+    "hardware": "MIT"
+  },
+  "licensor": {
+    "name": "OHM Test Fixture"
+  },
+  "documentation_language": "en",
+  "function": "Fixture intentionally requiring unsupported process.",
+  "manufacturing_processes": [
+    "quantum_lithography"
+  ],
+  "tsdc": []
+}

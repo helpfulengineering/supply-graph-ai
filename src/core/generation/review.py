@@ -16,10 +16,10 @@ Key Features:
 
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from ..models.okh import OKHManifest
-from .models import FieldGeneration, GenerationLayer, ManifestGeneration, ProjectData
+from .models import FieldGeneration, GenerationLayer, ManifestGeneration
 
 
 @dataclass

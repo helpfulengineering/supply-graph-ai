@@ -7,13 +7,12 @@ logging, and performance monitoring across all API endpoints.
 
 import time
 import uuid
-from datetime import datetime
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-from ..errors.metrics import MetricsTracker
 from ..utils.logging import get_logger
+from .constants.headers import HEADER_PROCESSING_TIME, HEADER_REQUEST_ID
 
 # Set up logging
 logger = get_logger(__name__)
@@ -88,8 +87,8 @@ class RequestTrackingMiddleware(BaseHTTPMiddleware):
                 )
 
             # Add request ID to response headers
-            response.headers["X-Request-ID"] = request_id
-            response.headers["X-Processing-Time"] = str(processing_time)
+            response.headers[HEADER_REQUEST_ID] = request_id
+            response.headers[HEADER_PROCESSING_TIME] = str(processing_time)
 
             return response
 

@@ -1,0 +1,57 @@
+{
+  "status": "success",
+  "message": "Matching completed successfully",
+  "timestamp": "2026-04-05T23:20:45.591629",
+  "request_id": "065fc5a0-8b01-46e9-890f-4b432cc37fb6",
+  "data": {
+    "solutions": [],
+    "total_solutions": 0,
+    "matching_mode": "single-level",
+    "processing_time": 4.595357,
+    "matching_metrics": {
+      "direct_matches": 0,
+      "heuristic_matches": 0,
+      "nlp_matches": 0,
+      "llm_matches": 0
+    },
+    "validation_results": [],
+    "match_summary": {
+      "matching_mode": "single-level",
+      "solution_count": 0,
+      "required_process_count": 7,
+      "covered_process_count": 0,
+      "coverage_ratio": 0.0,
+      "facility_combination_requested": false,
+      "facility_combination_applied": false,
+      "max_facilities_per_solution": 3,
+      "return_alternative_solutions": true,
+      "combination_strategy": "greedy",
+      "coverage_gap_counts": {
+        "LASER": 6,
+        "Assembly": 1
+      },
+      "warnings": []
+    },
+    "coverage_gaps": [
+      "LASER",
+      "Assembly"
+    ],
+    "match_summary_text": "mode=single-level solutions=0 coverage=0/7 (0.0) combinations_requested=False combinations_applied=False",
+    "suggestions": [
+      "No facilities were available for matching. Verify storage connectivity, or provide facilities directly via `okw_facilities`.",
+      "No matching solutions were found. Try relaxing filters (location/access/status) or lowering confidence thresholds.",
+      "Coverage gaps detected: LASER, Assembly. Add facilities supporting these processes or broaden the candidate pool.",
+      "Enable facility aggregation with `allow_facility_combinations=true` to improve aggregate process coverage."
+    ],
+    "suggestion_codes": [
+      "NO_FACILITIES_AVAILABLE",
+      "NO_MATCHING_SOLUTIONS",
+      "COVERAGE_GAPS_DETECTED",
+      "ENABLE_FACILITY_COMBINATIONS"
+    ]
+  },
+  "metadata": {
+    "processing_time": 4.596081495285034,
+    "timestamp": "2026-04-05T23:20:45.591638"
+  }
+}

@@ -121,6 +121,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
             {
                 "sla",
                 "sla printing",
+                "sla printer",
                 "stereolithography",
             }
         ),
@@ -317,6 +318,7 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "wel",
                 "welding",
                 "weld",
+                "welder",
             }
         ),
     ),

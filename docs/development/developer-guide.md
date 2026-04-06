@@ -44,7 +44,7 @@ cp .env.example .env
 # AZURE_STORAGE_CONTAINER=okw
 
 # Start the development server
-python run.py
+docker compose up --build ohm-api
 ```
 
 ### Verify Installation

@@ -3,7 +3,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from ....models.okh import OKHManifest
 from ..base import BaseAPIRequest, LLMRequestMixin
 
 
@@ -88,6 +87,13 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
     include_explanation: Optional[bool] = Field(
         False,
         description="Include per-facility match explanations (which layer/rule matched each requirement).",
+    )
+    include_human_summary: Optional[bool] = Field(
+        False,
+        description=(
+            "Include multi-level human-readable summaries in the response. "
+            "When enabled, the API returns executive, technical, and detailed summary views."
+        ),
     )
 
     # Facility-combination controls (API-first, Phase 1)
@@ -214,6 +220,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
                 "max_depth": 0,  # 0 = single-level, > 0 = nested matching
                 "auto_detect_depth": False,
                 "include_validation": True,
+                "include_human_summary": False,
                 "allow_facility_combinations": False,
                 "max_facilities_per_solution": 3,
                 "return_alternative_solutions": True,

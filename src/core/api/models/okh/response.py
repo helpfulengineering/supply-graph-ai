@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from ..base import LLMResponseMixin, SuccessResponse
 from ..base import ValidationResult as BaseValidationResult

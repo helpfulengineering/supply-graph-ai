@@ -3,11 +3,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 from ..domains.cooking.models import KitchenCapability
-from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
 from ..models.okw import ManufacturingFacility
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
-from ..validation.context import ValidationContext
+from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
 from .base import BaseService, ServiceConfig
 from .storage_service import StorageService
@@ -461,7 +460,7 @@ class OKWService(BaseService["OKWService"]):
                         "severity": "error",
                         "message": error,
                         "path": [],
-                        "code": "VALIDATION_ERROR",
+                        "code": VALIDATION_ERROR_CODE,
                     }
                     for error in validation_result.errors
                 ]
@@ -470,7 +469,7 @@ class OKWService(BaseService["OKWService"]):
                         "severity": "warning",
                         "message": warning,
                         "path": [],
-                        "code": "VALIDATION_WARNING",
+                        "code": VALIDATION_WARNING_CODE,
                     }
                     for warning in validation_result.warnings
                 ],

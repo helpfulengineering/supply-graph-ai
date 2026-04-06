@@ -5,15 +5,15 @@ This module provides API endpoints for LLM service monitoring and discovery.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
-from ...llm.providers.base import LLMProviderType
 from ...llm.service import LLMService
 from ...utils.logging import get_logger
+from ..constants.openapi import RESPONSES_400_401_500
 from ..decorators import api_endpoint
-from ..error_handlers import create_error_response, create_success_response
+from ..error_handlers import create_error_response
 from ..models.llm.response import (
     LLMHealthResponse,
     LLMProvidersResponse,
@@ -27,11 +27,7 @@ logger = get_logger(__name__)
 router = APIRouter(
     prefix="/api/llm",
     tags=["llm"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_500,
 )
 
 

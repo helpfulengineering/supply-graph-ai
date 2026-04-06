@@ -34,7 +34,6 @@ from .models import (
     LayerConfig,
     ManifestGeneration,
     ProjectData,
-    QualityReport,
 )
 from .quality import QualityAssessor
 
@@ -1506,7 +1505,6 @@ Review all components and return the JSON response."""
         - Partial JSON extraction
         """
         import json
-        import re
 
         try:
             # Step 1: Extract JSON from response (handle markdown code blocks and other formats)
@@ -1579,7 +1577,6 @@ Review all components and return the JSON response."""
         4. First/last brace matching
         5. Truncated JSON recovery
         """
-        import re
 
         content = response_content.strip()
 

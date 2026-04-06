@@ -1,7 +1,6 @@
 import asyncio
 import json
 import logging
-from datetime import datetime
 from typing import Any, AsyncIterator, Dict, List, Optional
 
 from ..base import StorageConfig, StorageMetadata, StorageProvider
@@ -99,7 +98,6 @@ class GCSProvider(StorageProvider):
 
                 # Verify bucket exists (blocking I/O)
                 # Use retry logic with exponential backoff for network issues
-                import time
 
                 max_retries = 3
                 retry_delay = 2  # seconds

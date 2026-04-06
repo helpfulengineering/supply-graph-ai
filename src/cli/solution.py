@@ -6,10 +6,7 @@ including save, load, list, delete, check (staleness), extend (TTL), and cleanup
 """
 
 import json
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, Optional
-from uuid import UUID
+from typing import Optional
 
 import click
 

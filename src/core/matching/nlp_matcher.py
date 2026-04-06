@@ -12,12 +12,11 @@ The implementation uses spaCy for semantic similarity and entity recognition,
 following the same pattern as the generation system's NLP layer.
 """
 
-import asyncio
 import logging
 import re
 import warnings
 from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 # Import spaCy for NLP processing
 try:

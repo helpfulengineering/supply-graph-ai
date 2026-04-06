@@ -15,6 +15,8 @@ from fastapi.responses import StreamingResponse
 from ...models.okh import OKHManifest
 from ...services.datasheet_converter import DatasheetConversionError, DatasheetConverter
 from ...utils.logging import get_logger
+from ..constants.client_errors import ERROR_NO_FILE_PROVIDED
+from ..constants.openapi import RESPONSES_400_422_500
 from ..error_handlers import create_error_response
 from ..models.convert.request import ConvertToDatasheetRequest
 from ..models.convert.response import ConvertFromDatasheetResponse
@@ -24,11 +26,7 @@ logger = get_logger(__name__)
 router = APIRouter(
     prefix="/api/convert",
     tags=["convert"],
-    responses={
-        400: {"description": "Bad Request"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_422_500,
 )
 
 
@@ -184,7 +182,7 @@ async def convert_from_datasheet(
         if not datasheet_file.filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No file provided",
+                detail=ERROR_NO_FILE_PROVIDED,
             )
 
         if not datasheet_file.filename.lower().endswith(".docx"):

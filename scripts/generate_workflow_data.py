@@ -32,8 +32,8 @@ from core.models.okh import (
 )
 from core.models.okw import ManufacturingFacility
 
-# Import from synth directory (same directory as this script)
-from synth.generate_synthetic_data import OKHGenerator, OKWGenerator
+# Import synthetic generators from scripts package
+from scripts.generate_synthetic_data import OKHGenerator, OKWGenerator
 
 
 def generate_workflow1_okh(okh_gen: OKHGenerator) -> OKHManifest:

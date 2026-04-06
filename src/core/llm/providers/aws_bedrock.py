@@ -7,9 +7,8 @@ from multiple providers (Anthropic Claude, Meta Llama, Amazon Titan, etc.)
 through AWS infrastructure.
 """
 
-import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -21,7 +20,7 @@ try:
 except ImportError:
     BOTO3_AVAILABLE = False
 
-from ..models.requests import LLMRequest, LLMRequestConfig
+from ..models.requests import LLMRequest
 from ..models.responses import LLMResponse, LLMResponseMetadata, LLMResponseStatus
 from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 

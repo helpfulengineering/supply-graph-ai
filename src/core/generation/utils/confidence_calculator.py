@@ -7,9 +7,7 @@ across all generation layers, ensuring consistent quality assessment.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
-
-from ..models import GenerationLayer
+from typing import Any, Dict, Optional
 
 
 class ConfidenceLevel(Enum):

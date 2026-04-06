@@ -5,7 +5,6 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    Path,
     Query,
     Request,
     Response,
@@ -14,6 +13,7 @@ from fastapi import (
 
 from ...errors.metrics import get_metrics_tracker
 from ...utils.logging import get_logger
+from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
     api_endpoint,
     cache_response,
@@ -21,14 +21,14 @@ from ..decorators import (
     rate_limit,
     track_performance,
 )
-from ..error_handlers import create_error_response, create_success_response
+from ..error_handlers import create_error_response
 
 # Import new standardized components
 from ..models.base import ErrorCode, ErrorDetail, ValidationResult
 
 # Import consolidated utility models
 from ..models.utility.request import ContextFilterRequest, DomainFilterRequest
-from ..models.utility.response import Context, ContextsResponse, Domain, DomainsResponse
+from ..models.utility.response import Context, ContextsResponse, Domain
 
 # Set up logging
 logger = get_logger(__name__)
@@ -37,12 +37,7 @@ logger = get_logger(__name__)
 router = APIRouter(
     prefix="/api/utility",
     tags=["utility"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_422_500,
 )
 
 

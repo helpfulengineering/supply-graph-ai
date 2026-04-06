@@ -8,7 +8,7 @@ with fallback to environment variables for local development and Cloud Run/ECS.
 import logging
 import os
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 
