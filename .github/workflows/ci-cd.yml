@@ -104,6 +104,42 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: false
 
+  contract-stability:
+    name: Contract Stability Guardrails
+    runs-on: ubuntu-latest
+    needs: quality
+    env:
+      ENVIRONMENT: test
+      LOG_LEVEL: INFO
+      STORAGE_PROVIDER: local
+      LLM_ENABLED: false
+      RUN_AZURE_CHAIN_TESTS: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-timeout
+
+      - name: Run contract stability suite
+        run: |
+          pytest \
+            tests/api/test_match_phase1_contract.py \
+            tests/api/test_relationship_endpoints.py \
+            tests/api/test_solution_management_endpoints.py \
+            tests/cli/test_match_cli_guidance.py \
+            tests/cli/test_solution_commands.py \
+            -m "not llm and not quarantine" \
+            --maxfail=1
+
   security:
     name: Security (dependency and static checks)
     runs-on: ubuntu-latest

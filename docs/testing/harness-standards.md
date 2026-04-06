@@ -79,6 +79,7 @@ CI runs lanes separately in `.github/workflows/ci-cd.yml`:
 - unit lane
 - contract lane
 - integration lane
+- contract stability guardrail suite (focused high-risk API/CLI contract files)
 
 ## Maintenance Cadence
 

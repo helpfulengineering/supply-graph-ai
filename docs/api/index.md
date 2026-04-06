@@ -54,6 +54,8 @@ For production deployments, [authentication](auth.md) can be enabled to secure A
 - **Advanced Filtering**: Filter OKW facilities by location, capabilities, access type, and facility status
 - **Domain-Specific Extraction**: Uses registered domain extractors for requirements and capabilities
 - **Supply Tree Generation**: Creates complete manufacturing solutions with confidence scoring
+- **Role-Oriented Human Summaries**: Supports `human_summary_profile` (`balanced`, `executive`, `analyst`) for progressive disclosure in match responses
+- **Deterministic Key Insights**: Match responses can include stable `key_insights` buckets (`risks`, `opportunities`, `recommendations`) when `include_human_summary` is enabled
 
 #### API Endpoints (53 total - Fully Standardized)
 - **Match Routes (7)**: Enhanced matching with multiple input methods, filtering, and LLM support
@@ -73,6 +75,7 @@ For production deployments, [authentication](auth.md) can be enabled to secure A
 - **Consistent Error Responses**: All routes use `create_error_response` and `create_success_response`
 - **Helpful Error Messages**: Clear, actionable error messages with suggestions
 - **Request Tracking**: All responses include request IDs for debugging
+- **Standard Success Envelope**: High-traffic endpoints return `status`, `message`, `timestamp`, `request_id`, `data`, and optional `metadata`
 - **Validation Errors**: validation with field-specific error reporting
 
 #### Documentation & Developer Experience

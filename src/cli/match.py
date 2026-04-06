@@ -168,6 +168,13 @@ def match_group():
     default=False,
     help="Include multi-level human-readable summaries in match output.",
 )
+@click.option(
+    "--human-summary-profile",
+    type=click.Choice(["balanced", "executive", "analyst"]),
+    default="balanced",
+    show_default=True,
+    help="Summary profile used when --human-summary is enabled.",
+)
 @standard_cli_command(
     help_text="""
     Match requirements to capabilities (supports both manufacturing and cooking domains).
@@ -274,6 +281,7 @@ async def requirements(
     solution_tags: Optional[str] = None,
     include_explanation: bool = False,
     include_human_summary: bool = False,
+    human_summary_profile: str = "balanced",
 ):
     """Match OKH requirements to OKW capabilities with enhanced LLM support."""
     cli_ctx = ctx.obj
@@ -283,6 +291,8 @@ async def requirements(
     if verbose and not include_explanation:
         include_explanation = True
     if (verbose or cli_ctx.verbose) and not include_human_summary:
+        include_human_summary = True
+    if human_summary_profile != "balanced" and not include_human_summary:
         include_human_summary = True
 
     # Update CLI context with parameters from decorator
@@ -342,6 +352,7 @@ async def requirements(
             "auto_detect_depth": auto_detect_depth,
             "include_explanation": include_explanation,
             "include_human_summary": include_human_summary,
+            "human_summary_profile": human_summary_profile,
             "allow_facility_combinations": allow_facility_combinations,
             "max_facilities_per_solution": max_facilities_per_solution,
             "combination_strategy": combination_strategy,
@@ -1442,6 +1453,41 @@ def _build_guidance_lines(
     return lines
 
 
+def _build_human_summary_lines(
+    human_summary: Dict[str, Any], verbose: bool
+) -> List[str]:
+    """Build deterministic CLI lines for human_summary output."""
+    lines: List[str] = []
+    executive = human_summary.get("executive")
+    technical = human_summary.get("technical")
+    detailed = human_summary.get("detailed", [])
+    profile = human_summary.get("profile")
+    insights = human_summary.get("key_insights", {})
+
+    if executive:
+        lines.append(f"\nSummary: {executive}")
+
+    if verbose and isinstance(profile, str) and profile:
+        lines.append(f"Summary profile: {profile}")
+
+    if verbose and technical:
+        lines.append(f"Technical: {technical}")
+
+    if verbose and isinstance(detailed, list):
+        for item in detailed:
+            lines.append(f" - {item}")
+
+    if verbose and isinstance(insights, dict):
+        for bucket in ("risks", "opportunities", "recommendations"):
+            entries = insights.get(bucket)
+            if isinstance(entries, list) and entries:
+                lines.append(f"{bucket.capitalize()}:")
+                for entry in entries:
+                    lines.append(f" - {entry}")
+
+    return lines
+
+
 async def _display_match_results(
     cli_ctx: CLIContext,
     result: Dict[str, Any],
@@ -1498,16 +1544,12 @@ async def _display_match_results(
             click.echo(output_data)
     else:
         if isinstance(human_summary, dict):
-            executive = human_summary.get("executive")
-            technical = human_summary.get("technical")
-            detailed = human_summary.get("detailed", [])
-            if executive:
-                click.echo(f"\nSummary: {executive}")
-            if cli_ctx.verbose and technical:
-                click.echo(f"Technical: {technical}")
-            if cli_ctx.verbose and isinstance(detailed, list):
-                for item in detailed:
-                    click.echo(f" - {item}")
+            summary_lines = _build_human_summary_lines(
+                human_summary=human_summary,
+                verbose=bool(cli_ctx.verbose),
+            )
+            for line in summary_lines:
+                click.echo(line)
         elif isinstance(match_summary, dict):
             # Progressive disclosure: always show a compact summary line,
             # then reveal deeper diagnostics when verbose mode is enabled.
