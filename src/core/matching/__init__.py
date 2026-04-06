@@ -43,6 +43,12 @@ from .layers.base import (
     MatchQuality,
 )
 from .llm_matcher import LLMMatcher
+from .match_modes import (
+    MATCH_MODE_FACILITY_COMBINATION,
+    MATCH_MODE_NESTED,
+    MATCH_MODE_SINGLE_LEVEL,
+    MATCH_MODES,
+)
 from .nlp_matcher import NLPMatcher
 
 __all__ = [
@@ -57,6 +63,11 @@ __all__ = [
     "HeuristicMatcher",
     "NLPMatcher",
     "LLMMatcher",
+    # Matching mode constants
+    "MATCH_MODE_SINGLE_LEVEL",
+    "MATCH_MODE_NESTED",
+    "MATCH_MODE_FACILITY_COMBINATION",
+    "MATCH_MODES",
     # Capability rules components
     "CapabilityRule",
     "CapabilityRuleSet",

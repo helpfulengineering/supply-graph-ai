@@ -15,6 +15,7 @@ from ....core.taxonomy import (
     taxonomy,
     validate_definitions,
 )
+from ..constants.openapi import RESPONSES_400_500
 from ...utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -22,10 +23,7 @@ logger = get_logger(__name__)
 router = APIRouter(
     prefix="/api/taxonomy",
     tags=["taxonomy"],
-    responses={
-        400: {"description": "Bad Request"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_500,
 )
 
 

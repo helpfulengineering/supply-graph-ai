@@ -18,6 +18,7 @@ from ...matching.import_export_service import ImportExportService
 from ...matching.rules_service import RulesService
 from ...matching.validation import ValidationService
 from ...utils.logging import get_logger
+from ..constants.openapi import RESPONSES_400_401_404_422_500
 from ..decorators import api_endpoint, track_performance
 from ..error_handlers import create_success_response
 
@@ -47,13 +48,7 @@ logger = get_logger(__name__)
 router = APIRouter(
     prefix="/api/match/rules",
     tags=["rules"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        404: {"description": "Not Found"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_404_422_500,
 )
 
 

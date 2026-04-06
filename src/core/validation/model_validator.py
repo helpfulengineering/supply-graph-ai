@@ -18,6 +18,16 @@ from typing import Any, Dict, List, Optional
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger
+from .error_codes import VALIDATION_ERROR_CODE
+from .okh_metadata_codes import (
+    METADATA_CODE_DUPLICATE_DATA,
+    METADATA_CODE_EXCESSIVE_SIZE,
+    METADATA_CODE_FORMAT_ERROR,
+    METADATA_CODE_MISPLACED_DATA,
+    METADATA_CODE_TYPO,
+    METADATA_CODE_UNKNOWN_FIELD,
+    format_metadata_warning,
+)
 
 logger = get_logger(__name__)
 
@@ -76,7 +86,7 @@ class ModelValidationResult:
             score = max(0.5, 1.0 - (len(self.warnings) * 0.1))
 
         error_details = [
-            ErrorDetail(message=error, code="VALIDATION_ERROR", field=None)
+            ErrorDetail(message=error, code=VALIDATION_ERROR_CODE, field=None)
             for error in self.errors
         ]
 
@@ -641,11 +651,17 @@ def _validate_okh_metadata(
             materials_count = len(manifest_dict.get("materials", []))
             if bom_atoms_count > 0 and materials_count == 0:
                 result.add_warning(
-                    f"[METADATA_MISPLACED_DATA] metadata.original.bom_atoms contains {bom_atoms_count} items that should be in the top-level 'materials' field"
+                    format_metadata_warning(
+                        METADATA_CODE_MISPLACED_DATA,
+                        f"metadata.original.bom_atoms contains {bom_atoms_count} items that should be in the top-level 'materials' field",
+                    )
                 )
             elif bom_atoms_count > 0:
                 result.add_warning(
-                    f"[METADATA_DUPLICATE_DATA] metadata.original.bom_atoms contains {bom_atoms_count} items that duplicate or should replace data in 'materials' field"
+                    format_metadata_warning(
+                        METADATA_CODE_DUPLICATE_DATA,
+                        f"metadata.original.bom_atoms contains {bom_atoms_count} items that duplicate or should replace data in 'materials' field",
+                    )
                 )
 
         # Check for tool_list_atoms that should be in tool_list field
@@ -656,17 +672,26 @@ def _validate_okh_metadata(
             tool_list_count = len(manifest_dict.get("tool_list", []))
             if tool_atoms_count > 0 and tool_list_count == 0:
                 result.add_warning(
-                    f"[METADATA_MISPLACED_DATA] metadata.original.tool_list_atoms contains {tool_atoms_count} items that should be in the top-level 'tool_list' field"
+                    format_metadata_warning(
+                        METADATA_CODE_MISPLACED_DATA,
+                        f"metadata.original.tool_list_atoms contains {tool_atoms_count} items that should be in the top-level 'tool_list' field",
+                    )
                 )
             elif tool_atoms_count > 0:
                 result.add_warning(
-                    f"[METADATA_DUPLICATE_DATA] metadata.original.tool_list_atoms contains {tool_atoms_count} items that duplicate or should replace data in 'tool_list' field"
+                    format_metadata_warning(
+                        METADATA_CODE_DUPLICATE_DATA,
+                        f"metadata.original.tool_list_atoms contains {tool_atoms_count} items that duplicate or should replace data in 'tool_list' field",
+                    )
                 )
 
         # Check for product_atom (unclear purpose, may be misplaced)
         if "product_atom" in original:
             result.add_warning(
-                "[METADATA_UNKNOWN_FIELD] metadata.original.product_atom is present but its purpose is unclear. Consider using standard OKH fields instead"
+                format_metadata_warning(
+                    METADATA_CODE_UNKNOWN_FIELD,
+                    "metadata.original.product_atom is present but its purpose is unclear. Consider using standard OKH fields instead",
+                )
             )
 
             # Check for typos in product_atom
@@ -674,17 +699,26 @@ def _validate_okh_metadata(
             if isinstance(product_atom, dict):
                 if "descroption" in product_atom:
                     result.add_warning(
-                        "[METADATA_TYPO] metadata.original.product_atom has typo: 'descroption' should be 'description'"
+                        format_metadata_warning(
+                            METADATA_CODE_TYPO,
+                            "metadata.original.product_atom has typo: 'descroption' should be 'description'",
+                        )
                     )
                 if "Link" in product_atom:
                     result.add_warning(
-                        "[METADATA_FORMAT_ERROR] metadata.original.product_atom has wrong case: 'Link' should be 'link' (lowercase)"
+                        format_metadata_warning(
+                            METADATA_CODE_FORMAT_ERROR,
+                            "metadata.original.product_atom has wrong case: 'Link' should be 'link' (lowercase)",
+                        )
                     )
 
         # Check for bom_output_atoms (unclear purpose)
         if "bom_output_atoms" in original:
             result.add_warning(
-                "[METADATA_UNKNOWN_FIELD] metadata.original.bom_output_atoms is present but its purpose is unclear. Consider using standard OKH fields instead"
+                format_metadata_warning(
+                    METADATA_CODE_UNKNOWN_FIELD,
+                    "metadata.original.bom_output_atoms is present but its purpose is unclear. Consider using standard OKH fields instead",
+                )
             )
 
             # Check for typos in bom_output_atoms
@@ -692,30 +726,45 @@ def _validate_okh_metadata(
             if isinstance(bom_output, dict):
                 if "descroption" in bom_output:
                     result.add_warning(
-                        "[METADATA_TYPO] metadata.original.bom_output_atoms has typo: 'descroption' should be 'description'"
+                        format_metadata_warning(
+                            METADATA_CODE_TYPO,
+                            "metadata.original.bom_output_atoms has typo: 'descroption' should be 'description'",
+                        )
                     )
                 if "Link" in bom_output:
                     result.add_warning(
-                        "[METADATA_FORMAT_ERROR] metadata.original.bom_output_atoms has wrong case: 'Link' should be 'link' (lowercase)"
+                        format_metadata_warning(
+                            METADATA_CODE_FORMAT_ERROR,
+                            "metadata.original.bom_output_atoms has wrong case: 'Link' should be 'link' (lowercase)",
+                        )
                     )
 
         # Check for maintenance_instructions in metadata (should be top-level)
         if "maintenance_instructions" in original:
             result.add_warning(
-                "[METADATA_MISPLACED_DATA] metadata.original.maintenance_instructions should be in the top-level 'operating_instructions' or 'making_instructions' field"
+                format_metadata_warning(
+                    METADATA_CODE_MISPLACED_DATA,
+                    "metadata.original.maintenance_instructions should be in the top-level 'operating_instructions' or 'making_instructions' field",
+                )
             )
 
         # Check for standards_used_original (should be top-level)
         if "standards_used_original" in original:
             result.add_warning(
-                "[METADATA_MISPLACED_DATA] metadata.original.standards_used_original should be in the top-level 'standards_used' field"
+                format_metadata_warning(
+                    METADATA_CODE_MISPLACED_DATA,
+                    "metadata.original.standards_used_original should be in the top-level 'standards_used' field",
+                )
             )
 
     # Check for excessive metadata size (may indicate data should be in proper fields)
     metadata_str = json.dumps(metadata)
     if len(metadata_str) > 5000:  # More than 5KB of metadata
         result.add_warning(
-            f"[METADATA_EXCESSIVE_SIZE] metadata field is very large ({len(metadata_str)} bytes). Consider moving data to appropriate top-level fields"
+            format_metadata_warning(
+                METADATA_CODE_EXCESSIVE_SIZE,
+                f"metadata field is very large ({len(metadata_str)} bytes). Consider moving data to appropriate top-level fields",
+            )
         )
 
 

@@ -17,10 +17,26 @@ from ..domains.cooking.models import KitchenCapability
 from ..models.okh import MaterialSpec, OKHManifest
 from ..models.okw import ManufacturingFacility
 from ..utils.logging import get_logger
+from .auto_fix_policy import (
+    DATA_MOVEMENT_CONFIDENCE,
+    FIELD_ADDITION_ARRAY_DEFAULTS,
+    FIELD_ADDITION_CONFIDENCE,
+    FIELD_ADDITION_OBJECT_DEFAULTS,
+    FIX_WARNING_CODE_MISSING_FIELD,
+    FIX_WARNING_CODE_MISSING_RECOMMENDED_FIELD,
+    FIX_WARNING_CODE_PARSE_ERROR,
+)
 from .model_validator import (
     ModelValidationResult,
     validate_okh_manifest,
     validate_okw_facility,
+)
+from .okh_metadata_codes import (
+    METADATA_CODE_DUPLICATE_DATA,
+    METADATA_CODE_FORMAT_ERROR,
+    METADATA_CODE_MISPLACED_DATA,
+    METADATA_CODE_TYPO,
+    METADATA_CODE_UNKNOWN_FIELD,
 )
 
 ValidationResult = ModelValidationResult  # local alias for this module
@@ -149,7 +165,7 @@ def auto_fix_okh_manifest(
                 description=f"Failed to parse content as OKHManifest: {str(e)}",
                 field_path="",
                 confidence=0.0,
-                warning_code="PARSE_ERROR",
+                warning_code=FIX_WARNING_CODE_PARSE_ERROR,
             )
         )
         # Return original content if parsing fails
@@ -245,23 +261,23 @@ def _parse_warnings_to_fixes(
         field_path = field_match.group(0) if field_match else ""
 
         # Parse based on code type
-        if code == "METADATA_TYPO":
+        if code == METADATA_CODE_TYPO:
             fix = _parse_typo_fix(warning, code, field_path)
             if fix:
                 fixes.append(fix)
-        elif code == "METADATA_FORMAT_ERROR":
+        elif code == METADATA_CODE_FORMAT_ERROR:
             fix = _parse_case_error_fix(warning, code, field_path)
             if fix:
                 fixes.append(fix)
-        elif code == "METADATA_MISPLACED_DATA":
+        elif code == METADATA_CODE_MISPLACED_DATA:
             fix = _parse_data_movement_fix(warning, code, field_path)
             if fix:
                 fixes.append(fix)
-        elif code == "METADATA_DUPLICATE_DATA":
+        elif code == METADATA_CODE_DUPLICATE_DATA:
             fix = _parse_data_movement_fix(warning, code, field_path)
             if fix:
                 fixes.append(fix)
-        elif code == "METADATA_UNKNOWN_FIELD":
+        elif code == METADATA_CODE_UNKNOWN_FIELD:
             fix = _parse_field_removal_fix(warning, code, field_path)
             if fix:
                 fixes.append(fix)
@@ -285,48 +301,45 @@ def _parse_warnings_to_fixes(
 
 def _create_field_addition_fix(field_name: str, is_required: bool) -> Optional[Fix]:
     """Create a field addition fix for a missing field"""
-    # For array/list fields, we can add an empty list
-    array_fields = {
-        "manufacturing_processes": [],
-        "equipment": [],
-        "typical_materials": [],
-        "certifications": [],
-        "affiliations": [],
-        "tool_list": [],
-        "materials": [],
-        "parts": [],
-    }
-
-    # For complex object fields, we can create minimal placeholder objects
-    object_fields = {"contact": {"name": "Contact information needed", "contact": {}}}
-
-    if field_name in array_fields:
+    if field_name in FIELD_ADDITION_ARRAY_DEFAULTS:
         # Low confidence because we're just adding empty arrays
         # User should fill in the actual values
-        confidence = 0.3 if is_required else 0.2
+        confidence = (
+            FIELD_ADDITION_CONFIDENCE["array_required"]
+            if is_required
+            else FIELD_ADDITION_CONFIDENCE["array_recommended"]
+        )
         return Fix(
             type="field_addition",
             description=f"Add empty '{field_name}' field ({'required' if is_required else 'recommended'})",
             field_path=field_name,
             old_value=None,
-            new_value=array_fields[field_name],
+            new_value=FIELD_ADDITION_ARRAY_DEFAULTS[field_name],
             confidence=confidence,
             warning_code=(
-                "MISSING_FIELD" if is_required else "MISSING_RECOMMENDED_FIELD"
+                FIX_WARNING_CODE_MISSING_FIELD
+                if is_required
+                else FIX_WARNING_CODE_MISSING_RECOMMENDED_FIELD
             ),
         )
-    elif field_name in object_fields:
+    elif field_name in FIELD_ADDITION_OBJECT_DEFAULTS:
         # Very low confidence for object fields since they need user input
-        confidence = 0.2 if is_required else 0.1
+        confidence = (
+            FIELD_ADDITION_CONFIDENCE["object_required"]
+            if is_required
+            else FIELD_ADDITION_CONFIDENCE["object_recommended"]
+        )
         return Fix(
             type="field_addition",
             description=f"Add placeholder '{field_name}' field ({'required' if is_required else 'recommended'})",
             field_path=field_name,
             old_value=None,
-            new_value=object_fields[field_name],
+            new_value=FIELD_ADDITION_OBJECT_DEFAULTS[field_name],
             confidence=confidence,
             warning_code=(
-                "MISSING_FIELD" if is_required else "MISSING_RECOMMENDED_FIELD"
+                FIX_WARNING_CODE_MISSING_FIELD
+                if is_required
+                else FIX_WARNING_CODE_MISSING_RECOMMENDED_FIELD
             ),
         )
 
@@ -394,7 +407,7 @@ def _parse_data_movement_fix(warning: str, code: str, field_path: str) -> Option
     # Determine confidence based on code
     # MISPLACED_DATA: data should be moved (high confidence)
     # DUPLICATE_DATA: data duplicates existing (medium confidence, but still worth fixing)
-    confidence = 0.9 if code == "METADATA_MISPLACED_DATA" else 0.75
+    confidence = DATA_MOVEMENT_CONFIDENCE.get(code, DATA_MOVEMENT_CONFIDENCE["default"])
 
     return Fix(
         type="data_movement",
@@ -612,7 +625,7 @@ def _apply_field_removal_fix_to_manifest(manifest: OKHManifest, fix: Fix) -> Non
     if last_field in obj:
         # For unknown fields (METADATA_UNKNOWN_FIELD), always remove
         # since their purpose is unclear and they shouldn't be in the manifest
-        if fix.warning_code == "METADATA_UNKNOWN_FIELD":
+        if fix.warning_code == METADATA_CODE_UNKNOWN_FIELD:
             del obj[last_field]
             return
 
@@ -692,7 +705,7 @@ def auto_fix_okw_facility(
                 description=f"Failed to parse content as ManufacturingFacility: {str(e)}",
                 field_path="",
                 confidence=0.0,
-                warning_code="PARSE_ERROR",
+                warning_code=FIX_WARNING_CODE_PARSE_ERROR,
             )
         )
         # Return original content if parsing fails
@@ -795,7 +808,7 @@ def auto_fix_kitchen_capability(
                 description=f"Failed to parse content as KitchenCapability: {str(e)}",
                 field_path="",
                 confidence=0.0,
-                warning_code="PARSE_ERROR",
+                warning_code=FIX_WARNING_CODE_PARSE_ERROR,
             )
         )
         report.remaining_errors = 1

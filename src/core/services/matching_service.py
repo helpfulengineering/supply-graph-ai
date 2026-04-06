@@ -6,6 +6,10 @@ from src.config.settings import MAX_DEPTH
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
 from ..matching.capability_rules import CapabilityMatcher, CapabilityRuleManager
+from ..matching.match_modes import (
+    MATCH_MODE_FACILITY_COMBINATION,
+    MATCH_MODE_NESTED,
+)
 from ..matching.nlp_matcher import NLPMatcher
 from ..models.bom import Component
 from ..models.component_match import ComponentMatch
@@ -469,7 +473,7 @@ class MatchingService:
                     "covered_process_count": len(covered_union),
                 },
                 metadata={
-                    "matching_mode": "facility-combination",
+                    "matching_mode": MATCH_MODE_FACILITY_COMBINATION,
                     "combination_strategy": combination_strategy,
                     "coverage_ratio": round(coverage_ratio, 3),
                     "coverage_gaps": coverage_gaps,
@@ -2118,7 +2122,7 @@ class MatchingService:
                         score=0.0,
                         metrics={},
                         metadata={
-                            "matching_mode": "nested",
+                            "matching_mode": MATCH_MODE_NESTED,
                             "warning": "No components found in BOM for nested matching",
                             "suggestion": "Try single-level matching (max_depth=0) or ensure BOM has components",
                         },
@@ -2323,7 +2327,7 @@ class MatchingService:
                     score=0.0,
                     metrics={},
                     metadata={
-                        "matching_mode": "nested",
+                        "matching_mode": MATCH_MODE_NESTED,
                         "error": str(e),
                         "error_type": type(e).__name__,
                         "suggestion": "Try single-level matching (max_depth=0) or check BOM data availability",

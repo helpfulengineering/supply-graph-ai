@@ -35,8 +35,15 @@ from ...services.matching_service import MatchingService
 from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
+from ...matching.match_modes import MATCH_MODE_NESTED, MATCH_MODE_SINGLE_LEVEL
 from ...utils.logging import get_logger
 from ...utils.match_human_summary import build_match_human_summary
+from ..constants.client_errors import (
+    ERROR_NO_FILE_PROVIDED,
+    ERROR_UNSUPPORTED_YAML_JSON_FILE,
+    format_invalid_file_format_detail,
+)
+from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -57,12 +64,7 @@ from ..models.match.suggestion_codes import MATCH_SUGGESTION_CODES
 # Create consolidated router
 router = APIRouter(
     tags=["match"],
-    responses={
-        400: {"description": "Bad Request"},
-        401: {"description": "Unauthorized"},
-        422: {"description": "Validation Error"},
-        500: {"description": "Internal Server Error"},
-    },
+    responses=RESPONSES_400_401_422_500,
 )
 
 logger = get_logger(__name__)
@@ -319,7 +321,7 @@ async def match_requirements_to_capabilities(
             response_data = {
                 "solutions": solutions,
                 "total_solutions": len(solutions),
-                "matching_mode": "single-level",
+                "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                 "processing_time": processing_time,
                 "matching_metrics": {
                     "direct_matches": len(
@@ -365,7 +367,7 @@ async def match_requirements_to_capabilities(
                 required_processes=required_processes,
                 matched_processes=matched_processes,
                 solution_count=len(solutions),
-                matching_mode="single-level",
+                matching_mode=MATCH_MODE_SINGLE_LEVEL,
                 request=request,
                 composite_applied=composite_applied,
                 warnings=summary_warnings,
@@ -394,7 +396,7 @@ async def match_requirements_to_capabilities(
                 "Match summary generated",
                 extra={
                     "request_id": request_id,
-                    "matching_mode": "single-level",
+                    "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                     "solution_count": len(solutions),
                     "coverage_ratio": match_summary.get("coverage_ratio"),
                     "coverage_gaps": coverage_gaps,
@@ -421,7 +423,7 @@ async def match_requirements_to_capabilities(
                         metrics=best_solution_dict.get("metrics", {}),
                         metadata={
                             "okh_id": str(request.okh_id) if request.okh_id else None,
-                            "matching_mode": "single-level",
+                            "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                         },
                     )
 
@@ -747,13 +749,13 @@ async def match_requirements_from_file(
     try:
         # Validate file type
         if not okh_file.filename:
-            raise HTTPException(status_code=400, detail="No file provided")
+            raise HTTPException(status_code=400, detail=ERROR_NO_FILE_PROVIDED)
 
         file_extension = okh_file.filename.lower().split(".")[-1]
         if file_extension not in ["yaml", "yml", "json"]:
             raise HTTPException(
                 status_code=400,
-                detail="Unsupported file type. Please upload a YAML (.yaml, .yml) or JSON (.json) file",
+                detail=ERROR_UNSUPPORTED_YAML_JSON_FILE,
             )
 
         # Read and parse the file content
@@ -767,7 +769,7 @@ async def match_requirements_from_file(
                 okh_data = yaml.safe_load(content_str)
         except (json.JSONDecodeError, yaml.YAMLError) as e:
             raise HTTPException(
-                status_code=400, detail=f"Invalid file format: {str(e)}"
+                status_code=400, detail=format_invalid_file_format_detail(e)
             )
 
         # Convert to OKHManifest
@@ -1522,7 +1524,7 @@ async def _format_nested_response(
 
     response_data = {
         "solution": solution_dict,
-        "matching_mode": "nested",
+        "matching_mode": MATCH_MODE_NESTED,
         "processing_time": processing_time,
     }
 
@@ -1534,7 +1536,7 @@ async def _format_nested_response(
         required_processes=required_processes or [],
         matched_processes=matched_processes,
         solution_count=1 if solution else 0,
-        matching_mode="nested",
+        matching_mode=MATCH_MODE_NESTED,
         request=request,
         composite_applied=False,
     )

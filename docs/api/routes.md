@@ -1232,13 +1232,25 @@ The endpoint returns a wrapped response with the following structure:
 - `coverage_gaps`: Uncovered process requirements, if any
 - `match_summary_text`: Human-readable rendering of `match_summary` (for logs and quick inspection)
 - `suggestions`: Actionable follow-up guidance for common match outcomes (no facilities loaded, no solutions, uncovered process gaps, or combination fallback)
-- `suggestion_codes`: Machine-readable suggestion identifiers aligned to `suggestions` (e.g., `NO_FACILITIES_AVAILABLE`, `COMBINATION_NOT_APPLIED`)
+- `suggestion_codes`: Machine-readable suggestion identifiers aligned to `suggestions`
+  - Current canonical values:
+    - `NO_FACILITIES_AVAILABLE`
+    - `NO_MATCHING_SOLUTIONS`
+    - `COVERAGE_GAPS_DETECTED`
+    - `COMBINATION_NOT_APPLIED`
+    - `ENABLE_FACILITY_COMBINATIONS`
 - `human_summary`: Optional multi-level human-readable summary object (enabled with `include_human_summary=true`)
   - `human_summary.executive`: Non-technical one-line overview
   - `human_summary.technical`: Compact practitioner-oriented summary
   - `human_summary.detailed`: List of detailed bullet items (gaps, warnings, top facilities)
   - `match_summary.coverage_gap_counts`: Multiplicity of each uncovered requirement
   - `match_summary.warnings`: Non-fatal warnings (e.g. composite fallback to single-facility matching)
+
+**Canonical contract constants for maintainers:**
+- Match suggestion codes: `src/core/api/models/match/suggestion_codes.py`
+- Match mode identifiers: `src/core/matching/match_modes.py`
+- Validation issue codes: `src/core/validation/error_codes.py`
+- API response/header constants: `src/core/api/constants/openapi.py`, `src/core/api/constants/headers.py`
 
 **Status:**  **Fully Implemented** - **Complete matching engine with Azure Blob Storage integration**
 

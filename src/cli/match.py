@@ -15,6 +15,7 @@ import yaml
 
 from ..core.models.base.base_types import NormalizedCapabilities
 from ..core.models.okh import OKHManifest
+from ..core.matching.match_modes import MATCH_MODE_NESTED, MATCH_MODE_SINGLE_LEVEL
 from ..core.registry.domain_registry import DomainRegistry
 from ..core.services.matching_service import MatchingService
 from .base import (
@@ -599,14 +600,14 @@ async def requirements(
                             solution_dicts[0] if solution_dicts else {}
                         ),  # Best solution for API compatibility
                         "total_solutions": total_trees,  # Count trees found
-                        "matching_mode": "nested",
+                        "matching_mode": MATCH_MODE_NESTED,
                         "processing_time": 0.0,  # Fallback doesn't track time
                     }
                     if include_human_summary:
                         result["human_summary"] = {
                             "executive": f"{total_trees} nested tree match(es) found.",
                             "technical": (
-                                f"mode=nested; solutions={len(solution_dicts)}; "
+                                f"mode={MATCH_MODE_NESTED}; solutions={len(solution_dicts)}; "
                                 f"total_trees={total_trees}"
                             ),
                             "detailed": [],
@@ -677,7 +678,7 @@ async def requirements(
                                         if hasattr(manifest, "id")
                                         else None
                                     ),
-                                    "matching_mode": "single-level",
+                                    "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                                 },
                             )
 
@@ -716,7 +717,7 @@ async def requirements(
                         result = {
                             "solutions": solution_dicts,
                             "total_solutions": len(results_list),
-                            "matching_mode": "single-level",
+                            "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                         }
                         if include_human_summary:
                             result["human_summary"] = {
@@ -724,7 +725,7 @@ async def requirements(
                                     f"{len(results_list)} candidate solution(s) found."
                                 ),
                                 "technical": (
-                                    f"mode=single-level; solutions={len(results_list)}"
+                                    f"mode={MATCH_MODE_SINGLE_LEVEL}; solutions={len(results_list)}"
                                 ),
                                 "detailed": [],
                             }
@@ -743,7 +744,7 @@ async def requirements(
                         return {
                             "solutions": [],
                             "total_solutions": 0,
-                            "matching_mode": "single-level",
+                            "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                             "message": "No matching facilities found",
                         }
             elif detected_domain == "cooking":

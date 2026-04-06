@@ -182,12 +182,14 @@ test-data/
 temp_matching_context/
 temp_context/
 projects/
+tmp/
 
 #cursor files
 .cursorrules
 
 # credentials
 service-account.json
+
 # Test repo clones (populated during 1.3.1 generation testing; deleted manually when done)
 tests/data/okh_generation/clones/
 .llm_chunk_cache/*
