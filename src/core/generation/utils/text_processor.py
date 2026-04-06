@@ -7,7 +7,7 @@ text cleaning, license extraction, version detection, and content classification
 
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 
 
 @dataclass

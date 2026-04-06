@@ -16,19 +16,17 @@ The LLM layer uses a prompt engineering strategy for:
 - Confidence scoring with detailed reasoning
 """
 
-import asyncio
 import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from ..services.base import ServiceStatus
 from .layers.base import (
     BaseMatchingLayer,
     MatchingLayer,
     MatchingResult,
-    MatchMetadata,
     MatchQuality,
 )
 

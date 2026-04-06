@@ -3,7 +3,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from ....models.okh import OKHManifest
 from ..base import BaseAPIRequest, LLMRequestMixin
 
 

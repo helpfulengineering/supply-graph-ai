@@ -6,20 +6,17 @@ This module provides CLI commands for setting up and managing the storage system
 
 import asyncio
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 from uuid import uuid4
 
 from src.core.utils.logging import get_logger
 
 from ..config.storage_config import (
     StorageConfig,
-    StorageConfigError,
     create_storage_config,
 )
 from ..core.services.storage_service import StorageService
-from ..core.storage.manager import StorageManager
 from ..core.storage.organizer import StorageOrganizer
 from ..core.storage.smart_discovery import SmartFileDiscovery
 

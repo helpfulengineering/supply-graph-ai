@@ -5,17 +5,15 @@ This module provides metrics collection for errors,
 performance, and LLM operations with real-time monitoring capabilities.
 """
 
-import asyncio
 import logging
 import threading
-import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from .exceptions import ErrorCategory, ErrorSeverity, LLMError
+from .exceptions import ErrorCategory, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 

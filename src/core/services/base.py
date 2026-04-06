@@ -17,13 +17,12 @@ All services inherit from BaseService and must implement the required abstract m
 """
 
 import asyncio
-import logging
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+from typing import Any, Dict, Generic, List, Optional, TypeVar
 
 from ..utils.logging import get_logger
 

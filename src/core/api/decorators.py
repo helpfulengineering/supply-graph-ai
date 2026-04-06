@@ -376,8 +376,6 @@ def cache_response(ttl_seconds: int = 300, cache_key_prefix: str = None):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            import hashlib
-            import json
 
             from ..services.cache_service import get_cache_service
 

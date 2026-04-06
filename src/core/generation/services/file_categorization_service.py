@@ -12,7 +12,6 @@ import hashlib
 import json
 import logging
 import re
-from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
 from ...llm.models.requests import LLMRequestConfig, LLMRequestType

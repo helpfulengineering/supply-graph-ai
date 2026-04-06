@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import ConfigDict
 
 from ..base import BaseAPIRequest, LLMRequestMixin
 

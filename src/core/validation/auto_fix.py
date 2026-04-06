@@ -8,10 +8,9 @@ All fixes are applied through the canonical dataclass models (OKHManifest, Manuf
 KitchenCapability) to ensure consistency and proper validation.
 """
 
-import copy
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 
 from ..domains.cooking.models import KitchenCapability
 from ..models.okh import MaterialSpec, OKHManifest

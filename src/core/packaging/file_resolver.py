@@ -1,16 +1,17 @@
 import asyncio
 import hashlib
+import inspect
 import logging
 import mimetypes
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from urllib.parse import urljoin, urlparse
 
 import aiofiles
 import aiohttp
 
-from ..models.okh import DocumentationType, DocumentRef
+from ..models.okh import DocumentRef
 from ..models.package import DownloadOptions, FileInfo, ResolvedFile
 
 logger = logging.getLogger(__name__)
@@ -72,7 +73,9 @@ class FileResolver:
                             # Close the connector to stop accepting new connections
                             if not self.session._connector.closed:
                                 logger.debug("Closing aiohttp connector")
-                                self.session._connector.close()
+                                close_result = self.session._connector.close()
+                                if inspect.isawaitable(close_result):
+                                    await close_result
                         except Exception as e:
                             logger.warning(f"Error closing connector: {e}")
 

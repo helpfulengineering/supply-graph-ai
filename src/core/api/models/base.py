@@ -8,9 +8,8 @@ to ensure consistency across the Open Hardware Manager API.
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class APIStatus(str, Enum):

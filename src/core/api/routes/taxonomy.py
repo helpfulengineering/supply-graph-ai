@@ -5,7 +5,7 @@ Provides endpoints to query and reload the canonical manufacturing
 process taxonomy at runtime.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, status
 

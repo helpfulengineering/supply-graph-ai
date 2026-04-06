@@ -4,9 +4,9 @@ Request models for Rules API endpoints.
 These models define the request structures for rules management operations.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
 from ..base import BaseAPIRequest
 

@@ -1,7 +1,7 @@
 # Open Hardware Manager (OHM) - Project Roadmap
 
 **Document Status**: Living Document  
-**Last Updated**: January 22, 2026  
+**Last Updated**: April 6, 2026  
 **Purpose**: Strategic roadmap for OHM development as the project transitions from solo development to collaborative team development.
 
 ---
@@ -15,6 +15,20 @@ This roadmap focuses on maturing OHM from a working prototype to a production-gr
 3. **Human-Centered Design**: Making OHM data legible and actionable for humans
 4. **Architectural Separation**: Extracting business logic into a dedicated service
 5. **Federated Network**: Enabling distributed, eventually-consistent design synchronization
+
+---
+
+## Current Implementation Status (April 2026)
+
+- **Phase 1**: Complete (quality baseline and core e2e coverage established).
+- **Phase 2**: Complete for demo-readiness scope (prompt tuning, confidence metadata, matching enhancements, hardening, integration/regression pass).
+- **Phase 3.1**: In progress with major API/CLI slices implemented:
+  - Multi-level human summaries (`executive`, `technical`, `detailed`) for match responses
+  - API request/response controls for summary inclusion
+  - Suggestion and suggestion-code response fields for actionable guidance
+- **Phase 3.3**: In progress (API formatting and CLI readability/disclosure improvements underway).
+- **Phase 3.2**: Not started (visualization work deferred until 3.1/3.3 closeout).
+- **Phase 4+**: Not started.
 
 ---
 
@@ -154,6 +168,8 @@ Core features work but lack comprehensive real-world validation. This phase esta
 
 ### Overview
 
+**Status (April 2026): Completed for summit demo scope; post-demo maintenance only.**
+
 Phase 2 is scoped around the **May 23, 2026 Open Hardware Summit talk** ([Building Supply Chain Mesh Networks](https://2026.oshwa.org/talks/110-nathan-parker/)). The talk demonstrates how OKH/OKW standards, automated matching, and supply tree generation enable resilient supply chain mesh networks — directly addressing the coordination failures exposed by the COVID-19 crisis.
 
 The demo flow: take a real COVID-era open hardware repo → generate a complete OKH manifest → match against available facilities → display the supply tree. The audience is the OSHWA community: hardware-literate makers, open-source advocates, and disaster-response practitioners who will evaluate whether this is credible, real infrastructure.
@@ -282,9 +298,13 @@ The following items from the original Phase 2 roadmap are deferred. They have lo
 ### Overview
 OHM generates highly technical data that is difficult for humans to parse and understand. This phase focuses on making data accessible, interpretable, and actionable.
 
+**Status (April 2026): Active. 3.1 and 3.3 implementation in progress; 3.2 pending.**
+
 ### 3.1 Data Abstraction & Summarization
 
 **Objective**: Transform technical data into human-understandable summaries
+
+**Status (April 2026): In progress. Initial API/CLI summarization slices are implemented and validated; remaining work focuses on deeper insight extraction and role-specific abstraction behavior.**
 
 #### Tasks:
 - [ ] **LLM-powered summarization**
@@ -363,6 +383,8 @@ OHM generates highly technical data that is difficult for humans to parse and un
 ### 3.3 User Interface Improvements
 
 **Objective**: Make OHM more accessible through improved interfaces
+
+**Status (April 2026): In progress. API and CLI formatting improvements are partially implemented; web UI remains optional/future.**
 
 #### Tasks:
 - [ ] **API response formatting**
@@ -918,17 +940,16 @@ Design versioning ensures end users can discover, validate, and pull specific ve
   - Matching service quality baseline established (F1 0.807 to 0.992)
   - LLM chunking architecture implemented; all canary quality gates passing
 
-### Q2 2026 (Apr-Jun) — Phase 2 (Active)
-- **Focus**: Output Quality & Demo Readiness
+### Q2 2026 (Apr-Jun) — Phase 2 (Completed) / Phase 3 (Started)
+- **Focus**: Demo closeout and transition into human-readable API/CLI output
 - **Hard deadline**: May 23, 2026 — Open Hardware Summit talk
 - **Feature freeze**: May 8, 2026
 - **Milestones**:
   - LLM prompt tuning complete; generation quality improved
   - Confidence indicators visible in manifest output
   - Matching result enhancement with ranking and summaries
-  - System Mode (Minimal/Standard/Strict) implemented
-  - End-to-end pipeline reliable on COVID-era hardware repos
-  - Post-demo: Phase 3 scoping begins
+  - End-to-end pipeline reliability validated on target COVID-era repos
+  - Phase 3.1/3.3 implementation started (API/CLI summary and formatting slices)
 
 ### Q3 2026 (Jul-Sep)
 - **Focus**: OBM Implementation, OHM/OBM Integration

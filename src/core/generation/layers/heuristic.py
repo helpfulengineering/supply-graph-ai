@@ -6,7 +6,6 @@ from file structures, naming conventions, and content patterns.
 """
 
 import logging
-import os
 import re
 from dataclasses import dataclass
 from pathlib import Path

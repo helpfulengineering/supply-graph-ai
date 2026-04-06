@@ -5,11 +5,10 @@ This module provides specialized error handlers for different types of errors,
 ensuring consistent error handling patterns across all components of the system.
 """
 
-import asyncio
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional
 
 from .exceptions import (
     APIAuthenticationError,
@@ -18,14 +17,11 @@ from .exceptions import (
     APIRateLimitError,
     APIServerError,
     APIValidationError,
-    ConfigurationError,
-    ErrorCategory,
     ErrorSeverity,
     LLMAuthenticationError,
     LLMError,
     LLMRateLimitError,
     LLMTimeoutError,
-    OHMError,
     ServiceError,
 )
 

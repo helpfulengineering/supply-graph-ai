@@ -1,0 +1,18 @@
+{
+  "id": "33333333-3333-3333-3333-333333333333",
+  "name": "Empty Equipment Test Facility",
+  "location": {
+    "address": {
+      "city": "Test City",
+      "country": "US"
+    },
+    "city": "Test City",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "OHM Test Fixture Owner"
+  },
+  "access_type": "Public",
+  "equipment": []
+}

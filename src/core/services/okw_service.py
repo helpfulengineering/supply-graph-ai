@@ -3,11 +3,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 from ..domains.cooking.models import KitchenCapability
-from ..domains.manufacturing.validation.okw_validator import ManufacturingOKWValidator
 from ..models.okw import ManufacturingFacility
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
-from ..validation.context import ValidationContext
 from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
 from .base import BaseService, ServiceConfig

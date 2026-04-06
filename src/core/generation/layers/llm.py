@@ -12,18 +12,16 @@ The layer implements the Enhanced LLM Agent Prompt Engineering Strategy with:
 - validation and quality assurance
 """
 
-import asyncio
 import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 from ...llm.chunking import ChunkingConfig, default_token_estimator
 from ...llm.models.requests import (
     LLMPayloadSection,
-    LLMRequest,
     LLMRequestConfig,
     LLMRequestType,
     LLMStructuredRequest,

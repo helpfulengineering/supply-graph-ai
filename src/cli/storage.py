@@ -8,7 +8,7 @@ including directory structure creation and data population.
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import click
 
@@ -20,7 +20,6 @@ from ..config.storage_config import (
 from ..core.services.storage_service import StorageService
 from ..core.storage.organizer import StorageOrganizer
 from ..core.utils.logging import get_logger
-from .base import CLIContext
 from .decorators import standard_cli_command
 
 logger = get_logger(__name__)

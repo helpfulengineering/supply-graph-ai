@@ -5,7 +5,6 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    Path,
     Query,
     Request,
     Response,
@@ -22,14 +21,14 @@ from ..decorators import (
     rate_limit,
     track_performance,
 )
-from ..error_handlers import create_error_response, create_success_response
+from ..error_handlers import create_error_response
 
 # Import new standardized components
 from ..models.base import ErrorCode, ErrorDetail, ValidationResult
 
 # Import consolidated utility models
 from ..models.utility.request import ContextFilterRequest, DomainFilterRequest
-from ..models.utility.response import Context, ContextsResponse, Domain, DomainsResponse
+from ..models.utility.response import Context, ContextsResponse, Domain
 
 # Set up logging
 logger = get_logger(__name__)

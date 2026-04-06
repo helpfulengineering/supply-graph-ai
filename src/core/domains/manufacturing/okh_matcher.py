@@ -7,7 +7,6 @@ from src.core.models.base.base_types import (
     Capability,
     MatchResult,
     Requirement,
-    ResourceType,
     Substitution,
 )
 from src.core.models.okh import OKHManifest, ProcessRequirement

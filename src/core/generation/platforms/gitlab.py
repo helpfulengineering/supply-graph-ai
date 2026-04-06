@@ -5,7 +5,6 @@ This module provides functionality to extract project data from GitLab repositor
 using the GitLab API with caching and temporary local clones to avoid rate limits.
 """
 
-import base64
 import hashlib
 import json
 import logging
@@ -13,7 +12,7 @@ import os
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 

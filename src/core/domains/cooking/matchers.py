@@ -1,5 +1,4 @@
-from typing import List, Optional
-from uuid import uuid4
+from typing import List
 
 from src.core.models.base.base_types import (
     BaseMatcher,

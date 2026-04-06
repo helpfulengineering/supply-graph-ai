@@ -10,12 +10,12 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import yaml
 
 from .domains import DomainStatus, get_all_domain_configs
-from .llm_config import get_llm_config_manager, validate_llm_config
+from .llm_config import validate_llm_config
 from .storage_config import StorageConfigError, get_default_storage_config
 
 logger = logging.getLogger(__name__)

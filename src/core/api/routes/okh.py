@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 import yaml
@@ -17,9 +17,7 @@ from fastapi import (
     status,
 )
 from fastapi.encoders import jsonable_encoder
-from pydantic import Field
 
-from src.config import settings
 
 from ...services.cleanup_service import CleanupOptions, CleanupService
 from ...services.okh_service import OKHService
@@ -36,9 +34,8 @@ from ..decorators import (
     api_endpoint,
     paginated_response,
     track_performance,
-    validate_request,
 )
-from ..error_handlers import create_error_response, create_success_response
+from ..error_handlers import create_error_response
 
 # Import new standardized components
 from ..models.base import (
@@ -68,7 +65,6 @@ from ..models.okh.response import (
     OKHUploadResponse,
 )
 from ..models.scaffold.request import ScaffoldRequest
-from ..models.scaffold.response import ScaffoldResponse
 
 # Set up logging
 logger = get_logger(__name__)

@@ -6,10 +6,9 @@ for Google Cloud Vertex AI, which provides access to Google's Gemini models
 and other foundation models through Google Cloud's unified ML platform.
 """
 
-import json
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -23,7 +22,7 @@ try:
 except ImportError:
     GOOGLE_CLOUD_AVAILABLE = False
 
-from ..models.requests import LLMRequest, LLMRequestConfig
+from ..models.requests import LLMRequest
 from ..models.responses import LLMResponse, LLMResponseMetadata, LLMResponseStatus
 from .base import BaseLLMProvider, LLMProviderConfig, LLMProviderType
 
@@ -201,7 +200,6 @@ class GoogleVertexAIProvider(BaseLLMProvider):
 
             # Make the API call using Vertex AI SDK
             # Note: The SDK is synchronous, so we run it in an executor
-            import asyncio
 
             import httpx
 

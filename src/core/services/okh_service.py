@@ -8,7 +8,6 @@ import yaml
 
 from src.config import settings
 
-from ..domains.manufacturing.validation.okh_validator import ManufacturingOKHValidator
 
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
@@ -19,7 +18,6 @@ from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
 from ..storage.smart_discovery import FileInfo, SmartFileDiscovery
 from ..utils.logging import get_logger
-from ..validation.context import ValidationContext
 from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
 from .base import BaseService, ServiceConfig

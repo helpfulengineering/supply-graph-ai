@@ -4,13 +4,10 @@ Cache service for API response caching.
 Provides in-memory caching with TTL support and automatic cleanup.
 """
 
-import hashlib
-import json
-import time
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from ..utils.logging import get_logger
 

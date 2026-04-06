@@ -7,12 +7,10 @@ logging, and performance monitoring across all API endpoints.
 
 import time
 import uuid
-from datetime import datetime
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
-from ..errors.metrics import MetricsTracker
 from ..utils.logging import get_logger
 from .constants.headers import HEADER_PROCESSING_TIME, HEADER_REQUEST_ID
 

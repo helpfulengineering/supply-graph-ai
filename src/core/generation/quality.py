@@ -6,7 +6,7 @@ validate required fields, and generate quality reports with recommendations.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .models import FieldGeneration, QualityReport
 

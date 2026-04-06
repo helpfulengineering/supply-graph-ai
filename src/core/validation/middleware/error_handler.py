@@ -6,9 +6,9 @@ across all validation endpoints.
 """
 
 import logging
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 
 from ..exceptions import (

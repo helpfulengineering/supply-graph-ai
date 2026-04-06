@@ -1,14 +1,14 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Union
 
 from ..models.base.base_extractors import BaseExtractor
 from ..models.base.base_types import BaseMatcher, BaseValidator
 from .validator_adapter import ValidatorAdapter
 
 if TYPE_CHECKING:
-    from ..validation.engine import Validator as ValidationEngineValidator
+    pass
 
 logger = logging.getLogger(__name__)
 

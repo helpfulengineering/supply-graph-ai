@@ -58,7 +58,7 @@ from ..models.base import PaginatedResponse, PaginationParams, ValidationResult
 
 # Import existing models and services
 from ..models.match.request import MatchRequest, SimulateRequest, ValidateMatchRequest
-from ..models.match.response import MatchResponse, SimulateResponse
+from ..models.match.response import SimulateResponse
 from ..models.match.suggestion_codes import MATCH_SUGGESTION_CODES
 
 # Create consolidated router

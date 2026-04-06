@@ -16,7 +16,6 @@ from fastapi import (
     UploadFile,
     status,
 )
-from pydantic import Field
 
 from ...models.okw import ManufacturingFacility
 from ...services.okw_service import OKWService
@@ -29,12 +28,10 @@ from ..constants.client_errors import (
 )
 from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
-    api_endpoint,
     paginated_response,
     track_performance,
-    validate_request,
 )
-from ..error_handlers import create_error_response, create_success_response
+from ..error_handlers import create_error_response
 
 # Import new standardized components
 from ..models.base import (

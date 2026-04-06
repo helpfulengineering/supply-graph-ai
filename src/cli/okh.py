@@ -1028,13 +1028,11 @@ async def generate_from_url(
 
         async def fallback_generate():
             """Generate using direct service calls"""
-            import os
             from pathlib import Path as _Path
 
             cli_ctx.log("Using direct service generation...", "info")
             from ..core.generation.engine import GenerationEngine
             from ..core.generation.models import (
-                GenerationResult,
                 LayerConfig,
                 PlatformType,
             )

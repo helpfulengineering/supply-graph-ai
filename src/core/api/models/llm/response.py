@@ -4,7 +4,6 @@ Response models for LLM API endpoints.
 This module provides Pydantic models for LLM API responses.
 """
 
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field

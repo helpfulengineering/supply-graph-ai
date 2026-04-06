@@ -25,9 +25,7 @@ async def _create_scaffold(tmp_path: Path) -> Path:
 
 
 def test_scaffold_cleanup_cli_dry_run_and_apply(tmp_path, monkeypatch):
-    project_dir = asyncio.get_event_loop().run_until_complete(
-        _create_scaffold(tmp_path)
-    )
+    project_dir = asyncio.run(_create_scaffold(tmp_path))
 
     # Patch API client used by CLI to avoid real HTTP; emulate server response
     class DummyApiClient:

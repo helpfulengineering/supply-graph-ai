@@ -1,0 +1,21 @@
+{
+  "okhv": "OKH-LOSHv1.0",
+  "id": "11111111-1111-1111-1111-111111111111",
+  "title": "Minimal OKH Test Fixture",
+  "repo": "https://github.com/example/minimal-okh-test",
+  "version": "0.1.0",
+  "license": {
+    "hardware": "MIT"
+  },
+  "licensor": {
+    "name": "OHM Test Fixture"
+  },
+  "documentation_language": "en",
+  "function": "Minimal fixture for WF-04 quality-tiered validation tests.",
+  "manufacturing_processes": [
+    "3DP"
+  ],
+  "tsdc": [
+    "3DP"
+  ]
+}
