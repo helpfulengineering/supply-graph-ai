@@ -36,6 +36,7 @@ from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
+from ...utils.match_human_summary import build_match_human_summary
 from ..decorators import (
     api_endpoint,
     llm_endpoint,
@@ -51,6 +52,7 @@ from ..models.base import PaginatedResponse, PaginationParams, ValidationResult
 # Import existing models and services
 from ..models.match.request import MatchRequest, SimulateRequest, ValidateMatchRequest
 from ..models.match.response import MatchResponse, SimulateResponse
+from ..models.match.suggestion_codes import MATCH_SUGGESTION_CODES
 
 # Create consolidated router
 router = APIRouter(
@@ -371,6 +373,23 @@ async def match_requirements_to_capabilities(
             response_data["match_summary"] = match_summary
             response_data["coverage_gaps"] = coverage_gaps
             response_data["match_summary_text"] = render_match_summary(match_summary)
+            suggestions, suggestion_codes = _build_match_suggestions(
+                request=request,
+                match_summary=match_summary,
+                coverage_gaps=coverage_gaps,
+                solution_count=len(solutions),
+                facility_count=len(facilities),
+            )
+            response_data["suggestions"] = suggestions
+            response_data["suggestion_codes"] = suggestion_codes
+            optional_human_summary = _build_optional_human_summary(
+                request=request,
+                match_summary=match_summary,
+                coverage_gaps=coverage_gaps,
+                solutions=solutions,
+            )
+            if optional_human_summary:
+                response_data["human_summary"] = optional_human_summary
             logger.info(
                 "Match summary generated",
                 extra={
@@ -1283,6 +1302,84 @@ def render_match_summary(match_summary: Dict[str, Any]) -> str:
     )
 
 
+def _build_optional_human_summary(
+    request: MatchRequest,
+    match_summary: Dict[str, Any],
+    coverage_gaps: List[str],
+    solutions: List[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """Return deterministic human summary only when explicitly requested."""
+    if not getattr(request, "include_human_summary", False):
+        return None
+    return build_match_human_summary(
+        match_summary=match_summary,
+        coverage_gaps=coverage_gaps,
+        solutions=solutions,
+    )
+
+
+def _build_match_suggestions(
+    request: MatchRequest,
+    match_summary: Dict[str, Any],
+    coverage_gaps: List[str],
+    solution_count: int,
+    facility_count: Optional[int] = None,
+) -> tuple[List[str], List[str]]:
+    """Build actionable, deterministic suggestions for API consumers."""
+    suggestions: List[str] = []
+    suggestion_codes: List[str] = []
+
+    if facility_count is not None and facility_count == 0:
+        suggestion_codes.append(MATCH_SUGGESTION_CODES["no_facilities_available"])
+        suggestions.append(
+            "No facilities were available for matching. Verify storage connectivity, or provide facilities directly via `okw_facilities`."
+        )
+
+    if solution_count == 0:
+        suggestion_codes.append(MATCH_SUGGESTION_CODES["no_matching_solutions"])
+        suggestions.append(
+            "No matching solutions were found. Try relaxing filters (location/access/status) or lowering confidence thresholds."
+        )
+
+    if coverage_gaps:
+        suggestion_codes.append(MATCH_SUGGESTION_CODES["coverage_gaps_detected"])
+        gap_preview = ", ".join(str(g) for g in coverage_gaps[:3])
+        extra = len(coverage_gaps) - 3
+        suffix = f", +{extra} more" if extra > 0 else ""
+        suggestions.append(
+            f"Coverage gaps detected: {gap_preview}{suffix}. Add facilities supporting these processes or broaden the candidate pool."
+        )
+
+    requested = bool(match_summary.get("facility_combination_requested"))
+    applied = bool(match_summary.get("facility_combination_applied"))
+    if requested and not applied:
+        suggestion_codes.append(MATCH_SUGGESTION_CODES["combination_not_applied"])
+        suggestions.append(
+            "Facility combinations were requested but not applied. Try increasing `max_facilities_per_solution` or adding more facility candidates."
+        )
+    elif coverage_gaps and not requested:
+        suggestion_codes.append(MATCH_SUGGESTION_CODES["enable_facility_combinations"])
+        suggestions.append(
+            "Enable facility aggregation with `allow_facility_combinations=true` to improve aggregate process coverage."
+        )
+
+    # Keep output deterministic and compact.
+    seen_codes = set()
+    unique_codes: List[str] = []
+    for code in suggestion_codes:
+        if code not in seen_codes:
+            unique_codes.append(code)
+            seen_codes.add(code)
+
+    seen = set()
+    unique_suggestions: List[str] = []
+    for item in suggestions:
+        if item not in seen:
+            unique_suggestions.append(item)
+            seen.add(item)
+    return unique_suggestions, unique_codes
+
+
 async def _format_nested_response(
     solution,
     request: MatchRequest,
@@ -1444,6 +1541,25 @@ async def _format_nested_response(
     response_data["match_summary"] = match_summary
     response_data["coverage_gaps"] = coverage_gaps
     response_data["match_summary_text"] = render_match_summary(match_summary)
+    suggestions, suggestion_codes = _build_match_suggestions(
+        request=request,
+        match_summary=match_summary,
+        coverage_gaps=coverage_gaps,
+        solution_count=1 if solution else 0,
+    )
+    response_data["suggestions"] = suggestions
+    response_data["suggestion_codes"] = suggestion_codes
+    optional_human_summary = _build_optional_human_summary(
+        request=request,
+        match_summary=match_summary,
+        coverage_gaps=coverage_gaps,
+        solutions=[
+            {"tree": tree.to_dict() if hasattr(tree, "to_dict") else {}}
+            for tree in (filtered_trees or [])
+        ],
+    )
+    if optional_human_summary:
+        response_data["human_summary"] = optional_human_summary
 
     # Auto-save solution if requested
     if request.save_solution and storage_service:

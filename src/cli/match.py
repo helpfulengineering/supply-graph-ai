@@ -159,6 +159,13 @@ def match_group():
     default=False,
     help="Include per-facility match explanations (which layer/rule matched each requirement).",
 )
+@click.option(
+    "--human-summary",
+    "include_human_summary",
+    is_flag=True,
+    default=False,
+    help="Include multi-level human-readable summaries in match output.",
+)
 @standard_cli_command(
     help_text="""
     Match requirements to capabilities (supports both manufacturing and cooking domains).
@@ -264,6 +271,7 @@ async def requirements(
     solution_ttl_days: Optional[int] = None,
     solution_tags: Optional[str] = None,
     include_explanation: bool = False,
+    include_human_summary: bool = False,
 ):
     """Match OKH requirements to OKW capabilities with enhanced LLM support."""
     cli_ctx = ctx.obj
@@ -272,6 +280,8 @@ async def requirements(
     # Keep explain output aligned with verbose mode ergonomics.
     if verbose and not include_explanation:
         include_explanation = True
+    if (verbose or cli_ctx.verbose) and not include_human_summary:
+        include_human_summary = True
 
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
@@ -322,6 +332,7 @@ async def requirements(
             "max_depth": max_depth,
             "auto_detect_depth": auto_detect_depth,
             "include_explanation": include_explanation,
+            "include_human_summary": include_human_summary,
             "allow_facility_combinations": allow_facility_combinations,
             "max_facilities_per_solution": max_facilities_per_solution,
             "combination_strategy": combination_strategy,
@@ -591,6 +602,15 @@ async def requirements(
                         "matching_mode": "nested",
                         "processing_time": 0.0,  # Fallback doesn't track time
                     }
+                    if include_human_summary:
+                        result["human_summary"] = {
+                            "executive": f"{total_trees} nested tree match(es) found.",
+                            "technical": (
+                                f"mode=nested; solutions={len(solution_dicts)}; "
+                                f"total_trees={total_trees}"
+                            ),
+                            "detailed": [],
+                        }
                     if solution_id:
                         result["solution_id"] = str(solution_id)
                     if include_explanation:
@@ -698,6 +718,16 @@ async def requirements(
                             "total_solutions": len(results_list),
                             "matching_mode": "single-level",
                         }
+                        if include_human_summary:
+                            result["human_summary"] = {
+                                "executive": (
+                                    f"{len(results_list)} candidate solution(s) found."
+                                ),
+                                "technical": (
+                                    f"mode=single-level; solutions={len(results_list)}"
+                                ),
+                                "detailed": [],
+                            }
                         if solution_id:
                             result["solution_id"] = str(solution_id)
                         if include_explanation:
@@ -1359,6 +1389,38 @@ async def _attach_explanations_to_solutions(
             solution["explanation_human"] = None
 
 
+def _build_guidance_lines(
+    suggestions: Any,
+    suggestion_codes: Any,
+    verbose: bool,
+) -> List[str]:
+    """Build stable CLI guidance lines from API suggestion fields."""
+    lines: List[str] = []
+
+    normalized_suggestions = suggestions if isinstance(suggestions, list) else []
+    normalized_codes = suggestion_codes if isinstance(suggestion_codes, list) else []
+
+    if normalized_suggestions:
+        preview_count = (
+            len(normalized_suggestions)
+            if verbose
+            else min(2, len(normalized_suggestions))
+        )
+        lines.append("\nGuidance:")
+        for item in normalized_suggestions[:preview_count]:
+            lines.append(f" - {item}")
+        remaining = len(normalized_suggestions) - preview_count
+        if remaining > 0:
+            lines.append(f" - (+{remaining} more; use --verbose for full guidance)")
+
+    if verbose and normalized_codes:
+        lines.append(
+            f"Suggestion codes: {', '.join(str(code) for code in normalized_codes)}"
+        )
+
+    return lines
+
+
 async def _display_match_results(
     cli_ctx: CLIContext,
     result: Dict[str, Any],
@@ -1377,6 +1439,16 @@ async def _display_match_results(
 
     if total_solutions == 0:
         cli_ctx.log("No matching facilities found", "warning")
+        suggestions = result.get("suggestions") or []
+        suggestion_codes = result.get("suggestion_codes") or []
+        if output_format != "json":
+            guidance_lines = _build_guidance_lines(
+                suggestions=suggestions,
+                suggestion_codes=suggestion_codes,
+                verbose=bool(cli_ctx.verbose),
+            )
+            for line in guidance_lines:
+                click.echo(line)
         # Still save to output file if requested, even with no results
         if output and output_format == "json":
             output_data = format_llm_output(result, cli_ctx)
@@ -1386,6 +1458,13 @@ async def _display_match_results(
         return
 
     cli_ctx.log(f"Found {total_solutions} matching facilities", "success")
+
+    match_summary = result.get("match_summary")
+    match_summary_text = result.get("match_summary_text")
+    coverage_gaps = result.get("coverage_gaps") or []
+    suggestions = result.get("suggestions") or []
+    suggestion_codes = result.get("suggestion_codes") or []
+    human_summary = result.get("human_summary")
 
     # Format output based on format preference
     if output_format == "json":
@@ -1397,6 +1476,50 @@ async def _display_match_results(
         else:
             click.echo(output_data)
     else:
+        if isinstance(human_summary, dict):
+            executive = human_summary.get("executive")
+            technical = human_summary.get("technical")
+            detailed = human_summary.get("detailed", [])
+            if executive:
+                click.echo(f"\nSummary: {executive}")
+            if cli_ctx.verbose and technical:
+                click.echo(f"Technical: {technical}")
+            if cli_ctx.verbose and isinstance(detailed, list):
+                for item in detailed:
+                    click.echo(f" - {item}")
+        elif isinstance(match_summary, dict):
+            # Progressive disclosure: always show a compact summary line,
+            # then reveal deeper diagnostics when verbose mode is enabled.
+            summary_line = match_summary_text
+            if not summary_line:
+                summary_line = (
+                    f"mode={match_summary.get('matching_mode')} "
+                    f"solutions={match_summary.get('solution_count')} "
+                    f"coverage={match_summary.get('covered_process_count')}/"
+                    f"{match_summary.get('required_process_count')}"
+                )
+            click.echo(f"\nSummary: {summary_line}")
+
+            if coverage_gaps:
+                gap_limit = len(coverage_gaps) if cli_ctx.verbose else 3
+                displayed_gaps = [str(g) for g in coverage_gaps[:gap_limit]]
+                remaining_gaps = max(0, len(coverage_gaps) - gap_limit)
+                gap_suffix = f", +{remaining_gaps} more" if remaining_gaps else ""
+                click.echo(f"Gaps: {', '.join(displayed_gaps)}{gap_suffix}")
+
+            if cli_ctx.verbose:
+                warnings = match_summary.get("warnings") or []
+                for warning in warnings:
+                    click.echo(f"Warning: {warning}")
+
+        guidance_lines = _build_guidance_lines(
+            suggestions=suggestions,
+            suggestion_codes=suggestion_codes,
+            verbose=bool(cli_ctx.verbose),
+        )
+        for line in guidance_lines:
+            click.echo(line)
+
         # Table format
         for i, solution in enumerate(solutions, 1):
             # Extract facility name and confidence from whatever dict structure is present.

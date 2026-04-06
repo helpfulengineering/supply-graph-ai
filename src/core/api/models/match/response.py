@@ -106,6 +106,9 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
     match_summary: Optional[Dict[str, Any]] = None
     coverage_gaps: Optional[List[str]] = None
     match_summary_text: Optional[str] = None
+    suggestions: Optional[List[str]] = None
+    suggestion_codes: Optional[List[str]] = None
+    human_summary: Optional[Dict[str, Any]] = None
 
 
 class ValidationResult(BaseModel):
