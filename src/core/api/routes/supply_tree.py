@@ -20,6 +20,7 @@ from ...models.supply_trees import SupplyTree, SupplyTreeSolution
 from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
+from ...services.visualization_service import VisualizationService
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_422_500
 from ..decorators import (
@@ -1622,6 +1623,11 @@ async def export_supply_tree_solution(
         elif format_lower == "graphml":
             # GraphML export for nested solutions
             content = _solution_to_graphml(solution)
+            content = VisualizationService.normalize_graphml_metadata(
+                graphml_content=content,
+                source_type="supply_tree_solution",
+                source_id=str(solution_id),
+            )
             media_type = "application/xml"
         else:
             # Should not reach here due to validation above
@@ -1922,6 +1928,119 @@ async def get_solution_production_sequence(
                 "error_type": type(e).__name__,
             },
             exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get(
+    "/solution/{solution_id}/visualization",
+    status_code=status.HTTP_200_OK,
+    summary="Get Visualization Bundle",
+    description="""
+    Build a canonical JSON visualization bundle for a stored supply tree solution.
+
+    The bundle is additive and stable for API/CLI consumers and includes:
+    - supply tree nodes/edges/dependency graph
+    - production sequence staging
+    - network/facility distribution summaries
+    - dashboard KPI summaries
+    """,
+)
+@api_endpoint(
+    success_message="Visualization bundle created successfully", include_metrics=True
+)
+@track_performance("solution_visualization_bundle")
+async def get_solution_visualization_bundle(
+    solution_id: UUID = Path(..., description="Solution ID"),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    """Return canonical visualization bundle for a solution."""
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    try:
+        solution = await _load_solution_from_source(
+            solution_id=solution_id, storage_service=storage_service
+        )
+        bundle = VisualizationService.build_solution_visualization_bundle(
+            solution=solution, solution_id=str(solution_id)
+        )
+        return bundle
+    except FileNotFoundError:
+        error_response = create_error_response(
+            error=f"Solution with ID {solution_id} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=request_id,
+            suggestion="Please check the solution ID and try again",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump(mode="json"),
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get(
+    "/solution/{solution_id}/report",
+    status_code=status.HTTP_200_OK,
+    summary="Get Visualization Report",
+    description="""
+    Build a standalone HTML report from the solution visualization bundle.
+    """,
+)
+@track_performance("solution_visualization_report")
+async def get_solution_visualization_report(
+    solution_id: UUID = Path(..., description="Solution ID"),
+    http_request: Request = None,
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    """Return HTML visualization report for a solution."""
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    try:
+        solution = await _load_solution_from_source(
+            solution_id=solution_id, storage_service=storage_service
+        )
+        bundle = VisualizationService.build_solution_visualization_bundle(
+            solution=solution, solution_id=str(solution_id)
+        )
+        html = VisualizationService.render_html_report(
+            bundle=bundle,
+            title=f"OHM Supply Tree Visualization Report ({solution_id})",
+        )
+        return Response(content=html, media_type="text/html")
+    except FileNotFoundError:
+        error_response = create_error_response(
+            error=f"Solution with ID {solution_id} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+            request_id=request_id,
+            suggestion="Please check the solution ID and try again",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_response.model_dump(mode="json"),
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -3209,6 +3328,11 @@ async def export_supply_tree(
         elif format_lower == "graphml":
             # GraphML export for graph visualization
             content = _dict_to_graphml(tree_dict)
+            content = VisualizationService.normalize_graphml_metadata(
+                graphml_content=content,
+                source_type="supply_tree",
+                source_id=str(id),
+            )
             media_type = "application/xml"
         else:
             # Should not reach here due to validation above

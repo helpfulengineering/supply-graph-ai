@@ -298,7 +298,7 @@ The following items from the original Phase 2 roadmap are deferred. They have lo
 ### Overview
 OHM generates highly technical data that is difficult for humans to parse and understand. This phase focuses on making data accessible, interpretable, and actionable.
 
-**Status (April 2026): Complete for current scope. 3.1 and 3.3 are closed out; 3.2 visualization remains deferred as a separate follow-on track.**
+**Status (April 2026): Active. 3.1 and 3.3 are closed out; 3.2 visualization implementation is in progress.**
 
 ### 3.1 Data Abstraction & Summarization
 
@@ -342,28 +342,28 @@ OHM generates highly technical data that is difficult for humans to parse and un
 
 **Objective**: Create visual representations of OHM data
 
-**Status (April 2026): Deferred. Not part of the completed 3.1/3.3 closeout scope.**
+**Status (April 2026): In progress. API/CLI-first visualization artifacts and contracts are now being implemented.**
 
 #### Tasks:
-- [ ] **Matching visualization**
+- [~] **Matching visualization**
   - Facility map with match quality indicators
   - Capability coverage heat maps
   - Match confidence visualizations
   - Timeline and capacity charts
   
-- [ ] **Supply tree visualization**
+- [~] **Supply tree visualization**
   - Interactive tree diagrams
   - Process flow charts
   - Dependency graphs
   - Resource allocation views
   
-- [ ] **Network visualization**
+- [~] **Network visualization**
   - Geographic facility distribution
   - Capability network graphs
   - Production capacity maps
   - Route optimization displays
   
-- [ ] **Dashboard & reporting**
+- [~] **Dashboard & reporting**
   - Project overview dashboards
   - KPI tracking and metrics
   - Trend analysis and forecasting
@@ -420,10 +420,11 @@ OHM generates highly technical data that is difficult for humans to parse and un
 
 ---
 
-### Next Up After Phase 3
+### Next Up Inside Phase 3
 
-With Phase 3 closeout complete for the current scope, the next primary roadmap
-track is **Phase 4.1: OBM Requirements & Architecture**.
+Current priority is to complete **Phase 3.2 Data Visualization** end-to-end
+before shifting primary execution focus to **Phase 4.1: OBM Requirements &
+Architecture**.
 
 ## Phase 4: Business Logic Separation - Open Business Manager (OBM)
 

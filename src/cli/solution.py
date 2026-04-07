@@ -10,6 +10,7 @@ from typing import Optional
 
 import click
 
+from ..core.services.visualization_service import VisualizationService
 from .base import CLIContext
 from .decorators import standard_cli_command
 from .progress import emit_status_line
@@ -256,6 +257,162 @@ async def load(
     except Exception as e:
         cli_ctx.log(f"Error loading solution: {str(e)}", "error")
         raise click.ClickException(f"Failed to load solution: {str(e)}")
+
+
+@solution_group.command()
+@click.argument("solution_id", type=str)
+@click.option(
+    "--format",
+    "report_format",
+    type=click.Choice(["json", "html"]),
+    default="json",
+    show_default=True,
+    help="Visualization output format.",
+)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Optional output file path. Defaults to stdout.",
+)
+@click.pass_context
+@standard_cli_command(
+    help_text="""
+    Build visualization artifacts for a stored supply tree solution.
+
+    The command fetches a canonical visualization bundle and can emit:
+    - JSON visualization contract bundle
+    - Standalone HTML report
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+)
+async def visualize(
+    ctx,
+    solution_id: str,
+    report_format: str,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
+    """Generate visualization artifacts for a solution."""
+    cli_ctx: CLIContext = ctx.obj
+    try:
+        emit_status_line(
+            output_format=output_format,
+            step="Requesting visualization bundle",
+            index=1,
+            total=3,
+        )
+        endpoint = f"/api/supply-tree/solution/{solution_id}/visualization"
+        response = await cli_ctx.api_client.request("GET", endpoint)
+        bundle = response.get("data", response)
+
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering visualization artifact",
+            index=2,
+            total=3,
+        )
+        if report_format == "html":
+            payload = VisualizationService.render_html_report(
+                bundle=bundle,
+                title=f"OHM Visualization Report ({solution_id})",
+            )
+        else:
+            payload = json.dumps(bundle, indent=2)
+
+        emit_status_line(
+            output_format=output_format,
+            step="Writing output",
+            index=3,
+            total=3,
+        )
+        if output:
+            with open(output, "w") as f:
+                f.write(payload)
+            click.echo(f"Visualization artifact saved to {output}")
+        else:
+            click.echo(payload)
+    except Exception as e:
+        cli_ctx.log(f"Error generating visualization: {str(e)}", "error")
+        raise click.ClickException(f"Failed to generate visualization: {str(e)}")
+
+
+@solution_group.command()
+@click.argument("solution_id", type=str)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    help="Optional output report path. Defaults to stdout.",
+)
+@click.pass_context
+@standard_cli_command(
+    help_text="Generate an HTML visualization report for a stored solution.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+)
+async def report(
+    ctx,
+    solution_id: str,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool = False,
+    llm_provider: str = "anthropic",
+    llm_model: Optional[str] = None,
+    quality_level: str = "professional",
+    strict_mode: bool = False,
+):
+    """Generate an HTML report for a solution."""
+    cli_ctx: CLIContext = ctx.obj
+    try:
+        emit_status_line(
+            output_format=output_format,
+            step="Requesting visualization bundle",
+            index=1,
+            total=3,
+        )
+        endpoint = f"/api/supply-tree/solution/{solution_id}/visualization"
+        response = await cli_ctx.api_client.request("GET", endpoint)
+        bundle = response.get("data", response)
+
+        emit_status_line(
+            output_format=output_format,
+            step="Rendering visualization artifact",
+            index=2,
+            total=3,
+        )
+        payload = VisualizationService.render_html_report(
+            bundle=bundle,
+            title=f"OHM Visualization Report ({solution_id})",
+        )
+
+        emit_status_line(
+            output_format=output_format,
+            step="Writing output",
+            index=3,
+            total=3,
+        )
+        if output:
+            with open(output, "w") as f:
+                f.write(payload)
+            click.echo(f"Visualization artifact saved to {output}")
+        else:
+            click.echo(payload)
+    except Exception as e:
+        cli_ctx.log(f"Error generating report: {str(e)}", "error")
+        raise click.ClickException(f"Failed to generate report: {str(e)}")
 
 
 @solution_group.command(name="list")

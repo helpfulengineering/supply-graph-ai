@@ -1041,6 +1041,28 @@ The command displays matching facilities with:
 
 **Note:** Facility IDs are displayed as full UUIDs. Use the full ID with `ohm okw get` to retrieve facility details.
 
+### `ohm match visualize`
+
+Generate visualization artifacts from a match run.
+
+```bash
+ohm match visualize INPUT_FILE [OPTIONS]
+```
+
+**Options:**
+- `--domain [manufacturing|cooking]` - Explicit domain override
+- `--format [json|html]` - Output artifact format (default: `json`)
+- `--output, -o PATH` - Write artifact to file
+
+**Examples:**
+```bash
+# Generate JSON visualization bundle
+ohm match visualize my-design.okh.json
+
+# Generate HTML visualization report
+ohm match visualize my-design.okh.json --format html --output match-report.html
+```
+
 ### `ohm match validate`
 
 Validate a match result.
@@ -1393,6 +1415,44 @@ ohm match rules reset --confirm
 ```
 
 **Warning:** This command permanently deletes all rules. Use with caution.
+
+---
+
+## Solution Commands
+
+Manage stored supply tree solutions and generate visualization/report artifacts.
+
+### `ohm solution visualize`
+
+Build visualization artifacts for a stored solution.
+
+```bash
+ohm solution visualize SOLUTION_ID [OPTIONS]
+```
+
+**Options:**
+- `--format [json|html]` - Output artifact format (default: `json`)
+- `--output, -o PATH` - Write artifact to file
+
+### `ohm solution report`
+
+Generate an HTML report for a stored solution.
+
+```bash
+ohm solution report SOLUTION_ID [OPTIONS]
+```
+
+**Options:**
+- `--output, -o PATH` - Write HTML report to file
+
+**Examples:**
+```bash
+# JSON visualization bundle
+ohm solution visualize 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd
+
+# HTML report
+ohm solution report 8f14e3c4-09f2-4a5e-8bd9-4b5bb5d0a9cd --output solution-report.html
+```
 
 ---
 

@@ -56,6 +56,9 @@
     * [Examples](CLI/examples.md)
     * [Architecture](CLI/architecture.md)
 
+### Visualization
+* [Visualization](visualization/index.md)
+
 ### LLM Service Documentation
 * [LLM Main Documentation](llm/index.md)
 * [LLM Service Documentation](llm/llm-service.md)

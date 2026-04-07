@@ -1083,6 +1083,50 @@ The supply tree in the requested format.
 
 **Status:** 📋 **Not Implemented** - Route not found in current implementation
 
+#### Solution Visualization Bundle
+
+```
+GET /v1/api/supply-tree/solution/{solution_id}/visualization
+```
+
+Builds a canonical JSON visualization bundle for a stored solution.
+
+**Response (envelope):**
+```json
+{
+  "status": "success",
+  "message": "Visualization bundle created successfully",
+  "timestamp": "2026-04-07T00:00:00Z",
+  "request_id": "req_123",
+  "data": {
+    "schema_version": "3.2.0",
+    "source_type": "supply_tree_solution",
+    "generated_at": "2026-04-07T00:00:00Z",
+    "matching": {...},
+    "supply_tree": {...},
+    "network": {...},
+    "dashboard": {...},
+    "artifacts": {...}
+  }
+}
+```
+
+#### Solution Visualization Report
+
+```
+GET /v1/api/supply-tree/solution/{solution_id}/report
+```
+
+Returns a standalone HTML report derived from the canonical visualization bundle.
+
+#### GraphML Metadata Normalization
+
+GraphML exports for supply tree and supply tree solutions include metadata comments:
+
+- `ohm_visualization_schema=3.2.0`
+- `source_type=<source>`
+- `source_id=<id>`
+
 ### Matching Routes
 
 #### Match Requirements to Capabilities (Domain-Aware)
