@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ohm_visualization_schema=3.2.0;source_type=supply_tree_solution;source_id=b2efdb62-6435-4805-b44b-9f64a33421c6 -->
+
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns
+         http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key id="component_name" for="node" attr.name="component_name" attr.type="string"/>
+  <key id="component_id" for="node" attr.name="component_id" attr.type="string"/>
+  <key id="facility_name" for="node" attr.name="facility_name" attr.type="string"/>
+  <key id="okh_reference" for="node" attr.name="okh_reference" attr.type="string"/>
+  <key id="confidence_score" for="node" attr.name="confidence_score" attr.type="double"/>
+  <key id="depth" for="node" attr.name="depth" attr.type="int"/>
+  <key id="production_stage" for="node" attr.name="production_stage" attr.type="string"/>
+  <key id="estimated_cost" for="node" attr.name="estimated_cost" attr.type="double"/>
+  <key id="estimated_time" for="node" attr.name="estimated_time" attr.type="string"/>
+  <key id="edge_type" for="edge" attr.name="edge_type" attr.type="string"/>
+  <graph id="supply_tree_solution" edgedefault="directed">
+    <node id="n0">
+      <data key="component_name">Root Component</data>
+      <data key="component_id">root-comp-integration</data>
+      <data key="facility_name">Integration Root Facility</data>
+      <data key="okh_reference">root-okh-integration</data>
+      <data key="confidence_score">0.9</data>
+      <data key="depth">0</data>
+      <data key="production_stage">final</data>
+    </node>
+    <node id="n1">
+      <data key="component_name">Child Component 1</data>
+      <data key="component_id">child-comp-1-integration</data>
+      <data key="facility_name">Integration Child Facility 1</data>
+      <data key="okh_reference">child-okh-1-integration</data>
+      <data key="confidence_score">0.85</data>
+      <data key="depth">1</data>
+      <data key="production_stage">final</data>
+    </node>
+    <node id="n2">
+      <data key="component_name">Child Component 2</data>
+      <data key="component_id">child-comp-2-integration</data>
+      <data key="facility_name">Integration Child Facility 2</data>
+      <data key="okh_reference">child-okh-2-integration</data>
+      <data key="confidence_score">0.88</data>
+      <data key="depth">1</data>
+      <data key="production_stage">final</data>
+    </node>
+    <edge id="e0" source="n0" target="n1">
+      <data key="edge_type">parent-child</data>
+    </edge>
+    <edge id="e1" source="n0" target="n2">
+      <data key="edge_type">parent-child</data>
+    </edge>
+  </graph>
+</graphml>

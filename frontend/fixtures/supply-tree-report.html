@@ -1,0 +1,114 @@
+<!doctype html><html><head><meta charset='utf-8'><title>OHM Supply Tree Visualization Report (b2efdb62-6435-4805-b44b-9f64a33421c6)</title><style>body{font-family:Arial,Helvetica,sans-serif;margin:24px;line-height:1.4;}h1,h2{margin:0 0 12px 0;} .meta{color:#444;margin-bottom:16px;}pre{background:#f5f5f5;padding:12px;border-radius:6px;overflow:auto;}.kpi{display:inline-block;margin-right:18px;padding:8px 10px;background:#f0f4ff;border-radius:6px;}</style></head><body><h1>OHM Supply Tree Visualization Report (b2efdb62-6435-4805-b44b-9f64a33421c6)</h1><div class='meta'>Generated: 2026-04-07T02:57:25.825443+00:00 | Schema: 3.2.0</div><h2>KPI Summary</h2><div class='kpi'>Source: supply_tree_solution</div><div class='kpi'>Artifacts: graphml_endpoint, html_report, json_bundle</div><h2>Bundle Payload</h2><pre>{
+  "schema_version": "3.2.0",
+  "source_type": "supply_tree_solution",
+  "generated_at": "2026-04-07T02:57:25.825443+00:00",
+  "matching": {
+    "overview": {
+      "matching_mode": "nested",
+      "score": 0.88,
+      "tree_count": 3
+    }
+  },
+  "supply_tree": {
+    "solution_id": "b2efdb62-6435-4805-b44b-9f64a33421c6",
+    "nodes": [
+      {
+        "id": "cd7d6574-21f3-4f8f-a9dd-4078920d5408",
+        "label": "Root Component",
+        "component_id": "root-comp-integration",
+        "facility_name": "Integration Root Facility",
+        "depth": 0,
+        "production_stage": "final",
+        "confidence_score": 0.9,
+        "estimated_cost": null,
+        "estimated_time": null
+      },
+      {
+        "id": "dc583ec0-b74b-453b-b7ed-57cabb8cea1e",
+        "label": "Child Component 1",
+        "component_id": "child-comp-1-integration",
+        "facility_name": "Integration Child Facility 1",
+        "depth": 1,
+        "production_stage": "final",
+        "confidence_score": 0.85,
+        "estimated_cost": null,
+        "estimated_time": null
+      },
+      {
+        "id": "98d6e170-6b7f-4cbc-bc58-fac6eb5a797a",
+        "label": "Child Component 2",
+        "component_id": "child-comp-2-integration",
+        "facility_name": "Integration Child Facility 2",
+        "depth": 1,
+        "production_stage": "final",
+        "confidence_score": 0.88,
+        "estimated_cost": null,
+        "estimated_time": null
+      }
+    ],
+    "edges": [
+      {
+        "source": "cd7d6574-21f3-4f8f-a9dd-4078920d5408",
+        "target": "dc583ec0-b74b-453b-b7ed-57cabb8cea1e",
+        "type": "parent-child"
+      },
+      {
+        "source": "cd7d6574-21f3-4f8f-a9dd-4078920d5408",
+        "target": "98d6e170-6b7f-4cbc-bc58-fac6eb5a797a",
+        "type": "parent-child"
+      }
+    ],
+    "dependency_graph": {
+      "cd7d6574-21f3-4f8f-a9dd-4078920d5408": [],
+      "dc583ec0-b74b-453b-b7ed-57cabb8cea1e": [
+        "cd7d6574-21f3-4f8f-a9dd-4078920d5408"
+      ],
+      "98d6e170-6b7f-4cbc-bc58-fac6eb5a797a": [
+        "cd7d6574-21f3-4f8f-a9dd-4078920d5408"
+      ]
+    },
+    "production_sequence": [
+      [
+        "dc583ec0-b74b-453b-b7ed-57cabb8cea1e",
+        "98d6e170-6b7f-4cbc-bc58-fac6eb5a797a"
+      ]
+    ],
+    "resource_cost": {
+      "total_estimated_cost": null,
+      "total_estimated_time": null
+    }
+  },
+  "network": {
+    "facility_distribution": [
+      {
+        "facility_name": "Integration Root Facility",
+        "tree_count": 1
+      },
+      {
+        "facility_name": "Integration Child Facility 1",
+        "tree_count": 1
+      },
+      {
+        "facility_name": "Integration Child Facility 2",
+        "tree_count": 1
+      }
+    ],
+    "route_hints": {
+      "status": "not_provided",
+      "note": "No transport route data exists in current supply tree contract."
+    }
+  },
+  "dashboard": {
+    "kpis": {
+      "tree_count": 3,
+      "edge_count": 2,
+      "stage_count": 1,
+      "solution_score": 0.88
+    }
+  },
+  "artifacts": {
+    "graphml_endpoint": "/v1/api/supply-tree/solution/b2efdb62-6435-4805-b44b-9f64a33421c6/export?format=graphml",
+    "json_bundle": true,
+    "html_report": true
+  }
+}</pre></body></html>
