@@ -181,7 +181,20 @@ async def match_requirements_to_capabilities(
                     detail="Must provide either okh_manifest, okh_id, or okh_url",
                 )
 
-            requirements_data = okh_manifest
+            # Re-detect domain from manifest content — an OKH-format file may
+            # represent a cooking recipe even when submitted via okh_url.
+            manifest_domain = _detect_domain_from_manifest(okh_manifest)
+            if manifest_domain == "cooking":
+                logger.info(
+                    "Re-detected domain as cooking from OKH manifest content; "
+                    "routing to cooking match path",
+                    extra={"request_id": request_id},
+                )
+                domain = "cooking"
+                # CookingExtractor handles OKH-format dicts natively
+                requirements_data = okh_manifest.to_dict()
+            else:
+                requirements_data = okh_manifest
         elif domain == "cooking":
             # Extract recipe
             recipe = await _extract_recipe(request, storage_service, request_id)
@@ -1600,6 +1613,80 @@ async def _format_nested_response(
         data=response_data,
         request_id=request_id,
     )
+
+
+_COOKING_PROCESSES: frozenset = frozenset(
+    {
+        "bake",
+        "boil",
+        "blend",
+        "broil",
+        "chop",
+        "dice",
+        "fry",
+        "grill",
+        "knead",
+        "marinate",
+        "mince",
+        "mix",
+        "poach",
+        "roast",
+        "sauté",
+        "saute",
+        "simmer",
+        "slice",
+        "steam",
+        "stir",
+        "whisk",
+    }
+)
+
+_COOKING_FUNCTION_KEYWORDS: tuple = (
+    "recipe",
+    "cook",
+    "bake",
+    "ingredient",
+    "cuisine",
+    "dish",
+    "meal",
+    "food",
+)
+
+
+def _detect_domain_from_manifest(okh_manifest: "OKHManifest") -> str:
+    """Infer domain from an already-parsed OKHManifest.
+
+    Priority order:
+    1. Explicit ``domain`` field on the manifest.
+    2. ``manufacturing_processes`` containing only known cooking terms.
+    3. ``function`` text containing cooking keywords alongside OKH cooking
+       indicator fields (``making_instructions`` or ``tool_list``).
+
+    Returns ``"cooking"`` or ``"manufacturing"``.
+    """
+    # 1. Explicit domain field wins
+    if getattr(okh_manifest, "domain", None) in ("cooking", "manufacturing"):
+        return okh_manifest.domain  # type: ignore[return-value]
+
+    # 2. All listed manufacturing_processes are cooking-specific
+    processes = getattr(okh_manifest, "manufacturing_processes", []) or []
+    if processes and all(
+        isinstance(p, str) and p.strip().lower() in _COOKING_PROCESSES
+        for p in processes
+    ):
+        return "cooking"
+
+    # 3. Function text + OKH cooking indicators
+    function_text = (getattr(okh_manifest, "function", "") or "").lower()
+    has_cooking_function = any(kw in function_text for kw in _COOKING_FUNCTION_KEYWORDS)
+    has_cooking_structure = bool(
+        getattr(okh_manifest, "making_instructions", None)
+        or getattr(okh_manifest, "tool_list", None)
+    )
+    if has_cooking_function and has_cooking_structure:
+        return "cooking"
+
+    return "manufacturing"
 
 
 async def _detect_domain_from_request(request: MatchRequest) -> str:

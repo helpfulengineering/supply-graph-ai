@@ -100,6 +100,16 @@ class CookingMatcher(BaseMatcher):
             t.lower() if isinstance(t, str) else str(t).lower() for t in available_tools
         ]
 
+        # Include appliances when checking tool availability — a kitchen stores
+        # equipment like "Oven" under appliances, while the recipe lists it in
+        # tool_list.  Merging both sets gives a more accurate overlap.
+        appliances_lower = [
+            a.lower() if isinstance(a, str) else str(a).lower() for a in appliances
+        ]
+        combined_available_tools_lower = list(
+            set(available_tools_lower) | set(appliances_lower)
+        )
+
         # Check ingredient overlap (case-insensitive)
         ingredient_overlap = set(ingredients_lower) & set(available_ingredients_lower)
         ingredient_score = (
@@ -108,12 +118,22 @@ class CookingMatcher(BaseMatcher):
             else 0.0
         )
 
-        # Check tool availability (case-insensitive)
-        tool_overlap = set(tools_lower) & set(available_tools_lower)
+        # Check tool / appliance availability (case-insensitive)
+        tool_overlap = set(tools_lower) & set(combined_available_tools_lower)
         tool_score = len(tool_overlap) / len(tools_lower) if tools_lower else 0.0
 
-        # Overall confidence (weighted average)
-        confidence_score = ingredient_score * 0.6 + tool_score * 0.4
+        # When the kitchen has no capability data at all (empty appliances, tools,
+        # and ingredients), fall back to a moderate base confidence rather than 0.
+        # A facility registered as a cooking kitchen is assumed to be generally
+        # capable even if its specific inventory has not been populated yet.
+        kitchen_has_capability_data = bool(
+            available_ingredients_lower or combined_available_tools_lower
+        )
+        if not kitchen_has_capability_data:
+            confidence_score = 0.5
+        else:
+            # Overall confidence (weighted average)
+            confidence_score = ingredient_score * 0.6 + tool_score * 0.4
 
         # Create simplified supply tree
         supply_tree = SupplyTree(
