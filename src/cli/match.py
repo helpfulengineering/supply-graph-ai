@@ -18,6 +18,7 @@ from ..core.models.okh import OKHManifest
 from ..core.matching.match_modes import MATCH_MODE_NESTED, MATCH_MODE_SINGLE_LEVEL
 from ..core.registry.domain_registry import DomainRegistry
 from ..core.services.matching_service import MatchingService
+from ..core.services.visualization_service import VisualizationService
 from .base import (
     CLIContext,
     SmartCommand,
@@ -1063,6 +1064,125 @@ async def requirements(
         except Exception as e:
             cli_ctx.log(f"Warning during cleanup: {e}", "warning")
             # Continue - cleanup errors shouldn't fail the command
+
+
+@match_group.command()
+@click.argument("input_file", type=str)
+@click.option(
+    "--domain",
+    type=click.Choice(["manufacturing", "cooking"]),
+    help="Domain override (auto-detected from file if not provided)",
+)
+@click.option(
+    "--format",
+    "report_format",
+    type=click.Choice(["json", "html"]),
+    default="json",
+    show_default=True,
+    help="Visualization output format.",
+)
+@click.option(
+    "--output",
+    "-o",
+    help="Output file path (stdout if omitted).",
+)
+@standard_cli_command(
+    help_text="""
+    Run matching and produce a visualization artifact bundle.
+
+    This command is API-first and emits either:
+    - JSON visualization bundle
+    - Standalone HTML report derived from the bundle
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def visualize(
+    ctx,
+    input_file: str,
+    domain: Optional[str],
+    report_format: str,
+    output: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Generate visualization artifacts from a fresh match run."""
+    cli_ctx = ctx.obj
+    cli_ctx.update_llm_config(
+        use_llm=use_llm,
+        llm_provider=llm_provider,
+        llm_model=llm_model,
+        quality_level=quality_level,
+        strict_mode=strict_mode,
+    )
+
+    emit_status_line(
+        output_format=output_format,
+        step="Loading input and preparing request",
+        index=1,
+        total=3,
+    )
+    is_url = _is_url(input_file)
+    input_data = None if is_url else await _read_input_file(input_file)
+    detected_domain = domain or (
+        "manufacturing"
+        if is_url and not domain
+        else _detect_domain_from_data(input_data or {"domain": "manufacturing"})
+    )
+    request_data: Dict[str, Any] = {"domain": detected_domain}
+    if detected_domain == "cooking":
+        request_data["recipe_url" if is_url else "recipe"] = (
+            input_file if is_url else input_data
+        )
+    else:
+        request_data["okh_url" if is_url else "okh_manifest"] = (
+            input_file if is_url else input_data
+        )
+    request_data["include_human_summary"] = True
+
+    emit_status_line(
+        output_format=output_format,
+        step="Running match and building visualization bundle",
+        index=2,
+        total=3,
+    )
+    response = await cli_ctx.api_client.request(
+        "POST",
+        "/api/match",
+        json_data=create_llm_request_data(cli_ctx, request_data),
+    )
+    match_data = response.get("data", response)
+    bundle = VisualizationService.build_match_visualization_bundle(match_data)
+    payload = (
+        VisualizationService.render_html_report(
+            bundle=bundle,
+            title=f"OHM Match Visualization Report ({detected_domain})",
+        )
+        if report_format == "html"
+        else json.dumps(bundle, indent=2)
+    )
+
+    emit_status_line(
+        output_format=output_format,
+        step="Writing output",
+        index=3,
+        total=3,
+    )
+    if output:
+        with open(output, "w") as f:
+            f.write(payload)
+        click.echo(f"Visualization artifact saved to {output}")
+    else:
+        click.echo(payload)
 
 
 @match_group.command()

@@ -80,6 +80,7 @@ CI runs lanes separately in `.github/workflows/ci-cd.yml`:
 - contract lane
 - integration lane
 - contract stability guardrail suite (focused high-risk API/CLI contract files)
+  - includes visualization contract endpoints and CLI visualization commands
 
 ## Maintenance Cadence
 

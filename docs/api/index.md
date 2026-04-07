@@ -56,6 +56,7 @@ For production deployments, [authentication](auth.md) can be enabled to secure A
 - **Supply Tree Generation**: Creates complete manufacturing solutions with confidence scoring
 - **Role-Oriented Human Summaries**: Supports `human_summary_profile` (`balanced`, `executive`, `analyst`) for progressive disclosure in match responses
 - **Deterministic Key Insights**: Match responses can include stable `key_insights` buckets (`risks`, `opportunities`, `recommendations`) when `include_human_summary` is enabled
+- **Visualization Contract Artifacts**: Supply-tree solutions can be exported as canonical visualization bundles and standalone HTML reports for API/CLI consumers
 
 #### API Endpoints (53 total - Fully Standardized)
 - **Match Routes (7)**: Enhanced matching with multiple input methods, filtering, and LLM support

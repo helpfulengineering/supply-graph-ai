@@ -135,7 +135,9 @@ jobs:
             tests/api/test_match_phase1_contract.py \
             tests/api/test_relationship_endpoints.py \
             tests/api/test_solution_management_endpoints.py \
+            tests/api/test_visualization_contract_endpoints.py \
             tests/cli/test_match_cli_guidance.py \
+            tests/cli/test_match_visualize_cli.py \
             tests/cli/test_solution_commands.py \
             -m "not llm and not quarantine" \
             --maxfail=1
