@@ -38,9 +38,8 @@ dev = [
     "httpx>=0.24.0",
 ]
 
-[tool.setuptools]
-# Package discovery
-packages = ["src"]
+[tool.setuptools.packages.find]
+where = ["."]
 
 [tool.setuptools.package-data]
 "*" = ["*.yaml", "*.yml", "*.json"]

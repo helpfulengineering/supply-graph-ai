@@ -38,9 +38,14 @@ logger = logging.getLogger(__name__)
 
 
 class ChunkedLLMReduceSchema(BaseModel):
-    """Minimal schema guardrail for chunked reduce output."""
+    """Minimal schema guardrail for chunked reduce output.
 
-    model_config = ConfigDict(extra="allow")
+    extra='forbid' keeps the reduce stage from emitting a full manifest; without
+    it, models often echo few-shot examples (extra keys) and those values were
+    merged into the final OKH output.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     title: str = Field(min_length=1)
     version: str = Field(min_length=1)
@@ -630,12 +635,12 @@ MANDATORY REQUIREMENTS:
 ### BOM Construction Examples:
 - **Explicit BOM**: "bom.csv", "bill_of_materials.txt" → Reference in bom field
 - **Implicit BOM**: Parts list in README → Construct BOM from documentation
-- **Example**: "The rover requires: 6 wheels, 1 chassis, 2 motors, 1 Arduino" → Extract all components
+- **Example**: "The kit needs: 4 standoffs, 1 PCB, 2 linear rails, 1 NEMA-17 motor" → Extract all components (illustrative; do not assume this specific BOM)
 
 ### Parts Detection Examples:
-- **Main Parts**: Chassis, wheels, motors, control board, mast
+- **Main Parts**: Frame, motion stage, optics mount, controller PCB (examples only)
 - **Sub-parts**: Screws, brackets, connectors, mounting hardware
-- **File Mapping**: "chassis.stl" → chassis part (manufacturing file + parts entry), "wheel_assembly.step" → parts source file (design source, NOT manufacturing_files)
+- **File Mapping**: "frame.stl" → frame part (manufacturing file + parts entry), "assembly.step" → parts source file (design source, NOT manufacturing_files)
 - **Material Detection**: "3D printed PLA", "aluminum bracket", "steel screws"
 
 ### Manufacturing Files Detection Examples:
@@ -653,10 +658,12 @@ MANDATORY REQUIREMENTS:
 - **No standards mentioned**: Leave `standards_used` as an empty list `[]`
 
 ### Software Repository Detection Examples:
-- **GitHub Pattern**: "All code can be found in the osr-rover-code repository"
-- **Direct Reference**: "Software repository: https://github.com/nasa-jpl/osr-rover-code"
-- **Context Clues**: "Raspberry Pi", "ROS", "Python code", "Arduino sketches"
+- **GitHub Pattern**: "Firmware lives in the companion `acme-widget-fw` repository"
+- **Direct Reference**: "Software repository: https://github.com/example-org/acme-widget-fw"
+- **Context Clues**: "MicroPython", "CMake project", "PlatformIO", "separate software repo" (examples only)
 - **Platform Awareness**: GitHub projects often separate hardware/software repos
+
+**IMPORTANT**: Examples above show structure and patterns only. Never copy example hardware domains, brands, or repository names into the manifest—derive every field from **this** repository's README, files, and metadata.
 
 ## Context File:
 Use {context_file} as your scratchpad for analysis.

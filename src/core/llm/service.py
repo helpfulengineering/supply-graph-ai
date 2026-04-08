@@ -358,28 +358,37 @@ class LLMService(BaseService["LLMService"]):
             map_valid = self._validate_response_schema(
                 map_content, request.map_output_schema
             )
-            if (
-                not map_valid
-                and request.map_output_schema
-                and request.repair_attempts > 0
-            ):
-                repaired = await self._attempt_schema_repair(
-                    invalid_content=map_content,
-                    schema_model=request.map_output_schema,
-                    request_type=request.request_type,
-                    config=request.config,
-                    provider=provider,
-                )
-                if repaired and self._validate_response_schema(
-                    repaired, request.map_output_schema
-                ):
-                    map_content = repaired
-                    repair_count += 1
+            if not map_valid and request.map_output_schema:
+                if request.repair_attempts > 0:
+                    repaired = await self._attempt_schema_repair(
+                        invalid_content=map_content,
+                        schema_model=request.map_output_schema,
+                        request_type=request.request_type,
+                        config=request.config,
+                        provider=provider,
+                    )
+                    if repaired and self._validate_response_schema(
+                        repaired, request.map_output_schema
+                    ):
+                        map_content = repaired
+                        repair_count += 1
+                    else:
+                        return self._schema_error_response(
+                            stage=f"map chunk {idx}",
+                            provider=provider,
+                            model_hint=map_resp.metadata.model,
+                            detail=self._schema_validation_detail(
+                                map_content, request.map_output_schema
+                            ),
+                        )
                 else:
                     return self._schema_error_response(
                         stage=f"map chunk {idx}",
                         provider=provider,
                         model_hint=map_resp.metadata.model,
+                        detail=self._schema_validation_detail(
+                            map_content, request.map_output_schema
+                        ),
                     )
             map_outputs.append(map_content)
             if cache_file is not None:
@@ -389,6 +398,10 @@ class LLMService(BaseService["LLMService"]):
             f"{request.instruction}\n\n"
             "Synthesize the final response from these map-stage outputs:\n\n"
             + "\n\n".join(map_outputs)
+            + "\n\nOutput requirements: respond with a single JSON object only — "
+            "no markdown, no code fences, no commentary. "
+            "Use string keys title, version, function, and description; "
+            "each value must be a non-empty string."
         )
         reduce_resp = await self.generate(
             prompt=reduce_prompt,
@@ -400,30 +413,38 @@ class LLMService(BaseService["LLMService"]):
         reduce_valid = self._validate_response_schema(
             reduce_content, request.reduce_output_schema
         )
-        if (
-            reduce_resp.is_success
-            and not reduce_valid
-            and request.reduce_output_schema
-            and request.repair_attempts > 0
-        ):
-            repaired = await self._attempt_schema_repair(
-                invalid_content=reduce_content,
-                schema_model=request.reduce_output_schema,
-                request_type=request.request_type,
-                config=request.config,
-                provider=provider,
-            )
-            if repaired and self._validate_response_schema(
-                repaired, request.reduce_output_schema
-            ):
-                reduce_content = repaired
-                repair_count += 1
-                reduce_resp.content = reduce_content
+        if reduce_resp.is_success and not reduce_valid and request.reduce_output_schema:
+            if request.repair_attempts > 0:
+                repaired = await self._attempt_schema_repair(
+                    invalid_content=reduce_content,
+                    schema_model=request.reduce_output_schema,
+                    request_type=request.request_type,
+                    config=request.config,
+                    provider=provider,
+                )
+                if repaired and self._validate_response_schema(
+                    repaired, request.reduce_output_schema
+                ):
+                    reduce_content = repaired
+                    repair_count += 1
+                    reduce_resp.content = reduce_content
+                else:
+                    return self._schema_error_response(
+                        stage="reduce",
+                        provider=provider,
+                        model_hint=reduce_resp.metadata.model,
+                        detail=self._schema_validation_detail(
+                            reduce_content, request.reduce_output_schema
+                        ),
+                    )
             else:
                 return self._schema_error_response(
                     stage="reduce",
                     provider=provider,
                     model_hint=reduce_resp.metadata.model,
+                    detail=self._schema_validation_detail(
+                        reduce_content, request.reduce_output_schema
+                    ),
                 )
 
         if reduce_resp.metadata and isinstance(reduce_resp.metadata.metadata, dict):
@@ -445,14 +466,62 @@ class LLMService(BaseService["LLMService"]):
         return "\n".join(parts)
 
     @staticmethod
+    def _coerce_llm_json_for_schema(content: str) -> str:
+        """Strip markdown fences and isolate a JSON object for schema validation."""
+        text = (content or "").strip()
+        if not text:
+            return text
+        if "```json" in text:
+            start = text.find("```json") + 7
+            end = text.find("```", start)
+            if end > start:
+                inner = text[start:end].strip()
+                if inner.startswith("{"):
+                    return inner
+        if "```JSON" in text:
+            start = text.find("```JSON") + 7
+            end = text.find("```", start)
+            if end > start:
+                inner = text[start:end].strip()
+                if inner.startswith("{"):
+                    return inner
+        if "```" in text:
+            block_start = text.find("```")
+            inner_start = text.find("\n", block_start)
+            if inner_start != -1:
+                inner_start += 1
+                inner_end = text.find("```", inner_start)
+                if inner_end > inner_start:
+                    inner = text[inner_start:inner_end].strip()
+                    if inner.startswith("{"):
+                        return inner
+        brace_start, brace_end = text.find("{"), text.rfind("}")
+        if brace_start != -1 and brace_end > brace_start:
+            return text[brace_start : brace_end + 1]
+        return text
+
+    @staticmethod
+    def _schema_validation_detail(content: str, schema_model: Type[BaseModel]) -> str:
+        """Short explanation for logs and LLMResponse.error_message."""
+        coerced = LLMService._coerce_llm_json_for_schema(content)
+        try:
+            schema_model.model_validate_json(coerced)
+            return "validation failed after JSON extraction (unexpected)"
+        except json.JSONDecodeError as e:
+            return f"JSON parse error: {e.msg} (line {e.lineno}, col {e.colno})"
+        except ValidationError as e:
+            return str(e)[:500]
+
+    @staticmethod
     def _validate_response_schema(
         content: str, schema_model: Optional[Type[BaseModel]]
     ) -> bool:
         """Validate JSON content against a Pydantic model when provided."""
         if schema_model is None:
             return True
+        coerced = LLMService._coerce_llm_json_for_schema(content)
         try:
-            schema_model.model_validate_json(content)
+            schema_model.model_validate_json(coerced)
             return True
         except (ValidationError, json.JSONDecodeError, ValueError, TypeError):
             return False
@@ -487,9 +556,20 @@ class LLMService(BaseService["LLMService"]):
         stage: str,
         provider: Optional[LLMProviderType],
         model_hint: Optional[str] = None,
+        detail: Optional[str] = None,
     ) -> LLMResponse:
         """Build a standardized schema validation failure response."""
         from .models.responses import LLMResponseMetadata
+
+        msg = f"Schema validation failed during {stage}"
+        if detail:
+            msg = f"{msg}: {detail}"
+        meta: Dict[str, Any] = {
+            "stage": stage,
+            "error_type": "schema_validation_failed",
+        }
+        if detail:
+            meta["validation_detail"] = detail[:2000]
 
         metadata = LLMResponseMetadata(
             provider=provider.value if provider else "unknown",
@@ -497,13 +577,13 @@ class LLMService(BaseService["LLMService"]):
             tokens_used=0,
             cost=0.0,
             processing_time=0.0,
-            metadata={"stage": stage, "error_type": "schema_validation_failed"},
+            metadata=meta,
         )
         return LLMResponse(
             content="",
             status=LLMResponseStatus.ERROR,
             metadata=metadata,
-            error_message=f"Schema validation failed during {stage}",
+            error_message=msg,
         )
 
     @staticmethod
