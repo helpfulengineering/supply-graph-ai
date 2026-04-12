@@ -10,7 +10,7 @@ from src.config import settings
 
 # Lazy import: GenerationEngine imports heavy dependencies (spacy, numpy, thinc)
 # from ..generation.engine import GenerationEngine
-from ..generation.models import PlatformType
+from ..generation.models import LayerConfig, PlatformType
 from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
@@ -462,6 +462,7 @@ class OKHService(BaseService["OKHService"]):
         verbose: bool = False,
         clone: bool = False,
         save_clone: Optional[str] = None,
+        no_llm: bool = False,
     ) -> Dict[str, Any]:
         """Generate OKH manifest from a repository URL or a local clone path.
 
@@ -474,6 +475,9 @@ class OKHService(BaseService["OKHService"]):
                 ``url`` is a local path.
             save_clone: Server-side path where the clone should be persisted after
                 generation (only used when ``clone=True`` and ``url`` is a remote URL).
+            no_llm: If True, use 3-layer generation only. If False (default), prefer
+                LLM + chunked map-reduce when credentials exist; otherwise degrade to
+                3-layer automatically.
         """
         try:
             await self.ensure_initialized()
@@ -514,11 +518,18 @@ class OKHService(BaseService["OKHService"]):
                         raise ValueError(f"Unsupported platform: {platform}")
                     project_data = await generator.extract_project(url)
 
-            # Generate manifest
-            # Lazy import to avoid loading heavy dependencies at module import time
+            # Generate manifest (prefer LLM + chunking unless no_llm; degrade if
+            # no API keys — see LayerConfig.for_generate_from_url / is_llm_configured).
             from ..generation.engine import GenerationEngine
 
-            engine = GenerationEngine()
+            config = LayerConfig.for_generate_from_url(no_llm=no_llm)
+            if config.use_llm and not config.is_llm_configured():
+                self.logger.info(
+                    "OKH generate-from-url: LLM preferred but not configured; "
+                    "using 3-layer generation (direct/heuristic/NLP)."
+                )
+
+            engine = GenerationEngine(config=config)
             result = await engine.generate_manifest_async(
                 project_data, include_file_metadata=verbose
             )

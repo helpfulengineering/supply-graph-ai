@@ -121,6 +121,14 @@ class OKHGenerateRequest(BaseModel):
             "can pass the saved path as `url` to skip re-cloning."
         ),
     )
+    no_llm: bool = Field(
+        False,
+        description=(
+            "If true, use 3-layer generation only (no LLM). Default false: prefer "
+            "LLM with chunked map-reduce when API keys are configured; otherwise "
+            "automatically fall back to 3-layer."
+        ),
+    )
 
 
 class OKHFromStorageRequest(BaseAPIRequest):

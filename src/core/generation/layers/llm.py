@@ -440,7 +440,7 @@ The OKH manifest is designed to maximize interoperability and discoverability in
         """Return True when the chunked map-reduce workflow should be used.
 
         Decision order:
-        1. Explicit ``chunked_mode_enabled=True``  → always chunk.
+        1. Explicit ``chunked_mode_enabled=True``  → always chunk (LayerConfig default).
         2. Explicit ``chunked_mode_enabled=False`` → never chunk.
         3. Key absent (auto)                       → chunk when the estimated
            token count of *prompt* exceeds ``chunk_max_tokens``.

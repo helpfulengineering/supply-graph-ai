@@ -1893,9 +1893,7 @@ class LayerConfig:
     use_direct: bool = True
     use_heuristic: bool = True
     use_nlp: bool = True
-    use_llm: bool = (
-        False  # Off by default; enable explicitly with --use-llm for 4-layer mode
-    )
+    use_llm: bool = False  # Many entrypoints override (e.g. for_generate_from_url)
     use_bom_normalization: bool = False
 
     # Quality and processing settings
@@ -1984,8 +1982,9 @@ class LayerConfig:
             "fallback_to_nlp": True,  # Fallback to NLP if LLM fails
             "cost_tracking": True,
             "max_cost_per_request": 0.10,  # $0.10 max per request
-            # chunked_mode_enabled is intentionally absent here (auto-detect default).
-            # Set to True to force chunking; False to force it off.
+            # Default on for quality-first flows (large prompts use map-reduce).
+            # Set False to force a single LLM request (may truncate).
+            "chunked_mode_enabled": True,
             "chunk_max_tokens": 4000,  # Payload budget per chunk; also the auto-detect threshold
             "chunk_overlap_tokens": 256,  # Overlap for chunk continuity
             "prompt_templates": {
@@ -2080,6 +2079,22 @@ class LayerConfig:
 
         api_key = self.get_llm_api_key()
         return api_key is not None and len(api_key.strip()) > 0
+
+    @classmethod
+    def for_generate_from_url(cls, *, no_llm: bool = False) -> "LayerConfig":
+        """Layer stack for OKH ``generate-from-url`` (API / CLI / batch).
+
+        **LLM is preferred** when ``no_llm`` is False: ``use_llm`` is True and
+        default ``llm_config`` includes chunked map-reduce for quality on large
+        repositories.
+
+        If API keys are missing, :meth:`is_llm_configured` is false and the
+        engine runs without the LLM matcher (direct + heuristic + NLP only).
+        """
+        return cls(
+            use_llm=not no_llm,
+            use_bom_normalization=True,
+        )
 
     def get_enabled_layers(self) -> List[GenerationLayer]:
         """Get list of enabled generation layers in processing order"""

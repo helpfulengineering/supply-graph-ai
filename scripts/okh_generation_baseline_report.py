@@ -2,20 +2,21 @@
 """
 Generate OKH generation baseline report (Issue 1.3.1 Phase B5).
 
-Reads tests/data/okh_generation/repositories.json and, for each supported repo
-with a ground truth file and a pre-generated manifest at
-``tests/data/okh_generation/clones/<repo-id>-<layer>.json`` (default layer ``3L``),
-runs the Phase B3 metrics and writes docs/metrics/okh_generation_baseline.json.
+Reads a repositories dataset JSON and, for each repo with a ground truth file
+and a pre-generated manifest at ``<manifests-dir>/<repo-id>-<layer>.json``
+(default layer ``3L``), runs the Phase B3 metrics and writes a JSON report.
 
 Use ``--layer 4L`` to score LLM manifests against the same ground truth (for
 experiments). Does not run live generation — use ``scripts/okh_generation_batch.py``
-or ``ohm okh generate-from-url`` to produce clone outputs first.
+or ``ohm okh generate-from-url`` to produce manifests first.
 
 Usage:
     conda activate supply-graph-ai
     python scripts/okh_generation_baseline_report.py
     python scripts/okh_generation_baseline_report.py --output /tmp/baseline.json
-    python scripts/okh_generation_baseline_report.py --layer 3L
+    python scripts/okh_generation_baseline_report.py --layer 3L \\
+        --manifests-dir tmp/oshwa/okh-manifests \\
+        --output tmp/oshwa/baseline_report.json
 """
 
 from __future__ import annotations
@@ -32,7 +33,34 @@ if str(REPO_ROOT) not in sys.path:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Write OKH generation baseline JSON from repositories dataset + clone manifests"
+        description="Write OKH generation baseline JSON from repositories dataset + generated manifests"
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=REPO_ROOT,
+        help=(
+            "Project root for resolving ground_truth_path entries in repositories.json "
+            f"(default: {REPO_ROOT})"
+        ),
+    )
+    parser.add_argument(
+        "--repositories-json",
+        type=Path,
+        default=None,
+        help=(
+            "Path to repositories.json "
+            "(default: <repo-root>/tests/data/okh_generation/repositories.json)"
+        ),
+    )
+    parser.add_argument(
+        "--manifests-dir",
+        type=Path,
+        default=None,
+        help=(
+            "Directory containing <id>-<layer>.json generated manifests "
+            "(default: <repo-root>/tests/data/okh_generation/clones)"
+        ),
     )
     parser.add_argument(
         "--output",
@@ -52,9 +80,26 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    repo_root = args.repo_root.resolve()
+    repositories_json = (
+        args.repositories_json.resolve()
+        if args.repositories_json is not None
+        else repo_root / "tests/data/okh_generation/repositories.json"
+    )
+    manifests_dir = (
+        args.manifests_dir.resolve()
+        if args.manifests_dir is not None
+        else repo_root / "tests/data/okh_generation/clones"
+    )
+
     from tests.data.okh_generation.baseline_report import build_baseline_report
 
-    report = build_baseline_report(REPO_ROOT, layer=args.layer)
+    report = build_baseline_report(
+        repo_root,
+        layer=args.layer,
+        repositories_json=repositories_json,
+        manifests_dir=manifests_dir,
+    )
     text = json.dumps(report, indent=2, ensure_ascii=False)
 
     if args.stdout:

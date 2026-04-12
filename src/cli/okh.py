@@ -913,6 +913,14 @@ async def upload(
     "Required when using --json without --output, since the manifest references "
     "an external BOM file but has no output directory to write it to.",
 )
+@click.option(
+    "--no-llm",
+    "no_llm",
+    is_flag=True,
+    default=False,
+    help="Force 3-layer generation without the LLM (faster, lower quality). "
+    "Default is to prefer LLM + chunked map-reduce when configured.",
+)
 @standard_cli_command(
     help_text="""
     Generate OKH manifest from repository URL.
@@ -936,7 +944,12 @@ async def upload(
     - publications: Research papers and academic publications
     - documentation_hohm: Main project documentation (README.md)
     
-    When LLM is enabled, generation includes:
+    By default, generation **prefers the LLM layer** with **chunked map-reduce**
+    for large repositories (best quality). If LLM credentials are missing, the
+    command **falls back to 3-layer** generation automatically. Use ``--no-llm``
+    to force 3-layer only.
+
+    When the LLM layer runs, generation includes:
     - Enhanced project analysis and understanding
     - Intelligent file categorization with content analysis
     - Intelligent field completion and suggestions
@@ -945,28 +958,28 @@ async def upload(
     """,
     epilog="""
     Examples:
-      # Generate from GitHub repository
+      # Generate from GitHub repository (LLM + chunking when configured)
       ohm okh generate-from-url https://github.com/user/project
 
       # Generate with local cloning (faster, more reliable)
       ohm okh generate-from-url https://github.com/user/project --clone
 
-      # Clone, generate (3-layer), save clone and BOM alongside the manifest
+      # Force fast 3-layer path without LLM
+      ohm okh generate-from-url https://github.com/user/project --no-llm
+
+      # Clone, save clone and BOM alongside the manifest
       ohm okh generate-from-url https://github.com/user/project \
         --clone --save-clone ./clones/my-project \
         --bom-output ./clones/my-project-bom.json \
         --format okh --no-review --json > ./clones/my-project.json
 
-      # Generate (4-layer with LLM) from the saved clone — no network required
+      # From saved clone — LLM still preferred unless --no-llm
       ohm okh generate-from-url ./clones/my-project \
-        --bom-output ./clones/my-project-4L-bom.json \
-        --format okh --no-review --use-llm --json > ./clones/my-project-4L.json
+        --bom-output ./clones/my-project-bom.json \
+        --format okh --no-review --json > ./clones/my-project-4L.json
 
       # Generate with BOM export
       ohm okh generate-from-url https://github.com/user/project --output ./output
-
-      # Use LLM for enhanced generation
-      ohm okh generate-from-url https://github.com/user/project --use-llm --quality-level professional
     """,
     async_cmd=True,
     track_performance=True,
@@ -987,6 +1000,7 @@ async def generate_from_url(
     clone: bool,
     save_clone: Optional[str],
     bom_output: Optional[str],
+    no_llm: bool,
     verbose: bool,
     output_format: str,
     use_llm: bool,
@@ -1002,9 +1016,13 @@ async def generate_from_url(
     # Normalise: treat as a plain string throughout; detect local vs remote below
     url = url_or_path
 
+    # Prefer LLM unless --no-llm (standard --use-llm remains accepted for compatibility).
+    effective_use_llm = not no_llm
+    _ = use_llm  # Click passes --use-llm; redundant with new defaults
+
     # Update CLI context with parameters from decorator
     cli_ctx.update_llm_config(
-        use_llm=use_llm,
+        use_llm=effective_use_llm,
         llm_provider=llm_provider,
         llm_model=llm_model,
         quality_level=quality_level,
@@ -1034,7 +1052,11 @@ async def generate_from_url(
         async def http_generate():
             """Generate via HTTP API"""
             cli_ctx.log("Generating via HTTP API...", "info")
-            payload = {"url": url, "skip_review": no_review}
+            payload = {
+                "url": url,
+                "skip_review": no_review,
+                "no_llm": no_llm,
+            }
             response = await cli_ctx.api_client.request(
                 "POST", "/api/okh/generate-from-url", json_data=payload
             )
@@ -1112,12 +1134,13 @@ async def generate_from_url(
 
                     project_data = await generator.extract_project(url)
 
-            # Generate manifest from project data
-            config = LayerConfig()
-            config.use_llm = (
-                use_llm  # Honour --use-llm flag (off by default = 3-layer mode)
-            )
-            config.use_bom_normalization = True  # Enable BOM normalization
+            # Generate manifest from project data (LLM + chunking preferred; see LayerConfig)
+            config = LayerConfig.for_generate_from_url(no_llm=no_llm)
+            if config.use_llm and not config.is_llm_configured():
+                cli_ctx.log(
+                    "LLM preferred but not configured; using 3-layer generation.",
+                    "warning",
+                )
             engine = GenerationEngine(config=config)
             cli_ctx.log("Generating manifest fields...", "info")
 

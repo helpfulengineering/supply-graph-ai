@@ -2,8 +2,11 @@
 """
 Batch OKH generation for every supported entry in tests/data/okh_generation/repositories.json.
 
-Writes manifests to tests/data/okh_generation/clones/<repo-id>-<layer>.json (same layout as
-the baseline report expects). Optional BOM sidecar and a JSON run report for iteration.
+Writes manifests to **tmp/oshwa/okh-manifests/** by default
+(`<repo-id>-<layer>.json`, optional `-bom.json` sidecar). Override with
+``--output-dir`` if you need the legacy test path
+(``tests/data/okh_generation/clones``) for baseline tooling. Run report
+defaults to **tmp/oshwa/last_batch_report.json**.
 
 Typical workflow (clone + BOM normalization, same as manual ``--clone --no-review``):
 
@@ -13,10 +16,13 @@ Typical workflow (clone + BOM normalization, same as manual ``--clone --no-revie
     # 3-layer baseline (default layer tag: 3L)
     python scripts/okh_generation_batch.py --stdout-summary
 
-    # 4-layer (LLM) — default layer tag: 4L so 3L outputs are not overwritten
-    python scripts/okh_generation_batch.py --use-llm --stdout-summary
+    # 4-layer (LLM + chunked map-reduce) — default; layer tag 4L
+    python scripts/okh_generation_batch.py --stdout-summary
 
-    python scripts/okh_generation_baseline_report.py
+    # Fast batch without LLM
+    python scripts/okh_generation_batch.py --no-llm --stdout-summary
+
+    python scripts/okh_generation_baseline_report.py --manifests-dir tmp/oshwa/okh-manifests
     python scripts/okh_generation_layer_compare.py
 
 Options:
@@ -25,7 +31,9 @@ Options:
     --only-ids a,b   Comma-separated repo ids
     --skip-existing  Skip if output manifest already exists
     --save-clones    Persist git clones under clones/repos/<id>/
-    --llm-chunked-mode  Enable chunked LLM path (feature-flag; requires --use-llm)
+    --no-llm         3-layer manifests only (skip LLM)
+    --no-llm-chunked Single LLM request per repo (no map-reduce; may truncate)
+    --llm-chunked-mode  Redundant with defaults; kept for backward compatibility
 """
 
 from __future__ import annotations
@@ -54,14 +62,14 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--output-dir",
         type=Path,
-        default=REPO_ROOT / "tests/data/okh_generation/clones",
-        help="Directory for <id>-<layer>.json outputs",
+        default=REPO_ROOT / "tmp/oshwa/okh-manifests",
+        help="Directory for <id>-<layer>.json outputs (default: tmp/oshwa/okh-manifests)",
     )
     p.add_argument(
         "--report",
         type=Path,
-        default=REPO_ROOT / "tests/data/okh_generation/last_batch_report.json",
-        help="Write machine-readable run summary",
+        default=REPO_ROOT / "tmp/oshwa/last_batch_report.json",
+        help="Write machine-readable run summary (default: tmp/oshwa/last_batch_report.json)",
     )
     p.add_argument(
         "--no-report",
@@ -72,7 +80,7 @@ def _parse_args() -> argparse.Namespace:
         "--layer",
         default=None,
         metavar="TAG",
-        help="Suffix in filenames (default: 3L without --use-llm, 4L with --use-llm)",
+        help="Suffix in filenames (default: 3L with --no-llm, 4L otherwise)",
     )
     p.add_argument(
         "--clone",
@@ -90,14 +98,24 @@ def _parse_args() -> argparse.Namespace:
         help="Persist clones under <output-dir>/repos/<repo-id>/",
     )
     p.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Disable LLM (3-layer / 3L manifests only)",
+    )
+    p.add_argument(
         "--use-llm",
         action="store_true",
-        help="Enable 4-layer generation (LLM)",
+        help="[Deprecated] LLM is on by default; this flag is a no-op",
+    )
+    p.add_argument(
+        "--no-llm-chunked",
+        action="store_true",
+        help="Disable chunked LLM map-reduce (one request per repo; may truncate)",
     )
     p.add_argument(
         "--llm-chunked-mode",
         action="store_true",
-        help="Enable chunked LLM mode in generation layer (feature flag; requires --use-llm)",
+        help="[Deprecated] Chunking is on by default when LLM runs",
     )
     p.add_argument(
         "--llm-chunk-max-tokens",
@@ -169,11 +187,15 @@ def _select_repos(
 
 async def _run() -> int:
     args = _parse_args()
-    if args.llm_chunked_mode and not args.use_llm:
-        raise SystemExit("--llm-chunked-mode requires --use-llm")
-    layer_tag = (
-        args.layer if args.layer is not None else ("4L" if args.use_llm else "3L")
-    )
+    use_llm = not args.no_llm
+    if args.use_llm and args.no_llm:
+        raise SystemExit("Cannot combine --use-llm with --no-llm")
+    llm_chunked = not args.no_llm_chunked
+    if args.llm_chunked_mode:
+        llm_chunked = True
+    if not use_llm:
+        llm_chunked = False
+    layer_tag = args.layer if args.layer is not None else ("4L" if use_llm else "3L")
     use_clone = bool(args.clone) and not args.no_clone
     if not args.clone and not args.no_clone:
         # Default: clone when user runs batch without explicit flags (safest for GitLab)
@@ -222,9 +244,9 @@ async def _run() -> int:
                 url,
                 clone=use_clone,
                 save_clone=save_clone,
-                use_llm=args.use_llm,
+                use_llm=use_llm,
                 include_file_metadata=args.verbose_metadata,
-                llm_chunked_mode_enabled=bool(args.use_llm and args.llm_chunked_mode),
+                llm_chunked_mode_enabled=bool(use_llm and llm_chunked),
                 llm_chunk_max_tokens=(
                     args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
                 ),
@@ -293,8 +315,8 @@ async def _run() -> int:
         "layer_cli_override": args.layer,
         "use_clone": use_clone,
         "save_clones": bool(args.save_clones),
-        "use_llm": bool(args.use_llm),
-        "llm_chunked_mode": bool(args.use_llm and args.llm_chunked_mode),
+        "use_llm": bool(use_llm),
+        "llm_chunked_mode": bool(use_llm and llm_chunked),
         "llm_chunk_max_tokens": (
             args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
         ),
