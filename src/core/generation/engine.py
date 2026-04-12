@@ -36,6 +36,7 @@ from .models import (
     ProjectData,
 )
 from .quality import QualityAssessor
+from .utils.intended_use_validation import is_obvious_noise_intended_use
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -265,6 +266,9 @@ class GenerationEngine:
 
             # Validate and filter out obviously bad field values
             generated_fields = self._validate_field_values(generated_fields)
+            for key in list(confidence_scores.keys()):
+                if key not in generated_fields:
+                    confidence_scores.pop(key, None)
 
             # Ensure materials only come from BOM if BOM exists
             # This prevents false positives from text extraction (e.g., "electronics" mentioned in docs but not in BOM)
@@ -506,6 +510,15 @@ class GenerationEngine:
                     )
                 )
 
+            # Match sync generate_manifest: normalize and validate before BOM/post-steps.
+            # Without this, async/batch runs kept bogus heuristic fragments (e.g. intended_use).
+            generated_fields = self._normalize_generated_fields(generated_fields)
+            generated_fields = self._validate_field_values(generated_fields)
+            for key in list(confidence_scores.keys()):
+                if key not in generated_fields:
+                    confidence_scores.pop(key, None)
+            missing_fields = self._calculate_missing_fields(generated_fields)
+
             # Add BOM normalization if enabled
             full_bom_object = None
             if self.config.use_bom_normalization:
@@ -561,6 +574,8 @@ class GenerationEngine:
                     raw_source=f"Analyzed {len(parts_analysis['sub_parts'])} sub-parts from directory structure",
                 )
                 confidence_scores["sub_parts"] = 0.7
+
+            missing_fields = self._calculate_missing_fields(generated_fields)
 
             # Generate quality report
             quality_report = self._quality_assessor.generate_quality_report(
@@ -1027,6 +1042,17 @@ class GenerationEngine:
 
             value = field_gen.value
 
+            # intended_use is only populated by the LLM layer; heuristic/NLP are unreliable here.
+            if (
+                field_name == "intended_use"
+                and field_gen.source_layer != GenerationLayer.LLM
+            ):
+                logger.debug(
+                    "Omitting intended_use (LLM-only field; source=%s)",
+                    field_gen.source_layer.value,
+                )
+                continue
+
             # Skip validation for non-string values
             if not isinstance(value, str):
                 validated[field_name] = field_gen
@@ -1043,6 +1069,23 @@ class GenerationEngine:
                         f"Filtered out too short LLM {field_name} value: {value[:50]}..."
                     )
                     continue
+                if field_name == "intended_use":
+                    if is_obvious_noise_intended_use(value):
+                        logger.warning(
+                            f"Filtered out noisy LLM intended_use value: {value[:80]}..."
+                        )
+                        continue
+                    words = value.split()
+                    if len(words) < 5:
+                        logger.warning(
+                            f"Filtered out too short LLM intended_use value: {value[:80]}..."
+                        )
+                        continue
+                    if not value.strip()[0].isupper():
+                        logger.warning(
+                            f"Filtered out LLM intended_use not sentence-shaped: {value[:80]}..."
+                        )
+                        continue
                 # Allow LLM values through even if they contain some bad phrases
                 validated[field_name] = field_gen
                 continue
@@ -1052,8 +1095,8 @@ class GenerationEngine:
                 logger.warning(f"Filtered out bad {field_name} value: {value[:50]}...")
                 continue
 
-            # Additional validation for function and intended_use
-            if field_name in ["function", "intended_use"]:
+            # Additional validation for function (intended_use is LLM-only and handled above)
+            if field_name == "function":
                 # Must be a reasonable length
                 if len(value.strip()) < 20:
                     logger.warning(
@@ -1070,7 +1113,8 @@ class GenerationEngine:
                     continue
 
                 # Must start with capital letter (complete sentence)
-                if not value[0].isupper():
+                stripped = value.strip()
+                if not stripped[0].isupper():
                     logger.warning(
                         f"Filtered out {field_name} value that doesn't start with capital: {value}"
                     )
@@ -1518,10 +1562,10 @@ Review all components and return the JSON response."""
             validation = self._parse_json_with_recovery(json_str)
 
             if not validation:
-                logger.warning(
-                    f"Failed to parse LLM validation response after recovery attempts. "
-                    f"Response length: {len(response_content)}, "
-                    f"JSON length: {len(json_str) if json_str else 0}"
+                logger.info(
+                    "LLM BOM component review returned unparseable JSON after recovery; "
+                    "keeping all extracted components (non-fatal). "
+                    f"response_chars={len(response_content)} json_chars={len(json_str) if json_str else 0}"
                 )
                 return components  # Return all if parsing fails
 

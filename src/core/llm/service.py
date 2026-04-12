@@ -401,7 +401,11 @@ class LLMService(BaseService["LLMService"]):
             + "\n\nOutput requirements: respond with a single JSON object only — "
             "no markdown, no code fences, no commentary. "
             "Use string keys title, version, function, and description; "
-            "each value must be a non-empty string."
+            "each of those values must be a non-empty string. "
+            "Optionally add intended_use: one or two sentences describing who uses this "
+            "hardware and for what purpose (use cases / audience). "
+            "Omit intended_use or set it to null if the map outputs do not support a "
+            "confident answer."
         )
         reduce_resp = await self.generate(
             prompt=reduce_prompt,

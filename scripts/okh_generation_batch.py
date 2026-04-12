@@ -10,7 +10,9 @@ defaults to **tmp/oshwa/last_batch_report.json**.
 
 Typical workflow (clone + BOM normalization, same as manual ``--clone --no-review``):
 
-    export GITLAB_SELF_HOSTED_HOSTS=gitlab.waag.org   # if using Waag
+    # Optional for GitLab API extractors; local git clone also works for
+    # https://host/group/project when the path has namespace + project.
+    export GITLAB_SELF_HOSTED_HOSTS=gitlab.waag.org   # if using Waag API fallback
     conda activate supply-graph-ai
 
     # 3-layer baseline (default layer tag: 3L)
@@ -34,6 +36,12 @@ Options:
     --no-llm         3-layer manifests only (skip LLM)
     --no-llm-chunked Single LLM request per repo (no map-reduce; may truncate)
     --llm-chunked-mode  Redundant with defaults; kept for backward compatibility
+
+Environment:
+    ``GITLAB_SELF_HOSTED_HOSTS`` is read from :func:`os.environ` each time the
+    router checks a URL (not cached at import). This script also loads the
+    repo-root ``.env`` at startup with ``override=False`` so shell exports win
+    over file values. Use ``--no-env-banner`` to hide the startup diagnostic line.
 """
 
 from __future__ import annotations
@@ -41,6 +49,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -50,6 +59,40 @@ from typing import Any, Dict, List, Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+
+def _load_repo_dotenv_if_present() -> None:
+    """Load ``REPO_ROOT/.env`` without overriding variables already set in the environment."""
+    env_path = REPO_ROOT / ".env"
+    if not env_path.is_file():
+        return
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(env_path, override=False)
+
+
+def _print_gitlab_self_hosted_banner() -> None:
+    """Stderr one-liner: what this Python process sees for GitLab allowlist."""
+    from src.core.generation.gitlab_instance import parse_self_hosted_gitlab_hosts
+
+    raw = os.environ.get("GITLAB_SELF_HOSTED_HOSTS", "")
+    hosts = parse_self_hosted_gitlab_hosts()
+    if hosts:
+        print(
+            "[okh_generation_batch] GITLAB_SELF_HOSTED_HOSTS="
+            f"{raw!r} → parsed: {sorted(hosts)}",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            "[okh_generation_batch] GITLAB_SELF_HOSTED_HOSTS unset or empty in this process "
+            f"(raw={raw!r}). "
+            "Use `export` in the same terminal that runs `python`, or set it in repo-root `.env`. "
+            "IDE / task runners often do not inherit your interactive shell exports.",
+            file=sys.stderr,
+        )
 
 
 def _parse_args() -> argparse.Namespace:
@@ -163,6 +206,11 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Print one-line summary per repo to stdout",
     )
+    p.add_argument(
+        "--no-env-banner",
+        action="store_true",
+        help="Do not print GITLAB_SELF_HOSTED_HOSTS diagnostic to stderr at startup",
+    )
     return p.parse_args()
 
 
@@ -187,6 +235,11 @@ def _select_repos(
 
 async def _run() -> int:
     args = _parse_args()
+    # Load .env before any generation imports so GITLAB_* matches shell + file intent.
+    _load_repo_dotenv_if_present()
+    if not args.no_env_banner:
+        _print_gitlab_self_hosted_banner()
+
     use_llm = not args.no_llm
     if args.use_llm and args.no_llm:
         raise SystemExit("Cannot combine --use-llm with --no-llm")

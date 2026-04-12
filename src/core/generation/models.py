@@ -1876,7 +1876,8 @@ class LayerConfig:
         use_direct: Enable direct field mapping layer
         use_heuristic: Enable heuristic pattern recognition layer
         use_nlp: Enable natural language processing layer
-        use_llm: Enable large language model layer
+        use_llm: Enable large language model layer. When disabled, OKH ``intended_use``
+            is left blank (only the LLM layer may populate it).
         use_bom_normalization: Enable BOM normalization layer
 
         min_confidence: Minimum confidence threshold for field acceptance

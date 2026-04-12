@@ -51,6 +51,10 @@ class ChunkedLLMReduceSchema(BaseModel):
     version: str = Field(min_length=1)
     function: str = Field(min_length=1)
     description: str = Field(min_length=1)
+    intended_use: Optional[str] = Field(
+        default=None,
+        description="Who uses this hardware and for what purpose; omit or null if unknown.",
+    )
 
 
 class LLMGenerationLayer(BaseGenerationLayer):
@@ -403,7 +407,10 @@ The OKH manifest is designed to maximize interoperability and discoverability in
                 structured_request = LLMStructuredRequest(
                     instruction=(
                         "Analyze repository content and return a complete, valid OKH manifest "
-                        "JSON. Required: title, version, function, and a non-empty description."
+                        "JSON. Required: title, version, function, and a non-empty description. "
+                        "When documentation clearly states who the project is for and why "
+                        "(use cases, audience, applications), also include intended_use as "
+                        "one or two sentences; otherwise omit intended_use."
                     ),
                     payload_sections=[
                         LLMPayloadSection(name="analysis_prompt", text=prompt)
@@ -1214,6 +1221,10 @@ Use {context_file} as your scratchpad for analysis.
         for field in optional_fields:
             if field in manifest_data:
                 value = manifest_data[field]
+                if field == "intended_use" and (
+                    value is None or (isinstance(value, str) and not str(value).strip())
+                ):
+                    continue
                 confidence = 0.8  # Good confidence for optional fields
                 result.add_field(
                     field,
@@ -1273,18 +1284,27 @@ Use {context_file} as your scratchpad for analysis.
             )
             # Clean up whitespace
             intended_use_value = " ".join(intended_use_value.split())
-            # Only add if it looks reasonable
+            # Only add if it looks reasonable (same noise heuristics as engine validation)
+            iu_lower = intended_use_value.lower()
             if len(intended_use_value) > 20 and not any(
-                phrase in intended_use_value.lower()
+                phrase in iu_lower
                 for phrase in ["windows", "mac", "linux", "disclaimed", "respect of"]
             ):
-                result.add_field(
-                    "intended_use",
-                    intended_use_value,
-                    0.85,
-                    "llm_partial_json",
-                    "Extracted from partial JSON",
+                from ..utils.intended_use_validation import (
+                    is_obvious_noise_intended_use,
                 )
+
+                if (
+                    not is_obvious_noise_intended_use(intended_use_value)
+                    and len(intended_use_value.split()) >= 5
+                ):
+                    result.add_field(
+                        "intended_use",
+                        intended_use_value,
+                        0.85,
+                        "llm_partial_json",
+                        "Extracted from partial JSON",
+                    )
 
         # Extract description field
         description_pattern = r'"description"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'

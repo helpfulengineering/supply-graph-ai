@@ -370,10 +370,7 @@ class NLPMatcher(BaseGenerationLayer):
         if function:
             fields["function"] = function
 
-        # Extract intended use (similar to function but more specific)
-        intended_use = self._extract_intended_use(doc)
-        if intended_use:
-            fields["intended_use"] = intended_use
+        # intended_use is populated only by the LLM layer (see GenerationEngine).
 
         # Extract materials using entity patterns
         materials = self._extract_materials(doc, content)
@@ -578,97 +575,6 @@ class NLPMatcher(BaseGenerationLayer):
         if function_sentences:
             # Return the first (usually most relevant) function description
             return function_sentences[0]
-
-        return None
-
-    def _extract_intended_use(self, doc) -> Optional[str]:
-        """Extract intended use from NLP analysis"""
-        # Look for sentences that describe the intended use/application
-        intended_use_sentences = []
-
-        # Phrases to exclude (license disclaimers, assembly instructions, software compatibility, etc.)
-        exclude_phrases = [
-            "disclaimed",
-            "warranty",
-            "liability",
-            "copyright",
-            "license",
-            "permission",
-            "granted",
-            "redistribute",
-            "modify",
-            "derivative",
-            "respect of",
-            "without limitation",
-            "as is",
-            "as available",
-            "infringe",
-            "induce you",
-            "take away your",
-            "take away you",
-            "general public license",
-            "gnu general",
-            "section to",
-            "verbatim copies",
-            "most software are",
-            "pushing",
-            "inserting",
-            "screwing",
-            "mounting",
-            "attaching",
-            "without damaging",
-            "carefully",
-            "gently",
-            "step",
-            "instructions",
-            "windows",
-            "mac",
-            "linux",
-            "operating system",
-            "compatible with",
-            "software",
-            "runs on",
-            "supports",
-            "platform",
-        ]
-
-        for sent in doc.sents:
-            sent_text = sent.text.strip()
-
-            # Skip very short sentences
-            if len(sent_text) < 25:  # Increased minimum length
-                continue
-
-            # Skip if it contains exclude phrases (especially software compatibility)
-            if any(phrase in sent_text.lower() for phrase in exclude_phrases):
-                continue
-
-            # Look for intended use indicators
-            intended_use_indicators = [
-                "perfect for",
-                "ideal for",
-                "designed for",
-                "suitable for",
-                "intended for",
-                "used for",
-                "applications include",
-                "use cases",
-                "target audience",
-                "end users",
-                "purpose is",
-                "goal is",
-            ]
-
-            if any(
-                indicator in sent_text.lower() for indicator in intended_use_indicators
-            ):
-                # Validate it's a complete, meaningful sentence
-                if len(sent_text.split()) >= 4 and sent_text[0].isupper():
-                    intended_use_sentences.append(sent_text)
-
-        if intended_use_sentences:
-            # Return the first (usually most relevant) intended use description
-            return intended_use_sentences[0]
 
         return None
 

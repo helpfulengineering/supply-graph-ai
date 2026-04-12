@@ -91,12 +91,27 @@ class LocalGitExtractor(ProjectExtractor):
         low = url.lower()
         if any(pattern in low for pattern in git_patterns):
             return True
-        from ..gitlab_instance import is_gitlab_http_clone_url, normalize_http_url
+        from ..gitlab_instance import (
+            gitlab_path_has_namespace_and_project,
+            is_gitlab_http_clone_url,
+            normalize_http_url,
+        )
+        from urllib.parse import urlparse
 
         try:
-            return is_gitlab_http_clone_url(normalize_http_url(url))
+            norm = normalize_http_url(url)
+            if is_gitlab_http_clone_url(norm):
+                return True
+            # Self-hosted / enterprise Git over HTTPS: if the path looks like
+            # namespace/project, allow a git clone attempt even when the host is
+            # not listed in GITLAB_SELF_HOSTED_HOSTS (clone may still require auth).
+            parsed = urlparse(norm)
+            if parsed.scheme == "https" and (parsed.hostname or ""):
+                if gitlab_path_has_namespace_and_project(parsed.path or "/"):
+                    return True
         except Exception:
-            return False
+            pass
+        return False
 
     def _clone_repository(self, url: str) -> Optional[Path]:
         """

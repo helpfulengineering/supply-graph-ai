@@ -23,7 +23,8 @@ from .base import BaseGenerationLayer, LayerResult
 logger = logging.getLogger(__name__)
 
 # Excluded from full-repository content pattern scans: LICENSE/COPYING matches generic
-# regexes such as ``purpose ...`` (GPL) and pollutes ``function`` / ``intended_use``.
+# regexes such as ``purpose ...`` (GPL) and pollutes ``function``.
+# ``intended_use`` is LLM-only (see GenerationEngine._validate_field_values).
 _LICENSE_LIKE_BASENAMES = frozenset(
     {
         "license",
@@ -203,23 +204,6 @@ class HeuristicMatcher(BaseGenerationLayer):
                 (
                     r"(?i)(?:is a\s+)([^.\n]{10,100})(?:\s+that|\s+which|\s+for)",
                     "is_a_description",
-                    0.6,
-                ),
-            ],
-            "intended_use": [
-                (
-                    r"(?i)(?:intended.use|use.case|application|for\s+)([^.\n]{10,100})",
-                    "intended_use_direct",
-                    0.9,
-                ),
-                (
-                    r"(?i)(?:can.be.used|suitable.for|designed.for)[\s:]*([^.\n]{10,100})",
-                    "intended_use_indirect",
-                    0.7,
-                ),
-                (
-                    r"(?i)(?:perfect.for|ideal.for|great.for)[\s:]*([^.\n]{10,100})",
-                    "intended_use_positive",
                     0.6,
                 ),
             ],
@@ -577,78 +561,6 @@ class HeuristicMatcher(BaseGenerationLayer):
                         confidence,
                         "readme_function_extraction",
                         "Extracted from README project description",
-                    )
-                    break
-
-        # Extract intended use - look for specific use cases
-        # Exclude license disclaimer phrases and assembly instructions
-        # (license_phrases and assembly_phrases defined above)
-        intended_use_patterns = [
-            # Pattern: "Designed for [use case]"
-            r"(?i)(?:^|\n|\.)\s*designed\s+for\s+([^.]{30,200})\.(?:\s|$)",
-            # Pattern: "Can be used for [use case]"
-            r"(?i)(?:^|\n|\.)\s*can\s+be\s+used\s+(?:for|to|in)\s+([^.]{30,200})\.(?:\s|$)",
-            # Pattern: "Suitable for [use case]"
-            r"(?i)(?:^|\n|\.)\s*suitable\s+for\s+([^.]{30,200})\.(?:\s|$)",
-            # Pattern: "Intended for [use case]"
-            r"(?i)(?:^|\n|\.)\s*intended\s+for\s+([^.]{30,200})\.(?:\s|$)",
-            # Pattern: "Ideal/Perfect for [use case]"
-            r"(?i)(?:^|\n|\.)\s*(?:ideal|perfect|great)\s+for\s+([^.]{30,200})\.(?:\s|$)",
-            # Pattern: "Use cases include [list]"
-            r"(?i)(?:^|\n|\.)\s*use\s+cases?\s+(?:include|are)\s+([^.]{30,200})\.(?:\s|$)",
-            # Pattern: "Applications include [list]"
-            r"(?i)(?:^|\n|\.)\s*applications?\s+(?:include|are)\s+([^.]{30,200})\.(?:\s|$)",
-        ]
-
-        for pattern in intended_use_patterns:
-            intended_use_match = re.search(
-                pattern, readme_content, re.DOTALL | re.MULTILINE
-            )
-            if intended_use_match:
-                intended_use_text = None
-                try:
-                    if (
-                        intended_use_match.groups()
-                        and len(intended_use_match.groups()) >= 1
-                    ):
-                        intended_use_text = intended_use_match.group(1).strip()
-                except (IndexError, AttributeError) as e:
-                    logger.debug(
-                        f"Regex group access error in intended_use pattern: {e}"
-                    )
-                    continue
-                if not intended_use_text:
-                    continue
-
-                if any(
-                    phrase in intended_use_text.lower() for phrase in license_phrases
-                ):
-                    continue
-                if any(
-                    phrase in intended_use_text.lower() for phrase in assembly_phrases
-                ):
-                    continue
-                intended_use_text = re.sub(r"\s+", " ", intended_use_text)
-                words = intended_use_text.split()
-                if len(words) < 4:
-                    continue
-                if len(intended_use_text) < 25:
-                    continue
-                intended_use_text = re.sub(r"[^\w\s\-.,()]", "", intended_use_text)
-                if (
-                    len(intended_use_text) > 25
-                    and len(intended_use_text) < 500
-                    and not intended_use_text.startswith("=")
-                ):
-                    confidence = self.calculate_confidence(
-                        "intended_use", intended_use_text, "content_analysis"
-                    )
-                    result.add_field(
-                        "intended_use",
-                        intended_use_text,
-                        confidence,
-                        "readme_intended_use_extraction",
-                        "Extracted from README intended use description",
                     )
                     break
 
