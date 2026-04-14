@@ -1,7 +1,13 @@
 # Match endpoint — end-to-end validation runbook
 
-Repeatable process for verifying the `POST /v1/api/match` integration between
-`project-data-platform-ts` (frontend) and `supply-graph-ai` (backend).
+Repeatable process for verifying `POST /v1/api/match` on **supply-graph-ai**.
+
+**Primary interaction paths (this document):**
+
+1. **HTTP API** — `curl` or any HTTP client (same contract as production integrations).
+2. **CLI** — `ohm match requirements …` calls the same `/v1/api/match` endpoint when the server is reachable.
+
+**Optional:** a small Node script in `project-data-platform-ts` can sanity-check the same JSON body the browser sends; see [Optional: frontend parity check](#optional-frontend-parity-check).
 
 ---
 
@@ -10,15 +16,17 @@ Repeatable process for verifying the `POST /v1/api/match` integration between
 | Requirement | Notes |
 |---|---|
 | Docker Desktop running | `docker info` must succeed |
-| Node ≥ 18 | For the verification script |
 | Network access to Azure Blob Storage | `projdatablobstorage.blob.core.windows.net` |
-| `.env` present in `supply-graph-ai/` | Contains Azure credentials |
+| `.env` in `supply-graph-ai/` | Azure credentials and `AZURE_STORAGE_*` |
+| **For CLI:** Python 3.12+ and editable install | `pip install -e .` from `supply-graph-ai` (installs the `ohm` command) |
+
+Node.js is **not** required unless you use the optional frontend script.
 
 ---
 
 ## 1 — Start the backend
 
-The backend must be running before any match request is made.
+The API must be up before any match request.
 
 ```bash
 cd supply-graph-ai
@@ -30,64 +38,113 @@ docker compose build ohm-api
 docker compose up -d --force-recreate ohm-api
 ```
 
-> **Important:** always use `--force-recreate` so the container picks up the
-> latest image and `.env` values.  Plain `docker compose up -d` reuses an
-> existing container and may run stale code even after a rebuild.
+> **Important:** use `--force-recreate` so the container picks up the latest
+> image and `.env`. Plain `docker compose up -d` can leave a stale container
+> running old code.
 
-Wait until the health check passes (takes ~20 s while spaCy models load):
+Wait until the health check passes (often ~20 s while spaCy loads):
 
 ```bash
-# Poll until HTTP 200
 until curl -sf http://localhost:8001/health; do sleep 3; done && echo "Ready"
 ```
 
-Expected response:
+Expected:
+
 ```json
 {"status":"ok","domains":["cooking","manufacturing"],"version":"1.0.0"}
 ```
 
 ---
 
-## 2 — Run the frontend verification script
+## 2 — Canonical demo: HTTP API + CLI (same logical request)
 
-`project-data-platform-ts` ships a script that fires exactly the same request
-shape the Nuxt app uses.
+Use a public OKH URL (same pattern as the frontend: **`okh_url` only**).
+
+**Variables (reuse in both sections):**
 
 ```bash
-cd project-data-platform-ts
-
-# Cookie-recipe demo (OKH file already in Azure `okh` container)
-OKH_FNAME=okh-chococolate-chip-cookies-recipe.json node scripts/verify-ohm-match.mjs
+export OHM_BASE=http://localhost:8001
+export OKH_URL='https://projdatablobstorage.blob.core.windows.net/okh/okh-chococolate-chip-cookies-recipe.json'
 ```
 
-**Expected output:**
-```
-Request URL: http://localhost:8001/v1/api/match
-Request body: {"okh_url":"https://projdatablobstorage.blob.core.windows.net/okh/okh-chococolate-chip-cookies-recipe.json"}
-HTTP 200 OK
-Response envelope: {
-  status: 'success',
-  message: 'Matching completed successfully',
-  total_solutions: 2,
-  solutions_length: 2
-}
-OK: match request matches front-end contract and returned HTTP 200.
+### 2a — HTTP API (`curl`)
+
+Minimal POST (JSON body matches `MatchRequest`: `okh_url`):
+
+```bash
+curl -s -X POST "${OHM_BASE}/v1/api/match" \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d "{\"okh_url\":\"${OKH_URL}\"}"
 ```
 
-Any other `total_solutions` or a non-zero exit code indicates a problem —
-see the **Troubleshooting** section below.
+**Expected:** HTTP `200`, JSON `status` = `"success"`, `data.total_solutions` ≥ `2` for the current team Azure data (two kitchen OKWs).
+
+Optional query parameters are passed in the JSON body, for example:
+
+```bash
+curl -s -X POST "${OHM_BASE}/v1/api/match" \
+  -H 'Accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d "{\"okh_url\":\"${OKH_URL}\",\"min_confidence\":0.05,\"max_results\":5}"
+```
+
+### 2b — CLI equivalent (`ohm match requirements`)
+
+The CLI issues **`POST {server}/v1/api/match`** when you pass an **https** URL as the first argument: it sends `okh_url` (initial domain `manufacturing`; the server re-detects cooking from the manifest).
+
+From the **host** (not inside Docker), with the repo installed:
+
+```bash
+cd supply-graph-ai
+pip install -e .   # once per environment
+
+# Point at the running API (global flag on `ohm`)
+ohm --server-url "${OHM_BASE}" match requirements "${OKH_URL}" --json
+```
+
+**CLI flags that mirror the API body:**
+
+| API field (`MatchRequest`) | CLI flag |
+|---|---|
+| `min_confidence` | `--min-confidence` (default **0.1**, aligned with API) |
+| `max_results` | `--max-results` |
+| `max_depth` | `--max-depth` |
+| `domain` | `--domain manufacturing\|cooking` (usually omit; server infers cooking from OKH content for URLs) |
+
+Pretty-printed JSON to a file:
+
+```bash
+ohm --server-url "${OHM_BASE}" match requirements "${OKH_URL}" \
+  --json -o /tmp/match-cookies.json
+```
+
+**Local OKH file instead of URL:** the CLI reads the file and sends `okh_manifest` in the request body (still hits the same endpoint). Equivalent to downloading the manifest yourself and POSTing it—**not** the same as `okh_url`, but useful offline:
+
+```bash
+curl -s -o /tmp/cookies.okh.json "${OKH_URL}"
+ohm --server-url "${OHM_BASE}" match requirements /tmp/cookies.okh.json --json
+```
+
+> **Note:** for URL inputs the CLI defaults the *initial* domain to manufacturing
+> and passes `okh_url`; the API then re-routes to cooking when the manifest
+> looks like a recipe. You normally do **not** need `--domain cooking` for blob
+> OKH URLs.
 
 ---
 
-## 3 — Optional: inspect solution detail via curl
+## 3 — Inspect solutions (API vs CLI)
+
+### API — summary fields with `curl` + `python3`
 
 ```bash
-curl -s -X POST http://localhost:8001/v1/api/match \
+curl -s -X POST "${OHM_BASE}/v1/api/match" \
   -H 'Content-Type: application/json' \
-  -d '{"okh_url":"https://projdatablobstorage.blob.core.windows.net/okh/okh-chococolate-chip-cookies-recipe.json"}' \
-  | python3 -c "
+  -d "{\"okh_url\":\"${OKH_URL}\"}" \
+| python3 -c "
 import sys, json
 d = json.load(sys.stdin)
+print('status:', d.get('status'))
 print('total_solutions:', d['data']['total_solutions'])
 for s in d['data']['solutions']:
     meta = s.get('tree', {}).get('metadata', {}) if isinstance(s.get('tree'), dict) else {}
@@ -97,21 +154,55 @@ for s in d['data']['solutions']:
 "
 ```
 
----
+### CLI — same data in `--json` output
 
-## 4 — Using a different OKH file
-
-Set `OKH_URL` to the full public blob URL, or `OKH_FNAME` to the filename
-inside the `okh` container:
+With `--json`, the CLI prints the **same object as the API’s `data` field** (not the outer `{ status, message, data }` envelope): top-level keys include `solutions`, `total_solutions`, `matching_mode`, etc.
 
 ```bash
-# By filename
-OKH_FNAME=my-other-recipe.json node scripts/verify-ohm-match.mjs
-
-# By full URL
-OKH_URL=https://projdatablobstorage.blob.core.windows.net/okh/my-file.json \
-  node scripts/verify-ohm-match.mjs
+ohm --server-url "${OHM_BASE}" match requirements "${OKH_URL}" --json \
+| jq '.solutions[] | {facility_name, confidence, match_type}'
 ```
+
+To compare with `curl`, either pipe the API response through `jq '.data'` first or query `.data` in one shot:
+
+```bash
+curl -s -X POST "${OHM_BASE}/v1/api/match" \
+  -H 'Content-Type: application/json' \
+  -d "{\"okh_url\":\"${OKH_URL}\"}" \
+| jq '.data | {total_solutions, solution_names: [.solutions[].facility_name]}'
+```
+
+---
+
+## 4 — Different OKH targets
+
+**API — any public `okh_url`:**
+
+```bash
+curl -s -X POST "${OHM_BASE}/v1/api/match" \
+  -H 'Content-Type: application/json' \
+  -d '{"okh_url":"https://projdatablobstorage.blob.core.windows.net/okh/my-other-file.json"}'
+```
+
+**CLI — same URL:**
+
+```bash
+ohm --server-url "${OHM_BASE}" match requirements \
+  'https://projdatablobstorage.blob.core.windows.net/okh/my-other-file.json' --json
+```
+
+---
+
+## Optional: frontend parity check
+
+`project-data-platform-ts` includes a script that sends the same shape as Nuxt (`{ okh_url }` only). **Requires Node ≥ 18.**
+
+```bash
+cd project-data-platform-ts
+OKH_FNAME=okh-chococolate-chip-cookies-recipe.json node scripts/verify-ohm-match.mjs
+```
+
+Set `VITE_SUPPLY_GRAPH_AI_URL` if the API is not on `http://localhost:8001`.
 
 ---
 
@@ -119,132 +210,111 @@ OKH_URL=https://projdatablobstorage.blob.core.windows.net/okh/my-file.json \
 
 ### `total_solutions: 0` — empty result set
 
-Work through the checklist in order:
-
-#### A. Is the container running the latest image?
+#### A. Stale Docker image
 
 ```bash
 cd supply-graph-ai
-docker compose ps          # container should show "Up"
+docker compose ps
 docker compose build ohm-api && docker compose up -d --force-recreate ohm-api
 ```
 
-Verify the domain re-detection patch is present in the running container:
+Confirm domain re-detection code is in the image:
 
 ```bash
-docker exec ohm-api grep -c "_detect_domain_from_manifest" \
-  /app/src/core/api/routes/match.py
-# Must print 2; if it prints 0, the image is stale — rebuild above
+docker exec ohm-api grep -c "_detect_domain_from_manifest" /app/src/core/api/routes/match.py
+# Expect 2; 0 means stale image
 ```
 
-#### B. Does the container reach Azure Storage?
-
-Tail the logs for a request:
+#### B. CLI talks to the wrong server
 
 ```bash
-docker compose logs ohm-api -f &
-# (trigger a request in another terminal)
+ohm --server-url http://localhost:8001 system health
 ```
 
-Look for these log lines in order — each confirms a stage of the pipeline:
+This hits `{server-url}/health` (same host/port you use for `curl`). If it fails,
+fix `--server-url` or your shell environment before retrying `match requirements`.
 
-| Log message | What it means |
+The CLI builds requests to **`{server-url}/v1/api/match`**. Override with
+`--server-url` or set `OME_SERVER_URL` (see `src/cli/base.py`; some docs
+refer to `OHM_SERVER_URL` — if in doubt, use `--server-url`).
+
+#### C. Azure / pipeline logs
+
+```bash
+docker compose logs ohm-api -f
+```
+
+| Log message | Meaning |
 |---|---|
-| `Detected domain: manufacturing` | Request received; initial detection (expected) |
-| `Re-detected domain as cooking from OKH manifest content` | Manifest inspected; domain corrected to cooking ✓ |
-| `Listing kitchen capabilities` | OKW service called for cooking domain ✓ |
-| `Found N unique kitchen capabilities` | N kitchen OKW files loaded from Azure ✓ |
-| `Filtered facilities: N out of N` | Facilities passed filter ✓ |
-| `Enhanced matching completed: N results` | Matcher produced N candidates ✓ |
-| `Processed matching results: N solutions` | Final count after confidence threshold |
+| `Detected domain: manufacturing` | Initial routing from `okh_url` (expected) |
+| `Re-detected domain as cooking from OKH manifest content` | Server switched to cooking ✓ |
+| `Listing kitchen capabilities` | Loading kitchen OKWs ✓ |
+| `Found N unique kitchen capabilities` | N kitchens found ✓ |
+| `Enhanced matching completed: N results` | Matcher produced N raw results |
+| `Processed matching results: M solutions` | After `min_confidence` / `max_results` |
 
-**If `Re-detected domain as cooking` is missing:** the OKH manifest did not
-trigger cooking detection.  Check that the manifest has at least one of:
-- `domain: "cooking"` field
-- `manufacturing_processes` containing only cooking terms (bake, mix, etc.)
-- A `function` field with a cooking keyword plus `tool_list` or `making_instructions`
+**`Processed matching results: 0`** but **`Enhanced matching completed: N>0`:** raise
+`min_confidence` in the API body or lower it to confirm:
 
-**If `Found 0 unique kitchen capabilities`:** no kitchen OKW files are visible
-in the configured storage container.  Verify `.env`:
+```bash
+curl -s -X POST "${OHM_BASE}/v1/api/match" \
+  -H 'Content-Type: application/json' \
+  -d "{\"okh_url\":\"${OKH_URL}\",\"min_confidence\":0.05}"
+```
+
+```bash
+ohm --server-url "${OHM_BASE}" match requirements "${OKH_URL}" --min-confidence 0.05 --json
+```
+
+#### D. Storage configuration
+
+Check `.env`:
+
 ```
 STORAGE_PROVIDER=azure_blob
 AZURE_STORAGE_ACCOUNT=projdatablobstorage
-AZURE_STORAGE_CONTAINER=newformats        # contains ButlerKitchen.json etc.
-AZURE_STORAGE_OKW_CONTAINER_NAME=okw     # path prefix inside container
+AZURE_STORAGE_CONTAINER=newformats
+AZURE_STORAGE_OKW_CONTAINER_NAME=okw
 ```
 
-**If `Processed matching results: 0 solutions`** after `Enhanced matching
-completed: N results`: the confidence filter is removing all candidates.
-The default threshold is `min_confidence=0.1`.  Pass a lower value explicitly
-to confirm:
+### Container fails to start
 
 ```bash
-curl -s -X POST http://localhost:8001/v1/api/match \
-  -H 'Content-Type: application/json' \
-  -d '{"okh_url":"https://projdatablobstorage.blob.core.windows.net/okh/okh-chococolate-chip-cookies-recipe.json","min_confidence":0.05}'
+docker compose logs ohm-api --tail 80
 ```
 
-If solutions appear with a lower threshold, the kitchen OKW files have sparse
-capability data.  Update the files in Azure to add more `ingredients`,
-`tools`, and `appliances` so matches score above 0.1.
-
-### Container crashes / fails to start
-
-```bash
-docker compose logs ohm-api --tail 50
-```
-
-Common causes:
-- Missing `.env` or missing `AZURE_STORAGE_KEY`
-- spaCy model not downloaded inside the image (re-run `docker compose build`)
-
-### `node: not found` when running the verify script
-
-Install Node.js ≥ 18 or use `npx node@18`:
-```bash
-npx --yes node@18 scripts/verify-ohm-match.mjs OKH_FNAME=okh-chococolate-chip-cookies-recipe.json
-```
+Typical causes: missing `AZURE_STORAGE_KEY`, or image build incomplete (re-run `docker compose build ohm-api`).
 
 ---
 
 ## How the pipeline works (summary)
 
 ```
-frontend                           supply-graph-ai
-───────                            ───────────────
-POST /v1/api/match
-  { okh_url: "...blob.../okh/...json" }
-                          ──────────►
-                                   1. Fetch OKH manifest from okh_url
-                                   2. Inspect manifest fields → detect domain
-                                      (cooking if manufacturing_processes = ["bake"] etc.)
-                                   3. Load kitchen OKW files from Azure (newformats/okw/)
-                                   4. For each kitchen:
-                                      - Extract capabilities (ingredients, tools, appliances)
-                                      - Fuzzy-match against recipe requirements
-                                      - Compute confidence score (0–1)
-                                   5. Filter by min_confidence (default 0.1)
-                                   6. Return solutions sorted by confidence
-          ◄──────────────────────
-  { data: { solutions: [...], total_solutions: 2 } }
-
-frontend renders facility cards
-with facility_name + confidence
+curl / ohm CLI / optional frontend script
+         │
+         ▼
+POST /v1/api/match   { "okh_url": "<public https URL>" }
+         │
+         ▼
+supply-graph-ai
+  1. Fetch OKH from okh_url
+  2. Re-detect domain (e.g. cooking from manifest content)
+  3. List OKW files from configured Azure container/prefix
+  4. Match requirements vs capabilities; compute confidence
+  5. Apply min_confidence / max_results
+  6. Return { data: { solutions, total_solutions, ... } }
 ```
 
 ---
 
 ## Known data quality notes
 
-The kitchen OKW files in Azure (`newformats/okw/`) currently have partial
-ingredient and tool lists.  Confidence scores reflect actual overlap:
+Kitchen OKWs under `newformats/okw/` may list partial `ingredients` / `tools` /
+`appliances`. Confidence reflects overlap with the recipe; fuzzy substring
+matching helps (e.g. `"sugar"` vs `"brown sugar"`). Enrich OKW JSON in Azure
+to raise scores.
 
-| Kitchen | Confidence (cookie recipe) | Notes |
+| Kitchen (cookie recipe) | Approx. confidence | Notes |
 |---|---|---|
-| Butler Kitchen | ~0.30 | flour, sugar, chocolate chips match; spatula matches |
-| Rob's Dessert Kitchen | ~0.23 | flour, sugar match; spatula matches |
-
-The matching engine uses **fuzzy substring matching** (e.g. `"sugar"` in
-kitchen matches `"brown sugar"` in recipe, `"chocolate chips"` matches
-`"chocolate chip"`).  To improve scores, add more ingredients and appliances
-to the kitchen OKW files in the `newformats` container.
+| Butler Kitchen | ~0.30 | Stronger overlap |
+| Rob's Dessert Kitchen | ~0.23 | Still above default 0.1 threshold |

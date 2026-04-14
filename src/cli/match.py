@@ -79,8 +79,8 @@ def match_group():
 @click.option(
     "--min-confidence",
     type=float,
-    default=0.3,
-    help="Minimum confidence threshold for matches (0.0-1.0). Default: 0.3 (relaxed)",
+    default=0.1,
+    help="Minimum confidence threshold for matches (0.0-1.0). Default: 0.1 (aligned with API)",
 )
 @click.option(
     "--max-results", type=int, default=10, help="Maximum number of results to return"
