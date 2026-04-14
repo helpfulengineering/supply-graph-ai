@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from ...models.okh import DocumentationType
 from ...taxonomy import taxonomy
+from ..bom_candidate_discovery import path_matches_dedicated_bom_file
 from ..models import AnalysisDepth, GenerationLayer, LayerConfig, ProjectData
 from ..utils.file_categorization import (
     FileCategorizationResult,
@@ -690,63 +691,71 @@ class HeuristicMatcher(BaseGenerationLayer):
 
             # Apply file patterns
             for pattern in self.file_patterns:
-                if re.search(pattern.pattern, file_name):
-                    if pattern.field == "license":
-                        # Extract license content
-                        license_content = file_info.content
-                        license_type = self.extract_license_type(license_content)
-                        if license_type:
-                            confidence = self.calculate_confidence(
-                                "license", license_type, pattern.extraction_method
-                            )
-                            result.add_field(
-                                "license",
-                                license_type,
-                                confidence,
-                                pattern.extraction_method,
-                                f"Detected from {file_name}",
-                            )
-                    elif pattern.field == "bom":
-                        # Extract BOM content
-                        bom_content = file_info.content
-                        materials = self._parse_bom_content(bom_content)
-                        if materials:
-                            confidence = self.calculate_confidence(
-                                "materials", materials, pattern.extraction_method
-                            )
-                            result.add_field(
-                                "materials",
-                                materials,
-                                confidence,
-                                pattern.extraction_method,
-                                f"Parsed from {file_name}",
-                            )
-                    else:
-                        # For other fields, add the file to the appropriate list
-                        file_entry = {
-                            "title": Path(file_info.path).name,
-                            "path": file_info.path,
-                            "type": f"{pattern.field.replace('_', '-')}-files",
-                            "metadata": {"detected_by": "file_pattern"},
-                        }
+                name_matches = bool(re.search(pattern.pattern, file_name))
+                if pattern.field == "bom":
+                    file_matches = name_matches or path_matches_dedicated_bom_file(
+                        file_info.path
+                    )
+                else:
+                    file_matches = name_matches
+                if not file_matches:
+                    continue
+                if pattern.field == "license":
+                    # Extract license content
+                    license_content = file_info.content
+                    license_type = self.extract_license_type(license_content)
+                    if license_type:
+                        confidence = self.calculate_confidence(
+                            "license", license_type, pattern.extraction_method
+                        )
+                        result.add_field(
+                            "license",
+                            license_type,
+                            confidence,
+                            pattern.extraction_method,
+                            f"Detected from {file_name}",
+                        )
+                elif pattern.field == "bom":
+                    # Extract BOM content
+                    bom_content = file_info.content
+                    materials = self._parse_bom_content(bom_content)
+                    if materials:
+                        confidence = self.calculate_confidence(
+                            "materials", materials, pattern.extraction_method
+                        )
+                        result.add_field(
+                            "materials",
+                            materials,
+                            confidence,
+                            pattern.extraction_method,
+                            f"Parsed from {file_name}",
+                        )
+                else:
+                    # For other fields, add the file to the appropriate list
+                    file_entry = {
+                        "title": Path(file_info.path).name,
+                        "path": file_info.path,
+                        "type": f"{pattern.field.replace('_', '-')}-files",
+                        "metadata": {"detected_by": "file_pattern"},
+                    }
 
-                        if result.has_field(pattern.field):
-                            # Add to existing list
-                            existing = result.get_field(pattern.field).value
-                            if isinstance(existing, list):
-                                existing.append(file_entry)
-                        else:
-                            # Create new list
-                            confidence = self.calculate_confidence(
-                                pattern.field, [file_entry], pattern.extraction_method
-                            )
-                            result.add_field(
-                                pattern.field,
-                                [file_entry],
-                                confidence,
-                                pattern.extraction_method,
-                                f"Detected from {file_name}",
-                            )
+                    if result.has_field(pattern.field):
+                        # Add to existing list
+                        existing = result.get_field(pattern.field).value
+                        if isinstance(existing, list):
+                            existing.append(file_entry)
+                    else:
+                        # Create new list
+                        confidence = self.calculate_confidence(
+                            pattern.field, [file_entry], pattern.extraction_method
+                        )
+                        result.add_field(
+                            pattern.field,
+                            [file_entry],
+                            confidence,
+                            pattern.extraction_method,
+                            f"Detected from {file_name}",
+                        )
 
     async def _apply_content_patterns(
         self, project_data: ProjectData, result: LayerResult

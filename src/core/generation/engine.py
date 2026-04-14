@@ -519,6 +519,17 @@ class GenerationEngine:
                     confidence_scores.pop(key, None)
             missing_fields = self._calculate_missing_fields(generated_fields)
 
+            if self.config.verify_bom_github_raw:
+                repo = (project_data.url or "").strip()
+                if "github.com" not in repo.lower():
+                    project_data.metadata.pop("_bom_http_allowed_paths", None)
+                    project_data.metadata.pop("_bom_http_verify_summary", None)
+                else:
+                    await self._apply_bom_github_http_verification(project_data)
+            else:
+                project_data.metadata.pop("_bom_http_allowed_paths", None)
+                project_data.metadata.pop("_bom_http_verify_summary", None)
+
             # Add BOM normalization if enabled
             full_bom_object = None
             if self.config.use_bom_normalization:
@@ -552,6 +563,22 @@ class GenerationEngine:
                 except Exception as e:
                     # Log error but don't fail the entire generation
                     logger.warning(f"BOM normalization failed: {e}")
+                    # Layer BOM may cite repo paths that are not in the tree; strip before export.
+                    from .bom_candidate_discovery import sanitize_bom_field_for_manifest
+
+                    bom_fg = generated_fields.get("bom")
+                    if isinstance(bom_fg, FieldGeneration):
+                        sanitized = sanitize_bom_field_for_manifest(
+                            bom_fg.value, project_data
+                        )
+                        if sanitized != bom_fg.value:
+                            generated_fields["bom"] = FieldGeneration(
+                                value=sanitized,
+                                confidence=bom_fg.confidence,
+                                source_layer=bom_fg.source_layer,
+                                generation_method=f"{bom_fg.generation_method}_sanitized_paths",
+                                raw_source=bom_fg.raw_source,
+                            )
 
             # Analyze parts directory for parts and sub_parts fields
             parts_analysis = self._analyze_parts_directory(project_data)
@@ -1191,6 +1218,27 @@ class GenerationEngine:
                         normalized.append(process_stripped.title())
 
         return normalized
+
+    async def _apply_bom_github_http_verification(
+        self, project_data: ProjectData
+    ) -> None:
+        """HEAD/GET ``raw.githubusercontent.com`` for BOM candidates; set metadata for export."""
+        from .bom_candidate_discovery import list_bom_candidate_paths_from_files
+        from .bom_http_verify import verify_github_raw_bom_paths
+
+        paths = list_bom_candidate_paths_from_files(project_data.files)
+        if not paths:
+            project_data.metadata.pop("_bom_http_allowed_paths", None)
+            project_data.metadata.pop("_bom_http_verify_summary", None)
+            return
+        try:
+            kept, summary = await verify_github_raw_bom_paths(project_data.url, paths)
+            project_data.metadata["_bom_http_allowed_paths"] = kept
+            project_data.metadata["_bom_http_verify_summary"] = summary
+        except Exception as e:
+            logger.warning("BOM GitHub raw HTTP verification failed: %s", e)
+            project_data.metadata.pop("_bom_http_allowed_paths", None)
+            project_data.metadata.pop("_bom_http_verify_summary", None)
 
     async def _generate_normalized_bom(self, project_data: ProjectData):
         """

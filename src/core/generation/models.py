@@ -436,6 +436,21 @@ class ManifestGeneration:
         else:
             manifest_id = str(uuid.uuid4())
 
+        from .bom_candidate_discovery import build_bom_discovery_metadata
+
+        manifest_metadata: Dict[str, Any] = {
+            "generated_at": datetime.now().isoformat() + "Z",
+            "generation_confidence": round(self.quality_report.overall_quality, 2),
+            "low_confidence_fields": self.quality_report.low_confidence_fields,
+            "missing_required_fields": self.missing_fields,
+            "generation_method": "automated_extraction",
+            "bom_discovery": build_bom_discovery_metadata(self.project_data),
+        }
+        if include_field_confidence:
+            manifest_metadata["field_confidence"] = {
+                k: round(v, 3) for k, v in sorted(self.confidence_scores.items())
+            }
+
         # Build proper OKH manifest structure
         manifest = {
             "okhv": "OKH-LOSHv1.0",
@@ -494,23 +509,7 @@ class ManifestGeneration:
             "software": self._normalize_software(
                 fields_dict.get("software", []), self.project_data
             ),
-            "metadata": {
-                "generated_at": datetime.now().isoformat() + "Z",
-                "generation_confidence": round(self.quality_report.overall_quality, 2),
-                "low_confidence_fields": self.quality_report.low_confidence_fields,
-                "missing_required_fields": self.missing_fields,
-                "generation_method": "automated_extraction",
-                **(
-                    {
-                        "field_confidence": {
-                            k: round(v, 3)
-                            for k, v in sorted(self.confidence_scores.items())
-                        }
-                    }
-                    if include_field_confidence
-                    else {}
-                ),
-            },
+            "metadata": manifest_metadata,
         }
 
         # Add optional fields if they exist (with normalization)
@@ -1703,22 +1702,24 @@ class ManifestGeneration:
             Full BOM dict if unified_bom_mode is True, compressed summary if False,
             otherwise URL string or empty string
         """
-        # Check if we have a structured BOM from BOM normalization
-        if "bom" in fields_dict:
-            bom_value = fields_dict["bom"]
-            # If it's a structured BOM (dict)
-            if isinstance(bom_value, dict):
-                if self.unified_bom_mode:
-                    # Return full BOM in unified mode
-                    return bom_value
-                else:
-                    # Return compressed summary in default mode
-                    return self._create_compressed_bom_summary(bom_value)
-            # If it's a string (URL), return it
-            elif isinstance(bom_value, str):
-                return bom_value
+        from .bom_candidate_discovery import sanitize_bom_field_for_manifest
 
-        # Fallback to empty string if no BOM field
+        if "bom" not in fields_dict:
+            return ""
+
+        bom_value = sanitize_bom_field_for_manifest(
+            fields_dict["bom"], self.project_data
+        )
+        if bom_value == "":
+            return ""
+
+        if isinstance(bom_value, dict):
+            if self.unified_bom_mode:
+                return bom_value
+            return self._create_compressed_bom_summary(bom_value)
+        if isinstance(bom_value, str):
+            return bom_value
+
         return ""
 
     def _create_compressed_bom_summary(
@@ -1882,6 +1883,8 @@ class LayerConfig:
         use_llm: Enable large language model layer. When disabled, OKH ``intended_use``
             is left blank (only the LLM layer may populate it).
         use_bom_normalization: Enable BOM normalization layer
+        verify_bom_github_raw: When True (e.g. ``generate-from-url``), HEAD/GET GitHub
+            raw URLs for BOM candidates and drop paths that return 404 before export.
 
         min_confidence: Minimum confidence threshold for field acceptance
         progressive_enhancement: Use progressive enhancement (stop when quality threshold met)
@@ -1899,6 +1902,7 @@ class LayerConfig:
     use_nlp: bool = True
     use_llm: bool = False  # Many entrypoints override (e.g. for_generate_from_url)
     use_bom_normalization: bool = False
+    verify_bom_github_raw: bool = False
 
     # Quality and processing settings
     min_confidence: float = 0.7
@@ -2098,6 +2102,7 @@ class LayerConfig:
         return cls(
             use_llm=not no_llm,
             use_bom_normalization=True,
+            verify_bom_github_raw=True,
         )
 
     def get_enabled_layers(self) -> List[GenerationLayer]:

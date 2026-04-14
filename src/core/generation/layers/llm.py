@@ -615,7 +615,7 @@ SPECIFIC SOFTWARE REFERENCES TO USE:
 {chr(10).join(project_info.get('software_indicators', {}).get('software_references', [])[:5])}
 
 MANDATORY REQUIREMENTS:
-- You MUST use the BOM files listed above to populate the 'bom' field
+- **BOM paths**: The `bom_files` list contains **actual repository paths** from the file tree. You may cite a repo-relative BOM path **only** if it appears in `bom_files`. **Never invent** paths such as `bom/bom.json` or `BOM.csv` if they are not listed. If `bom_files` is empty, build the `bom` field from README/documentation/parts (structured summary)—without a fake `external_file`.
 - You MUST use the MANUFACTURING CANDIDATE FILES above for 'manufacturing_files'
 - You MUST use the DESIGN SOURCE FILES above for 'parts[].source' references
 - You MUST use the software references listed above to populate the 'software' field
@@ -677,10 +677,10 @@ Use {context_file} as your scratchpad for analysis.
 
 ## Instructions:
 1. **CRITICAL: Use the enhanced analysis data provided above**
-2. **CRITICAL: BOM Field - DO NOT leave empty**
-   - If bom_files array has items, reference the main BOM file
-   - If no explicit BOM, construct from parts/materials in documentation
-   - NEVER leave bom field empty - always provide a BOM reference or constructed BOM
+2. **CRITICAL: BOM field**
+   - If `bom_files` has items, set `bom` to reference **one of those paths** (prefer the first / most confident). Do not add `external_file` paths that are not in `bom_files`.
+   - If `bom_files` is empty, construct `bom` from README / docs / parts without inventing repository file paths.
+   - Always provide a non-empty `bom` object or string consistent with the rules above.
 3. **CRITICAL: Parts Field - DO NOT leave empty**
    - Use the DESIGN SOURCE FILES and MANUFACTURING CANDIDATE FILES lists to identify main hardware components
    - Map 3D models (.stl, .step) to parts with materials and dimensions
@@ -754,26 +754,11 @@ Use {context_file} as your scratchpad for analysis.
         return [file_info.path for file_info in project_data.files]
 
     def _find_bom_files(self, project_data: ProjectData) -> List[str]:
-        """Find BOM-related files in the project"""
-        bom_patterns = [
-            "bom",
-            "bill_of_materials",
-            "parts_list",
-            "components",
-            "materials",
-            "inventory",
-            "shopping_list",
-        ]
+        """BOM file paths that exist in the repo listing (ranked; no substring false positives)."""
+        from ..bom_candidate_discovery import list_bom_candidate_paths_from_files
 
-        bom_files = []
-        for file_info in project_data.files:
-            file_path_lower = file_info.path.lower()
-            for pattern in bom_patterns:
-                if pattern in file_path_lower:
-                    bom_files.append(file_info.path)
-                    break
-
-        return bom_files
+        # Cap list size for prompt/token limits; order is highest-confidence first.
+        return list_bom_candidate_paths_from_files(project_data.files)[:25]
 
     def _find_manufacturing_candidate_files(
         self, project_data: ProjectData
