@@ -2,11 +2,13 @@
 """
 Batch OKH generation for every supported entry in tests/data/okh_generation/repositories.json.
 
-Writes manifests to **tmp/oshwa/okh-manifests/** by default
-(`<repo-id>-<layer>.json`, optional `-bom.json` sidecar). Override with
-``--output-dir`` if you need the legacy test path
-(``tests/data/okh_generation/clones``) for baseline tooling. Run report
-defaults to **tmp/oshwa/last_batch_report.json**.
+Writes manifests to **tmp/oshwa/okh-manifests/** by default using the generated
+OKH **title** as a kebab-case stem: ``<title-slug>-<layer>.json`` (e.g.
+``open-source-rover-4L.json``), plus an optional ``-<layer>-bom.json`` sidecar.
+The dataset ``id`` from ``repositories.json`` is only used for ``--only-ids``,
+clone paths under ``repos/<id>/``, and report metadata—not for the manifest
+filename. Override ``--output-dir`` for other layouts. Run report defaults to
+**tmp/oshwa/last_batch_report.json**.
 
 Typical workflow (clone + BOM normalization, same as manual ``--clone --no-review``):
 
@@ -31,7 +33,8 @@ Options:
     --core-only      Only repos with core_for_regression: true
     --limit N        Process at most N repos (after filters)
     --only-ids a,b   Comma-separated repo ids
-    --skip-existing  Skip if output manifest already exists
+    --skip-existing  Skip if a manifest for the same repo URL already exists
+                     in the output dir (legacy ``<id>-<layer>.json`` or title slug)
     --save-clones    Persist git clones under clones/repos/<id>/
     --no-llm         3-layer manifests only (skip LLM)
     --no-llm-chunked Single LLM request per repo (no map-reduce; may truncate)
@@ -106,7 +109,7 @@ def _parse_args() -> argparse.Namespace:
         "--output-dir",
         type=Path,
         default=REPO_ROOT / "tmp/oshwa/okh-manifests",
-        help="Directory for <id>-<layer>.json outputs (default: tmp/oshwa/okh-manifests)",
+        help="Directory for <title-slug>-<layer>.json outputs (default: tmp/oshwa/okh-manifests)",
     )
     p.add_argument(
         "--report",
@@ -199,7 +202,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Skip generation if <id>-<layer>.json already exists",
+        help="Skip if a manifest for this repo URL already exists (see module docstring)",
     )
     p.add_argument(
         "--stdout-summary",
@@ -255,9 +258,18 @@ async def _run() -> int:
         use_clone = True
 
     from tests.data.okh_generation.baseline_report import load_repositories_dataset
+    from tests.data.okh_generation.manifest_discovery import (
+        allocate_unique_slug,
+        find_generated_manifest_path,
+        title_slug_for_filename,
+    )
     from tests.data.okh_generation.metrics import heuristic_manifest_quality
 
     from src.core.generation.dataset_generation import generate_manifest_for_repository
+
+    args.output_dir = args.output_dir.expanduser().resolve()
+    args.report = args.report.expanduser().resolve()
+    args.repositories_json = args.repositories_json.expanduser().resolve()
 
     data = load_repositories_dataset(args.repositories_json)
     selected = _select_repos(data, args)
@@ -268,25 +280,34 @@ async def _run() -> int:
 
     rows: List[Dict[str, Any]] = []
     errors = 0
+    used_output_stems: set[str] = set()
 
     for repo in selected:
         rid = repo.get("id", "unknown")
         url = repo.get("url")
-        manifest_path = args.output_dir / f"{rid}-{layer_tag}.json"
         t0 = time.perf_counter()
 
-        if args.skip_existing and manifest_path.is_file():
-            rows.append(
-                {
-                    "id": rid,
-                    "url": url,
-                    "status": "skipped_exists",
-                    "path": str(manifest_path.relative_to(REPO_ROOT)),
-                }
+        if args.skip_existing and url:
+            existing = find_generated_manifest_path(
+                args.output_dir, layer_tag, url, dataset_id=rid
             )
-            if args.stdout_summary:
-                print(f"{rid}\tskipped_exists\t{url}", file=sys.stderr)
-            continue
+            if existing is not None:
+                try:
+                    rel = str(existing.relative_to(REPO_ROOT.resolve()))
+                except ValueError:
+                    rel = str(existing)
+                rows.append(
+                    {
+                        "id": rid,
+                        "url": url,
+                        "status": "skipped_exists",
+                        "path": rel,
+                        "manifest_path": rel,
+                    }
+                )
+                if args.stdout_summary:
+                    print(f"{rid}\tskipped_exists\t{url}", file=sys.stderr)
+                continue
 
         save_clone: Optional[Path] = None
         if args.save_clones and use_clone:
@@ -312,11 +333,16 @@ async def _run() -> int:
             manifest = result.to_okh_manifest(
                 include_field_confidence=args.include_confidence
             )
+            title_raw = manifest.get("title")
+            title_str = title_raw.strip() if isinstance(title_raw, str) else ""
+            base_slug = title_slug_for_filename(title_str, rid)
+            output_stem = allocate_unique_slug(base_slug, used_output_stems)
+            manifest_path = args.output_dir / f"{output_stem}-{layer_tag}.json"
             manifest_path.write_text(
                 json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
-            bom_path = args.output_dir / f"{rid}-{layer_tag}-bom.json"
+            bom_path = args.output_dir / f"{output_stem}-{layer_tag}-bom.json"
             if getattr(result, "full_bom", None) is not None:
                 bom = result.full_bom
                 bom_dict = bom.to_dict() if hasattr(bom, "to_dict") else bom
@@ -327,16 +353,24 @@ async def _run() -> int:
 
             elapsed = time.perf_counter() - t0
             heur = heuristic_manifest_quality(manifest)
+            try:
+                manifest_rel = str(manifest_path.relative_to(REPO_ROOT.resolve()))
+            except ValueError:
+                manifest_rel = str(manifest_path)
             row = {
                 "id": rid,
+                "output_stem": output_stem,
                 "url": url,
                 "status": "ok",
-                "manifest_path": str(manifest_path.relative_to(REPO_ROOT)),
+                "manifest_path": manifest_rel,
                 "seconds": round(elapsed, 2),
                 "heuristic_quality": heur,
             }
             if bom_path.is_file():
-                row["bom_path"] = str(bom_path.relative_to(REPO_ROOT))
+                try:
+                    row["bom_path"] = str(bom_path.relative_to(REPO_ROOT.resolve()))
+                except ValueError:
+                    row["bom_path"] = str(bom_path)
             rows.append(row)
             if args.stdout_summary:
                 conf = heur.get("generation_confidence")

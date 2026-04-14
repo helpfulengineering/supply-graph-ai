@@ -1761,7 +1761,10 @@ class ManifestGeneration:
                     "categories": categories,
                     "average_confidence": avg_confidence,
                 },
-                "external_file": "bom/bom.json",  # Reference to external detailed BOM
+                # Full BOM JSON is written beside the manifest (e.g. *-bom.json) by the
+                # export pipeline — not a path inside the upstream Git repo. Omitting a
+                # repo-relative path avoids package-build 404s against raw.githubusercontent.com.
+                "external_file": None,
                 "metadata": {
                     "generated_at": full_bom.get("metadata", {}).get("generated_at"),
                     "generation_method": full_bom.get("metadata", {}).get(
@@ -1784,7 +1787,7 @@ class ManifestGeneration:
                     "categories": {},
                     "average_confidence": 0,
                 },
-                "external_file": "bom/bom.json",
+                "external_file": None,
                 "metadata": {
                     "generated_at": full_bom.get("metadata", {}).get("generated_at"),
                     "generation_method": "fallback",

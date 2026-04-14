@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 # Import existing models and services
 from ...models.okh import OKHManifest
 from ...models.package import BuildOptions
+from ...packaging.builder import PackageAssetDownloadError
 from ...packaging.remote_storage import PackageRemoteStorage
 from ...services.okh_service import OKHService
 from ...services.package_service import PackageService
@@ -191,6 +192,25 @@ async def build_package_from_manifest(
 
         return response_data
 
+    except PackageAssetDownloadError as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion=(
+                "A URL or repository path declared in the manifest could not be "
+                "downloaded. Fix the reference or remove it if the asset is optional."
+            ),
+        )
+        logger.error(
+            f"Package build failed (missing manifest asset): {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=False,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump(mode="json"),
+        )
     except ValueError as e:
         # Handle validation errors using standardized error handler
         error_response = create_error_response(

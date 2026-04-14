@@ -139,6 +139,30 @@ class FileResolver:
                 file_ref, target_path, file_type, part_name
             )
 
+    def _format_fetch_context(
+        self,
+        file_ref: DocumentRef,
+        file_type: str,
+        part_name: Optional[str],
+    ) -> str:
+        """Human-readable context for tracing failed downloads."""
+        parts = [
+            f"title={file_ref.title!r}",
+            f"file_type={file_type}",
+        ]
+        if part_name:
+            parts.append(f"part_name={part_name!r}")
+        meta = file_ref.metadata or {}
+        for key in (
+            "fetch_role",
+            "manifest_field",
+            "repo_relative_path",
+            "original_repo_path",
+        ):
+            if key in meta and meta[key] is not None:
+                parts.append(f"{key}={meta[key]!r}")
+        return " | ".join(parts)
+
     async def _download_from_url(
         self,
         file_ref: DocumentRef,
@@ -149,6 +173,7 @@ class FileResolver:
         """Download a file from a URL"""
         url = file_ref.path
         retry_count = 0
+        ctx = self._format_fetch_context(file_ref, file_type, part_name)
 
         while retry_count <= self.download_options.max_retries:
             try:
@@ -186,7 +211,11 @@ class FileResolver:
                             )
 
                             logger.info(
-                                f"Downloaded {url} to {target_path} ({len(content)} bytes)"
+                                "Downloaded %s to %s (%s bytes) [%s]",
+                                url,
+                                target_path,
+                                len(content),
+                                ctx,
                             )
                             return ResolvedFile(success=True, file_info=file_info)
 
@@ -200,24 +229,39 @@ class FileResolver:
                                     )
                                     continue
 
-                        logger.warning(f"HTTP {response.status} for {url}")
+                        logger.warning(
+                            "HTTP %s for %s [%s]",
+                            response.status,
+                            url,
+                            ctx,
+                        )
                         retry_count += 1
 
             except asyncio.TimeoutError:
-                logger.warning(f"Timeout downloading {url} (attempt {retry_count + 1})")
+                logger.warning(
+                    "Timeout downloading %s (attempt %s) [%s]",
+                    url,
+                    retry_count + 1,
+                    ctx,
+                )
                 retry_count += 1
             except Exception as e:
-                logger.error(f"Error downloading {url}: {e}")
+                logger.error("Error downloading %s: %s [%s]", url, e, ctx)
                 retry_count += 1
 
             if retry_count <= self.download_options.max_retries:
                 # Exponential backoff
                 wait_time = 2**retry_count
-                logger.info(f"Retrying {url} in {wait_time} seconds...")
+                logger.info(
+                    "Retrying %s in %s seconds... [%s]",
+                    url,
+                    wait_time,
+                    ctx,
+                )
                 await asyncio.sleep(wait_time)
 
         error_msg = f"Failed to download {url} after {self.download_options.max_retries} retries"
-        logger.error(error_msg)
+        logger.error("%s [%s]", error_msg, ctx)
         return ResolvedFile(
             success=False, error_message=error_msg, retry_count=retry_count
         )

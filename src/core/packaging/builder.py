@@ -7,8 +7,34 @@ from typing import Any, Dict, List, Optional
 from ..models.okh import DocumentationType, DocumentRef, OKHManifest, PartSpec, Software
 from ..models.package import BuildOptions, FileInfo, PackageMetadata
 from .file_resolver import FileResolver
+from .github_raw_urls import github_raw_file_url
 
 logger = logging.getLogger(__name__)
+
+
+class PackageAssetDownloadError(RuntimeError):
+    """Raised when a manifest-declared asset (BOM, archive, image, etc.) cannot be fetched."""
+
+
+def _resolve_github_raw_url(repo_url: str, repo_relative_path: str) -> str:
+    """Prefer default-branch raw URLs; fall back to ``/master/`` if parsing fails."""
+    try:
+        return github_raw_file_url(repo_url, repo_relative_path)
+    except (ValueError, OSError) as e:
+        logger.debug(
+            "Falling back to master for GitHub raw URL (%s): %s",
+            repo_relative_path,
+            e,
+        )
+    if repo_url.endswith("/"):
+        ru = repo_url[:-1]
+    else:
+        ru = repo_url
+    rel = repo_relative_path.lstrip("/")
+    if "/github.com/" in ru:
+        repo_part = ru.split("/github.com/")[-1]
+        return f"https://raw.githubusercontent.com/{repo_part}/master/{rel}"
+    return f"{ru}/raw/master/{rel}"
 
 
 class PackageBuilder:
@@ -145,7 +171,7 @@ class PackageBuilder:
             # Download BOM if present
             if manifest.bom:
                 # Handle BOM as a dictionary with external_file reference
-                if isinstance(manifest.bom, dict) and "external_file" in manifest.bom:
+                if isinstance(manifest.bom, dict) and manifest.bom.get("external_file"):
                     # BOM is a structured object with external file reference
                     bom_path = manifest.bom["external_file"]
                     bom_files = await self._download_single_file(
@@ -154,6 +180,12 @@ class PackageBuilder:
                         "bom",
                         "manufacturing-files",
                         manifest.repo,
+                        fetch_metadata={
+                            "fetch_role": "bom",
+                            "manifest_field": "bom.external_file",
+                            "repo_relative_path": bom_path,
+                        },
+                        required=True,
                     )
                     file_inventory.extend(bom_files)
                 elif isinstance(manifest.bom, str):
@@ -164,6 +196,12 @@ class PackageBuilder:
                         "bom",
                         "manufacturing-files",
                         manifest.repo,
+                        fetch_metadata={
+                            "fetch_role": "bom",
+                            "manifest_field": "bom",
+                            "repo_relative_path": manifest.bom,
+                        },
+                        required=True,
                     )
                     file_inventory.extend(bom_files)
 
@@ -175,6 +213,7 @@ class PackageBuilder:
                     "archive",
                     "software",
                     manifest.repo,
+                    required=True,
                 )
                 file_inventory.extend(archive_files)
 
@@ -186,6 +225,7 @@ class PackageBuilder:
                     "project-image",
                     "metadata",
                     manifest.repo,
+                    required=True,
                 )
                 file_inventory.extend(image_files)
 
@@ -309,23 +349,17 @@ class PackageBuilder:
                 and "github.com" in repo_url
             ):
                 # This is a repository file path, construct GitHub raw URL
-                if repo_url.endswith("/"):
-                    repo_url = repo_url[:-1]
-
-                # Extract user/repo from GitHub URL
-                if "/github.com/" in repo_url:
-                    repo_part = repo_url.split("/github.com/")[-1]
-                    github_raw_url = f"https://raw.githubusercontent.com/{repo_part}/master/{doc.path}"
-                else:
-                    # Fallback: assume it's already a GitHub URL
-                    github_raw_url = f"{repo_url}/raw/master/{doc.path}"
+                github_raw_url = _resolve_github_raw_url(repo_url, doc.path)
 
                 # Create new DocumentRef with GitHub raw URL
+                doc_meta = dict(doc.metadata or {})
+                doc_meta.setdefault("fetch_role", "repo_relative_document")
+                doc_meta["original_repo_path"] = doc.path
                 processed_doc = DocumentRef(
                     title=doc.title,
                     path=github_raw_url,
                     type=doc.type,
-                    metadata=doc.metadata,
+                    metadata=doc_meta,
                 )
                 processed_documents.append(processed_doc)
             else:
@@ -361,7 +395,14 @@ class PackageBuilder:
                 # Track this file as downloaded
                 downloaded_files[unique_documents[i].path] = result.file_info
             else:
-                logger.warning(f"Failed to download file: {result.error_message}")
+                failed_ref = unique_documents[i]
+                logger.warning(
+                    "Failed to download file: %s [title=%r file_type=%s metadata=%s]",
+                    result.error_message,
+                    failed_ref.title,
+                    file_type,
+                    failed_ref.metadata or {},
+                )
 
         # Handle duplicate files by creating symbolic links
         # Extract relative paths for duplicate documents to preserve structure
@@ -409,8 +450,16 @@ class PackageBuilder:
         filename: str,
         file_type: str,
         repo_url: str = None,
+        fetch_metadata: Optional[Dict[str, Any]] = None,
+        *,
+        required: bool = False,
     ) -> List[FileInfo]:
-        """Download a single file from URL or GitHub repository"""
+        """Download a single file from URL or GitHub repository.
+
+        When ``required`` is True (manifest-declared BOM, archive, image, etc.),
+        a failed download raises :class:`PackageAssetDownloadError` instead of
+        logging and returning an empty list.
+        """
         # Determine if this is a GitHub repository file path
         actual_url = url
         if (
@@ -418,26 +467,22 @@ class PackageBuilder:
             and repo_url
             and "github.com" in repo_url
         ):
-            # This is a repository file path, construct GitHub raw URL
-            # Convert https://github.com/user/repo to https://raw.githubusercontent.com/user/repo/master
-            if repo_url.endswith("/"):
-                repo_url = repo_url[:-1]
+            actual_url = _resolve_github_raw_url(repo_url, url)
 
-            # Extract user/repo from GitHub URL
-            if "/github.com/" in repo_url:
-                repo_part = repo_url.split("/github.com/")[-1]
-                actual_url = (
-                    f"https://raw.githubusercontent.com/{repo_part}/master/{url}"
-                )
-            else:
-                # Fallback: assume it's already a GitHub URL
-                actual_url = f"{repo_url}/raw/master/{url}"
+        meta = dict(fetch_metadata or {})
+        if (
+            not url.startswith(("http://", "https://"))
+            and repo_url
+            and "github.com" in repo_url
+        ):
+            meta.setdefault("original_repo_path", url)
 
         # Create a DocumentRef for the URL
         doc_ref = DocumentRef(
             title=filename,
             path=actual_url,
             type=DocumentationType.MANUFACTURING_FILES,  # Default type
+            metadata=meta,
         )
 
         # Determine target path, preserving directory structure
@@ -480,9 +525,13 @@ class PackageBuilder:
 
         if result.success and result.file_info:
             return [result.file_info]
-        else:
-            logger.warning(f"Failed to download {url}: {result.error_message}")
-            return []
+        if required:
+            raise PackageAssetDownloadError(
+                f"Required asset could not be downloaded ({url!r}): "
+                f"{result.error_message or 'unknown error'}"
+            )
+        logger.warning(f"Failed to download {url}: {result.error_message}")
+        return []
 
     async def _download_software_files(
         self, software_list: List[Software], package_path: Path, repo_url: str = None
@@ -495,7 +544,12 @@ class PackageBuilder:
             # Download software release
             if software.release:
                 release_files = await self._download_single_file(
-                    software.release, software_dir, "release", "software", repo_url
+                    software.release,
+                    software_dir,
+                    "release",
+                    "software",
+                    repo_url,
+                    required=True,
                 )
                 file_infos.extend(release_files)
 
@@ -509,6 +563,7 @@ class PackageBuilder:
                     "installation-guide",
                     "software",
                     repo_url,
+                    required=True,
                 )
                 file_infos.extend(install_files)
 
@@ -593,7 +648,12 @@ class PackageBuilder:
             # Download part image
             if part.image:
                 image_files = await self._download_single_file(
-                    part.image, part_dir / "images", "part-image", "parts", repo_url
+                    part.image,
+                    part_dir / "images",
+                    "part-image",
+                    "parts",
+                    repo_url,
+                    required=True,
                 )
                 for file_info in image_files:
                     file_info.part_name = part.name

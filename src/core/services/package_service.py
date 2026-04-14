@@ -8,7 +8,7 @@ import aiofiles
 
 from ..models.okh import OKHManifest
 from ..models.package import BuildOptions, PackageMetadata, calculate_file_checksum
-from ..packaging.builder import PackageBuilder
+from ..packaging.builder import PackageAssetDownloadError, PackageBuilder
 from ..packaging.file_resolver import FileResolver
 from ..utils.logging import get_logger
 from .okh_service import OKHService
@@ -137,9 +137,16 @@ class PackageService:
 
         logger.info(f"Using output directory: {output_dir.absolute()}")
 
-        metadata = await self.package_builder.build_package(
-            manifest, output_dir, options
-        )
+        try:
+            metadata = await self.package_builder.build_package(
+                manifest, output_dir, options
+            )
+        except PackageAssetDownloadError as e:
+            logger.error(
+                "Package build failed (required manifest asset could not be fetched): %s",
+                e,
+            )
+            raise
 
         logger.info(
             f"Package built successfully: {metadata.package_name}/{metadata.version}"
@@ -375,6 +382,64 @@ class PackageService:
             logger.error(f"Error deleting package {package_name}/{version}: {e}")
             return False
 
+    def _verify_package_integrity(self, metadata: PackageMetadata) -> Dict[str, Any]:
+        """Verify files on disk match ``metadata.file_inventory`` (paths relative to package dir)."""
+        package_path = Path(metadata.package_path).resolve()
+        verification_results: Dict[str, Any] = {
+            "valid": True,
+            "package_name": metadata.package_name,
+            "version": metadata.version,
+            "total_files": metadata.total_files,
+            "total_size_bytes": metadata.total_size_bytes,
+            "missing_files": [],
+            "corrupted_files": [],
+            "extra_files": [],
+        }
+
+        expected_files = set()
+        for f in metadata.file_inventory:
+            expected_path = (package_path / f.local_path).resolve()
+            expected_files.add(str(expected_path))
+
+        actual_files = set()
+        for file_path in package_path.rglob("*"):
+            if file_path.is_file():
+                actual_files.add(str(file_path.resolve()))
+
+        for expected_file in expected_files:
+            if expected_file not in actual_files:
+                rel_path = Path(expected_file).relative_to(package_path)
+                verification_results["missing_files"].append(str(rel_path))
+                verification_results["valid"] = False
+
+        for actual_file in actual_files:
+            if actual_file not in expected_files:
+                rel_path = Path(actual_file).relative_to(package_path)
+                verification_results["extra_files"].append(str(rel_path))
+
+        for file_info in metadata.file_inventory:
+            file_path = package_path / file_info.local_path
+            if not file_path.is_file():
+                continue
+            try:
+                actual_checksum = calculate_file_checksum(file_path)
+                if actual_checksum != file_info.checksum_sha256:
+                    verification_results["corrupted_files"].append(file_info.local_path)
+                    verification_results["valid"] = False
+            except Exception as e:
+                logger.warning(f"Could not verify checksum for {file_path}: {e}")
+
+        return verification_results
+
+    async def verify_package_metadata(
+        self, metadata: PackageMetadata
+    ) -> Dict[str, Any]:
+        """
+        Verify a built package using in-memory metadata (any ``package_path`` / output_dir).
+        """
+        await self.ensure_initialized()
+        return self._verify_package_integrity(metadata)
+
     async def verify_package(self, package_name: str, version: str) -> Dict[str, Any]:
         """
         Verify a built package's integrity
@@ -392,63 +457,4 @@ class PackageService:
         if not metadata:
             return {"valid": False, "error": "Package not found"}
 
-        package_path = Path(metadata.package_path)
-        verification_results = {
-            "valid": True,
-            "package_name": package_name,
-            "version": version,
-            "total_files": metadata.total_files,
-            "total_size_bytes": metadata.total_size_bytes,
-            "missing_files": [],
-            "corrupted_files": [],
-            "extra_files": [],
-        }
-
-        # Check if all expected files exist
-        # The local_path in metadata is relative to repo root, we need to convert to absolute paths
-        expected_files = set()
-        for f in metadata.file_inventory:
-            # f.local_path is like: packages/org/project/version/file
-            # We need to resolve it relative to the repo root
-            repo_root = Path(__file__).parent.parent.parent.parent
-            expected_path = repo_root / f.local_path
-            expected_files.add(str(expected_path))
-
-        actual_files = set()
-        for file_path in package_path.rglob("*"):
-            if file_path.is_file():
-                actual_files.add(str(file_path))
-
-        # Find missing files
-        for expected_file in expected_files:
-            if expected_file not in actual_files:
-                # Convert back to relative path for reporting
-                rel_path = Path(expected_file).relative_to(repo_root)
-                verification_results["missing_files"].append(str(rel_path))
-                verification_results["valid"] = False
-
-        # Find extra files (not in manifest)
-        for actual_file in actual_files:
-            if actual_file not in expected_files:
-                # Convert to relative path for reporting
-                rel_path = Path(actual_file).relative_to(repo_root)
-                verification_results["extra_files"].append(str(rel_path))
-
-        # Verify file checksums (if requested)
-        for file_info in metadata.file_inventory:
-            file_path = Path(file_info.local_path)
-            if file_path.exists():
-                try:
-                    actual_checksum = calculate_file_checksum(file_path)
-                    if actual_checksum != file_info.checksum_sha256:
-                        verification_results["corrupted_files"].append(
-                            file_info.local_path
-                        )
-                        verification_results["valid"] = False
-                except Exception as e:
-                    logger.warning(f"Could not verify checksum for {file_path}: {e}")
-            else:
-                verification_results["missing_files"].append(file_info.local_path)
-                verification_results["valid"] = False
-
-        return verification_results
+        return self._verify_package_integrity(metadata)

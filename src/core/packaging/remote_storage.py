@@ -144,7 +144,9 @@ class PackageRemoteStorage:
             # 4. Upload all package files
             for file_info in package_metadata.file_inventory:
                 try:
-                    local_file_path = Path(file_info.local_path)
+                    local_file_path = (
+                        local_package_path / file_info.local_path
+                    ).resolve()
                     if not local_file_path.exists():
                         logger.warning(f"Local file not found: {local_file_path}")
                         push_results["failed_files"].append(

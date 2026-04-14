@@ -71,7 +71,7 @@ def main() -> int:
     parser.add_argument(
         "--layer",
         default="3L",
-        help="Generated manifest suffix layer tag (default: 3L → repo-001-3L.json)",
+        help="Generated manifest layer tag (default: 3L; filenames use title slug or legacy id)",
     )
     parser.add_argument(
         "--stdout",

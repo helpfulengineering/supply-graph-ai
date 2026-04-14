@@ -845,6 +845,7 @@ class OKHManifest:
         # Handle parts
         if "parts" in data and data["parts"] is not None:
             instance.parts = []
+            coerced_part_ids = 0
             for part_data in data["parts"]:
                 part = PartSpec(
                     name=part_data.get("name", ""),
@@ -863,18 +864,28 @@ class OKHManifest:
                     try:
                         part.id = UUID(part_id_str)
                     except (ValueError, TypeError):
-                        # Handle invalid UUIDs (e.g., slug-like IDs from older manifests)
-                        # Convert to UUID using UUIDValidator
+                        # OKH PartSpec.id is a UUID; BOM / KiCad extracts often use
+                        # designator strings (e.g. R12, c104_11) — coerce deterministically.
                         from ..validation.uuid_validator import UUIDValidator
 
                         fixed_uuid = UUIDValidator.fix_invalid_uuid(
                             part_id_str, fallback_to_random=True
                         )
                         part.id = UUID(fixed_uuid)
-                        logger.warning(
-                            f"Converted invalid part ID '{part_id_str}' to UUID '{fixed_uuid}'"
+                        coerced_part_ids += 1
+                        logger.debug(
+                            "Coerced non-UUID part id %r -> %s (name=%r)",
+                            part_id_str,
+                            fixed_uuid,
+                            part_data.get("name", ""),
                         )
                 instance.parts.append(part)
+            if coerced_part_ids:
+                logger.info(
+                    "Coerced %s part id(s) from non-UUID strings to UUIDs "
+                    "(common for KiCad/BOM designators; OKH PartSpec.id requires UUID)",
+                    coerced_part_ids,
+                )
 
         # Handle standards
         if "standards_used" in data and data["standards_used"] is not None:
