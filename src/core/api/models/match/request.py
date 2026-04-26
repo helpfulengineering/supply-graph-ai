@@ -53,7 +53,7 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
     location_coords: Optional[Dict[str, float]] = None  # {"lat": 0.0, "lng": 0.0}
 
     # Quality and validation options
-    min_confidence: Optional[float] = 0.3  # Relaxed default to show more matches
+    min_confidence: Optional[float] = 0.1  # Relaxed default; caller may raise as needed
     max_results: Optional[int] = 10
 
     # Unified depth-based matching control
