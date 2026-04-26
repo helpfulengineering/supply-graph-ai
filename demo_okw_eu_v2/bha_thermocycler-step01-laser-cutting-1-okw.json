@@ -1,0 +1,83 @@
+{
+  "id": "004ad1e7-3775-4bc2-9dbd-f7dd9abdf286",
+  "name": "Laser Cutting Facility 1 (for BHA_Thermocycler)",
+  "location": {
+    "address": {
+      "number": "1174",
+      "street": "Daniel Crescent",
+      "city": "Zaanstad",
+      "region": "Ohio",
+      "country": "Netherlands",
+      "postcode": "79196"
+    },
+    "gps_coordinates": "52.4689235, 4.7737835",
+    "directions": "Located across from Smith-George",
+    "city": "Zaanstad",
+    "country": "Netherlands"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2005-08-18",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Epilog",
+      "model": "Speedy 300",
+      "serial_number": "SN340604",
+      "condition": "Needs Maintenance",
+      "quantity": 1,
+      "power_rating": 7025,
+      "usage_levels": "Medium",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "4217",
+              "street": "Scott Knoll",
+              "city": "Zaanstad",
+              "region": "Ohio",
+              "country": "Netherlands",
+              "postcode": "84959"
+            },
+            "gps_coordinates": "52.4689235, 4.7737835",
+            "directions": "Located across from Green LLC",
+            "city": "Zaanstad",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather"
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 300
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1012,
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "Basic Safety Training"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "road_access": true
+}

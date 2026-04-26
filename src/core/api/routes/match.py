@@ -1214,15 +1214,30 @@ def _extract_required_processes_from_manifest(okh_manifest: OKHManifest) -> List
 
 
 def _collect_matched_processes_from_solutions(solutions: List[dict]) -> List[str]:
-    """Collect process-like capability names from single-level solution payloads."""
+    """Collect process-like capability names from single-level solution payloads.
+
+    For composite solutions (multiple facilities) all constituent facilities are
+    inspected so that the coverage summary reflects the union of their capabilities,
+    not just the representative tree.
+    """
     values: List[str] = []
     for solution in solutions:
-        tree = solution.get("tree", {}) or {}
-        capabilities = tree.get("capabilities_used", []) or []
-        for cap in capabilities:
-            cap_text = str(cap).strip()
-            if cap_text:
-                values.append(cap_text)
+        if solution.get("is_composite"):
+            # Composite solution: collect manufacturing_processes from every
+            # facility in the solution, not just the representative tree.
+            for detail in solution.get("facility_details", []) or []:
+                fac = detail.get("facility", {}) or {}
+                for proc in fac.get("manufacturing_processes", []) or []:
+                    proc_text = str(proc).strip()
+                    if proc_text:
+                        values.append(proc_text)
+        else:
+            tree = solution.get("tree", {}) or {}
+            capabilities = tree.get("capabilities_used", []) or []
+            for cap in capabilities:
+                cap_text = str(cap).strip()
+                if cap_text:
+                    values.append(cap_text)
     return values
 
 

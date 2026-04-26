@@ -8,6 +8,8 @@ export interface MatchOptions {
   saveSolution: boolean;
   includeHumanSummary: boolean;
   includeExplanation: boolean;
+  allowFacilityCombinations: boolean;
+  maxFacilitiesPerSolution: number;
 }
 
 export const DEFAULT_MATCH_OPTIONS: MatchOptions = {
@@ -15,6 +17,8 @@ export const DEFAULT_MATCH_OPTIONS: MatchOptions = {
   saveSolution: true,
   includeHumanSummary: true,
   includeExplanation: true,
+  allowFacilityCombinations: true,
+  maxFacilitiesPerSolution: 10,
 };
 
 // ---------------------------------------------------------------------------
@@ -92,6 +96,8 @@ export function useMatch() {
         solution_ttl_days: 30,
         include_human_summary: options.includeHumanSummary,
         include_explanation: options.includeExplanation,
+        allow_facility_combinations: options.allowFacilityCombinations,
+        max_facilities_per_solution: options.maxFacilitiesPerSolution,
       }),
     onSuccess: (data, { okhId }) => {
       // Keep onSuccess minimal — only plain setState calls, no synchronous I/O.

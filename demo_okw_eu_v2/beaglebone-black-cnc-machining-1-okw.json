@@ -1,0 +1,106 @@
+{
+  "id": "aed40f57-aa97-4f0f-8f63-5d1f416575f2",
+  "name": "CNC Machining Facility 1",
+  "location": {
+    "address": {
+      "number": "7592",
+      "street": "Matthew Corners",
+      "city": "Bochum",
+      "region": "Delaware",
+      "country": "Germany",
+      "postcode": "85195"
+    },
+    "gps_coordinates": "51.4818111, 7.2196635",
+    "city": "Bochum",
+    "country": "Germany"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Smith-Williams",
+    "contact_person": "Edward Willis",
+    "images": [
+      "images/prevent.jpg",
+      "images/nor.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-424-869-3940"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/shanemartin"
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-20:00",
+  "description": "Specialized in CNC milling and turning operations",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Tormach",
+      "model": "VF-2",
+      "condition": "Excellent",
+      "quantity": 5,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "557",
+              "street": "Richard Square",
+              "city": "Nice",
+              "region": "Alaska",
+              "country": "France",
+              "postcode": "07694"
+            },
+            "gps_coordinates": "43.7009358, 7.2683912",
+            "directions": "Located across from Sullivan Group",
+            "city": "Nice",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "4983",
+              "street": "Denise Extension",
+              "city": "Cologne",
+              "region": "Washington",
+              "country": "Germany",
+              "postcode": "93819"
+            },
+            "gps_coordinates": "50.938361, 6.959974",
+            "city": "Cologne",
+            "country": "Germany"
+          }
+        }
+      ],
+      "axes": 3,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Generic",
+      "model": "Model 432",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "CNC Machining"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true
+}

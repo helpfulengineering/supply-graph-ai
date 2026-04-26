@@ -1,0 +1,163 @@
+{
+  "id": "26884591-f8b4-4e88-b960-440aad82d7bb",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "2479",
+      "street": "Lee Loaf",
+      "city": "Leicester",
+      "region": "Idaho",
+      "country": "United Kingdom",
+      "postcode": "46148"
+    },
+    "gps_coordinates": "52.6362, -1.1331969",
+    "directions": "Located across from Howard and Sons",
+    "city": "Leicester",
+    "country": "United Kingdom"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Jackson, Ferguson and Gilbert",
+    "contact_person": "Timothy Lozano",
+    "mailing_list": "william38@lists.smith-davis.org",
+    "images": [
+      "images/note.jpg",
+      "images/new.jpg"
+    ],
+    "contact": {
+      "landline": "+1-772-566-9222",
+      "whatsapp": "+1-983-322-7776"
+    }
+  },
+  "contact": {
+    "name": "Mays Ltd",
+    "location": {
+      "address": {
+        "number": "4255",
+        "street": "James Walk",
+        "city": "Cologne",
+        "region": "Virginia",
+        "country": "Germany",
+        "postcode": "52411"
+      },
+      "gps_coordinates": "50.938361, 6.959974",
+      "city": "Cologne",
+      "country": "Germany"
+    },
+    "bio": "Established in 1991, we specialize in Quality-focused intermediate interface",
+    "website": "https://riley.com",
+    "languages": [
+      "de",
+      "fr"
+    ],
+    "contact": {
+      "landline": "+1-853-772-3915",
+      "mobile": "+1-790-754-4468",
+      "email": "info@patterson.com",
+      "whatsapp": "+1-964-518-2051"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/allison02",
+      "twitter": "@valeriefreeman",
+      "other_urls": [
+        "https://holland.net"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-20:00",
+  "description": "Specialized in laser cutting and engraving services",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "VLS 3.50",
+      "condition": "Good",
+      "quantity": 4,
+      "throughput": "69 parts/hour",
+      "power_rating": 3622,
+      "maintenance_schedule": "Every 9 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-c",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5955",
+              "street": "Daniel Stream",
+              "city": "Toulouse",
+              "region": "New Mexico",
+              "country": "France",
+              "postcode": "97735"
+            },
+            "gps_coordinates": "43.6044638, 1.4442433",
+            "city": "Toulouse",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "2099",
+              "street": "Brian Circle",
+              "city": "Breda",
+              "region": "Nevada",
+              "country": "Netherlands",
+              "postcode": "22904"
+            },
+            "gps_coordinates": "51.5887845, 4.7760237",
+            "directions": "Located across from Casey, Gibson and Hooper",
+            "city": "Breda",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "2898",
+              "street": "Chen Valley",
+              "city": "Breda",
+              "region": "New Jersey",
+              "country": "Netherlands",
+              "postcode": "05709"
+            },
+            "gps_coordinates": "51.5887845, 4.7760237",
+            "city": "Breda",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Standard"
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 900
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "864 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "Basic Safety Training",
+    "First Aid Training"
+  ],
+  "maintenance_schedule": "Every 4 months"
+}

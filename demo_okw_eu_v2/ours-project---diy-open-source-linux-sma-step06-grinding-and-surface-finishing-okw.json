@@ -1,0 +1,57 @@
+{
+  "id": "84385845-39ec-448c-87cd-ca6e7840271f",
+  "name": "Grinding and Surface Finishing Facility 6 (for OURS Project - DIY Open-Source)",
+  "location": {
+    "address": {
+      "number": "1019",
+      "street": "Thomas Mount",
+      "city": "Padua",
+      "region": "Maryland",
+      "country": "Italy",
+      "postcode": "22621"
+    },
+    "gps_coordinates": "45.3984429, 11.8956829",
+    "city": "Padua",
+    "country": "Italy"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in surface grinding, cylindrical grinding, and finishing",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Surface_grinder",
+      "make": "Brand A",
+      "model": "Model 778",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Cylindrical_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Cylindrical_grinder",
+      "make": "Brand B",
+      "model": "Model 556",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Belt_grinder",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Belt_grinder",
+      "make": "Generic",
+      "model": "Model 823",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Grinding_machine",
+    "Grinding"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "typical_materials": [],
+  "certifications": [
+    "NADCAP",
+    "ISO 14001",
+    "ISO 9001:2015"
+  ],
+  "maintenance_schedule": "Every 5 months"
+}

@@ -1,0 +1,142 @@
+{
+  "id": "36535c49-1f1e-41f6-8900-f82b5f44765a",
+  "name": "Assembly Facility 2 (for BHA_Photobioreactor)",
+  "location": {
+    "address": {
+      "number": "6959",
+      "street": "Hampton Meadow",
+      "city": "Lyon",
+      "region": "Louisiana",
+      "country": "France",
+      "postcode": "31031"
+    },
+    "gps_coordinates": "45.7578137, 4.8320114",
+    "city": "Lyon",
+    "country": "France"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Davis-Frazier",
+    "location": {
+      "address": {
+        "number": "4953",
+        "street": "Reeves Tunnel",
+        "city": "Bilbao",
+        "region": "Idaho",
+        "country": "Spain",
+        "postcode": "27065"
+      },
+      "gps_coordinates": "43.2630018, -2.9350039",
+      "directions": "Located near Patel Group",
+      "city": "Bilbao",
+      "country": "Spain"
+    },
+    "contact_person": "Terry Gardner",
+    "website": "https://gibson.info",
+    "images": [
+      "images/stand.jpg",
+      "images/care.jpg"
+    ],
+    "contact": {
+      "email": "info@marshall.com"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/parker60",
+      "twitter": "@ebrown",
+      "instagram": "@emilyshaffer"
+    }
+  },
+  "contact": {
+    "name": "Conley, Higgins and Johnson",
+    "bio": "Established in 2020, we specialize in Switchable national encryption",
+    "website": "https://martinez-key.net",
+    "languages": [
+      "de"
+    ],
+    "mailing_list": "daniel59@lists.harris.com",
+    "contact": {
+      "mobile": "+1-539-423-6202",
+      "whatsapp": "+1-682-442-1751"
+    }
+  },
+  "opening_hours": "Mon-Fri: 6:00-18:00",
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2005-04-20",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Modular Bench",
+      "condition": "Good",
+      "notes": "Equipment notes: Cultural shoulder name especially magazine strong.",
+      "quantity": 2,
+      "throughput": "13 parts/hour",
+      "maintenance_schedule": "Every 6 months",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9841",
+              "street": "Kelly Parks",
+              "city": "Almere",
+              "region": "North Carolina",
+              "country": "Netherlands",
+              "postcode": "73093"
+            },
+            "gps_coordinates": "52.3705038, 5.2185859",
+            "city": "Almere",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "supplier_location": {
+            "address": {
+              "number": "6878",
+              "street": "Webb Cape",
+              "city": "Genoa",
+              "region": "Minnesota",
+              "country": "Italy",
+              "postcode": "83380"
+            },
+            "gps_coordinates": "44.40726, 8.9338624",
+            "directions": "Located near Smith, Lewis and Hill",
+            "city": "Genoa",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "manufacturer": "Brand A"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Generic",
+      "model": "Model 969",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months"
+}

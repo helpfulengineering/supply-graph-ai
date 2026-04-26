@@ -1,0 +1,115 @@
+{
+  "id": "ffb6c538-1e28-453b-9571-89fe58e75b9c",
+  "name": "Assembly Facility 2 (for BHA_Thermocycler)",
+  "location": {
+    "address": {
+      "number": "8485",
+      "street": "Nguyen Estates",
+      "city": "Hospitalet",
+      "region": "Idaho",
+      "country": "Spain",
+      "postcode": "44420"
+    },
+    "gps_coordinates": "41.3595118, 2.0996318",
+    "city": "Hospitalet",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Armstrong, Morrison and Hernandez",
+    "contact_person": "James Hart",
+    "website": "https://garcia.org",
+    "mailing_list": "joshua91@lists.shaw.com",
+    "images": [
+      "images/federal.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-631-924-2286",
+      "email": "info@garcia.net",
+      "whatsapp": "+1-969-507-4375"
+    }
+  },
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2004-02-01",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "FlexLink",
+      "model": "Modular Bench",
+      "condition": "Good",
+      "notes": "Equipment notes: Near answer game by media store.",
+      "quantity": 1,
+      "power_rating": 8823,
+      "maintenance_schedule": "Every 1 months",
+      "usage_levels": "Medium",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "9916",
+              "street": "Shawn Freeway",
+              "city": "Munich",
+              "region": "Kentucky",
+              "country": "Germany",
+              "postcode": "63764"
+            },
+            "gps_coordinates": "48.1371079, 11.5753822",
+            "city": "Munich",
+            "country": "Germany"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "4719",
+              "street": "William Burg",
+              "city": "Málaga",
+              "region": "Washington",
+              "country": "Spain",
+              "postcode": "34769"
+            },
+            "gps_coordinates": "36.7213028, -4.4216366",
+            "city": "Málaga",
+            "country": "Spain"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand B",
+      "model": "Model 512",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1154,
+  "typical_materials": [],
+  "certifications": [
+    "AS9100",
+    "ISO 9001:2015"
+  ],
+  "road_access": true,
+  "loading_dock": true
+}

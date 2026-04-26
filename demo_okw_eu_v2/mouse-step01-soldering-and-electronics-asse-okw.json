@@ -1,0 +1,70 @@
+{
+  "id": "9ceaab85-b994-4fe8-ba5b-ee9588c13a17",
+  "name": "Soldering and Electronics Assembly Facility 1 (for Mouse)",
+  "location": {
+    "address": {
+      "number": "2556",
+      "street": "Michelle Circle",
+      "city": "Cologne",
+      "region": "Indiana",
+      "country": "Germany",
+      "postcode": "53117"
+    },
+    "gps_coordinates": "50.938361, 6.959974",
+    "city": "Cologne",
+    "country": "Germany"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Holt Inc",
+    "contact_person": "Kathy Howell",
+    "languages": [
+      "de",
+      "en",
+      "fr"
+    ],
+    "mailing_list": "daniel45@lists.shaw.com",
+    "contact": {
+      "landline": "+1-861-965-7148",
+      "mobile": "+1-735-856-6431",
+      "whatsapp": "+1-830-683-7052"
+    }
+  },
+  "description": "Specialized in soldering, through-hole assembly, and hand assembly",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Soldering_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Soldering_station",
+      "make": "Generic",
+      "model": "Model 763",
+      "condition": "Excellent",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Hot_air_rework",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Hot_air_rework",
+      "make": "Brand A",
+      "model": "Model 450",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Fume_extractor",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fume_extractor",
+      "make": "Brand B",
+      "model": "Model 454",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Soldering",
+    "Soldering"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "505 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "loading_dock": true,
+  "maintenance_schedule": "Every 6 months"
+}

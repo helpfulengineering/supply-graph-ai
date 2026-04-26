@@ -121,6 +121,7 @@ async def populate_synthetic_data(
         credentials: Optional credentials dict (if not using env vars)
         data_dir: Path to synthetic data directory (defaults to synth/synthetic-data/)
     """
+    storage_service = None
     try:
         # Create storage config
         if credentials:
@@ -199,6 +200,9 @@ async def populate_synthetic_data(
         logger.error(f"Failed to populate synthetic data: {e}")
         print(f"❌ Failed to populate synthetic data: {e}")
         raise
+    finally:
+        if storage_service is not None:
+            await storage_service.cleanup()
 
 
 async def create_sample_data():

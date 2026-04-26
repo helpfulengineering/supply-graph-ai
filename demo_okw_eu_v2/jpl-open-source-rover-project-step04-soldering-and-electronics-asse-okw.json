@@ -1,0 +1,102 @@
+{
+  "id": "6e98ffd9-da3a-4a87-ae23-cf2fd925a0c5",
+  "name": "Soldering and Electronics Assembly Facility 4 (for JPL Open Source Rover Project)",
+  "location": {
+    "address": {
+      "number": "4090",
+      "street": "Leslie Tunnel",
+      "city": "Messina",
+      "region": "Washington",
+      "country": "Italy",
+      "postcode": "95543"
+    },
+    "gps_coordinates": "38.1937571, 15.5542082",
+    "directions": "Located across from Villanueva-Wolf",
+    "city": "Messina",
+    "country": "Italy"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Martin PLC",
+    "location": {
+      "address": {
+        "number": "2489",
+        "street": "Osborn Track",
+        "city": "Hull",
+        "region": "Vermont",
+        "country": "United Kingdom",
+        "postcode": "17765"
+      },
+      "gps_coordinates": "53.7623863, -0.3301214",
+      "city": "Hull",
+      "country": "United Kingdom"
+    },
+    "languages": [
+      "en",
+      "fr"
+    ],
+    "mailing_list": "joanmorrison@lists.richardson-pineda.org",
+    "images": [
+      "images/professor.jpg",
+      "images/list.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-466-663-6704",
+      "whatsapp": "+1-672-907-4948"
+    },
+    "social_media": {
+      "twitter": "@heathertodd",
+      "instagram": "@tracy70",
+      "other_urls": [
+        "https://schultz-byrd.net",
+        "https://scott.org"
+      ]
+    }
+  },
+  "description": "Specialized in soldering, through-hole assembly, and hand assembly",
+  "date_founded": "2015-08-21",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Soldering_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Soldering_station",
+      "make": "Brand B",
+      "model": "Model 118",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Hot_air_rework",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Hot_air_rework",
+      "make": "Generic",
+      "model": "Model 640",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Fume_extractor",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fume_extractor",
+      "make": "Generic",
+      "model": "Model 483",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Soldering",
+    "Soldering"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4984,
+  "storage_capacity": "817 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "IPC-A-610",
+    "IPC-J-STD-001",
+    "ISO 9001:2015",
+    "RoHS Compliance"
+  ],
+  "road_access": true,
+  "loading_dock": true,
+  "typical_products": [
+    "Focused content-based productivity"
+  ]
+}

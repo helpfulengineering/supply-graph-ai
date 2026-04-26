@@ -1,0 +1,112 @@
+{
+  "id": "1c9abce5-ba22-42d1-b843-72bb9f1e7650",
+  "name": "3D Printing Facility 1",
+  "location": {
+    "address": {
+      "number": "8039",
+      "street": "Russell Lights",
+      "city": "Rotterdam",
+      "region": "Washington",
+      "country": "Netherlands",
+      "postcode": "07412"
+    },
+    "gps_coordinates": "51.9244424, 4.47775",
+    "city": "Rotterdam",
+    "country": "Netherlands"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Richardson, Hunt and Maxwell",
+    "contact_person": "Marc Williams",
+    "languages": [
+      "de",
+      "es",
+      "fr"
+    ],
+    "mailing_list": "montgomeryjill@lists.fisher.com",
+    "images": [
+      "images/ability.jpg",
+      "images/red.jpg"
+    ],
+    "contact": {
+      "email": "info@bonilla.info",
+      "whatsapp": "+1-322-793-8561"
+    },
+    "social_media": {
+      "twitter": "@bentonamanda",
+      "other_urls": [
+        "https://rodriguez-durham.com",
+        "https://chan.com"
+      ]
+    }
+  },
+  "description": "Specialized in additive manufacturing and rapid prototyping",
+  "date_founded": "2003-10-28",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "S5",
+      "serial_number": "SN374919",
+      "condition": "Excellent",
+      "maintenance_schedule": "Every 4 months",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "manufacturer": "Generic",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand A",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "8381",
+              "street": "Williams Port",
+              "city": "Munich",
+              "region": "Alaska",
+              "country": "Germany",
+              "postcode": "88261"
+            },
+            "gps_coordinates": "48.1371079, 11.5753822",
+            "city": "Munich",
+            "country": "Germany"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU"
+        }
+      ],
+      "build_volume": 27000000,
+      "nozzle_size": 0.4
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Generic",
+      "model": "Model 618",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+    "3D Printing"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2863,
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "Basic Safety Training",
+    "First Aid Training"
+  ]
+}

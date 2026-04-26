@@ -1,0 +1,96 @@
+{
+  "id": "56b6cbc9-7b2a-4e70-8218-e1c8141e6de7",
+  "name": "Assembly Facility 2 (for BHA_Spectrophotometer)",
+  "location": {
+    "address": {
+      "number": "3635",
+      "street": "Adkins Square",
+      "city": "Brighton",
+      "region": "South Dakota",
+      "country": "United Kingdom",
+      "postcode": "07384"
+    },
+    "gps_coordinates": "50.8214626, -0.1400561",
+    "city": "Brighton",
+    "country": "United Kingdom"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "item",
+      "model": "Semi-Auto Line",
+      "serial_number": "SN902930",
+      "condition": "Needs Maintenance",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand B",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3316",
+              "street": "Stephanie Loop",
+              "city": "Le Havre",
+              "region": "Pennsylvania",
+              "country": "France",
+              "postcode": "09838"
+            },
+            "gps_coordinates": "49.4938975, 0.1079732",
+            "directions": "Located near Murphy-Brown",
+            "city": "Le Havre",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "supplier_location": {
+            "address": {
+              "number": "1201",
+              "street": "Crawford Ranch",
+              "city": "Toulon",
+              "region": "Virginia",
+              "country": "France",
+              "postcode": "28021"
+            },
+            "gps_coordinates": "43.1257311, 5.9304919",
+            "city": "Toulon",
+            "country": "France"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 456",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4114,
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 1 months"
+}

@@ -1,0 +1,116 @@
+{
+  "id": "6ffca526-4648-43dc-ac72-d858db164fec",
+  "name": "Assembly Facility 5 (for JPL Open Source Rover Project)",
+  "location": {
+    "address": {
+      "number": "356",
+      "street": "Neal Skyway",
+      "city": "Hospitalet",
+      "region": "Montana",
+      "country": "Spain",
+      "postcode": "28136"
+    },
+    "gps_coordinates": "41.3595118, 2.0996318",
+    "city": "Hospitalet",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-17:00",
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "item",
+      "model": "Manual Cell",
+      "serial_number": "SN259220",
+      "condition": "Good",
+      "notes": "Equipment notes: Him clearly even government.",
+      "quantity": 2,
+      "throughput": "7 parts/hour",
+      "power_rating": 7008,
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "supplier_location": {
+            "address": {
+              "number": "7375",
+              "street": "Rosales Stravenue",
+              "city": "Eindhoven",
+              "region": "Oklahoma",
+              "country": "Netherlands",
+              "postcode": "21352"
+            },
+            "gps_coordinates": "51.4392648, 5.478633",
+            "directions": "Located across from Maldonado-Butler",
+            "city": "Eindhoven",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3363",
+              "street": "Hogan Knolls",
+              "city": "Palermo",
+              "region": "Utah",
+              "country": "Italy",
+              "postcode": "83743"
+            },
+            "gps_coordinates": "38.1112268, 13.3524434",
+            "city": "Palermo",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "9544",
+              "street": "Thomas Fall",
+              "city": "Bilbao",
+              "region": "Wisconsin",
+              "country": "Spain",
+              "postcode": "75229"
+            },
+            "gps_coordinates": "43.2630018, -2.9350039",
+            "city": "Bilbao",
+            "country": "Spain"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Generic",
+      "model": "Model 530",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 2999,
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "loading_dock": true,
+  "maintenance_schedule": "Every 3 months"
+}

@@ -1,5 +1,5 @@
 import { Badge } from "../../components/ui/Badge";
-import type { MatchSolution } from "../../types/match";
+import type { FacilityDetail, MatchSolution } from "../../types/match";
 
 interface Props {
   solution: MatchSolution;
@@ -60,6 +60,51 @@ const rankLabel = (r: number) => {
   return `${r}${suffixes[r - 1] ?? "th"}`;
 };
 
+/** Inline chip list for the facilities that make up a composite solution. */
+function FacilityChips({ details }: { details: FacilityDetail[] }) {
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-1">
+      {details.map((d) => (
+        <span
+          key={d.facility_id ?? d.facility_name}
+          className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:ring-indigo-800"
+        >
+          {d.facility_name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** Expanded detail panel for a single facility within a composite solution. */
+function CompositeFacilityPanel({ detail }: { detail: FacilityDetail }) {
+  const fac = detail.facility;
+  const processes = (fac.manufacturing_processes as string[] | undefined) ?? [];
+  const city = (fac.location as { city?: string; country?: string } | undefined)?.city ?? "";
+  const country = (fac.location as { city?: string; country?: string } | undefined)?.country ?? "";
+  const locationStr = [city, country].filter(Boolean).join(", ");
+
+  return (
+    <div className="rounded-lg border border-slate-100 dark:border-slate-800 p-3 space-y-1.5">
+      <p className="font-medium text-sm text-slate-700 dark:text-slate-200">
+        {detail.facility_name}
+      </p>
+      {locationStr && (
+        <p className="text-xs text-slate-400 dark:text-slate-500">{locationStr}</p>
+      )}
+      {processes.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {processes.slice(0, 6).map((p) => (
+            <Badge key={p} variant="default">
+              {p.replace("https://en.wikipedia.org/wiki/", "")}
+            </Badge>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function MatchResultCard({
   solution,
   isExpanded,
@@ -67,13 +112,30 @@ export function MatchResultCard({
   isSelected = false,
   onSelect,
 }: Props) {
-  const isMatched = solution.explanation?.overall_status === "matched";
-  const missing = solution.explanation?.missing_capabilities ?? [];
+  const isComposite = Boolean(solution.is_composite);
+
+  // ── Composite path ──────────────────────────────────────────────────────────
+  const coveredCount = isComposite
+    ? (solution.metrics.covered_process_count ?? 0)
+    : 0;
+  const requiredCount = isComposite
+    ? (solution.metrics.required_process_count ?? 0)
+    : 0;
+  const compositeMatched = isComposite && requiredCount > 0 && coveredCount >= requiredCount;
+  const facilityDetails = solution.facility_details ?? [];
+
+  // ── Single-facility path ────────────────────────────────────────────────────
+  const isMatched = isComposite
+    ? compositeMatched
+    : solution.explanation?.overall_status === "matched";
+  const missing = isComposite ? [] : (solution.explanation?.missing_capabilities ?? []);
   const layers = solution.explanation?.matching_layers_used ?? [];
-  const reqs = solution.explanation?.requirement_matches ?? [];
-  const matchedCount = reqs.filter((r) => r.status === "matched").length;
+  const reqs = isComposite ? [] : (solution.explanation?.requirement_matches ?? []);
+  const matchedCount = isComposite ? coveredCount : reqs.filter((r) => r.status === "matched").length;
+  const totalDisplayReqs = isComposite ? requiredCount : reqs.length;
+
   const facility = solution.facility;
-  const location = `${facility.location.city ?? ""}, ${facility.location.country ?? ""}`.replace(/^, |, $/, "");
+  const facilityLocation = `${facility.location.city ?? ""}, ${facility.location.country ?? ""}`.replace(/^, |, $/, "");
 
   return (
     <div
@@ -111,16 +173,32 @@ export function MatchResultCard({
           aria-expanded={isExpanded}
         >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Left: rank + name */}
+          {/* Left: rank + name / facility chips */}
           <div className="flex items-start gap-3">
             <span className="mt-0.5 flex h-7 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
               {rankLabel(solution.rank)}
             </span>
-            <div>
-              <p className="font-semibold text-slate-800 dark:text-slate-100">
-                {solution.facility_name}
-              </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{location}</p>
+            <div className="min-w-0">
+              {isComposite ? (
+                <>
+                  <p className="font-semibold text-slate-800 dark:text-slate-100">
+                    Multi-step solution
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {facilityDetails.length} facilities · combined match
+                  </p>
+                  {facilityDetails.length > 0 && (
+                    <FacilityChips details={facilityDetails} />
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="font-semibold text-slate-800 dark:text-slate-100">
+                    {solution.facility_name}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{facilityLocation}</p>
+                </>
+              )}
             </div>
           </div>
 
@@ -128,13 +206,13 @@ export function MatchResultCard({
           <div className="flex items-center gap-4 flex-wrap">
             <RequirementsBar
               matchedCount={matchedCount}
-              totalReqs={reqs.length}
+              totalReqs={totalDisplayReqs}
               confidence={solution.confidence}
             />
             <Badge variant={isMatched ? "green" : "red"}>
               {isMatched ? "✓ Matched" : "✗ Not matched"}
             </Badge>
-            {facility.certifications && facility.certifications.length > 0 && (
+            {!isComposite && facility.certifications && facility.certifications.length > 0 && (
               <Badge variant="default">{facility.certifications[0]}</Badge>
             )}
             <span
@@ -148,10 +226,10 @@ export function MatchResultCard({
 
         {/* Quick stats row */}
         <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-          <span>{matchedCount}/{reqs.length} requirements met</span>
-          {layers.length > 0 && <span>Layers: {layers.join(", ")}</span>}
-          {facility.typical_batch_size && <span>Batch: {facility.typical_batch_size}</span>}
-          {facility.access_type && <span>{facility.access_type}</span>}
+          <span>{matchedCount}/{totalDisplayReqs} requirements met</span>
+          {!isComposite && layers.length > 0 && <span>Layers: {layers.join(", ")}</span>}
+          {!isComposite && facility.typical_batch_size && <span>Batch: {facility.typical_batch_size}</span>}
+          {!isComposite && facility.access_type && <span>{facility.access_type}</span>}
           {missing.length > 0 && (
             <span className="text-red-500 dark:text-red-400">
               Missing: {missing.join(", ")}
@@ -164,115 +242,133 @@ export function MatchResultCard({
       {/* Expanded detail panel */}
       {isExpanded && (
         <div className="border-t border-slate-100 dark:border-slate-800 px-5 pb-6 pt-5 space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Explanation */}
+          {isComposite ? (
+            /* ── Composite expanded view ──────────────────────────────────── */
             <div className="space-y-3">
               <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Match Explanation
+                Participating Facilities
               </h4>
-              {solution.explanation?.why_matched && (
-                <p className="text-sm text-green-700 dark:text-green-400">
-                  ✓ {solution.explanation.why_matched}
-                </p>
-              )}
-              {solution.explanation?.why_not_matched && (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  ✗ {solution.explanation.why_not_matched}
-                </p>
-              )}
-
-              {/* Requirement breakdown */}
-              {reqs.length > 0 && (
-                <div>
-                  <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                    Requirement breakdown
+              <p className="text-sm text-green-700 dark:text-green-400">
+                ✓ Together these {facilityDetails.length} facilities cover all {requiredCount} process requirement{requiredCount !== 1 ? "s" : ""}.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {facilityDetails.map((d) => (
+                  <CompositeFacilityPanel key={d.facility_id ?? d.facility_name} detail={d} />
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* ── Single-facility expanded view ────────────────────────────── */
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Explanation */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Match Explanation
+                </h4>
+                {solution.explanation?.why_matched && (
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    ✓ {solution.explanation.why_matched}
                   </p>
-                  <ul className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                    {reqs.map((r, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs">
-                        <span className={r.status === "matched" ? "text-green-500 mt-0.5" : "text-red-400 mt-0.5"}>
-                          {r.status === "matched" ? "✓" : "✗"}
-                        </span>
-                        <div className="min-w-0">
-                          <span className="font-medium text-slate-700 dark:text-slate-200">
-                            {r.requirement_value}
+                )}
+                {solution.explanation?.why_not_matched && (
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    ✗ {solution.explanation.why_not_matched}
+                  </p>
+                )}
+
+                {/* Requirement breakdown */}
+                {reqs.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      Requirement breakdown
+                    </p>
+                    <ul className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                      {reqs.map((r, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs">
+                          <span className={r.status === "matched" ? "text-green-500 mt-0.5" : "text-red-400 mt-0.5"}>
+                            {r.status === "matched" ? "✓" : "✗"}
                           </span>
-                          {r.requirement_part_name && (
-                            <span className="text-slate-400 dark:text-slate-500"> (part: {r.requirement_part_name})</span>
-                          )}
-                          {r.matched_capability && (
-                            <span className="text-slate-500 dark:text-slate-400"> → {r.matched_capability}</span>
-                          )}
-                          {r.matching_layer && (
-                            <span className="ml-1 text-slate-400 dark:text-slate-500">[{r.matching_layer}]</span>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Facility detail */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Facility Details
-              </h4>
-              <dl className="space-y-2 text-sm">
-                {facility.description && (
-                  <p className="text-slate-600 dark:text-slate-300 italic">{facility.description}</p>
-                )}
-                <div className="flex gap-2">
-                  <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Status</dt>
-                  <dd className="text-slate-700 dark:text-slate-200">{facility.facility_status ?? "—"}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Access</dt>
-                  <dd className="text-slate-700 dark:text-slate-200">{facility.access_type ?? "—"}</dd>
-                </div>
-                {facility.date_founded && (
-                  <div className="flex gap-2">
-                    <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Founded</dt>
-                    <dd className="text-slate-700 dark:text-slate-200">{facility.date_founded}</dd>
-                  </div>
-                )}
-                {facility.certifications && facility.certifications.length > 0 && (
-                  <div className="flex gap-2">
-                    <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Certifications</dt>
-                    <dd className="flex flex-wrap gap-1">
-                      {facility.certifications.map((c) => (
-                        <Badge key={c} variant="blue">{c}</Badge>
+                          <div className="min-w-0">
+                            <span className="font-medium text-slate-700 dark:text-slate-200">
+                              {r.requirement_value}
+                            </span>
+                            {r.requirement_part_name && (
+                              <span className="text-slate-400 dark:text-slate-500"> (part: {r.requirement_part_name})</span>
+                            )}
+                            {r.matched_capability && (
+                              <span className="text-slate-500 dark:text-slate-400"> → {r.matched_capability}</span>
+                            )}
+                            {r.matching_layer && (
+                              <span className="ml-1 text-slate-400 dark:text-slate-500">[{r.matching_layer}]</span>
+                            )}
+                          </div>
+                        </li>
                       ))}
-                    </dd>
+                    </ul>
                   </div>
                 )}
-                {facility.manufacturing_processes.length > 0 && (
-                  <div className="flex gap-2">
-                    <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Processes</dt>
-                    <dd className="flex flex-wrap gap-1">
-                      {facility.manufacturing_processes.slice(0, 6).map((p) => (
-                        <Badge key={p} variant="default">
-                          {p.replace("https://en.wikipedia.org/wiki/", "")}
-                        </Badge>
-                      ))}
-                    </dd>
-                  </div>
-                )}
-                {facility.equipment && facility.equipment.length > 0 && (
-                  <div className="flex gap-2">
-                    <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Equipment</dt>
-                    <dd className="text-slate-700 dark:text-slate-200">
-                      {facility.equipment.length} piece{facility.equipment.length !== 1 ? "s" : ""}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-          </div>
+              </div>
 
-          {/* Human-readable explanation verbatim */}
-          {solution.explanation_human && (
+              {/* Facility detail */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  Facility Details
+                </h4>
+                <dl className="space-y-2 text-sm">
+                  {facility.description && (
+                    <p className="text-slate-600 dark:text-slate-300 italic">{facility.description}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Status</dt>
+                    <dd className="text-slate-700 dark:text-slate-200">{facility.facility_status ?? "—"}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Access</dt>
+                    <dd className="text-slate-700 dark:text-slate-200">{facility.access_type ?? "—"}</dd>
+                  </div>
+                  {facility.date_founded && (
+                    <div className="flex gap-2">
+                      <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Founded</dt>
+                      <dd className="text-slate-700 dark:text-slate-200">{facility.date_founded}</dd>
+                    </div>
+                  )}
+                  {facility.certifications && facility.certifications.length > 0 && (
+                    <div className="flex gap-2">
+                      <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Certifications</dt>
+                      <dd className="flex flex-wrap gap-1">
+                        {facility.certifications.map((c) => (
+                          <Badge key={c} variant="blue">{c}</Badge>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                  {facility.manufacturing_processes.length > 0 && (
+                    <div className="flex gap-2">
+                      <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Processes</dt>
+                      <dd className="flex flex-wrap gap-1">
+                        {facility.manufacturing_processes.slice(0, 6).map((p) => (
+                          <Badge key={p} variant="default">
+                            {p.replace("https://en.wikipedia.org/wiki/", "")}
+                          </Badge>
+                        ))}
+                      </dd>
+                    </div>
+                  )}
+                  {facility.equipment && facility.equipment.length > 0 && (
+                    <div className="flex gap-2">
+                      <dt className="w-28 shrink-0 text-xs text-slate-400 dark:text-slate-500">Equipment</dt>
+                      <dd className="text-slate-700 dark:text-slate-200">
+                        {facility.equipment.length} piece{facility.equipment.length !== 1 ? "s" : ""}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            </div>
+          )}
+
+          {/* Human-readable explanation verbatim (single-facility only) */}
+          {!isComposite && solution.explanation_human && (
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Full Explanation

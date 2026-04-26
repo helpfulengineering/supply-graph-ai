@@ -1,0 +1,155 @@
+{
+  "id": "5b2d9ad0-bfc9-411d-b742-d6b9f0e04441",
+  "name": "CNC Machining Facility 3 (for JPL Open Source Rover Project)",
+  "location": {
+    "address": {
+      "number": "3991",
+      "street": "Miranda Neck",
+      "city": "Seville",
+      "region": "Georgia",
+      "country": "Spain",
+      "postcode": "97480"
+    },
+    "gps_coordinates": "37.3886303, -5.9953403",
+    "city": "Seville",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Cooper-Smith",
+    "contact_person": "Brandon Green",
+    "bio": "Established in 1993, we specialize in Progressive explicit access",
+    "mailing_list": "callahanerika@lists.bush-hernandez.com",
+    "contact": {
+      "mobile": "+1-918-717-7698",
+      "email": "info@hudson.com",
+      "whatsapp": "+1-237-498-5712"
+    },
+    "social_media": {
+      "other_urls": [
+        "https://gutierrez.com",
+        "https://mcintyre-silva.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Gray-Harper",
+    "location": {
+      "address": {
+        "number": "6748",
+        "street": "Gould Mountain",
+        "city": "Barcelona",
+        "region": "California",
+        "country": "Spain",
+        "postcode": "68095"
+      },
+      "gps_coordinates": "41.3825802, 2.177073",
+      "directions": "Located near Carroll, Oconnell and Tucker",
+      "city": "Barcelona",
+      "country": "Spain"
+    },
+    "website": "https://thompson.com",
+    "languages": [
+      "en"
+    ],
+    "contact": {
+      "whatsapp": "+1-420-784-8035"
+    }
+  },
+  "description": "Specialized in CNC milling and turning operations",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "DMG Mori",
+      "model": "VF-2",
+      "condition": "Excellent",
+      "throughput": "43 parts/hour",
+      "power_rating": 8520,
+      "maintenance_schedule": "Every 12 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "5075",
+              "street": "Taylor Creek",
+              "city": "Verona",
+              "region": "Wyoming",
+              "country": "Italy",
+              "postcode": "95809"
+            },
+            "gps_coordinates": "45.4424977, 10.9857377",
+            "city": "Verona",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "manufacturer": "Brand A",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "5952",
+              "street": "Owens Overpass",
+              "city": "Parma",
+              "region": "Tennessee",
+              "country": "Italy",
+              "postcode": "35167"
+            },
+            "gps_coordinates": "44.6952006, 10.0979869",
+            "directions": "Located across from Harris Inc",
+            "city": "Parma",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "750",
+              "street": "Melissa Curve",
+              "city": "Amsterdam",
+              "region": "New Hampshire",
+              "country": "Netherlands",
+              "postcode": "19353"
+            },
+            "gps_coordinates": "52.3730796, 4.8924534",
+            "directions": "Located near Hamilton-Hamilton",
+            "city": "Amsterdam",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B"
+        }
+      ],
+      "axes": 4,
+      "working_surface": 800
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 699",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "CNC Machining"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "loading_dock": true
+}

@@ -458,9 +458,19 @@ async def list_facilities(
         command = SmartCommand(cli_ctx)
         result = await command.execute_with_fallback(http_list, fallback_list)
 
-        # Display listing results
-        facilities = result.get("facilities", [])
-        total = result.get("total", len(facilities))
+        # Handle both API response format (PaginatedResponse with 'items') and
+        # fallback format (with 'facilities').  The HTTP API wraps results in
+        # 'items'; the direct-service fallback uses 'facilities'.
+        if "data" in result and isinstance(result["data"], dict):
+            facilities = result["data"].get(
+                "items", result["data"].get("facilities", [])
+            )
+            pagination = result["data"].get("pagination", {})
+            total = pagination.get("total_items", len(facilities))
+        else:
+            facilities = result.get("items", result.get("facilities", []))
+            pagination = result.get("pagination", {})
+            total = pagination.get("total_items", result.get("total", len(facilities)))
 
         if facilities:
             click.echo(f"✅ Found {total} OKW facilities")

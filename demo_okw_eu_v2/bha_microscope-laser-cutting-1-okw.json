@@ -1,0 +1,141 @@
+{
+  "id": "812e3d0b-2d09-47c5-b0be-d52f2d9a1026",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "6715",
+      "street": "Jefferson Estates",
+      "city": "Santa Cruz",
+      "region": "Illinois",
+      "country": "Spain",
+      "postcode": "12264"
+    },
+    "gps_coordinates": "28.467178, -16.2507843",
+    "city": "Santa Cruz",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Peters Inc",
+    "location": {
+      "address": {
+        "number": "7178",
+        "street": "Angel Islands",
+        "city": "Nice",
+        "region": "Ohio",
+        "country": "France",
+        "postcode": "16958"
+      },
+      "gps_coordinates": "43.7009358, 7.2683912",
+      "city": "Nice",
+      "country": "France"
+    },
+    "mailing_list": "thompsonantonio@lists.smith-clayton.com",
+    "images": [
+      "images/week.jpg",
+      "images/prepare.jpg",
+      "images/strong.jpg"
+    ],
+    "social_media": {
+      "other_urls": [
+        "https://porter-blackwell.info",
+        "https://contreras-farrell.com"
+      ]
+    }
+  },
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2013-09-06",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "Speedy 300",
+      "condition": "Fair",
+      "throughput": "20 parts/hour",
+      "power_rating": 3040,
+      "maintenance_schedule": "Every 11 months",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "9591",
+              "street": "Smith Keys",
+              "city": "Genoa",
+              "region": "Connecticut",
+              "country": "Italy",
+              "postcode": "46811"
+            },
+            "gps_coordinates": "44.40726, 8.9338624",
+            "directions": "Located across from Perez and Sons",
+            "city": "Genoa",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "1048",
+              "street": "Brent Roads",
+              "city": "Padua",
+              "region": "Massachusetts",
+              "country": "Italy",
+              "postcode": "54593"
+            },
+            "gps_coordinates": "45.3984429, 11.8956829",
+            "city": "Padua",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand B",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "1520",
+              "street": "Gill Walk",
+              "city": "Verona",
+              "region": "Indiana",
+              "country": "Italy",
+              "postcode": "35355"
+            },
+            "gps_coordinates": "45.4424977, 10.9857377",
+            "city": "Verona",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Industrial"
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 900
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2477,
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "Basic Safety Training"
+  ],
+  "backup_generator": true,
+  "maintenance_schedule": "Every 1 months",
+  "typical_products": [
+    "Multi-lateral didactic toolset",
+    "Diverse leadingedge analyzer"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "id": "fd245109-8c40-409c-994b-50dc99949d1b",
+  "name": "Assembly Facility 2 (for Original Prusa i3 MK3S)",
+  "location": {
+    "address": {
+      "number": "4624",
+      "street": "Chapman Meadow",
+      "city": "Nice",
+      "region": "Tennessee",
+      "country": "France",
+      "postcode": "81033"
+    },
+    "gps_coordinates": "43.7009358, 7.2683912",
+    "directions": "Located across from Pitts LLC",
+    "city": "Nice",
+    "country": "France"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Semi-Auto Line",
+      "condition": "Excellent",
+      "quantity": 2,
+      "throughput": "89 parts/hour",
+      "maintenance_schedule": "Every 8 months",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand A",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "5146",
+              "street": "Daniel Roads",
+              "city": "Zaanstad",
+              "region": "Georgia",
+              "country": "Netherlands",
+              "postcode": "13539"
+            },
+            "gps_coordinates": "52.4689235, 4.7737835",
+            "directions": "Located across from Acosta-Fernandez",
+            "city": "Zaanstad",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand B",
+      "model": "Model 812",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "storage_capacity": "349 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "typical_products": [
+    "Advanced encompassing intranet",
+    "Ameliorated national success",
+    "Mandatory content-based support",
+    "Re-engineered solution-oriented support"
+  ]
+}

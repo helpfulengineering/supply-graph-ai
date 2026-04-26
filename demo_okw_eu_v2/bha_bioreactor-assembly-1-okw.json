@@ -1,0 +1,134 @@
+{
+  "id": "66dc165a-4697-44b3-ab3d-9e35460bfeda",
+  "name": "Assembly Facility 1",
+  "location": {
+    "address": {
+      "number": "1571",
+      "street": "Lisa Walks",
+      "city": "Bochum",
+      "region": "South Dakota",
+      "country": "Germany",
+      "postcode": "86245"
+    },
+    "gps_coordinates": "51.4818111, 7.2196635",
+    "city": "Bochum",
+    "country": "Germany"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Tapia-West",
+    "location": {
+      "address": {
+        "number": "9255",
+        "street": "Morrow Turnpike",
+        "city": "Wuppertal",
+        "region": "Virginia",
+        "country": "Germany",
+        "postcode": "14912"
+      },
+      "gps_coordinates": "51.264018, 7.1780374",
+      "directions": "Located near Anderson, Henderson and Cisneros",
+      "city": "Wuppertal",
+      "country": "Germany"
+    },
+    "contact_person": "Cody Winters",
+    "bio": "Established in 1992, we specialize in Optional multi-state open system",
+    "mailing_list": "annadouglas@lists.howard-edwards.info",
+    "images": [
+      "images/decide.jpg"
+    ],
+    "contact": {
+      "email": "info@ramos.net"
+    }
+  },
+  "contact": {
+    "name": "Garrison-Malone",
+    "location": {
+      "address": {
+        "number": "6305",
+        "street": "David Manors",
+        "city": "Murcia",
+        "region": "Indiana",
+        "country": "Spain",
+        "postcode": "70814"
+      },
+      "gps_coordinates": "37.9347521, -1.1131029",
+      "directions": "Located near Lowe-Woodward",
+      "city": "Murcia",
+      "country": "Spain"
+    },
+    "languages": [
+      "en"
+    ],
+    "images": [
+      "images/on.jpg"
+    ],
+    "contact": {
+      "mobile": "+1-412-334-6168",
+      "email": "info@knox.org"
+    }
+  },
+  "opening_hours": "Mon-Fri: 8:00-20:00",
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Semi-Auto Line",
+      "serial_number": "SN778642",
+      "condition": "Needs Maintenance",
+      "maintenance_schedule": "Every 2 months",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "1300",
+              "street": "Nicholas Squares",
+              "city": "Santa Cruz",
+              "region": "Illinois",
+              "country": "Spain",
+              "postcode": "12237"
+            },
+            "gps_coordinates": "28.467178, -16.2507843",
+            "directions": "Located near Turner-Carr",
+            "city": "Santa Cruz",
+            "country": "Spain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Industrial"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 767",
+      "condition": "Fair",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "maintenance_schedule": "Every 3 months"
+}

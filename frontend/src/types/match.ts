@@ -8,6 +8,8 @@ export interface MatchRequest {
   solution_ttl_days?: number;
   include_human_summary?: boolean;
   include_explanation?: boolean;
+  allow_facility_combinations?: boolean;
+  max_facilities_per_solution?: number;
 }
 
 export interface FacilityLocation {
@@ -83,6 +85,12 @@ export interface SolutionTree {
   metadata: Record<string, unknown>;
 }
 
+export interface FacilityDetail {
+  facility_id: string;
+  facility_name: string;
+  facility: Facility;
+}
+
 export interface MatchSolution {
   tree: SolutionTree;
   facility: Facility;
@@ -92,9 +100,21 @@ export interface MatchSolution {
   confidence: number;
   score: number;
   rank: number;
-  metrics: { facility_count: number; requirement_count: number; capability_count: number };
+  metrics: {
+    facility_count: number;
+    requirement_count: number;
+    capability_count: number;
+    required_process_count?: number;
+    covered_process_count?: number;
+  };
   explanation: MatchExplanation | null;
   explanation_human: string | null;
+  /** Present when the solution covers requirements across multiple facilities. */
+  is_composite?: boolean;
+  /** Ordered list of all facility names in the composite solution. */
+  facility_names?: string[];
+  /** Full detail for each facility in the composite solution. */
+  facility_details?: FacilityDetail[];
 }
 
 export interface HumanSummaryInsights {
