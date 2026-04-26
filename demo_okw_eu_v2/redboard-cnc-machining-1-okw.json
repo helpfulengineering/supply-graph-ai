@@ -1,0 +1,104 @@
+{
+  "id": "96d5b617-644b-4629-a979-973ba2744586",
+  "name": "CNC Machining Facility 1",
+  "location": {
+    "address": {
+      "number": "9385",
+      "street": "Vazquez Overpass",
+      "city": "Bologna",
+      "region": "Pennsylvania",
+      "country": "Italy",
+      "postcode": "92895"
+    },
+    "gps_coordinates": "44.4938203, 11.3426327",
+    "directions": "Located near Turner-Butler",
+    "city": "Bologna",
+    "country": "Italy"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Mccoy, Davis and Oliver",
+    "contact_person": "Amber Arnold",
+    "bio": "Established in 2013, we specialize in Re-contextualized maximized service-desk",
+    "contact": {
+      "landline": "+1-718-606-8677",
+      "mobile": "+1-489-671-4582"
+    },
+    "social_media": {
+      "facebook": "https://facebook.com/rodriguezdebra",
+      "other_urls": [
+        "https://hill-mcdowell.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 7:00-19:00",
+  "description": "Specialized in CNC milling and turning operations",
+  "date_founded": "2011-01-15",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_mill",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Machining",
+      "make": "Mazak",
+      "model": "DMU 50",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Debate tonight attack ground.",
+      "quantity": 1,
+      "throughput": "53 parts/hour",
+      "maintenance_schedule": "Every 6 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Aluminum"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Steel",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Plastic",
+          "supplier_location": {
+            "address": {
+              "number": "1517",
+              "street": "Anthony Village",
+              "city": "Marseille",
+              "region": "Connecticut",
+              "country": "France",
+              "postcode": "58223"
+            },
+            "gps_coordinates": "43.2961743, 5.3699525",
+            "directions": "Located behind Foley, Webster and Wagner",
+            "city": "Marseille",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        }
+      ],
+      "axes": 3,
+      "working_surface": 600
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/CNC_lathe",
+      "make": "Brand B",
+      "model": "Model 190",
+      "condition": "Good"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Machining",
+    "CNC Machining"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1411,
+  "typical_materials": [],
+  "certifications": [],
+  "uninterrupted_power_supply": true,
+  "road_access": true
+}

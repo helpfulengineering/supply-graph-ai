@@ -1,0 +1,116 @@
+{
+  "id": "79147ac7-7ca2-4a37-8ac3-4c0b73bd277a",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "8509",
+      "street": "Vasquez Skyway",
+      "city": "Murcia",
+      "region": "Pennsylvania",
+      "country": "Spain",
+      "postcode": "70088"
+    },
+    "gps_coordinates": "37.9347521, -1.1131029",
+    "directions": "Located near Hunt PLC",
+    "city": "Murcia",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Wagner-Armstrong",
+    "location": {
+      "address": {
+        "number": "1382",
+        "street": "Brian Haven",
+        "city": "Almere",
+        "region": "Texas",
+        "country": "Netherlands",
+        "postcode": "82450"
+      },
+      "gps_coordinates": "52.3705038, 5.2185859",
+      "directions": "Located near Lopez PLC",
+      "city": "Almere",
+      "country": "Netherlands"
+    },
+    "contact_person": "Mark Pearson",
+    "bio": "Established in 2006, we specialize in Switchable radical portal",
+    "images": [
+      "images/resource.jpg",
+      "images/various.jpg",
+      "images/soldier.jpg"
+    ],
+    "social_media": {
+      "facebook": "https://facebook.com/judith09",
+      "other_urls": [
+        "https://doyle.com"
+      ]
+    }
+  },
+  "opening_hours": "Mon-Fri: 9:00-22:00",
+  "description": "Specialized in laser cutting and engraving services",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Trotec",
+      "model": "Speedy 300",
+      "serial_number": "SN707529",
+      "condition": "Needs Maintenance",
+      "notes": "Equipment notes: Like per exactly development.",
+      "throughput": "84 parts/hour",
+      "power_rating": 1754,
+      "maintenance_schedule": "Every 2 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand B"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "supplier_location": {
+            "address": {
+              "number": "8293",
+              "street": "Powell Parkway",
+              "city": "Amersfoort",
+              "region": "Virginia",
+              "country": "Netherlands",
+              "postcode": "91877"
+            },
+            "gps_coordinates": "52.1562499, 5.3896944",
+            "city": "Amersfoort",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Standard"
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 900
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4734,
+  "storage_capacity": "673 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "maintenance_schedule": "Every 4 months",
+  "typical_products": [
+    "Balanced actuating synergy"
+  ]
+}

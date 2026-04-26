@@ -17,6 +17,24 @@ from .manager import StorageManager
 logger = get_logger(__name__)
 
 
+def is_okh_bom_sidecar_storage_key(key: str) -> bool:
+    """
+    True if this blob key is a BOM sidecar stored next to manifests under okh/.
+
+    Batch upload and golden uploads write manifests as ``*.json`` and companion
+    BOMs as ``*-bom.json`` under the same ``okh/`` prefix. Those files are not
+    valid OKH manifests but were previously included by prefix-only discovery.
+    """
+    base = key.rsplit("/", 1)[-1].lower()
+    # Standalone BOM exports are often named ``bom.json`` beside a manifest.
+    if base == "bom.json":
+        return True
+    if base.endswith("-bom.json"):
+        return True
+    # e.g. bom_myproject.json written beside manifests
+    return base.startswith("bom_") and base.endswith(".json")
+
+
 @dataclass
 class FileInfo:
     """Information about a discovered file"""
@@ -82,6 +100,38 @@ class ContentValidator:
                 not isinstance(data.get("function"), str)
                 or not data["function"].strip()
             ):
+                return False
+
+            # Align with OKHManifest.validate() so BOM-only / stray JSON is not "okh"
+            lic = data.get("licensor")
+            if lic is None:
+                return False
+            if isinstance(lic, str):
+                if not lic.strip():
+                    return False
+            elif isinstance(lic, dict):
+                if not lic:
+                    return False
+            elif isinstance(lic, list):
+                if not lic:
+                    return False
+            else:
+                return False
+
+            dl = data.get("documentation_language")
+            if dl is None:
+                return False
+            if isinstance(dl, str):
+                if not dl.strip():
+                    return False
+            elif isinstance(dl, list):
+                if not dl or not any(
+                    (isinstance(x, str) and x.strip())
+                    or (isinstance(x, dict) and bool(x))
+                    for x in dl
+                ):
+                    return False
+            else:
                 return False
 
             return True
@@ -175,6 +225,19 @@ class ContentValidator:
             return False
 
 
+_DEFAULT_OKH_SHAPE_CHECKER = ContentValidator()
+
+
+def minimal_okh_manifest_dict(data: dict) -> bool:
+    """
+    True if ``data`` has the minimum top-level shape of an OKH manifest.
+
+    Used by OKHService.list to skip BOM-only JSON and other stray files under
+    ``okh/`` whose names are not caught by :func:`is_okh_bom_sidecar_storage_key`.
+    """
+    return _DEFAULT_OKH_SHAPE_CHECKER._validate_okh_content(data)
+
+
 class SmartFileDiscovery:
     """Multi-strategy file discovery service"""
 
@@ -249,8 +312,15 @@ class SmartFileDiscovery:
 
         try:
             async for obj in self.storage_manager.list_objects(prefix=prefix):
+                obj_key = obj["key"]
+                if file_type == "okh" and is_okh_bom_sidecar_storage_key(obj_key):
+                    logger.debug(
+                        "Skipping OKH prefix listing entry (BOM sidecar, not a manifest)",
+                        extra={"key": obj_key},
+                    )
+                    continue
                 file_info = FileInfo(
-                    key=obj["key"],
+                    key=obj_key,
                     file_type=file_type,
                     size=obj.get("size", 0),
                     last_modified=obj.get("last_modified", datetime.now()),

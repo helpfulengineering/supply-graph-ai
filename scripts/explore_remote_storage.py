@@ -2,7 +2,7 @@
 """
 Explore contents of configured remote (or local) storage using the storage service.
 
-Lists objects under the prefixes OHM expects (okh/, okw/, supply-trees/) and
+Lists objects under the prefixes OHM expects (okh/, okw/, packages/, supply-trees/) and
 optionally at container root, so you can verify that storage is populated and
 that the layout matches what SmartFileDiscovery expects.
 
@@ -27,7 +27,7 @@ if str(repo_root) not in sys.path:
 
 async def main():
     parser = argparse.ArgumentParser(
-        description="List contents of configured storage (okh/, okw/, supply-trees/)"
+        description="List contents of configured storage (okh/, okw/, packages/, supply-trees/)"
     )
     parser.add_argument(
         "--max-per-prefix",
@@ -60,6 +60,7 @@ async def main():
     prefixes = [
         ("okh/", "OKH manifests"),
         ("okw/", "OKW facilities"),
+        ("packages/", "Built OKH packages (remote)"),
         ("supply-trees/", "Supply trees"),
     ]
 

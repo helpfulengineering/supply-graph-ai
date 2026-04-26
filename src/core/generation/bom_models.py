@@ -13,6 +13,7 @@ import yaml
 
 # Import Component from the BOM models
 from ..models.bom import BillOfMaterials, Component
+from .bom_candidate_discovery import path_matches_dedicated_bom_file
 
 logger = logging.getLogger(__name__)
 
@@ -51,12 +52,7 @@ class BOMCollector:
     """Collects BOM data from multiple sources in a project using NLP-enhanced detection"""
 
     def __init__(self):
-        self._bom_file_patterns = [
-            r"(?i)bom(\.csv|\.txt|\.md|\.json|\.yaml|\.yml)?$",
-            r"(?i)bill_of_materials(\.csv|\.txt|\.md|\.json|\.yaml|\.yml)?$",
-            r"(?i)materials(\.csv|\.txt|\.md|\.json|\.yaml|\.yml)?$",
-            r"(?i)parts(\.csv|\.txt|\.md|\.json|\.yaml|\.yml)?$",
-        ]
+        # BOM file path rules live in bom_candidate_discovery (shared with LLM / layers).
 
         # Legacy regex patterns (kept for fallback)
         self._materials_section_patterns = [
@@ -264,10 +260,7 @@ class BOMCollector:
 
     def _is_bom_file(self, file_path: str) -> bool:
         """Check if file is a BOM file based on name patterns"""
-        path_lower = file_path.lower()
-        return any(
-            re.search(pattern, path_lower) for pattern in self._bom_file_patterns
-        )
+        return path_matches_dedicated_bom_file(file_path)
 
     def _calculate_readme_confidence(self, content: str) -> float:
         """Calculate confidence score for README materials section"""

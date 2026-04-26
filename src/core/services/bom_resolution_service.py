@@ -52,11 +52,10 @@ class BOMResolutionService:
         if okh_manifest.bom:
             if isinstance(okh_manifest.bom, str) and okh_manifest.bom.strip():
                 return "external"
-            elif (
-                isinstance(okh_manifest.bom, dict)
-                and "external_file" in okh_manifest.bom
-            ):
-                return "external"
+            elif isinstance(okh_manifest.bom, dict):
+                ext = okh_manifest.bom.get("external_file")
+                if isinstance(ext, str) and ext.strip():
+                    return "external"
 
         # Check for embedded BOM data
         if (okh_manifest.parts and len(okh_manifest.parts) > 0) or (

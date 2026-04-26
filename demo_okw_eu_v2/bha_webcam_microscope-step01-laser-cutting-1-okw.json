@@ -1,0 +1,91 @@
+{
+  "id": "14bf252d-25b2-4d97-aa15-e4586a2a3fad",
+  "name": "Laser Cutting Facility 1 (for BHA_Webcam_Microscope)",
+  "location": {
+    "address": {
+      "number": "151",
+      "street": "Jennifer Ramp",
+      "city": "Plymouth",
+      "region": "South Dakota",
+      "country": "United Kingdom",
+      "postcode": "48333"
+    },
+    "gps_coordinates": "50.3714122, -4.1424451",
+    "city": "Plymouth",
+    "country": "United Kingdom"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2001-12-15",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "LS-1630",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Accept yes wrong of his.",
+      "throughput": "6 parts/hour",
+      "maintenance_schedule": "Every 7 months",
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "4914",
+              "street": "David Alley",
+              "city": "The Hague",
+              "region": "New Mexico",
+              "country": "Netherlands",
+              "postcode": "64774"
+            },
+            "gps_coordinates": "52.0749456, 4.2696802",
+            "directions": "Located near Lane, Griffin and Riddle",
+            "city": "The Hague",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "supplier_location": {
+            "address": {
+              "number": "9546",
+              "street": "Anna Pike",
+              "city": "Sunderland",
+              "region": "Maine",
+              "country": "United Kingdom",
+              "postcode": "72644"
+            },
+            "gps_coordinates": "54.9058512, -1.3828727",
+            "city": "Sunderland",
+            "country": "United Kingdom"
+          }
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 300
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "storage_capacity": "510 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "maintenance_schedule": "Every 1 months"
+}

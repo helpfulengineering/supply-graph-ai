@@ -22,7 +22,7 @@ Typical usage:
     python scripts/matching_batch.py --limit 5 --stdout-summary
 
 Options:
-    --manifests-dir   Directory containing <id>-<layer>.json files
+    --manifests-dir   Directory containing <title-slug>-<layer>.json (or legacy <id>-<layer>.json)
                       (default: tests/data/okh_generation/clones/)
     --layer TAG       Layer suffix to match (default: 4L). Use "all" to match every layer.
     --min-confidence  Minimum confidence threshold for solutions (default: 0.3)
@@ -123,32 +123,54 @@ def _discover_manifests(
     layer: str,
     core_ids: Optional[set],
     only_ids: Optional[set],
+    repo_meta: Dict[str, Any],
 ) -> List[Tuple[str, str, Path]]:
-    """Return list of (repo_id, layer_tag, manifest_path) tuples."""
+    """Return list of (dataset_repo_id, layer_tag, manifest_path) tuples.
+
+    Filenames may be ``<title-slug>-<layer>.json`` or legacy ``<id>-<layer>.json``.
+    Dataset id is resolved from the manifest's ``repo`` URL via *repo_meta*.
+    """
+    from tests.data.okh_generation.manifest_discovery import canonical_repo_url
+
     results: List[Tuple[str, str, Path]] = []
+    url_to_id: Dict[str, str] = {}
+    for rid, meta in repo_meta.items():
+        u = canonical_repo_url(meta.get("url") or "")
+        if u:
+            url_to_id[u] = rid
 
     for f in sorted(manifests_dir.glob("*.json")):
-        name = f.stem  # e.g. "bha-centrifuge-4L"
-        # Skip BOM files
+        name = f.stem  # e.g. "bha-centrifuge-4L" or "open-source-rover-4L"
         if name.endswith("-bom"):
             continue
 
-        # Determine layer tag and repo_id by iterating known suffixes
-        # Suffixes may contain hyphens (e.g. "4L-chunked"), so match from the right
         layer_tag: Optional[str] = None
-        repo_id: Optional[str] = None
+        stem_without_layer: Optional[str] = None
 
         for candidate_suffix in ["4L-chunked", "4L", "3L"]:
-            if name.endswith(f"-{candidate_suffix}"):
+            suffix = f"-{candidate_suffix}"
+            if name.endswith(suffix):
                 layer_tag = candidate_suffix
-                repo_id = name[: -(len(candidate_suffix) + 1)]
+                stem_without_layer = name[: -len(suffix)]
                 break
 
-        if layer_tag is None:
-            # Unrecognised naming; skip
+        if layer_tag is None or stem_without_layer is None:
             continue
 
         if layer != "all" and layer_tag != layer:
+            continue
+
+        try:
+            with f.open(encoding="utf-8") as fh:
+                data = json.load(fh)
+        except (OSError, json.JSONDecodeError):
+            continue
+
+        mu = canonical_repo_url(data.get("repo") or "")
+        repo_id = url_to_id.get(mu)
+        if repo_id is None and stem_without_layer in repo_meta:
+            repo_id = stem_without_layer
+        if repo_id is None:
             continue
 
         if core_ids is not None and repo_id not in core_ids:
@@ -298,6 +320,7 @@ async def _run_batch(args: argparse.Namespace) -> None:
         layer=args.layer,
         core_ids=core_ids,
         only_ids=only_ids,
+        repo_meta=repo_meta,
     )
 
     if args.limit > 0:

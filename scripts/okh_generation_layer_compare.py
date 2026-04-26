@@ -3,8 +3,9 @@
 Compare 3-layer vs 4-layer OKH manifests on disk (heuristic metrics).
 
 For each supported repo in tests/data/okh_generation/repositories.json, if both
-``clones/<id>-3L.json`` and ``clones/<id>-4L.json`` exist, computes
-``metrics.heuristic_layer_comparison`` and writes a JSON report.
+3L and 4L manifests exist for that repo's clone URL (title-slug or legacy
+``<id>-<layer>.json`` names), computes ``metrics.heuristic_layer_comparison``
+and writes a JSON report.
 
 Usage:
     conda activate supply-graph-ai
@@ -51,6 +52,9 @@ def main() -> int:
     args = parser.parse_args()
 
     from tests.data.okh_generation.baseline_report import load_repositories_dataset
+    from tests.data.okh_generation.manifest_discovery import (
+        find_generated_manifest_path,
+    )
     from tests.data.okh_generation.metrics import heuristic_layer_comparison
 
     data = load_repositories_dataset(args.repositories_json)
@@ -61,14 +65,15 @@ def main() -> int:
         if not repo.get("platform_supported"):
             continue
         rid = repo.get("id", "")
-        p3 = args.clones_dir / f"{rid}-3L.json"
-        p4 = args.clones_dir / f"{rid}-4L.json"
+        url = repo.get("url") or ""
+        p3 = find_generated_manifest_path(args.clones_dir, "3L", url, dataset_id=rid)
+        p4 = find_generated_manifest_path(args.clones_dir, "4L", url, dataset_id=rid)
         row: Dict[str, Any] = {"id": rid, "url": repo.get("url")}
-        if not p3.is_file():
+        if p3 is None or not p3.is_file():
             row["status"] = "missing_3L"
             rows.append(row)
             continue
-        if not p4.is_file():
+        if p4 is None or not p4.is_file():
             row["status"] = "missing_4L"
             rows.append(row)
             continue

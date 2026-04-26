@@ -1,0 +1,120 @@
+{
+  "id": "9ee60c2e-5bf9-454d-b322-4f55ab5cdb61",
+  "name": "Laser Cutting Facility 2 (for Face Shield)",
+  "location": {
+    "address": {
+      "number": "6202",
+      "street": "Lam Inlet",
+      "city": "Reims",
+      "region": "Wyoming",
+      "country": "France",
+      "postcode": "25760"
+    },
+    "gps_coordinates": "49.2577886, 4.031926",
+    "city": "Reims",
+    "country": "France"
+  },
+  "facility_status": "Active",
+  "owner": {
+    "name": "Bell, Butler and Hensley",
+    "contact_person": "Jill Simpson",
+    "mailing_list": "unorton@lists.bailey-taylor.net",
+    "contact": {
+      "email": "info@fernandez-brown.com"
+    }
+  },
+  "contact": {
+    "name": "Macdonald-Flores",
+    "bio": "Established in 2001, we specialize in Customizable content-based encoding",
+    "website": "https://garcia.org",
+    "images": [
+      "images/yes.jpg",
+      "images/room.jpg",
+      "images/from.jpg"
+    ],
+    "social_media": {
+      "facebook": "https://facebook.com/melissamiller",
+      "other_urls": [
+        "https://carroll.com",
+        "https://bell-moore.com"
+      ]
+    }
+  },
+  "description": "Specialized in laser cutting and engraving services",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "Fusion Pro",
+      "condition": "Good",
+      "notes": "Equipment notes: Mother worry current they matter.",
+      "throughput": "28 parts/hour",
+      "maintenance_schedule": "Every 5 months",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Brand A"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Generic",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "5655",
+              "street": "Bowen Stream",
+              "city": "Amsterdam",
+              "region": "Massachusetts",
+              "country": "Netherlands",
+              "postcode": "54713"
+            },
+            "gps_coordinates": "52.3730796, 4.8924534",
+            "directions": "Located across from Smith Ltd",
+            "city": "Amsterdam",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Generic",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "2804",
+              "street": "Jacob Ridges",
+              "city": "Málaga",
+              "region": "Kentucky",
+              "country": "Spain",
+              "postcode": "02725"
+            },
+            "gps_coordinates": "36.7213028, -4.4216366",
+            "directions": "Located behind Johnson, Ellis and Ray",
+            "city": "Málaga",
+            "country": "Spain"
+          }
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 600
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1732,
+  "storage_capacity": "978 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "backup_generator": true,
+  "road_access": true
+}

@@ -393,6 +393,7 @@ async def populate(
 
     cli_ctx.start_command_tracking("storage-populate")
 
+    storage_service = None
     try:
         emit_status_line(
             output_format=output_format,
@@ -576,3 +577,6 @@ async def populate(
     except Exception as e:
         cli_ctx.log(f"❌ Failed to populate storage: {e}", "error")
         raise
+    finally:
+        if storage_service is not None:
+            await storage_service.cleanup()

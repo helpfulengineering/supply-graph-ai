@@ -1,0 +1,100 @@
+{
+  "id": "337c7d86-f5cf-4baa-ba8a-23344bdbd1b0",
+  "name": "Assembly Facility 2 (for Mouse)",
+  "location": {
+    "address": {
+      "number": "14",
+      "street": "Gomez Garden",
+      "city": "Zaragoza",
+      "region": "Washington",
+      "country": "Spain",
+      "postcode": "48438"
+    },
+    "gps_coordinates": "41.6521342, -0.8809428",
+    "city": "Zaragoza",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "item",
+      "model": "Semi-Auto Line",
+      "condition": "Excellent",
+      "quantity": 4,
+      "power_rating": 5838,
+      "maintenance_schedule": "Every 3 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Generic",
+          "supplier_location": {
+            "address": {
+              "number": "5998",
+              "street": "Danielle Ways",
+              "city": "Elche",
+              "region": "Wyoming",
+              "country": "Spain",
+              "postcode": "39656"
+            },
+            "gps_coordinates": "38.2653307, -0.6988391",
+            "city": "Elche",
+            "country": "Spain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Premium",
+          "supplier_location": {
+            "address": {
+              "number": "4044",
+              "street": "Green Turnpike",
+              "city": "Paris",
+              "region": "New Mexico",
+              "country": "France",
+              "postcode": "53847"
+            },
+            "gps_coordinates": "48.8534951, 2.3483915",
+            "directions": "Located near Stout, Klein and Nolan",
+            "city": "Paris",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 100",
+      "condition": "Fair"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 4920,
+  "typical_materials": [],
+  "certifications": [
+    "AS9100",
+    "OHSAS 18001",
+    "ISO 14001"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months"
+}

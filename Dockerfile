@@ -18,13 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set work directory
 WORKDIR /app
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy package config first for better caching
+COPY pyproject.toml .
 
 # Install Python dependencies to a virtual environment
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir .
 
 # Stage 2: Runtime image
 FROM python:3.12-slim
@@ -47,9 +47,8 @@ COPY --from=builder /opt/venv /opt/venv
 WORKDIR /app
 
 # Copy only necessary application files (respects .dockerignore)
-# Copy package configuration first (for pip install)
+# Copy package configuration
 COPY pyproject.toml ./
-COPY requirements.txt ./
 
 # Copy source code
 COPY src/ ./src/

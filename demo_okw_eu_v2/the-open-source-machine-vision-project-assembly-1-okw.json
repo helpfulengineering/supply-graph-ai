@@ -1,0 +1,116 @@
+{
+  "id": "d6c90f49-de2f-406a-878f-217880b13a64",
+  "name": "Assembly Facility 1",
+  "location": {
+    "address": {
+      "number": "7554",
+      "street": "Heather Dale",
+      "city": "Zaanstad",
+      "region": "Illinois",
+      "country": "Netherlands",
+      "postcode": "31003"
+    },
+    "gps_coordinates": "52.4689235, 4.7737835",
+    "city": "Zaanstad",
+    "country": "Netherlands"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 9:00-18:00",
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Manual Cell",
+      "serial_number": "SN954203",
+      "condition": "Good",
+      "quantity": 1,
+      "power_rating": 1940,
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "brand": "Professional",
+          "supplier_location": {
+            "address": {
+              "number": "3649",
+              "street": "Sarah Brooks",
+              "city": "Palermo",
+              "region": "Washington",
+              "country": "Italy",
+              "postcode": "79206"
+            },
+            "gps_coordinates": "38.1112268, 13.3524434",
+            "city": "Palermo",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "manufacturer": "Generic",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand A",
+          "supplier_location": {
+            "address": {
+              "number": "1104",
+              "street": "Jennifer Ways",
+              "city": "Rennes",
+              "region": "Hawaii",
+              "country": "France",
+              "postcode": "03223"
+            },
+            "gps_coordinates": "48.1113387, -1.6800198",
+            "city": "Rennes",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "supplier_location": {
+            "address": {
+              "number": "8346",
+              "street": "Rachel Square",
+              "city": "Leiden",
+              "region": "Wisconsin",
+              "country": "Netherlands",
+              "postcode": "01720"
+            },
+            "gps_coordinates": "52.1594747, 4.4908843",
+            "directions": "Located across from King-Lee",
+            "city": "Leiden",
+            "country": "Netherlands"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand B",
+      "model": "Model 814",
+      "condition": "Good",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1058,
+  "storage_capacity": "233 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 9001:2015",
+    "AS9100"
+  ],
+  "backup_generator": true,
+  "uninterrupted_power_supply": true,
+  "maintenance_schedule": "Every 4 months"
+}

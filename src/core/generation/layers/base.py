@@ -438,10 +438,12 @@ class BaseGenerationLayer(ABC):
         return root_readme + docs_readme + other_readme
 
     def find_bom_files(self, files: List[FileInfo]) -> List[FileInfo]:
-        """Find BOM files in the project"""
-        return self.find_files_by_pattern(
-            files, r"(?i)^(bom|bill.of.materials|materials)(\.(txt|md|csv|json))?$"
-        )
+        """Find BOM files in the project (ranked, same rules as BOMCollector / LLM context)."""
+        from ..bom_candidate_discovery import list_bom_candidate_paths_from_files
+
+        ordered_paths = list_bom_candidate_paths_from_files(files)
+        by_path = {f.path: f for f in files}
+        return [by_path[p] for p in ordered_paths if p in by_path]
 
     def get_text_files(self, files: List[FileInfo]) -> List[FileInfo]:
         """Get all text files from the project"""

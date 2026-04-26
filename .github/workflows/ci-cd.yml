@@ -30,8 +30,7 @@ jobs:
       - name: Install tooling and dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff black
-          pip install -r requirements.txt
+          pip install -e ".[dev]" ruff black
 
       - name: Ruff lint
         run: |
@@ -68,8 +67,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov pytest-asyncio pytest-timeout
+          pip install -e ".[dev]" pytest-cov
 
       - name: Run unit lane
         run: |
@@ -126,8 +124,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio pytest-timeout
+          pip install -e ".[dev]"
 
       - name: Run contract stability suite
         run: |
@@ -158,15 +155,11 @@ jobs:
       - name: Install dependencies and security tools
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pip-audit bandit
+          pip install -e ".[dev]" pip-audit bandit
 
       - name: Dependency vulnerability scan
         run: |
-          pip-audit -r requirements.txt
-          if [ -f requirements-dev.txt ]; then
-            pip-audit -r requirements-dev.txt
-          fi
+          pip-audit
 
       - name: Static security scan
         run: |

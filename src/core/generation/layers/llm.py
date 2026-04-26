@@ -38,14 +38,23 @@ logger = logging.getLogger(__name__)
 
 
 class ChunkedLLMReduceSchema(BaseModel):
-    """Minimal schema guardrail for chunked reduce output."""
+    """Minimal schema guardrail for chunked reduce output.
 
-    model_config = ConfigDict(extra="allow")
+    extra='forbid' keeps the reduce stage from emitting a full manifest; without
+    it, models often echo few-shot examples (extra keys) and those values were
+    merged into the final OKH output.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     title: str = Field(min_length=1)
     version: str = Field(min_length=1)
     function: str = Field(min_length=1)
     description: str = Field(min_length=1)
+    intended_use: Optional[str] = Field(
+        default=None,
+        description="Who uses this hardware and for what purpose; omit or null if unknown.",
+    )
 
 
 class LLMGenerationLayer(BaseGenerationLayer):
@@ -398,7 +407,10 @@ The OKH manifest is designed to maximize interoperability and discoverability in
                 structured_request = LLMStructuredRequest(
                     instruction=(
                         "Analyze repository content and return a complete, valid OKH manifest "
-                        "JSON. Required: title, version, function, and a non-empty description."
+                        "JSON. Required: title, version, function, and a non-empty description. "
+                        "When documentation clearly states who the project is for and why "
+                        "(use cases, audience, applications), also include intended_use as "
+                        "one or two sentences; otherwise omit intended_use."
                     ),
                     payload_sections=[
                         LLMPayloadSection(name="analysis_prompt", text=prompt)
@@ -435,7 +447,7 @@ The OKH manifest is designed to maximize interoperability and discoverability in
         """Return True when the chunked map-reduce workflow should be used.
 
         Decision order:
-        1. Explicit ``chunked_mode_enabled=True``  → always chunk.
+        1. Explicit ``chunked_mode_enabled=True``  → always chunk (LayerConfig default).
         2. Explicit ``chunked_mode_enabled=False`` → never chunk.
         3. Key absent (auto)                       → chunk when the estimated
            token count of *prompt* exceeds ``chunk_max_tokens``.
@@ -603,7 +615,7 @@ SPECIFIC SOFTWARE REFERENCES TO USE:
 {chr(10).join(project_info.get('software_indicators', {}).get('software_references', [])[:5])}
 
 MANDATORY REQUIREMENTS:
-- You MUST use the BOM files listed above to populate the 'bom' field
+- **BOM paths**: The `bom_files` list contains **actual repository paths** from the file tree. You may cite a repo-relative BOM path **only** if it appears in `bom_files`. **Never invent** paths such as `bom/bom.json` or `BOM.csv` if they are not listed. If `bom_files` is empty, build the `bom` field from README/documentation/parts (structured summary)—without a fake `external_file`.
 - You MUST use the MANUFACTURING CANDIDATE FILES above for 'manufacturing_files'
 - You MUST use the DESIGN SOURCE FILES above for 'parts[].source' references
 - You MUST use the software references listed above to populate the 'software' field
@@ -630,12 +642,12 @@ MANDATORY REQUIREMENTS:
 ### BOM Construction Examples:
 - **Explicit BOM**: "bom.csv", "bill_of_materials.txt" → Reference in bom field
 - **Implicit BOM**: Parts list in README → Construct BOM from documentation
-- **Example**: "The rover requires: 6 wheels, 1 chassis, 2 motors, 1 Arduino" → Extract all components
+- **Example**: "The kit needs: 4 standoffs, 1 PCB, 2 linear rails, 1 NEMA-17 motor" → Extract all components (illustrative; do not assume this specific BOM)
 
 ### Parts Detection Examples:
-- **Main Parts**: Chassis, wheels, motors, control board, mast
+- **Main Parts**: Frame, motion stage, optics mount, controller PCB (examples only)
 - **Sub-parts**: Screws, brackets, connectors, mounting hardware
-- **File Mapping**: "chassis.stl" → chassis part (manufacturing file + parts entry), "wheel_assembly.step" → parts source file (design source, NOT manufacturing_files)
+- **File Mapping**: "frame.stl" → frame part (manufacturing file + parts entry), "assembly.step" → parts source file (design source, NOT manufacturing_files)
 - **Material Detection**: "3D printed PLA", "aluminum bracket", "steel screws"
 
 ### Manufacturing Files Detection Examples:
@@ -653,20 +665,22 @@ MANDATORY REQUIREMENTS:
 - **No standards mentioned**: Leave `standards_used` as an empty list `[]`
 
 ### Software Repository Detection Examples:
-- **GitHub Pattern**: "All code can be found in the osr-rover-code repository"
-- **Direct Reference**: "Software repository: https://github.com/nasa-jpl/osr-rover-code"
-- **Context Clues**: "Raspberry Pi", "ROS", "Python code", "Arduino sketches"
+- **GitHub Pattern**: "Firmware lives in the companion `acme-widget-fw` repository"
+- **Direct Reference**: "Software repository: https://github.com/example-org/acme-widget-fw"
+- **Context Clues**: "MicroPython", "CMake project", "PlatformIO", "separate software repo" (examples only)
 - **Platform Awareness**: GitHub projects often separate hardware/software repos
+
+**IMPORTANT**: Examples above show structure and patterns only. Never copy example hardware domains, brands, or repository names into the manifest—derive every field from **this** repository's README, files, and metadata.
 
 ## Context File:
 Use {context_file} as your scratchpad for analysis.
 
 ## Instructions:
 1. **CRITICAL: Use the enhanced analysis data provided above**
-2. **CRITICAL: BOM Field - DO NOT leave empty**
-   - If bom_files array has items, reference the main BOM file
-   - If no explicit BOM, construct from parts/materials in documentation
-   - NEVER leave bom field empty - always provide a BOM reference or constructed BOM
+2. **CRITICAL: BOM field**
+   - If `bom_files` has items, set `bom` to reference **one of those paths** (prefer the first / most confident). Do not add `external_file` paths that are not in `bom_files`.
+   - If `bom_files` is empty, construct `bom` from README / docs / parts without inventing repository file paths.
+   - Always provide a non-empty `bom` object or string consistent with the rules above.
 3. **CRITICAL: Parts Field - DO NOT leave empty**
    - Use the DESIGN SOURCE FILES and MANUFACTURING CANDIDATE FILES lists to identify main hardware components
    - Map 3D models (.stl, .step) to parts with materials and dimensions
@@ -740,26 +754,11 @@ Use {context_file} as your scratchpad for analysis.
         return [file_info.path for file_info in project_data.files]
 
     def _find_bom_files(self, project_data: ProjectData) -> List[str]:
-        """Find BOM-related files in the project"""
-        bom_patterns = [
-            "bom",
-            "bill_of_materials",
-            "parts_list",
-            "components",
-            "materials",
-            "inventory",
-            "shopping_list",
-        ]
+        """BOM file paths that exist in the repo listing (ranked; no substring false positives)."""
+        from ..bom_candidate_discovery import list_bom_candidate_paths_from_files
 
-        bom_files = []
-        for file_info in project_data.files:
-            file_path_lower = file_info.path.lower()
-            for pattern in bom_patterns:
-                if pattern in file_path_lower:
-                    bom_files.append(file_info.path)
-                    break
-
-        return bom_files
+        # Cap list size for prompt/token limits; order is highest-confidence first.
+        return list_bom_candidate_paths_from_files(project_data.files)[:25]
 
     def _find_manufacturing_candidate_files(
         self, project_data: ProjectData
@@ -1207,6 +1206,10 @@ Use {context_file} as your scratchpad for analysis.
         for field in optional_fields:
             if field in manifest_data:
                 value = manifest_data[field]
+                if field == "intended_use" and (
+                    value is None or (isinstance(value, str) and not str(value).strip())
+                ):
+                    continue
                 confidence = 0.8  # Good confidence for optional fields
                 result.add_field(
                     field,
@@ -1266,18 +1269,27 @@ Use {context_file} as your scratchpad for analysis.
             )
             # Clean up whitespace
             intended_use_value = " ".join(intended_use_value.split())
-            # Only add if it looks reasonable
+            # Only add if it looks reasonable (same noise heuristics as engine validation)
+            iu_lower = intended_use_value.lower()
             if len(intended_use_value) > 20 and not any(
-                phrase in intended_use_value.lower()
+                phrase in iu_lower
                 for phrase in ["windows", "mac", "linux", "disclaimed", "respect of"]
             ):
-                result.add_field(
-                    "intended_use",
-                    intended_use_value,
-                    0.85,
-                    "llm_partial_json",
-                    "Extracted from partial JSON",
+                from ..utils.intended_use_validation import (
+                    is_obvious_noise_intended_use,
                 )
+
+                if (
+                    not is_obvious_noise_intended_use(intended_use_value)
+                    and len(intended_use_value.split()) >= 5
+                ):
+                    result.add_field(
+                        "intended_use",
+                        intended_use_value,
+                        0.85,
+                        "llm_partial_json",
+                        "Extracted from partial JSON",
+                    )
 
         # Extract description field
         description_pattern = r'"description"\s*:\s*"((?:[^"\\]|\\.|\\n)*?)(?:"|,|\n|$)'

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 from uuid import UUID, uuid4
 
 logger = logging.getLogger(__name__)
@@ -653,6 +653,56 @@ class OKHManifest:
             ]
         return None
 
+    @staticmethod
+    def _normalize_string_list_field(
+        raw: Any, coercer: Callable[[Any], Optional[str]]
+    ) -> List[str]:
+        if not isinstance(raw, list):
+            return []
+        out: List[str] = []
+        for item in raw:
+            s = coercer(item)
+            if s:
+                out.append(s)
+        return out
+
+    @staticmethod
+    def _coerce_tool_list_entry(item: Any) -> Optional[str]:
+        """LLM/heuristic pipelines may emit dict atoms (title, path, …) in tool_list."""
+        if isinstance(item, str):
+            s = item.strip()
+            return s if s else None
+        if isinstance(item, dict):
+            for key in ("title", "name", "path", "tool", "label"):
+                v = item.get(key)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+        return None
+
+    @staticmethod
+    def _coerce_process_list_entry(item: Any) -> Optional[str]:
+        if isinstance(item, str):
+            s = item.strip()
+            return s if s else None
+        if isinstance(item, dict):
+            for key in ("process_name", "name", "title", "uri", "id"):
+                v = item.get(key)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+        return None
+
+    @staticmethod
+    def _coerce_keyword_entry(item: Any) -> Optional[str]:
+        if isinstance(item, str):
+            s = item.strip()
+            return s if s else None
+        if isinstance(item, dict):
+            for key in ("keyword", "name", "title", "label", "text"):
+                v = item.get(key)
+                if isinstance(v, str) and v.strip():
+                    return v.strip()
+        return None
+
     @classmethod
     def from_dict(cls, data: Dict) -> "OKHManifest":
         """Create an OKHManifest instance from a dictionary"""
@@ -705,6 +755,19 @@ class OKHManifest:
                     f"Converted invalid manifest ID '{manifest_id_str}' to UUID '{fixed_uuid}'"
                 )
 
+        if "tool_list" in data and data["tool_list"] is not None:
+            instance.tool_list = cls._normalize_string_list_field(
+                data["tool_list"], cls._coerce_tool_list_entry
+            )
+
+        if (
+            "manufacturing_processes" in data
+            and data["manufacturing_processes"] is not None
+        ):
+            instance.manufacturing_processes = cls._normalize_string_list_field(
+                data["manufacturing_processes"], cls._coerce_process_list_entry
+            )
+
         # Set optional fields
         for field in [
             "description",
@@ -721,8 +784,6 @@ class OKHManifest:
             "documentation_readiness_level",
             "documentation_home",
             "archive_download",
-            "tool_list",
-            "manufacturing_processes",
             "cpc_patent_class",
             "tsdc",
             "derivative_of",
@@ -737,17 +798,20 @@ class OKHManifest:
             if field in data and data[field] is not None:
                 # For list fields, ensure they're not None (use empty list instead)
                 if field in [
-                    "tool_list",
-                    "manufacturing_processes",
                     "tsdc",
                     "sub_parts",
                     "keywords",
                 ]:
-                    setattr(
-                        instance,
-                        field,
-                        data[field] if isinstance(data[field], list) else [],
-                    )
+                    if field == "keywords":
+                        instance.keywords = cls._normalize_string_list_field(
+                            data[field], cls._coerce_keyword_entry
+                        )
+                    else:
+                        setattr(
+                            instance,
+                            field,
+                            data[field] if isinstance(data[field], list) else [],
+                        )
                 else:
                     setattr(instance, field, data[field])
 
@@ -845,6 +909,7 @@ class OKHManifest:
         # Handle parts
         if "parts" in data and data["parts"] is not None:
             instance.parts = []
+            coerced_part_ids = 0
             for part_data in data["parts"]:
                 part = PartSpec(
                     name=part_data.get("name", ""),
@@ -863,18 +928,28 @@ class OKHManifest:
                     try:
                         part.id = UUID(part_id_str)
                     except (ValueError, TypeError):
-                        # Handle invalid UUIDs (e.g., slug-like IDs from older manifests)
-                        # Convert to UUID using UUIDValidator
+                        # OKH PartSpec.id is a UUID; BOM / KiCad extracts often use
+                        # designator strings (e.g. R12, c104_11) — coerce deterministically.
                         from ..validation.uuid_validator import UUIDValidator
 
                         fixed_uuid = UUIDValidator.fix_invalid_uuid(
                             part_id_str, fallback_to_random=True
                         )
                         part.id = UUID(fixed_uuid)
-                        logger.warning(
-                            f"Converted invalid part ID '{part_id_str}' to UUID '{fixed_uuid}'"
+                        coerced_part_ids += 1
+                        logger.debug(
+                            "Coerced non-UUID part id %r -> %s (name=%r)",
+                            part_id_str,
+                            fixed_uuid,
+                            part_data.get("name", ""),
                         )
                 instance.parts.append(part)
+            if coerced_part_ids:
+                logger.info(
+                    "Coerced %s part id(s) from non-UUID strings to UUIDs "
+                    "(common for KiCad/BOM designators; OKH PartSpec.id requires UUID)",
+                    coerced_part_ids,
+                )
 
         # Handle standards
         if "standards_used" in data and data["standards_used"] is not None:

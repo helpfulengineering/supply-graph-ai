@@ -851,6 +851,7 @@ async def generate_from_url(
             verbose=request.verbose,
             clone=request.clone,
             save_clone=request.save_clone,
+            no_llm=request.no_llm,
         )
 
         return OKHGenerateResponse(**result)

@@ -37,10 +37,10 @@ async def generate_manifest_for_repository(
     clone: bool = True,
     save_clone: Optional[Path] = None,
     github_token: Optional[str] = None,
-    use_llm: bool = False,
+    use_llm: bool = True,
     use_bom_normalization: bool = True,
     include_file_metadata: bool = False,
-    llm_chunked_mode_enabled: bool = False,
+    llm_chunked_mode_enabled: bool = True,
     llm_chunk_max_tokens: Optional[int] = None,
     llm_chunk_overlap_tokens: Optional[int] = None,
     log: Optional[LogFn] = None,
@@ -53,10 +53,11 @@ async def generate_manifest_for_repository(
         clone: When True and *url* is remote, clone via LocalGitExtractor when supported.
         save_clone: Optional directory to persist the clone (remote + clone only).
         github_token: GitHub API token; defaults to ``GITHUB_TOKEN`` env.
-        use_llm: Enable LLM layer (4-layer mode).
+        use_llm: Enable LLM layer (default True; engine skips LLM if unconfigured).
         use_bom_normalization: Enable BOM normalization (matches CLI default).
         include_file_metadata: Per-file metadata in manifest (CLI ``--verbose``).
-        llm_chunked_mode_enabled: Feature-flag chunked LLM mode for generation layer.
+        llm_chunked_mode_enabled: Chunked LLM map-reduce (default True; set False
+            for a single-shot LLM request on smaller repos only).
         llm_chunk_max_tokens: Optional override for per-chunk payload budget.
         llm_chunk_overlap_tokens: Optional override for chunk overlap.
         log: Optional ``(message, level)`` callback; default uses module logger.
@@ -103,11 +104,10 @@ async def generate_manifest_for_repository(
                 raise ValueError(f"Unsupported platform: {platform}")
             project_data = await generator.extract_project(url)
 
-    config = LayerConfig()
-    config.use_llm = use_llm
+    config = LayerConfig.for_generate_from_url(no_llm=not use_llm)
     config.use_bom_normalization = use_bom_normalization
-    if llm_chunked_mode_enabled is not None:
-        config.llm_config["chunked_mode_enabled"] = bool(llm_chunked_mode_enabled)
+    if use_llm and not llm_chunked_mode_enabled:
+        config.llm_config["chunked_mode_enabled"] = False
     if llm_chunk_max_tokens is not None:
         config.llm_config["chunk_max_tokens"] = int(llm_chunk_max_tokens)
     if llm_chunk_overlap_tokens is not None:

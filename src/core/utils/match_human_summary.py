@@ -102,11 +102,17 @@ def build_match_human_summary(
 
     if coverage_gaps and not combinations_requested:
         key_insights["recommendations"].append(
-            "Set `allow_facility_combinations=true` to improve aggregate process coverage."
+            "Enable multi-facility matching to improve process coverage: "
+            "CLI: `--allow-facility-combinations`  |  "
+            'API: `"allow_facility_combinations": true`'
         )
     if combinations_requested and not combinations_applied:
         key_insights["recommendations"].append(
-            "Increase `max_facilities_per_solution` or broaden facility inputs to help combination matching apply."
+            "Combination matching was requested but not applied. "
+            "Try increasing the facility limit: "
+            "CLI: `--max-facilities-per-solution <N>`  |  "
+            'API: `"max_facilities_per_solution": <N>`, '
+            "or upload additional facilities that cover the missing processes."
         )
     if coverage_gaps:
         key_insights["recommendations"].append(

@@ -1,0 +1,128 @@
+{
+  "id": "8cb1df14-828f-4c63-8027-d8f0af046f00",
+  "name": "Assembly Facility 2 (for OpenFlexure Microscope)",
+  "location": {
+    "address": {
+      "number": "1443",
+      "street": "Kim Isle",
+      "city": "Bristol",
+      "region": "North Carolina",
+      "country": "United Kingdom",
+      "postcode": "19648"
+    },
+    "gps_coordinates": "51.4538022, -2.5972985",
+    "directions": "Located behind Diaz-Lara",
+    "city": "Bristol",
+    "country": "United Kingdom"
+  },
+  "facility_status": "Active",
+  "contact": {
+    "name": "Branch Ltd",
+    "contact_person": "Christopher Roth",
+    "bio": "Established in 2014, we specialize in Persevering zero-defect utilization",
+    "website": "https://dougherty.net",
+    "languages": [
+      "fr",
+      "de"
+    ],
+    "mailing_list": "deannaparks@lists.brown.com",
+    "images": [
+      "images/painting.jpg",
+      "images/way.jpg"
+    ],
+    "contact": {
+      "landline": "+1-740-276-3692",
+      "email": "info@foster-edwards.com"
+    },
+    "social_media": {
+      "twitter": "@jimmy39",
+      "instagram": "@erika71",
+      "other_urls": [
+        "https://jensen.com",
+        "https://johnson.com"
+      ]
+    }
+  },
+  "description": "Specialized in product assembly and integration",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "item",
+      "model": "Flex Station",
+      "serial_number": "SN868755",
+      "condition": "Excellent",
+      "quantity": 4,
+      "power_rating": 6348,
+      "tolerance_class": "ISO 2768-c",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "manufacturer": "Premium",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "supplier_location": {
+            "address": {
+              "number": "1714",
+              "street": "Griffin Walks",
+              "city": "Hoofddorp",
+              "region": "Hawaii",
+              "country": "Netherlands",
+              "postcode": "92935"
+            },
+            "gps_coordinates": "52.305554, 4.6926644",
+            "city": "Hoofddorp",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "3416",
+              "street": "Troy Parks",
+              "city": "Almere",
+              "region": "Minnesota",
+              "country": "Netherlands",
+              "postcode": "10316"
+            },
+            "gps_coordinates": "52.3705038, 5.2185859",
+            "city": "Almere",
+            "country": "Netherlands"
+          }
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 348",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 3716,
+  "storage_capacity": "215 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 14001",
+    "AS9100",
+    "OHSAS 18001",
+    "ISO 9001:2015"
+  ],
+  "loading_dock": true
+}

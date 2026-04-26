@@ -1,5 +1,7 @@
+import hashlib
 import json
 import logging
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -7,8 +9,62 @@ from typing import Any, Dict, List, Optional
 from ..models.okh import DocumentationType, DocumentRef, OKHManifest, PartSpec, Software
 from ..models.package import BuildOptions, FileInfo, PackageMetadata
 from .file_resolver import FileResolver
+from .repo_file_urls import resolve_repo_relative_file_url
 
 logger = logging.getLogger(__name__)
+
+
+class PackageAssetDownloadError(RuntimeError):
+    """Raised when a manifest-declared asset (BOM, archive, image, etc.) cannot be fetched."""
+
+
+def _bom_inline_fallback_payload(bom: Any) -> Optional[Dict[str, Any]]:
+    """
+    If ``bom`` is a dict with more than ``external_file``, return a JSON-serializable
+    payload to write when the external BOM URL is missing (404, etc.).
+    """
+    if not isinstance(bom, dict):
+        return None
+    payload = {k: v for k, v in bom.items() if k != "external_file"}
+    if not payload:
+        return None
+    structural = {
+        "components",
+        "items",
+        "parts",
+        "lines",
+        "bom_items",
+        "entries",
+        "specifications",
+        "materials",
+    }
+    if structural & payload.keys():
+        return payload
+    if any(isinstance(v, list) and len(v) > 0 for v in payload.values()):
+        return payload
+    if any(isinstance(v, dict) and len(v) > 0 for v in payload.values()):
+        return payload
+    return None
+
+
+_BARE_RELEASE_VERSION_RE = re.compile(r"^v?\d+\.\d+(?:\.\d+)?(?:[-+][0-9A-Za-z.-]+)?$")
+
+
+def _looks_like_bare_release_version(s: str) -> bool:
+    """
+    True if ``s`` looks like a semver / release label, not a repo file path.
+
+    Many manifests set ``software.release`` to ``\"0.1.0\"`` as metadata; treating
+    that as a relative path produces invalid raw.githubusercontent.com URLs.
+    """
+    if not s or not isinstance(s, str):
+        return False
+    t = s.strip()
+    if not t or "/" in t or "\\" in t:
+        return False
+    if t.startswith(("http://", "https://")):
+        return False
+    return bool(_BARE_RELEASE_VERSION_RE.match(t))
 
 
 class PackageBuilder:
@@ -145,8 +201,7 @@ class PackageBuilder:
             # Download BOM if present
             if manifest.bom:
                 # Handle BOM as a dictionary with external_file reference
-                if isinstance(manifest.bom, dict) and "external_file" in manifest.bom:
-                    # BOM is a structured object with external file reference
+                if isinstance(manifest.bom, dict) and manifest.bom.get("external_file"):
                     bom_path = manifest.bom["external_file"]
                     bom_files = await self._download_single_file(
                         bom_path,
@@ -154,17 +209,48 @@ class PackageBuilder:
                         "bom",
                         "manufacturing-files",
                         manifest.repo,
+                        fetch_metadata={
+                            "fetch_role": "bom",
+                            "manifest_field": "bom.external_file",
+                            "repo_relative_path": bom_path,
+                        },
+                        required=False,
                     )
+                    if not bom_files:
+                        inline = _bom_inline_fallback_payload(manifest.bom)
+                        if inline is not None:
+                            bom_files = await self._write_json_bom_file(
+                                inline,
+                                package_path / "manufacturing-files",
+                                bom_path,
+                            )
+                        else:
+                            logger.warning(
+                                "BOM external_file %r could not be fetched and no inline "
+                                "BOM fields were found; continuing without a separate BOM file",
+                                bom_path,
+                            )
                     file_inventory.extend(bom_files)
                 elif isinstance(manifest.bom, str):
-                    # BOM is a simple URL/path string
                     bom_files = await self._download_single_file(
                         manifest.bom,
                         package_path / "manufacturing-files",
                         "bom",
                         "manufacturing-files",
                         manifest.repo,
+                        fetch_metadata={
+                            "fetch_role": "bom",
+                            "manifest_field": "bom",
+                            "repo_relative_path": manifest.bom,
+                        },
+                        required=False,
                     )
+                    if not bom_files:
+                        logger.warning(
+                            "BOM path/URL %r could not be fetched; continuing without a "
+                            "separate BOM file",
+                            manifest.bom,
+                        )
                     file_inventory.extend(bom_files)
 
             # Download archive if present
@@ -175,6 +261,7 @@ class PackageBuilder:
                     "archive",
                     "software",
                     manifest.repo,
+                    required=True,
                 )
                 file_inventory.extend(archive_files)
 
@@ -186,6 +273,7 @@ class PackageBuilder:
                     "project-image",
                     "metadata",
                     manifest.repo,
+                    required=True,
                 )
                 file_inventory.extend(image_files)
 
@@ -288,6 +376,49 @@ class PackageBuilder:
 
         logger.debug(f"Saved manifest to {manifest_path}")
 
+    async def _write_json_bom_file(
+        self,
+        data: Dict[str, Any],
+        manufacturing_files_root: Path,
+        external_hint: str,
+    ) -> List[FileInfo]:
+        """Persist inline BOM dict when ``bom.external_file`` cannot be downloaded."""
+        import aiofiles
+
+        root = manufacturing_files_root.resolve()
+        rel = str(external_hint).strip().lstrip("/").replace("\\", "/")
+        if not rel or ".." in Path(rel).parts:
+            rel = "bom/bom.json"
+        target_path = (root / rel).resolve()
+        try:
+            target_path.relative_to(root)
+        except ValueError:
+            target_path = root / "bom" / "bom.json"
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+
+        body = json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
+        target_path.parent.mkdir(parents=True, exist_ok=True)
+        async with aiofiles.open(target_path, "wb") as f:
+            await f.write(body)
+        checksum = hashlib.sha256(body).hexdigest()
+        logger.info(
+            "Wrote inline BOM fallback JSON to %s (%s bytes)",
+            target_path,
+            len(body),
+        )
+        return [
+            FileInfo(
+                original_url="inline:bom-fallback",
+                local_path=str(target_path),
+                content_type="application/json",
+                size_bytes=len(body),
+                checksum_sha256=checksum,
+                downloaded_at=datetime.now(),
+                file_type="manufacturing-files",
+                part_name=None,
+            )
+        ]
+
     async def _download_document_files(
         self,
         documents: List[DocumentRef],
@@ -300,37 +431,24 @@ class PackageBuilder:
         if not documents:
             return []
 
-        # Convert repository file paths to GitHub raw URLs if needed
+        # Convert repository-relative paths to GitHub/GitLab raw URLs when possible
         processed_documents = []
         for doc in documents:
-            if (
-                not doc.path.startswith(("http://", "https://"))
-                and repo_url
-                and "github.com" in repo_url
-            ):
-                # This is a repository file path, construct GitHub raw URL
-                if repo_url.endswith("/"):
-                    repo_url = repo_url[:-1]
-
-                # Extract user/repo from GitHub URL
-                if "/github.com/" in repo_url:
-                    repo_part = repo_url.split("/github.com/")[-1]
-                    github_raw_url = f"https://raw.githubusercontent.com/{repo_part}/master/{doc.path}"
-                else:
-                    # Fallback: assume it's already a GitHub URL
-                    github_raw_url = f"{repo_url}/raw/master/{doc.path}"
-
-                # Create new DocumentRef with GitHub raw URL
-                processed_doc = DocumentRef(
-                    title=doc.title,
-                    path=github_raw_url,
-                    type=doc.type,
-                    metadata=doc.metadata,
-                )
-                processed_documents.append(processed_doc)
-            else:
-                # Keep original document
-                processed_documents.append(doc)
+            if not doc.path.startswith(("http://", "https://")) and repo_url:
+                raw_url = resolve_repo_relative_file_url(repo_url, doc.path)
+                if raw_url.startswith(("http://", "https://")):
+                    doc_meta = dict(doc.metadata or {})
+                    doc_meta.setdefault("fetch_role", "repo_relative_document")
+                    doc_meta["original_repo_path"] = doc.path
+                    processed_doc = DocumentRef(
+                        title=doc.title,
+                        path=raw_url,
+                        type=doc.type,
+                        metadata=doc_meta,
+                    )
+                    processed_documents.append(processed_doc)
+                    continue
+            processed_documents.append(doc)
 
         # Filter out already downloaded files (deduplication)
         if downloaded_files is None:
@@ -361,7 +479,14 @@ class PackageBuilder:
                 # Track this file as downloaded
                 downloaded_files[unique_documents[i].path] = result.file_info
             else:
-                logger.warning(f"Failed to download file: {result.error_message}")
+                failed_ref = unique_documents[i]
+                logger.warning(
+                    "Failed to download file: %s [title=%r file_type=%s metadata=%s]",
+                    result.error_message,
+                    failed_ref.title,
+                    file_type,
+                    failed_ref.metadata or {},
+                )
 
         # Handle duplicate files by creating symbolic links
         # Extract relative paths for duplicate documents to preserve structure
@@ -409,35 +534,34 @@ class PackageBuilder:
         filename: str,
         file_type: str,
         repo_url: str = None,
+        fetch_metadata: Optional[Dict[str, Any]] = None,
+        *,
+        required: bool = False,
     ) -> List[FileInfo]:
-        """Download a single file from URL or GitHub repository"""
-        # Determine if this is a GitHub repository file path
+        """Download a single file from URL or GitHub repository.
+
+        When ``required`` is True (manifest-declared BOM, archive, image, etc.),
+        a failed download raises :class:`PackageAssetDownloadError` instead of
+        logging and returning an empty list.
+        """
         actual_url = url
+        if not url.startswith(("http://", "https://")) and repo_url:
+            actual_url = resolve_repo_relative_file_url(repo_url, url)
+
+        meta = dict(fetch_metadata or {})
         if (
             not url.startswith(("http://", "https://"))
             and repo_url
-            and "github.com" in repo_url
+            and actual_url.startswith(("http://", "https://"))
         ):
-            # This is a repository file path, construct GitHub raw URL
-            # Convert https://github.com/user/repo to https://raw.githubusercontent.com/user/repo/master
-            if repo_url.endswith("/"):
-                repo_url = repo_url[:-1]
-
-            # Extract user/repo from GitHub URL
-            if "/github.com/" in repo_url:
-                repo_part = repo_url.split("/github.com/")[-1]
-                actual_url = (
-                    f"https://raw.githubusercontent.com/{repo_part}/master/{url}"
-                )
-            else:
-                # Fallback: assume it's already a GitHub URL
-                actual_url = f"{repo_url}/raw/master/{url}"
+            meta.setdefault("original_repo_path", url)
 
         # Create a DocumentRef for the URL
         doc_ref = DocumentRef(
             title=filename,
             path=actual_url,
             type=DocumentationType.MANUFACTURING_FILES,  # Default type
+            metadata=meta,
         )
 
         # Determine target path, preserving directory structure
@@ -480,9 +604,13 @@ class PackageBuilder:
 
         if result.success and result.file_info:
             return [result.file_info]
-        else:
-            logger.warning(f"Failed to download {url}: {result.error_message}")
-            return []
+        if required:
+            raise PackageAssetDownloadError(
+                f"Required asset could not be downloaded ({url!r}): "
+                f"{result.error_message or 'unknown error'}"
+            )
+        logger.debug("Optional asset not downloaded %s: %s", url, result.error_message)
+        return []
 
     async def _download_software_files(
         self, software_list: List[Software], package_path: Path, repo_url: str = None
@@ -494,10 +622,23 @@ class PackageBuilder:
         for software in software_list:
             # Download software release
             if software.release:
-                release_files = await self._download_single_file(
-                    software.release, software_dir, "release", "software", repo_url
-                )
-                file_infos.extend(release_files)
+                if _looks_like_bare_release_version(software.release):
+                    logger.warning(
+                        "Skipping software.release %r: bare version tag, not a "
+                        "fetchable path (use a URL or repo-relative file if you need "
+                        "the artifact in the package)",
+                        software.release,
+                    )
+                else:
+                    release_files = await self._download_single_file(
+                        software.release,
+                        software_dir,
+                        "release",
+                        "software",
+                        repo_url,
+                        required=False,
+                    )
+                    file_infos.extend(release_files)
 
             # Download installation guide
             if software.installation_guide:
@@ -509,6 +650,7 @@ class PackageBuilder:
                     "installation-guide",
                     "software",
                     repo_url,
+                    required=False,
                 )
                 file_infos.extend(install_files)
 
@@ -536,7 +678,12 @@ class PackageBuilder:
                 source_docs = [
                     DocumentRef(
                         title=f"source_{i}",
-                        path=path,
+                        path=(
+                            resolve_repo_relative_file_url(repo_url, path)
+                            if repo_url
+                            and not str(path).startswith(("http://", "https://"))
+                            else path
+                        ),
                         type=DocumentationType.DESIGN_FILES,
                     )
                     for i, path in enumerate(source_list)
@@ -556,7 +703,12 @@ class PackageBuilder:
                 export_docs = [
                     DocumentRef(
                         title=f"export_{i}",
-                        path=path,
+                        path=(
+                            resolve_repo_relative_file_url(repo_url, path)
+                            if repo_url
+                            and not str(path).startswith(("http://", "https://"))
+                            else path
+                        ),
                         type=DocumentationType.DESIGN_FILES,
                     )
                     for i, path in enumerate(export_list)
@@ -578,7 +730,12 @@ class PackageBuilder:
                 aux_docs = [
                     DocumentRef(
                         title=f"auxiliary_{i}",
-                        path=path,
+                        path=(
+                            resolve_repo_relative_file_url(repo_url, path)
+                            if repo_url
+                            and not str(path).startswith(("http://", "https://"))
+                            else path
+                        ),
                         type=DocumentationType.MANUFACTURING_FILES,
                     )
                     for i, path in enumerate(aux_list)
@@ -593,7 +750,12 @@ class PackageBuilder:
             # Download part image
             if part.image:
                 image_files = await self._download_single_file(
-                    part.image, part_dir / "images", "part-image", "parts", repo_url
+                    part.image,
+                    part_dir / "images",
+                    "part-image",
+                    "parts",
+                    repo_url,
+                    required=True,
                 )
                 for file_info in image_files:
                     file_info.part_name = part.name

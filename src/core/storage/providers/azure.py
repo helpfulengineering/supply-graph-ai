@@ -5,10 +5,14 @@ from ..base import StorageConfig, StorageMetadata, StorageProvider
 
 # Import Azure exceptions at module level
 try:
-    from azure.core.exceptions import ResourceNotFoundError
+    from azure.core.exceptions import ResourceExistsError, ResourceNotFoundError
+
+    _AZURE_RESOURCE_EXISTS_ERROR: type = ResourceExistsError
 except ImportError:
-    # Fallback for when Azure SDK is not available
+    # Fallback when Azure SDK is not installed
     ResourceNotFoundError = Exception
+    ResourceExistsError = Exception  # type: ignore[misc, assignment]
+    _AZURE_RESOURCE_EXISTS_ERROR = type(None)  # isinstance(e, ...) is always False
 
 # Type hints for Azure SDK classes (only used for type checking)
 if TYPE_CHECKING:
@@ -497,14 +501,18 @@ class AzureBlobProvider(StorageProvider):
             raise
 
     async def create_bucket(self, bucket_name: str) -> bool:
-        """Create a new container"""
+        """Create a new container (idempotent if the container already exists)."""
         await self.ensure_connected()
 
         try:
             container_client = self._client.get_container_client(bucket_name)
             await container_client.create_container()
+            logger.info("Created Azure blob container: %s", bucket_name)
             return True
         except Exception as e:
+            if isinstance(e, _AZURE_RESOURCE_EXISTS_ERROR):
+                logger.info("Azure blob container already exists: %s", bucket_name)
+                return True
             logger.error(f"Failed to create container {bucket_name}: {e}")
             return False
 

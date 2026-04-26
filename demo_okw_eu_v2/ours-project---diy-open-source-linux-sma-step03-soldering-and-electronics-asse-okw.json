@@ -1,0 +1,56 @@
+{
+  "id": "d2828e38-17d7-4c87-a311-8d911f7286c0",
+  "name": "Soldering and Electronics Assembly Facility 3 (for OURS Project - DIY Open-Source)",
+  "location": {
+    "address": {
+      "number": "7643",
+      "street": "Mary Port",
+      "city": "Dordrecht",
+      "region": "Utah",
+      "country": "Netherlands",
+      "postcode": "60413"
+    },
+    "gps_coordinates": "51.7689546, 4.6867891",
+    "directions": "Located behind Brown LLC",
+    "city": "Dordrecht",
+    "country": "Netherlands"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in soldering, through-hole assembly, and hand assembly",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Soldering_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Soldering_station",
+      "make": "Brand B",
+      "model": "Model 433",
+      "condition": "Fair"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Hot_air_rework",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Hot_air_rework",
+      "make": "Brand A",
+      "model": "Model 591",
+      "condition": "Fair",
+      "computer_controlled": true
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Fume_extractor",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fume_extractor",
+      "make": "Brand A",
+      "model": "Model 912",
+      "condition": "Excellent",
+      "computer_controlled": true
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Soldering",
+    "Soldering"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2570,
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "loading_dock": true
+}

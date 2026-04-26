@@ -1,13 +1,20 @@
+import os
+import shutil
+import tarfile
+import tempfile
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 # Import existing models and services
 from ...models.okh import OKHManifest
 from ...models.package import BuildOptions
+from ...packaging.builder import PackageAssetDownloadError
 from ...packaging.remote_storage import PackageRemoteStorage
 from ...services.okh_service import OKHService
 from ...services.package_service import PackageService
@@ -23,11 +30,7 @@ from ..decorators import (
 from ..error_handlers import create_error_response, create_success_response
 
 # Import new standardized components
-from ..models.base import (
-    PaginatedResponse,
-    PaginationParams,
-    ValidationResult,
-)
+from ..models.base import PaginatedResponse, PaginationParams, ValidationResult
 
 # Import consolidated package models
 from ..models.package.request import (
@@ -181,9 +184,7 @@ async def build_package_from_manifest(
             f"Package built successfully",
             extra={
                 "request_id": request_id,
-                "package_name": (
-                    metadata.name if hasattr(metadata, "name") else "unknown"
-                ),
+                "package_name": getattr(metadata, "package_name", None) or "unknown",
                 "processing_time": processing_time,
                 "llm_used": request.use_llm,
             },
@@ -191,6 +192,25 @@ async def build_package_from_manifest(
 
         return response_data
 
+    except PackageAssetDownloadError as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion=(
+                "A URL or repository path declared in the manifest could not be "
+                "downloaded. Fix the reference or remove it if the asset is optional."
+            ),
+        )
+        logger.error(
+            f"Package build failed (missing manifest asset): {str(e)}",
+            extra={"request_id": request_id, "error": str(e)},
+            exc_info=False,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump(mode="json"),
+        )
     except ValueError as e:
         # Handle validation errors using standardized error handler
         error_response = create_error_response(
@@ -238,7 +258,7 @@ async def build_package_from_manifest(
 )
 async def build_package_from_storage(
     manifest_id: UUID,
-    options: Optional[BuildOptions] = None,
+    options_body: Optional[Dict[str, Any]] = Body(default=None),
     package_service: PackageService = Depends(get_package_service),
 ):
     """
@@ -246,14 +266,15 @@ async def build_package_from_storage(
 
     Args:
         manifest_id: UUID of the stored manifest
-        options: Build options (optional)
+        options_body: Optional JSON body with BuildOptions fields (e.g. output_dir).
 
     Returns:
         Package metadata and build information
     """
     try:
-        # Use default options if none provided
-        if options is None:
+        if options_body:
+            options = BuildOptions.from_dict(options_body)
+        else:
             options = BuildOptions()
 
         # Build package
@@ -324,6 +345,20 @@ async def list_packages(
 
         # Convert to list format
         package_list = [pkg.to_dict() for pkg in packages]
+        local_keys = {(p["package_name"], p["version"]) for p in package_list}
+
+        try:
+            remote_summaries = await package_service.list_remote_package_summaries()
+            for row in remote_summaries:
+                key = (row["package_name"], row["version"])
+                if key not in local_keys:
+                    package_list.append(row)
+        except Exception as merge_exc:
+            logger.warning(
+                "Could not merge remote packages into list: %s",
+                merge_exc,
+                exc_info=True,
+            )
 
         # Apply pagination
         total_items = len(package_list)
@@ -524,30 +559,54 @@ async def download_package(
     """
     try:
         metadata = await package_service.get_package_metadata(package_name, version)
-
-        if not metadata:
-            raise HTTPException(status_code=404, detail="Package not found")
-
-        # Create tarball
-        import tarfile
-        import tempfile
-        from pathlib import Path
-
-        package_path = Path(metadata.package_path)
         tarball_name = f"{package_name.replace('/', '-')}-{version}.tar.gz"
+        arcname = f"{package_name.replace('/', '-')}-{version}"
 
-        # Create temporary tarball
-        with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as temp_file:
-            with tarfile.open(temp_file.name, "w:gz") as tar:
-                tar.add(
-                    package_path, arcname=f"{package_name.replace('/', '-')}-{version}"
-                )
+        def _unlink(path: str) -> None:
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+        if metadata:
+            package_path = Path(metadata.package_path)
+
+            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
+            temp_tar.close()
+            with tarfile.open(temp_tar.name, "w:gz") as tar:
+                tar.add(package_path, arcname=arcname)
 
             return FileResponse(
-                path=temp_file.name,
+                path=temp_tar.name,
                 filename=tarball_name,
                 media_type="application/gzip",
+                background=BackgroundTask(_unlink, temp_tar.name),
             )
+
+        # Fallback: package exists only in remote blob storage (e.g. batch push).
+        remote_storage = await get_remote_storage()
+        tmp_root = Path(tempfile.mkdtemp(prefix="ohm-pkg-pull-"))
+        try:
+            metadata = await remote_storage.pull_package(
+                package_name, version, tmp_root
+            )
+            package_path = Path(metadata.package_path)
+            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
+            temp_tar.close()
+            with tarfile.open(temp_tar.name, "w:gz") as tar:
+                tar.add(package_path, arcname=arcname)
+            tar_path = temp_tar.name
+        except Exception:
+            shutil.rmtree(tmp_root, ignore_errors=True)
+            raise HTTPException(status_code=404, detail="Package not found")
+        shutil.rmtree(tmp_root, ignore_errors=True)
+
+        return FileResponse(
+            path=tar_path,
+            filename=tarball_name,
+            media_type="application/gzip",
+            background=BackgroundTask(_unlink, tar_path),
+        )
 
     except HTTPException:
         raise
@@ -696,18 +755,23 @@ async def pull_package(
         # Pull package
         metadata = await remote_storage.pull_package(package_name, version, output_path)
 
+        pkg_path = Path(metadata.package_path)
         return PackagePullResponse(
             success=True,
             message=f"Package {package_name}:{version} pulled successfully",
-            local_path=str(output_path),
+            local_path=str(pkg_path),
             metadata=PackageMetadataResponse(
-                name=metadata.name,
+                name=metadata.package_name,
                 version=metadata.version,
                 package_path=metadata.package_path,
-                created_at=getattr(metadata, "created_at", None),
-                size=getattr(metadata, "size", None),
-                checksum=getattr(metadata, "checksum", None),
-                metadata=getattr(metadata, "metadata", {}),
+                created_at=metadata.build_timestamp.isoformat(),
+                size=metadata.total_size_bytes,
+                checksum=None,
+                metadata={
+                    "okh_manifest_id": str(metadata.okh_manifest_id),
+                    "ohm_version": metadata.ohm_version,
+                    "total_files": metadata.total_files,
+                },
             ),
         )
 

@@ -420,11 +420,14 @@ OHM generates highly technical data that is difficult for humans to parse and un
 
 ---
 
-### Next Up Inside Phase 3
+### Phase Transition Note (April 2026)
 
-Current priority is to complete **Phase 3.2 Data Visualization** end-to-end
-before shifting primary execution focus to **Phase 4.1: OBM Requirements &
-Architecture**.
+Phase 3 is complete for current scope (3.1, 3.2, 3.3). Execution focus has
+shifted to Phase 4, starting with a lightweight demo frontend that remains
+API-first and presentation-oriented.
+
+Active execution checklist:
+- `notes/phase4-demo-frontend-execution-checklist.md`
 
 ## Phase 4: Business Logic Separation - Open Business Manager (OBM)
 

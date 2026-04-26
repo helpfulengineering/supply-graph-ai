@@ -103,6 +103,18 @@ docker-compose logs -f ohm-api
 docker-compose down
 ```
 
+### Reference demo frontend (optional)
+
+The repository includes a Vite + React reference UI under `frontend/`. Start the OHM API first, then from the **`frontend`** directory run:
+
+```bash
+cd frontend
+npm install   # first time only
+npm run dev
+```
+
+Open the URL Vite prints (typically `http://localhost:5173`). The dev server proxies `/v1` to the API; set `OHM_API_BASE_URL` in `frontend/.env` if your API is not at `http://localhost:8001` (see `frontend/.env.example`).
+
 ## Documentation
 
 This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally.

@@ -1,0 +1,67 @@
+{
+  "id": "ba93ba0b-5b1b-488b-9d32-66cb2d2aedfc",
+  "name": "Laser Cutting Facility 2 (for OURS Project - DIY Open-Source)",
+  "location": {
+    "address": {
+      "number": "581",
+      "street": "Kelly Gardens",
+      "city": "Catania",
+      "region": "New York",
+      "country": "Italy",
+      "postcode": "09773"
+    },
+    "gps_coordinates": "37.5023612, 15.0873718",
+    "directions": "Located behind Carrillo-Rivera",
+    "city": "Catania",
+    "country": "Italy"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2018-03-11",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Universal",
+      "model": "Speedy 300",
+      "condition": "Good",
+      "usage_levels": "High",
+      "computer_controlled": true,
+      "extraction_system": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Premium",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Brand B"
+        }
+      ],
+      "laser_power": 100,
+      "working_surface": 600
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 1431,
+  "typical_materials": [],
+  "certifications": [
+    "Equipment Operation Certification",
+    "First Aid Training",
+    "Basic Safety Training"
+  ],
+  "road_access": true,
+  "maintenance_schedule": "Every 4 months"
+}

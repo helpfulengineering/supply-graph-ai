@@ -6,7 +6,7 @@ by downloading all externally-linked files and organizing them in a
 standardized directory structure.
 """
 
-from .builder import PackageBuilder
+from .builder import PackageAssetDownloadError, PackageBuilder
 from .file_resolver import FileResolver
 
-__all__ = ["FileResolver", "PackageBuilder"]
+__all__ = ["FileResolver", "PackageBuilder", "PackageAssetDownloadError"]

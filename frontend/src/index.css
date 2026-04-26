@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+/* Enable class-based dark mode: apply dark: variants when .dark is on any ancestor */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Sensible link reset so NavLink/Link styling is predictable */
+a {
+  text-decoration: none;
+}
+
+/* Smooth background/color transitions on theme switch */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}

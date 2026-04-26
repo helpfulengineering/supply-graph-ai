@@ -2,30 +2,49 @@
 """
 Batch OKH generation for every supported entry in tests/data/okh_generation/repositories.json.
 
-Writes manifests to tests/data/okh_generation/clones/<repo-id>-<layer>.json (same layout as
-the baseline report expects). Optional BOM sidecar and a JSON run report for iteration.
+Writes manifests to **tmp/oshwa/okh-manifests/** by default using the generated
+OKH **title** as a kebab-case stem: ``<title-slug>-<layer>.json`` (e.g.
+``open-source-rover-4L.json``), plus an optional ``-<layer>-bom.json`` sidecar.
+The dataset ``id`` from ``repositories.json`` is only used for ``--only-ids``,
+clone paths under ``repos/<id>/``, and report metadata—not for the manifest
+filename. Override ``--output-dir`` for other layouts. Run report defaults to
+**tmp/oshwa/last_batch_report.json**.
 
 Typical workflow (clone + BOM normalization, same as manual ``--clone --no-review``):
 
-    export GITLAB_SELF_HOSTED_HOSTS=gitlab.waag.org   # if using Waag
+    # Optional for GitLab API extractors; local git clone also works for
+    # https://host/group/project when the path has namespace + project.
+    export GITLAB_SELF_HOSTED_HOSTS=gitlab.waag.org   # if using Waag API fallback
     conda activate supply-graph-ai
 
     # 3-layer baseline (default layer tag: 3L)
     python scripts/okh_generation_batch.py --stdout-summary
 
-    # 4-layer (LLM) — default layer tag: 4L so 3L outputs are not overwritten
-    python scripts/okh_generation_batch.py --use-llm --stdout-summary
+    # 4-layer (LLM + chunked map-reduce) — default; layer tag 4L
+    python scripts/okh_generation_batch.py --stdout-summary
 
-    python scripts/okh_generation_baseline_report.py
+    # Fast batch without LLM
+    python scripts/okh_generation_batch.py --no-llm --stdout-summary
+
+    python scripts/okh_generation_baseline_report.py --manifests-dir tmp/oshwa/okh-manifests
     python scripts/okh_generation_layer_compare.py
 
 Options:
     --core-only      Only repos with core_for_regression: true
     --limit N        Process at most N repos (after filters)
     --only-ids a,b   Comma-separated repo ids
-    --skip-existing  Skip if output manifest already exists
+    --skip-existing  Skip if a manifest for the same repo URL already exists
+                     in the output dir (legacy ``<id>-<layer>.json`` or title slug)
     --save-clones    Persist git clones under clones/repos/<id>/
-    --llm-chunked-mode  Enable chunked LLM path (feature-flag; requires --use-llm)
+    --no-llm         3-layer manifests only (skip LLM)
+    --no-llm-chunked Single LLM request per repo (no map-reduce; may truncate)
+    --llm-chunked-mode  Redundant with defaults; kept for backward compatibility
+
+Environment:
+    ``GITLAB_SELF_HOSTED_HOSTS`` is read from :func:`os.environ` each time the
+    router checks a URL (not cached at import). This script also loads the
+    repo-root ``.env`` at startup with ``override=False`` so shell exports win
+    over file values. Use ``--no-env-banner`` to hide the startup diagnostic line.
 """
 
 from __future__ import annotations
@@ -33,6 +52,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -42,6 +62,40 @@ from typing import Any, Dict, List, Optional
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+
+def _load_repo_dotenv_if_present() -> None:
+    """Load ``REPO_ROOT/.env`` without overriding variables already set in the environment."""
+    env_path = REPO_ROOT / ".env"
+    if not env_path.is_file():
+        return
+    try:
+        from dotenv import load_dotenv
+    except ImportError:
+        return
+    load_dotenv(env_path, override=False)
+
+
+def _print_gitlab_self_hosted_banner() -> None:
+    """Stderr one-liner: what this Python process sees for GitLab allowlist."""
+    from src.core.generation.gitlab_instance import parse_self_hosted_gitlab_hosts
+
+    raw = os.environ.get("GITLAB_SELF_HOSTED_HOSTS", "")
+    hosts = parse_self_hosted_gitlab_hosts()
+    if hosts:
+        print(
+            "[okh_generation_batch] GITLAB_SELF_HOSTED_HOSTS="
+            f"{raw!r} → parsed: {sorted(hosts)}",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            "[okh_generation_batch] GITLAB_SELF_HOSTED_HOSTS unset or empty in this process "
+            f"(raw={raw!r}). "
+            "Use `export` in the same terminal that runs `python`, or set it in repo-root `.env`. "
+            "IDE / task runners often do not inherit your interactive shell exports.",
+            file=sys.stderr,
+        )
 
 
 def _parse_args() -> argparse.Namespace:
@@ -54,14 +108,14 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--output-dir",
         type=Path,
-        default=REPO_ROOT / "tests/data/okh_generation/clones",
-        help="Directory for <id>-<layer>.json outputs",
+        default=REPO_ROOT / "tmp/oshwa/okh-manifests",
+        help="Directory for <title-slug>-<layer>.json outputs (default: tmp/oshwa/okh-manifests)",
     )
     p.add_argument(
         "--report",
         type=Path,
-        default=REPO_ROOT / "tests/data/okh_generation/last_batch_report.json",
-        help="Write machine-readable run summary",
+        default=REPO_ROOT / "tmp/oshwa/last_batch_report.json",
+        help="Write machine-readable run summary (default: tmp/oshwa/last_batch_report.json)",
     )
     p.add_argument(
         "--no-report",
@@ -72,7 +126,7 @@ def _parse_args() -> argparse.Namespace:
         "--layer",
         default=None,
         metavar="TAG",
-        help="Suffix in filenames (default: 3L without --use-llm, 4L with --use-llm)",
+        help="Suffix in filenames (default: 3L with --no-llm, 4L otherwise)",
     )
     p.add_argument(
         "--clone",
@@ -90,14 +144,24 @@ def _parse_args() -> argparse.Namespace:
         help="Persist clones under <output-dir>/repos/<repo-id>/",
     )
     p.add_argument(
+        "--no-llm",
+        action="store_true",
+        help="Disable LLM (3-layer / 3L manifests only)",
+    )
+    p.add_argument(
         "--use-llm",
         action="store_true",
-        help="Enable 4-layer generation (LLM)",
+        help="[Deprecated] LLM is on by default; this flag is a no-op",
+    )
+    p.add_argument(
+        "--no-llm-chunked",
+        action="store_true",
+        help="Disable chunked LLM map-reduce (one request per repo; may truncate)",
     )
     p.add_argument(
         "--llm-chunked-mode",
         action="store_true",
-        help="Enable chunked LLM mode in generation layer (feature flag; requires --use-llm)",
+        help="[Deprecated] Chunking is on by default when LLM runs",
     )
     p.add_argument(
         "--llm-chunk-max-tokens",
@@ -138,12 +202,17 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--skip-existing",
         action="store_true",
-        help="Skip generation if <id>-<layer>.json already exists",
+        help="Skip if a manifest for this repo URL already exists (see module docstring)",
     )
     p.add_argument(
         "--stdout-summary",
         action="store_true",
         help="Print one-line summary per repo to stdout",
+    )
+    p.add_argument(
+        "--no-env-banner",
+        action="store_true",
+        help="Do not print GITLAB_SELF_HOSTED_HOSTS diagnostic to stderr at startup",
     )
     return p.parse_args()
 
@@ -169,20 +238,38 @@ def _select_repos(
 
 async def _run() -> int:
     args = _parse_args()
-    if args.llm_chunked_mode and not args.use_llm:
-        raise SystemExit("--llm-chunked-mode requires --use-llm")
-    layer_tag = (
-        args.layer if args.layer is not None else ("4L" if args.use_llm else "3L")
-    )
+    # Load .env before any generation imports so GITLAB_* matches shell + file intent.
+    _load_repo_dotenv_if_present()
+    if not args.no_env_banner:
+        _print_gitlab_self_hosted_banner()
+
+    use_llm = not args.no_llm
+    if args.use_llm and args.no_llm:
+        raise SystemExit("Cannot combine --use-llm with --no-llm")
+    llm_chunked = not args.no_llm_chunked
+    if args.llm_chunked_mode:
+        llm_chunked = True
+    if not use_llm:
+        llm_chunked = False
+    layer_tag = args.layer if args.layer is not None else ("4L" if use_llm else "3L")
     use_clone = bool(args.clone) and not args.no_clone
     if not args.clone and not args.no_clone:
         # Default: clone when user runs batch without explicit flags (safest for GitLab)
         use_clone = True
 
     from tests.data.okh_generation.baseline_report import load_repositories_dataset
+    from tests.data.okh_generation.manifest_discovery import (
+        allocate_unique_slug,
+        find_generated_manifest_path,
+        title_slug_for_filename,
+    )
     from tests.data.okh_generation.metrics import heuristic_manifest_quality
 
     from src.core.generation.dataset_generation import generate_manifest_for_repository
+
+    args.output_dir = args.output_dir.expanduser().resolve()
+    args.report = args.report.expanduser().resolve()
+    args.repositories_json = args.repositories_json.expanduser().resolve()
 
     data = load_repositories_dataset(args.repositories_json)
     selected = _select_repos(data, args)
@@ -193,25 +280,34 @@ async def _run() -> int:
 
     rows: List[Dict[str, Any]] = []
     errors = 0
+    used_output_stems: set[str] = set()
 
     for repo in selected:
         rid = repo.get("id", "unknown")
         url = repo.get("url")
-        manifest_path = args.output_dir / f"{rid}-{layer_tag}.json"
         t0 = time.perf_counter()
 
-        if args.skip_existing and manifest_path.is_file():
-            rows.append(
-                {
-                    "id": rid,
-                    "url": url,
-                    "status": "skipped_exists",
-                    "path": str(manifest_path.relative_to(REPO_ROOT)),
-                }
+        if args.skip_existing and url:
+            existing = find_generated_manifest_path(
+                args.output_dir, layer_tag, url, dataset_id=rid
             )
-            if args.stdout_summary:
-                print(f"{rid}\tskipped_exists\t{url}", file=sys.stderr)
-            continue
+            if existing is not None:
+                try:
+                    rel = str(existing.relative_to(REPO_ROOT.resolve()))
+                except ValueError:
+                    rel = str(existing)
+                rows.append(
+                    {
+                        "id": rid,
+                        "url": url,
+                        "status": "skipped_exists",
+                        "path": rel,
+                        "manifest_path": rel,
+                    }
+                )
+                if args.stdout_summary:
+                    print(f"{rid}\tskipped_exists\t{url}", file=sys.stderr)
+                continue
 
         save_clone: Optional[Path] = None
         if args.save_clones and use_clone:
@@ -222,9 +318,9 @@ async def _run() -> int:
                 url,
                 clone=use_clone,
                 save_clone=save_clone,
-                use_llm=args.use_llm,
+                use_llm=use_llm,
                 include_file_metadata=args.verbose_metadata,
-                llm_chunked_mode_enabled=bool(args.use_llm and args.llm_chunked_mode),
+                llm_chunked_mode_enabled=bool(use_llm and llm_chunked),
                 llm_chunk_max_tokens=(
                     args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
                 ),
@@ -237,11 +333,16 @@ async def _run() -> int:
             manifest = result.to_okh_manifest(
                 include_field_confidence=args.include_confidence
             )
+            title_raw = manifest.get("title")
+            title_str = title_raw.strip() if isinstance(title_raw, str) else ""
+            base_slug = title_slug_for_filename(title_str, rid)
+            output_stem = allocate_unique_slug(base_slug, used_output_stems)
+            manifest_path = args.output_dir / f"{output_stem}-{layer_tag}.json"
             manifest_path.write_text(
                 json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
-            bom_path = args.output_dir / f"{rid}-{layer_tag}-bom.json"
+            bom_path = args.output_dir / f"{output_stem}-{layer_tag}-bom.json"
             if getattr(result, "full_bom", None) is not None:
                 bom = result.full_bom
                 bom_dict = bom.to_dict() if hasattr(bom, "to_dict") else bom
@@ -252,16 +353,24 @@ async def _run() -> int:
 
             elapsed = time.perf_counter() - t0
             heur = heuristic_manifest_quality(manifest)
+            try:
+                manifest_rel = str(manifest_path.relative_to(REPO_ROOT.resolve()))
+            except ValueError:
+                manifest_rel = str(manifest_path)
             row = {
                 "id": rid,
+                "output_stem": output_stem,
                 "url": url,
                 "status": "ok",
-                "manifest_path": str(manifest_path.relative_to(REPO_ROOT)),
+                "manifest_path": manifest_rel,
                 "seconds": round(elapsed, 2),
                 "heuristic_quality": heur,
             }
             if bom_path.is_file():
-                row["bom_path"] = str(bom_path.relative_to(REPO_ROOT))
+                try:
+                    row["bom_path"] = str(bom_path.relative_to(REPO_ROOT.resolve()))
+                except ValueError:
+                    row["bom_path"] = str(bom_path)
             rows.append(row)
             if args.stdout_summary:
                 conf = heur.get("generation_confidence")
@@ -293,8 +402,8 @@ async def _run() -> int:
         "layer_cli_override": args.layer,
         "use_clone": use_clone,
         "save_clones": bool(args.save_clones),
-        "use_llm": bool(args.use_llm),
-        "llm_chunked_mode": bool(args.use_llm and args.llm_chunked_mode),
+        "use_llm": bool(use_llm),
+        "llm_chunked_mode": bool(use_llm and llm_chunked),
         "llm_chunk_max_tokens": (
             args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
         ),

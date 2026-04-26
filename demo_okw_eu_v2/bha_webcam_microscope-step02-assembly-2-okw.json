@@ -1,0 +1,104 @@
+{
+  "id": "4917b0da-41f3-4a36-ac87-9c26561b4ca6",
+  "name": "Assembly Facility 2 (for BHA_Webcam_Microscope)",
+  "location": {
+    "address": {
+      "number": "3239",
+      "street": "Jennings Glen",
+      "city": "Almere",
+      "region": "Hawaii",
+      "country": "Netherlands",
+      "postcode": "73298"
+    },
+    "gps_coordinates": "52.3705038, 5.2185859",
+    "directions": "Located across from Miller PLC",
+    "city": "Almere",
+    "country": "Netherlands"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-17:00",
+  "description": "Specialized in product assembly and integration",
+  "date_founded": "2019-09-16",
+  "access_type": "Restricted",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Manual Cell",
+      "serial_number": "SN257286",
+      "condition": "Excellent",
+      "notes": "Equipment notes: Meeting house scientist.",
+      "quantity": 5,
+      "power_rating": 1628,
+      "maintenance_schedule": "Every 1 months",
+      "usage_levels": "Low",
+      "tolerance_class": "ISO 2768-m",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners",
+          "supplier_location": {
+            "address": {
+              "number": "6460",
+              "street": "Christopher Manor",
+              "city": "Amersfoort",
+              "region": "Kentucky",
+              "country": "Netherlands",
+              "postcode": "58969"
+            },
+            "gps_coordinates": "52.1562499, 5.3896944",
+            "city": "Amersfoort",
+            "country": "Netherlands"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "supplier_location": {
+            "address": {
+              "number": "8952",
+              "street": "Wilson Valleys",
+              "city": "Valladolid",
+              "region": "Oregon",
+              "country": "Spain",
+              "postcode": "64024"
+            },
+            "gps_coordinates": "41.6521807, -4.728605",
+            "city": "Valladolid",
+            "country": "Spain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "manufacturer": "Brand A",
+          "brand": "Standard"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Testing_equipment",
+      "make": "Brand A",
+      "model": "Model 384",
+      "condition": "Excellent"
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Assembly_line",
+    "Assembly"
+  ],
+  "typical_batch_size": "50 -- 500 units",
+  "floor_size": 1986,
+  "storage_capacity": "207 cubic meters",
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "typical_products": [
+    "Multi-lateral object-oriented parallelism",
+    "Distributed eco-centric encoding"
+  ]
+}

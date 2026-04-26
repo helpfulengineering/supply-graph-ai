@@ -1,0 +1,125 @@
+{
+  "id": "f78bec7e-40fa-472c-b588-4bac61329fa2",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "57",
+      "street": "Anne Corners",
+      "city": "Barcelona",
+      "region": "Arizona",
+      "country": "Spain",
+      "postcode": "00528"
+    },
+    "gps_coordinates": "41.3825802, 2.177073",
+    "city": "Barcelona",
+    "country": "Spain"
+  },
+  "facility_status": "Active",
+  "opening_hours": "Mon-Fri: 8:00-22:00",
+  "description": "Specialized in laser cutting and engraving services",
+  "date_founded": "2020-02-09",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Boss",
+      "model": "Fusion Pro",
+      "serial_number": "SN382943",
+      "condition": "Good",
+      "throughput": "35 parts/hour",
+      "power_rating": 3307,
+      "tolerance_class": "ISO 2768-m",
+      "uninterrupted_power_supply": true,
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "supplier_location": {
+            "address": {
+              "number": "4510",
+              "street": "Cassidy Mews",
+              "city": "Santa Cruz",
+              "region": "Alaska",
+              "country": "Spain",
+              "postcode": "74980"
+            },
+            "gps_coordinates": "28.467178, -16.2507843",
+            "city": "Santa Cruz",
+            "country": "Spain"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "supplier_location": {
+            "address": {
+              "number": "1421",
+              "street": "Pitts Neck",
+              "city": "Sunderland",
+              "region": "Hawaii",
+              "country": "United Kingdom",
+              "postcode": "47361"
+            },
+            "gps_coordinates": "54.9058512, -1.3828727",
+            "directions": "Located near Hatfield-Jones",
+            "city": "Sunderland",
+            "country": "United Kingdom"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "manufacturer": "Premium",
+          "brand": "Standard",
+          "supplier_location": {
+            "address": {
+              "number": "2390",
+              "street": "Sanchez Port",
+              "city": "Le Havre",
+              "region": "Hawaii",
+              "country": "France",
+              "postcode": "05200"
+            },
+            "gps_coordinates": "49.4938975, 0.1079732",
+            "directions": "Located behind Schultz, Walton and Grant",
+            "city": "Le Havre",
+            "country": "France"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "manufacturer": "Brand B",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "76",
+              "street": "Daniel Pike",
+              "city": "Murcia",
+              "region": "South Carolina",
+              "country": "Spain",
+              "postcode": "19897"
+            },
+            "gps_coordinates": "37.9347521, -1.1131029",
+            "city": "Murcia",
+            "country": "Spain"
+          }
+        }
+      ],
+      "laser_power": 60,
+      "working_surface": 600
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2320,
+  "storage_capacity": "415 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "First Aid Training",
+    "Equipment Operation Certification"
+  ],
+  "road_access": true
+}

@@ -83,6 +83,7 @@ class StorageOrganizer:
         directories = {
             "okh/": ".gitkeep",
             "okw/": ".gitkeep",
+            "packages/": ".gitkeep",
             "supply-trees/": ".gitkeep",
         }
 

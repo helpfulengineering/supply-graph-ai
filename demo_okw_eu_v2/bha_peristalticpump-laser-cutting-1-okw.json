@@ -1,0 +1,91 @@
+{
+  "id": "e202527b-7771-4aaa-afbe-b46e8e6d501c",
+  "name": "Laser Cutting Facility 1",
+  "location": {
+    "address": {
+      "number": "8201",
+      "street": "Sanders Lodge",
+      "city": "Enschede",
+      "region": "Michigan",
+      "country": "Netherlands",
+      "postcode": "95341"
+    },
+    "gps_coordinates": "52.2233633, 6.8705957",
+    "city": "Enschede",
+    "country": "Netherlands"
+  },
+  "facility_status": "Active",
+  "description": "Specialized in laser cutting and engraving services",
+  "access_type": "Membership",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Laser_cutter",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Laser_cutting",
+      "make": "Epilog",
+      "model": "Fusion Pro",
+      "serial_number": "SN616392",
+      "condition": "Excellent",
+      "power_rating": 4188,
+      "usage_levels": "High",
+      "tolerance_class": "ISO 2768-f",
+      "computer_controlled": true,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Acrylic",
+          "manufacturer": "Premium",
+          "brand": "Industrial",
+          "supplier_location": {
+            "address": {
+              "number": "6012",
+              "street": "Molina Lodge",
+              "city": "Wuppertal",
+              "region": "Hawaii",
+              "country": "Germany",
+              "postcode": "42906"
+            },
+            "gps_coordinates": "51.264018, 7.1780374",
+            "city": "Wuppertal",
+            "country": "Germany"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Wood",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fabric",
+          "supplier_location": {
+            "address": {
+              "number": "1850",
+              "street": "Lacey Turnpike",
+              "city": "Milan",
+              "region": "Montana",
+              "country": "Italy",
+              "postcode": "55252"
+            },
+            "gps_coordinates": "45.4641943, 9.1896346",
+            "city": "Milan",
+            "country": "Italy"
+          }
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Leather",
+          "brand": "Standard"
+        }
+      ],
+      "laser_power": 30,
+      "working_surface": 900
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/Laser_cutting",
+    "Laser Cutting"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 4409,
+  "typical_materials": [],
+  "certifications": [],
+  "road_access": true,
+  "maintenance_schedule": "Every 5 months"
+}
