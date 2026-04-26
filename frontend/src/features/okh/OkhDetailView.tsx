@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { ApiError } from "../../api/client";
 import { fetchOkhDetail } from "../../api/okh";
 import { buildPackageFromManifest, packageDownloadUrl } from "../../api/package";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -43,14 +44,23 @@ export function OkhDetailView({ id }: Props) {
     "idle" | "building" | "done" | "error"
   >("idle");
   const [builtPackage, setBuiltPackage] = useState<PackageBuildMetadata | null>(null);
+  const [buildErrorDetail, setBuildErrorDetail] = useState<string | null>(null);
 
   const handleBuildPackage = async () => {
     setBuildState("building");
+    setBuildErrorDetail(null);
     try {
-      const result = await buildPackageFromManifest(id);
-      setBuiltPackage(result.data.metadata);
+      const meta = await buildPackageFromManifest(id);
+      setBuiltPackage(meta);
       setBuildState("done");
-    } catch {
+    } catch (e) {
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : e instanceof Error
+            ? e.message
+            : "Package build failed.";
+      setBuildErrorDetail(msg);
       setBuildState("error");
     }
   };
@@ -155,8 +165,9 @@ export function OkhDetailView({ id }: Props) {
           )}
 
           {buildState === "error" && (
-            <p className="text-xs text-red-600 dark:text-red-400">
-              Package build failed. Check that the API server is reachable and try again.
+            <p className="max-w-sm text-xs text-red-600 dark:text-red-400">
+              {buildErrorDetail ??
+                "Package build failed. Check that the API server is reachable and try again."}
             </p>
           )}
         </div>

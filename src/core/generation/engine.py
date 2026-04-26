@@ -27,7 +27,6 @@ from typing import Any, Dict, List, Optional, Tuple
 from ..taxonomy import taxonomy
 from .layers.direct import DirectMatcher
 from .layers.heuristic import HeuristicMatcher
-from .layers.nlp import NLPMatcher
 from .models import (
     FieldGeneration,
     GenerationLayer,
@@ -160,8 +159,17 @@ class GenerationEngine:
                 logger.debug("Heuristic layer initialized")
 
             if self.config.use_nlp:
-                self._matchers[GenerationLayer.NLP] = NLPMatcher(self.config)
-                logger.debug("NLP layer initialized")
+                try:
+                    from .layers.nlp import NLPMatcher
+
+                    self._matchers[GenerationLayer.NLP] = NLPMatcher(self.config)
+                    logger.debug("NLP layer initialized")
+                except Exception as e:
+                    logger.warning(
+                        "NLP layer disabled (failed to initialize): %s",
+                        e,
+                        exc_info=logger.isEnabledFor(logging.DEBUG),
+                    )
 
             # Initialize LLM layer if configured and available
             if self.config.use_llm and self.config.is_llm_configured():

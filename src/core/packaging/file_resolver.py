@@ -3,6 +3,7 @@ import hashlib
 import inspect
 import logging
 import mimetypes
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
@@ -21,7 +22,15 @@ class FileResolver:
     """Handles downloading and organizing external files for OKH packages"""
 
     def __init__(self, download_options: Optional[DownloadOptions] = None):
-        self.download_options = download_options or DownloadOptions()
+        if download_options is None:
+            try:
+                mr = int(os.environ.get("OHM_PACKAGE_FETCH_MAX_RETRIES", "3"))
+            except ValueError:
+                mr = 3
+            mr = max(0, min(mr, 10))
+            self.download_options = DownloadOptions(max_retries=mr)
+        else:
+            self.download_options = download_options
         self.session: Optional[aiohttp.ClientSession] = None
         self._semaphore: Optional[asyncio.Semaphore] = None
         self._cleanup_called = False
@@ -38,6 +47,10 @@ class FileResolver:
     async def initialize(self, max_concurrent: int = 5):
         """Initialize the file resolver with HTTP session"""
         if self.session is None:
+            # Allow cleanup() to run again after a prior cycle (e.g. multiple package builds
+            # each use ``async with file_resolver``). Without this, the second build leaves
+            # an aiohttp session open.
+            self._cleanup_called = False
             timeout = aiohttp.ClientTimeout(total=self.download_options.timeout_seconds)
             # Use a connector that will be properly closed
             connector = aiohttp.TCPConnector(
@@ -229,16 +242,19 @@ class FileResolver:
                                     )
                                     continue
 
-                        logger.warning(
-                            "HTTP %s for %s [%s]",
+                        # One summary line at WARNING; per-attempt detail only with DEBUG
+                        logger.debug(
+                            "HTTP %s for %s (attempt %s/%s) [%s]",
                             response.status,
                             url,
+                            retry_count + 1,
+                            self.download_options.max_retries + 1,
                             ctx,
                         )
                         retry_count += 1
 
             except asyncio.TimeoutError:
-                logger.warning(
+                logger.debug(
                     "Timeout downloading %s (attempt %s) [%s]",
                     url,
                     retry_count + 1,
@@ -246,13 +262,13 @@ class FileResolver:
                 )
                 retry_count += 1
             except Exception as e:
-                logger.error("Error downloading %s: %s [%s]", url, e, ctx)
+                logger.debug("Error downloading %s: %s [%s]", url, e, ctx)
                 retry_count += 1
 
             if retry_count <= self.download_options.max_retries:
                 # Exponential backoff
                 wait_time = 2**retry_count
-                logger.info(
+                logger.debug(
                     "Retrying %s in %s seconds... [%s]",
                     url,
                     wait_time,
@@ -260,8 +276,12 @@ class FileResolver:
                 )
                 await asyncio.sleep(wait_time)
 
-        error_msg = f"Failed to download {url} after {self.download_options.max_retries} retries"
-        logger.error("%s [%s]", error_msg, ctx)
+        attempts = max(1, retry_count)
+        error_msg = (
+            f"Failed to download {url} after {attempts} attempt(s) "
+            f"(max_retries={self.download_options.max_retries})"
+        )
+        logger.warning("%s [%s]", error_msg, ctx)
         return ResolvedFile(
             success=False, error_message=error_msg, retry_count=retry_count
         )

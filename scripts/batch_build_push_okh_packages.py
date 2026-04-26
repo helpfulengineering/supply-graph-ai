@@ -5,7 +5,7 @@ For each OKH manifest under ``tmp/oshwa/okh-manifests`` (or ``--manifests-dir``)
 1. Build a package via ``PackageService.build_package_from_dict``
 2. Validate on disk with ``PackageService.verify_package_metadata`` (inventory + checksums)
 3. Push with ``PackageRemoteStorage.push_package`` (same path as ``ohm package push`` fallback)
-4. List blobs under ``okh/packages/{org}/{project}/{version}/`` and assert expected keys exist
+4. List blobs under ``packages/{org}/{project}/{version}/`` (see ``OHM_PACKAGE_STORAGE_PREFIX``) and assert expected keys exist
 
 Environment / container
 -------------------------
@@ -24,6 +24,16 @@ Examples
     python scripts/batch_build_push_okh_packages.py --limit 1 --no-push -vv
     python scripts/batch_build_push_okh_packages.py --limit 5 --report out.json --trace-report
     python scripts/batch_build_push_okh_packages.py --create-container
+
+    # Single manifest already in remote OKH storage (same Azure config as the API)
+    python scripts/batch_build_push_okh_packages.py \\
+        --okh-id 00000000-0000-0000-0000-000000000000 --no-push -v
+
+    # All OKH manifests in remote storage (SmartFileDiscovery under okh/)
+    python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push -v
+    python scripts/batch_build_push_okh_packages.py --from-remote-okh --limit 3 --report /tmp/report.json
+    python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push --no-log-file
+    python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push --fetch-retries 3
 """
 
 from __future__ import annotations
@@ -36,8 +46,10 @@ import logging
 import os
 import sys
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
+from uuid import UUID
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(REPO_ROOT) not in sys.path:
@@ -82,20 +94,33 @@ class _FetchTraceHandler(logging.Handler):
 _BATCH_LOG_HANDLERS: List[logging.Handler] = []
 
 
-def _configure_batch_logging(verbose: int, collect_trace: bool) -> None:
-    """Attach stderr logging (``-v`` / ``-vv``) and/or trace collection for reports."""
+def _configure_batch_logging(
+    verbose: int,
+    collect_trace: bool,
+    log_file: Optional[Path] = None,
+) -> None:
+    """Attach stderr logging (``-v`` / ``-vv``), optional trace collection, and/or file log."""
     global _BATCH_LOG_HANDLERS
     for h in _BATCH_LOG_HANDLERS:
         for name in ("src.core.packaging", "src.core.services.package_service"):
             logging.getLogger(name).removeHandler(h)
     _BATCH_LOG_HANDLERS.clear()
 
-    if verbose <= 0 and not collect_trace:
-        return
-
     label_filter = _ManifestLabelFilter()
     fmt = "%(manifest_label)s%(levelname)s %(name)s: %(message)s"
     handlers: List[logging.Handler] = []
+
+    if log_file is not None:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        file_h = logging.FileHandler(log_file, encoding="utf-8")
+        file_h.setLevel(logging.DEBUG)
+        file_h.addFilter(label_filter)
+        file_h.setFormatter(
+            logging.Formatter(
+                "%(asctime)s %(manifest_label)s%(levelname)s %(name)s: %(message)s"
+            )
+        )
+        handlers.append(file_h)
 
     if verbose >= 1:
         level = logging.DEBUG if verbose >= 2 else logging.INFO
@@ -109,12 +134,17 @@ def _configure_batch_logging(verbose: int, collect_trace: bool) -> None:
         trace_h.setLevel(logging.WARNING)
         handlers.append(trace_h)
 
+    if not handlers:
+        return
+
     for name in ("src.core.packaging", "src.core.services.package_service"):
         lg = logging.getLogger(name)
-        if verbose >= 1:
-            lg.setLevel(logging.DEBUG if verbose >= 2 else logging.INFO)
-        elif collect_trace:
-            lg.setLevel(logging.WARNING)
+        if log_file is not None or verbose >= 2:
+            lg.setLevel(logging.DEBUG)
+        elif verbose >= 1 or collect_trace:
+            lg.setLevel(logging.INFO if verbose >= 1 else logging.WARNING)
+        else:
+            lg.setLevel(logging.DEBUG)
         for h in handlers:
             lg.addHandler(h)
 
@@ -142,9 +172,19 @@ def _print_fetch_hints(manifest_path: Path, data: dict, *, verbose: int) -> None
     repo = data.get("repo")
     print(f"--- fetch context: {manifest_path.name} ---", file=sys.stderr)
     print(f"  repo (manifest): {repo!r}", file=sys.stderr)
-    if not repo or "github.com" not in str(repo):
+    if not repo:
+        print("  (no repo — relative paths stay local)", file=sys.stderr)
+        return
+    if "gitlab." in str(repo).lower() or str(repo).rstrip("/").endswith("gitlab.com"):
         print(
-            "  (not a github.com repo — relative paths may not resolve as raw URLs)",
+            "  GitLab repo — relative paths use /-/raw/{default_branch}/… "
+            "(private projects may need auth; API sets branch when reachable).",
+            file=sys.stderr,
+        )
+        return
+    if "github.com" not in str(repo):
+        print(
+            "  (not GitHub — only GitHub/GitLab relative paths are auto-resolved to raw URLs)",
             file=sys.stderr,
         )
         return
@@ -210,8 +250,13 @@ def _collect_main_manifests(manifests_dir: Path) -> List[Path]:
 def _expected_remote_blob_keys(
     package_name: str, version: str, metadata: Any
 ) -> Set[str]:
+    import os
+
     org, project = package_name.split("/", 1)
-    base = f"okh/packages/{org}/{project}/{version}"
+    prefix = (
+        os.environ.get("OHM_PACKAGE_STORAGE_PREFIX", "packages").strip() or "packages"
+    )
+    base = f"{prefix}/{org}/{project}/{version}"
     keys = {
         f"{base}/manifest.json",
         f"{base}/build-info.json",
@@ -235,9 +280,12 @@ async def _verify_remote_package(
     metadata: Any,
     push_result: Dict[str, Any],
 ) -> Dict[str, Any]:
+    import os
+
     org, project = metadata.package_name.split("/", 1)
-    prefix = f"okh/packages/{org}/{project}/{metadata.version}/"
-    remote_keys = set(await _list_remote_keys(manager, prefix))
+    top = os.environ.get("OHM_PACKAGE_STORAGE_PREFIX", "packages").strip() or "packages"
+    list_prefix = f"{top}/{org}/{project}/{metadata.version}/"
+    remote_keys = set(await _list_remote_keys(manager, list_prefix))
     expected = _expected_remote_blob_keys(
         metadata.package_name, metadata.version, metadata
     )
@@ -263,6 +311,7 @@ async def _process_one(
     do_push: bool,
     verbose: int,
     collect_trace: bool,
+    manifest_data: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     from src.core.models.package import BuildOptions
 
@@ -281,14 +330,15 @@ async def _process_one(
     }
 
     with _manifest_trace_context(manifest_path.name, collect_trace) as trace_lines:
-        try:
-            with manifest_path.open(encoding="utf-8") as fh:
-                manifest_data = json.load(fh)
-        except Exception as e:
-            record["error"] = f"load_json: {e}"
-            if collect_trace and trace_lines is not None:
-                record["fetch_trace"] = trace_lines
-            return "error", record
+        if manifest_data is None:
+            try:
+                with manifest_path.open(encoding="utf-8") as fh:
+                    manifest_data = json.load(fh)
+            except Exception as e:
+                record["error"] = f"load_json: {e}"
+                if collect_trace and trace_lines is not None:
+                    record["fetch_trace"] = trace_lines
+                return "error", record
 
         _print_fetch_hints(manifest_path, manifest_data, verbose=verbose)
 
@@ -392,6 +442,26 @@ async def _run() -> int:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
+        "--okh-id",
+        type=str,
+        default=None,
+        metavar="UUID",
+        help=(
+            "Build exactly one package from this OKH manifest UUID in remote storage "
+            "(uses OKHService; requires Azure/local storage config). "
+            "Ignores --manifests-dir file list when set."
+        ),
+    )
+    parser.add_argument(
+        "--from-remote-okh",
+        action="store_true",
+        help=(
+            "Build packages for every OKH manifest found in remote storage (okh/ prefix). "
+            "Mutually exclusive with --okh-id; ignores --manifests-dir. "
+            "Uses the same storage config as the API (.env)."
+        ),
+    )
+    parser.add_argument(
         "--manifests-dir",
         type=Path,
         default=REPO_ROOT / "tmp/oshwa/okh-manifests",
@@ -427,9 +497,36 @@ async def _run() -> int:
         help="Add fetch_trace (WARNING+ packaging lines) to --report JSON without noisy -v",
     )
     parser.add_argument(
+        "--log-file",
+        type=Path,
+        default=None,
+        metavar="PATH",
+        help=(
+            "Append DEBUG packaging logs to this UTF-8 file. "
+            "When omitted, a timestamped file is written under tmp/oshwa/ "
+            "unless --no-log-file is set."
+        ),
+    )
+    parser.add_argument(
+        "--no-log-file",
+        action="store_true",
+        help="Skip the default timestamped log under tmp/oshwa/ (--log-file still applies).",
+    )
+    parser.add_argument(
+        "--fetch-retries",
+        type=int,
+        default=0,
+        metavar="N",
+        help=(
+            "Sets OHM_PACKAGE_FETCH_MAX_RETRIES for this run (0 = one HTTP attempt per URL, "
+            "faster batch; 3 matches previous default). Clamped to 0..10."
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Print manifest count and exit (no build, no storage)",
+        help="Print manifest count and exit (no build). "
+        "With --from-remote-okh, configures storage to count remote manifests.",
     )
     parser.add_argument(
         "--no-push",
@@ -451,48 +548,113 @@ async def _run() -> int:
     )
     args = parser.parse_args()
 
-    collect_trace = bool(args.verbose >= 1 or args.trace_report)
-    _configure_batch_logging(args.verbose, collect_trace)
+    if args.log_file is not None:
+        log_path: Optional[Path] = args.log_file.expanduser().resolve()
+    elif args.no_log_file:
+        log_path = None
+    else:
+        ts = datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_path = (REPO_ROOT / "tmp" / "oshwa" / f"batch-packages-{ts}.log").resolve()
 
-    manifests_dir = args.manifests_dir.expanduser().resolve()
-    if not manifests_dir.is_dir():
-        print(f"Manifest directory not found: {manifests_dir}", file=sys.stderr)
-        return 1
+    fr = max(0, min(10, int(args.fetch_retries)))
+    os.environ["OHM_PACKAGE_FETCH_MAX_RETRIES"] = str(fr)
+
+    collect_trace = bool(args.verbose >= 1 or args.trace_report)
+    _configure_batch_logging(args.verbose, collect_trace, log_path)
+
+    if log_path is not None:
+        print(f"Package log file: {log_path}", file=sys.stderr)
 
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    paths = _collect_main_manifests(manifests_dir)
-    if args.limit is not None:
-        paths = paths[: max(0, args.limit)]
+    single_okh_id: Optional[UUID] = None
+    if args.okh_id:
+        try:
+            single_okh_id = UUID(args.okh_id.strip())
+        except ValueError:
+            print(f"Invalid --okh-id (expected UUID): {args.okh_id!r}", file=sys.stderr)
+            return 1
 
-    print(f"Manifests: {manifests_dir} ({len(paths)} file(s))")
+    if args.from_remote_okh and single_okh_id is not None:
+        print("Use either --from-remote-okh or --okh-id, not both.", file=sys.stderr)
+        return 1
+
+    paths: List[Path] = []
+    if single_okh_id is None and not args.from_remote_okh:
+        manifests_dir = args.manifests_dir.expanduser().resolve()
+        if not manifests_dir.is_dir():
+            print(f"Manifest directory not found: {manifests_dir}", file=sys.stderr)
+            return 1
+        paths = _collect_main_manifests(manifests_dir)
+        if args.limit is not None:
+            paths = paths[: max(0, args.limit)]
+        print(f"Manifests: {manifests_dir} ({len(paths)} file(s))")
+    elif args.from_remote_okh:
+        print("Manifests: remote OKH storage (all discoverable under okh/)")
+        if args.limit is not None:
+            print(
+                f"Note: will process at most {args.limit} manifest(s) after stable sort.",
+                file=sys.stderr,
+            )
+    else:
+        if args.limit is not None:
+            print("Note: --limit ignored when --okh-id is set.", file=sys.stderr)
+        print(f"Single manifest from storage: okh id {single_okh_id}")
+
     print(f"Build output: {output_dir}")
-
-    if args.dry_run:
-        for p in paths[:15]:
-            print(f"  would process: {p.name}")
-        if len(paths) > 15:
-            print(f"  ... and {len(paths) - 15} more")
-        return 0
 
     os.environ.setdefault("STORAGE_PROVIDER", "azure_blob")
 
-    from src.config.storage_config import create_storage_config
+    from src.config.storage_config import (
+        create_storage_config,
+        get_default_storage_config,
+    )
+    from src.core.packaging.remote_storage import PackageRemoteStorage
+    from src.core.services.okh_service import OKHService
     from src.core.services.package_service import PackageService
     from src.core.services.storage_service import StorageService
-    from src.core.packaging.remote_storage import PackageRemoteStorage
 
-    storage_manager = None
-    remote_storage = None
+    storage_service = await StorageService.get_instance()
     if not args.no_push:
         config = create_storage_config("azure_blob", bucket_name=args.container)
-        storage_service = await StorageService.get_instance()
         await storage_service.configure(config)
-        if not storage_service.manager:
-            print("Storage manager not available after configure()", file=sys.stderr)
-            return 1
-        storage_manager = storage_service.manager
+    elif single_okh_id is not None or args.from_remote_okh:
+        await storage_service.configure(get_default_storage_config())
+
+    need_blob = (
+        (not args.no_push) or (single_okh_id is not None) or args.from_remote_okh
+    )
+
+    if args.dry_run:
+        if args.from_remote_okh:
+            if not storage_service.manager:
+                print(
+                    "Storage not configured; cannot count remote OKH.", file=sys.stderr
+                )
+                return 1
+            okh_service = await OKHService.get_instance()
+            _manifests, total = await okh_service.list(page=1, page_size=500000)
+            lim = ""
+            if args.limit is not None:
+                lim = f" (would cap at {args.limit} after sort order from service)"
+            print(f"  would process: {total} remote OKH manifest(s){lim}")
+            return 0
+        if single_okh_id is not None:
+            print(f"  would process: okh id {single_okh_id}")
+        else:
+            for p in paths[:15]:
+                print(f"  would process: {p.name}")
+            if len(paths) > 15:
+                print(f"  ... and {len(paths) - 15} more")
+        return 0
+    if need_blob and not storage_service.manager:
+        print("Storage manager not available after configure()", file=sys.stderr)
+        return 1
+
+    storage_manager = storage_service.manager if need_blob else None
+    remote_storage: Optional[PackageRemoteStorage] = None
+    if not args.no_push:
         remote_storage = PackageRemoteStorage(storage_service)
 
         if args.create_container:
@@ -509,9 +671,19 @@ async def _run() -> int:
     errors = 0
 
     try:
-        for manifest_path in paths:
+        if single_okh_id is not None:
+            okh_service = await OKHService.get_instance()
+            manifest_obj = await okh_service.get(single_okh_id)
+            if not manifest_obj:
+                print(
+                    f"OKH manifest not found in storage: {single_okh_id}",
+                    file=sys.stderr,
+                )
+                return 1
+            manifest_dict = manifest_obj.to_dict()
+            virtual_path = REPO_ROOT / "tmp" / f"okh-{single_okh_id}.json"
             status, record = await _process_one(
-                manifest_path,
+                virtual_path,
                 output_dir,
                 package_service,
                 remote_storage,
@@ -519,14 +691,76 @@ async def _run() -> int:
                 do_push=not args.no_push,
                 verbose=args.verbose,
                 collect_trace=collect_trace,
+                manifest_data=manifest_dict,
             )
             results.append(record)
-            label = record.get("package_name") or manifest_path.name
+            label = record.get("package_name") or str(single_okh_id)
             if status == "ok":
                 print(f"OK  {label}")
             else:
                 errors += 1
                 print(f"ERR {label}: {record.get('error')}", file=sys.stderr)
+        elif args.from_remote_okh:
+            from src.core.models.okh import OKHManifest
+
+            okh_service = await OKHService.get_instance()
+            page = 1
+            page_size = 100_000
+            total: Optional[int] = None
+            remote_manifests: List[OKHManifest] = []
+            while True:
+                batch, t = await okh_service.list(page=page, page_size=page_size)
+                if total is None:
+                    total = t
+                remote_manifests.extend(batch)
+                if not batch or len(remote_manifests) >= (total or 0):
+                    break
+                page += 1
+
+            remote_manifests.sort(key=lambda m: ((m.title or "").lower(), str(m.id)))
+            if args.limit is not None:
+                remote_manifests = remote_manifests[: max(0, args.limit)]
+
+            for manifest_obj in remote_manifests:
+                manifest_dict = manifest_obj.to_dict()
+                virtual_path = REPO_ROOT / "tmp" / f"okh-{manifest_obj.id}.json"
+                status, record = await _process_one(
+                    virtual_path,
+                    output_dir,
+                    package_service,
+                    remote_storage,
+                    storage_manager,
+                    do_push=not args.no_push,
+                    verbose=args.verbose,
+                    collect_trace=collect_trace,
+                    manifest_data=manifest_dict,
+                )
+                results.append(record)
+                label = record.get("package_name") or str(manifest_obj.id)
+                if status == "ok":
+                    print(f"OK  {label}")
+                else:
+                    errors += 1
+                    print(f"ERR {label}: {record.get('error')}", file=sys.stderr)
+        else:
+            for manifest_path in paths:
+                status, record = await _process_one(
+                    manifest_path,
+                    output_dir,
+                    package_service,
+                    remote_storage,
+                    storage_manager,
+                    do_push=not args.no_push,
+                    verbose=args.verbose,
+                    collect_trace=collect_trace,
+                )
+                results.append(record)
+                label = record.get("package_name") or manifest_path.name
+                if status == "ok":
+                    print(f"OK  {label}")
+                else:
+                    errors += 1
+                    print(f"ERR {label}: {record.get('error')}", file=sys.stderr)
     finally:
         await package_service.cleanup()
 
@@ -537,7 +771,8 @@ async def _run() -> int:
         )
         print(f"Wrote report: {args.report}")
 
-    print(f"Done. {len(paths) - errors} ok, {errors} error(s).")
+    n = len(results)
+    print(f"Done. {n - errors} ok, {errors} error(s).")
     return 1 if errors else 0
 
 

@@ -2,52 +2,95 @@
 Remote storage handlers for OKH package PUSH/PULL operations
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from ..models.package import PackageMetadata
-from ..services.storage_service import StorageService
+from ..storage.package_storage import (
+    build_info_key_candidates,
+    default_package_prefix,
+    package_prefixes_for_list,
+    parse_org_project_version_from_build_info_key,
+)
+
+if TYPE_CHECKING:
+    from ..services.storage_service import StorageService
 
 logger = logging.getLogger(__name__)
 
 
 class PackageRemoteStorage:
-    """Handles remote storage operations for OKH packages"""
+    """Handles remote storage operations for OKH packages.
 
-    def __init__(self, storage_service: StorageService):
+    New uploads use the top-level ``packages/`` prefix (configurable via
+    ``OHM_PACKAGE_STORAGE_PREFIX``), parallel to ``okh/`` and ``okw/``.
+    Reads also honor legacy keys under ``okh/packages/``.
+    """
+
+    def __init__(self, storage_service: "StorageService"):
         self.storage_service = storage_service
 
     def _get_package_base_key(self, org: str, project: str, version: str) -> str:
-        """Get the base key for a package in remote storage"""
-        return f"okh/packages/{org}/{project}/{version}"
+        """Base key for new uploads: ``{prefix}/org/project/version`` (no leading slash)."""
+        p = default_package_prefix()
+        return f"{p}/{org}/{project}/{version}"
 
-    def _get_manifest_key(self, org: str, project: str, version: str) -> str:
-        """Get the key for package manifest in remote storage"""
-        return f"{self._get_package_base_key(org, project, version)}/manifest.json"
+    def _get_manifest_key(
+        self, org: str, project: str, version: str, *, remote_base: str = None
+    ) -> str:
+        base = remote_base or self._get_package_base_key(org, project, version)
+        return f"{base}/manifest.json"
 
-    def _get_build_info_key(self, org: str, project: str, version: str) -> str:
-        """Get the key for build info in remote storage"""
-        return f"{self._get_package_base_key(org, project, version)}/build-info.json"
+    def _get_build_info_key(
+        self, org: str, project: str, version: str, *, remote_base: str = None
+    ) -> str:
+        base = remote_base or self._get_package_base_key(org, project, version)
+        return f"{base}/build-info.json"
 
-    def _get_file_manifest_key(self, org: str, project: str, version: str) -> str:
-        """Get the key for file manifest in remote storage"""
-        return f"{self._get_package_base_key(org, project, version)}/file-manifest.json"
+    def _get_file_manifest_key(
+        self, org: str, project: str, version: str, *, remote_base: str = None
+    ) -> str:
+        base = remote_base or self._get_package_base_key(org, project, version)
+        return f"{base}/file-manifest.json"
 
     def _get_file_key(
-        self, org: str, project: str, version: str, file_path: str
+        self,
+        org: str,
+        project: str,
+        version: str,
+        file_path: str,
+        *,
+        remote_base: str = None,
     ) -> str:
-        """Get the key for a specific file in remote storage"""
-        # Convert local file path to remote storage path
-        # Remove the local package path prefix and use relative path
+        """Remote object key for a file under ``.../files/``."""
+        base = remote_base or self._get_package_base_key(org, project, version)
         if file_path.startswith(f"packages/{org}/{project}/{version}/"):
             relative_path = file_path[len(f"packages/{org}/{project}/{version}/") :]
         else:
             relative_path = file_path
 
-        return (
-            f"{self._get_package_base_key(org, project, version)}/files/{relative_path}"
+        return f"{base}/files/{relative_path}"
+
+    async def _locate_remote_package_base(
+        self, org: str, project: str, version: str
+    ) -> str:
+        """
+        Return blob key prefix (no trailing slash) for an existing package,
+        trying the new ``packages/`` layout first, then ``okh/packages/``.
+        """
+        for key in build_info_key_candidates(org, project, version):
+            try:
+                await self.storage_service.manager.get_object(key)
+                return key[: -len("/build-info.json")]
+            except Exception:
+                continue
+        raise FileNotFoundError(
+            f"Remote package not found: {org}/{project} @ {version} "
+            f"(tried {build_info_key_candidates(org, project, version)})"
         )
 
     async def push_package(
@@ -231,15 +274,21 @@ class PackageRemoteStorage:
         org, project = package_name.split("/")
 
         try:
+            remote_base = await self._locate_remote_package_base(org, project, version)
+
             # 1. Download and parse build info to get package metadata
-            build_info_key = self._get_build_info_key(org, project, version)
+            build_info_key = self._get_build_info_key(
+                org, project, version, remote_base=remote_base
+            )
             build_info_data = await self.storage_service.manager.get_object(
                 build_info_key
             )
             build_info = json.loads(build_info_data.decode("utf-8"))
 
             # 2. Download and parse file manifest
-            file_manifest_key = self._get_file_manifest_key(org, project, version)
+            file_manifest_key = self._get_file_manifest_key(
+                org, project, version, remote_base=remote_base
+            )
             file_manifest_data = await self.storage_service.manager.get_object(
                 file_manifest_key
             )
@@ -257,7 +306,9 @@ class PackageRemoteStorage:
             )
 
             # 5. Download manifest
-            manifest_key = self._get_manifest_key(org, project, version)
+            manifest_key = self._get_manifest_key(
+                org, project, version, remote_base=remote_base
+            )
             manifest_data = await self.storage_service.manager.get_object(manifest_key)
             with open(local_package_path / "okh-manifest.json", "wb") as f:
                 f.write(manifest_data)
@@ -277,7 +328,11 @@ class PackageRemoteStorage:
                 try:
                     # Get remote storage key
                     remote_file_key = self._get_file_key(
-                        org, project, version, file_info.local_path
+                        org,
+                        project,
+                        version,
+                        file_info.local_path,
+                        remote_base=remote_base,
                     )
 
                     # Download file
@@ -315,37 +370,40 @@ class PackageRemoteStorage:
         """
         logger.info("Listing remote packages")
 
-        packages = []
+        packages: List[Dict[str, Any]] = []
+        seen: set = set()
 
         try:
-            # List all objects with okh/packages/ prefix
-            async for obj in self.storage_service.manager.list_objects(
-                prefix="okh/packages/"
-            ):
-                key = obj["key"]
+            for list_prefix in package_prefixes_for_list():
+                async for obj in self.storage_service.manager.list_objects(
+                    prefix=list_prefix
+                ):
+                    key = obj["key"]
+                    if not key.endswith("/build-info.json"):
+                        continue
+                    parsed = parse_org_project_version_from_build_info_key(key)
+                    if not parsed:
+                        continue
+                    org, project, version, _layout = parsed
+                    dedupe = (org, project, version)
+                    if dedupe in seen:
+                        continue
+                    seen.add(dedupe)
+                    package_name = f"{org}/{project}"
+                    packages.append(
+                        {
+                            "package_name": package_name,
+                            "version": version,
+                            "org": org,
+                            "project": project,
+                            "last_modified": obj.get("last_modified"),
+                            "size": obj.get("size", 0),
+                        }
+                    )
 
-                # Look for build-info.json files to identify packages
-                if key.endswith("/build-info.json"):
-                    # Extract package info from key: okh/packages/org/project/version/build-info.json
-                    parts = key.split("/")
-                    if len(parts) >= 5:
-                        org = parts[2]
-                        project = parts[3]
-                        version = parts[4]
-                        package_name = f"{org}/{project}"
-
-                        packages.append(
-                            {
-                                "package_name": package_name,
-                                "version": version,
-                                "org": org,
-                                "project": project,
-                                "last_modified": obj.get("last_modified"),
-                                "size": obj.get("size", 0),
-                            }
-                        )
-
-            logger.info(f"Found {len(packages)} remote packages")
+            logger.info(
+                "Found %s remote package(s) (new + legacy layouts)", len(packages)
+            )
             return packages
 
         except Exception as e:
@@ -356,7 +414,8 @@ class PackageRemoteStorage:
         self, org: str, project: str, version: str, package_metadata: PackageMetadata
     ) -> None:
         """Create an entry in the package index for easy discovery"""
-        index_key = f"okh/packages/{org}/{project}/index.json"
+        p = default_package_prefix()
+        index_key = f"{p}/{org}/{project}/index.json"
 
         try:
             # Try to get existing index

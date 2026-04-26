@@ -70,6 +70,34 @@ async def _read_manifest_file(file_path: str) -> dict:
         raise click.ClickException(f"Failed to read manifest file: {str(e)}")
 
 
+def _cli_result_is_success(result: dict) -> bool:
+    """True for local fallback ``status: success`` or API models like ``PackagePullResponse``."""
+    if result.get("status") == "success":
+        return True
+    if result.get("success") is True:
+        return True
+    return False
+
+
+def _cli_pull_display_fields(result: dict) -> dict:
+    """Normalize pull response (HTTP vs fallback) for human-readable CLI lines."""
+    meta = result.get("metadata")
+    if not isinstance(meta, dict):
+        meta = {}
+    nested = meta.get("metadata") if isinstance(meta.get("metadata"), dict) else {}
+    return {
+        "package_path": (
+            meta.get("package_path") or result.get("local_path") or "Unknown"
+        ),
+        "total_files": nested.get("total_files", meta.get("total_files", 0)),
+        "total_size_bytes": (
+            meta.get("total_size_bytes")
+            or meta.get("size")
+            or nested.get("total_size_bytes", 0)
+        ),
+    }
+
+
 async def _display_build_results(cli_ctx: CLIContext, result: dict, output_format: str):
     """Display build results."""
     if result.get("status") == "success":
@@ -586,9 +614,21 @@ async def list_packages(
         raise
 
 
+def _cli_version_from_parts(version_parts: tuple) -> str:
+    """Join Click variadic version tokens (e.g. ``Rev`` + ``C`` → ``Rev C``)."""
+    if not version_parts:
+        raise click.BadParameter("VERSION is required")
+    return " ".join(str(p) for p in version_parts)
+
+
 @package_group.command()
 @click.argument("package_name", type=str, metavar="PACKAGE_NAME")
-@click.argument("version", type=str, metavar="VERSION")
+@click.argument(
+    "version_parts",
+    nargs=-1,
+    required=True,
+    metavar="VERSION",
+)
 @standard_cli_command(
     help_text="""
     Verify a package's integrity and completeness.
@@ -627,7 +667,7 @@ async def list_packages(
 async def verify(
     ctx,
     package_name: str,
-    version: str,
+    version_parts: tuple,
     verbose: bool,
     output_format: str,
     use_llm: bool,
@@ -637,6 +677,7 @@ async def verify(
     strict_mode: bool,
 ):
     """Verify a package's integrity with enhanced LLM support."""
+    version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-verify")
 
@@ -691,7 +732,12 @@ async def verify(
 
 @package_group.command()
 @click.argument("package_name", type=str, metavar="PACKAGE_NAME")
-@click.argument("version", type=str, metavar="VERSION")
+@click.argument(
+    "version_parts",
+    nargs=-1,
+    required=True,
+    metavar="VERSION",
+)
 @standard_cli_command(
     help_text="""
     Show detailed information about a built package.
@@ -723,11 +769,12 @@ async def verify(
 async def describe(
     ctx,
     package_name: str,
-    version: str,
+    version_parts: tuple,
     verbose: bool,
     output_format: str,
 ):
     """Show detailed information about a built package."""
+    version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-describe")
 
@@ -763,7 +810,9 @@ async def describe(
 
         # Extract package data
         if "data" in result:
-            pkg = result.get("data", {}).get("package", result.get("data", {}))
+            d = result.get("data", {})
+            # API GET /api/package/{name}/{version} returns data.metadata
+            pkg = d.get("package") or d.get("metadata") or d
         elif "package" in result:
             pkg = result.get("package")
         else:
@@ -817,7 +866,12 @@ async def describe(
 
 @package_group.command()
 @click.argument("package_name", type=str, metavar="PACKAGE_NAME")
-@click.argument("version", type=str, metavar="VERSION")
+@click.argument(
+    "version_parts",
+    nargs=-1,
+    required=True,
+    metavar="VERSION",
+)
 @click.option("--force", is_flag=True, help="Force deletion without confirmation")
 @standard_cli_command(
     help_text="""
@@ -859,7 +913,7 @@ async def describe(
 async def delete(
     ctx,
     package_name: str,
-    version: str,
+    version_parts: tuple,
     force: bool,
     verbose: bool,
     output_format: str,
@@ -870,6 +924,7 @@ async def delete(
     strict_mode: bool,
 ):
     """Delete a package with enhanced LLM support."""
+    version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-delete")
 
@@ -925,7 +980,7 @@ async def delete(
         result = await command.execute_with_fallback(http_delete, fallback_delete)
 
         # Display deletion results
-        if result.get("status") == "success":
+        if _cli_result_is_success(result):
             cli_ctx.log(
                 result.get("message", "Package deleted successfully"), "success"
             )
@@ -941,7 +996,12 @@ async def delete(
 
 @package_group.command()
 @click.argument("package_name", type=str, metavar="PACKAGE_NAME")
-@click.argument("version", type=str, metavar="VERSION")
+@click.argument(
+    "version_parts",
+    nargs=-1,
+    required=True,
+    metavar="VERSION",
+)
 @standard_cli_command(
     help_text="""
     Push a local package to remote storage.
@@ -983,7 +1043,7 @@ async def delete(
 async def push(
     ctx,
     package_name: str,
-    version: str,
+    version_parts: tuple,
     verbose: bool,
     output_format: str,
     use_llm: bool,
@@ -993,6 +1053,7 @@ async def push(
     strict_mode: bool,
 ):
     """Push a local package to remote storage with enhanced LLM support."""
+    version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-push")
 
@@ -1076,7 +1137,7 @@ async def push(
         result = await command.execute_with_fallback(http_push, fallback_push)
 
         # Display push results
-        if result.get("status") == "success":
+        if _cli_result_is_success(result):
             cli_ctx.log(result.get("message"), "success")
 
             push_result = result.get("result", {})
@@ -1109,7 +1170,12 @@ async def push(
 
 @package_group.command()
 @click.argument("package_name", type=str, metavar="PACKAGE_NAME")
-@click.argument("version", type=str, metavar="VERSION")
+@click.argument(
+    "version_parts",
+    nargs=-1,
+    required=True,
+    metavar="VERSION",
+)
 @click.option("--output-dir", "-o", help="Output directory for pulled package")
 @standard_cli_command(
     help_text="""
@@ -1120,7 +1186,7 @@ async def push(
     
     **Arguments:**
     - PACKAGE_NAME: Package name in format "org/project" (e.g., "fourthievesvinegar/solderless-microlab")
-    - VERSION: Package version (e.g., "1.0.0")
+    - VERSION: Package version (e.g. ``1.0.0`` or multiple words such as ``Rev C`` — pass each word as a separate token)
     
     Use 'ohm package list-remote' to see available remote packages and their versions.
     
@@ -1151,7 +1217,7 @@ async def push(
 async def pull(
     ctx,
     package_name: str,
-    version: str,
+    version_parts: tuple,
     output_dir: Optional[str],
     verbose: bool,
     output_format: str,
@@ -1162,6 +1228,7 @@ async def pull(
     strict_mode: bool,
 ):
     """Pull a remote package to local storage with enhanced LLM support."""
+    version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("package-pull")
 
@@ -1222,21 +1289,17 @@ async def pull(
         result = await command.execute_with_fallback(http_pull, fallback_pull)
 
         # Display pull results
-        if result.get("status") == "success":
+        if _cli_result_is_success(result):
             cli_ctx.log(result.get("message"), "success")
 
-            metadata = result.get("metadata", {})
+            disp = _cli_pull_display_fields(result)
             if output_format == "json":
                 output_data = format_llm_output(result, cli_ctx)
                 click.echo(output_data)
             else:
-                cli_ctx.log(
-                    f"📁 Local path: {metadata.get('package_path', 'Unknown')}", "info"
-                )
-                cli_ctx.log(f"📄 Files: {metadata.get('total_files', 0)}", "info")
-                cli_ctx.log(
-                    f"💾 Size: {metadata.get('total_size_bytes', 0):,} bytes", "info"
-                )
+                cli_ctx.log(f"📁 Local path: {disp['package_path']}", "info")
+                cli_ctx.log(f"📄 Files: {disp['total_files']}", "info")
+                cli_ctx.log(f"💾 Size: {disp['total_size_bytes']:,} bytes", "info")
         else:
             cli_ctx.log(result.get("message", "Failed to pull package"), "error")
 
@@ -1361,7 +1424,9 @@ async def list_remote(
                     click.echo(f"\n📦 {package_name}")
                     for pkg in sorted(versions, key=lambda x: x["version"]):
                         size_mb = pkg["size"] / (1024 * 1024) if pkg["size"] else 0
-                        click.echo(f"  📄 {pkg['version']} ({size_mb:.1f} MB)")
+                        ver = pkg["version"]
+                        click.echo(f"  📄 {ver} ({size_mb:.1f} MB)")
+                        click.echo(f"     pull: ohm package pull {package_name} {ver}")
 
                         if cli_ctx.verbose and pkg.get("last_modified"):
                             cli_ctx.log(

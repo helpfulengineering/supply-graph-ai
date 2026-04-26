@@ -8,6 +8,24 @@ export type SortOrder = "asc" | "desc";
 
 const PAGE_SIZE = 20;
 
+/**
+ * List payloads can include BOM sidecars or other JSON under okh/ that parse as
+ * manifests with empty title and no licensor; detail view then fails API
+ * validation. Only show rows the GET /okh/:id contract can render.
+ */
+function isApiRenderableOkhListItem(item: OkhManifest): boolean {
+  if (!item.title?.trim()) return false;
+  const lic = item.licensor as unknown;
+  if (lic == null) return false;
+  if (typeof lic === "string") return lic.trim().length > 0;
+  if (Array.isArray(lic)) return lic.length > 0;
+  if (typeof lic === "object" && lic !== null && "name" in lic) {
+    const n = (lic as { name?: unknown }).name;
+    return typeof n === "string" && n.trim().length > 0;
+  }
+  return false;
+}
+
 function normalize(s: string | null | undefined) {
   return (s ?? "").toLowerCase();
 }
@@ -48,7 +66,7 @@ export function useOkhList() {
   });
 
   const processed = useMemo(() => {
-    const items = query.data?.items ?? [];
+    const items = (query.data?.items ?? []).filter(isApiRenderableOkhListItem);
     const filtered = filterItems(items, filterText);
     const sorted = sortItems(filtered, sortField, sortOrder);
     const totalItems = sorted.length;

@@ -10,8 +10,11 @@ from ..models.okh import OKHManifest
 from ..models.package import BuildOptions, PackageMetadata, calculate_file_checksum
 from ..packaging.builder import PackageAssetDownloadError, PackageBuilder
 from ..packaging.file_resolver import FileResolver
+from ..packaging.remote_storage import PackageRemoteStorage
+from ..storage.package_storage import build_info_key_candidates
 from ..utils.logging import get_logger
 from .okh_service import OKHService
+from .storage_service import StorageService
 
 logger = get_logger(__name__)
 
@@ -352,6 +355,57 @@ class PackageService:
                         )
 
         return packages
+
+    async def list_remote_package_summaries(self) -> List[Dict[str, Any]]:
+        """
+        Load lightweight package rows from remote blob storage (build-info.json only).
+
+        Used to populate the package list when packages were pushed from another
+        machine and are not present under local ``packages/``.
+        """
+        storage = await StorageService.get_instance()
+        if not storage._configured or not storage.manager:
+            return []
+
+        remote = PackageRemoteStorage(storage)
+        summaries: List[Dict[str, Any]] = []
+        for entry in await remote.list_remote_packages():
+            org = entry["org"]
+            project = entry["project"]
+            version = entry["version"]
+            raw = None
+            for key in build_info_key_candidates(org, project, version):
+                try:
+                    raw = await storage.manager.get_object(key)
+                    break
+                except Exception:
+                    continue
+            if raw is None:
+                continue
+            try:
+                info = json.loads(raw.decode("utf-8"))
+                summaries.append(
+                    {
+                        "package_name": info["package_name"],
+                        "version": info["version"],
+                        "okh_manifest_id": info.get("okh_manifest_id"),
+                        "build_timestamp": info["build_timestamp"],
+                        "total_files": info["total_files"],
+                        "total_size_bytes": info["total_size_bytes"],
+                        "build_options": info.get("build_options", {}),
+                        "package_path": "",
+                        "file_inventory": [],
+                    }
+                )
+            except Exception as e:
+                logger.warning(
+                    "Skipping remote package %s/%s:%s — could not read build-info: %s",
+                    org,
+                    project,
+                    version,
+                    e,
+                )
+        return summaries
 
     async def delete_package(self, package_name: str, version: str) -> bool:
         """

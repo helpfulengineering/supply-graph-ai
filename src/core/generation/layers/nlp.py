@@ -6,14 +6,16 @@ extracting structured information from unstructured text in README files,
 documentation, and other project content.
 """
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-import spacy
-
+from ...nlp.spacy_loader import load_spacy_english
 from ..models import GenerationLayer, LayerConfig, ProjectData
 from .base import BaseGenerationLayer, LayerResult
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -48,13 +50,12 @@ class NLPMatcher(BaseGenerationLayer):
         self._initialize_classification_patterns()
 
     def _initialize_nlp(self):
-        """Initialize spaCy NLP model"""
-        try:
-            self.nlp = spacy.load("en_core_web_sm")
-        except OSError:
-            # Fallback if model not available
-            print("Warning: spaCy English model not found. NLP layer will be disabled.")
-            self.nlp = None
+        """Initialize spaCy NLP model (shared loader; no stdout)."""
+        self.nlp = load_spacy_english()
+        if self.nlp is None:
+            logger.debug(
+                "NLP matcher has no spaCy model; pattern/regex fallbacks still apply."
+            )
 
     def _initialize_entity_patterns(self):
         """Initialize patterns for entity recognition"""

@@ -12,6 +12,7 @@ import json
 import logging
 import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from functools import lru_cache
 from typing import Optional, Tuple
@@ -85,6 +86,18 @@ def get_github_default_branch(owner: str, repo: str) -> str:
     return "master"
 
 
+def quote_github_raw_relative_path(repo_relative_path: str) -> str:
+    """
+    Percent-encode each path segment for raw.githubusercontent.com.
+
+    Unencoded ``#`` (e.g. KiCad ``#6THRU-HOLE.kicad_mod``) is treated as a URL
+    fragment and breaks fetches; GitLab raw URLs already quote segments.
+    """
+    rel = repo_relative_path.lstrip("/")
+    parts = [p for p in rel.split("/") if p != ""]
+    return "/".join(urllib.parse.quote(p, safe="") for p in parts)
+
+
 def github_raw_file_url(repo_url: str, repo_relative_path: str) -> str:
     """
     Map a repository-relative file path to a raw GitHub URL.
@@ -98,5 +111,5 @@ def github_raw_file_url(repo_url: str, repo_relative_path: str) -> str:
 
     owner, repo = parsed
     branch = get_github_default_branch(owner, repo)
-    rel = repo_relative_path.lstrip("/")
-    return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{rel}"
+    quoted = quote_github_raw_relative_path(repo_relative_path)
+    return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{quoted}"

@@ -15,7 +15,11 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
-from ..storage.smart_discovery import FileInfo, SmartFileDiscovery
+from ..storage.smart_discovery import (
+    FileInfo,
+    SmartFileDiscovery,
+    minimal_okh_manifest_dict,
+)
 from ..utils.logging import get_logger
 from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
@@ -259,6 +263,13 @@ class OKHService(BaseService["OKHService"]):
 
                     # Validate and fix UUID issues
                     fixed_okh_data = UUIDValidator.validate_and_fix_okh_data(okh_data)
+                    if not minimal_okh_manifest_dict(fixed_okh_data):
+                        self.logger.warning(
+                            "Skipping OKH storage key %s: not a minimal OKH manifest "
+                            "(e.g. standalone BOM JSON or incomplete file)",
+                            file_info.key,
+                        )
+                        continue
                     manifest = OKHManifest.from_dict(fixed_okh_data)
 
                     # Deduplicate by ID, keeping the most recently modified
