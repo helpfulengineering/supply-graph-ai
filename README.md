@@ -9,111 +9,113 @@ OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose 
 
 ## Quick Start for New Users
 
-### Prerequisites (first-time setup)
+### Prerequisites
 
-If you are new to these tools, install them before continuing:
+| Tool | Purpose | Install |
+|------|---------|---------|
+| **Git** | Clone the repository | https://git-scm.com/downloads |
+| **Docker Desktop** | Run the API server | https://www.docker.com/products/docker-desktop/ |
+| **uv** | Python env + CLI (local dev) | `curl -LsSf https://astral.sh/uv/install.sh \| sh` or `brew install uv` |
+| **Node.js ≥ 18** | Reference frontend | https://nodejs.org/ |
 
-- **Git** (to clone the repository): https://git-scm.com/downloads
-- **Docker Desktop** (includes Docker Compose): https://www.docker.com/products/docker-desktop/
-- **Miniconda** (recommended for Python env management): https://docs.conda.io/en/latest/miniconda.html
-- **MkDocs** (for local docs browsing): https://www.mkdocs.org/
+> Docker Desktop is sufficient if you only want to run the API. Install `uv` when you need the `ohm` CLI, to run tests, or to work on Python code.
 
 After installing, open a new terminal so the tools are on your PATH.
 
-### Installation
-
-#### Option 1: Docker Compose (Recommended - Simplest)
-
-Docker Compose is the recommended way to run the OHM server. It handles all dependencies, configuration, and provides a consistent environment.
+### Option A: API server only (Docker — no Python setup required)
 
 ```bash
-# Clone the repository
+# 1. Clone
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
-# Create and activate conda environment (Python 3.12 required)
-conda create -n supply-graph-ai python=3.12
-conda activate supply-graph-ai
-
-# Install dependencies (CLI + tooling)
-pip install -r requirements.txt
-
-# Install the CLI in editable mode (creates the 'ohm' command)
-pip install -e .
-
-# Copy environment template and customize (optional)
+# 2. Create your environment file (defaults work for local development)
 cp env.template .env
-# Edit .env with your configuration if needed
-# Most defaults work for local development
 
-# Start the API server (FastAPI via Docker)
-docker-compose up ohm-api
+# 3. Build and start the API
+docker compose up ohm-api
 ```
 
-**Docker Compose Benefits:**
-- ✅ Consistent environment across all machines
-- ✅ Automatic dependency management
-- ✅ Easy volume management for storage and logs
-- ✅ Built-in health checks
-- ✅ Simple scaling and service management
-- ✅ No need to install Python dependencies locally
+The API is now available at `http://localhost:8001`. Interactive API docs are at `http://localhost:8001/v1/docs`.
 
-#### Option 2: Local Development (For Active Development)
+### Option B: Local development with uv (CLI + tests + scripts)
 
-Use this option if you need to modify code frequently and want hot-reload without rebuilding Docker images.
+`uv` manages both the Python version and the virtual environment — no separate Python installation or conda is needed.
 
 ```bash
-# Clone the repository
+# 1. Clone
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
-# Create and activate conda environment (Python 3.12 required)
-conda create -n supply-graph-ai python=3.12
-conda activate supply-graph-ai
+# 2. Create your environment file
+cp env.template .env
 
-# Install dependencies
-pip install -r requirements.txt
+# 3. Install all dependencies (uv downloads Python 3.12 automatically if needed)
+uv sync
 
-# Install the package in editable mode (creates 'ohm' command)
-pip install -e .
+# 4. Activate the virtual environment
+source .venv/bin/activate          # macOS / Linux
+# .venv\Scripts\activate           # Windows
 
-# Verify installation
+# 5. Verify the CLI is available
 ohm --help
 
-# Start the API server (recommended)
-docker compose up --build ohm-api
-
-# Or use uvicorn directly for more control
-uvicorn src.core.main:app --reload --host 0.0.0.0 --port 8001
-
-# Or use the CLI directly
-ohm system health
+# 6. Start the API server (still uses Docker)
+docker compose up -d ohm-api
 ```
 
-### Helpful Docker Commands
+To include development dependencies (pytest, etc.):
 
 ```bash
-# Run in detached mode (background)
-docker-compose up -d ohm-api
+uv sync --extra dev
+```
 
-# View logs
-docker-compose logs -f ohm-api
+You can also run one-off commands without activating the venv:
 
-# Stop the server
-docker-compose down
+```bash
+uv run ohm system health
+uv run pytest tests -m unit
+```
+
+### Helpful Docker commands
+
+```bash
+# Start in the background
+docker compose up -d ohm-api
+
+# Tail logs
+docker compose logs -f ohm-api
+
+# Rebuild after Python source changes
+docker compose up --build ohm-api
+
+# Stop everything
+docker compose down
 ```
 
 ### Reference demo frontend (optional)
 
-The repository includes a Vite + React reference UI under `frontend/`. Start the OHM API first, then from the **`frontend`** directory run:
+The repository includes a Vite + React reference UI under `frontend/`. It provides a browser-based interface for browsing OKH designs, running matches, and visualising supply-chain solutions.
+
+**Step 1 — start the API** (must be running before the frontend is useful):
+
+```bash
+docker compose up -d ohm-api
+```
+
+**Step 2 — start the frontend dev server** (requires Node.js ≥ 18):
 
 ```bash
 cd frontend
-npm install   # first time only
+npm install   # first time only — installs JS dependencies
 npm run dev
 ```
 
-Open the URL Vite prints (typically `http://localhost:5173`). The dev server proxies `/v1` to the API; set `OHM_API_BASE_URL` in `frontend/.env` if your API is not at `http://localhost:8001` (see `frontend/.env.example`).
+Open the URL Vite prints (typically `http://localhost:5173`).
+
+The dev server proxies all `/v1` requests to the OHM API. If your API is not at the default `http://localhost:8001`, copy `frontend/.env.example` to `frontend/.env` and set `OHM_API_BASE_URL` accordingly.
+
+> **Hot-reload:** The frontend picks up TypeScript/CSS changes automatically while `npm run dev` is running. Python backend changes require rebuilding and restarting the Docker container (`docker compose up --build ohm-api`).
 
 ## Documentation
 
@@ -121,28 +123,19 @@ This README provides a quick start guide and basic project information. For full
 
 ### Building Documentation Locally
 
-The OHM documentation is built using [MkDocs](https://www.mkdocs.org/), a simple static site generator for project documentation.
+The OHM documentation is built using [MkDocs](https://www.mkdocs.org/).
 
-To build and view the documentation locally:
-
-1. Ensure your conda environment is active:
 ```bash
-conda activate supply-graph-ai
+# Install docs dependencies (MkDocs + plugins) into the project venv
+uv sync --extra docs
+
+# Serve with live reload
+uv run mkdocs serve
 ```
 
-2. Install MkDocs and required plugins:
-```bash
-pip install mkdocs mkdocs-material mkdocs-mermaid2-plugin
-```
+Open your browser to `http://localhost:8000/`.
 
-3. Start the documentation server:
-```bash
-mkdocs serve
-```
-
-4. Open your browser to `http://localhost:8000/`
-
-Note: This is the MkDocs documentation server port, not the API server which runs on port 8001.
+> Port 8000 is the MkDocs server. The API server runs on port 8001.
 
 ### Documentation Structure
 
@@ -201,43 +194,31 @@ supply-graph-ai/
 ├── mkdocs.yml              # Documentation configuration
 ├── bin/                    # Development entrypoint scripts
 │   └── ohm                 # Development CLI entrypoint (fallback)
-├── pyproject.toml          # Package configuration (creates 'ohm' command via pip install -e .)
-├── requirements.txt        # Project dependencies
+├── pyproject.toml          # Package metadata and dependencies
+├── uv.lock                 # Locked dependency versions (managed by uv)
 └── docker-compose.yml      # Local service orchestration
 ```
 
 ## Running the Application
 
-### Using Docker (Recommended)
+### API server (Docker)
 
 ```bash
-# Start the API server
-docker-compose up ohm-api
-
-# Access the API documentation at:
-# http://localhost:8001/docs
-```
-
-```bash
-# Run CLI commands (local install required)
-ohm system health
-
-# Or run a containerized CLI command
-docker run --rm \
-  -v $(pwd)/test-data:/app/test-data \
-  open-matching-engine cli okh validate /app/test-data/manifest.okh.json
-```
-
-### Local Development
-
-Note: You may need to add a directory called "logs" locally if the command below indicates it can't open the log file!
-
-```bash
-# Start the FastAPI server
+# Start (or rebuild) the API server
 docker compose up --build ohm-api
 
-# Visit the API documentation at:
-# http://127.0.0.1:8001/v1/docs
+# API base URL:      http://localhost:8001
+# Interactive docs:  http://localhost:8001/v1/docs
+```
+
+### CLI commands (requires uv setup from Option B above)
+
+```bash
+# Health check
+ohm system health
+
+# Or without activating the venv
+uv run ohm system health
 ```
 
 For container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
