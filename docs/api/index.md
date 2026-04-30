@@ -1,6 +1,6 @@
 # API Documentation
 
-The Open Hardware Manager (OHM) provides a REST API built on FastAPI with complete standardization, enterprise-grade error handling, and LLM integration support. This section documents the fully standardized API system with 43 routes across 6 command groups, all with testing and production readiness.
+The Open Hardware Manager (OHM) provides a REST API built on FastAPI with standardized request/response patterns, structured error handling, and LLM integration hooks. **Endpoint inventory:** use the interactive docs at **`/v1/docs`** and **`/v1/openapi.json`** on your running server (see [Conference demo readiness](../development/conference-demo-readiness.md#api-machine-truth-refresh-before-demo) for how to regenerate counts). Narrative pages here describe concepts and patterns; they are not a substitute for OpenAPI.
 
 ## API Architecture Overview
 

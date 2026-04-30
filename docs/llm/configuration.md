@@ -26,7 +26,7 @@ export LLM_PROVIDER="anthropic"
 export LLM_MODEL="claude-sonnet-4-5-20250929"
 
 # Use LLM commands - provider will be automatically selected
-ome llm generate "Hello world"
+ohm llm generate "Hello world"
 ```
 
 ## Environment Variables
@@ -407,7 +407,7 @@ print(f"Average cost per request: ${metrics.average_cost_per_request:.4f}")
 Use the CLI command to see which providers are available:
 
 ```bash
-ome llm providers info
+ohm llm providers info
 ```
 
 This will show:
@@ -425,19 +425,19 @@ export LLM_PROVIDER=anthropic
 export LLM_MODEL=claude-sonnet-4-5-20250929
 
 # Use LLM commands
-ome llm generate "Hello world"
+ohm llm generate "Hello world"
 ```
 
 **CLI Flag Override:**
 ```bash
 # Override environment variables
-ome llm generate "Hello world" --provider openai --model gpt-3.5-turbo
+ohm llm generate "Hello world" --provider openai --model gpt-3.5-turbo
 ```
 
 **Auto-Detection (No Configuration):**
 ```bash
 # System automatically selects best available provider
-ome llm generate "Hello world"
+ohm llm generate "Hello world"
 ```
 
 ### Provider Selection Logic
@@ -549,16 +549,16 @@ export LLM_MODEL="claude-sonnet-4-5-20250929"  # Default model
 ### CLI Commands
 ```bash
 # Check provider status
-ome llm providers info
+ohm llm providers info
 
 # Generate with automatic provider selection
-ome llm generate "Hello world"
+ohm llm generate "Hello world"
 
 # Override provider
-ome llm generate "Hello world" --provider openai
+ohm llm generate "Hello world" --provider openai
 
 # Generate OKH manifest
-ome llm generate-okh https://github.com/user/project
+ohm llm generate-okh https://github.com/user/project
 ```
 
 ### Python API

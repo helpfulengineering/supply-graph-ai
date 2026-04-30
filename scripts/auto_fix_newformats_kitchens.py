@@ -7,11 +7,11 @@ KitchenCapability model so the stored JSON gets the canonical format (including
 the "domain" field). Uses the same connection pattern as verify_newformats_matching.py.
 
 Usage:
-    conda activate supply-graph-ai
+    # From repo root: uv sync --extra dev
     # Dry run: show what would be updated
-    python scripts/auto_fix_newformats_kitchens.py --container newformats --dry-run
+    uv run python scripts/auto_fix_newformats_kitchens.py --container newformats --dry-run
     # Apply fixes
-    python scripts/auto_fix_newformats_kitchens.py --container newformats
+    uv run python scripts/auto_fix_newformats_kitchens.py --container newformats
 
 Requires: .env with STORAGE_PROVIDER (e.g. azure_blob), and provider-specific
 credentials (e.g. AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY for Azure).

@@ -7,7 +7,7 @@ creation, validation, listing, and matching operations.
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 import click
@@ -28,7 +28,7 @@ from .decorators import standard_cli_command
 
 
 @click.group()
-def okw_group():
+def okw_group() -> None:
     """
     OKW (OpenKnowWhere) facility management commands.
 
@@ -55,7 +55,7 @@ def okw_group():
 # Helper functions
 
 
-async def _read_facility_file(file_path: str) -> dict:
+async def _read_facility_file(file_path: str) -> dict[str, Any]:
     """Read and parse facility file."""
     facility_path = Path(file_path)
 

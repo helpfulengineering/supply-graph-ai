@@ -53,7 +53,8 @@ async def get_llm_service() -> LLMService:
     include_metrics=False,  # Don't track metrics for health check
 )
 async def get_llm_health(
-    http_request: Request = None, llm_service: LLMService = Depends(get_llm_service)
+    http_request: Request = None,
+    llm_service: LLMService = Depends(get_llm_service),
 ) -> LLMHealthResponse:
     """
     Get LLM service health and provider status.
@@ -176,7 +177,8 @@ async def get_llm_health(
     include_metrics=False,  # Don't track metrics for provider list
 )
 async def get_llm_providers(
-    http_request: Request = None, llm_service: LLMService = Depends(get_llm_service)
+    http_request: Request = None,
+    llm_service: LLMService = Depends(get_llm_service),
 ) -> LLMProvidersResponse:
     """
     Get list of available LLM providers.

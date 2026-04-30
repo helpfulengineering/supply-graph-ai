@@ -11,10 +11,10 @@ experiments). Does not run live generation — use ``scripts/okh_generation_batc
 or ``ohm okh generate-from-url`` to produce manifests first.
 
 Usage:
-    conda activate supply-graph-ai
-    python scripts/okh_generation_baseline_report.py
-    python scripts/okh_generation_baseline_report.py --output /tmp/baseline.json
-    python scripts/okh_generation_baseline_report.py --layer 3L \\
+    # From repo root: uv sync --extra dev
+    uv run python scripts/okh_generation_baseline_report.py
+    uv run python scripts/okh_generation_baseline_report.py --output /tmp/baseline.json
+    uv run python scripts/okh_generation_baseline_report.py --layer 3L \\
         --manifests-dir tmp/oshwa/okh-manifests \\
         --output tmp/oshwa/baseline_report.json
 """

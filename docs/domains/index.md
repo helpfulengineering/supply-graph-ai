@@ -152,7 +152,7 @@ To add a new domain to the system:
        status=DomainStatus.ACTIVE,
        supported_input_types={"input_type1", "input_type2"},
        supported_output_types={"output_type1", "output_type2"},
-       documentation_url="https://docs.ome.org/domains/new_domain",
+       documentation_url="https://example.com/docs/domains/new_domain",
        maintainer="Your Team"
    )
    

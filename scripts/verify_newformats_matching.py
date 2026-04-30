@@ -13,14 +13,14 @@ Use this to confirm that newformats data produces valid matches (e.g. for a coll
 who reports "no valid matches" — run this to verify expected behavior).
 
 Usage:
-    conda activate supply-graph-ai
-    python scripts/verify_newformats_matching.py
+    # From repo root: uv sync --extra dev
+    uv run python scripts/verify_newformats_matching.py
 
     # Newformats is recipe + kitchen (cooking): verify with explicit cooking domain
-    python scripts/verify_newformats_matching.py --domain cooking
+    uv run python scripts/verify_newformats_matching.py --domain cooking
 
     # Verify that domain auto-detect picks cooking when given recipes + kitchens
-    python scripts/verify_newformats_matching.py --domain auto
+    uv run python scripts/verify_newformats_matching.py --domain auto
 
 Requires: .env with STORAGE_PROVIDER=azure_blob, AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY.
 """

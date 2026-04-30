@@ -34,12 +34,17 @@ logger = get_logger(__name__)
 
 
 class MatchingService:
-    """Service for matching OKH requirements to OKW capabilities"""
+    """Match OKH (or domain) requirements against OKW capabilities.
+
+    Orchestrates direct matchers, capability rules, and NLP layers registered
+    per domain. Use :meth:`get_instance` as the supported entrypoint for
+    callers that need a shared, initialized service.
+    """
 
     _instance = None
 
-    def __init__(self):
-        """Initialize the matching service with Direct Matching layers"""
+    def __init__(self) -> None:
+        """Build matchers and empty service slots; call :meth:`initialize` before matching."""
         self._initialized = False
         self.direct_matchers = {
             "manufacturing": MfgDirectMatcher(),
@@ -60,7 +65,15 @@ class MatchingService:
         okh_service: Optional[OKHService] = None,
         okw_service: Optional[OKWService] = None,
     ) -> "MatchingService":
-        """Get singleton instance"""
+        """Return the process-wide singleton, initializing it on first use.
+
+        Args:
+            okh_service: Optional pre-built OKH service (otherwise resolved lazily).
+            okw_service: Optional pre-built OKW service (otherwise resolved lazily).
+
+        Returns:
+            Initialized ``MatchingService`` singleton.
+        """
         if cls._instance is None:
             cls._instance = cls()
             await cls._instance.initialize(okh_service, okw_service)
@@ -71,7 +84,14 @@ class MatchingService:
         okh_service: Optional[OKHService] = None,
         okw_service: Optional[OKWService] = None,
     ) -> None:
-        """Initialize the matching service with all required components"""
+        """Wire domain registry, capability rules, NLP matchers, and mark the service ready.
+
+        Safe to call once per process; subsequent calls are no-ops while ``_initialized`` is set.
+
+        Args:
+            okh_service: Optional OKH service for ID-based matching; lazily resolved if omitted.
+            okw_service: Optional OKW service for facility listing; lazily resolved if omitted.
+        """
         if self._initialized:
             return
 
@@ -108,7 +128,20 @@ class MatchingService:
     async def find_matches(
         self, okh_id: UUID, optimization_criteria: Optional[Dict[str, float]] = None
     ) -> Set[SupplyTreeSolution]:
-        """Find matching facilities for an OKH manifest by ID (loads manifest and facilities, then delegates)."""
+        """Resolve an OKH by ID and all facilities, then run single-level matching.
+
+        Args:
+            okh_id: Manifest UUID to load via ``okh_service``.
+            optimization_criteria: Optional weights passed through to scoring (domain-specific).
+
+        Returns:
+            A (possibly empty) set of ``SupplyTreeSolution`` instances. Returns an empty set if
+            the manifest is missing.
+
+        Raises:
+            RuntimeError: If the service was not initialized via :meth:`initialize`.
+            Exception: Propagates storage or matching errors from underlying services.
+        """
         await self.ensure_initialized()
         logger.info(
             "Finding matches for OKH manifest",
@@ -122,7 +155,7 @@ class MatchingService:
             manifest = await self.okh_service.get(okh_id)
             if not manifest:
                 logger.warning("OKH manifest not found", extra={"okh_id": str(okh_id)})
-                return []
+                return set()
             facilities, total = await self.okw_service.list()
             logger.info(
                 "Retrieved manufacturing facilities",
@@ -149,7 +182,20 @@ class MatchingService:
         optimization_criteria: Optional[Dict[str, float]] = None,
         explicit_domain: Optional[str] = None,
     ) -> Set[SupplyTreeSolution]:
-        """Find matching facilities for an in-memory OKH manifest and provided facilities."""
+        """Run domain detection, requirement extraction, and per-facility matching.
+
+        Args:
+            okh_manifest: In-memory OKH to match.
+            facilities: Candidate facilities (OKW) to evaluate.
+            optimization_criteria: Optional scoring weights.
+            explicit_domain: When set, skips content-based domain detection.
+
+        Returns:
+            Distinct ``SupplyTreeSolution`` objects (deduplicated by facility where applicable).
+
+        Raises:
+            RuntimeError: If the service was not initialized.
+        """
         await self.ensure_initialized()
 
         logger.info(
@@ -295,6 +341,17 @@ class MatchingService:
         - Uses a greedy set-cover strategy over extracted process requirements.
         - Returns one or more `SupplyTreeSolution` objects with metadata including
           `coverage_ratio` and `coverage_gaps`.
+
+        Args:
+            okh_manifest: OKH whose process requirements drive set cover.
+            facilities: Pool of facilities to combine (manufacturing domain uses greedy cover).
+            max_facilities_per_solution: Upper bound on facilities referenced per composite solution.
+            return_alternative_solutions: When true, may return multiple non-dominated covers.
+            combination_strategy: Only ``"greedy"`` is supported; other values log and fall back.
+            explicit_domain: Optional domain override for detection.
+
+        Returns:
+            A set of solutions; empty if the facility pool is empty or requirements cannot be extracted.
         """
         await self.ensure_initialized()
 
@@ -934,7 +991,18 @@ class MatchingService:
         facility_name: str,
         domain: str = "manufacturing",
     ) -> MatchExplanation:
-        """Build a match explanation for a single facility vs requirements."""
+        """Build a structured explanation of how one facility lines up with requirements.
+
+        Args:
+            requirements: Normalized requirement dicts (e.g. process names / fields).
+            capabilities: Facility capability dicts in the same shape the matchers expect.
+            facility_id: Stable facility identifier for the response payload.
+            facility_name: Human-readable facility label.
+            domain: Registered domain id (default ``manufacturing``).
+
+        Returns:
+            ``MatchExplanation`` with per-requirement details and summary text fields.
+        """
         satisfied, details = await self._can_satisfy_requirements_with_details(
             requirements, capabilities, domain
         )
@@ -1872,7 +1940,12 @@ class MatchingService:
         return intersection / union
 
     async def get_available_domains(self) -> List[Dict[str, Any]]:
-        """Get list of available matching domains"""
+        """Summarize each registered domain for health or discovery UIs.
+
+        Returns:
+            A list of dicts with keys such as ``id``, ``name``, ``description``, and matcher counts
+            derived from the domain registry and in-process direct matchers.
+        """
         await self.ensure_initialized()
 
         # Get domains from the domain registry
@@ -1997,7 +2070,11 @@ class MatchingService:
             # Don't raise the exception - let the service continue without domains
 
     async def ensure_initialized(self) -> None:
-        """Ensure service is initialized"""
+        """Raise if :meth:`initialize` has not completed successfully.
+
+        Raises:
+            RuntimeError: When the singleton was constructed but never initialized.
+        """
         if not self._initialized:
             raise RuntimeError("Matching service not initialized")
 
@@ -2076,6 +2153,7 @@ class MatchingService:
             max_depth: Maximum nesting depth (default: 5)
             domain: Domain for matching (default: "manufacturing")
             okh_service: OKHService instance for resolving references (optional)
+            manifest_path: Optional storage-relative path hint for child manifest resolution.
 
         Returns:
             Set of SupplyTreeSolution with all matched components (nested if multiple trees)

@@ -24,7 +24,7 @@ from ..core.taxonomy import (
 
 
 @click.group()
-def taxonomy_group():
+def taxonomy_group() -> None:
     """
     Process taxonomy management commands.
 

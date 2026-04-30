@@ -14,12 +14,13 @@ from uuid import uuid4
 
 import pytest
 
-# Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+_REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
-from core.models.okh import License, OKHManifest
-from core.models.okw import FacilityStatus, Location, ManufacturingFacility
-from core.models.supply_trees import SupplyTree, SupplyTreeSolution
+from src.core.models.okh import License, OKHManifest
+from src.core.models.okw import FacilityStatus, Location, ManufacturingFacility
+from src.core.models.supply_trees import SupplyTree, SupplyTreeSolution
 
 
 class TestSupplyTreePerformance:

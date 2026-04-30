@@ -12,6 +12,7 @@ import json
 import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
+from collections.abc import Awaitable, Callable
 from typing import Any, Dict, Optional
 
 import click
@@ -27,8 +28,8 @@ from ..core.services.storage_service import StorageService
 logger = logging.getLogger(__name__)
 
 
-async def ensure_domains_registered():
-    """Ensure domains are registered when using direct service calls in CLI mode"""
+async def ensure_domains_registered() -> None:
+    """Ensure domains are registered when using direct service calls in CLI mode."""
     from ..core.domains.cooking.extractors import CookingExtractor
     from ..core.domains.cooking.matchers import CookingMatcher
     from ..core.domains.cooking.validation.compatibility import CookingValidatorCompat
@@ -104,7 +105,7 @@ async def ensure_domains_registered():
 class CLIConfig:
     """CLI configuration management with LLM support"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         import os
 
         # Allow environment variable override
@@ -139,8 +140,8 @@ class CLIConfig:
         # You can add settings-based configuration here
         return config
 
-    def update_llm_config(self, **kwargs):
-        """Update LLM configuration"""
+    def update_llm_config(self, **kwargs: Any) -> None:
+        """Merge keys into the in-memory LLM option dict."""
         self.llm_config.update(kwargs)
 
     def get_llm_provider(self) -> str:
@@ -159,7 +160,7 @@ class CLIConfig:
 class APIClient:
     """HTTP client for communicating with FastAPI server"""
 
-    def __init__(self, config: CLIConfig):
+    def __init__(self, config: CLIConfig) -> None:
         self.config = config
         self.base_url = f"{config.server_url}/v1"  # Use /v1 API prefix
 
@@ -268,8 +269,8 @@ class APIClient:
 class ServiceFallback:
     """Fallback to direct service calls when server is unavailable"""
 
-    def __init__(self):
-        self._services = {}
+    def __init__(self) -> None:
+        self._services: Dict[str, Any] = {}
 
     async def get_package_service(self) -> PackageService:
         """Get package service instance"""
@@ -307,7 +308,7 @@ class ServiceFallback:
 class CLIContext:
     """Context object passed to all CLI commands with LLM support"""
 
-    def __init__(self, config: CLIConfig):
+    def __init__(self, config: CLIConfig) -> None:
         self.config = config
         self.api_client = APIClient(config)
         self.service_fallback = ServiceFallback()
@@ -321,7 +322,7 @@ class CLIContext:
         self.start_time = None
         self.command_name = None
 
-    def log(self, message: str, level: str = "info"):
+    def log(self, message: str, level: str = "info") -> None:
         """Log message with appropriate level.
 
         When output_format is 'json' all non-error messages are routed to stderr
@@ -338,8 +339,8 @@ class CLIContext:
             else:
                 click.echo(f"ℹ️  {message}", err=json_mode)
 
-    def update_llm_config(self, **kwargs):
-        """Update LLM configuration"""
+    def update_llm_config(self, **kwargs: Any) -> None:
+        """Update LLM flags on this context and the underlying :class:`CLIConfig`."""
         self.llm_config.update(kwargs)
         self.config.update_llm_config(**kwargs)
 
@@ -363,15 +364,15 @@ class CLIContext:
         """Check if strict mode is enabled"""
         return self.llm_config.get("strict_mode", False)
 
-    def start_command_tracking(self, command_name: str):
-        """Start tracking command execution"""
+    def start_command_tracking(self, command_name: str) -> None:
+        """Start tracking command execution."""
         self.command_name = command_name
         self.start_time = datetime.now()
         if self.verbose:
             self.log(f"Starting {command_name} command", "info")
 
-    def end_command_tracking(self):
-        """End tracking command execution"""
+    def end_command_tracking(self) -> None:
+        """End tracking command execution."""
         if self.start_time and self.verbose:
             execution_time = (datetime.now() - self.start_time).total_seconds()
             self.log(
@@ -379,8 +380,8 @@ class CLIContext:
                 "success",
             )
 
-    async def cleanup(self):
-        """Clean up resources"""
+    async def cleanup(self) -> None:
+        """Release singleton services and short-lived resources after a command."""
         try:
             # Always log cleanup start (not just in verbose mode) for debugging
             logger.info("CLIContext.cleanup() called")
@@ -538,11 +539,15 @@ class CLIContext:
 class SmartCommand:
     """Base class for commands that can use HTTP or direct service calls"""
 
-    def __init__(self, ctx: CLIContext):
+    def __init__(self, ctx: CLIContext) -> None:
         self.ctx = ctx
 
-    async def execute_with_fallback(self, http_operation, fallback_operation):
-        """Execute operation with HTTP first, fallback to direct service calls"""
+    async def execute_with_fallback(
+        self,
+        http_operation: Callable[[], Awaitable[Any]],
+        fallback_operation: Callable[[], Awaitable[Any]],
+    ) -> Any:
+        """Try ``http_operation``; on connection errors run ``fallback_operation``."""
         try:
             # Try HTTP first
             self.ctx.log(
@@ -653,7 +658,7 @@ def format_json_output(data: Dict[str, Any], pretty: bool = True) -> str:
         return json.dumps(data, default=str)
 
 
-def format_table_output(data: list, headers: list) -> str:
+def format_table_output(data: list[dict[str, Any]], headers: list[str]) -> str:
     """Format data as table output"""
     if not data:
         return "No data available"
@@ -674,23 +679,23 @@ def confirm_action(message: str, default: bool = False) -> bool:
     return click.confirm(message, default=default)
 
 
-def echo_success(message: str):
-    """Echo success message"""
+def echo_success(message: str) -> None:
+    """Echo success message."""
     click.echo(f"✅ {message}")
 
 
-def echo_error(message: str):
-    """Echo error message"""
+def echo_error(message: str) -> None:
+    """Echo error message."""
     click.echo(f"❌ {message}", err=True)
 
 
-def echo_warning(message: str):
-    """Echo warning message"""
+def echo_warning(message: str) -> None:
+    """Echo warning message."""
     click.echo(f"⚠️  {message}", err=True)
 
 
-def echo_info(message: str):
-    """Echo info message"""
+def echo_info(message: str) -> None:
+    """Echo info message."""
     click.echo(f"ℹ️  {message}")
 
 
@@ -728,8 +733,10 @@ def create_llm_request_data(
     return request_data
 
 
-def log_llm_usage(cli_ctx: CLIContext, operation: str, cost: Optional[float] = None):
-    """Log LLM usage information"""
+def log_llm_usage(
+    cli_ctx: CLIContext, operation: str, cost: Optional[float] = None
+) -> None:
+    """Log LLM usage when verbose mode is on."""
     if cli_ctx.is_llm_enabled() and cli_ctx.verbose:
         provider = cli_ctx.get_llm_provider()
         model = cli_ctx.get_llm_model() or "default"

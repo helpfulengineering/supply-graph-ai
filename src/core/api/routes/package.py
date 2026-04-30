@@ -116,7 +116,7 @@ async def build_package_from_manifest(
     request: PackageBuildRequest,
     http_request: Request,
     package_service: PackageService = Depends(get_package_service),
-):
+) -> Any:
     """
     Enhanced package building with standardized patterns.
 
@@ -260,7 +260,7 @@ async def build_package_from_storage(
     manifest_id: UUID,
     options_body: Optional[Dict[str, Any]] = Body(default=None),
     package_service: PackageService = Depends(get_package_service),
-):
+) -> Any:
     """
     Build an OKH package from a stored manifest
 
@@ -334,7 +334,7 @@ async def list_packages(
     pagination: PaginationParams = Depends(),
     package_service: PackageService = Depends(get_package_service),
     http_request: Request = None,
-):
+) -> Any:
     """Enhanced package listing with pagination and metrics."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -416,7 +416,7 @@ async def get_package_metadata(
     package_name: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
-):
+) -> Any:
     """
     Get metadata for a specific package
 
@@ -461,7 +461,7 @@ async def verify_package(
     package_name: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
-):
+) -> Any:
     """
     Verify a package's integrity
 
@@ -501,7 +501,7 @@ async def delete_package(
     package_name: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
-):
+) -> Any:
     """
     Delete a package
 
@@ -546,7 +546,7 @@ async def download_package(
     package_name: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
-):
+) -> Any:
     """
     Download a package as a tarball
 
@@ -629,7 +629,7 @@ async def download_package(
 async def push_package(
     request: PackagePushRequest,
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage),
-):
+) -> Any:
     """
     Push a local package to remote storage
 
@@ -725,7 +725,7 @@ async def push_package(
 async def pull_package(
     request: PackagePullRequest,
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage),
-):
+) -> Any:
     """
     Pull a remote package to local storage
 
@@ -805,7 +805,7 @@ async def pull_package(
 @router.get("/remote", response_model=Dict[str, Any])
 async def list_remote_packages(
     remote_storage: PackageRemoteStorage = Depends(get_remote_storage),
-):
+) -> Any:
     """
     List packages available in remote storage
 

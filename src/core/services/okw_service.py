@@ -27,13 +27,16 @@ class OKWService(BaseService["OKWService"]):
 
     def __init__(
         self, service_name: str = "OKWService", config: Optional[ServiceConfig] = None
-    ):
+    ) -> None:
         """Initialize the OKW service with base service functionality."""
         super().__init__(service_name, config)
         self.storage: Optional[StorageService] = None
 
     async def _initialize_dependencies(self) -> None:
-        """Initialize service dependencies."""
+        """Initialize storage dependency and ensure it is configured.
+
+        This is invoked by :class:`BaseService` during first-time initialization.
+        """
         # Initialize storage service
         self.storage = await StorageService.get_instance()
 
@@ -47,7 +50,7 @@ class OKWService(BaseService["OKWService"]):
         self.logger.info("OKW service dependencies initialized")
 
     async def initialize(self) -> None:
-        """Initialize the OKW service with service-specific setup."""
+        """Ensure domains are registered, attach storage, and complete base-service setup."""
         await self.ensure_initialized()
 
         # Ensure domains are registered (for fallback mode when server startup doesn't run)
@@ -59,7 +62,14 @@ class OKWService(BaseService["OKWService"]):
         self.logger.info("OKW service initialized successfully")
 
     async def create(self, facility_data: Dict[str, Any]) -> ManufacturingFacility:
-        """Create a new manufacturing facility"""
+        """Persist a facility JSON at ``okw/{facility_id}.json`` when storage is configured.
+
+        Args:
+            facility_data: Raw dict or an existing ``ManufacturingFacility`` instance.
+
+        Returns:
+            The created ``ManufacturingFacility``.
+        """
         async with self.track_request("create_okw_facility"):
             await self.ensure_initialized()
             self.logger.info("Creating new manufacturing facility")
@@ -88,7 +98,14 @@ class OKWService(BaseService["OKWService"]):
             return facility
 
     async def get(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
-        """Get a manufacturing facility by ID"""
+        """Discover ``okw/`` files and return the most recently modified row matching ``facility_id``.
+
+        Args:
+            facility_id: Target facility UUID.
+
+        Returns:
+            ``ManufacturingFacility`` when found; ``None`` if storage is missing or no match.
+        """
         async with self.track_request("get_okw_facility"):
             await self.ensure_initialized()
             self.logger.info(f"Getting manufacturing facility with ID {facility_id}")
@@ -143,7 +160,14 @@ class OKWService(BaseService["OKWService"]):
             return None
 
     async def get_by_id(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
-        """Get a manufacturing facility by ID (CLI compatibility method)"""
+        """Compatibility alias for :meth:`get`.
+
+        Args:
+            facility_id: Target facility UUID.
+
+        Returns:
+            Matching ``ManufacturingFacility`` or ``None`` when not found.
+        """
         return await self.get(facility_id)
 
     async def list(
@@ -162,6 +186,11 @@ class OKWService(BaseService["OKWService"]):
         Returns:
             A tuple of ``(facilities, total_count)`` where every element
             in ``facilities`` is a ``ManufacturingFacility`` instance.
+
+        Args:
+            page: 1-based page index.
+            page_size: Page length.
+            filter_params: Reserved for future server-side filtering.
         """
         await self.ensure_initialized()
         logger.info(
@@ -253,7 +282,18 @@ class OKWService(BaseService["OKWService"]):
         status: Optional[str] = None,
         location: Optional[str] = None,
     ) -> List[ManufacturingFacility]:
-        """List manufacturing facilities with limit/offset parameters (CLI compatibility)"""
+        """CLI-oriented wrapper around :meth:`list` using ``limit``/``offset``.
+
+        Args:
+            limit: Maximum facilities to return.
+            offset: Number of facilities to skip before returning results.
+            facility_type: Optional future filter key (currently forwarded only).
+            status: Optional future filter key (currently forwarded only).
+            location: Optional future filter key (currently forwarded only).
+
+        Returns:
+            List of ``ManufacturingFacility`` objects for the requested page.
+        """
         # Convert limit/offset to page/page_size
         page_size = limit
         page = (offset // page_size) + 1
@@ -349,7 +389,19 @@ class OKWService(BaseService["OKWService"]):
     async def update(
         self, facility_id: UUID, facility_data: Dict[str, Any]
     ) -> ManufacturingFacility:
-        """Update a manufacturing facility in-place at its existing storage key (find-then-act)."""
+        """Update a manufacturing facility in-place at its existing storage key.
+
+        Args:
+            facility_id: Facility UUID to replace.
+            facility_data: Replacement facility payload.
+
+        Returns:
+            Parsed and persisted ``ManufacturingFacility`` instance.
+
+        Notes:
+            If no existing key is discovered, falls back to ``okw/{facility_id}.json``
+            and logs a warning.
+        """
         await self.ensure_initialized()
         logger.info(f"Updating manufacturing facility with ID {facility_id}")
 
@@ -378,7 +430,15 @@ class OKWService(BaseService["OKWService"]):
         return facility
 
     async def delete(self, facility_id: UUID) -> bool:
-        """Delete a manufacturing facility by locating its actual storage key (find-then-act)."""
+        """Delete a manufacturing facility by locating its actual storage key.
+
+        Args:
+            facility_id: Facility UUID to delete.
+
+        Returns:
+            ``True`` when an object was deleted; ``False`` when no key is found
+            or storage is unavailable.
+        """
         await self.ensure_initialized()
         logger.info(f"Deleting manufacturing facility with ID {facility_id}")
 
@@ -399,10 +459,13 @@ class OKWService(BaseService["OKWService"]):
         return False
 
     async def _find_key_for_id(self, target_id: UUID) -> Optional[str]:
-        """
-        Discover the storage key of the OKW file matching target_id.
+        """Discover the storage key for an OKW object id.
 
-        Returns the key string if found, None otherwise.
+        Args:
+            target_id: UUID to match against the stored JSON ``id`` field.
+
+        Returns:
+            Matching object key or ``None`` if no key can be resolved.
         """
         discovery = SmartFileDiscovery(self.storage.manager)
         file_infos = await discovery.discover_files("okw")
@@ -426,7 +489,21 @@ class OKWService(BaseService["OKWService"]):
         validation_context: Optional[str] = None,
         strict_mode: bool = False,
     ) -> Dict[str, Any]:
-        """Validate OKW facility content against canonical ManufacturingFacility dataclass"""
+        """Validate raw OKW facility content against canonical model rules.
+
+        Args:
+            content: Facility payload to validate.
+            validation_context: Optional quality profile (``hobby``, ``professional``,
+                or ``medical``). Unknown values default to ``professional``.
+            strict_mode: Enables stricter validation semantics in the shared validator.
+
+        Returns:
+            Backward-compatible validation response including flags, issues,
+            warnings, and score fields.
+
+        Raises:
+            ValueError: If validation infrastructure fails unexpectedly.
+        """
         await self.ensure_initialized()
         logger.info(f"Validating OKW facility content")
 
@@ -481,7 +558,7 @@ class OKWService(BaseService["OKWService"]):
 
     # LLM Integration Methods
     async def prepare_llm_integration(self) -> None:
-        """Prepare the OKW service for LLM integration."""
+        """Prepare optional LLM-related integrations for OKW workflows."""
         await super().prepare_llm_integration()
 
         if self.is_llm_enabled():
@@ -494,7 +571,18 @@ class OKWService(BaseService["OKWService"]):
             # - LLM-powered facility capability analysis
 
     async def handle_llm_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle LLM requests for OKW facility operations."""
+        """Handle placeholder LLM request types for OKW operations.
+
+        Args:
+            request_data: Request payload containing at least ``type``.
+
+        Returns:
+            Placeholder status response for known request types, or an ``error`` payload
+            for unknown request types.
+
+        Raises:
+            RuntimeError: If LLM integration is disabled in service configuration.
+        """
         if not self.is_llm_enabled():
             raise RuntimeError("LLM integration not enabled for OKW service")
 
@@ -513,7 +601,11 @@ class OKWService(BaseService["OKWService"]):
             return {"error": f"Unknown LLM request type: {request_type}"}
 
     async def _ensure_domains_registered(self) -> None:
-        """Ensure domains are registered (for fallback mode when server startup doesn't run)"""
+        """Register cooking/manufacturing domains when startup registration was skipped.
+
+        This method is best-effort for local/CLI fallback paths and logs failures instead
+        of raising so service startup can continue in degraded mode.
+        """
         from ..registry.domain_registry import (
             DomainMetadata,
             DomainRegistry,

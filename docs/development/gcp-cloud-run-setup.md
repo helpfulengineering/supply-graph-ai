@@ -140,16 +140,16 @@ Use this checklist to quickly verify all setup steps are complete. See detailed 
 - [ ] **Directory Structure** (auto-created on first startup, or pre-created via script)
   ```bash
   # Optional: Pre-create using standalone script
-  # Requires: conda activate supply-graph-ai
+  # Requires: uv sync (repo root) — see README
   # Requires: gcloud auth application-default login (for local credentials)
-  python scripts/setup_storage.py \
+  uv run python scripts/setup_storage.py \
     --provider gcs \
     --bucket ${BUCKET_NAME} \
     --region ${REGION} \
     --project-id ${PROJECT_ID}
   
   # Or with explicit credentials
-  python scripts/setup_storage.py \
+  uv run python scripts/setup_storage.py \
     --provider gcs \
     --bucket ${BUCKET_NAME} \
     --region ${REGION} \
@@ -159,18 +159,17 @@ Use this checklist to quickly verify all setup steps are complete. See detailed 
 
 - [ ] **Synthetic Data** (optional, can be done after deployment)
   ```bash
-  # Requires: conda activate supply-graph-ai
-  # Requires: Application codebase and dependencies installed
+  # Requires: uv sync (repo root) so `ohm` is available via uv run
   # Requires: gcloud auth application-default login (for local credentials)
   # Note: Does NOT require the API server to be running
-  ohm storage populate \
+  uv run ohm storage populate \
     --provider gcs \
     --bucket ${BUCKET_NAME} \
     --region ${REGION} \
     --project-id ${PROJECT_ID}
   
   # Or with explicit credentials
-  ohm storage populate \
+  uv run ohm storage populate \
     --provider gcs \
     --bucket ${BUCKET_NAME} \
     --region ${REGION} \
@@ -331,15 +330,14 @@ gcloud secrets add-iam-policy-binding gcp-storage-bucket \
   --role="roles/secretmanager.secretAccessor"
 
 # Optional: Pre-create directory structure
-python scripts/setup_storage.py \
+uv run python scripts/setup_storage.py \
   --provider gcs \
   --bucket ${BUCKET_NAME} \
   --region ${REGION} \
   --project-id ${PROJECT_ID}
 
-# Optional: Populate with synthetic data (requires conda environment)
-# conda activate supply-graph-ai
-# ohm storage populate \
+# Optional: Populate with synthetic data (requires uv sync / repo deps)
+# uv run ohm storage populate \
 #   --provider gcs \
 #   --bucket ${BUCKET_NAME} \
 #   --region ${REGION} \
@@ -605,18 +603,18 @@ For most use cases, **Solution 1 (Lazy Initialization)** is recommended as it fo
 Use the standalone script that doesn't require the full application:
 
 ```bash
-# Activate conda environment
-conda activate supply-graph-ai
+cd supply-graph-ai
+uv sync --extra dev
 
 # Setup directory structure in GCS
-python scripts/setup_storage.py \
+uv run python scripts/setup_storage.py \
     --provider gcs \
     --bucket $BUCKET_NAME \
     --region $REGION \
     --project-id $PROJECT_ID
 
 # Or with explicit credentials
-python scripts/setup_storage.py \
+uv run python scripts/setup_storage.py \
     --provider gcs \
     --bucket $BUCKET_NAME \
     --region $REGION \
@@ -631,14 +629,14 @@ python scripts/setup_storage.py \
 
 #### Option B: Using the CLI Commands
 
-The CLI commands (`ohm storage setup` and `ome storage populate`) can be used without the API server running. They use the application's storage libraries directly:
+The CLI commands (`ohm storage setup` and `ohm storage populate`) can be used without the API server running. They use the application's storage libraries directly:
 
 ```bash
-# Activate conda environment
-conda activate supply-graph-ai
+cd supply-graph-ai
+uv sync --extra dev
 
 # Setup directory structure in GCS
-ohm storage setup \
+uv run ohm storage setup \
     --provider gcs \
     --bucket $BUCKET_NAME \
     --region $REGION \
@@ -646,7 +644,7 @@ ohm storage setup \
 
 # Optionally populate with synthetic data
 # Note: Requires access to synth/synthetic-data/ directory
-ome storage populate \
+uv run ohm storage populate \
     --provider gcs \
     --bucket $BUCKET_NAME \
     --region $REGION \
@@ -654,7 +652,7 @@ ome storage populate \
 ```
 
 **What these commands require:**
-- ✅ Application codebase and dependencies (via conda environment)
+- ✅ Application codebase and dependencies (via **uv** / `.venv` from `uv sync`)
 - ✅ Storage credentials (via environment variables or command-line flags)
 - ✅ Access to `synth/synthetic-data/` directory (for populate command)
 - ❌ **Does NOT require the API server to be running** - uses storage libraries directly

@@ -1,3 +1,9 @@
+### Development environment (uv)
+
+- Install [**uv**](https://docs.astral.sh/uv/) and, from the repository root, run **`uv sync --extra dev`** so Python 3.12, dependencies from **`pyproject.toml` / `uv.lock`**, and **`pytest`** live in **`.venv`**.
+- Run tools and tests with **`uv run …`** (for example `uv run pytest`, `uv run ohm --help`) so you do not accidentally use a global interpreter whose packages drift from the lockfile.
+- Optional: **`uv sync --extra docs`** for MkDocs; **`uv sync --all-extras`** if you need every optional group.
+
 ### Testing Guidelines
 
 - Unit tests required for all new features

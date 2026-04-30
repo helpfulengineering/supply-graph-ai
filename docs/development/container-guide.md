@@ -46,7 +46,7 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
 
 1. **Build the image:**
    ```bash
-   docker build -t open-matching-engine .
+   docker build -t supply-graph-ai .
    ```
 
 2. **Run the API server:**
@@ -55,7 +55,7 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
      -e API_KEYS="your-api-key" \
      -v $(pwd)/storage:/app/storage \
      -v $(pwd)/logs:/app/logs \
-     open-matching-engine api
+     supply-graph-ai api
    ```
 
 3. **Run CLI commands:**
@@ -63,7 +63,7 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
    docker run --rm \
      -v $(pwd)/storage:/app/storage \
      -v $(pwd)/test-data:/app/test-data \
-     open-matching-engine cli okh validate /app/test-data/manifest.okh.json
+     supply-graph-ai cli okh validate /app/test-data/manifest.okh.json
    ```
 
 ## Configuration
@@ -107,7 +107,7 @@ The container expects the following volume mounts:
 Start the FastAPI server:
 
 ```bash
-docker run -p 8001:8001 open-matching-engine api
+docker run -p 8001:8001 supply-graph-ai api
 ```
 
 ### CLI Mode
@@ -116,20 +116,20 @@ Run CLI commands:
 
 ```bash
 # Show CLI help
-docker run --rm open-matching-engine cli --help
+docker run --rm supply-graph-ai cli --help
 
 # Validate an OKH file
 docker run --rm \
   -v $(pwd)/test-data:/app/test-data \
-  open-matching-engine cli okh validate /app/test-data/manifest.okh.json
+  supply-graph-ai cli okh validate /app/test-data/manifest.okh.json
 
 # List packages
-docker run --rm open-matching-engine cli package list
+docker run --rm supply-graph-ai cli package list
 
 # Run matching
 docker run --rm \
   -v $(pwd)/test-data:/app/test-data \
-  open-matching-engine cli match okh /app/test-data/manifest.okh.json
+  supply-graph-ai cli match okh /app/test-data/manifest.okh.json
 ```
 
 ## Production Deployment
@@ -138,21 +138,21 @@ docker run --rm \
 
 1. **Build production image:**
    ```bash
-   docker build -t ome-prod .
+   docker build -t ohm-prod .
    ```
 
 2. **Run with production settings:**
    ```bash
    docker run -d \
-     --name ome-api \
+     --name ohm-api \
      -p 8001:8001 \
      -e API_KEYS="your-production-api-key" \
      -e LOG_LEVEL="INFO" \
      -e STORAGE_PROVIDER="aws_s3" \
      -e AWS_S3_BUCKET="your-bucket" \
-     -v ome-storage:/app/storage \
-     -v ome-logs:/app/logs \
-     ome-prod
+     -v ohm-storage:/app/storage \
+     -v ohm-logs:/app/logs \
+     ohm-prod
    ```
 
 ### Using Docker Compose (Production)
@@ -208,13 +208,13 @@ docker-compose -f docker-compose.prod.yml up -d
 
 1. **Build and push image:**
    ```bash
-   gcloud builds submit --tag gcr.io/PROJECT_ID/open-matching-engine
+   gcloud builds submit --tag gcr.io/PROJECT_ID/supply-graph-ai
    ```
 
 2. **Deploy to Cloud Run:**
    ```bash
-   gcloud run deploy open-matching-engine \
-     --image gcr.io/PROJECT_ID/open-matching-engine \
+   gcloud run deploy supply-graph-ai \
+     --image gcr.io/PROJECT_ID/supply-graph-ai \
      --platform managed \
      --region us-central1 \
      --allow-unauthenticated \
@@ -230,7 +230,7 @@ docker-compose -f docker-compose.prod.yml up -d
 1. **Create ECS task definition:**
    ```json
    {
-     "family": "open-matching-engine",
+     "family": "supply-graph-ai",
      "networkMode": "awsvpc",
      "requiresCompatibilities": ["FARGATE"],
      "cpu": "1024",
@@ -238,7 +238,7 @@ docker-compose -f docker-compose.prod.yml up -d
      "executionRoleArn": "arn:aws:iam::ACCOUNT:role/ecsTaskExecutionRole",
      "containerDefinitions": [{
        "name": "ohm-api",
-       "image": "ACCOUNT.dkr.ecr.REGION.amazonaws.com/open-matching-engine:latest",
+       "image": "ACCOUNT.dkr.ecr.REGION.amazonaws.com/supply-graph-ai:latest",
        "portMappings": [{
          "containerPort": 8001,
          "protocol": "tcp"
@@ -251,7 +251,7 @@ docker-compose -f docker-compose.prod.yml up -d
        "logConfiguration": {
          "logDriver": "awslogs",
          "options": {
-           "awslogs-group": "/ecs/open-matching-engine",
+           "awslogs-group": "/ecs/supply-graph-ai",
            "awslogs-region": "us-east-1",
            "awslogs-stream-prefix": "ecs"
          }
@@ -265,7 +265,7 @@ docker-compose -f docker-compose.prod.yml up -d
    aws ecs create-service \
      --cluster your-cluster \
      --service-name ohm-api \
-     --task-definition open-matching-engine \
+     --task-definition supply-graph-ai \
      --desired-count 2 \
      --launch-type FARGATE \
      --network-configuration "awsvpcConfiguration={subnets=[subnet-12345],securityGroups=[sg-12345],assignPublicIp=ENABLED}"
@@ -277,8 +277,8 @@ docker-compose -f docker-compose.prod.yml up -d
    ```bash
    az container create \
      --resource-group myResourceGroup \
-     --name ome-api \
-     --image your-registry.azurecr.io/open-matching-engine:latest \
+     --name ohm-api \
+     --image your-registry.azurecr.io/supply-graph-ai:latest \
      --cpu 2 \
      --memory 4 \
      --ports 8001 \
@@ -300,9 +300,9 @@ docker-compose -f docker-compose.prod.yml up -d
 
 2. **Check deployment status:**
    ```bash
-   kubectl get pods -n ome
-   kubectl get services -n ome
-   kubectl get ingress -n ome
+   kubectl get pods -n ohm
+   kubectl get services -n ohm
+   kubectl get ingress -n ohm
    ```
 
 3. **Access the application:**
@@ -372,7 +372,7 @@ For production, consider using:
 1. **Use non-root user** (already configured)
 2. **Scan images for vulnerabilities:**
    ```bash
-   docker scan open-matching-engine
+   docker scan supply-graph-ai
    ```
 3. **Keep base images updated**
 4. **Use secrets management** for sensitive data
@@ -413,7 +413,7 @@ For production, consider using:
 Enable debug mode for troubleshooting:
 
 ```bash
-docker run -e DEBUG=true -e LOG_LEVEL=DEBUG open-matching-engine api
+docker run -e DEBUG=true -e LOG_LEVEL=DEBUG supply-graph-ai api
 ```
 
 ### Performance Tuning

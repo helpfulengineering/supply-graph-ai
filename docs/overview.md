@@ -92,14 +92,10 @@ A designer creates an open hardware design and needs to:
 - Compare production options
 - Optimize for cost/time/quality
 
-```python
-# Example: Find manufacturers for a design
-results = ome.find_manufacturers(
-    design_file="open-hardware-design.okh",
-    region="North America",
-    quantity=1000,
-    optimize_for="cost"
-)
+```text
+# Illustrative outcome (not a single Python entrypoint): OHM matches OKH designs
+# to OKW facilities via MatchingService and the /v1/api/match REST API.
+# See docs/development/developer-guide.md and src/core/services/matching_service.py.
 ```
 
 ### 2. Capability Discovery
@@ -109,13 +105,9 @@ A manufacturer wants to:
 - Identify opportunity gaps
 - Optimize resource utilization
 
-```python
-# Example: Find matching designs for a facility
-matches = ome.find_matching_designs(
-    facility_data="factory-capabilities.okw",
-    design_database="open-hardware-db",
-    min_confidence=0.8
-)
+```text
+# Capability discovery is implemented through domain matchers, storage-backed
+# OKW catalogs, and the same matching pipeline (REST + services as above).
 ```
 
 ### 3. Network Optimization
@@ -125,16 +117,9 @@ A distributed manufacturing network needs to:
 - Manage resource allocation
 - Coordinate multi-facility production
 
-```python
-# Example: Optimize production across network
-solution = ome.optimize_network(
-    design="product-spec.okh",
-    network="manufacturing-network.json",
-    constraints={
-        "max_distance": "500km",
-        "max_time": "14d"
-    }
-)
+```text
+# Multi-facility routing and optimization are evolving capabilities; supply-tree
+# and package APIs under /v1 are the supported integration surface today.
 ```
 
 ### 4. Quality Validation
@@ -144,42 +129,19 @@ Quality assurance teams need to:
 - Assess quality requirements
 - Monitor production consistency
 
-```python
-# Example: Validate production quality
-validation = ome.validate_production(
-    design="medical-device.okh",
-    facility="factory.okw",
-    context="medical_devices",
-    standards=["ISO_13485"]
-)
+```text
+# Validation flows use domain validators and contexts (see docs/models/validation.md
+# and /v1/api/okh/validate-style endpoints in OpenAPI).
 ```
 
 ## Domain Examples
 
 ### Manufacturing Domain
-```python
-# Manufacturing example
-manufacturing_solution = ome.process(
-    input_data="hardware-design.okh",
-    domain="manufacturing",
-    requirements={
-        "quantity": 1000,
-        "deadline": "2024-03-01",
-        "quality_standard": "ISO_9001"
-    }
-)
+```text
+# Manufacturing domain: load OKH + OKW, then match (CLI: ohm match …, API: POST /v1/api/match).
 ```
 
 ### Cooking Domain (Proof of Concept)
-```python
-# Cooking example
-recipe_solution = ome.process(
-    input_data="recipe.json",
-    domain="cooking",
-    requirements={
-        "servings": 4,
-        "max_prep_time": "2h",
-        "skill_level": "intermediate"
-    }
-)
+```text
+# Cooking domain: same OHM pipeline with cooking extractors/matchers (see docs/domains/cooking.md).
 ```

@@ -68,19 +68,19 @@ The OHM provides a command-line interface for building packages:
 
 ```bash
 # Build from manifest file
-ome package build okh-manifest.json
+ohm package build okh-manifest.json
 
 # Build with selective inclusion
-ome package build okh-manifest.json --no-software --no-operating-instructions
+ohm package build okh-manifest.json --no-software --no-operating-instructions
 
 # Build from stored manifest ID
-ome package build-from-storage a736334a-efd3-4745-a59f-a386ba4abdeb
+ohm package build-from-storage a736334a-efd3-4745-a59f-a386ba4abdeb
 
 # Specify output directory
-ome package build okh-manifest.json --output-dir ./my-packages/
+ohm package build okh-manifest.json --output-dir ./my-packages/
 
 # Verbose output
-ome package build okh-manifest.json --verbose
+ohm package build okh-manifest.json --verbose
 ```
 
 ### CLI Options
@@ -129,30 +129,30 @@ response = httpx.post("http://localhost:8001/v1/api/package/build/a736334a-efd3-
 
 ```bash
 # List all built packages
-ome package list-packages
+ohm package list-packages
 
 # List with verbose output
-ome package list-packages --verbose
+ohm package list-packages --verbose
 ```
 
 ### Verifying Packages
 
 ```bash
 # Verify package integrity
-ome package verify org/project-name 1.2.4
+ohm package verify org/project-name 1.2.4
 
 # Verify with detailed output
-ome package verify org/project-name 1.2.4 --verbose
+ohm package verify org/project-name 1.2.4 --verbose
 ```
 
 ### Deleting Packages
 
 ```bash
 # Delete package (with confirmation)
-ome package delete org/project-name 1.2.4
+ohm package delete org/project-name 1.2.4
 
 # Force delete without confirmation
-ome package delete org/project-name 1.2.4 --force
+ohm package delete org/project-name 1.2.4 --force
 ```
 
 ## Remote Package Management
@@ -163,33 +163,33 @@ The OHM package management system supports pushing packages to and pulling packa
 
 ```bash
 # Push a local package to remote storage
-ome package push org/project-name 1.2.4
+ohm package push org/project-name 1.2.4
 
 # Push with verbose output
-ome package push org/project-name 1.2.4 --verbose
+ohm package push org/project-name 1.2.4 --verbose
 ```
 
 ### Pulling Packages
 
 ```bash
 # Pull a package from remote storage
-ome package pull org/project-name 1.2.4
+ohm package pull org/project-name 1.2.4
 
 # Pull to specific output directory
-ome package pull org/project-name 1.2.4 --output-dir ./my-packages/
+ohm package pull org/project-name 1.2.4 --output-dir ./my-packages/
 
 # Pull with verbose output
-ome package pull org/project-name 1.2.4 --verbose
+ohm package pull org/project-name 1.2.4 --verbose
 ```
 
 ### Listing Remote Packages
 
 ```bash
 # List packages available in remote storage
-ome package list-remote
+ohm package list-remote
 
 # List with verbose output (shows modification dates)
-ome package list-remote --verbose
+ohm package list-remote --verbose
 ```
 
 ### Remote Storage Structure
@@ -224,33 +224,33 @@ Azure Blob Storage Container
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `push` | Upload local package to remote storage | `ome package push community/test 1.0.0` |
-| `pull` | Download remote package to local storage | `ome package pull community/test 1.0.0` |
-| `list-remote` | List packages available in remote storage | `ome package list-remote` |
+| `push` | Upload local package to remote storage | `ohm package push community/test 1.0.0` |
+| `pull` | Download remote package to local storage | `ohm package pull community/test 1.0.0` |
+| `list-remote` | List packages available in remote storage | `ohm package list-remote` |
 
 ### PUSH/PULL Workflow Example
 
 ```bash
 # 1. Build a package locally
-ome package build manifest.json
+ohm package build manifest.json
 
 # 2. Push to remote storage
-ome package push community/my-project 1.0.0
+ohm package push community/my-project 1.0.0
 # Output: ✅ Successfully pushed community/my-project:1.0.0
 #         📄 Uploaded 5 files
 #         💾 Total size: 58,330 bytes
 
 # 3. List remote packages
-ome package list-remote
+ohm package list-remote
 # Output: 📦 Remote packages:
 #         📦 community/my-project
 #           📄 1.0.0 (0.1 MB)
 
 # 4. Delete local package
-ome package delete community/my-project 1.0.0
+ohm package delete community/my-project 1.0.0
 
 # 5. Pull from remote storage
-ome package pull community/my-project 1.0.0
+ohm package pull community/my-project 1.0.0
 # Output: ✅ Successfully pulled community/my-project:1.0.0
 #         📁 Local path: /path/to/packages/community/my-project/1.0.0
 #         📄 Files: 2
@@ -430,7 +430,7 @@ The system successfully built a package from the OpenFlexure Microscope project:
 
 ```bash
 # Build the OpenFlexure Microscope package
-ome package build test-data/openflexure-microscope.okh.json --output-dir packages --verbose
+ohm package build test-data/openflexure-microscope.okh.json --output-dir packages --verbose
 ```
 
 **Results:**
@@ -477,21 +477,21 @@ university-of-bath/openflexure-microscope/5.20/
 
 ```bash
 # Increase timeout and retry count
-ome package build manifest.json --max-concurrent 3
+ohm package build manifest.json --max-concurrent 3
 ```
 
 #### Missing Files
 
 ```bash
 # Check which files failed
-ome package verify org/project 1.0.0 --verbose
+ohm package verify org/project 1.0.0 --verbose
 ```
 
 #### Invalid URLs
 
 ```bash
 # Build with verbose output to see URL issues
-ome package build manifest.json --verbose
+ohm package build manifest.json --verbose
 ```
 
 #### Package Listing Issues
@@ -513,7 +513,7 @@ For detailed debugging, you can enable debug logging:
 ```bash
 # Set environment variable for debug logging
 export LOG_LEVEL=DEBUG
-ome package build manifest.json --verbose
+ohm package build manifest.json --verbose
 ```
 
 ## Integration with OHM
@@ -546,25 +546,25 @@ The OKH Package Management system is **fully functional** and ready for producti
 
 ```bash
 # Build packages
-ome package build manifest.json --output-dir packages --verbose
+ohm package build manifest.json --output-dir packages --verbose
 
 # List all packages
-ome package list-packages
+ohm package list-packages
 
 # Verify package integrity
-ome package verify org/project-name version
+ohm package verify org/project-name version
 
 # Delete packages
-ome package delete org/project-name version
+ohm package delete org/project-name version
 
 # Push to remote storage
-ome package push org/project-name version
+ohm package push org/project-name version
 
 # Pull from remote storage
-ome package pull org/project-name version
+ohm package pull org/project-name version
 
 # List remote packages
-ome package list-remote
+ohm package list-remote
 ```
 
 ### Remote Storage Integration

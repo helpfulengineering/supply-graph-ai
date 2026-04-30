@@ -23,7 +23,7 @@ from .decorators import standard_cli_command
 
 
 @click.group()
-def convert_group():
+def convert_group() -> None:
     """
     Format conversion commands for OHM.
 

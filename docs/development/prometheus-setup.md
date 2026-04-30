@@ -143,7 +143,7 @@ curl 'http://localhost:9090/api/v1/query?query=http_requests_total'
 
 3. **Check Prometheus logs**:
    ```bash
-   docker logs ome-prometheus
+   docker logs ohm-prometheus
    ```
 
 ### No Metrics Appearing

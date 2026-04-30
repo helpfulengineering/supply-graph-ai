@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 from ..models.okh import OKHManifest
 from ..models.okw import ManufacturingFacility
+from ..models.supply_trees import SupplyTree, SupplyTreeSolution
 from ..matching.match_modes import MATCH_MODE_SINGLE_LEVEL
 from ..storage.base import StorageConfig
 from ..storage.constants import (
@@ -25,7 +26,11 @@ T = TypeVar("T")
 
 
 class StorageRegistry:
-    """Registry for domain-specific storage handlers"""
+    """Maps domain string keys to :class:`DomainStorageHandler` subclasses.
+
+    Populated lazily via :func:`_register_handlers` and explicit ``register_handler`` calls
+    so importing this module does not eagerly construct handler instances.
+    """
 
     _handlers: Dict[str, Type["DomainStorageHandler"]] = {}
 
@@ -33,40 +38,70 @@ class StorageRegistry:
     def register_handler(
         cls, domain: str, handler_class: Type["DomainStorageHandler"]
     ) -> None:
-        """Register a storage handler for a specific domain"""
+        """Associate ``domain`` with a handler class used by :meth:`StorageService.get_domain_handler`.
+
+        Args:
+            domain: Short domain id (for example ``okh``, ``okw``).
+            handler_class: Concrete handler subclass (not an instance).
+        """
         cls._handlers[domain] = handler_class
 
     @classmethod
     def get_handler(cls, domain: str) -> Type["DomainStorageHandler"]:
-        """Get registered handler for domain"""
+        """Look up the handler class for ``domain`` without instantiating it.
+
+        Args:
+            domain: Registry key previously passed to :meth:`register_handler`.
+
+        Returns:
+            The registered handler type.
+
+        Raises:
+            ValueError: If ``domain`` has not been registered.
+        """
         if domain not in cls._handlers:
             raise ValueError(f"No storage handler registered for domain: {domain}")
         return cls._handlers[domain]
 
 
 class StorageService:
-    """Service for managing storage operations"""
+    """Facade over ``StorageManager`` for supply trees, solutions, and domain handlers.
+
+    Callers obtain a shared instance via :meth:`get_instance`, then :meth:`configure` with a
+    ``StorageConfig`` before persisting objects. Connection failures during configure are logged
+    and leave the service in a non-operational state until reconfigured.
+    """
 
     _instance = None
 
     @classmethod
     async def get_instance(cls) -> "StorageService":
-        """Get singleton instance"""
+        """Return the process-wide ``StorageService`` singleton (constructs on first call).
+
+        Returns:
+            The shared ``StorageService`` instance. Does not open network connections by itself;
+            use :meth:`configure` with application settings.
+        """
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
 
-    def __init__(self):
-        """Initialize storage service"""
+    def __init__(self) -> None:
+        """Create an unconfigured service; manager and handlers populate after :meth:`configure`."""
         self.manager: Optional[StorageManager] = None
         self._configured = False
         self._domain_handlers: Dict[str, "DomainStorageHandler"] = {}
 
     async def configure(self, config: StorageConfig) -> None:
-        """Configure storage service with provider settings
+        """Connect the underlying ``StorageManager`` from provider configuration.
 
-        Note: Storage connection failures during startup are logged but don't prevent
-        application startup. Storage operations will fail gracefully if not connected.
+        Args:
+            config: Bucket/provider settings consumed by :class:`~src.core.storage.manager.StorageManager`.
+
+        Note:
+            Connection failures are **swallowed** (logged only) so the API process can start
+            degraded; ``_configured`` stays false and mutating methods raise ``RuntimeError``
+            until a later successful configure.
         """
         try:
             self.manager = StorageManager(config)
@@ -86,7 +121,11 @@ class StorageService:
             # Don't raise - allow app to start
 
     async def cleanup(self) -> None:
-        """Clean up resources and close connections"""
+        """Close the storage manager (if present) and clear the configured flag.
+
+        Raises:
+            Exception: Re-raised if the manager's ``cleanup`` fails after logging.
+        """
         try:
             if self.manager and hasattr(self.manager, "cleanup"):
                 await self.manager.cleanup()
@@ -97,7 +136,18 @@ class StorageService:
             raise
 
     async def get_domain_handler(self, domain: str) -> "DomainStorageHandler":
-        """Get or create the storage handler for a specific domain"""
+        """Return a cached or newly constructed handler for ``domain``.
+
+        Args:
+            domain: Registry key (for example ``manufacturing``) with a registered
+                :class:`DomainStorageHandler` subclass.
+
+        Returns:
+            Handler instance bound to this ``StorageService``.
+
+        Raises:
+            ValueError: If no handler class is registered for ``domain``.
+        """
         if domain not in self._domain_handlers:
             # Register handlers lazily if not already registered
             _register_handlers()
@@ -107,7 +157,12 @@ class StorageService:
         return self._domain_handlers[domain]
 
     async def get_status(self) -> Dict[str, Any]:
-        """Get storage service status"""
+        """Lightweight connectivity snapshot for health endpoints.
+
+        Returns:
+            Dict with ``configured``, ``connected``, ``provider`` (or ``None`` when down),
+            and ``domains`` (registered handler keys from :class:`StorageRegistry`).
+        """
         if not self._configured or not self.manager:
             return {
                 "configured": False,
@@ -124,7 +179,15 @@ class StorageService:
         }
 
     async def get_storage_stats(self) -> Dict[str, Any]:
-        """Get storage statistics"""
+        """Aggregate object count and byte size across the bucket (full scan).
+
+        Returns:
+            Dict with ``total_size``, ``object_count``, ``provider``, ``bucket``, and
+            ``domain_stats`` (per-domain size/count from object metadata when present).
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -152,8 +215,18 @@ class StorageService:
             "domain_stats": domain_stats,
         }
 
-    async def save_supply_tree(self, tree) -> str:
-        """Save a supply tree to storage"""
+    async def save_supply_tree(self, tree: SupplyTree) -> str:
+        """Persist a supply tree JSON object under ``supply-trees/{id}.json``.
+
+        Args:
+            tree: In-memory ``SupplyTree`` with ``id`` and ``okh_reference`` for metadata.
+
+        Returns:
+            ETag (or provider-specific version token) from the underlying ``put_object`` call.
+
+        Raises:
+            RuntimeError: If storage was not successfully configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -178,8 +251,13 @@ class StorageService:
 
         return metadata.etag
 
-    async def load_supply_tree(self, tree_id: UUID):
-        """Load a supply tree from storage"""
+    async def load_supply_tree(self, tree_id: UUID) -> SupplyTree:
+        """Load ``supply-trees/{tree_id}.json`` and deserialize to ``SupplyTree``.
+
+        Raises:
+            RuntimeError: If storage is not configured.
+            Exception: Propagates blob read or JSON errors from the manager.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -187,8 +265,6 @@ class StorageService:
 
         try:
             data = await self.manager.get_object(key)
-            from ..models.supply_trees import SupplyTree
-
             tree_dict = json.loads(data.decode("utf-8"))
             return SupplyTree.from_dict(tree_dict)
         except Exception as e:
@@ -198,7 +274,18 @@ class StorageService:
     async def list_supply_trees(
         self, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> List[Dict[str, Any]]:
-        """List all supply trees"""
+        """Iterate ``supply-trees/*.json`` and return lightweight index rows (not full trees).
+
+        Args:
+            limit: Max rows after ``offset`` (``None`` = no cap).
+            offset: Skip this many JSON objects after prefix filtering (best-effort with listing order).
+
+        Returns:
+            List of dicts with ``id``, ``okh_reference``, and ``last_modified`` from the list API.
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -238,7 +325,17 @@ class StorageService:
         return trees
 
     async def delete_supply_tree(self, tree_id: UUID) -> bool:
-        """Delete a supply tree"""
+        """Remove ``supply-trees/{tree_id}.json`` if it exists.
+
+        Args:
+            tree_id: Supply tree UUID used in the object key.
+
+        Returns:
+            Provider delete result (truthy when the object was removed).
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -247,12 +344,25 @@ class StorageService:
 
     async def save_supply_tree_solution(
         self,
-        solution,
+        solution: SupplyTreeSolution,
         solution_id: Optional[UUID] = None,
         ttl_days: Optional[int] = None,
         tags: Optional[List[str]] = None,
     ) -> UUID:
-        """Save a supply tree solution to storage"""
+        """Write solution JSON plus sidecar metadata (TTL, scores, tags) for listing APIs.
+
+        Args:
+            solution: Full ``SupplyTreeSolution`` to serialize with ``to_dict()``.
+            solution_id: Optional stable id; a new UUID is minted when omitted.
+            ttl_days: Override for metadata expiry; defaults to ``DEFAULT_SOLUTION_TTL_DAYS``.
+            tags: Optional string tags stored in metadata for filtering.
+
+        Returns:
+            The solution id (provided or generated).
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -330,8 +440,8 @@ class StorageService:
 
         return solution_id
 
-    async def load_supply_tree_solution(self, solution_id: UUID):
-        """Load a supply tree solution from storage"""
+    async def load_supply_tree_solution(self, solution_id: UUID) -> SupplyTreeSolution:
+        """Load the JSON blob for ``solution_id`` and return a ``SupplyTreeSolution``."""
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -339,8 +449,6 @@ class StorageService:
 
         try:
             data = await self.manager.get_object(key)
-            from ..models.supply_trees import SupplyTreeSolution
-
             solution_dict = json.loads(data.decode("utf-8"))
             return SupplyTreeSolution.from_dict(solution_dict)
         except Exception as e:
@@ -506,7 +614,17 @@ class StorageService:
         return solutions
 
     async def delete_supply_tree_solution(self, solution_id: UUID) -> bool:
-        """Delete a supply tree solution from storage"""
+        """Delete both the solution payload and its sidecar metadata object.
+
+        Args:
+            solution_id: Id previously returned by :meth:`save_supply_tree_solution`.
+
+        Returns:
+            ``True`` if at least one of the two keys was deleted (supports partially missing pairs).
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -821,18 +939,24 @@ class StorageService:
         solution_id: UUID,
         validate_freshness: bool = True,
         auto_refresh: bool = False,
-    ) -> Tuple[Any, Dict[str, Any]]:
-        """
-        Load solution with optional freshness validation.
+    ) -> Tuple[SupplyTreeSolution, Dict[str, Any]]:
+        """Load a solution and optionally attach staleness / TTL metadata.
 
         Args:
-            solution_id: The solution ID to load
-            validate_freshness: If True, check staleness and include metadata (default: True)
-            auto_refresh: If True, automatically extend TTL if stale (default: False)
+            solution_id: Solution UUID to load.
+            validate_freshness: When ``True``, populate ``metadata`` from :meth:`is_solution_stale`
+                and related fields.
+            auto_refresh: When ``True`` and the solution is stale, calls :meth:`extend_solution_ttl`
+                and updates metadata flags accordingly.
 
         Returns:
-            Tuple of (solution: SupplyTreeSolution, metadata: Dict[str, Any])
-            Metadata includes: is_stale, staleness_reason, age_days, expires_at, refresh_recommended
+            ``(solution, metadata)`` where ``metadata`` may include ``is_stale``,
+            ``staleness_reason``, ``age_days``, ``expires_at``, ``refresh_recommended``, and
+            optionally ``auto_refreshed``. Empty dict when ``validate_freshness`` is ``False``.
+
+        Raises:
+            RuntimeError: If storage is not configured.
+            Exception: Propagates errors from :meth:`load_supply_tree_solution` when the blob is missing or corrupt.
         """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
@@ -886,7 +1010,18 @@ class StorageService:
         return (solution, metadata)
 
     async def create_backup(self, name: Optional[str] = None) -> Dict[str, Any]:
-        """Create a backup of all data"""
+        """Copy every listed object under ``backups/{name}/`` (full-bucket walk; can be slow).
+
+        Args:
+            name: Folder segment under ``backups/``; defaults to a timestamped ``backup-YYYYMMDD-HHMMSS``.
+
+        Returns:
+            Summary dict: ``backup_name``, ``object_count``, ``total_size`` (bytes from put metadata),
+            ``created_at`` (ISO timestamp).
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -923,7 +1058,14 @@ class StorageService:
         }
 
     async def list_backups(self) -> List[Dict[str, Any]]:
-        """List available backups"""
+        """Return backup folder markers under the ``backups/`` prefix, newest first.
+
+        Returns:
+            List of dicts with ``name`` and ``created_at`` (from listing ``last_modified``).
+
+        Raises:
+            RuntimeError: If storage is not configured.
+        """
         if not self._configured or not self.manager:
             raise RuntimeError("Storage service not configured")
 
@@ -942,23 +1084,42 @@ class StorageService:
 
 
 class DomainStorageHandler(Generic[T]):
-    """Base class for domain-specific storage handlers"""
+    """JSON CRUD under ``{domain}/{uuid}.json`` for a single model type ``T``.
 
-    def __init__(self, storage_service: StorageService):
+    Subclasses implement :meth:`_serialize`, :meth:`_deserialize`, and id helpers.
+    The high-level :class:`StorageService` must be configured before any async method runs.
+    """
+
+    def __init__(self, storage_service: StorageService) -> None:
+        """Bind this handler to ``storage_service`` and derive :attr:`domain` from the class name.
+
+        Args:
+            storage_service: Parent service providing ``manager`` and ``_configured``.
+        """
         self.storage_service = storage_service
         self.domain = self._get_domain()
         self.model_class: Type[T]
 
     def _get_domain(self) -> str:
-        """Get domain name from handler class"""
+        """Infer registry segment from the class name (strip ``StorageHandler``, lowercase)."""
         return self.__class__.__name__.replace("StorageHandler", "").lower()
 
     def _get_storage_key(self, obj_id: UUID) -> str:
-        """Get storage key for an object"""
+        """Build the object key ``{domain}/{obj_id}.json``."""
         return f"{self.domain}/{obj_id}.json"
 
     async def save(self, obj: T) -> str:
-        """Save a domain object to storage"""
+        """Serialize ``obj``, write JSON with domain metadata, return the object ETag.
+
+        Args:
+            obj: Model instance of type ``T``.
+
+        Returns:
+            Etag/version string from ``put_object``.
+
+        Raises:
+            RuntimeError: When the parent :class:`StorageService` is not configured.
+        """
         if not self.storage_service._configured:
             raise RuntimeError("Storage service not configured")
 
@@ -984,7 +1145,12 @@ class DomainStorageHandler(Generic[T]):
         return metadata.etag
 
     async def load(self, obj_id: UUID) -> T:
-        """Load a domain object from storage"""
+        """Read ``{domain}/{obj_id}.json`` and deserialize via :meth:`_deserialize`.
+
+        Raises:
+            RuntimeError: When storage is not configured.
+            Exception: Propagates read/JSON errors from the manager.
+        """
         if not self.storage_service._configured:
             raise RuntimeError("Storage service not configured")
 
@@ -1001,7 +1167,15 @@ class DomainStorageHandler(Generic[T]):
     async def list(
         self, limit: Optional[int] = None, offset: Optional[int] = None
     ) -> List[Dict[str, Any]]:
-        """List all domain objects"""
+        """Walk ``{domain}/`` and return index rows (id, type, last_modified), not full payloads.
+
+        Args:
+            limit: Max rows after ``offset`` (``None`` = unlimited).
+            offset: Skip this many keys after prefix filtering.
+
+        Raises:
+            RuntimeError: When storage is not configured.
+        """
         if not self.storage_service._configured:
             raise RuntimeError("Storage service not configured")
 
@@ -1037,7 +1211,11 @@ class DomainStorageHandler(Generic[T]):
         return objects
 
     async def delete(self, obj_id: UUID) -> bool:
-        """Delete a domain object"""
+        """Delete ``{domain}/{obj_id}.json`` if present.
+
+        Raises:
+            RuntimeError: When storage is not configured.
+        """
         if not self.storage_service._configured:
             raise RuntimeError("Storage service not configured")
 
@@ -1045,14 +1223,18 @@ class DomainStorageHandler(Generic[T]):
         return await self.storage_service.manager.delete_object(key)
 
     # --- Add these generic aliases for service compatibility ---
-    async def save_object(self, obj_id: UUID, obj_data: dict) -> str:
-        """Save a domain object by ID and dict (for service compatibility)"""
+    async def save_object(self, obj_id: UUID, obj_data: Dict[str, Any]) -> str:
+        """Deserialize ``obj_data`` to ``T`` then :meth:`save` (``obj_id`` must match embedded id).
+
+        Raises:
+            RuntimeError: When storage is not configured.
+        """
         # Convert dict to object
         obj = self._deserialize(obj_data)
         return await self.save(obj)
 
-    async def load_object(self, obj_id: UUID) -> Optional[dict]:
-        """Load a domain object by ID and return as dict (for service compatibility)"""
+    async def load_object(self, obj_id: UUID) -> Optional[Dict[str, Any]]:
+        """Load by id and return :meth:`_serialize` output, or ``None`` on any failure."""
         try:
             obj = await self.load(obj_id)
             return self._serialize(obj)
@@ -1061,8 +1243,11 @@ class DomainStorageHandler(Generic[T]):
 
     async def list_objects(
         self, limit: Optional[int] = None, offset: Optional[int] = None
-    ) -> Tuple[List[dict], int]:
-        """List all domain objects as dicts (for service compatibility)"""
+    ) -> Tuple[List[Dict[str, Any]], int]:
+        """Return the same index rows as :meth:`list` plus a separate total key count under prefix.
+
+        The total is computed with an unconstrained prefix walk and may not match filtered rows.
+        """
         objects = await self.list(limit=limit, offset=offset)
 
         # Get total count by listing all objects without limit/offset
@@ -1075,27 +1260,27 @@ class DomainStorageHandler(Generic[T]):
         return objects, total_count
 
     async def delete_object(self, obj_id: UUID) -> bool:
-        """Delete a domain object by ID (for service compatibility)"""
+        """Alias of :meth:`delete` for callers expecting a generic ``delete_object`` name."""
         return await self.delete(obj_id)
 
     def _serialize(self, obj: T) -> Dict[str, Any]:
-        """Serialize object to dictionary"""
+        """Convert ``obj`` to a JSON-serializable dict (subclass contract)."""
         raise NotImplementedError
 
     def _deserialize(self, data: Dict[str, Any]) -> T:
-        """Deserialize dictionary to object"""
+        """Instantiate ``T`` from stored dict (subclass contract)."""
         raise NotImplementedError
 
     def _get_object_id(self, obj: T) -> UUID:
-        """Get object ID"""
+        """Stable id used in the storage key (subclass contract)."""
         raise NotImplementedError
 
     def _get_object_id_from_dict(self, data: Dict[str, Any]) -> UUID:
-        """Get object ID from dictionary"""
+        """Parse id from a loaded dict when building list index rows (subclass contract)."""
         raise NotImplementedError
 
     def _get_object_type(self, obj: T) -> str:
-        """Get object type"""
+        """Short type tag stored in object metadata (subclass contract)."""
         raise NotImplementedError
 
 
@@ -1103,11 +1288,13 @@ class DomainStorageHandler(Generic[T]):
 
 
 # Register handlers lazily to avoid import-time object creation
-def _register_handlers():
-    """Register handlers lazily to avoid import-time object creation"""
+def _register_handlers() -> None:
+    """Idempotently register built-in ``okh`` and ``okw`` handlers on :class:`StorageRegistry`."""
     if "okh" not in StorageRegistry._handlers:
         # Define OKH handler lazily to avoid object creation on module import
         class OKHStorageHandler(DomainStorageHandler[OKHManifest]):
+            """Persist :class:`~src.core.models.okh.OKHManifest` under ``okh/{id}.json``."""
+
             def _serialize(self, obj: OKHManifest) -> dict:
                 return obj.to_dict()
 
@@ -1128,6 +1315,8 @@ def _register_handlers():
     if "okw" not in StorageRegistry._handlers:
         # Define OKW handler lazily to avoid object creation on module import
         class OKWStorageHandler(DomainStorageHandler[ManufacturingFacility]):
+            """Persist :class:`~src.core.models.okw.ManufacturingFacility` under ``okw/{id}.json``."""
+
             def _serialize(self, obj: ManufacturingFacility) -> dict:
                 return obj.to_dict()
 

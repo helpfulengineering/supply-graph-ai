@@ -9,6 +9,7 @@ import json
 from typing import Optional
 
 import click
+from click import Context
 
 from ..core.services.visualization_service import VisualizationService
 from .base import CLIContext
@@ -17,7 +18,7 @@ from .progress import emit_status_line
 
 
 @click.group()
-def solution_group():
+def solution_group() -> None:
     """
     Solution management commands for OHM.
 
@@ -86,7 +87,7 @@ def solution_group():
     format_output=True,
 )
 async def save(
-    ctx,
+    ctx: Context,
     solution_file: str,
     solution_id: Optional[str],
     ttl_days: Optional[int],
@@ -98,7 +99,7 @@ async def save(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Save a supply tree solution to storage"""
     cli_ctx: CLIContext = ctx.obj
 
@@ -200,7 +201,7 @@ async def save(
     format_output=True,
 )
 async def load(
-    ctx,
+    ctx: Context,
     solution_id: str,
     output: Optional[str],
     verbose: bool,
@@ -210,7 +211,7 @@ async def load(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Load a supply tree solution from storage"""
     cli_ctx: CLIContext = ctx.obj
 
@@ -290,7 +291,7 @@ async def load(
     format_output=True,
 )
 async def visualize(
-    ctx,
+    ctx: Context,
     solution_id: str,
     report_format: str,
     output: Optional[str],
@@ -301,7 +302,7 @@ async def visualize(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Generate visualization artifacts for a solution."""
     cli_ctx: CLIContext = ctx.obj
     try:
@@ -363,7 +364,7 @@ async def visualize(
     format_output=True,
 )
 async def report(
-    ctx,
+    ctx: Context,
     solution_id: str,
     output: Optional[str],
     verbose: bool,
@@ -373,7 +374,7 @@ async def report(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Generate an HTML report for a solution."""
     cli_ctx: CLIContext = ctx.obj
     try:
@@ -459,7 +460,7 @@ async def report(
     format_output=True,
 )
 async def list_solutions(
-    ctx,
+    ctx: Context,
     okh_id: Optional[str],
     matching_mode: Optional[str],
     sort_by: Optional[str],
@@ -477,7 +478,7 @@ async def list_solutions(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """List supply tree solutions"""
     cli_ctx: CLIContext = ctx.obj
 
@@ -580,7 +581,7 @@ async def list_solutions(
     format_output=True,
 )
 async def delete(
-    ctx,
+    ctx: Context,
     solution_id: str,
     verbose: bool,
     output_format: str,
@@ -589,7 +590,7 @@ async def delete(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Delete a supply tree solution"""
     cli_ctx: CLIContext = ctx.obj
 
@@ -641,7 +642,7 @@ async def delete(
     format_output=True,
 )
 async def check(
-    ctx,
+    ctx: Context,
     solution_id: str,
     max_age_days: Optional[int],
     verbose: bool,
@@ -651,7 +652,7 @@ async def check(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Check solution staleness"""
     cli_ctx: CLIContext = ctx.obj
 
@@ -726,7 +727,7 @@ async def check(
     format_output=True,
 )
 async def extend(
-    ctx,
+    ctx: Context,
     solution_id: str,
     days: int,
     verbose: bool,
@@ -736,7 +737,7 @@ async def extend(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Extend solution TTL"""
     cli_ctx: CLIContext = ctx.obj
 
@@ -814,7 +815,7 @@ async def extend(
     format_output=True,
 )
 async def cleanup(
-    ctx,
+    ctx: Context,
     max_age_days: Optional[int],
     before_date: Optional[str],
     dry_run: bool,
@@ -826,7 +827,7 @@ async def cleanup(
     llm_model: Optional[str] = None,
     quality_level: str = "professional",
     strict_mode: bool = False,
-):
+) -> None:
     """Cleanup stale solutions"""
     cli_ctx: CLIContext = ctx.obj
 

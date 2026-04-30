@@ -157,15 +157,15 @@ manifest = await engine.generate_manifest_async(project_data)
 
 ```bash
 # Generate OKH manifest with LLM
-ome okh generate-from-url https://github.com/example/project --use-llm
+ohm okh generate-from-url https://github.com/example/project --use-llm
 
 # With specific provider
-ome okh generate-from-url https://github.com/example/project \
+ohm okh generate-from-url https://github.com/example/project \
   --llm-provider anthropic \
   --llm-model claude-sonnet-4-5-20250929
 
 # Preserve context files for debugging
-ome okh generate-from-url https://github.com/example/project \
+ohm okh generate-from-url https://github.com/example/project \
   --use-llm \
   --preserve-context
 ```

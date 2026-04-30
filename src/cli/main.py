@@ -5,9 +5,10 @@ This module provides the main CLI interface with subcommands for different
 OHM operations including package management, OKH/OKW operations, and matching.
 """
 
-from typing import Optional
+from typing import Optional, cast
 
 import click
+from click import Context
 
 from .base import CLIConfig, CLIContext
 from .convert import convert_group
@@ -60,7 +61,7 @@ except ImportError:
 @click.option("--strict-mode", is_flag=True, help="Enable strict validation mode")
 @click.pass_context
 def cli(
-    ctx,
+    ctx: Context,
     server_url: str,
     timeout: float,
     verbose: bool,
@@ -70,11 +71,20 @@ def cli(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
-    """
-    Open Hardware Manager (OHM) Command Line Interface
+) -> None:
+    """Open Hardware Manager (OHM) command-line entrypoint.
 
-    A CLI for managing OKH packages, OKW facilities, and matching operations.
+    Args:
+        ctx: Click context; ``ctx.obj`` is set to a :class:`CLIContext` instance.
+        server_url: Base URL for API-backed commands.
+        timeout: HTTP client timeout in seconds.
+        verbose: When True, emit extra diagnostics.
+        output_format: ``json``, ``table``, or ``None`` for human-readable text.
+        use_llm: Forwarded into LLM-related commands when supported.
+        llm_provider: Default LLM provider name.
+        llm_model: Optional model override for the provider.
+        quality_level: Default quality tier for LLM workflows.
+        strict_mode: When True, prefer strict validation where applicable.
     """
     # Ensure context object exists
     ctx.ensure_object(dict)
@@ -118,8 +128,8 @@ cli.add_command(taxonomy_group, name="taxonomy")
 
 
 @cli.command()
-def version():
-    """Show OHM version information"""
+def version() -> None:
+    """Show OHM version information."""
     from . import __version__
 
     click.echo(f"Open Hardware Manager CLI v{__version__}")
@@ -127,14 +137,15 @@ def version():
 
 @cli.command()
 @click.pass_context
-def config(ctx):
-    """Show current CLI configuration"""
-    config = ctx.obj.config
+def config(ctx: Context) -> None:
+    """Show current CLI configuration (server URL, output format, LLM flags)."""
+    cli_context = cast(CLIContext, ctx.obj)
+    config = cli_context.config
     click.echo("CLI Configuration:")
     click.echo(f"  Server URL: {config.server_url}")
     click.echo(f"  Timeout: {config.timeout}s")
     click.echo(f"  Verbose: {config.verbose}")
-    click.echo(f"  Output Format: {ctx.obj.output_format}")
+    click.echo(f"  Output Format: {cli_context.output_format}")
     click.echo()
     click.echo("LLM Configuration:")
     click.echo(f"  Use LLM: {config.llm_config['use_llm']}")

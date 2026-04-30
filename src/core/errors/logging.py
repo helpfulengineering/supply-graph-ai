@@ -139,7 +139,7 @@ class LLMLogger:
     """
 
     def __init__(self, component_name: str = "llm"):
-        self.logger = logging.getLogger(f"ome.llm.{component_name}")
+        self.logger = logging.getLogger(f"ohm.llm.{component_name}")
         self.component_name = component_name
         self.request_counts: Dict[str, int] = defaultdict(int)
         self.total_tokens: Dict[str, int] = defaultdict(int)
@@ -300,7 +300,7 @@ class PerformanceLogger:
     """
 
     def __init__(self, component_name: str = "performance"):
-        self.logger = logging.getLogger(f"ome.performance.{component_name}")
+        self.logger = logging.getLogger(f"ohm.performance.{component_name}")
         self.component_name = component_name
         self.operation_times: Dict[str, List[float]] = defaultdict(list)
         self.operation_counts: Dict[str, int] = defaultdict(int)
@@ -387,7 +387,7 @@ class AuditLogger:
     """
 
     def __init__(self, component_name: str = "audit"):
-        self.logger = logging.getLogger(f"ome.audit.{component_name}")
+        self.logger = logging.getLogger(f"ohm.audit.{component_name}")
         self.component_name = component_name
         self.audit_events: deque = deque(maxlen=10000)  # Keep last 10k events
 
@@ -569,6 +569,6 @@ def setup_enhanced_logging(
         root_logger.addHandler(file_handler)
 
     # Set up specialized loggers
-    logging.getLogger("ome.llm").setLevel(logging.INFO)
-    logging.getLogger("ome.performance").setLevel(logging.DEBUG)
-    logging.getLogger("ome.audit").setLevel(logging.INFO)
+    logging.getLogger("ohm.llm").setLevel(logging.INFO)
+    logging.getLogger("ohm.performance").setLevel(logging.DEBUG)
+    logging.getLogger("ohm.audit").setLevel(logging.INFO)

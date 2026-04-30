@@ -18,9 +18,9 @@
 
 ### Prerequisites
 
-- Python 3.11+
-- Conda environment manager
-- Azure Blob Storage account (for OKW facilities)
+- Python 3.12+ (managed by **uv** from `pyproject.toml`)
+- [**uv**](https://docs.astral.sh/uv/) for installs and CLI (`uv sync`, `uv run …`)
+- Azure Blob Storage account (optional; only when using Azure-backed OKW)
 
 ### Setup
 
@@ -29,19 +29,12 @@
 git clone git@github.com:helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
-# Activate or create conda environment
-conda create -n ohm 
-conda activate ohm
-
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies and the ohm CLI into .venv (see pyproject.toml / uv.lock)
+uv sync --extra dev
 
 # Configure environment variables
-cp .env.example .env
-# Edit .env with your Azure storage credentials:
-# AZURE_STORAGE_ACCOUNT=your_storage_account
-# AZURE_STORAGE_KEY=your_storage_key
-# AZURE_STORAGE_CONTAINER=okw
+cp env.template .env
+# Edit .env with your storage credentials when not using local storage only.
 
 # Start the development server
 docker compose up --build ohm-api

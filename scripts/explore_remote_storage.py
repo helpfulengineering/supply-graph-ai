@@ -7,12 +7,12 @@ optionally at container root, so you can verify that storage is populated and
 that the layout matches what SmartFileDiscovery expects.
 
 Uses the same config as the rest of the app (e.g. .env: STORAGE_PROVIDER,
-AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_CONTAINER). Run from project root with
-conda environment active.
+AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_CONTAINER). Run from project root after
+`uv sync --extra dev`.
 
 Usage:
-    conda activate supply-graph-ai
-    python scripts/explore_remote_storage.py [--max-per-prefix 50] [--show-root]
+    # From repo root: uv sync --extra dev
+    uv run python scripts/explore_remote_storage.py [--max-per-prefix 50] [--show-root]
 """
 
 import argparse

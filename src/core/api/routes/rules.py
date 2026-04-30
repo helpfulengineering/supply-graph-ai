@@ -10,6 +10,7 @@ from typing import Optional
 
 import yaml
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
+from fastapi.responses import JSONResponse
 
 from ...matching.capability_rules import CapabilityRuleManager
 from ...matching.import_export_service import ImportExportService
@@ -101,7 +102,7 @@ async def list_rules(
     tag: Optional[str] = Query(None, description="Filter by tag"),
     include_metadata: bool = Query(False, description="Include metadata"),
     service: RulesService = Depends(get_rules_service),
-):
+) -> SuccessResponse:
     """List all rules, optionally filtered by domain or tag"""
     try:
         result = await service.list_rules(
@@ -128,7 +129,7 @@ async def get_rule(
     rule_id: str = Path(..., description="Rule ID"),
     include_metadata: bool = Query(False, description="Include metadata"),
     service: RulesService = Depends(get_rules_service),
-):
+) -> SuccessResponse:
     """Get a specific rule by domain and ID"""
     try:
         rule = await service.get_rule(domain, rule_id)
@@ -164,7 +165,7 @@ async def create_rule(
     request: RuleCreateRequest,
     http_request: Request,
     service: RulesService = Depends(get_rules_service),
-):
+) -> JSONResponse:
     """Create a new rule"""
     try:
         rule = await service.create_rule(request.rule_data)
@@ -173,8 +174,6 @@ async def create_rule(
             message="Rule created successfully", data=rule_dict
         )
         # Set status code for 201 Created
-        from fastapi.responses import JSONResponse
-
         return JSONResponse(
             content=response.model_dump(mode="json"),
             status_code=status.HTTP_201_CREATED,
@@ -202,7 +201,7 @@ async def update_rule(
     request: RuleUpdateRequest = ...,
     http_request: Request = None,
     service: RulesService = Depends(get_rules_service),
-):
+) -> SuccessResponse:
     """Update an existing rule"""
     try:
         # Ensure rule_id and domain match path parameters
@@ -234,7 +233,7 @@ async def delete_rule(
     rule_id: str = Path(..., description="Rule ID"),
     confirm: bool = Query(False, description="Confirmation flag"),
     service: RulesService = Depends(get_rules_service),
-):
+) -> SuccessResponse:
     """Delete a rule"""
     try:
         if not confirm:
@@ -273,7 +272,7 @@ async def import_rules(
     http_request: Request = None,
     import_export_service: ImportExportService = Depends(get_import_export_service),
     rules_service: RulesService = Depends(get_rules_service),
-):
+) -> SuccessResponse:
     """
     Import rules from YAML or JSON file content, or reload from filesystem.
 
@@ -332,7 +331,7 @@ async def export_rules(
     format: str = Query("yaml", description="Export format: 'yaml' or 'json'"),
     include_metadata: bool = Query(False, description="Include metadata"),
     service: ImportExportService = Depends(get_import_export_service),
-):
+) -> SuccessResponse:
     """Export rules to YAML or JSON format"""
     try:
         content, metadata = await service.export_rules(
@@ -363,7 +362,7 @@ async def validate_rules(
     request: RuleValidateRequest,
     http_request: Request = None,
     service: ImportExportService = Depends(get_import_export_service),
-):
+) -> SuccessResponse:
     """Validate rule file content without importing"""
     try:
         # Parse file to get rule set data
@@ -426,7 +425,7 @@ async def compare_rules(
     request: RuleCompareRequest,
     http_request: Request = None,
     service: ImportExportService = Depends(get_import_export_service),
-):
+) -> SuccessResponse:
     """Compare rules file with current rules (dry-run)"""
     try:
         result = await service.compare_rules(
@@ -452,7 +451,7 @@ async def compare_rules(
 async def reset_rules(
     confirm: bool = Query(False, description="Confirmation flag"),
     service: RulesService = Depends(get_rules_service),
-):
+) -> SuccessResponse:
     """Reset all rules (clear all rule sets)"""
     try:
         if not confirm:

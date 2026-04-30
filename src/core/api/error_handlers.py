@@ -8,7 +8,7 @@ with proper HTTP status codes and structured error responses.
 import logging
 import traceback
 from datetime import datetime
-from typing import Union
+from typing import Any, Optional, Union
 
 from fastapi import HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -46,10 +46,10 @@ class APIErrorHandler:
         self,
         error: Union[Exception, str],
         status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
-        request_id: str = None,
-        field: str = None,
-        value: any = None,
-        suggestion: str = None,
+        request_id: Optional[str] = None,
+        field: Optional[str] = None,
+        value: Any = None,
+        suggestion: Optional[str] = None,
     ) -> ErrorResponse:
         """
         Create a standardized error response.
@@ -117,7 +117,7 @@ class APIErrorHandler:
             return ErrorCode.INTERNAL_ERROR
 
     def handle_validation_error(
-        self, error: RequestValidationError, request_id: str = None
+        self, error: RequestValidationError, request_id: Optional[str] = None
     ) -> ErrorResponse:
         """Handle FastAPI validation errors."""
         errors = []
@@ -147,7 +147,7 @@ class APIErrorHandler:
             },
         )
 
-    def _get_validation_suggestion(self, validation_error: dict) -> str:
+    def _get_validation_suggestion(self, validation_error: dict[str, Any]) -> str:
         """Get a helpful suggestion for validation errors."""
         error_type = validation_error.get("type", "")
 
@@ -169,7 +169,7 @@ class APIErrorHandler:
     def handle_http_exception(
         self,
         error: Union[HTTPException, StarletteHTTPException],
-        request_id: str = None,
+        request_id: Optional[str] = None,
     ) -> ErrorResponse:
         """Handle HTTP exceptions."""
         error_code = self._map_http_status_to_code(error.status_code)
@@ -235,7 +235,9 @@ class APIErrorHandler:
 api_error_handler = APIErrorHandler()
 
 
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
     """Handle FastAPI validation exceptions."""
     request_id = getattr(request.state, "request_id", None)
     error_response = api_error_handler.handle_validation_error(exc, request_id)
@@ -271,7 +273,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 async def http_exception_handler(
     request: Request, exc: Union[HTTPException, StarletteHTTPException]
-):
+) -> JSONResponse:
     """Handle HTTP exceptions."""
     request_id = getattr(request.state, "request_id", None)
     error_response = api_error_handler.handle_http_exception(exc, request_id)
@@ -306,7 +308,7 @@ async def http_exception_handler(
     )
 
 
-async def general_exception_handler(request: Request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Handle general exceptions."""
     request_id = getattr(request.state, "request_id", None)
 
@@ -341,10 +343,10 @@ async def general_exception_handler(request: Request, exc: Exception):
 def create_error_response(
     error: Union[Exception, str],
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
-    request_id: str = None,
-    field: str = None,
-    value: any = None,
-    suggestion: str = None,
+    request_id: Optional[str] = None,
+    field: Optional[str] = None,
+    value: Any = None,
+    suggestion: Optional[str] = None,
 ) -> ErrorResponse:
     """
     Convenience function to create standardized error responses.
@@ -371,7 +373,10 @@ def create_error_response(
 
 
 def create_success_response(
-    message: str, data: dict = None, request_id: str = None, metadata: dict = None
+    message: str,
+    data: Optional[dict[str, Any]] = None,
+    request_id: Optional[str] = None,
+    metadata: Optional[dict[str, Any]] = None,
 ) -> SuccessResponse:
     """
     Convenience function to create standardized success responses.

@@ -5,28 +5,28 @@ notes/github-issues.md.
 
 Usage:
     # Dry-run (default): preview all parsed issues without creating anything
-    python scripts/create_github_issues.py
+    uv run python scripts/create_github_issues.py
 
     # Dry-run with verbose body output
-    python scripts/create_github_issues.py --verbose
+    uv run python scripts/create_github_issues.py --verbose
 
     # Create all issues (requires confirmation)
-    python scripts/create_github_issues.py --create
+    uv run python scripts/create_github_issues.py --create
 
     # Create only the first 5 issues
-    python scripts/create_github_issues.py --create --limit 5
+    uv run python scripts/create_github_issues.py --create --limit 5
 
     # Create issues from a specific phase only
-    python scripts/create_github_issues.py --create --phase 1
+    uv run python scripts/create_github_issues.py --create --phase 1
 
     # Create a single issue by ID
-    python scripts/create_github_issues.py --create --issue-id 1.1.1
+    uv run python scripts/create_github_issues.py --create --issue-id 1.1.1
 
     # Skip confirmation prompt (for CI/automation)
-    python scripts/create_github_issues.py --create --yes
+    uv run python scripts/create_github_issues.py --create --yes
 
     # Specify a custom repo (default: auto-detected from git remote)
-    python scripts/create_github_issues.py --create --repo owner/repo
+    uv run python scripts/create_github_issues.py --create --repo owner/repo
 
 Prerequisites:
     - GitHub CLI (gh) installed: https://cli.github.com/

@@ -13,20 +13,20 @@ ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
 
 ```bash
 # Check service status
-ome llm service status
+ohm llm service status
 
 # Generate simple text
-ome llm generate "What is 3D printing?"
+ohm llm generate "What is 3D printing?"
 
 # Generate OKH manifest
-ome llm generate-okh https://github.com/example/project --preserve-context
+ohm llm generate-okh https://github.com/example/project --preserve-context
 ```
 
 ### 3. Test Matching
 
 ```bash
 # Test matching capabilities
-ome llm match \
+ohm llm match \
   --requirements "3D printing,CNC machining" \
   --capabilities "3D printer,CNC mill" \
   --domain manufacturing
@@ -36,37 +36,37 @@ ome llm match \
 
 ### Service Management
 ```bash
-ome llm service status          # Check service health
-ome llm service metrics         # View usage metrics
-ome llm service health          # Detailed health check
+ohm llm service status          # Check service health
+ohm llm service metrics         # View usage metrics
+ohm llm service health          # Detailed health check
 ```
 
 ### Text Generation
 ```bash
-ome llm generate "prompt"                    # Basic generation
-ome llm generate "prompt" --max-tokens 200   # With token limit
-ome llm generate "prompt" --temperature 0.3  # With temperature
+ohm llm generate "prompt"                    # Basic generation
+ohm llm generate "prompt" --max-tokens 200   # With token limit
+ohm llm generate "prompt" --temperature 0.3  # With temperature
 ```
 
 ### OKH Generation
 ```bash
-ome llm generate-okh <url>                  # Basic OKH generation
-ome llm generate-okh <url> --preserve-context  # Keep context files
-ome llm generate-okh <url> --quality-level high  # High quality analysis
+ohm llm generate-okh <url>                  # Basic OKH generation
+ohm llm generate-okh <url> --preserve-context  # Keep context files
+ohm llm generate-okh <url> --quality-level high  # High quality analysis
 ```
 
 ### Matching Analysis
 ```bash
-ome llm match --requirements "req1,req2" --capabilities "cap1,cap2"
-ome llm match --domain manufacturing --preserve-context
+ohm llm match --requirements "req1,req2" --capabilities "cap1,cap2"
+ohm llm match --domain manufacturing --preserve-context
 ```
 
 ### Provider Management
 ```bash
-ome llm providers list         # List available providers
-ome llm providers status       # Check provider status
-ome llm providers test anthropic  # Test specific provider
-ome llm providers set anthropic   # Set default provider
+ohm llm providers list         # List available providers
+ohm llm providers status       # Check provider status
+ohm llm providers test anthropic  # Test specific provider
+ohm llm providers set anthropic   # Set default provider
 ```
 
 ## 🔧 Configuration
@@ -101,7 +101,7 @@ LLM_DEFAULT_MODEL=claude-sonnet-4-5-20250929
 echo $ANTHROPIC_API_KEY
 
 # Check service status
-ome llm service status
+ohm llm service status
 
 # Check logs
 tail -f logs/app.log
@@ -119,14 +119,14 @@ tail -f logs/app.log
 ### Debug Mode
 ```bash
 export LOG_LEVEL=DEBUG
-ome llm generate "test"
+ohm llm generate "test"
 ```
 
 ## 📊 Monitoring
 
 ### Check Usage
 ```bash
-ome llm service metrics
+ohm llm service metrics
 ```
 
 ### View Context Files
@@ -168,7 +168,7 @@ curl -X POST http://localhost:8001/v1/api/llm/match \
 ### For Developers
 - Use `--preserve-context` to debug LLM interactions
 - Start with simple prompts to test connectivity
-- Monitor costs with `ome llm service metrics`
+- Monitor costs with `ohm llm service metrics`
 - Use `--quality-level high` for production use
 
 ### For Testing
@@ -188,11 +188,11 @@ curl -X POST http://localhost:8001/v1/api/llm/match \
 1. **Read Full Documentation**: [LLM Service Documentation](llm-service.md)
 2. **Explore Examples**: Check `synth/synthetic_data/` for test data
 3. **Test Integration**: Try generating OKH manifests from real repositories
-4. **Monitor Usage**: Use `ome llm service metrics` to track performance
+4. **Monitor Usage**: Use `ohm llm service metrics` to track performance
 
 ## 🆘 Need Help?
 
 - Check logs: `logs/app.log`
 - Review context files when using `--preserve-context`
 - Test with simple prompts first
-- Verify configuration with `ome llm service status`
+- Verify configuration with `ohm llm service status`

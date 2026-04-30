@@ -86,16 +86,17 @@ Five targeted fixes were applied, each verified incrementally with TDD:
 ## Running the Accuracy Tests
 
 ```bash
-conda activate supply-graph-ai
+cd supply-graph-ai
+uv sync --extra dev
 
 # Run accuracy tests (3-layer, ~2s)
-python -m pytest tests/e2e/test_matching_accuracy.py -v
+uv run pytest tests/e2e/test_matching_accuracy.py -v
 
 # Run LLM accuracy tests (requires Anthropic API key or Ollama, ~5-30min)
-python -m pytest tests/e2e/test_matching_accuracy_llm.py -v
+uv run pytest tests/e2e/test_matching_accuracy_llm.py -v
 
 # Run model ladder (requires Ollama with models pulled, ~2-8 hours)
-python -m pytest tests/e2e/test_model_ladder.py -v
+uv run pytest tests/e2e/test_model_ladder.py -v
 # Matching Accuracy Baseline (v1.0.0)
 
 **Date established**: February 2026
@@ -296,18 +297,20 @@ Fixing the top 3 categories would resolve **17 of 22 mismatches** (77%).
 ## Running the Accuracy Tests
 
 ```bash
+cd supply-graph-ai
+uv sync --extra dev
+
 # Run 3-layer accuracy evaluation
-conda activate supply-graph-ai
-pytest tests/e2e/test_matching_accuracy.py -v -s
+uv run pytest tests/e2e/test_matching_accuracy.py -v -s
 
 # Run LLM accuracy evaluation (requires ANTHROPIC_API_KEY and/or Ollama)
-pytest tests/e2e/test_matching_accuracy_llm.py -v -s
+uv run pytest tests/e2e/test_matching_accuracy_llm.py -v -s
 
 # Run model ladder (benchmark multiple local models)
-pytest tests/e2e/test_model_ladder.py -v -s
+uv run pytest tests/e2e/test_model_ladder.py -v -s
 
 # Regenerate the baseline report
-python -c "
+uv run python -c "
 import asyncio, json
 from tests.benchmarks.conftest import _ensure_domains_registered
 from src.core.services.matching_service import MatchingService
