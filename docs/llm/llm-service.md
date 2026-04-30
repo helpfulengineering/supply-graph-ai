@@ -190,23 +190,23 @@ Response:
 
 ```bash
 # Check overall service status
-ome llm service status
+ohm llm service status
 
 # Check specific provider status
-ome llm providers status
+ohm llm providers status
 
 # List available providers
-ome llm providers list
+ohm llm providers list
 ```
 
 #### Text Generation
 
 ```bash
 # Generate text with default settings
-ome llm generate "Explain the benefits of open-source hardware"
+ohm llm generate "Explain the benefits of open-source hardware"
 
 # Generate with specific parameters
-ome llm generate "Create a manufacturing process description" \
+ohm llm generate "Create a manufacturing process description" \
   --max-tokens 300 \
   --temperature 0.3 \
   --provider anthropic \
@@ -217,16 +217,16 @@ ome llm generate "Create a manufacturing process description" \
 
 ```bash
 # Generate OKH manifest from GitHub URL
-ome llm generate-okh https://github.com/example/project
+ohm llm generate-okh https://github.com/example/project
 
 # Generate with context preservation
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --preserve-context \
   --quality-level high \
   --strict-mode
 
 # Generate with specific LLM settings
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --provider anthropic \
   --model claude-sonnet-4-5-20250929 \
   --preserve-context
@@ -236,16 +236,16 @@ ome llm generate-okh https://github.com/example/project \
 
 ```bash
 # Analyze matching between requirements and capabilities
-ome llm match \
+ohm llm match \
   --requirements "3D printing,CNC machining" \
   --capabilities "3D printer,CNC mill,Laser cutter" \
   --domain manufacturing \
   --preserve-context
 
-# Match from file
-ome llm match \
-  --requirements-file requirements.txt \
-  --capabilities-file capabilities.txt \
+# Match from file (paths are your data files, not pip requirements)
+ohm llm match \
+  --requirements-file ./my-requirements.txt \
+  --capabilities-file ./my-capabilities.txt \
   --domain manufacturing
 ```
 
@@ -253,13 +253,13 @@ ome llm match \
 
 ```bash
 # Set default provider
-ome llm providers set anthropic
+ohm llm providers set anthropic
 
 # Test provider connection
-ome llm providers test anthropic
+ohm llm providers test anthropic
 
 # Check provider metrics
-ome llm service metrics
+ohm llm service metrics
 ```
 
 ### Advanced Usage
@@ -270,7 +270,7 @@ When using `--preserve-context`, the LLM service creates temporary context files
 
 ```bash
 # Generate with context preservation
-ome llm generate-okh https://github.com/example/project --preserve-context
+ohm llm generate-okh https://github.com/example/project --preserve-context
 
 # Check context files
 ls temp_generation_context/
@@ -293,7 +293,7 @@ Different quality levels affect the depth of analysis:
 - `high`: Complete analysis, slower processing
 
 ```bash
-ome llm generate-okh https://github.com/example/project --quality-level high
+ohm llm generate-okh https://github.com/example/project --quality-level high
 ```
 
 #### Strict Mode
@@ -301,7 +301,7 @@ ome llm generate-okh https://github.com/example/project --quality-level high
 Strict mode enforces stricter validation and error handling:
 
 ```bash
-ome llm generate-okh https://github.com/example/project --strict-mode
+ohm llm generate-okh https://github.com/example/project --strict-mode
 ```
 
 ## Error Handling
@@ -338,13 +338,13 @@ Error: Model 'claude-sonnet-4-5-20250929' not found
 
 ```bash
 export LOG_LEVEL=DEBUG
-ome llm generate "test prompt"
+ohm llm generate "test prompt"
 ```
 
 #### Check Service Health
 
 ```bash
-ome llm service health
+ohm llm service health
 ```
 
 #### View Context Files
@@ -367,7 +367,7 @@ The LLM service supports concurrent requests with configurable limits:
 
 ```bash
 # Check current limits
-ome llm service metrics
+ohm llm service metrics
 
 # Adjust limits in configuration
 {
@@ -382,7 +382,7 @@ Monitor and control costs:
 
 ```bash
 # Check current costs
-ome llm service metrics
+ohm llm service metrics
 
 # Set cost limits
 {
@@ -506,7 +506,7 @@ For additional support:
 1. Check the logs: `logs/app.log`
 2. Review context files when using `--preserve-context`
 3. Test with simple prompts first
-4. Verify configuration with `ome llm service status`
+4. Verify configuration with `ohm llm service status`
 
 ## Changelog
 

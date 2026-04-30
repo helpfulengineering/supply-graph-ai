@@ -8,9 +8,9 @@ For each supported repo in tests/data/okh_generation/repositories.json, if both
 and writes a JSON report.
 
 Usage:
-    conda activate supply-graph-ai
-    python scripts/okh_generation_layer_compare.py
-    python scripts/okh_generation_layer_compare.py --stdout
+    # From repo root: uv sync --extra dev
+    uv run python scripts/okh_generation_layer_compare.py
+    uv run python scripts/okh_generation_layer_compare.py --stdout
 """
 
 from __future__ import annotations

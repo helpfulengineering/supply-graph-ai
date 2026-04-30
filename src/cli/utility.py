@@ -14,7 +14,7 @@ from .decorators import standard_cli_command
 
 
 @click.group()
-def utility_group():
+def utility_group() -> None:
     """
     Utility commands for OHM.
 

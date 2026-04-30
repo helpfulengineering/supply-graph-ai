@@ -289,35 +289,29 @@ If a large change is truly necessary:
 
 ## Development Environment
 
-### Conda Environment
+### uv and pyproject.toml
 
-**CRITICAL: This project uses a conda environment named "supply-graph-ai".**
+**CRITICAL: Python dependencies and the active interpreter are managed with [uv](https://docs.astral.sh/uv/) from the repository root.**
 
-- **Environment Name**: `supply-graph-ai`
-- **Always activate this environment** before running any Python commands, tests, or scripts
-- **When executing Python code**, ensure the conda environment is active
-- **When installing dependencies**, use: `conda activate supply-graph-ai && pip install ...`
-- **When running tests**, use: `conda activate supply-graph-ai && pytest ...`
-- **When running scripts**, use: `conda activate supply-graph-ai && python ...`
+- **Install / refresh deps:** `uv sync` (add `--extra dev` for pytest and dev tools, `--extra docs` for MkDocs, etc.)
+- **Run commands in the project venv:** `uv run pytest …`, `uv run python scripts/…`, `uv run ohm …` (avoids accidentally using a global `pytest` from `PATH`)
+- **Lockfile:** `uv.lock` — commit changes when dependencies change
 
-**Activation Command:**
+**Typical commands:**
 ```bash
-conda activate supply-graph-ai
+cd supply-graph-ai
+uv sync --extra dev
+uv run pytest tests -m unit
 ```
 
 **Verification:**
-Before executing any Python-related commands, verify the environment is active:
 ```bash
-conda info --envs  # Should show supply-graph-ai with *
-# or
-which python  # Should point to conda environment
+uv run which python   # should be …/supply-graph-ai/.venv/bin/python
 ```
 
 **Important Notes:**
-- Never assume a different Python environment is active
-- Always explicitly activate the conda environment in commands
-- If the environment doesn't exist, create it: `conda create -n supply-graph-ai python=3.12`
-- Dependencies are managed via `requirements.txt` and `requirements-dev.txt`
+- Prefer **`uv run …`** over a bare system `pytest`/`python` so versions match CI (see `.github/workflows/ci-cd.yml`).
+- Optional extras are declared under `[project.optional-dependencies]` in **`pyproject.toml`**.
 
 ## Project Structure (from maps)
 

@@ -4,6 +4,7 @@ import inspect
 import logging
 import mimetypes
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
@@ -53,11 +54,16 @@ class FileResolver:
             self._cleanup_called = False
             timeout = aiohttp.ClientTimeout(total=self.download_options.timeout_seconds)
             # Use a connector that will be properly closed
-            connector = aiohttp.TCPConnector(
-                limit=max_concurrent,
-                force_close=True,  # Force close connections when done
-                enable_cleanup_closed=True,  # Enable cleanup of closed connections
-            )
+            connector_kwargs = {
+                "limit": max_concurrent,
+                "force_close": True,  # Force close connections when done
+            }
+            # Python 3.12.13+ already includes the upstream fix where this cleanup
+            # path is unnecessary, and aiohttp warns when the flag is enabled.
+            if sys.version_info < (3, 12, 13):
+                connector_kwargs["enable_cleanup_closed"] = True
+
+            connector = aiohttp.TCPConnector(**connector_kwargs)
 
             self.session = aiohttp.ClientSession(
                 timeout=timeout,

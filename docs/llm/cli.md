@@ -4,17 +4,17 @@ This document describes the command-line interface for LLM operations in the Ope
 
 ## Overview
 
-The LLM CLI provides easy access to LLM features through the `ome` command-line tool. All LLM commands are prefixed with `llm` and support various options for configuration and output formatting.
+The LLM CLI provides easy access to LLM features through the `ohm` command-line tool. All LLM commands are prefixed with `llm` and support various options for configuration and output formatting.
 
 ## Basic Usage
 
 ```bash
 # Show LLM help
-ome llm --help
+ohm llm --help
 
 # Show specific command help
-ome llm generate --help
-ome llm match --help
+ohm llm generate --help
+ohm llm match --help
 ```
 
 ## Commands
@@ -24,7 +24,7 @@ ome llm match --help
 Generate content using the LLM service.
 
 ```bash
-ome llm generate [OPTIONS] PROMPT
+ohm llm generate [OPTIONS] PROMPT
 ```
 
 **Options:**
@@ -40,20 +40,20 @@ ome llm generate [OPTIONS] PROMPT
 
 ```bash
 # Basic generation
-ome llm generate "Analyze this hardware project and generate an OKH manifest"
+ohm llm generate "Analyze this hardware project and generate an OKH manifest"
 
 # With specific provider and model
-ome llm generate "Generate OKH manifest" \
+ohm llm generate "Generate OKH manifest" \
   --provider anthropic \
   --model claude-sonnet-4-5-20250929
 
 # Save to file with JSON format
-ome llm generate "Analyze project" \
+ohm llm generate "Analyze project" \
   --output manifest.json \
   --format json
 
 # High temperature for creative output
-ome llm generate "Suggest improvements" \
+ohm llm generate "Suggest improvements" \
   --temperature 0.7 \
   --max-tokens 2000
 ```
@@ -63,7 +63,7 @@ ome llm generate "Suggest improvements" \
 Generate an OKH manifest for a hardware project.
 
 ```bash
-ome llm generate-okh [OPTIONS] PROJECT_URL
+ohm llm generate-okh [OPTIONS] PROJECT_URL
 ```
 
 **Options:**
@@ -81,20 +81,20 @@ ome llm generate-okh [OPTIONS] PROJECT_URL
 
 ```bash
 # Generate from GitHub URL
-ome llm generate-okh https://github.com/example/iot-sensor
+ohm llm generate-okh https://github.com/example/iot-sensor
 
 # With specific provider
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --provider anthropic \
   --model claude-sonnet-4-5-20250929
 
 # Clone repository for better analysis
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --clone \
   --preserve-context
 
 # Save in different format
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --output manifest.yaml \
   --format yaml
 ```
@@ -104,7 +104,7 @@ ome llm generate-okh https://github.com/example/project \
 Use LLM to enhance facility matching.
 
 ```bash
-ome llm match [OPTIONS] REQUIREMENTS_FILE FACILITIES_FILE
+ohm llm match [OPTIONS] REQUIREMENTS_FILE FACILITIES_FILE
 ```
 
 **Options:**
@@ -121,15 +121,15 @@ ome llm match [OPTIONS] REQUIREMENTS_FILE FACILITIES_FILE
 
 ```bash
 # Match requirements with facilities
-ome llm match requirements.json facilities.json
+ohm llm match requirements.json facilities.json
 
 # With confidence threshold
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --min-confidence 0.7 \
   --output matches.json
 
 # Table format output
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --format table \
   --min-confidence 0.6
 ```
@@ -139,7 +139,7 @@ ome llm match requirements.json facilities.json \
 Analyze a hardware project and extract information.
 
 ```bash
-ome llm analyze [OPTIONS] PROJECT_URL
+ohm llm analyze [OPTIONS] PROJECT_URL
 ```
 
 **Options:**
@@ -157,17 +157,17 @@ ome llm analyze [OPTIONS] PROJECT_URL
 
 ```bash
 # Basic project analysis
-ome llm analyze https://github.com/example/project
+ohm llm analyze https://github.com/example/project
 
 # Analysis
-ome llm analyze https://github.com/example/project \
+ohm llm analyze https://github.com/example/project \
   --include-code \
   --include-docs \
   --output analysis.json \
   --format json
 
 # Markdown report
-ome llm analyze https://github.com/example/project \
+ohm llm analyze https://github.com/example/project \
   --output report.md \
   --format markdown
 ```
@@ -177,7 +177,7 @@ ome llm analyze https://github.com/example/project \
 Manage LLM providers and configuration.
 
 ```bash
-ome llm providers [COMMAND]
+ohm llm providers [COMMAND]
 ```
 
 **Subcommands:**
@@ -190,16 +190,16 @@ ome llm providers [COMMAND]
 
 ```bash
 # List all providers
-ome llm providers list
+ohm llm providers list
 
 # Show provider status
-ome llm providers status
+ohm llm providers status
 
 # Set active provider
-ome llm providers set anthropic
+ohm llm providers set anthropic
 
 # Test provider connection
-ome llm providers test anthropic
+ohm llm providers test anthropic
 ```
 
 ### Service Management
@@ -207,7 +207,7 @@ ome llm providers test anthropic
 Manage LLM service and metrics.
 
 ```bash
-ome llm service [COMMAND]
+ohm llm service [COMMAND]
 ```
 
 **Subcommands:**
@@ -220,16 +220,16 @@ ome llm service [COMMAND]
 
 ```bash
 # Show service status
-ome llm service status
+ohm llm service status
 
 # Show usage metrics
-ome llm service metrics
+ohm llm service metrics
 
 # Check health
-ome llm service health
+ohm llm service health
 
 # Reset service
-ome llm service reset
+ohm llm service reset
 ```
 
 ## Configuration
@@ -253,7 +253,7 @@ export OHM_LLM_TIMEOUT="60"
 
 ### Configuration File
 
-Create `~/.ome/llm_config.yaml`:
+Create `~/.ohm/llm_config.yaml` (example path; align with your deployment conventions):
 
 ```yaml
 llm:
@@ -287,7 +287,7 @@ llm:
 ### JSON Format
 
 ```bash
-ome llm generate "Analyze project" --format json
+ohm llm generate "Analyze project" --format json
 ```
 
 ```json
@@ -307,7 +307,7 @@ ome llm generate "Analyze project" --format json
 ### YAML Format
 
 ```bash
-ome llm generate "Analyze project" --format yaml
+ohm llm generate "Analyze project" --format yaml
 ```
 
 ```yaml
@@ -324,7 +324,7 @@ metadata:
 ### Table Format
 
 ```bash
-ome llm match requirements.json facilities.json --format table
+ohm llm match requirements.json facilities.json --format table
 ```
 
 ```
@@ -345,22 +345,22 @@ ome llm match requirements.json facilities.json --format table
 
 ```bash
 # 1. Analyze a project
-ome llm analyze https://github.com/example/iot-sensor \
+ohm llm analyze https://github.com/example/iot-sensor \
   --output project_analysis.json \
   --format json
 
 # 2. Generate OKH manifest
-ome llm generate-okh https://github.com/example/iot-sensor \
+ohm llm generate-okh https://github.com/example/iot-sensor \
   --output manifest.okh.json \
   --preserve-context
 
 # 3. Match facilities
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --output matches.json \
   --min-confidence 0.7
 
 # 4. Check service metrics
-ome llm service metrics
+ohm llm service metrics
 ```
 
 ### Batch Processing
@@ -368,12 +368,12 @@ ome llm service metrics
 ```bash
 # Process multiple projects
 for project in project1 project2 project3; do
-  ome llm generate-okh "https://github.com/example/$project" \
+  ohm llm generate-okh "https://github.com/example/$project" \
     --output "manifests/${project}.okh.json"
 done
 
 # Generate reports
-ome llm analyze https://github.com/example/project1 \
+ohm llm analyze https://github.com/example/project1 \
   --output reports/project1_analysis.md \
   --format markdown
 ```
@@ -382,18 +382,18 @@ ome llm analyze https://github.com/example/project1 \
 
 ```bash
 # Test with local model
-ome llm generate "Test prompt" \
+ohm llm generate "Test prompt" \
   --provider local \
   --model llama2:7b \
   --timeout 120
 
 # Debug with context preservation
-ome llm generate-okh https://github.com/example/project \
+ohm llm generate-okh https://github.com/example/project \
   --preserve-context \
   --output debug_manifest.json
 
 # Check provider status
-ome llm providers status
+ohm llm providers status
 ```
 
 ## Error Handling
@@ -433,23 +433,23 @@ Enable debug output:
 export OHM_LOG_LEVEL=DEBUG
 
 # Run command with verbose output
-ome llm generate "Test prompt" --verbose
+ohm llm generate "Test prompt" --verbose
 ```
 
 ### Troubleshooting
 
 ```bash
 # Check service health
-ome llm service health
+ohm llm service health
 
 # Test provider connection
-ome llm providers test anthropic
+ohm llm providers test anthropic
 
 # Show detailed metrics
-ome llm service metrics --detailed
+ohm llm service metrics --detailed
 
 # Reset service state
-ome llm service reset
+ohm llm service reset
 ```
 
 ## Integration Examples
@@ -470,7 +470,7 @@ fi
 
 echo "Generating OKH manifest for: $PROJECT_URL"
 
-if ome llm generate-okh "$PROJECT_URL" --output "$OUTPUT_FILE"; then
+if ohm llm generate-okh "$PROJECT_URL" --output "$OUTPUT_FILE"; then
   echo "✅ Manifest generated successfully: $OUTPUT_FILE"
 else
   echo "❌ Failed to generate manifest"
@@ -488,7 +488,7 @@ def generate_okh_manifest(project_url, output_file="manifest.okh.json"):
     """Generate OKH manifest using CLI"""
     try:
         result = subprocess.run([
-            "ome", "llm", "generate-okh",
+            "ohm", "llm", "generate-okh",
             project_url,
             "--output", output_file,
             "--format", "json"

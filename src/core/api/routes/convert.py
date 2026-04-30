@@ -8,6 +8,7 @@ and external document formats (currently MSF datasheets).
 import io
 import os
 import tempfile
+from typing import Optional
 
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile, status
 from fastapi.responses import StreamingResponse
@@ -30,8 +31,8 @@ router = APIRouter(
 )
 
 
-def _get_converter(template_path: str = None) -> DatasheetConverter:
-    """Create a DatasheetConverter instance."""
+def _get_converter(template_path: Optional[str] = None) -> DatasheetConverter:
+    """Create a ``DatasheetConverter`` for OKH ↔ MSF datasheet conversion."""
     try:
         return DatasheetConverter(template_path=template_path)
     except DatasheetConversionError as exc:
@@ -67,8 +68,8 @@ def _get_converter(template_path: str = None) -> DatasheetConverter:
 async def convert_to_datasheet(
     request: ConvertToDatasheetRequest,
     http_request: Request,
-):
-    """Convert an OKH manifest to an MSF datasheet (.docx)."""
+) -> StreamingResponse:
+    """Convert an OKH manifest to an MSF datasheet (.docx) stream."""
     request_id = getattr(http_request.state, "request_id", None)
 
     try:
@@ -173,7 +174,7 @@ async def convert_from_datasheet(
     datasheet_file: UploadFile = File(
         ..., description="MSF datasheet (.docx) to convert"
     ),
-):
+) -> ConvertFromDatasheetResponse:
     """Convert an MSF datasheet (.docx) to an OKH manifest."""
     request_id = getattr(http_request.state, "request_id", None)
 

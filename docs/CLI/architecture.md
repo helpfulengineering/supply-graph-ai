@@ -194,7 +194,7 @@ This ensures:
 The CLI supports global configuration through command-line options:
 
 ```bash
-ohm --server-url https://api.ome.org --timeout 60 --verbose package build manifest.json
+ohm --server-url https://api.example.com --timeout 60 --verbose package build manifest.json
 ```
 
 ### Configuration Hierarchy
@@ -434,12 +434,12 @@ async def build_package(manifest_file):
 The CLI can be deployed as a standalone application:
 
 ```bash
-# Create executable
-pip install pyinstaller
-pyinstaller --onefile ohm
+# Create executable (install PyInstaller into the uv-managed env first)
+uv pip install pyinstaller
+uv run pyinstaller --onefile $(uv run which ohm)
 
 # Deploy executable
-./ohm system health
+./dist/ohm system health
 ```
 
 ### Container Deployment
@@ -447,11 +447,13 @@ pyinstaller --onefile ohm
 Docker container for consistent deployment:
 
 ```dockerfile
-FROM python:3.9-slim
-COPY . /app
+FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 WORKDIR /app
-RUN pip install -r requirements.txt
-ENTRYPOINT ["./ohm"]
+COPY . .
+RUN uv sync --frozen --extra dev
+ENV PATH="/app/.venv/bin:$PATH"
+ENTRYPOINT ["ohm"]
 ```
 
 ### CI/CD Integration
@@ -459,14 +461,16 @@ ENTRYPOINT ["./ohm"]
 The CLI integrates well with CI/CD pipelines:
 
 ```yaml
+- uses: astral-sh/setup-uv@v5
+- run: uv sync --extra dev
 - name: Validate manifests
-  run: ohm okh validate *.okh.json
+  run: uv run ohm okh validate *.okh.json
 
 - name: Build packages
-  run: ohm package build *.okh.json
+  run: uv run ohm package build *.okh.json
 
 - name: Push to registry
-  run: ohm package push org/project $VERSION
+  run: uv run ohm package push org/project $VERSION
 ```
 
 ## Future Enhancements

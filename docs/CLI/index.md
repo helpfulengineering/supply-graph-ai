@@ -25,21 +25,20 @@ This directory contains documentation for the OHM CLI:
 
 ### Prerequisites
 
-- Python 3.8+
-- Conda environment `supply-graph-ai` activated
-- OHM server running (optional, for HTTP mode)
+- **Recommended:** Python 3.12+, [`uv`](https://docs.astral.sh/uv/), repository cloned — same path as [README](../../README.md) quick start.
+- **Alternate:** Any Python 3.12 venv with `pip install -e ".[dev]"` from the repo root; **uv** (`uv sync --extra dev`) is the supported path and matches CI.
+- OHM server running at `--server-url` (default `http://localhost:8001`) when commands call the HTTP API.
 
 ### Basic Usage
 
 ```bash
-# Activate the conda environment
-conda activate supply-graph-ai
-
-# Navigate to the project directory
 cd supply-graph-ai
+uv sync          # installs project + CLI (see README)
+uv run ohm --help
 
-# Run the CLI
-python ohm [COMMAND] [OPTIONS]
+# Or with activated venv:
+source .venv/bin/activate   # macOS / Linux
+ohm --help
 ```
 
 ## Global Options
@@ -87,18 +86,25 @@ ohm --use-llm --quality-level medical --strict-mode system health
 
 ## Command Groups
 
-The OHM CLI is organized into 8 main command groups:
+Top-level commands from `ohm --help` (names match Click registration in `src/cli/main.py`):
 
-1. **[Match Commands](#match-commands)** - Requirements-to-capabilities matching and rules management
-2. **[OKH Commands](#okh-commands)** - OpenKnowHow manifest management
-3. **[OKW Commands](#okw-commands)** - OpenKnowWhere facility management
-4. **[Package Commands](#package-commands)** - OKH package management
-5. **[LLM Commands](#llm-commands)** - LLM operations and AI features
-6. **[System Commands](#system-commands)** - System administration
-7. **[Utility Commands](#utility-commands)** - Utility operations
-8. **[Taxonomy Commands](#taxonomy-commands)** - Process taxonomy management
+| Command | Purpose |
+|---------|---------|
+| `package` | OKH package build, push, pull, verify |
+| `okh` | OKH manifest lifecycle |
+| `okw` | OKW facility lifecycle |
+| `match` | Matching and related operations |
+| `llm` | LLM operations (optional; requires optional deps) |
+| `system` | Health, status, domains, ping |
+| `utility` | Domains, contexts, metrics |
+| `storage` | Storage setup and management |
+| `solution` | Supply-tree **solutions** in storage (save, load, list, visualize, …) — uses `/v1/api/supply-tree/...` HTTP API |
+| `convert` | Format conversion |
+| `taxonomy` | Process taxonomy |
+| `version` | CLI version |
+| `config` | Show effective CLI configuration |
 
-**Note**: Supply Tree Commands are not implemented in the current CLI version.
+Sections below follow this layout. Supply trees are created or validated via the **HTTP API** or match flows; persisted solutions are managed with **`ohm solution`** (not a separate `supply-tree` CLI group).
 
 ---
 
@@ -1744,77 +1750,23 @@ ohm system info
 
 ---
 
-## Supply Tree Commands
+## Solution commands (supply tree solutions)
 
-**⚠️ Note**: Supply Tree Commands are not implemented in the current CLI version. These commands are documented for future reference but are not available for use.
-
-### `ohm supply-tree create`
-
-Create a new supply tree from OKH manifest and OKW facility.
+Persisted **solutions** (serialized supply tree results) are managed with the `solution` group. Typical commands:
 
 ```bash
-ohm supply-tree create OKH_MANIFEST_ID OKW_FACILITY_ID [OPTIONS]
+ohm solution save solution.json [--id UUID] [--ttl-days N] [--tags a,b]
+ohm solution load SOLUTION_ID [--output path]
+ohm solution list [--okh-id UUID] [--matching-mode nested]
+ohm solution visualize SOLUTION_ID [--format json|html]
+ohm solution report SOLUTION_ID [--output path]
+ohm solution delete SOLUTION_ID
+ohm solution check SOLUTION_ID
+ohm solution extend SOLUTION_ID --days 30
+ohm solution cleanup [--dry-run] [--max-age-days N]
 ```
 
-**Arguments:**
-- `OKH_MANIFEST_ID` - UUID of the OKH manifest
-- `OKW_FACILITY_ID` - UUID of the OKW facility
-
-**Options:**
-- `--context TEXT` - Validation context
-- `--quality-level [basic\|standard\|premium]` - Validation quality level
-- `--strict-mode` - Enable strict validation mode
-
-### `ohm supply-tree get`
-
-Get a supply tree by ID.
-
-```bash
-ohm supply-tree get SUPPLY_TREE_ID
-```
-
-**Arguments:**
-- `SUPPLY_TREE_ID` - UUID of the supply tree
-
-### `ohm supply-tree list`
-
-List all supply trees.
-
-```bash
-ohm supply-tree list [OPTIONS]
-```
-
-**Options:**
-- `--limit INTEGER` - Maximum number of results
-- `--offset INTEGER` - Number of results to skip
-- `--status TEXT` - Filter by status
-
-### `ohm supply-tree delete`
-
-Delete a supply tree.
-
-```bash
-ohm supply-tree delete SUPPLY_TREE_ID
-```
-
-**Arguments:**
-- `SUPPLY_TREE_ID` - UUID of the supply tree
-
-### `ohm supply-tree validate`
-
-Validate a supply tree.
-
-```bash
-ohm supply-tree validate SUPPLY_TREE_ID [OPTIONS]
-```
-
-**Arguments:**
-- `SUPPLY_TREE_ID` - UUID of the supply tree
-
-**Options:**
-- `--context TEXT` - Validation context
-- `--quality-level [basic\|standard\|premium]` - Validation quality level
-- `--strict-mode` - Enable strict validation mode
+Use `ohm solution --help` and `ohm solution COMMAND --help` for full options. Creating a new match/supply-tree workflow is primarily via **`ohm match`** and the **`/v1/api/supply-tree/...`** HTTP endpoints documented under API.
 
 ---
 

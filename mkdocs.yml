@@ -90,6 +90,7 @@ nav:
     - Developer Guide: development/developer-guide.md
     - Container Guide: development/container-guide.md
     - Roadmap: development/roadmap.md
+    - Conference demo readiness: development/conference-demo-readiness.md
   - Data Models:
     - Overview: models/index.md
     - Bill Of Materials: models/bom.md

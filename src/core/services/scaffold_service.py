@@ -859,7 +859,7 @@ class ScaffoldService:
         """Generate getting-started.md template with cross-references to key sections."""
         base_content = (
             "# Getting Started\n\n"
-            "1. Install MkDocs: `pip install mkdocs`\n"
+            "1. Install MkDocs: from repo root run `uv sync --extra docs` then `uv run mkdocs build`\n"
             "2. Serve docs locally: `mkdocs serve`\n"
             "3. Edit `okh-manifest.json` to define your project per OKH.\n"
         )

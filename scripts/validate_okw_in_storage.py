@@ -4,11 +4,11 @@ Validate all OKW facilities in configured storage (local or remote).
 
 Uses the same validation as the CLI (validate_okw_facility) and reports
 per-facility pass/fail plus a summary. Run from project root with the
-supply-graph-ai conda environment active.
+uv-managed project environment (uv sync --extra dev).
 
 Usage:
-    conda activate supply-graph-ai
-    python scripts/validate_okw_in_storage.py [--quality-level professional]
+    # From repo root: uv sync --extra dev
+    uv run python scripts/validate_okw_in_storage.py [--quality-level professional]
 """
 
 import argparse

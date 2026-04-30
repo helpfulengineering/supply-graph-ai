@@ -8,9 +8,9 @@ reports status codes so you can see mismatches (wrong path, wrong branch, etc.).
 
 Examples
 --------
-    conda activate supply-graph-ai
-    python scripts/validate_okh_manifest_repo_urls.py tmp/oshwa/okh-manifests/beaglebone-black-4L.json
-    python scripts/validate_okh_manifest_repo_urls.py tmp/oshwa/okh-manifests/beaglebone-black-4L.json --json
+    # From repo root: uv sync --extra dev
+    uv run python scripts/validate_okh_manifest_repo_urls.py tmp/oshwa/okh-manifests/beaglebone-black-4L.json
+    uv run python scripts/validate_okh_manifest_repo_urls.py tmp/oshwa/okh-manifests/beaglebone-black-4L.json --json
 """
 
 from __future__ import annotations

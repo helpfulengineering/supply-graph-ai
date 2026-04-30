@@ -94,17 +94,17 @@ curl -X POST "http://localhost:8001/v1/api/okh/scaffold" \
 ## Building Documentation
 
 ```bash
-# Install MkDocs
-pip install mkdocs
+# Install MkDocs (from supply-graph-ai repo root, or after `uv sync` in generated project if you add pyproject)
+uv sync --extra docs
 
 # Navigate to your project
 cd my-project
 
 # Serve documentation locally
-mkdocs serve
+uv run mkdocs serve
 
 # Build static site
-mkdocs build
+uv run mkdocs build
 ```
 
 ## Validation

@@ -2,25 +2,25 @@
 """
 Compare match operations between two Azure Blob Storage containers.
 
-For each container (e.g. "ome" and "newformats"), this script:
+For each container (e.g. "ohm" and "newformats"), this script:
 1. Connects to the container using the same account as configured in .env
 2. Discovers OKH files (requirements) and OKW files (capabilities) under okh/ and okw/
 3. Loads all OKH manifests and manufacturing OKW facilities (kitchens are skipped)
 4. Runs matching: for each OKH, finds matching facilities via MatchingService.find_matches_with_manifest
 5. Reports counts, errors, and per-OKH match counts for comparison
 
-Use this to investigate why one container (e.g. newformats) fails while another (e.g. ome) works.
+Use this to investigate why one container (e.g. newformats) fails while another (e.g. ohm) works.
 
 Usage:
-    conda activate supply-graph-ai
-    # Compare default containers "ome" and "newformats"
-    python scripts/compare_storage_containers.py
+    # From repo root: uv sync --extra dev
+    # Compare default containers "ohm" and "newformats"
+    uv run python scripts/compare_storage_containers.py
 
     # Compare specific containers
-    python scripts/compare_storage_containers.py --containers ome newformats
+    uv run python scripts/compare_storage_containers.py --containers ohm newformats
 
     # Single container (quick check)
-    python scripts/compare_storage_containers.py --containers ome
+    uv run python scripts/compare_storage_containers.py --containers ohm
 
 Requires: .env with STORAGE_PROVIDER=azure_blob, AZURE_STORAGE_ACCOUNT, AZURE_STORAGE_KEY.
 Container names are passed as arguments; AZURE_STORAGE_CONTAINER in .env is ignored for this script.
@@ -212,13 +212,13 @@ def print_report(results: List[Dict[str, Any]], verbose: bool) -> None:
 
 async def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Compare match operations between storage containers (e.g. ome vs newformats)"
+        description="Compare match operations between storage containers (e.g. ohm vs newformats)"
     )
     parser.add_argument(
         "--containers",
         nargs="+",
-        default=["ome", "newformats"],
-        help="Container names to compare (default: ome newformats)",
+        default=["ohm", "newformats"],
+        help="Container names to compare (default: ohm newformats)",
     )
     parser.add_argument(
         "--provider",

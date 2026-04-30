@@ -7,8 +7,9 @@ including LLM integration, error handling, and output formatting.
 
 import asyncio
 import functools
+from collections.abc import Awaitable, Callable
 from datetime import datetime
-from typing import Callable, Optional
+from typing import Any, Optional
 
 import click
 
@@ -35,7 +36,7 @@ def cli_command(
         deprecated: Whether command is deprecated
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         # Add common options
         func = click.option(
             "--verbose", "-v", is_flag=True, help="Enable verbose output"
@@ -100,13 +101,13 @@ def cli_command(
     return decorator
 
 
-def async_command(func: Callable) -> Callable:
-    """
-    Decorator to handle async CLI commands with proper event loop management.
-    """
+def async_command(
+    func: Callable[..., Awaitable[Any]],
+) -> Callable[..., Any]:
+    """Run an async command function inside ``asyncio.run`` with CLI cleanup."""
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract context if present
         ctx = None
         for arg in args:
@@ -136,13 +137,13 @@ def async_command(func: Callable) -> Callable:
     return wrapper
 
 
-def with_llm_config(func: Callable) -> Callable:
+def with_llm_config(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to add LLM configuration to command context.
     """
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract context
         ctx = None
         for arg in args:
@@ -170,13 +171,13 @@ def with_llm_config(func: Callable) -> Callable:
     return wrapper
 
 
-def with_error_handling(func: Callable) -> Callable:
+def with_error_handling(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to add standardized error handling to CLI commands.
     """
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except click.ClickException:
@@ -207,13 +208,13 @@ def with_error_handling(func: Callable) -> Callable:
     return wrapper
 
 
-def with_performance_tracking(func: Callable) -> Callable:
+def with_performance_tracking(func: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to add performance tracking to CLI commands.
     """
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         start_time = datetime.now()
 
         try:
@@ -236,7 +237,7 @@ def with_performance_tracking(func: Callable) -> Callable:
 
             return result
 
-        except Exception as e:
+        except Exception:
             # Calculate execution time even for errors
             execution_time = (datetime.now() - start_time).total_seconds()
 
@@ -257,13 +258,11 @@ def with_performance_tracking(func: Callable) -> Callable:
     return wrapper
 
 
-def with_output_formatting(func: Callable) -> Callable:
-    """
-    Decorator to add standardized output formatting to CLI commands.
-    """
+def with_output_formatting(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Propagate ``output_format`` from kwargs into :class:`CLIContext`."""
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract context
         ctx = None
         for arg in args:
@@ -301,7 +300,7 @@ def cli_group(
         deprecated: Whether group is deprecated
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         # Set group metadata
         if name:
             func.__name__ = name
@@ -330,7 +329,7 @@ def confirm_action(message: str, default: bool = False):
         default: Default response if user just presses Enter
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             # Extract context
@@ -354,13 +353,11 @@ def confirm_action(message: str, default: bool = False):
     return decorator
 
 
-def require_server_connection(func: Callable) -> Callable:
-    """
-    Decorator to ensure server connection before executing command.
-    """
+def require_server_connection(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Log a connectivity check in verbose mode before running the command."""
 
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Extract context
         ctx = None
         for arg in args:
@@ -400,7 +397,7 @@ def standard_cli_command(
     This is the main decorator to use for most CLI commands.
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         # Apply base command decorator
         func = cli_command(
             name=name,

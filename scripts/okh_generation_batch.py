@@ -15,19 +15,19 @@ Typical workflow (clone + BOM normalization, same as manual ``--clone --no-revie
     # Optional for GitLab API extractors; local git clone also works for
     # https://host/group/project when the path has namespace + project.
     export GITLAB_SELF_HOSTED_HOSTS=gitlab.waag.org   # if using Waag API fallback
-    conda activate supply-graph-ai
+    # From repo root: uv sync --extra dev
 
     # 3-layer baseline (default layer tag: 3L)
-    python scripts/okh_generation_batch.py --stdout-summary
+    uv run python scripts/okh_generation_batch.py --stdout-summary
 
     # 4-layer (LLM + chunked map-reduce) — default; layer tag 4L
-    python scripts/okh_generation_batch.py --stdout-summary
+    uv run python scripts/okh_generation_batch.py --stdout-summary
 
     # Fast batch without LLM
-    python scripts/okh_generation_batch.py --no-llm --stdout-summary
+    uv run python scripts/okh_generation_batch.py --no-llm --stdout-summary
 
-    python scripts/okh_generation_baseline_report.py --manifests-dir tmp/oshwa/okh-manifests
-    python scripts/okh_generation_layer_compare.py
+    uv run python scripts/okh_generation_baseline_report.py --manifests-dir tmp/oshwa/okh-manifests
+    uv run python scripts/okh_generation_layer_compare.py
 
 Options:
     --core-only      Only repos with core_for_regression: true

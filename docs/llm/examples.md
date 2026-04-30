@@ -10,15 +10,15 @@ Generate an OKH manifest for a hardware project:
 
 ```bash
 # Generate manifest from GitHub URL
-ome okh generate-from-url https://github.com/example/iot-sensor --use-llm
+ohm okh generate-from-url https://github.com/example/iot-sensor --use-llm
 
 # With specific provider
-ome okh generate-from-url https://github.com/example/project \
+ohm okh generate-from-url https://github.com/example/project \
   --llm-provider anthropic \
   --llm-model claude-sonnet-4-5-20250929
 
 # Save to specific file
-ome okh generate-from-url https://github.com/example/project \
+ohm okh generate-from-url https://github.com/example/project \
   --use-llm \
   --output my_manifest.okh.json
 ```
@@ -29,14 +29,14 @@ Use LLM to enhance facility matching:
 
 ```bash
 # Match requirements with facilities
-ome llm match requirements.json facilities.json
+ohm llm match requirements.json facilities.json
 
 # With confidence threshold
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --min-confidence 0.7
 
 # Save results
-ome llm match requirements.json facilities.json \
+ohm llm match requirements.json facilities.json \
   --output matches.json
 ```
 
@@ -46,16 +46,16 @@ Analyze a hardware project:
 
 ```bash
 # Basic analysis
-ome llm analyze https://github.com/example/project
+ohm llm analyze https://github.com/example/project
 
 #  Analysis with code review
-ome llm analyze https://github.com/example/project \
+ohm llm analyze https://github.com/example/project \
   --include-code \
   --include-docs \
   --output analysis.json
 
 # Markdown report
-ome llm analyze https://github.com/example/project \
+ohm llm analyze https://github.com/example/project \
   --output report.md \
   --format markdown
 ```

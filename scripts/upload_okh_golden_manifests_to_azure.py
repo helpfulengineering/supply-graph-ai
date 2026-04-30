@@ -3,7 +3,7 @@
 Upload golden OKH manifests (e.g. tmp/oshwa/okh-manifests) to Azure Blob Storage.
 
 Uses StorageService + StorageOrganizer so blobs land under ``okh/<filename>`` like
-the rest of OHM (see scripts/populate_ome_from_synthetic_data.py).
+the rest of OHM (see scripts/populate_ohm_storage_from_synthetic_data.py).
 
 Authentication (typical)
 ------------------------
@@ -26,9 +26,9 @@ using account key auth from ``.env``.
 
 Examples
 --------
-    conda activate supply-graph-ai
-    python scripts/upload_okh_golden_manifests_to_azure.py --dry-run
-    python scripts/upload_okh_golden_manifests_to_azure.py --create-container
+    # From repo root: uv sync --extra dev
+    uv run python scripts/upload_okh_golden_manifests_to_azure.py --dry-run
+    uv run python scripts/upload_okh_golden_manifests_to_azure.py --create-container
 """
 
 from __future__ import annotations

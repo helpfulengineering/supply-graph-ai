@@ -6,7 +6,7 @@ This module provides commands for building, managing, and deploying OKH packages
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 import click
@@ -29,7 +29,7 @@ from .decorators import standard_cli_command
 
 
 @click.group()
-def package_group():
+def package_group() -> None:
     """
     OKH Package Management Commands.
 
@@ -56,8 +56,8 @@ def package_group():
 # Helper functions
 
 
-async def _read_manifest_file(file_path: str) -> dict:
-    """Read and parse manifest file."""
+async def _read_manifest_file(file_path: str) -> dict[str, Any]:
+    """Read and parse an OKH manifest file (JSON or YAML)."""
     manifest_path = Path(file_path)
 
     try:

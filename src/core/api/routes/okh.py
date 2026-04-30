@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 from uuid import UUID
 
 import yaml
@@ -104,7 +104,7 @@ async def get_storage_service() -> StorageService:
     - Nested object schemas
     """,
 )
-async def export_okh_schema(http_request: Request = None):
+async def export_okh_schema(http_request: Request = None) -> Any:
     """Export OKH domain model as JSON schema."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -168,7 +168,7 @@ async def export_okh_schema(http_request: Request = None):
     fill them in and then validate with ``POST /api/okh/validate``.
     """,
 )
-async def get_okh_template(http_request: Request = None):
+async def get_okh_template(http_request: Request = None) -> Any:
     """Return a blank OKH manifest template dict."""
     from ...utils.template_builder import okh_blank_template
 
@@ -184,7 +184,7 @@ async def get_okh(
     ),
     http_request: Request = None,
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> Any:
     """
     Get an OKH manifest by ID
 
@@ -273,7 +273,7 @@ async def list_okh(
         None, description="Filter criteria (e.g., 'title=contains:Hardware')"
     ),
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> Any:
     """Enhanced OKH manifest listing with pagination and metrics."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -364,7 +364,7 @@ async def update_okh(
     request: OKHUpdateRequest,
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> Any:
     """
     Update an OKH manifest
 
@@ -400,7 +400,7 @@ async def update_okh(
 async def delete_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> Any:
     """
     Delete an OKH manifest
 
@@ -459,7 +459,7 @@ async def validate_okh(
     ),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
-):
+) -> Any:
     """Enhanced OKH validation with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -544,7 +544,7 @@ async def validate_okh(
 @router.post("/extract", response_model=OKHExtractResponse)
 async def extract_requirements(
     request: OKHExtractRequest, okh_service: OKHService = Depends(get_okh_service)
-):
+) -> Any:
     """
     Extract requirements from an OKH object
 
@@ -585,7 +585,7 @@ async def create_okh_manifest(
     request: OKHValidateRequest,
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
-):
+) -> Any:
     """Create and store an OKH manifest from a JSON dict."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -639,7 +639,7 @@ async def upload_okh_file(
         None, description="Validation context (e.g., 'manufacturing', 'hobby')"
     ),
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> Any:
     """
     Upload an OKH file
 
@@ -736,7 +736,7 @@ async def get_okh_from_storage(
     request: OKHFromStorageRequest,
     http_request: Request = None,
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> Any:
     """Retrieve an OKH manifest from storage by ID."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -815,7 +815,7 @@ async def get_okh_from_storage(
 @router.post("/generate-from-url", response_model=OKHGenerateResponse)
 async def generate_from_url(
     request: OKHGenerateRequest, okh_service: OKHService = Depends(get_okh_service)
-):
+) -> Any:
     """
     Generate OKH manifest from repository URL or local clone path
 
@@ -886,7 +886,7 @@ async def scaffold_project(
             "src.core.services.scaffold_service", fromlist=["ScaffoldService"]
         ).ScaffoldService()
     ),
-):
+) -> Any:
     """Generate a scaffold using ScaffoldService and return structured response."""
     from src.core.services.scaffold_service import ScaffoldOptions
 
@@ -974,7 +974,7 @@ async def cleanup_project(
             "src.core.services.cleanup_service", fromlist=["CleanupService"]
         ).CleanupService()
     ),
-):
+) -> Any:
     request_id = getattr(http_request.state, "request_id", None)
 
     try:

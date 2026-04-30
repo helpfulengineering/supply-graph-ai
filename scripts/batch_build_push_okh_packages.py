@@ -17,23 +17,23 @@ Typical Azure variables: ``AZURE_STORAGE_ACCOUNT``, ``AZURE_STORAGE_KEY``,
 
 Examples
 --------
-    conda activate supply-graph-ai
-    python scripts/batch_build_push_okh_packages.py --dry-run
-    python scripts/batch_build_push_okh_packages.py --limit 2 --no-push
-    python scripts/batch_build_push_okh_packages.py --limit 1 --no-push -v
-    python scripts/batch_build_push_okh_packages.py --limit 1 --no-push -vv
-    python scripts/batch_build_push_okh_packages.py --limit 5 --report out.json --trace-report
-    python scripts/batch_build_push_okh_packages.py --create-container
+    # From repo root: uv sync --extra dev
+    uv run python scripts/batch_build_push_okh_packages.py --dry-run
+    uv run python scripts/batch_build_push_okh_packages.py --limit 2 --no-push
+    uv run python scripts/batch_build_push_okh_packages.py --limit 1 --no-push -v
+    uv run python scripts/batch_build_push_okh_packages.py --limit 1 --no-push -vv
+    uv run python scripts/batch_build_push_okh_packages.py --limit 5 --report out.json --trace-report
+    uv run python scripts/batch_build_push_okh_packages.py --create-container
 
     # Single manifest already in remote OKH storage (same Azure config as the API)
-    python scripts/batch_build_push_okh_packages.py \\
+    uv run python scripts/batch_build_push_okh_packages.py \\
         --okh-id 00000000-0000-0000-0000-000000000000 --no-push -v
 
     # All OKH manifests in remote storage (SmartFileDiscovery under okh/)
-    python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push -v
-    python scripts/batch_build_push_okh_packages.py --from-remote-okh --limit 3 --report /tmp/report.json
-    python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push --no-log-file
-    python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push --fetch-retries 3
+    uv run python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push -v
+    uv run python scripts/batch_build_push_okh_packages.py --from-remote-okh --limit 3 --report /tmp/report.json
+    uv run python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push --no-log-file
+    uv run python scripts/batch_build_push_okh_packages.py --from-remote-okh --no-push --fetch-retries 3
 """
 
 from __future__ import annotations

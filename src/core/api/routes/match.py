@@ -55,7 +55,12 @@ from ..decorators import (
 from ..error_handlers import create_error_response, create_success_response
 
 # Import new standardized components
-from ..models.base import PaginatedResponse, PaginationParams, ValidationResult
+from ..models.base import (
+    PaginatedResponse,
+    PaginationParams,
+    SuccessResponse,
+    ValidationResult,
+)
 
 # Import existing models and services
 from ..models.match.request import MatchRequest, SimulateRequest, ValidateMatchRequest
@@ -140,7 +145,7 @@ async def match_requirements_to_capabilities(
     matching_service: MatchingService = Depends(get_matching_service),
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
-):
+) -> dict[str, Any]:
     """
     Enhanced matching endpoint with standardized patterns.
 
@@ -544,7 +549,7 @@ async def validate_match(
     matching_service: MatchingService = Depends(get_matching_service),
     storage_service: StorageService = Depends(get_storage_service),
     http_request: Request = None,
-):
+) -> ValidationResult:
     """Enhanced validation endpoint with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -753,7 +758,7 @@ async def match_requirements_from_file(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
-):
+) -> dict[str, Any]:
     """Enhanced file upload matching endpoint."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -908,7 +913,7 @@ async def match_requirements_from_file(
 @paginated_response(default_page_size=20, max_page_size=100)
 async def list_domains(
     pagination: PaginationParams = Depends(), http_request: Request = None
-):
+) -> PaginatedResponse:
     """Enhanced domain listing with pagination and metrics."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1003,7 +1008,9 @@ async def list_domains(
 @api_endpoint(
     success_message="Domain information retrieved successfully", include_metrics=True
 )
-async def get_domain_info(domain_name: str, http_request: Request = None):
+async def get_domain_info(
+    domain_name: str, http_request: Request = None
+) -> SuccessResponse:
     """Enhanced domain info endpoint."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1059,7 +1066,9 @@ async def get_domain_info(domain_name: str, http_request: Request = None):
 @api_endpoint(
     success_message="Domain health retrieved successfully", include_metrics=True
 )
-async def get_domain_health(domain_name: str, http_request: Request = None):
+async def get_domain_health(
+    domain_name: str, http_request: Request = None
+) -> dict[str, Any]:
     """Enhanced domain health endpoint."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1130,8 +1139,10 @@ async def get_domain_health(domain_name: str, http_request: Request = None):
 )
 @track_performance("domain_detection")
 async def detect_domain_from_input(
-    requirements_data: dict, capabilities_data: dict, http_request: Request = None
-):
+    requirements_data: dict,
+    capabilities_data: dict,
+    http_request: Request = None,
+) -> SuccessResponse:
     """Enhanced domain detection endpoint."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2711,7 +2722,9 @@ def _matches_filters(facility, filters: dict) -> bool:
 )
 @api_endpoint(success_message="Simulation completed successfully", include_metrics=True)
 @track_performance("match_simulate")
-async def simulate_supply_tree(request: SimulateRequest, http_request: Request = None):
+async def simulate_supply_tree(
+    request: SimulateRequest, http_request: Request = None
+) -> SimulateResponse:
     """Simulate execution of a supply tree."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None

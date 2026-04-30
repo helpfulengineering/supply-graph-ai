@@ -7,8 +7,8 @@ This compares two batch report JSON files produced by `okh_generation_batch.py`:
 - candidate report (typically 4L with chunked mode enabled)
 
 Usage:
-    conda activate supply-graph-ai
-    python scripts/okh_generation_chunked_evaluation.py \
+    # From repo root: uv sync --extra dev
+    uv run python scripts/okh_generation_chunked_evaluation.py \
       --baseline tests/data/okh_generation/last_batch_report_baseline_4l.json \
       --candidate tests/data/okh_generation/last_batch_report_chunked_4l.json
 """

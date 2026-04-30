@@ -1,5 +1,9 @@
 # Open Hardware Manager Architecture
 
+!!! note "Code vs narrative (spot-check 2026-04)"
+
+    Older drafts used a fictional `ome.*` Python package (legacy **Open Matching Engine** name). The product is **Open Hardware Manager (OHM)**; use `src.core.*` imports (see [.repo-map.md](../../.repo-map.md) or `python scripts/generate_repo_map.py`). The snippets below are intentionally non-runnable illustrations of layering.
+
 ## Core Components
 
 The OHM is designed as a set of independent components that can be used individually or composed into complete processing pipelines. Each component has its own well-defined interfaces, storage requirements, and processing capabilities.
@@ -60,13 +64,8 @@ Converts unstructured or semi-structured input into normalized, validated format
 
 #### Independent Usage
 ```python
-from ome.extraction import Extractor
-
-extractor = Extractor()
-result = extractor.process_input(
-    input_data="raw_design_file.md",
-    target_schema="okh"  # OpenKnowHow schema
-)
+# Illustrative — real extraction lives under src.core.domains.* and src.core.generation.
+# e.g. OKHExtractor: src.core.domains.manufacturing.okh_extractor
 ```
 
 #### Storage
@@ -85,13 +84,8 @@ Analyzes structured data to identify requirements, capabilities, and constraints
 
 #### Independent Usage
 ```python
-from ome.analysis import Analyzer
-
-analyzer = Analyzer()
-requirements = analyzer.analyze_design(
-    okh_data=validated_okh,
-    context="manufacturing"
-)
+# Illustrative — analysis is split across matchers, validators, and services.
+# e.g. MatchingService: src.core.services.matching_service
 ```
 
 #### Storage
@@ -111,14 +105,8 @@ Matches requirements to capabilities using multi-stage processing.
 
 #### Independent Usage
 ```python
-from ome.matching import Matcher
-
-matcher = Matcher()
-solutions = matcher.find_matches(
-    requirements=design_requirements,
-    capabilities=available_facilities,
-    context="hobby"
-)
+# Illustrative — use MatchingService (async) or POST /v1/api/match.
+# from src.core.services.matching_service import MatchingService
 ```
 
 #### Storage
@@ -138,13 +126,8 @@ Handles material and workflow routing through manufacturing networks.
 
 #### Independent Usage
 ```python
-from ome.routing import Router
-
-router = Router()
-route = router.optimize_path(
-    supply_tree=validated_solution,
-    constraints=routing_constraints
-)
+# Illustrative — routing/network optimization is not exposed as a single Router class;
+# see supply-tree and packaging services in src.core.
 ```
 
 #### Storage

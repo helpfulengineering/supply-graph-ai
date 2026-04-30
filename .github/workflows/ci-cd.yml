@@ -22,27 +22,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
-      - name: Install tooling and dependencies
+      - name: Sync environment and CI tools
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]" ruff black
+          uv sync --extra dev
+          uv pip install ruff black
 
       - name: Ruff lint
-        run: |
-          ruff check src tests
+        run: uv run ruff check src tests
 
       - name: Black format check
-        run: |
-          black --check src tests
+        run: uv run black --check src tests
 
       - name: Verify repository map is up to date
         run: |
-          python scripts/generate_repo_map.py
+          uv run python scripts/generate_repo_map.py
           git diff --exit-code .repo-map.md
 
   test:
@@ -59,19 +55,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]" pytest-cov
+          uv sync --extra dev
+          uv pip install pytest-cov
 
       - name: Run unit lane
         run: |
-          pytest tests \
+          uv run pytest tests \
             -m "unit and not llm and not quarantine" \
             --maxfail=1 \
             --cov=src \
@@ -79,7 +73,7 @@ jobs:
 
       - name: Run contract lane
         run: |
-          pytest tests \
+          uv run pytest tests \
             -m "contract and not llm and not quarantine" \
             --maxfail=1 \
             --cov=src \
@@ -88,7 +82,7 @@ jobs:
 
       - name: Run integration lane
         run: |
-          pytest tests \
+          uv run pytest tests \
             -m "integration and not llm and not quarantine" \
             --ignore=tests/test_storage_to_okw_list_chain.py \
             --maxfail=1 \
@@ -116,19 +110,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: uv sync --extra dev
 
       - name: Run contract stability suite
         run: |
-          pytest \
+          uv run pytest \
             tests/api/test_match_phase1_contract.py \
             tests/api/test_relationship_endpoints.py \
             tests/api/test_solution_management_endpoints.py \
@@ -147,20 +137,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies and security tools
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]" pip-audit bandit
+          uv sync --extra dev
+          uv pip install pip-audit bandit
 
       - name: Dependency vulnerability scan
-        run: |
-          pip-audit
+        run: uv run pip-audit
 
       - name: Static security scan
-        run: |
-          bandit -q -r src -x tests
+        run: uv run bandit -q -r src -x tests

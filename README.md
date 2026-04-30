@@ -50,7 +50,7 @@ cd supply-graph-ai
 # 2. Create your environment file
 cp env.template .env
 
-# 3. Install all dependenciesif needed)
+# 3. Install all dependencies (if needed)
 uv sync
 
 # 4. Activate the virtual environment
@@ -64,7 +64,7 @@ ohm --help
 docker compose up -d ohm-api
 ```
 
-To include development dependencies (pytest, etc.):
+To include development dependencies (**pytest must live in this venv** so `uv run pytest` does not pick up a foreign interpreter from `PATH`):
 
 ```bash
 uv sync --extra dev
@@ -119,7 +119,7 @@ The dev server proxies all `/v1` requests to the OHM API. If your API is not at 
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally.
+This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally. For an active checklist aligned with the public API and CLI (conference demos, doc drift), see [docs/development/conference-demo-readiness.md](docs/development/conference-demo-readiness.md).
 
 ### Building Documentation Locally
 

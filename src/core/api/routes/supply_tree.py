@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 from fastapi import (
@@ -121,7 +121,7 @@ async def create_supply_tree(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """
     Enhanced supply tree creation with standardized patterns.
 
@@ -299,7 +299,7 @@ async def list_supply_tree_solutions(
     only_stale: bool = Query(False, description="Only return stale solutions"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """List supply tree solutions with optional filtering and sorting"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -373,7 +373,7 @@ async def get_supply_tree_solution(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get a supply tree solution by ID"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -451,7 +451,7 @@ async def delete_supply_tree_solution(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Delete a supply tree solution by ID"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -533,7 +533,7 @@ async def get_solution_staleness(
     ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Check if a solution is stale"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -624,7 +624,7 @@ async def cleanup_stale_solutions(
     request: CleanupStaleSolutionsRequest,
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Cleanup stale solutions"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -697,7 +697,7 @@ async def extend_solution_ttl(
     ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Extend solution TTL"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -795,7 +795,7 @@ async def save_supply_tree_solution(
     ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Save a supply tree solution to storage"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -894,7 +894,7 @@ async def get_solution_summary(
     solution_id: UUID = Path(..., description="Solution ID (for storage loading)"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get summary statistics for a supply tree solution"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1064,7 +1064,7 @@ async def load_supply_tree_solution(
     request: SolutionLoadRequest,
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Load a supply tree solution from storage, file, or inline data."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1191,7 +1191,7 @@ async def get_solution_trees(
     sort_order: str = Query("desc", description="Sort order (asc/desc)"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get trees from a solution with optional filtering"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1361,7 +1361,7 @@ async def get_component_trees(
     component_id: str = Path(..., description="Component ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get all trees for a specific component"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1464,7 +1464,7 @@ async def get_facility_trees(
     ),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get all trees for a specific facility"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1567,7 +1567,7 @@ async def export_supply_tree_solution(
     format: str = Query("json", description="Export format (json, xml, graphml)"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Export a supply tree solution in the requested format."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1703,7 +1703,7 @@ async def get_solution_dependencies(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get dependency graph for a solution"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1821,7 +1821,7 @@ async def get_solution_production_sequence(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get production sequence for a solution"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1957,7 +1957,7 @@ async def get_solution_visualization_bundle(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Return canonical visualization bundle for a solution."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2007,7 +2007,7 @@ async def get_solution_visualization_report(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Return HTML visualization report for a solution."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2070,7 +2070,7 @@ async def get_solution_hierarchy(
     solution_id: UUID = Path(..., description="Solution ID"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Get component hierarchy for a solution"""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2232,7 +2232,7 @@ async def get_supply_tree(
     id: UUID = Path(..., title="The ID of the supply tree"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Enhanced supply tree retrieval with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2362,7 +2362,7 @@ async def list_supply_trees(
     filter: Optional[str] = Query(None, description="Filter criteria"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Enhanced supply tree listing with pagination and metrics."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2488,7 +2488,7 @@ async def update_supply_tree(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """Enhanced supply tree update with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2693,7 +2693,7 @@ async def delete_supply_tree(
     id: UUID = Path(..., title="The ID of the supply tree"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Enhanced supply tree deletion with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -2814,7 +2814,7 @@ async def validate_supply_tree(
     validate_request: SupplyTreeValidateRequest = None,
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Enhanced supply tree validation with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -3096,7 +3096,7 @@ async def optimize_supply_tree(
     storage_service: StorageService = Depends(get_storage_service),
     okh_service: OKHService = Depends(get_okh_service),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """Optimize a supply tree based on criteria."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -3259,7 +3259,7 @@ async def export_supply_tree(
     format: str = Query("json", description="Export format (json, xml, graphml)"),
     http_request: Request = None,
     storage_service: StorageService = Depends(get_storage_service),
-):
+) -> Any:
     """Export a supply tree in the requested format."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None

@@ -29,7 +29,7 @@ from .progress import emit_status_line
 
 
 @click.group()
-def okh_group():
+def okh_group() -> None:
     """
     OKH (OpenKnowHow) manifest management commands.
 
@@ -56,8 +56,8 @@ def okh_group():
 # Helper functions
 
 
-async def _read_manifest_file(file_path: str) -> dict:
-    """Read and parse manifest file."""
+async def _read_manifest_file(file_path: str) -> dict[str, Any]:
+    """Read and parse an OKH manifest file (JSON or YAML)."""
     manifest_path = Path(file_path)
 
     try:
@@ -73,9 +73,9 @@ async def _read_manifest_file(file_path: str) -> dict:
 
 
 async def _display_validation_results(
-    cli_ctx: CLIContext, result: dict, output_format: str
-):
-    """Display validation results."""
+    cli_ctx: CLIContext, result: dict[str, Any], output_format: str
+) -> None:
+    """Print validation results to the console or structured log."""
     validation = result.get("validation", result)
     is_valid = validation.get("is_valid", False)
 

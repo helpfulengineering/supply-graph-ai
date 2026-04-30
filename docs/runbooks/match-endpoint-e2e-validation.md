@@ -18,7 +18,7 @@ Repeatable process for verifying `POST /v1/api/match` on **supply-graph-ai**.
 | Docker Desktop running | `docker info` must succeed |
 | Network access to Azure Blob Storage | `projdatablobstorage.blob.core.windows.net` |
 | `.env` in `supply-graph-ai/` | Azure credentials and `AZURE_STORAGE_*` |
-| **For CLI:** Python 3.12+ and editable install | `pip install -e .` from `supply-graph-ai` (installs the `ohm` command) |
+| **For CLI:** Python 3.12+ via **uv** | From `supply-graph-ai`: `uv sync --extra dev` (installs `ohm` into `.venv`; use `uv run ohm …`) |
 
 Node.js is **not** required unless you use the optional frontend script.
 
@@ -97,7 +97,7 @@ From the **host** (not inside Docker), with the repo installed:
 
 ```bash
 cd supply-graph-ai
-pip install -e .   # once per environment
+uv sync --extra dev   # once per clone / when lockfile changes
 
 # Point at the running API (global flag on `ohm`)
 ohm --server-url "${OHM_BASE}" match requirements "${OKH_URL}" --json

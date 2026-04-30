@@ -67,7 +67,7 @@ This is the most fundamental workflow -- if single-level matching is broken, all
 
 **Action**: Call `okh_manifest.extract_requirements()` to get the list of manufacturing requirements.
 
-**Expected result**: A non-empty list of process requirement strings (e.g., `"3DP"`, `"CNC"`, `"PCB"`).
+**Expected result**: A non-empty `list` of `ProcessRequirement` objects from `OKHManifest.extract_requirements()` (see `src/core/models/okh.py`). Each entry carries process identifiers usable by the matching layers (not necessarily plain strings).
 
 ### Step 4: Execute matching
 

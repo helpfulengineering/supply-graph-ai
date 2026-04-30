@@ -411,18 +411,18 @@ See [API Documentation](../api/routes.md#rules-management-routes) for detailed e
 
 #### Via CLI
 
-All rules management operations are available through CLI commands under `ome match rules`:
+All rules management operations are available through CLI commands under `ohm match rules`:
 
-- **List Rules**: `ome match rules list` - List all rules with optional filtering
-- **Get Rule**: `ome match rules get DOMAIN RULE_ID` - Get a specific rule
-- **Create Rule**: `ome match rules create` - Create a new rule (supports `--file` or `--interactive`)
-- **Update Rule**: `ome match rules update DOMAIN RULE_ID` - Update an existing rule (supports `--file` or `--interactive`)
-- **Delete Rule**: `ome match rules delete DOMAIN RULE_ID` - Delete a rule
-- **Import Rules**: `ome match rules import FILE` - Import rules from YAML/JSON file
-- **Export Rules**: `ome match rules export OUTPUT_FILE` - Export rules to YAML/JSON format
-- **Validate Rules**: `ome match rules validate FILE` - Validate rule file without importing
-- **Compare Rules**: `ome match rules compare FILE` - Compare rules file with current rules (dry-run)
-- **Reset Rules**: `ome match rules reset` - Reset all rules (clear all rule sets)
+- **List Rules**: `ohm match rules list` - List all rules with optional filtering
+- **Get Rule**: `ohm match rules get DOMAIN RULE_ID` - Get a specific rule
+- **Create Rule**: `ohm match rules create` - Create a new rule (supports `--file` or `--interactive`)
+- **Update Rule**: `ohm match rules update DOMAIN RULE_ID` - Update an existing rule (supports `--file` or `--interactive`)
+- **Delete Rule**: `ohm match rules delete DOMAIN RULE_ID` - Delete a rule
+- **Import Rules**: `ohm match rules import FILE` - Import rules from YAML/JSON file
+- **Export Rules**: `ohm match rules export OUTPUT_FILE` - Export rules to YAML/JSON format
+- **Validate Rules**: `ohm match rules validate FILE` - Validate rule file without importing
+- **Compare Rules**: `ohm match rules compare FILE` - Compare rules file with current rules (dry-run)
+- **Reset Rules**: `ohm match rules reset` - Reset all rules (clear all rule sets)
 
 See [CLI Documentation](../CLI/index.md) for detailed command documentation.
 
@@ -432,29 +432,29 @@ See [CLI Documentation](../CLI/index.md) for detailed command documentation.
 
 ```bash
 # Export all rules to YAML
-ome match rules export backup_rules.yaml
+ohm match rules export backup_rules.yaml
 
 # Export specific domain
-ome match rules export manufacturing_rules.yaml --domain manufacturing
+ohm match rules export manufacturing_rules.yaml --domain manufacturing
 
 # Export with metadata
-ome match rules export rules_with_metadata.yaml --include-metadata
+ohm match rules export rules_with_metadata.yaml --include-metadata
 ```
 
 #### Import Updated Rules
 
 ```bash
 # Validate before importing
-ome match rules validate updated_rules.yaml
+ohm match rules validate updated_rules.yaml
 
 # Compare to see changes
-ome match rules compare updated_rules.yaml
+ohm match rules compare updated_rules.yaml
 
 # Import with dry-run to preview
-ome match rules import updated_rules.yaml --dry-run
+ohm match rules import updated_rules.yaml --dry-run
 
 # Import the rules
-ome match rules import updated_rules.yaml
+ohm match rules import updated_rules.yaml
 ```
 
 ### Validation Process
@@ -469,7 +469,7 @@ Rules are automatically validated when imported or created. The validation proce
 Use the `validate` command or endpoint to check rules before importing:
 
 ```bash
-ome match rules validate rules.yaml
+ohm match rules validate rules.yaml
 ```
 
 ### Best Practices for Rule Management
@@ -492,10 +492,10 @@ You can add new rules using either the API, CLI, or by directly editing YAML fil
 
 ```bash
 # Interactive mode (recommended for new rules)
-ome match rules create --interactive
+ohm match rules create --interactive
 
 # Or from a file
-ome match rules create --file new_rule.yaml
+ohm match rules create --file new_rule.yaml
 ```
 
 #### Method 2: Using API

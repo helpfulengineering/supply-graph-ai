@@ -125,16 +125,17 @@ manifest = await generate_manifest_for_repository(
 ### Batch script
 
 ```bash
-conda activate supply-graph-ai
+cd supply-graph-ai
+uv sync --extra dev
 
 # Default: auto-detects chunking need per repository
-python scripts/okh_generation_batch.py \
+uv run python scripts/okh_generation_batch.py \
   --repos-file tests/data/okh_generation/repositories.json \
   --output tests/data/okh_generation/last_batch_report.json \
   --use-llm
 
 # Force chunking on for all repositories
-python scripts/okh_generation_batch.py \
+uv run python scripts/okh_generation_batch.py \
   --repos-file tests/data/okh_generation/repositories.json \
   --output tests/data/okh_generation/last_batch_report.json \
   --use-llm \
@@ -211,20 +212,20 @@ Use `scripts/okh_generation_chunked_evaluation.py` to compare a baseline run aga
 
 ```bash
 # 1. Baseline run (no chunking)
-python scripts/okh_generation_batch.py \
+uv run python scripts/okh_generation_batch.py \
   --repos-file tests/data/okh_generation/repositories.json \
   --output tests/data/okh_generation/last_batch_report_baseline.json \
   --use-llm
 
 # 2. Chunked canary run
-python scripts/okh_generation_batch.py \
+uv run python scripts/okh_generation_batch.py \
   --repos-file tests/data/okh_generation/repositories.json \
   --output tests/data/okh_generation/last_batch_report_chunked.json \
   --use-llm \
   --llm-chunked-mode
 
 # 3. Evaluate
-python scripts/okh_generation_chunked_evaluation.py \
+uv run python scripts/okh_generation_chunked_evaluation.py \
   --baseline tests/data/okh_generation/last_batch_report_baseline.json \
   --candidate tests/data/okh_generation/last_batch_report_chunked.json \
   --output tests/data/okh_generation/chunked_evaluation_report.json

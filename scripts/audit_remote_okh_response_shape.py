@@ -9,8 +9,8 @@ Loads repo-root ``.env`` the same way as other scripts (``src.config.storage_con
 
 Example::
 
-    python scripts/audit_remote_okh_response_shape.py
-    python scripts/audit_remote_okh_response_shape.py --json report.json
+    uv run python scripts/audit_remote_okh_response_shape.py
+    uv run python scripts/audit_remote_okh_response_shape.py --json report.json
 """
 
 from __future__ import annotations

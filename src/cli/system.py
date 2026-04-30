@@ -18,7 +18,7 @@ from .decorators import standard_cli_command
 
 
 @click.group()
-def system_group():
+def system_group() -> None:
     """
     System management commands for OHM.
 

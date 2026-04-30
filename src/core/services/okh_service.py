@@ -46,7 +46,7 @@ class OKHService(BaseService["OKHService"]):
 
     def __init__(
         self, service_name: str = "OKHService", config: Optional[ServiceConfig] = None
-    ):
+    ) -> None:
         """Initialize the OKH service with base service functionality."""
         super().__init__(service_name, config)
         self.storage: Optional[StorageService] = None
@@ -54,7 +54,10 @@ class OKHService(BaseService["OKHService"]):
         self.url_router: Optional[URLRouter] = None
 
     async def _initialize_dependencies(self) -> None:
-        """Initialize service dependencies."""
+        """Initialize storage, generation engine, and URL routing dependencies.
+
+        This method is invoked by :class:`BaseService` during first-time initialization.
+        """
         # Initialize storage service
         self.storage = await StorageService.get_instance()
 
@@ -74,7 +77,7 @@ class OKHService(BaseService["OKHService"]):
         self.logger.info("OKH service dependencies initialized")
 
     async def initialize(self) -> None:
-        """Initialize the OKH service with service-specific setup."""
+        """Load storage and generation dependencies and register them on the base service."""
         await self.ensure_initialized()
 
         # Add dependencies to base service
@@ -85,7 +88,14 @@ class OKHService(BaseService["OKHService"]):
         self.logger.info("OKH service initialized successfully")
 
     async def create(self, manifest_data: Dict[str, Any]) -> OKHManifest:
-        """Create a new OKH manifest"""
+        """Persist a new manifest under ``okh/`` when storage is available.
+
+        Args:
+            manifest_data: Raw dict or pass-through if already an ``OKHManifest``.
+
+        Returns:
+            The created ``OKHManifest`` instance (with generated id if applicable).
+        """
         async with self.track_request("create_okh_manifest"):
             await self.ensure_initialized()
             self.logger.info("Creating new OKH manifest")
@@ -116,7 +126,14 @@ class OKHService(BaseService["OKHService"]):
             return manifest
 
     async def get(self, manifest_id: UUID) -> Optional[OKHManifest]:
-        """Get an OKH manifest by ID"""
+        """Scan discovered ``okh/`` objects and return the first manifest whose id matches.
+
+        Args:
+            manifest_id: Target manifest UUID.
+
+        Returns:
+            Parsed ``OKHManifest``, or ``None`` if storage is unavailable or no file matches.
+        """
         async with self.track_request("get_okh_manifest"):
             try:
                 await self.ensure_initialized()
@@ -187,11 +204,28 @@ class OKHService(BaseService["OKHService"]):
                 raise
 
     async def get_by_id(self, manifest_id: UUID) -> Optional[OKHManifest]:
-        """Get an OKH manifest by ID (CLI compatibility method)"""
+        """Compatibility alias for :meth:`get`.
+
+        Args:
+            manifest_id: Target manifest UUID.
+
+        Returns:
+            Matching manifest or ``None`` when not found.
+        """
         return await self.get(manifest_id)
 
     async def fetch_from_url(self, url: str) -> OKHManifest:
-        """Fetch an OKH manifest from a remote URL"""
+        """HTTP GET a remote manifest and parse YAML or JSON into ``OKHManifest``.
+
+        Args:
+            url: Document location (content-type or extension hints YAML vs JSON).
+
+        Returns:
+            Parsed in-memory manifest (not automatically written to storage).
+
+        Raises:
+            ValueError: On parse failure or transport errors (wrapped from ``httpx``).
+        """
         async with self.track_request("fetch_okh_from_url"):
             await self.ensure_initialized()
             self.logger.info(f"Fetching OKH manifest from URL: {url}")
@@ -236,7 +270,16 @@ class OKHService(BaseService["OKHService"]):
         page_size: int = 100,
         filter_params: Optional[Dict[str, Any]] = None,
     ) -> Tuple[List[OKHManifest], int]:
-        """List OKH manifests"""
+        """Return a page of minimal OKH manifests discovered under the ``okh/`` prefix.
+
+        Args:
+            page: 1-based page index.
+            page_size: Page length.
+            filter_params: Reserved for future filtering (currently unused).
+
+        Returns:
+            ``(manifests, total_count)`` after deduplication by manifest id (newest file wins).
+        """
         async with self.track_request("list_okh_manifests"):
             await self.ensure_initialized()
             self.logger.info(
@@ -305,7 +348,7 @@ class OKHService(BaseService["OKHService"]):
     async def list_manifests(
         self, limit: int = 100, offset: int = 0
     ) -> List[OKHManifest]:
-        """List OKH manifests with limit/offset parameters (CLI compatibility)"""
+        """List OKH manifests with ``limit``/``offset`` (maps internally to :meth:`list`)."""
         # Convert limit/offset to page/page_size
         page_size = limit
         page = (offset // page_size) + 1
@@ -316,7 +359,19 @@ class OKHService(BaseService["OKHService"]):
     async def update(
         self, manifest_id: UUID, manifest_data: Dict[str, Any]
     ) -> OKHManifest:
-        """Update an OKH manifest in-place at its existing storage key (find-then-act)."""
+        """Update an OKH manifest in-place at its existing storage key.
+
+        Args:
+            manifest_id: Manifest UUID to replace.
+            manifest_data: Replacement manifest payload.
+
+        Returns:
+            Parsed and persisted ``OKHManifest`` instance.
+
+        Notes:
+            If the original key cannot be discovered, the service falls back to
+            ``okh/{manifest_id}.json`` and logs a warning.
+        """
         await self.ensure_initialized()
         logger.info(f"Updating OKH manifest with ID {manifest_id}")
 
@@ -346,7 +401,15 @@ class OKHService(BaseService["OKHService"]):
         return manifest
 
     async def delete(self, manifest_id: UUID) -> bool:
-        """Delete an OKH manifest by locating its actual storage key (find-then-act)."""
+        """Delete an OKH manifest by locating its actual storage key.
+
+        Args:
+            manifest_id: Manifest UUID to delete.
+
+        Returns:
+            ``True`` when an object was deleted; ``False`` when no matching key is found
+            or storage is unavailable.
+        """
         await self.ensure_initialized()
         logger.info(f"Deleting OKH manifest with ID {manifest_id}")
 
@@ -367,10 +430,14 @@ class OKHService(BaseService["OKHService"]):
         return False
 
     async def _find_key_for_id(self, target_id: UUID, file_type: str) -> Optional[str]:
-        """
-        Discover the storage key of the file matching target_id.
+        """Discover a storage key by object id under a logical file type prefix.
 
-        Returns the key string if found, None otherwise.
+        Args:
+            target_id: UUID to match against the stored JSON ``id`` field.
+            file_type: Prefix bucket segment to scan (for example ``okh``).
+
+        Returns:
+            Matching object key or ``None`` when no key can be resolved.
         """
         discovery = SmartFileDiscovery(self.storage.manager)
         file_infos = await discovery.discover_files(file_type)
@@ -389,7 +456,15 @@ class OKHService(BaseService["OKHService"]):
         return None
 
     async def extract_requirements(self, manifest_id: UUID) -> List[ProcessRequirement]:
-        """Extract manufacturing requirements from an OKH manifest"""
+        """Extract process requirements from a stored OKH manifest.
+
+        Args:
+            manifest_id: Manifest UUID to load before extraction.
+
+        Returns:
+            List of ``ProcessRequirement`` values, or an empty list when the manifest
+            does not exist.
+        """
         await self.ensure_initialized()
         logger.info(f"Extracting requirements from OKH manifest {manifest_id}")
 
@@ -405,7 +480,21 @@ class OKHService(BaseService["OKHService"]):
         validation_context: Optional[str] = None,
         strict_mode: bool = False,
     ) -> Dict[str, Any]:
-        """Validate OKH manifest content against canonical OKHManifest dataclass"""
+        """Validate raw OKH manifest content against canonical model rules.
+
+        Args:
+            content: Manifest payload to validate.
+            validation_context: Optional quality profile (``hobby``, ``professional``,
+                or ``medical``). Unknown values default to ``professional``.
+            strict_mode: Enables stricter validation semantics in the shared validator.
+
+        Returns:
+            Backward-compatible validation response containing validity flags,
+            issues, warnings, and summary scoring fields.
+
+        Raises:
+            ValueError: If validation infrastructure fails unexpectedly.
+        """
         await self.ensure_initialized()
         logger.info(f"Validating OKH manifest content")
 
@@ -489,6 +578,13 @@ class OKHService(BaseService["OKHService"]):
             no_llm: If True, use 3-layer generation only. If False (default), prefer
                 LLM + chunked map-reduce when credentials exist; otherwise degrade to
                 3-layer automatically.
+
+        Returns:
+            Response dictionary with ``success``, ``message``, generated ``manifest``,
+            and a ``quality_report`` summary.
+
+        Raises:
+            ValueError: If URL/path validation, extraction, or generation fails.
         """
         try:
             await self.ensure_initialized()
@@ -568,7 +664,7 @@ class OKHService(BaseService["OKHService"]):
 
     # LLM Integration Methods
     async def prepare_llm_integration(self) -> None:
-        """Prepare the OKH service for LLM integration."""
+        """Prepare optional LLM-related integrations for manifest workflows."""
         await super().prepare_llm_integration()
 
         if self.is_llm_enabled():
@@ -581,7 +677,18 @@ class OKHService(BaseService["OKHService"]):
             # - LLM-enhanced extraction from project URLs
 
     async def handle_llm_request(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle LLM requests for OKH manifest operations."""
+        """Handle placeholder LLM request types for OKH operations.
+
+        Args:
+            request_data: Request payload containing at least ``type``.
+
+        Returns:
+            Placeholder status response for known request types, or an ``error`` payload
+            for unknown request types.
+
+        Raises:
+            RuntimeError: If LLM integration is disabled in service configuration.
+        """
         if not self.is_llm_enabled():
             raise RuntimeError("LLM integration not enabled for OKH service")
 
@@ -600,7 +707,7 @@ class OKHService(BaseService["OKHService"]):
             return {"error": f"Unknown LLM request type: {request_type}"}
 
     async def cleanup(self) -> None:
-        """Cleanup OKH service resources."""
+        """Cleanup OKH resources and best-effort close dependency helpers."""
         await super().cleanup()
 
         # Cleanup generation engine if it has cleanup method

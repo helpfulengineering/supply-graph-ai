@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 from uuid import UUID
 
 import yaml
@@ -87,7 +87,7 @@ async def search_okw(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Results per page"),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """Search for facilities by criteria. Uses OKWService so only objects under okw/ are considered."""
     try:
         # Load all OKW facilities from the service (scoped to okw/ prefix via SmartFileDiscovery)
@@ -313,7 +313,7 @@ async def search_okw(
     - Nested object schemas
     """,
 )
-async def export_okw_schema(http_request: Request = None):
+async def export_okw_schema(http_request: Request = None) -> Any:
     """Export OKW domain model as JSON schema."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -379,7 +379,7 @@ async def export_okw_schema(http_request: Request = None):
     fill them in and then validate with ``POST /api/okw/validate``.
     """,
 )
-async def get_okw_template(http_request: Request = None):
+async def get_okw_template(http_request: Request = None) -> Any:
     """Return a blank OKW facility template dict."""
     from ...utils.template_builder import okw_blank_template
 
@@ -395,7 +395,7 @@ async def get_okw_template(http_request: Request = None):
 async def get_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """Get an OKW facility by ID"""
     try:
         facility = await okw_service.get(id)
@@ -525,7 +525,7 @@ async def list_okw(
     filter: Optional[str] = Query(None, description="Filter criteria"),
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
-):
+) -> Any:
     """Enhanced OKW facility listing with pagination and metrics."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -629,7 +629,7 @@ async def update_okw(
     request: OKWUpdateRequest,
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """Update an OKW facility"""
     try:
         # Check if facility exists
@@ -704,7 +704,7 @@ async def update_okw(
 async def delete_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """Delete an OKW facility"""
     try:
         # Check if facility exists
@@ -766,7 +766,7 @@ async def validate_okw(
     ),
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
-):
+) -> Any:
     """Enhanced OKW validation with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -846,7 +846,7 @@ async def validate_okw(
 @track_performance("okw_extract_capabilities")
 async def extract_capabilities(
     request: OKWExtractRequest, http_request: Request = None
-):
+) -> Any:
     """
     Extract capabilities from an OKW object.
 
@@ -987,7 +987,7 @@ async def create_okw_facility(
     request: OKWValidateRequest,
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
-):
+) -> Any:
     """Create and store an OKW facility from a JSON dict."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -1039,7 +1039,7 @@ async def upload_okw_file(
         None, description="Validation context (e.g., 'manufacturing', 'hobby')"
     ),
     okw_service: OKWService = Depends(get_okw_service),
-):
+) -> Any:
     """
     Upload an OKW file
 

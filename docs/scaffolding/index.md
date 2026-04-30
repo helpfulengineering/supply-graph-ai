@@ -186,14 +186,14 @@ The generated projects include full MkDocs integration:
 ### Building Documentation
 
 ```bash
-# Install MkDocs
-pip install mkdocs
+# Install MkDocs + Material (see root pyproject.toml [project.optional-dependencies] docs)
+uv sync --extra docs
 
 # Build the documentation
-mkdocs build
+uv run mkdocs build
 
 # Serve locally for development
-mkdocs serve
+uv run mkdocs serve
 ```
 
 ## OKH Manifest Template

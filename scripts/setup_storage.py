@@ -7,7 +7,7 @@ storage directory structure. It only requires storage credentials and
 does not depend on the full application stack.
 
 Usage:
-    python scripts/setup_storage.py --provider gcs --bucket my-bucket --region us-central1
+    uv run python scripts/setup_storage.py --provider gcs --bucket my-bucket --region us-central1
 """
 
 import argparse

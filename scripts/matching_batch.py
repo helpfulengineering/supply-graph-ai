@@ -7,19 +7,19 @@ Matching is performed using the Python service API directly (no HTTP server need
 Facilities are loaded once from storage and reused across all manifests.
 
 Typical usage:
-    conda activate supply-graph-ai
+    # From repo root: uv sync --extra dev
 
     # Match all 4L manifests (default)
-    python scripts/matching_batch.py --stdout-summary
+    uv run python scripts/matching_batch.py --stdout-summary
 
     # Match a specific layer
-    python scripts/matching_batch.py --layer 3L --stdout-summary
+    uv run python scripts/matching_batch.py --layer 3L --stdout-summary
 
     # Match only core repos
-    python scripts/matching_batch.py --core-only --stdout-summary
+    uv run python scripts/matching_batch.py --core-only --stdout-summary
 
     # Limit to N repos for a quick sanity check
-    python scripts/matching_batch.py --limit 5 --stdout-summary
+    uv run python scripts/matching_batch.py --limit 5 --stdout-summary
 
 Options:
     --manifests-dir   Directory containing <title-slug>-<layer>.json (or legacy <id>-<layer>.json)

@@ -1,13 +1,24 @@
-# Code style and project map (activate your Python env first, e.g. conda activate supply-graph-ai).
-.PHONY: format black ruff repo-map
+# Code style and project map via uv-managed environment.
+.PHONY: format format-check lint test check black ruff repo-map
 
 format: black ruff repo-map
 
 black:
-	black .
+	uv run black .
 
 ruff:
-	ruff check src --fix
+	uv run ruff check src --fix
+
+format-check:
+	uv run black --check .
+
+lint:
+	uv run ruff check src
+
+test:
+	uv run pytest
+
+check: lint format-check test
 
 repo-map:
-	python scripts/generate_repo_map.py
+	uv run python scripts/generate_repo_map.py

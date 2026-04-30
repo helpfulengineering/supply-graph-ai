@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import click
+from click import Context
 import yaml
 
 from ..core.models.base.base_types import NormalizedCapabilities
@@ -31,7 +32,7 @@ from .progress import emit_status_line
 
 
 @click.group()
-def match_group():
+def match_group() -> None:
     """
     Matching operations commands for OKH/OKW compatibility.
 
@@ -252,7 +253,7 @@ def match_group():
 )
 @click.pass_context
 async def requirements(
-    ctx,
+    ctx: Context,
     input_file: str,
     domain: Optional[str],
     facility_file: Optional[str],
@@ -283,7 +284,7 @@ async def requirements(
     include_explanation: bool = False,
     include_human_summary: bool = False,
     human_summary_profile: str = "balanced",
-):
+) -> None:
     """Match OKH requirements to OKW capabilities with enhanced LLM support."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("match-requirements")
@@ -1102,7 +1103,7 @@ async def requirements(
 )
 @click.pass_context
 async def visualize(
-    ctx,
+    ctx: Context,
     input_file: str,
     domain: Optional[str],
     report_format: str,
@@ -1114,7 +1115,7 @@ async def visualize(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Generate visualization artifacts from a fresh match run."""
     cli_ctx = ctx.obj
     cli_ctx.update_llm_config(
@@ -1138,7 +1139,7 @@ async def visualize(
         if is_url and not domain
         else _detect_domain_from_data(input_data or {"domain": "manufacturing"})
     )
-    request_data: Dict[str, Any] = {"domain": detected_domain}
+    request_data: dict[str, Any] = {"domain": detected_domain}
     if detected_domain == "cooking":
         request_data["recipe_url" if is_url else "recipe"] = (
             input_file if is_url else input_data
@@ -1221,7 +1222,7 @@ async def visualize(
 )
 @click.pass_context
 async def validate(
-    ctx,
+    ctx: Context,
     okh_file: str,
     domain: Optional[str],
     output: Optional[str],
@@ -1232,7 +1233,7 @@ async def validate(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Validate OKH manifest for matching compatibility."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("validate-okh")
@@ -1351,7 +1352,7 @@ async def validate(
 )
 @click.pass_context
 async def domains(
-    ctx,
+    ctx: Context,
     domain: Optional[str],
     active_only: bool,
     verbose: bool,
@@ -1361,7 +1362,7 @@ async def domains(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """List available matching domains."""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("list-domains")
@@ -1426,7 +1427,7 @@ def _is_url(path: str) -> bool:
         return False
 
 
-async def _read_input_file(file_path: str) -> Optional[Dict[str, Any]]:
+async def _read_input_file(file_path: str) -> Optional[dict[str, Any]]:
     """
     Read and parse input file (OKH or recipe) from local file or URL.
 
@@ -1457,7 +1458,7 @@ async def _read_input_file(file_path: str) -> Optional[Dict[str, Any]]:
         raise click.ClickException(f"Failed to read input file: {str(e)}")
 
 
-def _detect_domain_from_data(data: Dict[str, Any]) -> str:
+def _detect_domain_from_data(data: dict[str, Any]) -> str:
     """Detect domain from input data structure."""
     from src.core.utils.domain_detection import detect_domain
 
@@ -1472,7 +1473,7 @@ def _parse_match_filters(
     materials: Optional[str],
     min_confidence: float,
     max_results: int,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Parse and validate match filter options."""
     filters = {
         "access_type": access_type,
@@ -1492,7 +1493,7 @@ def _parse_match_filters(
 
 
 async def _attach_explanations_to_solutions(
-    result: Dict[str, Any],
+    result: dict[str, Any],
     manifest: Any,
     facilities: List[Any],
     matching_service: MatchingService,
@@ -1610,10 +1611,10 @@ def _build_human_summary_lines(
 
 async def _display_match_results(
     cli_ctx: CLIContext,
-    result: Dict[str, Any],
+    result: dict[str, Any],
     output: Optional[str],
     output_format: str,
-):
+) -> None:
     """Display matching results in the specified format."""
     # Handle both old format (matches) and new format (solutions)
     solutions = result.get("solutions", result.get("matches", []))
@@ -1766,10 +1767,10 @@ async def _display_match_results(
 
 async def _display_validation_results(
     cli_ctx: CLIContext,
-    result: Dict[str, Any],
+    result: dict[str, Any],
     output: Optional[str],
     output_format: str,
-):
+) -> None:
     """Display validation results."""
     is_valid = result.get("is_valid", False)
     errors = result.get("errors", [])
@@ -1801,8 +1802,8 @@ async def _display_validation_results(
 
 
 async def _display_domains(
-    cli_ctx: CLIContext, result: Dict[str, Any], output_format: str
-):
+    cli_ctx: CLIContext, result: dict[str, Any], output_format: str
+) -> None:
     """Display available domains."""
     # Handle both PaginatedResponse format (from API) and simple dict format (from fallback)
     if "items" in result:
@@ -1845,7 +1846,7 @@ async def _display_domains(
 
 
 @match_group.group()
-def rules():
+def rules() -> None:
     """
     Manage matching rules for capability matching.
 
@@ -1868,7 +1869,7 @@ def rules():
     pass
 
 
-def _read_rule_file(file_path: str) -> Dict[str, Any]:
+def _read_rule_file(file_path: str) -> dict[str, Any]:
     """Read rule data from YAML or JSON file"""
     path = Path(file_path)
     if not path.exists():
@@ -1892,7 +1893,7 @@ def _read_rule_file(file_path: str) -> Dict[str, Any]:
         )
 
 
-def _interactive_rule_creation() -> Dict[str, Any]:
+def _interactive_rule_creation() -> dict[str, Any]:
     """Interactive rule creation wizard"""
     click.echo("\n=== Creating New Rule ===")
 
@@ -1946,7 +1947,7 @@ def _interactive_rule_creation() -> Dict[str, Any]:
 )
 @click.pass_context
 async def rules_list(
-    ctx,
+    ctx: Context,
     domain: Optional[str],
     tag: Optional[str],
     include_metadata: bool,
@@ -1957,7 +1958,7 @@ async def rules_list(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """List all matching rules"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-list")
@@ -2041,7 +2042,7 @@ async def rules_list(
 )
 @click.pass_context
 async def rules_get(
-    ctx,
+    ctx: Context,
     domain: str,
     rule_id: str,
     verbose: bool,
@@ -2051,7 +2052,7 @@ async def rules_get(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Get a specific rule"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-get")
@@ -2093,7 +2094,7 @@ async def rules_get(
 )
 @click.pass_context
 async def rules_create(
-    ctx,
+    ctx: Context,
     file: Optional[str],
     interactive: bool,
     verbose: bool,
@@ -2103,7 +2104,7 @@ async def rules_create(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Create a new rule"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-create")
@@ -2162,7 +2163,7 @@ async def rules_create(
 )
 @click.pass_context
 async def rules_update(
-    ctx,
+    ctx: Context,
     domain: str,
     rule_id: str,
     file: Optional[str],
@@ -2174,7 +2175,7 @@ async def rules_update(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Update an existing rule"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-update")
@@ -2300,7 +2301,7 @@ async def rules_update(
 )
 @click.pass_context
 async def rules_delete(
-    ctx,
+    ctx: Context,
     domain: str,
     rule_id: str,
     confirm: bool,
@@ -2311,7 +2312,7 @@ async def rules_delete(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Delete a rule"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-delete")
@@ -2362,7 +2363,7 @@ async def rules_delete(
 )
 @click.pass_context
 async def rules_import(
-    ctx,
+    ctx: Context,
     file: Optional[str],
     domain: Optional[str],
     partial_update: bool,
@@ -2374,7 +2375,7 @@ async def rules_import(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """
     Import rules from file or reload from filesystem.
 
@@ -2523,7 +2524,7 @@ async def rules_import(
 )
 @click.pass_context
 async def rules_export(
-    ctx,
+    ctx: Context,
     output_file: str,
     domain: Optional[str],
     format: str,
@@ -2535,7 +2536,7 @@ async def rules_export(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Export rules to file"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-export")
@@ -2612,7 +2613,7 @@ async def rules_export(
 )
 @click.pass_context
 async def rules_validate(
-    ctx,
+    ctx: Context,
     file: str,
     verbose: bool,
     output_format: str,
@@ -2621,7 +2622,7 @@ async def rules_validate(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Validate rule file"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-validate")
@@ -2675,7 +2676,7 @@ async def rules_validate(
 )
 @click.pass_context
 async def rules_compare(
-    ctx,
+    ctx: Context,
     file: str,
     domain: Optional[str],
     verbose: bool,
@@ -2685,7 +2686,7 @@ async def rules_compare(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Compare rules file with current rules"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-compare")
@@ -2753,7 +2754,7 @@ async def rules_compare(
 )
 @click.pass_context
 async def rules_reset(
-    ctx,
+    ctx: Context,
     confirm: bool,
     verbose: bool,
     output_format: str,
@@ -2762,7 +2763,7 @@ async def rules_reset(
     llm_model: Optional[str],
     quality_level: str,
     strict_mode: bool,
-):
+) -> None:
     """Reset all rules"""
     cli_ctx = ctx.obj
     cli_ctx.start_command_tracking("rules-reset")

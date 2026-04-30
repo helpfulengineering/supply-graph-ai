@@ -13,9 +13,9 @@ LLM functionality in OHM is primarily integrated into domain-specific endpoints 
 
 **For Direct LLM Operations:**
 Use the CLI commands for direct LLM access:
-- `ome llm generate` - Generic content generation
-- `ome llm generate-okh` - OKH manifest generation
-- `ome llm providers info` - Provider information
+- `ohm llm generate` - Generic content generation
+- `ohm llm generate-okh` - OKH manifest generation
+- `ohm llm providers info` - Provider information
 
 ## Base URL
 

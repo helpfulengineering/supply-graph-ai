@@ -41,12 +41,10 @@ class StructuredLogFormatter(logging.Formatter):
         """Initialize formatter
 
         Args:
-            service_name: Service name to include in logs (default: "open-matching-engine")
+            service_name: Service name to include in logs (default: ``ohm-api``).
         """
         super().__init__()
-        self.service_name = service_name or os.getenv(
-            "SERVICE_NAME", "open-matching-engine"
-        )
+        self.service_name = service_name or os.getenv("SERVICE_NAME", "ohm-api")
         self.is_container = _is_container_environment()
 
     def format(self, record: logging.LogRecord) -> str:

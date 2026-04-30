@@ -408,23 +408,26 @@ FACILITY_ID=$(ohm okw list-files --format json | jq -r '.files[0].facility_id')
 ohm okw get "$FACILITY_ID"
 ```
 
-## Supply Tree Operations
+## Supply tree solutions (CLI)
 
-### Supply Tree Management
+Persisted solutions use the **`ohm solution`** command group (HTTP API under `/v1/api/supply-tree/`). Examples:
 
 ```bash
-# Create supply tree
-ohm supply-tree create manifest-id facility-id
+# Save a solution JSON returned from a match workflow
+ohm solution save match-output.json --ttl-days 30 --tags demo,conference
 
-# Get supply tree details
-ohm supply-tree get supply-tree-id
+# List recent solutions for an OKH manifest
+ohm solution list --okh-id YOUR_OKH_UUID --sort-by created_at --sort-order desc
 
-# List all supply trees
-ohm supply-tree list
+# Load solution payload to a file
+ohm solution load SOLUTION_UUID --output solution.json
 
-# Validate supply tree
-ohm supply-tree validate supply-tree-id
+# Visualization bundle / report (see --help for formats)
+ohm solution visualize SOLUTION_UUID
+ohm solution report SOLUTION_UUID --output report.html
 ```
+
+Create or validate full supply trees via **`ohm match`** or the REST API (`/v1/docs`), not a separate `supply-tree` CLI group.
 
 ## Utility Operations
 
@@ -538,7 +541,7 @@ def run_ohm_command(args):
     """Run an OHM CLI command and return the result"""
     try:
         result = subprocess.run(
-            ['python', 'ome'] + args,
+            ['python', '-m', 'src.cli.main'] + args,
             capture_output=True,
             text=True,
             check=True
@@ -596,68 +599,55 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-      
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Sync project
+        run: uv sync --extra dev
+
       - name: Validate OKH manifests
         run: |
           for manifest in *.okh.json; do
             echo "Validating $manifest with LLM enhancement"
-            python ohm okh validate "$manifest" --use-llm --quality-level medical --strict-mode
+            uv run ohm okh validate "$manifest" --use-llm --quality-level medical --strict-mode
           done
-      
+
       - name: Build packages
         run: |
           for manifest in *.okh.json; do
             echo "Building package from $manifest with LLM analysis"
-            python ohm package build "$manifest" --use-llm --quality-level professional
+            uv run ohm package build "$manifest" --use-llm --quality-level professional
           done
-      
+
       - name: Verify packages
         run: |
-          python ohm package list-packages
+          uv run ohm package list-packages
           # Add verification logic here
 ```
 
 ### Docker Integration
 
 ```dockerfile
-# Dockerfile for OHM CLI
-FROM python:3.9-slim
+# Dockerfile for OHM CLI (example — align versions with pyproject.toml)
+FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 WORKDIR /app
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy application
 COPY . .
 
-# Install Python dependencies
-RUN pip install -r requirements.txt
+RUN uv sync --frozen --extra dev
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Make CLI executable
-RUN chmod +x ome
-
-# Set entrypoint
-ENTRYPOINT ["./ome"]
+ENTRYPOINT ["ohm"]
 ```
 
 ```bash
 # Use in Docker
-docker build -t ome-cli .
-docker run ome-cli system health
-docker run ome-cli package list-packages
+docker build -t ohm-cli .
+docker run ohm-cli system health
+docker run ohm-cli package list-packages
 ```
 
 ## Advanced Usage
@@ -666,7 +656,7 @@ docker run ome-cli package list-packages
 
 ```bash
 # Use custom server
-ohm --server-url https://api.ome.org system health
+ohm --server-url https://api.example.com system health
 
 # Use custom timeout
 ohm --timeout 60 package build large-manifest.json

@@ -8,7 +8,17 @@
 
 ## Overview
 
-This directory contains **7 canonical test workflows** that cover the complete OHM (Open Hardware Manager) design-to-manufacturing pipeline. Each workflow is:
+This directory contains **7 canonical test workflows** that cover the complete OHM (Open Hardware Manager) design-to-manufacturing pipeline.
+
+!!! info "Repository truth vs target automation (2026-04-30)"
+
+    Workflow **documents** are the behavioural spec. The **`tests/e2e/`** tree shown under [Target test structure](#target-test-structure) is the **intended** layout (Issue 1.1.3); it is **not** present on the default branch as of this date.
+
+    This repository still runs a **smaller** automated suite under `tests/unit/`, `tests/api/`, `tests/cli/`, `tests/integration/`, `tests/performance/`, and `tests/services/`. The [workflow index](#workflow-index) “Mapped tests” column lists what actually exists today; [Conference demo readiness — Track A](../../development/conference-demo-readiness.md#track-a-workflows) is the canonical backlog.
+
+    **Conference doc sync:** Entrypoints named in the WF steps were spot-checked against `src/` (`MatchingService.find_matches_with_manifest`, `OKHManifest.extract_requirements` → `ProcessRequirement`, `/v1/api/supply-tree/*`, `StorageService` solution APIs, `DatasheetConverter`, validators). For live routes: `uv run python scripts/dump_api_routes.py` (and `uv run python scripts/generate_openapi_routes_md.py` for the MkDocs table).
+
+Each workflow is:
 
 - **Automation-ready**: Structured to map directly to pytest test cases (see Issue 1.1.3)
 - **Parameterized**: Designed for multiple input variations per workflow
@@ -21,15 +31,17 @@ These workflows serve as the **single source of truth** for what "correct behavi
 
 ## Workflow Index
 
-| ID | Name | Category | Markers | Key Services | Status |
-|----|------|----------|---------|--------------|--------|
-| [WF-1](wf01-single-level-matching.md) | Single-Level Matching | Foundation | `@pytest.mark.e2e` | `MatchingService` | **PASSING** (69/69) |
-| [WF-2](wf02-nested-bom-matching.md) | Nested BOM Matching | Advanced | `@pytest.mark.e2e`, `@pytest.mark.slow` | `MatchingService`, `BOMResolutionService` | **PASSING** (68/68) |
-| [WF-3](wf03-okh-generation-from-url.md) | OKH Generation from URL | Advanced | `@pytest.mark.e2e`, `@pytest.mark.llm` | `OKHService`, `GenerationEngine` | **PASSING** (33/34, 1 skip) |
-| [WF-4](wf04-quality-tiered-validation.md) | Quality-Tiered Validation | Foundation | `@pytest.mark.e2e` | `ValidationContext`, domain validators | **PASSING** (23/23) |
-| [WF-5](wf05-datasheet-round-trip.md) | Datasheet Round-Trip | Advanced | `@pytest.mark.e2e` | `DatasheetConverter` | **PASSING** (38/39, 1 skip) |
-| [WF-6](wf06-error-recovery.md) | Error Recovery | Resilience | `@pytest.mark.e2e` | All services | **PASSING** (26/26) |
-| [WF-7](wf07-solution-lifecycle.md) | Solution Lifecycle | Resilience | `@pytest.mark.e2e` | `StorageService` | **PASSING** (29/29) |
+| ID | Name | Category | Markers | Key services | Spec vs code | Mapped tests (this branch) |
+|----|------|----------|---------|--------------|--------------|----------------------------|
+| [WF-1](wf01-single-level-matching.md) | Single-Level Matching | Foundation | `@pytest.mark.e2e` | `MatchingService` | Reviewed 2026-04-30 | Partial: `tests/unit/test_match_coverage.py` (coverage helper; not full WF-1 pipeline) |
+| [WF-2](wf02-nested-bom-matching.md) | Nested BOM Matching | Advanced | `@pytest.mark.e2e`, `@pytest.mark.slow` | `MatchingService`, `BOMResolutionService` | Reviewed 2026-04-30 | None dedicated |
+| [WF-3](wf03-okh-generation-from-url.md) | OKH Generation from URL | Advanced | `@pytest.mark.e2e`, `@pytest.mark.llm` | `OKHService`, generation stack | Reviewed 2026-04-30 | None dedicated |
+| [WF-4](wf04-quality-tiered-validation.md) | Quality-Tiered Validation | Foundation | `@pytest.mark.e2e` | `ValidationContext`, domain validators | Reviewed 2026-04-30 | None dedicated |
+| [WF-5](wf05-datasheet-round-trip.md) | Datasheet Round-Trip | Advanced | `@pytest.mark.e2e` | `DatasheetConverter` | Reviewed 2026-04-30 | None dedicated |
+| [WF-6](wf06-error-recovery.md) | Error Recovery | Resilience | `@pytest.mark.e2e` | All services | Reviewed 2026-04-30 | None dedicated |
+| [WF-7](wf07-solution-lifecycle.md) | Solution Lifecycle | Resilience | `@pytest.mark.e2e` | `StorageService` | Reviewed 2026-04-30 | Partial: `tests/performance/test_supply_tree_performance.py` (model serde; not storage lifecycle) |
+
+“Reviewed” means a maintainer confirmed the **named classes/methods and HTTP prefixes** in that workflow still exist in `src/`; it does **not** imply the full pytest suite from the 2026-02 progress log is checked in here.
 
 ---
 
@@ -111,6 +123,8 @@ tests/e2e/
 
 ### Running Workflows
 
+**When `tests/e2e/` exists** (target layout — not on the default branch as of 2026-04-30):
+
 ```bash
 # All e2e workflows
 pytest tests/e2e/ -m e2e
@@ -123,6 +137,13 @@ pytest tests/e2e/ -m "e2e and not llm"
 
 # Skip slow tests for fast feedback
 pytest tests/e2e/ -m "e2e and not slow"
+```
+
+**Today (layout without `tests/e2e/`):** run the suites that do exist, for example:
+
+```bash
+uv sync --extra dev
+uv run python -m pytest tests/unit tests/api tests/cli tests/services tests/performance -q
 ```
 
 ---
@@ -209,7 +230,7 @@ Every workflow document follows this structure:
 
 - ~~OKH manifests with exotic/unmatchable manufacturing processes~~ (done: `unmatchable-okh-test.json`)
 - ~~OKH manifests at intentionally different completeness levels~~ (done: `minimal-okh-test.json`)
-- ~~OKH manifests with 2+ levels of nested sub-parts~~ (existing data already has 2-level nesting; WF-2 tests pass)
+- ~~OKH manifests with 2+ levels of nested sub-parts~~ (existing data already has 2-level nesting; WF-2 spec assumes nested matching — automated WF-2 tests pending `tests/e2e/`)
 - Malformed OKH/OKW files (invalid JSON, missing required fields, wrong types) (needed for WF-6)
 - OKH manifests with no manufacturing_processes field (needed for WF-6)
 
@@ -217,13 +238,14 @@ Every workflow document follows this structure:
 
 ## Related Issues
 
-- **Issue 1.1.1**: This document (canonical workflow definitions) -- **COMPLETE**
-- **Issue 1.1.2**: Test dataset creation (fills gaps flagged by workflows) -- **IN PROGRESS** (synthetic data expanded, edge cases created)
-- **Issue 1.1.3**: Automated test framework (implements these workflows as pytest tests) -- **COMPLETE** (WF-1 through WF-7 all implemented)
-- **Issue 1.1.4**: Performance benchmarks (uses performance targets from workflows) -- Not started
+- **Issue 1.1.1**: This document (canonical workflow definitions) — **COMPLETE** (living spec).
+- **Issue 1.1.2**: Test dataset creation (fills gaps flagged by workflows) — **IN PROGRESS** (synthetic data expanded, edge cases created).
+- **Issue 1.1.3**: Automated test framework (implements these workflows as pytest under `tests/e2e/`) — **NOT COMPLETE on default branch** (2026-04-30): target file names and markers are defined here; port or recreate the suite to match this repo’s `pytest` layout. Progress log entries below record historical work where that suite existed.
+- **Issue 1.1.4**: Performance benchmarks (uses performance targets from workflows) — Not started (partial: `tests/performance/test_supply_tree_performance.py` covers model performance only).
 
 ## Progress Log
 
+- **2026-04-30**: Documentation pass — README index, running-workflows, related issues, and dataset notes updated so they **do not** imply `tests/e2e/` or per-WF pass counts exist on the default branch; cross-link to [Conference demo readiness — Track A](../../development/conference-demo-readiness.md#track-a-workflows).
 - **2026-02-12**: WF-1 through WF-7 workflow documents created (Issue 1.1.1 complete)
 - **2026-02-12**: WF-1 E2E tests implemented (`test_wf01_single_level_matching.py`, 69 tests)
 - **2026-02-12**: Fixed namespace mismatch bug in `_can_satisfy_requirements` (URI normalization)

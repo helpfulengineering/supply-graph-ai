@@ -1,3 +1,5 @@
+"""Utility API routes: domains, validation contexts, and system metrics."""
+
 from datetime import datetime
 from typing import Any, List, Optional
 
@@ -66,7 +68,7 @@ router = APIRouter(
 )
 async def get_domains(
     filter_params: DomainFilterRequest = Depends(), http_request: Request = None
-):
+) -> dict[str, Any]:
     """Enhanced domain listing with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -175,7 +177,7 @@ async def get_contexts(
     ),
     filter_params: ContextFilterRequest = Depends(),
     http_request: Request = None,
-) -> Any:
+) -> dict[str, Any]:
     """Enhanced context listing with standardized patterns."""
     request_id = (
         getattr(http_request.state, "request_id", None) if http_request else None
@@ -286,9 +288,9 @@ async def get_contexts(
 
 # Helper functions
 async def _validate_utility_result(
-    result: Any, request_id: str
+    result: Any, request_id: Optional[str]
 ) -> List[ValidationResult]:
-    """Validate utility operation result."""
+    """Validate utility operation result for response metadata."""
     try:
         validation_results = []
 
@@ -377,7 +379,7 @@ async def get_metrics(
     summary: bool = True,
     format: str = "json",
     http_request: Request = None,
-):
+) -> Any:
     """
     Get system metrics.
 

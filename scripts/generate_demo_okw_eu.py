@@ -35,10 +35,10 @@ OKHService (the same back-end used by `ohm okh list-manifests`).
 
 Usage
 ─────
-  python scripts/generate_demo_okw_eu.py
-  python scripts/generate_demo_okw_eu.py --output-dir ./my_demo_okw
-  python scripts/generate_demo_okw_eu.py --output-dir ./my_demo_okw --complexity complex
-  python scripts/generate_demo_okw_eu.py --output-dir ./my_demo_okw --validate
+  uv run python scripts/generate_demo_okw_eu.py
+  uv run python scripts/generate_demo_okw_eu.py --output-dir ./my_demo_okw
+  uv run python scripts/generate_demo_okw_eu.py --output-dir ./my_demo_okw --complexity complex
+  uv run python scripts/generate_demo_okw_eu.py --output-dir ./my_demo_okw --validate
 """
 
 import argparse

@@ -24,7 +24,7 @@ from .decorators import standard_cli_command
 
 
 @click.group()
-def llm_group():
+def llm_group() -> None:
     """
     LLM (Large Language Model) operations and AI features.
 

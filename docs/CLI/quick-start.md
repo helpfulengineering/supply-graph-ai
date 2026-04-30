@@ -2,33 +2,34 @@
 
 ## Getting Started in 5 Minutes
 
-If you have not installed the CLI yet, do a quick setup first:
+If you have not installed the CLI yet, do a quick setup first (aligned with the [README](../../README.md)):
 
 ```bash
 # Clone the repository
 git clone https://github.com/helpfulengineering/supply-graph-ai.git
 cd supply-graph-ai
 
-# Create and activate conda environment (Python 3.12 required)
-conda create -n supply-graph-ai python=3.12
-conda activate supply-graph-ai
+cp env.template .env
 
-# Install dependencies and the CLI
-pip install -r requirements.txt
-pip install -e .
+# Install Python deps and the ohm CLI (uv manages Python 3.12+)
+uv sync
 
 # Start the API server (required for most commands)
-docker-compose up ohm-api
+docker compose up -d ohm-api
 ```
+
+**Alternate (plain pip in a venv):** create a Python 3.12 virtualenv, then `pip install -e ".[dev]"` from the repo root. Prefer **uv** so your environment matches `uv.lock` and CI.
 
 ### 1. Prerequisites
 
 ```bash
-# Activate the conda environment
-conda activate supply-graph-ai
-
-# Navigate to the project directory
 cd /path/to/supply-graph-ai
+# uv workflow:
+uv run ohm --help
+
+# or activated venv:
+source .venv/bin/activate
+ohm --help
 ```
 
 ### 2. Configure Storage

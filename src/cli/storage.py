@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 
 
 @click.group()
-def storage_group():
+def storage_group() -> None:
     """
     Storage management commands for OHM.
 

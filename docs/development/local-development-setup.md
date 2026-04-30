@@ -8,10 +8,10 @@ This guide will help you set up both the **project-data-platform-ts** and **supp
 
 - **Node.js**: Version 18+ (tested with v24.10.0)
 - **npm**: Version 8+ (tested with v11.6.0)
-- **Python**: Version 3.12+ (required, tested with v3.12.12)
+- **Python**: Version 3.12+ (required; **uv** installs the version declared in `pyproject.toml`)
   - **Note**: Python 3.10 reaches end-of-life in October 2026
   - Python 3.12 offers ~10-15% performance improvements
-  - All dependencies are fully compatible with Python 3.12
+  - Dependencies are declared in **`pyproject.toml`** and locked in **`uv.lock`**
 - **Azure CLI**: For backend authentication (optional for basic development)
 - **Git**: For cloning repositories
 
@@ -40,10 +40,11 @@ open-hardware-manager/
 │   │   ├── front-end/                 # Vue.js/Nuxt frontend
 │   │   └── back-end/                  # Azure Functions backend
 │   └── docs/
-└── supply-graph-ai/                   # FastAPI matching engine
+└── supply-graph-ai/                   # FastAPI matching engine (OHM)
     ├── src/                          # Python source code
     ├── docker-compose.yml            # Local service orchestration
-    └── requirements.txt              # Python dependencies
+    ├── pyproject.toml                # Dependencies and tool config
+    └── uv.lock                       # Locked dependency versions (uv)
 ```
 
 ## Setup Instructions
@@ -57,65 +58,49 @@ The Supply Graph AI server provides the matching engine API that the frontend co
 cd supply-graph-ai
 ```
 
-#### Step 2: Create Python Virtual Environment
+#### Step 2: Install Python dependencies with uv
 
-**Option A: Using Conda (Recommended)**
+From the `supply-graph-ai` directory:
+
 ```bash
-# Create conda environment with Python 3.12
-conda create -n supply-graph-ai python=3.12 -y
-
-# Activate conda environment
-conda activate supply-graph-ai
+# Create .venv, install locked deps, and the `ohm` entrypoint (includes dev tools for tests)
+uv sync --extra dev
 ```
 
-**Option B: Using venv**
-```bash
-# Create virtual environment (requires Python 3.12 installed)
-python3.12 -m venv venv
+Optional docs / MkDocs plugins:
 
-# Activate virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-# On Windows:
-# venv\Scripts\activate
+```bash
+uv sync --extra docs
 ```
 
-#### Step 3: Install Dependencies
-```bash
-# Install all dependencies
-pip install -r requirements.txt
+#### Step 3: Install spaCy models
 
-# Install the package in editable mode (recommended for development)
-pip install -e .
-```
-
-#### Step 4: Install spaCy Models
 The NLP matching functionality requires spaCy language models. Install the recommended model:
-```bash
-# Install the medium model with word vectors (recommended)
-python -m spacy download en_core_web_md
 
-# Optional: Install larger model for better accuracy (requires more disk space)
-# python -m spacy download en_core_web_lg
+```bash
+uv run python -m spacy download en_core_web_md
+
+# Optional: larger model (more disk)
+# uv run python -m spacy download en_core_web_lg
 ```
 
 **Note**: The system will automatically fall back to `en_core_web_sm` if the preferred models are not available, but the medium model (`en_core_web_md`) provides better semantic similarity matching with word vectors.
 
-#### Step 5: Create Logs Directory (if needed)
+#### Step 4: Create Logs Directory (if needed)
 ```bash
 mkdir -p logs
 ```
 
-#### Step 6: Start the Server
+#### Step 5: Start the Server
 ```bash
 docker compose up --build ohm-api
 ```
 
 The server will start on **http://localhost:8001**
 
-#### Step 7: Verify Installation
-- Open your browser to: **http://localhost:8001/docs**
-- You should see the FastAPI interactive documentation
+#### Step 6: Verify Installation
+- Open your browser to: **http://localhost:8001/v1/docs**
+- You should see the FastAPI interactive documentation for the versioned API
 - Health check: **http://localhost:8001/health**
 
 ### 2. Project Data Platform TS (Web Application)
@@ -224,11 +209,7 @@ For full-stack development, you'll need to run all three services:
 #### Terminal 1: Supply Graph AI
 ```bash
 cd supply-graph-ai
-# If using conda:
-conda activate supply-graph-ai
-# If using venv:
-# source venv/bin/activate  # On Windows: venv\Scripts\activate
-
+# uv already created .venv; use `uv run ohm …` when you need the CLI without activating
 docker compose up --build ohm-api
 ```
 
@@ -251,7 +232,7 @@ npm run dev
 | Frontend | http://localhost:3000 | Main web application |
 | Backend | http://localhost:7071 | Azure Functions API |
 | Supply Graph AI | http://localhost:8001 | Matching engine API |
-| Supply Graph AI Docs | http://localhost:8001/docs | API documentation |
+| Supply Graph AI Docs | http://localhost:8001/v1/docs | Versioned API (OpenAPI / Swagger) |
 
 ## Configuration
 
@@ -305,7 +286,7 @@ curl http://localhost:8001/health
 # Expected: {"status": "ok", "domains": [...], "version": "1.0.0"}
 
 # Test API documentation
-open http://localhost:8001/docs
+open http://localhost:8001/v1/docs
 ```
 
 ### 3. Test Frontend Integration
@@ -327,26 +308,24 @@ lsof -i :8001
 kill -9 <PID>
 ```
 
-#### 2. Python Virtual Environment Issues
+#### 2. Python environment issues (uv)
 ```bash
-# If you get permission errors
-python -m venv venv --clear
-source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+# Recreate the project venv from the lockfile
+rm -rf .venv
+uv sync --extra dev
 ```
 
 #### 2a. spaCy Model Not Found
 If you see warnings about spaCy models not being found:
 ```bash
 # Verify spaCy is installed
-python -c "import spacy; print(spacy.__version__)"
+uv run python -c "import spacy; print(spacy.__version__)"
 
 # Check available models
-python -m spacy info
+uv run python -m spacy info
 
 # Install the recommended model
-python -m spacy download en_core_web_md
+uv run python -m spacy download en_core_web_md
 ```
 
 **Symptoms**: You may see warnings like:
