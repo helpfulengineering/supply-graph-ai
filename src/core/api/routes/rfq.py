@@ -9,9 +9,8 @@ logic is adapted from demo/rfq_generator.py to work with the current
 match response payload shape (facility.location, facility.contact, tree.*).
 """
 
-import re
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter
@@ -83,50 +82,64 @@ REQUEST FOR QUOTATION (RFQ)
 
 Date: {date}
 RFQ Number: {rfq_number}
+Valid Until: {valid_until}
 
-To: {facility_name}
-Contact: {facility_contact}
-Location: {facility_location}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Subject: Request for Quotation — {design_name}
-
-DESIGN INFORMATION:
-  Design Name:  {design_name}
+ISSUED TO:
+  Facility:     {facility_name}
+  Location:     {facility_location}
+{facility_contact_block}
+ISSUED BY:
+  Platform:     Open Hardware Matching (OHM)
   Design ID:    {okh_id}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SUBJECT:  Manufacturing Quotation Request — {design_name} ({version})
+
+1. DESIGN OVERVIEW
+  Name:         {design_name}
   Version:      {version}
   Function:     {function}
   License:      {license}
   Repository:   {repo_url}
-
-MANUFACTURING REQUIREMENTS:
-  Processes:    {process_list}
-  Materials:    {material_list}
+{description_block}
+2. SCOPE OF WORK
   Quantity:     {quantity} unit(s)
-  Quality:      {quality_level}
-  Timeline:     To be determined
-{parts_section}
-Please provide a quotation that includes:
-  · Unit price and total price for the quantity specified
-  · Lead time and production schedule
-  · Payment terms
-  · Shipping options and estimated costs
-  · Any capability constraints or substitution notes
+  Processes:    {process_list}
+{dimensions_block}{quality_block}{materials_block}
+3. MATCHED CAPABILITIES
+{matched_capabilities_block}
+4. DESIGN DATA PACKAGE
+  The complete design package (CAD files, Gerber/fabrication outputs,
+  assembly drawings, and documentation) can be obtained via the OHM API:
 
-DESIGN PACKAGE:
-  The full OKH manifest for this design is attached to this RFQ as a JSON
-  document. To obtain the complete design package (CAD files, documentation,
-  source files), use the OHM API:
+    Trigger build:  POST /v1/api/package/build/{okh_id}
+    Download:       GET  /v1/api/package/{okh_id}/download
 
-    POST /v1/api/package/build/{okh_id}
+  The full OKH manifest is included in the JSON export of this RFQ.
 
-  Or download a pre-built package if available:
+5. QUOTATION REQUIREMENTS
+  Please provide a response that includes all applicable items:
+  · Unit price and total price for the quantity above
+  · NRE / tooling / setup charges (if any)
+  · Lead time from PO to first-article and production delivery
+  · Production schedule for the stated quantity
+  · Payment terms and accepted currencies
+  · Shipping options, Incoterms, and estimated freight cost
+  · Quality documentation: inspection plan, first-article report (FAI)
+  · Any capability constraints, substitutions, or design-for-manufacture notes
+  · Minimum order quantity (MOQ) if applicable
 
-    GET  /v1/api/package/build/{okh_id}  (trigger build)
-    GET  /v1/api/package/<name>/<version>/download
+6. TERMS & CONDITIONS
+  · This RFQ does not constitute a purchase order or commitment to buy.
+  · All submitted pricing and technical information will be treated as
+    confidential unless explicitly marked otherwise by the vendor.
+  · The design is released under the license stated above; any manufacturing
+    engagement is subject to compliance with those license terms.
 
-  The full manifest is included in the JSON export of this RFQ.
-
-{contact_info}
+Thank you for your consideration.
 """
 
 
@@ -146,67 +159,104 @@ def _extract_location(facility: Dict[str, Any]) -> str:
     return result or "Location not specified"
 
 
-def _extract_contact(facility: Dict[str, Any]) -> str:
+def _extract_contact_block(facility: Dict[str, Any]) -> str:
+    """Return a formatted contact block (indented, trailing newline) or empty string."""
     contact = facility.get("contact", {})
     if not contact:
-        return "Contact information not available"
+        return ""
     lines: List[str] = []
     if contact.get("contact_person"):
-        lines.append(f"Contact: {contact['contact_person']}")
+        lines.append(f"  Contact:      {contact['contact_person']}")
     if contact.get("name"):
-        lines.append(f"Organisation: {contact['name']}")
+        lines.append(f"  Organisation: {contact['name']}")
     if contact.get("website"):
-        lines.append(f"Website: {contact['website']}")
+        lines.append(f"  Website:      {contact['website']}")
     nested = contact.get("contact", {})
     if isinstance(nested, dict):
         if nested.get("landline"):
-            lines.append(f"Phone: {nested['landline']}")
+            lines.append(f"  Phone:        {nested['landline']}")
         if nested.get("mobile"):
-            lines.append(f"Mobile: {nested['mobile']}")
-    return "\n".join(lines) if lines else "Contact information not available"
+            lines.append(f"  Mobile:       {nested['mobile']}")
+    return ("\n".join(lines) + "\n") if lines else ""
 
 
-def _extract_processes(tree: Dict[str, Any]) -> str:
-    caps = tree.get("capabilities_used", [])
-    names: List[str] = []
-    for cap in caps:
-        if isinstance(cap, str) and "wikipedia.org/wiki/" in cap:
-            names.append(cap.split("/wiki/")[-1].replace("_", " ").title())
-        elif isinstance(cap, str):
-            names.append(cap)
-    return ", ".join(names) if names else "See design requirements"
+def _cap_label(cap: str) -> str:
+    """Convert a capability URI or raw string to a readable label."""
+    if "wikipedia.org/wiki/" in cap:
+        return cap.split("/wiki/")[-1].replace("_", " ").title()
+    return cap
 
 
-def _extract_materials(tree: Dict[str, Any]) -> str:
-    mats = tree.get("materials_required", [])
-    names: List[str] = []
-    for mat in mats:
-        if isinstance(mat, str) and "MaterialSpec" in mat:
-            name_m = re.search(r"name='([^']+)'", mat)
-            qty_m = re.search(r"quantity=([^,)]+)", mat)
-            unit_m = re.search(r"unit='([^']+)'", mat)
-            name = name_m.group(1) if name_m else "Unknown"
-            qty = qty_m.group(1) if qty_m else None
-            unit = unit_m.group(1) if unit_m else ""
-            if qty and qty not in ("None", "N/A"):
-                names.append(f"{name} ({qty} {unit})")
-            else:
-                names.append(name)
-        elif isinstance(mat, dict):
-            name = mat.get("name", mat.get("material_id", "Unknown"))
-            qty = mat.get("quantity")
-            unit = mat.get("unit", "")
-            names.append(f"{name} ({qty} {unit})" if qty else name)
-        else:
-            names.append(str(mat))
-    return ", ".join(names) if names else "See design specifications"
-
-
-def _extract_manifest_extras(manifest: Optional[Dict[str, Any]]) -> Dict[str, str]:
-    """Pull additional fields from the full OKH manifest when available."""
+def _extract_processes_from_manifest(manifest: Optional[Dict[str, Any]]) -> str:
+    """Extract required manufacturing processes from the OKH manifest."""
     if not manifest:
-        return {"license": "—", "repo_url": "—", "parts_section": ""}
+        return "See design documentation"
+    procs = manifest.get("manufacturing_processes") or []
+    if not procs:
+        specs = manifest.get("manufacturing_specs") or {}
+        procs = [
+            r.get("process_name")
+            for r in specs.get("process_requirements", [])
+            if r.get("process_name")
+        ]
+    if not procs:
+        return "See design documentation"
+    return ", ".join(str(p) for p in procs)
 
+
+def _extract_matched_capabilities_block(solution: "RFQSolutionInput") -> str:
+    """
+    Summarise why this facility was selected:
+    capabilities matched, confidence, and any unmet requirements.
+    """
+    tree = solution.tree
+    lines: List[str] = []
+
+    caps = tree.get("capabilities_used", [])
+    if caps:
+        cap_labels = [_cap_label(c) for c in caps if isinstance(c, str)]
+        lines.append(f"  Matched processes:  {', '.join(cap_labels) or '—'}")
+
+    lines.append(f"  Match confidence:   {round(solution.confidence * 100)}%")
+    lines.append(f"  Match rank:         #{solution.rank}")
+
+    missing = tree.get("missing_capabilities", [])
+    if missing:
+        missing_labels = [_cap_label(c) for c in missing if isinstance(c, str)]
+        lines.append(f"  Unmet requirements: {', '.join(missing_labels)}")
+        lines.append(
+            "  Note: Please advise whether the unmet requirements above can be"
+        )
+        lines.append("        accommodated through partnerships or subcontracting.")
+    else:
+        lines.append("  All required capabilities matched.")
+
+    return "\n".join(lines)
+
+
+def _extract_manifest_extras(
+    manifest: Optional[Dict[str, Any]],
+    solution: Optional["RFQSolutionInput"] = None,
+) -> Dict[str, str]:
+    """
+    Extract RFQ-relevant fields from the OKH manifest.
+
+    Returns a dict of pre-formatted text blocks used by _TEMPLATE.
+    Does NOT include raw BOM part numbers — those are component procurement
+    data and do not belong in a manufacturing RFQ.
+    """
+    if not manifest:
+        return {
+            "license": "—",
+            "repo_url": "—",
+            "description_block": "",
+            "dimensions_block": "",
+            "quality_block": "",
+            "materials_block": "",
+            "matched_capabilities_block": "  See match data.",
+        }
+
+    # License
     license_info = manifest.get("license", {})
     if isinstance(license_info, dict):
         hw = license_info.get("hardware") or license_info.get("documentation") or "—"
@@ -215,28 +265,59 @@ def _extract_manifest_extras(manifest: Optional[Dict[str, Any]]) -> Dict[str, st
 
     repo_url = manifest.get("repo") or manifest.get("documentation_home") or "—"
 
-    # Build parts list if present
-    parts = manifest.get("parts") or []
-    if parts:
-        part_lines = []
-        for p in parts[:10]:
-            if isinstance(p, dict):
-                name = p.get("name") or p.get("id") or "Part"
-                qty = p.get("quantity", "")
-                mat = p.get("material") or ""
-                line = f"    - {name}"
-                if qty:
-                    line += f" ×{qty}"
-                if mat:
-                    line += f" [{mat}]"
-                part_lines.append(line)
-        if len(parts) > 10:
-            part_lines.append(f"    … and {len(parts) - 10} more parts")
-        parts_section = "Parts:\n" + "\n".join(part_lines) + "\n"
-    else:
-        parts_section = ""
+    # Optional description block
+    desc = manifest.get("description") or manifest.get("intended_use") or ""
+    description_block = (f"  Description:  {desc}\n") if desc else ""
 
-    return {"license": hw, "repo_url": repo_url, "parts_section": parts_section}
+    # Manufacturing specs — outer dimensions
+    specs = manifest.get("manufacturing_specs") or {}
+    dims = specs.get("outer_dimensions")
+    if dims and isinstance(dims, dict):
+        w = dims.get("width") or dims.get("x")
+        h = dims.get("height") or dims.get("y")
+        d = dims.get("depth") or dims.get("z") or dims.get("thickness")
+        unit = dims.get("unit", "mm")
+        parts_dim = [f"{v} {unit}" for v in [w, h, d] if v is not None]
+        dimensions_block = (
+            f"  Dimensions:   {' × '.join(parts_dim)}\n" if parts_dim else ""
+        )
+    else:
+        dimensions_block = ""
+
+    # Quality standards
+    quality_stds = specs.get("quality_standards") or []
+    if quality_stds:
+        quality_block = f"  Quality:      {', '.join(str(q) for q in quality_stds)}\n"
+    else:
+        quality_block = "  Quality:      Per standard good manufacturing practice\n"
+
+    # High-level materials (manifest-level, NOT BOM component references)
+    materials = manifest.get("materials") or []
+    mat_names: List[str] = []
+    for m in materials:
+        if isinstance(m, dict):
+            name = m.get("name") or m.get("material_id") or ""
+            if name:
+                mat_names.append(name)
+        elif isinstance(m, str):
+            mat_names.append(m)
+    materials_block = (f"  Materials:    {', '.join(mat_names)}\n") if mat_names else ""
+
+    # Matched capabilities block
+    if solution is not None:
+        matched_capabilities_block = _extract_matched_capabilities_block(solution)
+    else:
+        matched_capabilities_block = "  See match data."
+
+    return {
+        "license": hw,
+        "repo_url": repo_url,
+        "description_block": description_block,
+        "dimensions_block": dimensions_block,
+        "quality_block": quality_block,
+        "materials_block": materials_block,
+        "matched_capabilities_block": matched_capabilities_block,
+    }
 
 
 def _render_rfq(
@@ -249,12 +330,15 @@ def _render_rfq(
     quantity: int,
     okh_manifest: Optional[Dict[str, Any]] = None,
 ) -> str:
-    extras = _extract_manifest_extras(okh_manifest)
+    extras = _extract_manifest_extras(okh_manifest, solution)
+    now = datetime.now()
+    valid_until = (now + timedelta(days=30)).strftime("%Y-%m-%d")
     return _TEMPLATE.format(
-        date=datetime.now().strftime("%Y-%m-%d"),
+        date=now.strftime("%Y-%m-%d"),
         rfq_number=_rfq_number(),
+        valid_until=valid_until,
         facility_name=solution.facility_name,
-        facility_contact=_extract_contact(solution.facility),
+        facility_contact_block=_extract_contact_block(solution.facility),
         facility_location=_extract_location(solution.facility),
         design_name=okh_title,
         okh_id=okh_id,
@@ -262,12 +346,13 @@ def _render_rfq(
         function=okh_function or "See design documentation",
         license=extras["license"],
         repo_url=extras["repo_url"],
-        parts_section=extras["parts_section"],
-        process_list=_extract_processes(solution.tree),
-        material_list=_extract_materials(solution.tree),
+        description_block=extras["description_block"],
+        process_list=_extract_processes_from_manifest(okh_manifest),
+        dimensions_block=extras["dimensions_block"],
+        quality_block=extras["quality_block"],
+        materials_block=extras["materials_block"],
+        matched_capabilities_block=extras["matched_capabilities_block"],
         quantity=quantity,
-        quality_level="professional",
-        contact_info="Thank you for your consideration.",
     )
 
 

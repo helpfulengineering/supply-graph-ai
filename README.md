@@ -50,7 +50,7 @@ cd supply-graph-ai
 # 2. Create your environment file
 cp env.template .env
 
-# 3. Install all dependencies (uv downloads Python 3.12 automatically if needed)
+# 3. Install all dependenciesif needed)
 uv sync
 
 # 4. Activate the virtual environment
@@ -60,7 +60,7 @@ source .venv/bin/activate          # macOS / Linux
 # 5. Verify the CLI is available
 ohm --help
 
-# 6. Start the API server (still uses Docker)
+# 6. Start the API server
 docker compose up -d ohm-api
 ```
 

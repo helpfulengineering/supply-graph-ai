@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { runMatch } from "../../api/match";
 import type { MatchResponse, MatchSolution } from "../../types/match";
+import { MATCH_SESSION } from "./matchSessionKeys";
 
 export interface MatchOptions {
   maxResults: number;
@@ -21,13 +22,6 @@ export const DEFAULT_MATCH_OPTIONS: MatchOptions = {
   maxFacilitiesPerSolution: 10,
 };
 
-// ---------------------------------------------------------------------------
-// sessionStorage keys — prefix-namespaced to avoid collisions
-// ---------------------------------------------------------------------------
-const KEY_RESULT = "ohm_v1_match_result";
-const KEY_OKH_ID = "ohm_v1_match_okh_id";
-const KEY_SAVED_AT = "ohm_v1_match_saved_at";
-
 function readSession<T>(key: string, parse: (raw: string) => T): T | null {
   try {
     const raw = sessionStorage.getItem(key);
@@ -37,47 +31,84 @@ function readSession<T>(key: string, parse: (raw: string) => T): T | null {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Hook
-// ---------------------------------------------------------------------------
+function clearStaleSessionFromStorage(urlOkhId: string) {
+  const storedOkh = readSession(MATCH_SESSION.okhId, (raw) => raw);
+  if (storedOkh && storedOkh !== urlOkhId) {
+    try {
+      sessionStorage.removeItem(MATCH_SESSION.result);
+      sessionStorage.removeItem(MATCH_SESSION.okhId);
+      sessionStorage.removeItem(MATCH_SESSION.savedAt);
+      sessionStorage.removeItem(MATCH_SESSION.selected);
+    } catch {
+      /* ignore */
+    }
+  }
+}
 
-export function useMatch() {
-  // Seed from sessionStorage so results survive tab navigation.
-  const [result, setResult] = useState<MatchResponse | null>(() =>
-    readSession(KEY_RESULT, (raw) => JSON.parse(raw) as MatchResponse)
-  );
-  const [matchOkhId, setMatchOkhId] = useState<string | null>(() =>
-    readSession(KEY_OKH_ID, (raw) => raw)
-  );
-  const [savedAt, setSavedAt] = useState<Date | null>(() =>
-    readSession(KEY_SAVED_AT, (raw) => new Date(raw))
+function readAllInitial(urlOkhId: string | undefined): {
+  result: MatchResponse | null;
+  matchOkhId: string | null;
+  savedAt: Date | null;
+} {
+  if (urlOkhId) {
+    clearStaleSessionFromStorage(urlOkhId);
+  }
+  const storedOkh = readSession(MATCH_SESSION.okhId, (raw) => raw);
+  if (urlOkhId && storedOkh && storedOkh !== urlOkhId) {
+    return { result: null, matchOkhId: null, savedAt: null };
+  }
+  return {
+    result: readSession(MATCH_SESSION.result, (raw) => JSON.parse(raw) as MatchResponse),
+    matchOkhId: storedOkh,
+    savedAt: readSession(MATCH_SESSION.savedAt, (raw) => new Date(raw)),
+  };
+}
+
+/**
+ * @param urlOkhId - OKH id from the route. When set, persisted results for a *different*
+ *   design are ignored and cleared so autorun / Run Match behave correctly.
+ */
+export function useMatch(urlOkhId?: string) {
+  const [{ result, matchOkhId, savedAt }, setCore] = useState(() =>
+    readAllInitial(urlOkhId)
   );
   const [expandedRank, setExpandedRank] = useState<number | null>(null);
 
-  // ---------------------------------------------------------------------------
-  // Mirror state → sessionStorage asynchronously (non-blocking).
-  // JSON.stringify is intentionally kept out of onSuccess to avoid blocking
-  // the React scheduler during mutation settlement.
-  // ---------------------------------------------------------------------------
+  // If the URL design changes after mount, drop persisted results for another design.
+  useEffect(() => {
+    if (!urlOkhId) return;
+    if (matchOkhId != null && matchOkhId !== urlOkhId) {
+      setCore({ result: null, matchOkhId: null, savedAt: null });
+      setExpandedRank(null);
+      clearStaleSessionFromStorage(urlOkhId);
+    }
+  }, [urlOkhId, matchOkhId]);
+
   useEffect(() => {
     try {
-      if (result) sessionStorage.setItem(KEY_RESULT, JSON.stringify(result));
-      else sessionStorage.removeItem(KEY_RESULT);
-    } catch { /* quota exceeded */ }
+      if (result) sessionStorage.setItem(MATCH_SESSION.result, JSON.stringify(result));
+      else sessionStorage.removeItem(MATCH_SESSION.result);
+    } catch {
+      /* quota exceeded */
+    }
   }, [result]);
 
   useEffect(() => {
     try {
-      if (matchOkhId) sessionStorage.setItem(KEY_OKH_ID, matchOkhId);
-      else sessionStorage.removeItem(KEY_OKH_ID);
-    } catch { /* quota exceeded */ }
+      if (matchOkhId) sessionStorage.setItem(MATCH_SESSION.okhId, matchOkhId);
+      else sessionStorage.removeItem(MATCH_SESSION.okhId);
+    } catch {
+      /* ignore */
+    }
   }, [matchOkhId]);
 
   useEffect(() => {
     try {
-      if (savedAt) sessionStorage.setItem(KEY_SAVED_AT, savedAt.toISOString());
-      else sessionStorage.removeItem(KEY_SAVED_AT);
-    } catch { /* quota exceeded */ }
+      if (savedAt) sessionStorage.setItem(MATCH_SESSION.savedAt, savedAt.toISOString());
+      else sessionStorage.removeItem(MATCH_SESSION.savedAt);
+    } catch {
+      /* ignore */
+    }
   }, [savedAt]);
 
   const mutation = useMutation({
@@ -100,10 +131,7 @@ export function useMatch() {
         max_facilities_per_solution: options.maxFacilitiesPerSolution,
       }),
     onSuccess: (data, { okhId }) => {
-      // Keep onSuccess minimal — only plain setState calls, no synchronous I/O.
-      setResult(data);
-      setMatchOkhId(okhId);
-      setSavedAt(new Date());
+      setCore({ result: data, matchOkhId: okhId, savedAt: new Date() });
       setExpandedRank(null);
     },
   });
@@ -118,9 +146,7 @@ export function useMatch() {
 
   function reset() {
     mutation.reset();
-    setResult(null);
-    setMatchOkhId(null);
-    setSavedAt(null);
+    setCore({ result: null, matchOkhId: null, savedAt: null });
     setExpandedRank(null);
   }
 

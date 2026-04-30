@@ -36,6 +36,7 @@ from ...services.okh_service import OKHService
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...matching.match_modes import MATCH_MODE_NESTED, MATCH_MODE_SINGLE_LEVEL
+from ...taxonomy import taxonomy as _process_taxonomy
 from ...utils.logging import get_logger
 from ...utils.match_human_summary import build_match_human_summary
 from ..constants.client_errors import (
@@ -1266,6 +1267,62 @@ def _collect_matched_processes_from_trees(trees: List[Any]) -> List[str]:
     return values
 
 
+def _taxonomy_id_for_process(process_str: str) -> Optional[str]:
+    """Normalize a process string (plain text or Wikipedia URI) to a taxonomy canonical ID.
+
+    Extracts the Wikipedia slug when a full URI is given (e.g.
+    ``https://en.wikipedia.org/wiki/Fused_filament_fabrication`` → ``Fused_filament_fabrication``),
+    then delegates to the process taxonomy.  Returns ``None`` when the string
+    cannot be resolved to a known canonical ID.
+    """
+    s = process_str.strip()
+    if not s:
+        return None
+    if "/wiki/" in s:
+        s = s.split("/wiki/")[-1]
+    try:
+        return _process_taxonomy.normalize(s) or None
+    except Exception:
+        return None
+
+
+def _processes_match(required: str, capability: str) -> bool:
+    """Return True when *capability* satisfies *required*.
+
+    Matching priority:
+    1. Taxonomy-aware: normalize both sides; the capability covers the
+       requirement when their canonical IDs are equal **or** the required
+       canonical ID is an ancestor of the capability canonical ID.
+    2. Substring fallback (case-insensitive, Wikipedia slug extracted):
+       used when either side cannot be resolved by the taxonomy.
+    """
+    req_id = _taxonomy_id_for_process(required)
+    cap_id = _taxonomy_id_for_process(capability)
+
+    if req_id and cap_id:
+        if req_id == cap_id:
+            return True
+        # cap_id covers req_id when req_id is an ancestor of cap_id
+        # (e.g. "3d_printing" is ancestor of "3d_printing_fdm")
+        try:
+            if req_id in (_process_taxonomy.get_ancestors(cap_id) or []):
+                return True
+        except Exception:
+            pass
+
+    # Fallback: normalize Wikipedia URI slugs and do substring comparison
+    def _slug(s: str) -> str:
+        if "/wiki/" in s:
+            s = s.split("/wiki/")[-1].replace("_", " ")
+        return s.strip().lower()
+
+    req_slug = _slug(required)
+    cap_slug = _slug(capability)
+    return bool(
+        req_slug and cap_slug and (req_slug in cap_slug or cap_slug in req_slug)
+    )
+
+
 def _build_match_summary(
     required_processes: List[str],
     matched_processes: List[str],
@@ -1275,23 +1332,38 @@ def _build_match_summary(
     composite_applied: bool = False,
     warnings: Optional[List[str]] = None,
 ) -> tuple[Dict[str, Any], List[str]]:
-    """Build structured match summary and coverage gaps."""
-    required_norm = [p.strip().lower() for p in required_processes if str(p).strip()]
-    matched_norm = [p.strip().lower() for p in matched_processes if str(p).strip()]
+    """Build structured match summary and coverage gaps.
 
-    # Basic substring check is resilient to URI-like capabilities.
+    Fixes applied vs the original naïve substring comparison:
+    - RC2: deduplicate *required_processes* so a process listed in both
+      ``manufacturing_processes`` and ``manufacturing_specs.process_requirements``
+      is not counted twice.
+    - RC1: Wikipedia URI slugs in *matched_processes* (e.g. ``Laser_cutting``)
+      are now correctly matched against plain-text requirements (``Laser Cutting``).
+    - RC3: taxonomy hierarchy is respected — a facility that offers FDM printing
+      (``3d_printing_fdm``) is considered to satisfy a ``3D Printing`` requirement
+      because ``3d_printing`` is an ancestor of ``3d_printing_fdm``.
+    """
+    # RC2 — deduplicate while preserving order
+    seen: set = set()
+    unique_required: List[str] = []
+    for p in required_processes:
+        key = p.strip().lower()
+        if key and key not in seen:
+            seen.add(key)
+            unique_required.append(p)
+
     covered: List[str] = []
     uncovered: List[str] = []
-    for process in required_processes:
-        needle = process.strip().lower()
-        if not needle:
+    for process in unique_required:
+        if not process.strip():
             continue
-        if any(needle in cap or cap in needle for cap in matched_norm):
+        if any(_processes_match(process, cap) for cap in matched_processes):
             covered.append(process)
         else:
             uncovered.append(process)
 
-    required_count = len(required_norm)
+    required_count = len(unique_required)
     covered_count = len(covered)
     coverage_ratio = (covered_count / required_count) if required_count > 0 else 1.0
 
@@ -1673,8 +1745,12 @@ def _detect_domain_from_manifest(okh_manifest: "OKHManifest") -> str:
 
     Priority order:
     1. Explicit ``domain`` field on the manifest.
-    2. ``manufacturing_processes`` containing only known cooking terms.
-    3. ``function`` text containing cooking keywords alongside OKH cooking
+    2. Strong manufacturing signals: any non-cooking ``manufacturing_processes``
+       or a populated ``manufacturing_specs`` block → manufacturing wins
+       immediately (prevents lab/automation hardware from being misclassified
+       because their function text uses domain-overloaded words like "recipe").
+    3. ``manufacturing_processes`` containing *only* known cooking terms.
+    4. ``function`` text containing cooking keywords alongside OKH cooking
        indicator fields (``making_instructions`` or ``tool_list``).
 
     Returns ``"cooking"`` or ``"manufacturing"``.
@@ -1683,15 +1759,27 @@ def _detect_domain_from_manifest(okh_manifest: "OKHManifest") -> str:
     if getattr(okh_manifest, "domain", None) in ("cooking", "manufacturing"):
         return okh_manifest.domain  # type: ignore[return-value]
 
-    # 2. All listed manufacturing_processes are cooking-specific
     processes = getattr(okh_manifest, "manufacturing_processes", []) or []
+
+    # 2. Strong manufacturing signals override all heuristics.
+    #    If the manifest has at least one process that is NOT a pure cooking
+    #    verb, or has a manufacturing_specs block, it is manufacturing hardware.
+    has_manufacturing_specs = bool(getattr(okh_manifest, "manufacturing_specs", None))
+    has_non_cooking_process = any(
+        isinstance(p, str) and p.strip().lower() not in _COOKING_PROCESSES
+        for p in processes
+    )
+    if has_manufacturing_specs or (processes and has_non_cooking_process):
+        return "manufacturing"
+
+    # 3. All listed manufacturing_processes are cooking-specific
     if processes and all(
         isinstance(p, str) and p.strip().lower() in _COOKING_PROCESSES
         for p in processes
     ):
         return "cooking"
 
-    # 3. Function text + OKH cooking indicators
+    # 4. Function text + OKH cooking indicators
     function_text = (getattr(okh_manifest, "function", "") or "").lower()
     has_cooking_function = any(kw in function_text for kw in _COOKING_FUNCTION_KEYWORDS)
     has_cooking_structure = bool(

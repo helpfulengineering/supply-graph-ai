@@ -3,11 +3,13 @@ import type { FacilityDetail, MatchSolution } from "../../types/match";
 
 interface Props {
   solution: MatchSolution;
+  /** Stable row id for selection (may differ from `facility_id` when the API returns duplicate facilities). */
+  selectionId: string;
   isExpanded: boolean;
   onToggle: () => void;
   solutionId?: string;
   isSelected?: boolean;
-  onSelect?: (id: string, checked: boolean) => void;
+  onSelect?: (rowId: string, checked: boolean) => void;
 }
 
 /**
@@ -107,6 +109,7 @@ function CompositeFacilityPanel({ detail }: { detail: FacilityDetail }) {
 
 export function MatchResultCard({
   solution,
+  selectionId,
   isExpanded,
   onToggle,
   isSelected = false,
@@ -160,7 +163,7 @@ export function MatchResultCard({
             <input
               type="checkbox"
               checked={isSelected}
-              onChange={(e) => onSelect(solution.facility_id, e.target.checked)}
+              onChange={(e) => onSelect(selectionId, e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-800"
               aria-label={`Select ${solution.facility_name}`}
             />

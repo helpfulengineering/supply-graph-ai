@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useMatch } from "./useMatch";
@@ -9,13 +9,31 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { fetchOkhDetail } from "../../api/okh";
+import type { MatchSolution } from "../../types/match";
 import type { RfqNavigationState } from "../../types/rfq";
-
-const KEY_SELECTED = "ohm_v1_match_selected";
+import { MATCH_SESSION } from "./matchSessionKeys";
+import { solutionRowId } from "./solutionRowId";
 
 interface Props {
   okhId?: string;
   autoRun?: boolean;
+}
+
+function dedupeSolutionsByFacility(input: MatchSolution[]): MatchSolution[] {
+  const byFacility = new Map<string, MatchSolution>();
+  for (const sol of input) {
+    const key = sol.facility_id || sol.facility_name || solutionRowId(sol);
+    const existing = byFacility.get(key);
+    if (!existing) {
+      byFacility.set(key, sol);
+      continue;
+    }
+    // Keep the strongest candidate; stable fallback to earlier rank.
+    if (sol.score > existing.score || (sol.score === existing.score && sol.rank < existing.rank)) {
+      byFacility.set(key, sol);
+    }
+  }
+  return Array.from(byFacility.values()).sort((a, b) => a.rank - b.rank);
 }
 
 function SessionRestoredBanner({
@@ -53,7 +71,7 @@ export function MatchView({ okhId, autoRun = false }: Props) {
   // selectedIds: local state seeded from sessionStorage
   const [selectedIds, setSelectedIdsState] = useState<Set<string>>(() => {
     try {
-      const raw = sessionStorage.getItem(KEY_SELECTED);
+      const raw = sessionStorage.getItem(MATCH_SESSION.selected);
       return raw ? new Set(JSON.parse(raw) as string[]) : new Set<string>();
     } catch {
       return new Set<string>();
@@ -63,11 +81,12 @@ export function MatchView({ okhId, autoRun = false }: Props) {
   const setSelectedIds = useCallback((ids: Set<string>) => {
     setSelectedIdsState(ids);
     try {
-      sessionStorage.setItem(KEY_SELECTED, JSON.stringify(Array.from(ids)));
+      sessionStorage.setItem(MATCH_SESSION.selected, JSON.stringify(Array.from(ids)));
     } catch { /* quota exceeded */ }
   }, []);
 
-  const autoRunFired = useRef(false);
+  /** Prevents duplicate autorun for the same URL okh_id (e.g. React StrictMode remount). */
+  const autorunTargetRef = useRef<string | null>(null);
   // Keep a stable ref so the autoRun effect doesn't re-fire on every render
   // when `trigger` (recreated each render) changes reference.
   const triggerRef = useRef<typeof trigger | null>(null);
@@ -87,13 +106,13 @@ export function MatchView({ okhId, autoRun = false }: Props) {
     processingTime,
     expandedRank,
     toggleExpanded,
-    matchOkhId: _sessionOkhId,
     savedAt,
     reset,
-  } = useMatch();
+  } = useMatch(okhId);
 
   // Keep ref in sync so autoRun effect always calls the latest trigger.
   triggerRef.current = trigger;
+  const displaySolutions = useMemo(() => dedupeSolutionsByFacility(solutions), [solutions]);
 
   const { data: okhDetail } = useQuery({
     queryKey: ["okh-detail-for-rfq", okhId],
@@ -103,10 +122,10 @@ export function MatchView({ okhId, autoRun = false }: Props) {
   });
 
   const handleSelect = useCallback(
-    (facilityId: string, checked: boolean) => {
+    (rowId: string, checked: boolean) => {
       const next = new Set(selectedIds);
-      if (checked) next.add(facilityId);
-      else next.delete(facilityId);
+      if (checked) next.add(rowId);
+      else next.delete(rowId);
       setSelectedIds(next);
     },
     [selectedIds, setSelectedIds]
@@ -118,22 +137,27 @@ export function MatchView({ okhId, autoRun = false }: Props) {
     setSelectedIds(new Set<string>());
   }, [reset, setSelectedIds]);
 
+  // Reset autorun latch when switching designs so each okh_id can autorun once.
+  useEffect(() => {
+    autorunTargetRef.current = null;
+  }, [okhId]);
+
   // Auto-trigger match when navigated here from "Run Match ⚡".
   // Skip if we already have session results for this exact OKH — the user
   // can explicitly re-run via the "Re-run Match" button if they want fresh results.
   // `trigger` is intentionally accessed via ref so this effect is NOT re-run
   // every render (trigger changes reference on every render).
   useEffect(() => {
-    if (autoRun && okhId && !autoRunFired.current && !hasResult) {
-      autoRunFired.current = true;
-      triggerRef.current?.(okhId);
-    }
+    if (!autoRun || !okhId || hasResult) return;
+    if (autorunTargetRef.current === okhId) return;
+    autorunTargetRef.current = okhId;
+    triggerRef.current?.(okhId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRun, okhId, hasResult]);
 
   const handleGenerateRfq = useCallback(() => {
-    const selectedSolutions = solutions.filter((s) =>
-      selectedIds.has(s.facility_id)
+    const selectedSolutions = displaySolutions.filter((s) =>
+      selectedIds.has(solutionRowId(s))
     );
     const state: RfqNavigationState = {
       okhId: okhId!,
@@ -143,7 +167,16 @@ export function MatchView({ okhId, autoRun = false }: Props) {
       solutions: selectedSolutions,
     };
     navigate("/rfq", { state });
-  }, [solutions, selectedIds, okhId, okhDetail, navigate]);
+  }, [displaySolutions, selectedIds, okhId, okhDetail, navigate]);
+
+  // Prune selected ids when a newer run returns fewer/different unique rows.
+  useEffect(() => {
+    const valid = new Set(displaySolutions.map((s) => solutionRowId(s)));
+    const next = new Set(Array.from(selectedIds).filter((id) => valid.has(id)));
+    if (next.size !== selectedIds.size) {
+      setSelectedIds(next);
+    }
+  }, [displaySolutions, selectedIds, setSelectedIds]);
 
   if (!okhId) {
     return (
@@ -282,25 +315,25 @@ export function MatchView({ okhId, autoRun = false }: Props) {
           <div>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                {solutions.length} candidate{solutions.length !== 1 ? "s" : ""} — tick to select, click to expand
+                {displaySolutions.length} candidate{displaySolutions.length !== 1 ? "s" : ""} — tick to select, click to expand
               </h2>
-              {solutions.length > 0 && (
+              {displaySolutions.length > 0 && (
                 <button
                   onClick={() => {
-                    if (selectedIds.size === solutions.length) {
+                    if (selectedIds.size === displaySolutions.length) {
                       setSelectedIds(new Set<string>());
                     } else {
-                      setSelectedIds(new Set(solutions.map((s) => s.facility_id)));
+                      setSelectedIds(new Set(displaySolutions.map((s) => solutionRowId(s))));
                     }
                   }}
                   className="text-xs text-indigo-600 hover:underline dark:text-indigo-400"
                 >
-                  {selectedIds.size === solutions.length ? "Deselect all" : "Select all"}
+                  {selectedIds.size === displaySolutions.length ? "Deselect all" : "Select all"}
                 </button>
               )}
             </div>
 
-            {solutions.length === 0 ? (
+            {displaySolutions.length === 0 ? (
               <EmptyState
                 icon="🔍"
                 heading="No results returned"
@@ -308,14 +341,15 @@ export function MatchView({ okhId, autoRun = false }: Props) {
               />
             ) : (
               <div className="space-y-3">
-                {solutions.map((sol) => (
+                {displaySolutions.map((sol) => (
                   <MatchResultCard
-                    key={sol.facility_id}
+                    key={solutionRowId(sol)}
                     solution={sol}
+                    selectionId={solutionRowId(sol)}
                     isExpanded={expandedRank === sol.rank}
                     onToggle={() => toggleExpanded(sol.rank)}
                     solutionId={solutionId}
-                    isSelected={selectedIds.has(sol.facility_id)}
+                    isSelected={selectedIds.has(solutionRowId(sol))}
                     onSelect={handleSelect}
                   />
                 ))}
