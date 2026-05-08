@@ -169,7 +169,19 @@ class CredentialManager:
             encryption_key: Optional encryption key. If not provided, will use environment variable
                           or generate a new one (not recommended for production)
         """
-        self.encryption_key = encryption_key or os.getenv("LLM_ENCRYPTION_KEY")
+        raw_key = encryption_key or os.getenv("LLM_ENCRYPTION_KEY")
+        if isinstance(raw_key, str):
+            raw_key = raw_key.strip()
+            if raw_key == "":
+                raw_key = None
+            elif raw_key.startswith("#"):
+                # python-dotenv misparses `KEY=  # comment` as value "# comment"
+                logger.warning(
+                    "LLM_ENCRYPTION_KEY looks like a mis-parsed .env comment; "
+                    "ignoring. Put comments on their own line or use a valid Fernet key."
+                )
+                raw_key = None
+        self.encryption_key = raw_key
         self._fernet = None
         self._initialize_encryption()
 
