@@ -196,6 +196,11 @@ except StorageConfigError as e:
     else:
         raise
 
+# When true, skip StorageOrganizer .gitkeep seeding on app startup (no PUTs to remote).
+STORAGE_SKIP_DIRECTORY_BOOTSTRAP = _get_secret_or_env(
+    "STORAGE_SKIP_DIRECTORY_BOOTSTRAP", "false"
+).lower() in ("true", "1", "t")
+
 # Cache Configuration
 CACHE_ENABLED = _get_secret_or_env("CACHE_ENABLED", "true").lower() in (
     "true",
@@ -241,3 +246,34 @@ if MAX_DEPTH < 0 or MAX_DEPTH > 10:
         f"MAX_DEPTH ({MAX_DEPTH}) is outside recommended range (0-10). "
         "Consider using a value between 1-5 for optimal performance."
     )
+
+# NLP veto (second opinion on fuzzy direct + heuristic hits)
+MATCHING_NLP_VETO_ENABLED = _get_secret_or_env(
+    "MATCHING_NLP_VETO_ENABLED", "false"
+).lower() in ("true", "1", "t")
+MATCHING_NLP_VETO_THRESHOLD = float(
+    _get_secret_or_env("MATCHING_NLP_VETO_THRESHOLD", "0.2")
+)
+if not 0.0 <= MATCHING_NLP_VETO_THRESHOLD <= 1.0:
+    logger.warning(
+        f"MATCHING_NLP_VETO_THRESHOLD ({MATCHING_NLP_VETO_THRESHOLD}) should be in [0, 1]; "
+        "clamping may occur at runtime."
+    )
+
+# When set, match requests with no inline `okw_facilities` load `*.json` from this path
+# (recursively) instead of listing remote storage — avoids hanging curls when cloud
+# storage is slow or misconfigured. Production should normally leave this unset.
+_match_local = _get_secret_or_env("MATCHING_LOCAL_OKW_JSON_DIR", "") or ""
+MATCHING_LOCAL_OKW_JSON_DIR = _match_local.strip() if _match_local.strip() else None
+
+# When true (default), MatchingService.initialize() eagerly loads spaCy models for
+# each domain. When false, models load on first NLP use — avoids long stalls inside
+# FastAPI Depends(get_matching_service) on constrained or cold-start environments.
+MATCHING_PREINIT_NLP = _get_secret_or_env("MATCHING_PREINIT_NLP", "true").lower() in (
+    "true",
+    "1",
+    "t",
+)
+
+# Do not log MATCHING_* here: this module imports before main.setup_logging(), so
+# INFO lines would be dropped by the default root logger (WARNING). Log from lifespan.

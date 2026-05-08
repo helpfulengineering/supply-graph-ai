@@ -44,6 +44,15 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
     location: Optional[str] = None
     capabilities: Optional[List[str]] = None
     materials: Optional[List[str]] = None
+    max_candidate_facilities: Optional[int] = Field(
+        200,
+        ge=1,
+        le=5000,
+        description=(
+            "Upper bound on facilities considered during matching after requirement-aware "
+            "prefiltering. Lower values improve latency on large OKW pools."
+        ),
+    )
 
     # Advanced filtering parameters
     max_distance_km: Optional[float] = None  # Distance filter
