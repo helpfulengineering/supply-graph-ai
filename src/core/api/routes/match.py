@@ -6,8 +6,11 @@ into a single, standardized API route file with enhanced error handling,
 request validation, and response formatting.
 """
 
+import asyncio
 import json
+import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -79,7 +82,20 @@ logger = get_logger(__name__)
 # Service dependencies
 async def get_matching_service() -> MatchingService:
     """Get matching service instance."""
-    return await MatchingService.get_instance()
+    logger.info("Resolving matching service dependency")
+    try:
+        service = await asyncio.wait_for(MatchingService.get_instance(), timeout=20)
+        logger.info("Resolved matching service dependency")
+        return service
+    except asyncio.TimeoutError:
+        logger.error("Timed out initializing matching service dependency")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Matching service initialization timed out. "
+                "Try again or reduce candidate scope."
+            ),
+        )
 
 
 async def get_storage_service() -> StorageService:
@@ -142,9 +158,7 @@ async def get_okh_service() -> OKHService:
 async def match_requirements_to_capabilities(
     request: MatchRequest,
     http_request: Request,
-    matching_service: MatchingService = Depends(get_matching_service),
     storage_service: StorageService = Depends(get_storage_service),
-    okh_service: OKHService = Depends(get_okh_service),
 ) -> dict[str, Any]:
     """
     Enhanced matching endpoint with standardized patterns.
@@ -154,13 +168,33 @@ async def match_requirements_to_capabilities(
         http_request: HTTP request object for tracking
         matching_service: Matching service dependency
         storage_service: Storage service dependency
-        okh_service: OKH service dependency
 
     Returns:
         Enhanced match response with data
     """
     request_id = getattr(http_request.state, "request_id", None)
     start_time = datetime.now()
+
+    # Resolved only when okh_id / okh_url / nested BOM paths need it — avoids blocking
+    # every match request on OKHService (storage connect + GenerationEngine init).
+    okh_service: Optional[OKHService] = None
+    matching_service: Optional[MatchingService] = None
+
+    async def _ensure_okh_service() -> OKHService:
+        nonlocal okh_service
+        if okh_service is None:
+            okh_service = await OKHService.get_instance()
+        return okh_service
+
+    async def _ensure_matching_service() -> MatchingService:
+        nonlocal matching_service
+        if matching_service is None:
+            logger.info(
+                "Resolving matching service lazily inside endpoint",
+                extra={"request_id": request_id},
+            )
+            matching_service = await get_matching_service()
+        return matching_service
 
     try:
         # 1. Detect domain from request
@@ -172,6 +206,10 @@ async def match_requirements_to_capabilities(
 
         # 2. Extract requirements based on domain
         if domain == "manufacturing":
+            if not request.okh_manifest and (
+                request.okh_id is not None or request.okh_url is not None
+            ):
+                await _ensure_okh_service()
             # Extract OKH manifest
             okh_manifest = await _extract_okh_manifest(
                 request, okh_service, storage_service, request_id
@@ -229,6 +267,14 @@ async def match_requirements_to_capabilities(
             storage_service, request, request_id, domain=domain
         )
 
+        if domain == "manufacturing" and required_processes and facilities:
+            facilities = _prefilter_facilities_by_required_processes(
+                facilities=facilities,
+                required_processes=required_processes,
+                request_id=request_id,
+                max_candidates=request.max_candidate_facilities,
+            )
+
         if not facilities:
             logger.warning(
                 f"No facilities found matching criteria",
@@ -269,12 +315,14 @@ async def match_requirements_to_capabilities(
                     detail="Nested matching requires OKH manifest for manufacturing domain",
                 )
 
-            solutions = await matching_service.match_with_nested_components(
+            nested_okh = await _ensure_okh_service()
+            svc = await _ensure_matching_service()
+            solutions = await svc.match_with_nested_components(
                 okh_manifest=requirements_data,
                 facilities=facilities,
                 max_depth=max_depth,
                 domain=domain,
-                okh_service=okh_service,
+                okh_service=nested_okh,
             )
             # Some tests/mocks return a single object; normalize for robustness.
             if not isinstance(solutions, (set, list, tuple)):
@@ -312,8 +360,9 @@ async def match_requirements_to_capabilities(
             return response_data
         else:
             # Single-level matching (existing logic)
+            svc = await _ensure_matching_service()
             matching_results = await _perform_enhanced_matching(
-                matching_service,
+                svc,
                 requirements_data,
                 facilities,
                 request,
@@ -1821,7 +1870,7 @@ async def _detect_domain_from_request(request: MatchRequest) -> str:
 
 async def _extract_okh_manifest(
     request: MatchRequest,
-    okh_service: OKHService,
+    okh_service: Optional[OKHService],
     storage_service: StorageService,
     request_id: str,
 ) -> Optional[OKHManifest]:
@@ -1847,6 +1896,11 @@ async def _extract_okh_manifest(
             # Otherwise, convert from dictionary
             return OKHManifest.from_dict(request.okh_manifest)
         elif request.okh_id:
+            if okh_service is None:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="OKH service is required when loading by okh_id",
+                )
             logger.info(
                 f"Loading OKH manifest by ID: {request.okh_id}",
                 extra={"request_id": request_id, "okh_id": str(request.okh_id)},
@@ -1863,6 +1917,11 @@ async def _extract_okh_manifest(
                 )
             return okh_manifest
         elif request.okh_url:
+            if okh_service is None:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="OKH service is required when loading by okh_url",
+                )
             logger.info(
                 f"Fetching OKH manifest from URL: {request.okh_url}",
                 extra={"request_id": request_id, "okh_url": request.okh_url},
@@ -1985,6 +2044,193 @@ async def _extract_recipe(
         )
 
 
+def _resolve_matching_local_okw_json_dir() -> Optional[str]:
+    """Resolve optional local OKW directory from runtime env or imported settings.
+
+    Expands ``~`` and resolves relative paths against the process working directory.
+    Logs a warning when the variable is set but does not point at a directory so
+    misconfiguration is visible in API logs.
+    """
+    from src.config import settings as _settings
+
+    val = getattr(_settings, "MATCHING_LOCAL_OKW_JSON_DIR", None)
+    raw = str(val).strip() if val else ""
+    if not raw:
+        raw = (os.getenv("MATCHING_LOCAL_OKW_JSON_DIR") or "").strip()
+
+    if not raw:
+        return None
+
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    try:
+        resolved = path.resolve()
+    except OSError as e:
+        logger.warning(
+            "MATCHING_LOCAL_OKW_JSON_DIR could not be resolved; using remote OKW listing",
+            extra={"raw": raw, "error": str(e)},
+        )
+        return None
+
+    if not resolved.is_dir():
+        logger.warning(
+            "MATCHING_LOCAL_OKW_JSON_DIR is not a directory; using remote OKW listing",
+            extra={"path": str(resolved), "raw": raw},
+        )
+        return None
+    logger.info(
+        "MATCHING_LOCAL_OKW_JSON_DIR resolved successfully",
+        extra={"directory": str(resolved), "raw_input": raw},
+    )
+    return str(resolved)
+
+
+def _load_facilities_from_local_okw_json_dir(
+    directory: str,
+    domain: str,
+    request_id: str,
+) -> List[Any]:
+    """Load OKW-shaped JSON files from disk for local/dev when remote listing would hang."""
+    from src.core.validation.uuid_validator import UUIDValidator
+
+    root = Path(directory)
+    if not root.is_dir():
+        return []
+
+    facilities_by_id: Dict[UUID, Any] = {}
+
+    for path in sorted(root.rglob("*.json")):
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning(
+                "Skipping unreadable OKW JSON file",
+                extra={"request_id": request_id, "path": str(path), "error": str(e)},
+            )
+            continue
+
+        try:
+            if domain == "manufacturing":
+                if KitchenCapability.is_cooking_capability(raw):
+                    continue
+                fixed = UUIDValidator.validate_and_fix_okw_data(raw)
+                facility = ManufacturingFacility.from_dict(fixed)
+                facilities_by_id[facility.id] = facility
+            elif domain == "cooking":
+                if not KitchenCapability.is_cooking_capability(raw):
+                    continue
+                facility = KitchenCapability.from_dict(raw)
+                facilities_by_id[facility.id] = facility
+            else:
+                return []
+        except Exception as e:
+            logger.warning(
+                "Skipping invalid OKW JSON file for local dir load",
+                extra={"request_id": request_id, "path": str(path), "error": str(e)},
+            )
+
+    return list(facilities_by_id.values())
+
+
+def _extract_facility_process_names_for_prefilter(facility: Any) -> set[str]:
+    """Best-effort process extraction for cheap candidate prefiltering."""
+    if hasattr(facility, "to_dict"):
+        raw = facility.to_dict()
+    elif isinstance(facility, dict):
+        raw = facility
+    else:
+        return set()
+
+    capabilities = raw.get("capabilities") or []
+    names: set[str] = set()
+    for cap in capabilities:
+        if isinstance(cap, dict):
+            candidate = (
+                cap.get("process_name")
+                or cap.get("type")
+                or cap.get("name")
+                or cap.get("label")
+            )
+            if candidate and isinstance(candidate, str):
+                names.add(candidate.strip().lower())
+    return {n for n in names if n}
+
+
+def _prefilter_facilities_by_required_processes(
+    facilities: List[Any],
+    required_processes: List[str],
+    request_id: str,
+    max_candidates: Optional[int],
+) -> List[Any]:
+    """Narrow facility pool by overlap with required processes before heavy matching."""
+    if not facilities or not required_processes:
+        return facilities
+
+    normalized_required: set[str] = set()
+    for p in required_processes:
+        if not p:
+            continue
+        p_norm = str(p).strip().lower()
+        if not p_norm:
+            continue
+        normalized_required.add(p_norm)
+        canonical = _process_taxonomy.normalize(p_norm)
+        if canonical:
+            normalized_required.add(canonical)
+
+    if not normalized_required:
+        return facilities
+
+    scored: List[tuple[int, Any]] = []
+    for facility in facilities:
+        process_names = _extract_facility_process_names_for_prefilter(facility)
+        if not process_names:
+            continue
+
+        score = 0
+        for req in normalized_required:
+            for cap in process_names:
+                if req == cap:
+                    score += 2
+                    continue
+                req_c = _process_taxonomy.normalize(req)
+                cap_c = _process_taxonomy.normalize(cap)
+                if req_c and cap_c and _process_taxonomy.are_related(req_c, cap_c):
+                    score += 1
+        if score > 0:
+            scored.append((score, facility))
+
+    if not scored:
+        logger.info(
+            "Requirement-aware prefilter found no overlap; keeping full facility pool",
+            extra={
+                "request_id": request_id,
+                "required_process_count": len(normalized_required),
+                "facility_count": len(facilities),
+            },
+        )
+        return facilities
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    trimmed = [facility for _, facility in scored]
+    original_count = len(trimmed)
+    if max_candidates is not None:
+        trimmed = trimmed[: max(1, int(max_candidates))]
+
+    logger.info(
+        "Requirement-aware facility prefilter applied",
+        extra={
+            "request_id": request_id,
+            "input_facilities": len(facilities),
+            "overlap_candidates": original_count,
+            "selected_candidates": len(trimmed),
+            "max_candidates": max_candidates,
+        },
+    )
+    return trimmed
+
+
 async def _get_filtered_facilities(
     storage_service: StorageService,
     request: MatchRequest,
@@ -2004,35 +2250,169 @@ async def _get_filtered_facilities(
     """
     try:
         if domain == "manufacturing":
-            # Get all facilities using OKWService with proper pagination.
-            # list() skips kitchen files — returns ManufacturingFacility only.
-            okw_service = await OKWService.get_instance()
-
-            all_facilities = []
-            page = 1
-            page_size = 1000
-
-            while True:
-                facilities_batch, _ = await okw_service.list(
-                    page=page, page_size=page_size
-                )
-                all_facilities.extend(facilities_batch)
-
-                if len(facilities_batch) < page_size:
-                    break
-
-                page += 1
-
-            facilities = all_facilities
             expected_type = ManufacturingFacility
             type_label = "ManufacturingFacility"
 
+            inline_okw = getattr(request, "okw_facilities", None)
+            if inline_okw is not None:
+                facilities = []
+                for item in inline_okw:
+                    if isinstance(item, ManufacturingFacility):
+                        facilities.append(item)
+                    elif isinstance(item, dict):
+                        try:
+                            facilities.append(ManufacturingFacility.from_dict(item))
+                        except Exception as e:
+                            logger.warning(
+                                "Skipping invalid inline OKW facility dict",
+                                extra={
+                                    "request_id": request_id,
+                                    "error": str(e),
+                                },
+                            )
+                    else:
+                        logger.warning(
+                            "Skipping unexpected inline okw_facilities entry type",
+                            extra={
+                                "request_id": request_id,
+                                "type": type(item).__name__,
+                            },
+                        )
+                logger.info(
+                    "Using inline okw_facilities from request body (MATCHING_LOCAL_OKW_JSON_DIR not used)",
+                    extra={
+                        "request_id": request_id,
+                        "domain": domain,
+                        "facility_count": len(facilities),
+                    },
+                )
+            else:
+                logger.info(
+                    "Facility candidates: no inline okw_facilities; checking MATCHING_LOCAL_OKW_JSON_DIR then remote storage",
+                    extra={
+                        "request_id": request_id,
+                        "domain": domain,
+                        "cwd": str(Path.cwd()),
+                    },
+                )
+                local_dir = _resolve_matching_local_okw_json_dir()
+                if local_dir:
+                    facilities = _load_facilities_from_local_okw_json_dir(
+                        local_dir, domain, request_id
+                    )
+                    logger.info(
+                        "Using MATCHING_LOCAL_OKW_JSON_DIR (remote OKW listing skipped)",
+                        extra={
+                            "request_id": request_id,
+                            "domain": domain,
+                            "directory": local_dir,
+                            "facility_count": len(facilities),
+                        },
+                    )
+                else:
+                    # Get all facilities using OKWService with proper pagination.
+                    # list() skips kitchen files — returns ManufacturingFacility only.
+                    okw_service = await OKWService.get_instance()
+
+                    all_facilities = []
+                    page = 1
+                    page_size = 1000
+
+                    while True:
+                        facilities_batch, _ = await okw_service.list(
+                            page=page, page_size=page_size
+                        )
+                        all_facilities.extend(facilities_batch)
+
+                        if len(facilities_batch) < page_size:
+                            break
+
+                        page += 1
+
+                    facilities = all_facilities
+                    logger.info(
+                        "Facility candidates loaded from remote OKW storage listing "
+                        "(MATCHING_LOCAL_OKW_JSON_DIR was unset or invalid)",
+                        extra={
+                            "request_id": request_id,
+                            "domain": domain,
+                            "facility_count": len(facilities),
+                        },
+                    )
+
         elif domain == "cooking":
-            # list_kitchens() scans okw/ recursively, returns KitchenCapability only.
-            okw_service = await OKWService.get_instance()
-            facilities = await okw_service.list_kitchens()
             expected_type = KitchenCapability
             type_label = "KitchenCapability"
+
+            inline_okw = getattr(request, "okw_facilities", None)
+            if inline_okw is not None:
+                facilities = []
+                for item in inline_okw:
+                    if isinstance(item, KitchenCapability):
+                        facilities.append(item)
+                    elif isinstance(item, dict):
+                        try:
+                            facilities.append(KitchenCapability.from_dict(item))
+                        except Exception as e:
+                            logger.warning(
+                                "Skipping invalid inline kitchen capability dict",
+                                extra={
+                                    "request_id": request_id,
+                                    "error": str(e),
+                                },
+                            )
+                    else:
+                        logger.warning(
+                            "Skipping unexpected inline okw_facilities entry type",
+                            extra={
+                                "request_id": request_id,
+                                "type": type(item).__name__,
+                            },
+                        )
+                logger.info(
+                    "Using inline okw_facilities from request body (MATCHING_LOCAL_OKW_JSON_DIR not used)",
+                    extra={
+                        "request_id": request_id,
+                        "domain": domain,
+                        "facility_count": len(facilities),
+                    },
+                )
+            else:
+                logger.info(
+                    "Facility candidates: no inline okw_facilities; checking MATCHING_LOCAL_OKW_JSON_DIR then remote storage",
+                    extra={
+                        "request_id": request_id,
+                        "domain": domain,
+                        "cwd": str(Path.cwd()),
+                    },
+                )
+                local_dir = _resolve_matching_local_okw_json_dir()
+                if local_dir:
+                    facilities = _load_facilities_from_local_okw_json_dir(
+                        local_dir, domain, request_id
+                    )
+                    logger.info(
+                        "Using MATCHING_LOCAL_OKW_JSON_DIR (remote kitchen listing skipped)",
+                        extra={
+                            "request_id": request_id,
+                            "domain": domain,
+                            "directory": local_dir,
+                            "facility_count": len(facilities),
+                        },
+                    )
+                else:
+                    # list_kitchens() scans okw/ recursively, returns KitchenCapability only.
+                    okw_service = await OKWService.get_instance()
+                    facilities = await okw_service.list_kitchens()
+                    logger.info(
+                        "Facility candidates loaded from remote kitchen listing "
+                        "(MATCHING_LOCAL_OKW_JSON_DIR was unset or invalid)",
+                        extra={
+                            "request_id": request_id,
+                            "domain": domain,
+                            "facility_count": len(facilities),
+                        },
+                    )
 
         else:
             raise ValueError(f"Unsupported domain: {domain}")
@@ -2185,6 +2565,7 @@ async def _perform_enhanced_matching(
                             okh_manifest=requirements_data,
                             facilities=facilities,
                             explicit_domain=domain,
+                            max_solutions=request.max_results,
                         )
                 except Exception as composite_error:
                     composite_warning = (
@@ -2200,12 +2581,14 @@ async def _perform_enhanced_matching(
                         okh_manifest=requirements_data,
                         facilities=facilities,
                         explicit_domain=domain,
+                        max_solutions=request.max_results,
                     )
             else:
                 solutions = await matching_service.find_matches_with_manifest(
                     okh_manifest=requirements_data,
                     facilities=facilities,
                     explicit_domain=domain,
+                    max_solutions=request.max_results,
                 )
 
             # Convert SupplyTreeSolution objects to dict format expected by API

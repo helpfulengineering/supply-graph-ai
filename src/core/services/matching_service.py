@@ -1,7 +1,12 @@
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Literal, Optional, Set, Tuple
 from uuid import UUID
 
-from src.config.settings import MAX_DEPTH
+from src.config.settings import (
+    MAX_DEPTH,
+    MATCHING_NLP_VETO_ENABLED,
+    MATCHING_NLP_VETO_THRESHOLD,
+    MATCHING_PREINIT_NLP,
+)
 
 from ..domains.cooking.direct_matcher import CookingDirectMatcher
 from ..domains.manufacturing.direct_matcher import MfgDirectMatcher
@@ -27,6 +32,7 @@ from ..services.bom_resolution_service import BOMResolutionService
 from ..services.domain_service import DomainDetector
 from ..taxonomy import taxonomy
 from ..utils.logging import get_logger
+from .matching import evaluate_layers, evaluate_layers_supply_tree
 from .okh_service import OKHService
 from .okw_service import OKWService
 
@@ -106,19 +112,24 @@ class MatchingService:
         await self.capability_rule_manager.initialize()
         self.capability_matcher = CapabilityMatcher(self.capability_rule_manager)
 
-        # Pre-initialize NLP matchers to avoid lazy loading delays during matching
-        logger.info("Pre-initializing NLP matchers...")
-        for domain, nlp_matcher in self.nlp_matchers.items():
-            try:
-                # Force initialization of spaCy models
-                nlp_matcher._ensure_nlp_initialized()
-                logger.info(
-                    f"NLP matcher for domain '{domain}' initialized successfully"
-                )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to initialize NLP matcher for domain '{domain}': {e}"
-                )
+        # Pre-initialize NLP matchers unless disabled (e.g. Docker / tight Depends budgets).
+        if MATCHING_PREINIT_NLP:
+            logger.info("Pre-initializing NLP matchers...")
+            for domain, nlp_matcher in self.nlp_matchers.items():
+                try:
+                    nlp_matcher._ensure_nlp_initialized()
+                    logger.info(
+                        f"NLP matcher for domain '{domain}' initialized successfully"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to initialize NLP matcher for domain '{domain}': {e}"
+                    )
+        else:
+            logger.info(
+                "Skipping NLP matcher pre-init (MATCHING_PREINIT_NLP=false); "
+                "spaCy loads on first NLP layer use."
+            )
 
         self._initialized = True
         logger.info(
@@ -181,6 +192,7 @@ class MatchingService:
         facilities: List[ManufacturingFacility],
         optimization_criteria: Optional[Dict[str, float]] = None,
         explicit_domain: Optional[str] = None,
+        max_solutions: Optional[int] = None,
     ) -> Set[SupplyTreeSolution]:
         """Run domain detection, requirement extraction, and per-facility matching.
 
@@ -189,6 +201,7 @@ class MatchingService:
             facilities: Candidate facilities (OKW) to evaluate.
             optimization_criteria: Optional scoring weights.
             explicit_domain: When set, skips content-based domain detection.
+            max_solutions: Optional early-stop count for matched facilities.
 
         Returns:
             Distinct ``SupplyTreeSolution`` objects (deduplicated by facility where applicable).
@@ -244,7 +257,23 @@ class MatchingService:
             # Track processed facility IDs to avoid duplicates
             processed_facility_ids: Set[UUID] = set()
 
-            for facility in facilities:
+            total_facilities = len(facilities)
+            progress_step = 10 if total_facilities >= 10 else max(1, total_facilities)
+
+            for idx, facility in enumerate(facilities, start=1):
+                if idx == 1 or idx % progress_step == 0 or idx == total_facilities:
+                    logger.info(
+                        "Matching progress",
+                        extra={
+                            "processed_facilities": idx,
+                            "total_facilities": total_facilities,
+                            "progress_pct": (
+                                round((idx / total_facilities) * 100, 1)
+                                if total_facilities
+                                else 100.0
+                            ),
+                        },
+                    )
                 # Skip if we've already processed this facility ID
                 if facility.id in processed_facility_ids:
                     logger.debug(
@@ -312,6 +341,16 @@ class MatchingService:
                             "confidence_score": tree.confidence_score,
                         },
                     )
+                    if max_solutions is not None and len(solutions) >= max_solutions:
+                        logger.info(
+                            "Early stop: max_solutions reached",
+                            extra={
+                                "max_solutions": max_solutions,
+                                "processed_facilities": idx,
+                                "total_facilities": total_facilities,
+                            },
+                        )
+                        break
             logger.info(
                 "Match finding completed", extra={"solution_count": len(solutions)}
             )
@@ -684,40 +723,39 @@ class MatchingService:
                         logger.debug(f"Skipping empty capability: {cap}")
                         continue
 
-                    # Try Layer 1: Direct Matching first
-                    if await self._direct_match(req_process, cap_process, domain):
-                        logger.info(
-                            "Direct match found",
-                            extra={
-                                "requirement_process": req.get("process_name"),
-                                "capability_process": cap.get("process_name"),
-                                "layer": "direct",
-                            },
+                    async def _direct_eval_cs():
+                        return await self._direct_match_evaluate(
+                            req_process, cap_process, domain
                         )
-                        requirement_satisfied = True
-                        break
 
-                    # Try Layer 2: Heuristic Matching
-                    if await self._heuristic_match(req_process, cap_process, domain):
-                        logger.info(
-                            "Heuristic match found",
-                            extra={
-                                "requirement_process": req.get("process_name"),
-                                "capability_process": cap.get("process_name"),
-                                "layer": "heuristic",
-                            },
+                    async def _heuristic_eval_cs():
+                        return await self._heuristic_match_with_rule(
+                            req_process, cap_process, domain
                         )
-                        requirement_satisfied = True
-                        break
 
-                    # Try Layer 3: NLP Matching
-                    if await self._nlp_match(req_process, cap_process, domain):
+                    async def _nlp_match_cs():
+                        return await self._nlp_match(req_process, cap_process, domain)
+
+                    async def _nlp_sim_cs():
+                        return await self._nlp_semantic_similarity_for_pair(
+                            req_process, cap_process, domain
+                        )
+
+                    ev_cs = await evaluate_layers(
+                        direct_eval=_direct_eval_cs,
+                        heuristic_eval=_heuristic_eval_cs,
+                        nlp_match=_nlp_match_cs,
+                        nlp_similarity=_nlp_sim_cs,
+                        mode="veto" if MATCHING_NLP_VETO_ENABLED else "cascade",
+                        veto_threshold=MATCHING_NLP_VETO_THRESHOLD,
+                    )
+                    if ev_cs.matched:
                         logger.info(
-                            "NLP match found",
+                            "Match found",
                             extra={
                                 "requirement_process": req.get("process_name"),
                                 "capability_process": cap.get("process_name"),
-                                "layer": "nlp",
+                                "layer": ev_cs.layer,
                             },
                         )
                         requirement_satisfied = True
@@ -791,62 +829,99 @@ class MatchingService:
                 if not cap_process:
                     continue
 
-                if await self._direct_match(req_process, cap_process, domain):
-                    details.append(
-                        RequirementMatchDetail(
-                            requirement_value=raw_req or req_process,
-                            status=MatchStatus.MATCHED,
-                            confidence=0.95,
-                            matched_capability=raw_cap or cap_process,
-                            matching_layer=MatchLayer.DIRECT,
-                            rule_id=None,
-                            explanation=f"Exact or normalized match: '{raw_req}' ↔ '{raw_cap}'",
-                            requirement_source=req_source,
-                            requirement_part_name=req_part_name,
-                        )
+                async def _direct_eval_det():
+                    return await self._direct_match_evaluate(
+                        req_process, cap_process, domain
                     )
-                    requirement_satisfied = True
-                    break
 
-                matched, rule_id = await self._heuristic_match_with_rule(
-                    req_process, cap_process, domain
+                async def _heuristic_eval_det():
+                    return await self._heuristic_match_with_rule(
+                        req_process, cap_process, domain
+                    )
+
+                async def _nlp_match_det():
+                    return await self._nlp_match(req_process, cap_process, domain)
+
+                async def _nlp_sim_det():
+                    return await self._nlp_semantic_similarity_for_pair(
+                        req_process, cap_process, domain
+                    )
+
+                ev_det = await evaluate_layers(
+                    direct_eval=_direct_eval_det,
+                    heuristic_eval=_heuristic_eval_det,
+                    nlp_match=_nlp_match_det,
+                    nlp_similarity=_nlp_sim_det,
+                    mode="veto" if MATCHING_NLP_VETO_ENABLED else "cascade",
+                    veto_threshold=MATCHING_NLP_VETO_THRESHOLD,
                 )
-                if matched:
-                    details.append(
-                        RequirementMatchDetail(
-                            requirement_value=raw_req or req_process,
-                            status=MatchStatus.MATCHED,
-                            confidence=0.9,
-                            matched_capability=raw_cap or cap_process,
-                            matching_layer=MatchLayer.HEURISTIC,
-                            rule_id=rule_id,
-                            explanation=(
-                                f"Rule match: {rule_id or 'heuristic'}"
-                                if rule_id
-                                else "Heuristic rule match"
-                            ),
-                            evidence={"rule_id": rule_id} if rule_id else {},
-                            requirement_source=req_source,
-                            requirement_part_name=req_part_name,
+                if ev_det.matched:
+                    if ev_det.layer == "direct":
+                        note_suffix = (
+                            " (" + "; ".join(ev_det.notes) + ")" if ev_det.notes else ""
                         )
-                    )
-                    requirement_satisfied = True
-                    break
-
-                if await self._nlp_match(req_process, cap_process, domain):
-                    details.append(
-                        RequirementMatchDetail(
-                            requirement_value=raw_req or req_process,
-                            status=MatchStatus.MATCHED,
-                            confidence=0.7,
-                            matched_capability=raw_cap or cap_process,
-                            matching_layer=MatchLayer.NLP,
-                            rule_id=None,
-                            explanation=f"Semantic similarity above threshold for '{raw_req}' and '{raw_cap}'",
-                            requirement_source=req_source,
-                            requirement_part_name=req_part_name,
+                        details.append(
+                            RequirementMatchDetail(
+                                requirement_value=raw_req or req_process,
+                                status=MatchStatus.MATCHED,
+                                confidence=0.95,
+                                matched_capability=raw_cap or cap_process,
+                                matching_layer=MatchLayer.DIRECT,
+                                rule_id=None,
+                                explanation=(
+                                    f"Exact or normalized match: '{raw_req}' ↔ '{raw_cap}'"
+                                    f"{note_suffix}"
+                                ),
+                                requirement_source=req_source,
+                                requirement_part_name=req_part_name,
+                            )
                         )
-                    )
+                    elif ev_det.layer == "heuristic":
+                        note_suffix = (
+                            " (" + "; ".join(ev_det.notes) + ")" if ev_det.notes else ""
+                        )
+                        details.append(
+                            RequirementMatchDetail(
+                                requirement_value=raw_req or req_process,
+                                status=MatchStatus.MATCHED,
+                                confidence=0.9,
+                                matched_capability=raw_cap or cap_process,
+                                matching_layer=MatchLayer.HEURISTIC,
+                                rule_id=ev_det.rule_id,
+                                explanation=(
+                                    (
+                                        f"Rule match: {ev_det.rule_id or 'heuristic'}"
+                                        if ev_det.rule_id
+                                        else "Heuristic rule match"
+                                    )
+                                    + note_suffix
+                                ),
+                                evidence=(
+                                    {"rule_id": ev_det.rule_id}
+                                    if ev_det.rule_id
+                                    else {}
+                                ),
+                                requirement_source=req_source,
+                                requirement_part_name=req_part_name,
+                            )
+                        )
+                    else:
+                        details.append(
+                            RequirementMatchDetail(
+                                requirement_value=raw_req or req_process,
+                                status=MatchStatus.MATCHED,
+                                confidence=0.7,
+                                matched_capability=raw_cap or cap_process,
+                                matching_layer=MatchLayer.NLP,
+                                rule_id=None,
+                                explanation=(
+                                    f"Semantic similarity above threshold for '{raw_req}' "
+                                    f"and '{raw_cap}'"
+                                ),
+                                requirement_source=req_source,
+                                requirement_part_name=req_part_name,
+                            )
+                        )
                     requirement_satisfied = True
                     break
 
@@ -972,13 +1047,33 @@ class MatchingService:
                 if not cap_process:
                     continue
 
-                if await self._direct_match(req_process, cap_process, domain):
-                    covered.add(idx)
-                    break
-                if await self._heuristic_match(req_process, cap_process, domain):
-                    covered.add(idx)
-                    break
-                if await self._nlp_match(req_process, cap_process, domain):
+                async def _direct_eval_cov():
+                    return await self._direct_match_evaluate(
+                        req_process, cap_process, domain
+                    )
+
+                async def _heuristic_eval_cov():
+                    return await self._heuristic_match_with_rule(
+                        req_process, cap_process, domain
+                    )
+
+                async def _nlp_match_cov():
+                    return await self._nlp_match(req_process, cap_process, domain)
+
+                async def _nlp_sim_cov():
+                    return await self._nlp_semantic_similarity_for_pair(
+                        req_process, cap_process, domain
+                    )
+
+                ev_cov = await evaluate_layers(
+                    direct_eval=_direct_eval_cov,
+                    heuristic_eval=_heuristic_eval_cov,
+                    nlp_match=_nlp_match_cov,
+                    nlp_similarity=_nlp_sim_cov,
+                    mode="veto" if MATCHING_NLP_VETO_ENABLED else "cascade",
+                    veto_threshold=MATCHING_NLP_VETO_THRESHOLD,
+                )
+                if ev_cov.matched:
                     covered.add(idx)
                     break
         return covered
@@ -1038,10 +1133,13 @@ class MatchingService:
             missing_capabilities=missing,
         )
 
-    async def _direct_match(
-        self, req_process: str, cap_process: str, domain: str = "manufacturing"
-    ) -> bool:
-        """Layer 1: Direct Matching - Exact and near-exact string matching with normalization"""
+    async def _direct_match_evaluate(
+        self,
+        req_process: str,
+        cap_process: str,
+        domain: str = "manufacturing",
+    ) -> Tuple[bool, Literal["none", "strong", "fuzzy"]]:
+        """Direct layer: return (matched, strong|fuzzy|none). Used by cascade + NLP veto."""
         try:
             # For process URIs (from TSDC codes), require exact matches only
             # This prevents similarity-based matching from incorrectly matching unrelated processes
@@ -1059,7 +1157,7 @@ class MatchingService:
 
             # Guard: empty strings should never match anything
             if not req_normalized or not cap_normalized:
-                return False
+                return False, "none"
 
             # Check for exact match after normalization
             if req_normalized == cap_normalized:
@@ -1073,7 +1171,7 @@ class MatchingService:
                         "layer": "direct",
                     },
                 )
-                return True
+                return True, "strong"
 
             # Check for case-insensitive exact match
             if req_process.lower().strip() == cap_process.lower().strip():
@@ -1085,11 +1183,11 @@ class MatchingService:
                         "layer": "direct",
                     },
                 )
-                return True
+                return True, "strong"
 
             # For URIs, only allow exact matches (no substring or similarity matching)
             if require_exact_match:
-                return False
+                return False, "none"
 
             # Check for substring matches (one contains the other) - only for non-URIs
             if req_normalized in cap_normalized or cap_normalized in req_normalized:
@@ -1103,7 +1201,7 @@ class MatchingService:
                         "layer": "direct",
                     },
                 )
-                return True
+                return True, "fuzzy"
 
             # Check for high similarity matches (threshold 0.3 for direct matching)
             # Only for non-URIs to prevent incorrect matches
@@ -1120,14 +1218,64 @@ class MatchingService:
                         "layer": "direct",
                     },
                 )
-                return True
+                return True, "fuzzy"
 
-            return False
+            return False, "none"
 
         except Exception as e:
             logger.error(f"Error in Direct Matching layer: {e}", exc_info=True)
             # Fallback to simple matching
-            return req_process.lower() == cap_process.lower()
+            if req_process.lower() == cap_process.lower():
+                return True, "strong"
+            return False, "none"
+
+    async def _direct_match(
+        self, req_process: str, cap_process: str, domain: str = "manufacturing"
+    ) -> bool:
+        """Layer 1: Direct Matching - Exact and near-exact string matching with normalization"""
+        matched, _ = await self._direct_match_evaluate(req_process, cap_process, domain)
+        return matched
+
+    async def _nlp_semantic_similarity_for_pair(
+        self, req_process: str, cap_process: str, domain: str = "manufacturing"
+    ) -> Optional[float]:
+        """Raw NLP semantic similarity for veto logic (no taxonomy gate, same URI handling as _nlp_match)."""
+        try:
+            is_req_uri = isinstance(req_process, str) and (
+                req_process.startswith("http://") or req_process.startswith("https://")
+            )
+            is_cap_uri = isinstance(cap_process, str) and (
+                cap_process.startswith("http://") or cap_process.startswith("https://")
+            )
+
+            if is_req_uri and is_cap_uri:
+                return None
+
+            req_for_nlp = req_process
+            cap_for_nlp = cap_process
+
+            if is_req_uri:
+                req_for_nlp = self._normalize_process_name(req_process)
+            if is_cap_uri:
+                cap_for_nlp = self._normalize_process_name(cap_process)
+
+            if domain not in self.nlp_matchers:
+                return None
+
+            nlp_matcher = self.nlp_matchers[domain]
+
+            import asyncio
+
+            try:
+                return await asyncio.wait_for(
+                    nlp_matcher.calculate_semantic_similarity(req_for_nlp, cap_for_nlp),
+                    timeout=0.5,
+                )
+            except asyncio.TimeoutError:
+                return None
+
+        except Exception:
+            return None
 
     async def _heuristic_match(
         self, req_process: str, cap_process: str, domain: str = "manufacturing"
@@ -1449,13 +1597,43 @@ class MatchingService:
                     )
                     require_direct_match = is_process_uri or is_capability_uri
 
-                    # Try each layer and get the best confidence
-                    direct_match_result = await self._direct_match(
-                        normalized_process, normalized_capability, domain
+                    async def _direct_eval_st():
+                        return await self._direct_match_evaluate(
+                            normalized_process, normalized_capability, domain
+                        )
+
+                    async def _heuristic_eval_st():
+                        return await self._heuristic_match_with_rule(
+                            normalized_process, normalized_capability, domain
+                        )
+
+                    async def _nlp_match_st():
+                        return await self._nlp_match(
+                            normalized_process, normalized_capability, domain
+                        )
+
+                    async def _nlp_sim_st():
+                        return await self._nlp_semantic_similarity_for_pair(
+                            normalized_process, normalized_capability, domain
+                        )
+
+                    def _partial_sim_st() -> float:
+                        return self._calculate_process_similarity(
+                            normalized_process, normalized_capability
+                        )
+
+                    confidence, match_type = await evaluate_layers_supply_tree(
+                        direct_eval=_direct_eval_st,
+                        heuristic_eval=_heuristic_eval_st,
+                        nlp_match=_nlp_match_st,
+                        nlp_similarity=_nlp_sim_st,
+                        partial_similarity=_partial_sim_st,
+                        require_direct_match=require_direct_match,
+                        mode="veto" if MATCHING_NLP_VETO_ENABLED else "cascade",
+                        veto_threshold=MATCHING_NLP_VETO_THRESHOLD,
+                        veto_enabled=MATCHING_NLP_VETO_ENABLED,
                     )
-                    if direct_match_result:
-                        confidence = 1.0
-                        match_type = "direct"
+                    if match_type == "direct":
                         logger.debug(
                             f"Direct match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
                             extra={
@@ -1464,55 +1642,25 @@ class MatchingService:
                                 "match_type": "direct",
                             },
                         )
-                    elif not require_direct_match:
-                        heuristic_match_result = await self._heuristic_match(
-                            normalized_process, normalized_capability, domain
+                    elif match_type == "heuristic":
+                        logger.debug(
+                            f"Heuristic match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
+                            extra={
+                                "process_name": normalized_process,
+                                "capability_name": normalized_capability,
+                                "match_type": "heuristic",
+                            },
                         )
-                        if heuristic_match_result:
-                            confidence = 0.8
-                            match_type = "heuristic"
-                            logger.debug(
-                                f"Heuristic match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
-                                extra={
-                                    "process_name": normalized_process,
-                                    "capability_name": normalized_capability,
-                                    "match_type": "heuristic",
-                                },
-                            )
-                        else:
-                            nlp_match_result = await self._nlp_match(
-                                normalized_process, normalized_capability, domain
-                            )
-                            if nlp_match_result:
-                                confidence = 0.7
-                                match_type = "nlp"
-                                logger.debug(
-                                    f"NLP match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
-                                    extra={
-                                        "process_name": normalized_process,
-                                        "capability_name": normalized_capability,
-                                        "match_type": "nlp",
-                                    },
-                                )
-                            else:
-                                # No match found - try similarity-based scoring as last resort
-                                if not require_direct_match:
-                                    similarity = self._calculate_process_similarity(
-                                        normalized_process, normalized_capability
-                                    )
-                                    if similarity >= 0.3:
-                                        confidence = similarity * 0.6  # Partial credit
-                                        match_type = "partial"
-                                    else:
-                                        confidence = 0.0
-                                        match_type = "no_match"
-                                else:
-                                    confidence = 0.0
-                                    match_type = "no_match"
-                    else:
-                        # require_direct_match is True but direct match failed - no match
-                        confidence = 0.0
-                        match_type = "no_match"
+                    elif match_type == "nlp":
+                        logger.debug(
+                            f"NLP match found: process={normalized_process[:50]}, capability={normalized_capability[:50]}",
+                            extra={
+                                "process_name": normalized_process,
+                                "capability_name": normalized_capability,
+                                "match_type": "nlp",
+                            },
+                        )
+                    elif match_type == "no_match" and require_direct_match:
                         logger.debug(
                             f"No match (require_direct_match=True): process={normalized_process[:50]}, capability={normalized_capability[:50]}",
                             extra={
