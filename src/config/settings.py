@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -274,6 +275,35 @@ MATCHING_PREINIT_NLP = _get_secret_or_env("MATCHING_PREINIT_NLP", "true").lower(
     "1",
     "t",
 )
+
+# Federation (Phase 5 MVP — disabled by default)
+OHM_FEDERATION_ENABLED = _get_secret_or_env(
+    "OHM_FEDERATION_ENABLED", "false"
+).lower() in (
+    "true",
+    "1",
+    "t",
+)
+OHM_FEDERATION_NODE_NAME = _get_secret_or_env("OHM_FEDERATION_NODE_NAME", "OHM Node")
+OHM_FEDERATION_NODE_ROLE = _get_secret_or_env("OHM_FEDERATION_NODE_ROLE", "peer")
+OHM_FEDERATION_SYNC_INTERVAL_SEC = int(
+    _get_secret_or_env("OHM_FEDERATION_SYNC_INTERVAL_SEC", "60")
+)
+_manual_peers = _get_secret_or_env("OHM_FEDERATION_MANUAL_PEERS", "") or ""
+OHM_FEDERATION_MANUAL_PEERS = [p.strip() for p in _manual_peers.split(",") if p.strip()]
+_relay_urls = _get_secret_or_env("OHM_FEDERATION_RELAY_URLS", "") or ""
+OHM_FEDERATION_RELAY_URLS = [u.strip() for u in _relay_urls.split(",") if u.strip()]
+_registry_urls = _get_secret_or_env("OHM_FEDERATION_REGISTRY_URLS", "") or ""
+OHM_FEDERATION_REGISTRY_URLS = [
+    u.strip() for u in _registry_urls.split(",") if u.strip()
+]
+OHM_FEDERATION_DATA_DIR = _get_secret_or_env(
+    "OHM_FEDERATION_DATA_DIR",
+    str(Path.home() / ".ohm" / "federation"),
+)
+OHM_FEDERATION_REGISTER_PUBLIC = _get_secret_or_env(
+    "OHM_FEDERATION_REGISTER_PUBLIC", "false"
+).lower() in ("true", "1", "t")
 
 # Do not log MATCHING_* here: this module imports before main.setup_logging(), so
 # INFO lines would be dropped by the default root logger (WARNING). Log from lifespan.
