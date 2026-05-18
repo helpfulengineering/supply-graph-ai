@@ -68,6 +68,10 @@ dependencies = [
     "python-docx>=1.0.0",
     # TOML
     "tomli_w>=1.2.0",
+    # Federation
+    "cryptography>=42.0.0",
+    "jsonschema>=4.0.0",
+    "zeroconf>=0.131.0",
 ]
 
 # Entry points for console scripts
