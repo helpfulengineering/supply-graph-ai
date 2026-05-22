@@ -51,6 +51,27 @@ Implement **Tier 2 (LAN) peer federation** in `src/core/federation/`:
 - mDNS unreliable in Docker bridge networks — Compose uses `MANUAL_PEERS`
 - No global discovery until v0.2 registry
 
+## Enabling federation in Docker
+
+`OHM_FEDERATION_*` variables must be present in the **API server process** (container), not only in the shell used for `curl`.
+
+1. Add to `.env` (loaded by `docker-compose.yml`):
+
+   ```bash
+   OHM_FEDERATION_ENABLED=true
+   OHM_FEDERATION_DATA_DIR=/app/federation
+   ```
+
+   See [.env.federation.example](../../.env.federation.example).
+
+2. Recreate the container (rebuild alone is not enough):
+
+   ```bash
+   docker compose up --build -d ohm-api
+   ```
+
+3. Confirm startup logs include `Federation enabled` and a DID.
+
 ## References
 
 - Implementation plan: `.cursor/plans/ohm_federation_mvp_e439161b.plan.md`

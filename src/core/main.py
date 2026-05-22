@@ -18,6 +18,7 @@ from src.core.api.error_handlers import (
 )
 from src.core.api.middleware import setup_api_middleware
 from src.core.api.routes.convert import router as convert_router
+from src.core.api.routes.federation import router as federation_router
 from src.core.api.routes.llm import router as llm_router
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.okh import router as okh_router
@@ -114,6 +115,22 @@ async def lifespan(app: FastAPI):
         # Register domain components
         logger.info("Registering domain components")
         await register_domain_components()
+
+        if settings.OHM_FEDERATION_ENABLED:
+            from .federation.service import FederationService
+
+            logger.info(
+                "Federation enabled (OHM_FEDERATION_ENABLED=true); "
+                f"data_dir={settings.OHM_FEDERATION_DATA_DIR}"
+            )
+            fed = await FederationService.get_instance()
+            if fed.identity:
+                logger.info(f"Federation node DID: {fed.identity.did}")
+        else:
+            logger.info(
+                "Federation disabled (set OHM_FEDERATION_ENABLED=true in the "
+                "server process environment to enable /v1/api/federation/*)"
+            )
 
         logger.info("Application startup complete")
 
@@ -293,6 +310,9 @@ api_v1.include_router(
     taxonomy_router, tags=["taxonomy"]
 )  # Already has /api/taxonomy prefix
 api_v1.include_router(rfq_router, tags=["rfq"])  # Already has /api/rfq prefix
+api_v1.include_router(
+    federation_router, tags=["federation"]
+)  # Already has /api/federation prefix
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

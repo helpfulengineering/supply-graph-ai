@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from src.config import settings
 
 from ..services.base import BaseService, ServiceConfig
 from ..utils.logging import get_logger
+from .catalog import CatalogIndex, build_catalog_index
 from .identity import NodeIdentity, load_or_create_identity
 from .node_role import (
     NodeCapabilities,
@@ -17,6 +18,9 @@ from .node_role import (
     parse_node_role,
 )
 from .store import FederationStore
+
+if TYPE_CHECKING:
+    from ..services.okh_service import OKHService
 
 logger = get_logger(__name__)
 
@@ -79,3 +83,12 @@ class FederationService(BaseService["FederationService"]):
         self.require_enabled()
         if self.identity is None or self.store is None:
             raise RuntimeError("Federation identity or store not loaded")
+
+    async def build_catalog_index(self) -> CatalogIndex:
+        """Build a signed catalog snapshot from local OKH storage."""
+        await self.ensure_federation_ready()
+        assert self.identity is not None
+        from ..services.okh_service import OKHService
+
+        okh_service = await OKHService.get_instance()
+        return await build_catalog_index(okh_service, self.identity)
