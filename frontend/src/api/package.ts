@@ -23,8 +23,10 @@ export async function buildPackageFromManifest(
 
 /** Returns the download URL for a package (triggers browser download). */
 export function packageDownloadUrl(packageName: string, version: string): string {
-  // packageName may contain a slash (e.g. "org/repo") — encode each segment
-  // so they pass through as URL path components.
-  const encoded = packageName.split("/").map(encodeURIComponent).join("/");
-  return `/v1/api/package/${encoded}/${encodeURIComponent(version)}/download`;
+  // API route is /{org}/{project}/{version}/download — split org/project for path segments.
+  const [org, project] = packageName.split("/");
+  if (!org || !project) {
+    throw new Error(`Invalid package name (expected org/project): ${packageName}`);
+  }
+  return `/v1/api/package/${encodeURIComponent(org)}/${encodeURIComponent(project)}/${encodeURIComponent(version)}/download`;
 }

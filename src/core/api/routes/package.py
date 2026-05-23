@@ -5,6 +5,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.parse import unquote
 from uuid import UUID
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
@@ -46,6 +47,17 @@ from ..models.package.response import (
 )
 
 logger = get_logger(__name__)
+
+
+def _decode_path_segment(value: str) -> str:
+    """Decode a URL path segment."""
+    return unquote(value)
+
+
+def _package_name_from_path(org: str, project: str) -> str:
+    """Build ``org/project`` package name from URL path segments."""
+    return f"{_decode_path_segment(org)}/{_decode_path_segment(project)}"
+
 
 # Create router with standardized patterns
 router = APIRouter(
@@ -411,9 +423,151 @@ async def list_packages(
         )
 
 
-@router.get("/{package_name}/{version}", response_model=Dict[str, Any])
+@router.get("/{org}/{project}/{version}/download")
+async def download_package(
+    org: str,
+    project: str,
+    version: str,
+    package_service: PackageService = Depends(get_package_service),
+) -> Any:
+    """
+    Download a package as a tarball
+
+    Args:
+        org: Organization slug (first segment of package name)
+        project: Project slug (second segment of package name)
+        version: Package version
+
+    Returns:
+        Tarball file download
+    """
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+    tarball_name = f"{package_name.replace('/', '-')}-{version}.tar.gz"
+    arcname = f"{package_name.replace('/', '-')}-{version}"
+
+    def _unlink(path: str) -> None:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
+    try:
+        logger.info(
+            "Package download requested",
+            extra={
+                "package_name": package_name,
+                "version": version,
+                "tarball_name": tarball_name,
+            },
+        )
+
+        metadata = await package_service.get_package_metadata(package_name, version)
+
+        if metadata:
+            package_path = Path(metadata.package_path)
+            if not package_path.exists():
+                logger.warning(
+                    "Local package metadata found but path missing",
+                    extra={
+                        "package_name": package_name,
+                        "version": version,
+                        "package_path": str(package_path),
+                    },
+                )
+                metadata = None
+            else:
+                logger.info(
+                    "Building tarball from local package",
+                    extra={
+                        "package_name": package_name,
+                        "version": version,
+                        "package_path": str(package_path),
+                    },
+                )
+                temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
+                temp_tar.close()
+                with tarfile.open(temp_tar.name, "w:gz") as tar:
+                    tar.add(package_path, arcname=arcname)
+
+                return FileResponse(
+                    path=temp_tar.name,
+                    filename=tarball_name,
+                    media_type="application/gzip",
+                    background=BackgroundTask(_unlink, temp_tar.name),
+                )
+
+        # Fallback: package exists only in remote blob storage (e.g. batch push).
+        logger.info(
+            "Local package not found; pulling from remote storage",
+            extra={"package_name": package_name, "version": version},
+        )
+        remote_storage = await get_remote_storage()
+        tmp_root = Path(tempfile.mkdtemp(prefix="ohm-pkg-pull-"))
+        try:
+            metadata = await remote_storage.pull_package(
+                package_name, version, tmp_root
+            )
+            package_path = Path(metadata.package_path)
+            logger.info(
+                "Remote package pulled for download",
+                extra={
+                    "package_name": package_name,
+                    "version": version,
+                    "package_path": str(package_path),
+                    "total_files": metadata.total_files,
+                },
+            )
+            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
+            temp_tar.close()
+            with tarfile.open(temp_tar.name, "w:gz") as tar:
+                tar.add(package_path, arcname=arcname)
+            tar_path = temp_tar.name
+        except Exception as pull_exc:
+            shutil.rmtree(tmp_root, ignore_errors=True)
+            logger.error(
+                "Package download failed (local and remote)",
+                extra={
+                    "package_name": package_name,
+                    "version": version,
+                    "error": str(pull_exc),
+                    "error_type": type(pull_exc).__name__,
+                },
+                exc_info=True,
+            )
+            raise HTTPException(
+                status_code=404, detail="Package not found"
+            ) from pull_exc
+        shutil.rmtree(tmp_root, ignore_errors=True)
+
+        return FileResponse(
+            path=tar_path,
+            filename=tarball_name,
+            media_type="application/gzip",
+            background=BackgroundTask(_unlink, tar_path),
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Use standardized error handler
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(f"Error creating package tarball: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get("/{org}/{project}/{version}", response_model=Dict[str, Any])
 async def get_package_metadata(
-    package_name: str,
+    org: str,
+    project: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
 ) -> Any:
@@ -421,12 +575,16 @@ async def get_package_metadata(
     Get metadata for a specific package
 
     Args:
-        package_name: Package name (e.g., "org/project")
+        org: Organization slug (first segment of package name)
+        project: Project slug (second segment of package name)
         version: Package version
 
     Returns:
         Package metadata
     """
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+
     try:
         metadata = await package_service.get_package_metadata(package_name, version)
 
@@ -456,9 +614,10 @@ async def get_package_metadata(
         )
 
 
-@router.get("/{package_name}/{version}/verify", response_model=Dict[str, Any])
+@router.get("/{org}/{project}/{version}/verify", response_model=Dict[str, Any])
 async def verify_package(
-    package_name: str,
+    org: str,
+    project: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
 ) -> Any:
@@ -466,12 +625,16 @@ async def verify_package(
     Verify a package's integrity
 
     Args:
-        package_name: Package name (e.g., "org/project")
+        org: Organization slug (first segment of package name)
+        project: Project slug (second segment of package name)
         version: Package version
 
     Returns:
         Verification results
     """
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+
     try:
         results = await package_service.verify_package(package_name, version)
 
@@ -496,9 +659,10 @@ async def verify_package(
         )
 
 
-@router.delete("/{package_name}/{version}", response_model=Dict[str, Any])
+@router.delete("/{org}/{project}/{version}", response_model=Dict[str, Any])
 async def delete_package(
-    package_name: str,
+    org: str,
+    project: str,
     version: str,
     package_service: PackageService = Depends(get_package_service),
 ) -> Any:
@@ -506,12 +670,16 @@ async def delete_package(
     Delete a package
 
     Args:
-        package_name: Package name (e.g., "org/project")
+        org: Organization slug (first segment of package name)
+        project: Project slug (second segment of package name)
         version: Package version
 
     Returns:
         Deletion result
     """
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+
     try:
         success = await package_service.delete_package(package_name, version)
 
@@ -535,90 +703,6 @@ async def delete_package(
             suggestion="Please try again or contact support if the issue persists",
         )
         logger.error(f"Error deleting package: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=error_response.model_dump(mode="json"),
-        )
-
-
-@router.get("/{package_name}/{version}/download")
-async def download_package(
-    package_name: str,
-    version: str,
-    package_service: PackageService = Depends(get_package_service),
-) -> Any:
-    """
-    Download a package as a tarball
-
-    Args:
-        package_name: Package name (e.g., "org/project")
-        version: Package version
-
-    Returns:
-        Tarball file download
-    """
-    try:
-        metadata = await package_service.get_package_metadata(package_name, version)
-        tarball_name = f"{package_name.replace('/', '-')}-{version}.tar.gz"
-        arcname = f"{package_name.replace('/', '-')}-{version}"
-
-        def _unlink(path: str) -> None:
-            try:
-                os.unlink(path)
-            except OSError:
-                pass
-
-        if metadata:
-            package_path = Path(metadata.package_path)
-
-            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
-            temp_tar.close()
-            with tarfile.open(temp_tar.name, "w:gz") as tar:
-                tar.add(package_path, arcname=arcname)
-
-            return FileResponse(
-                path=temp_tar.name,
-                filename=tarball_name,
-                media_type="application/gzip",
-                background=BackgroundTask(_unlink, temp_tar.name),
-            )
-
-        # Fallback: package exists only in remote blob storage (e.g. batch push).
-        remote_storage = await get_remote_storage()
-        tmp_root = Path(tempfile.mkdtemp(prefix="ohm-pkg-pull-"))
-        try:
-            metadata = await remote_storage.pull_package(
-                package_name, version, tmp_root
-            )
-            package_path = Path(metadata.package_path)
-            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
-            temp_tar.close()
-            with tarfile.open(temp_tar.name, "w:gz") as tar:
-                tar.add(package_path, arcname=arcname)
-            tar_path = temp_tar.name
-        except Exception:
-            shutil.rmtree(tmp_root, ignore_errors=True)
-            raise HTTPException(status_code=404, detail="Package not found")
-        shutil.rmtree(tmp_root, ignore_errors=True)
-
-        return FileResponse(
-            path=tar_path,
-            filename=tarball_name,
-            media_type="application/gzip",
-            background=BackgroundTask(_unlink, tar_path),
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        # Use standardized error handler
-        error_response = create_error_response(
-            error=e,
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            request_id=None,
-            suggestion="Please try again or contact support if the issue persists",
-        )
-        logger.error(f"Error creating package tarball: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),

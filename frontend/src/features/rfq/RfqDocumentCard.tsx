@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { packageDownloadUrl } from "../../api/package";
 import { buildPackage } from "../../api/rfq";
 import type { RFQDocument } from "../../types/rfq";
 
@@ -151,7 +152,7 @@ export function RfqDocumentCard({ doc }: Props) {
             <span className="font-mono font-medium">{packageRef.name} @ {packageRef.version}</span>
             {" · "}
             <a
-              href={`/v1/api/package/${packageRef.name}/${packageRef.version}/download`}
+              href={packageDownloadUrl(packageRef.name, packageRef.version)}
               download
               className="underline hover:no-underline"
             >
