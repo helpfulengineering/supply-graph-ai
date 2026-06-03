@@ -9,7 +9,7 @@ Usage:
     export SERVICE_URL=https://supply-graph-ai-1085931013579.us-west1.run.app
     export API_KEY=your-api-key  # Optional, for authenticated requests
     export IDENTITY_TOKEN=your-gcp-token  # Optional, for GCP Cloud Run auth
-    
+
     # Run tests
     pytest tests/integration/test_cloud_run_e2e.py -v
 """

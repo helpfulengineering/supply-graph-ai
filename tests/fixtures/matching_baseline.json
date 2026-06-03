@@ -1,0 +1,9 @@
+{
+  "scenario": "identical_process_direct_layer",
+  "requirements": [{ "process_name": "CNC Machining" }],
+  "capabilities": [{ "process_name": "CNC Machining" }],
+  "domain": "manufacturing",
+  "expected_satisfied": true,
+  "expected_detail_count": 1,
+  "expected_matching_layer": "direct"
+}

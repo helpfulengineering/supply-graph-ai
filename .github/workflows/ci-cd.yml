@@ -119,13 +119,10 @@ jobs:
       - name: Run contract stability suite
         run: |
           uv run pytest \
-            tests/api/test_match_phase1_contract.py \
-            tests/api/test_relationship_endpoints.py \
-            tests/api/test_solution_management_endpoints.py \
-            tests/api/test_visualization_contract_endpoints.py \
-            tests/cli/test_match_cli_guidance.py \
-            tests/cli/test_match_visualize_cli.py \
-            tests/cli/test_solution_commands.py \
+            tests/api/test_scaffold_cleanup_endpoint.py \
+            tests/api/test_package_download_route.py \
+            tests/cli/test_scaffold_cleanup_cli.py \
+            tests/federation/test_federation_routes.py \
             -m "not llm and not quarantine" \
             --maxfail=1
 

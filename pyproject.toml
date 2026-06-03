@@ -23,9 +23,9 @@ classifiers = [
 ]
 dependencies = [
     # Web framework
-    "fastapi>=0.104.0,<0.120.0",
+    "fastapi>=0.120.0",
     "uvicorn[standard]",
-    "python-multipart",
+    "python-multipart>=0.0.27",
     # Data modeling
     "pydantic[email]>=2.0.0,<3.0.0",
     # Graph
@@ -117,6 +117,14 @@ markers = [
     "llm: tests requiring LLM API access",
     "benchmark: performance benchmark tests",
     "okh_dataset: OKH generation dataset / clone manifest regression (tests/data/okh_generation)",
+]
+
+[tool.uv]
+override-dependencies = [
+    "starlette>=1.0.1",
+    "urllib3>=2.7.0",
+    "idna>=3.15",
+    "gitpython>=3.1.50",
 ]
 
 [tool.black]
