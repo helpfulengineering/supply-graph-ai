@@ -304,6 +304,12 @@ OHM_FEDERATION_DATA_DIR = _get_secret_or_env(
 OHM_FEDERATION_REGISTER_PUBLIC = _get_secret_or_env(
     "OHM_FEDERATION_REGISTER_PUBLIC", "false"
 ).lower() in ("true", "1", "t")
+OHM_FEDERATION_MDNS_ENABLED = _get_secret_or_env(
+    "OHM_FEDERATION_MDNS_ENABLED", "true"
+).lower() in ("true", "1", "t")
+OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN = int(
+    _get_secret_or_env("OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN", "60")
+)
 
 # Do not log MATCHING_* here: this module imports before main.setup_logging(), so
 # INFO lines would be dropped by the default root logger (WARNING). Log from lifespan.

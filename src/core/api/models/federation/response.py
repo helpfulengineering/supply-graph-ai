@@ -2,11 +2,39 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, Field
 
-from src.core.federation.models import CatalogRecord, SignedManifestRecord
+from src.core.federation.models import CatalogRecord, PeerState, SignedManifestRecord
+
+
+class FederationSyncMetricsResponse(BaseModel):
+    total_records_pulled: int = 0
+    total_records_skipped: int = 0
+    total_sync_runs: int = 0
+    total_digest_requests_inbound: int = 0
+    total_digest_requests_outbound: int = 0
+    total_rate_limit_rejections: int = 0
+    last_sync_at: datetime | None = None
+    last_background_sync_at: datetime | None = None
+    per_peer_pulled: dict[str, int] = Field(default_factory=dict)
+
+
+class FederationStatusResponse(BaseModel):
+    did: str
+    display_name: str
+    role: str
+    catalog_record_count: int
+    merkle_root: str
+    peer_count: int
+    followed_peer_count: int
+    sync_interval_sec: int
+    mdns_enabled: bool
+    background_sync_running: bool
+    manual_peers: list[str] = Field(default_factory=list)
+    metrics: FederationSyncMetricsResponse
 
 
 class IdentifyResponse(BaseModel):
@@ -30,6 +58,35 @@ class FederationHealthResponse(BaseModel):
     status: str = "ok"
     did: str | None = None
     federation_enabled: bool = True
+
+
+class PeerListResponse(BaseModel):
+    peers: list[PeerState]
+    total: int
+
+
+class PeerDiscoverResponse(BaseModel):
+    updated: list[PeerState] = Field(default_factory=list)
+    peers: list[PeerState]
+    total: int
+
+
+class SyncPeerResultResponse(BaseModel):
+    peer_did: str
+    base_url: str
+    pulled: int = 0
+    skipped: int = 0
+    errors: list[str] = Field(default_factory=list)
+
+
+class SyncRunResponse(BaseModel):
+    results: list[SyncPeerResultResponse]
+    total_pulled: int = 0
+
+
+class FollowResponse(BaseModel):
+    did: str
+    followed: bool
 
 
 class SignedManifestRecordResponse(BaseModel):

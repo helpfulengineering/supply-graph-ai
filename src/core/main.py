@@ -123,9 +123,21 @@ async def lifespan(app: FastAPI):
                 "Federation enabled (OHM_FEDERATION_ENABLED=true); "
                 f"data_dir={settings.OHM_FEDERATION_DATA_DIR}"
             )
-            fed = await FederationService.get_instance()
-            if fed.identity:
-                logger.info(f"Federation node DID: {fed.identity.did}")
+            try:
+                from src.config.settings import API_PORT
+
+                fed = await FederationService.get_instance()
+                if fed.identity:
+                    logger.info(f"Federation node DID: {fed.identity.did}")
+                fed.start_mdns(API_PORT)
+                fed.start_sync_loop()
+            except Exception as e:
+                logger.error(
+                    "Federation failed to initialize (API will continue; "
+                    "/v1/api/federation/* may return errors): %s",
+                    e,
+                    exc_info=True,
+                )
         else:
             logger.info(
                 "Federation disabled (set OHM_FEDERATION_ENABLED=true in the "
@@ -369,7 +381,15 @@ async def cleanup_resources():
     """Cleanup resources on shutdown"""
     try:
         logger.info("Cleaning up resources")
-        # Add cleanup logic here
+        if settings.OHM_FEDERATION_ENABLED:
+            from .federation.service import FederationService
+
+            try:
+                fed = await FederationService.get_instance()
+                fed.stop_mdns()
+                await fed.stop_sync_loop()
+            except Exception:
+                pass
     except Exception as e:
         logger.error("Error during cleanup", exc_info=True)
 

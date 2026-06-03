@@ -53,13 +53,15 @@ Implement **Tier 2 (LAN) peer federation** in `src/core/federation/`:
 
 ## Enabling federation in Docker
 
+See also: [federation-infra.md](../development/federation-infra.md) for the two-node Compose stack and E2E script.
+
 `OHM_FEDERATION_*` variables must be present in the **API server process** (container), not only in the shell used for `curl`.
 
 1. Add to `.env` (loaded by `docker-compose.yml`):
 
    ```bash
    OHM_FEDERATION_ENABLED=true
-   OHM_FEDERATION_DATA_DIR=/app/federation
+   OHM_FEDERATION_DATA_DIR=/app/storage/federation
    ```
 
    See [.env.federation.example](../../.env.federation.example).
