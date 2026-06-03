@@ -1,0 +1,102 @@
+# Two-node federation dev stack (LAN peer sync via Compose DNS).
+#
+# Usage:
+#   docker compose -f docker-compose.federation.yml up --build -d
+#   ./scripts/federation_e2e.sh
+#
+# Peer A: http://localhost:8001
+# Peer B: http://localhost:8002
+
+services:
+  ohm-peer-a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ohm-peer-a
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+      - PORT=8001
+      - DEBUG=${DEBUG:-False}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
+      - OHM_FEDERATION_ENABLED=true
+      - OHM_FEDERATION_NODE_NAME=OHM Peer A
+      - OHM_FEDERATION_NODE_ROLE=peer
+      - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-b:8001
+      - OHM_FEDERATION_MDNS_ENABLED=false
+      - OHM_FEDERATION_SYNC_INTERVAL_SEC=30
+    volumes:
+      - ohm-storage-a:/app/storage
+      - ohm-logs-a:/app/logs
+      - ./test-data:/app/test-data:ro
+    networks:
+      - ohm-federation
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+
+  ohm-peer-b:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ohm-peer-b
+    ports:
+      - "8002:8001"
+    env_file:
+      - .env
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+      - PORT=8001
+      - DEBUG=${DEBUG:-False}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
+      - OHM_FEDERATION_ENABLED=true
+      - OHM_FEDERATION_NODE_NAME=OHM Peer B
+      - OHM_FEDERATION_NODE_ROLE=peer
+      - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001
+      - OHM_FEDERATION_MDNS_ENABLED=false
+      - OHM_FEDERATION_SYNC_INTERVAL_SEC=30
+    volumes:
+      - ohm-storage-b:/app/storage
+      - ohm-logs-b:/app/logs
+      - ./test-data:/app/test-data:ro
+    depends_on:
+      ohm-peer-a:
+        condition: service_healthy
+    networks:
+      - ohm-federation
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+
+networks:
+  ohm-federation:
+    driver: bridge
+
+volumes:
+  ohm-storage-a:
+    driver: local
+  ohm-storage-b:
+    driver: local
+  ohm-logs-a:
+    driver: local
+  ohm-logs-b:
+    driver: local

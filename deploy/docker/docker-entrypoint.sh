@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# Named Docker volumes are often root-owned; ensure ohm can write storage/federation/logs.
+if [ "$(id -u)" = "0" ] && [ -z "${OHM_DROPPED_PRIVS:-}" ]; then
+    FED_DIR="${OHM_FEDERATION_DATA_DIR:-/app/storage/federation}"
+    mkdir -p /app/storage /app/logs "${FED_DIR}"
+    chown -R ohm:ohm /app/storage /app/logs "${FED_DIR}" 2>/dev/null || true
+    export OHM_DROPPED_PRIVS=1
+    exec runuser -u ohm -- "$0" "$@"
+fi
+
 # Default values
 MODE=${1:-"api"}
 API_HOST=${API_HOST:-"0.0.0.0"}

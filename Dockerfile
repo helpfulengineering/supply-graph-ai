@@ -66,19 +66,20 @@ RUN pip install --no-cache-dir -e .
 RUN python -m spacy download en_core_web_md
 
 # Create necessary directories with proper permissions
-RUN mkdir -p logs storage temp_context temp_matching_context && \
+RUN mkdir -p logs storage storage/federation temp_context temp_matching_context && \
     chmod -R 755 logs storage temp_context temp_matching_context
 
 # Create entrypoint script executable
 RUN chmod +x docker-entrypoint.sh && \
     mv docker-entrypoint.sh /usr/local/bin/
 
-# Create a non-root user for security
+# Create a non-root user for security (entrypoint drops from root to ohm at runtime)
 RUN groupadd -r ohm && useradd -r -g ohm ohm && \
     chown -R ohm:ohm /app && \
     chown -R ohm:ohm /opt/venv
 
-USER ohm
+# Entrypoint fixes named-volume ownership, then execs as ohm
+USER root
 
 # Expose port for API server (Cloud Run will override with PORT env var)
 EXPOSE 8001

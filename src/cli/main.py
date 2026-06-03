@@ -12,6 +12,7 @@ from click import Context
 
 from .base import CLIConfig, CLIContext
 from .convert import convert_group
+from .federation import federation_group
 from .match import match_group
 from .okh import okh_group
 from .okw import okw_group
@@ -125,6 +126,7 @@ cli.add_command(storage_group, name="storage")
 cli.add_command(solution_group, name="solution")
 cli.add_command(convert_group, name="convert")
 cli.add_command(taxonomy_group, name="taxonomy")
+cli.add_command(federation_group, name="federation")
 
 
 @cli.command()

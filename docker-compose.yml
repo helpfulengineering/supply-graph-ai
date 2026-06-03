@@ -50,6 +50,13 @@ services:
       - LLM_ENABLED=${LLM_ENABLED:-false}
       # Server configuration
       - USE_GUNICORN=${USE_GUNICORN:-auto}
+      # Federation (must be set in container env — host shell export alone is not enough)
+      - OHM_FEDERATION_ENABLED=${OHM_FEDERATION_ENABLED:-false}
+      - OHM_FEDERATION_NODE_NAME=${OHM_FEDERATION_NODE_NAME:-OHM Node}
+      - OHM_FEDERATION_NODE_ROLE=${OHM_FEDERATION_NODE_ROLE:-peer}
+      - OHM_FEDERATION_DATA_DIR=${OHM_FEDERATION_DATA_DIR:-/app/storage/federation}
+      - OHM_FEDERATION_MANUAL_PEERS=${OHM_FEDERATION_MANUAL_PEERS:-}
+      - OHM_FEDERATION_SYNC_INTERVAL_SEC=${OHM_FEDERATION_SYNC_INTERVAL_SEC:-60}
     volumes:
       - ohm-storage:/app/storage
       - ohm-logs:/app/logs
