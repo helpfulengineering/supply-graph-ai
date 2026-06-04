@@ -1,0 +1,35 @@
+# Changelog
+
+All notable changes to this project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Changed
+
+- **Docker publish:** Release workflow pushes multi-arch images (`linux/amd64`, `linux/arm64`) via `docker buildx` so `docker pull` works on Apple Silicon and x86-64 hosts.
+
+## [0.8.0] - 2026-06-04
+
+### Added
+
+- **Federation MVP (opt-in):** LAN peer catalog sync via HTTP (`/v1/api/federation/*`), mDNS discovery, follow allowlist, and anti-entropy Merkle sync. Disabled by default (`OHM_FEDERATION_ENABLED=false`). See [federation MVP ADR](docs/architecture/federation-mvp-adr.md).
+- **Release automation:** GitHub Actions `Release` workflow validates git tags against `pyproject.toml`, runs pre-release tests, and publishes Docker images to Docker Hub.
+- **Release tooling:** `scripts/bump_version.py`, `scripts/validate_release_version.py`.
+- **Test harness:** Path-based pytest lane markers in `tests/conftest.py`; contract stability guardrail suite.
+
+### Changed
+
+- **Version:** Application release `0.8.0` (pre-1.0 stable). Single runtime version via `get_version()` / `pyproject.toml`.
+- **Docker image:** Built from frozen `uv.lock` (aligned with CI). Published as `touchthesun/openhardwaremanager` with tags `0.8.0`, `0.8`, and `latest`.
+- **Dependencies:** Security-pinned transitive deps (FastAPI ≥0.120, Starlette, urllib3, idna, gitpython, aiohttp); `pip-audit` in CI and release workflows.
+- **CI:** Docker build-test on `main` push; `develop` branch name fixed to `dev`; GitHub Actions upgraded to Node.js 24–compatible action majors.
+
+### Fixed
+
+- Contract test lane no longer runs live package-download integration tests (requires `RUN_LIVE_API_TESTS=1`).
+- Package download route tests no longer stub `matching` in a way that breaks other unit tests.
+
+[0.8.0]: https://github.com/helpfulengineering/supply-graph-ai/releases/tag/v0.8.0

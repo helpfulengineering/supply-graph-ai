@@ -4,8 +4,9 @@
 
 The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. The system matches requirements (what needs to be done) with capabilities (what can be done) to create viable solutions.
 
-OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose or deployed serverlessly using the configurations in `deploy/`.
+OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose, from a [published Docker image](https://hub.docker.com/r/touchthesun/openhardwaremanager), or deployed serverlessly using the configurations in `deploy/`.
 
+**Current release:** `0.8.0` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
 
 ## Quick Start for New Users
 
@@ -22,7 +23,21 @@ OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose 
 
 After installing, open a new terminal so the tools are on your PATH.
 
-### Option A: API server only (Docker — no Python setup required)
+### Option A: Published Docker image (fastest — no clone required)
+
+```bash
+docker pull touchthesun/openhardwaremanager:0.8.0
+docker run -p 8001:8001 \
+  -e STORAGE_PROVIDER=local \
+  -e LLM_ENABLED=false \
+  touchthesun/openhardwaremanager:0.8.0
+```
+
+The API is at `http://localhost:8001`. Docs: `http://localhost:8001/v1/docs`. Check version: `curl -s http://localhost:8001/health`.
+
+Images support **linux/amd64** and **linux/arm64** (Apple Silicon and x86-64). Federation is **disabled by default**. Enable with `-e OHM_FEDERATION_ENABLED=true` only when you intend to run peer sync (see [federation docs](docs/development/federation-infra.md)).
+
+### Option B: API server from source (Docker Compose)
 
 ```bash
 # 1. Clone
@@ -38,7 +53,7 @@ docker compose up ohm-api
 
 The API is now available at `http://localhost:8001`. Interactive API docs are at `http://localhost:8001/v1/docs`.
 
-### Option B: Local development with uv (CLI + tests + scripts)
+### Option C: Local development with uv (CLI + tests + scripts)
 
 `uv` manages both the Python version and the virtual environment — no separate Python installation or conda is needed.
 

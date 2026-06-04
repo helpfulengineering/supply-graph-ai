@@ -15,7 +15,25 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
 
 ## Quick Start
 
-### Using Docker Compose (Recommended for Development)
+### Published image (release 0.8.0)
+
+For a pre-built image matching CI and release automation:
+
+```bash
+docker pull touchthesun/openhardwaremanager:0.8.0
+docker run -p 8001:8001 \
+  -e STORAGE_PROVIDER=local \
+  -e LLM_ENABLED=false \
+  touchthesun/openhardwaremanager:0.8.0
+```
+
+- API documentation: http://localhost:8001/v1/docs
+- Health check: http://localhost:8001/health (expect `"version": "0.8.0"`)
+- Federation is **off by default** (`OHM_FEDERATION_ENABLED=false`). See [federation infrastructure](federation-infra.md) to enable peer sync.
+
+Other tags: `touchthesun/openhardwaremanager:0.8`, `:latest`. Images are **multi-arch** (`linux/amd64`, `linux/arm64`). See [Release process](../RELEASE.md).
+
+### Using Docker Compose (recommended for development from source)
 
 1. **Clone and navigate to the project:**
    ```bash
@@ -42,11 +60,11 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
    - Health Check: http://localhost:8001/health
    - API Base URL: http://localhost:8001/v1
 
-### Using Docker Directly
+### Using Docker Directly (build from source)
 
-1. **Build the image:**
+1. **Build the image** (uses frozen `uv.lock`; pass version for labels):
    ```bash
-   docker build -t supply-graph-ai .
+   docker build --build-arg APP_VERSION=0.8.0 -t supply-graph-ai:0.8.0 .
    ```
 
 2. **Run the API server:**
