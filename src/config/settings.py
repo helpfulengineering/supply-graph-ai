@@ -164,13 +164,6 @@ if ENVIRONMENT == "production":
             "API_KEYS not set in production. API authentication is disabled. "
             "Set API_KEYS environment variable to enable authentication."
         )
-    # Optionally, fail if no API keys in production
-    # Uncomment the following to require API keys in production:
-    # if not API_KEYS:
-    #     raise ValueError(
-    #         "API_KEYS must be set in production. "
-    #         "Set API_KEYS environment variable with comma-separated list of API keys."
-    #     )
 
 # Authentication Configuration
 AUTH_MODE = _get_secret_or_env(
@@ -264,8 +257,8 @@ if not 0.0 <= MATCHING_NLP_VETO_THRESHOLD <= 1.0:
 # When set, match requests with no inline `okw_facilities` load `*.json` from this path
 # (recursively) instead of listing remote storage — avoids hanging curls when cloud
 # storage is slow or misconfigured. Production should normally leave this unset.
-_match_local = _get_secret_or_env("MATCHING_LOCAL_OKW_JSON_DIR", "") or ""
-MATCHING_LOCAL_OKW_JSON_DIR = _match_local.strip() if _match_local.strip() else None
+_match_local = (_get_secret_or_env("MATCHING_LOCAL_OKW_JSON_DIR", "") or "").strip()
+MATCHING_LOCAL_OKW_JSON_DIR = _match_local or None
 
 # When true (default), MatchingService.initialize() eagerly loads spaCy models for
 # each domain. When false, models load on first NLP use — avoids long stalls inside

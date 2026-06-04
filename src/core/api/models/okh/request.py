@@ -8,7 +8,6 @@ from ..base import BaseAPIRequest
 class OKHUpdateRequest(BaseModel):
     """Request model for updating an OKH manifest"""
 
-    # Required fields first
     title: str
     repo: str
     version: str
@@ -17,7 +16,6 @@ class OKHUpdateRequest(BaseModel):
     documentation_language: Union[str, List[str]]
     function: str
 
-    # Optional fields after
     description: Optional[str] = None
     intended_use: Optional[str] = None
     keywords: List[str] = Field(default_factory=list)
@@ -61,17 +59,14 @@ class OKHUpdateRequest(BaseModel):
 class OKHValidateRequest(BaseModel):
     """Request model for validating an OKH object"""
 
-    # Required fields first
     content: Dict[str, Any]
 
-    # Optional fields after
     validation_context: Optional[str] = None
 
 
 class OKHExtractRequest(BaseModel):
     """Request model for extracting requirements from an OKH object"""
 
-    # Required fields only
     content: Dict[str, Any]
 
 
@@ -87,7 +82,6 @@ class OKHUploadRequest(BaseModel):
 class OKHGenerateRequest(BaseModel):
     """Request model for generating OKH manifest from URL or local path"""
 
-    # Required fields
     url: str = Field(
         ...,
         description=(
@@ -97,7 +91,6 @@ class OKHGenerateRequest(BaseModel):
         ),
     )
 
-    # Optional fields
     skip_review: bool = Field(
         False, description="Skip interactive review and generate manifest directly"
     )
@@ -134,7 +127,6 @@ class OKHGenerateRequest(BaseModel):
 class OKHFromStorageRequest(BaseAPIRequest):
     """Request model for retrieving OKH manifest from storage"""
 
-    # Required fields
     manifest_id: str = Field(
         ..., description="ID of the stored OKH manifest to retrieve"
     )

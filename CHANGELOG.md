@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-06-04
+
+### Fixed
+
+- **OKH parser:** `OKHManifest.from_dict` now accepts plain strings in `making_instructions`, `design_files`, `manufacturing_files`, `operating_instructions`, `technical_specifications`, and `publications` — converting them to `DocumentRef` objects with a field-appropriate `DocumentationType`. Previously, string items crashed with `AttributeError: 'str' object has no attribute 'get'`, producing an opaque error in both `ohm okh validate` and `ohm okh fix`.
+- **OKH parser:** `standards_used` now accepts plain strings (e.g. `"CC0-1.0"`) in addition to dicts, coercing them to `Standard(standard_title=<string>)`.
+- **Codebase:** Removed ~100 redundant inline section comments (`# Required fields first`, `# Optional fields after`, etc.) from API model files; moved module-level imports that were deferred inside methods; simplified `validate_input` in `MatchRequest` from 9 repeated `if x is not None` branches to two list comprehensions; removed dead conditional in `cleanup_service._detect_broken_links` where both branches were identical; removed commented-out dead code from `settings.py`.
+
+### Added
+
+- **Characterization tests:** 138 new unit tests covering `CapabilityRule`, `CapabilityRuleSet`, `CapabilityRuleManager`, `CapabilityMatcher`, `BaseMatchingLayer` utilities, `DirectMatcher`, and `HeuristicMatcher` — raising coverage on those modules from 10–42% to 78–96%.
+
+[0.8.1]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.0...v0.8.1
+
 ## [0.8.0] - 2026-06-04
 
 ### Added

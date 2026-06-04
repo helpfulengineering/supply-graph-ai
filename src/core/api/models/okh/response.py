@@ -10,21 +10,17 @@ from ..base import ValidationResult as BaseValidationResult
 class ValidationIssue(BaseModel):
     """Model for validation issues"""
 
-    # Required fields first
     severity: str  # "error", "warning", "info"
     message: str
 
-    # Optional fields after
     path: List[str] = []
 
 
 class ProcessRequirement(BaseModel):
     """Model for extracted process requirements"""
 
-    # Required fields first
     process_name: str
 
-    # Optional fields after
     parameters: Dict[str, Any] = {}
     validation_criteria: Dict[str, Any] = {}
     required_tools: List[str] = []
@@ -34,7 +30,6 @@ class ProcessRequirement(BaseModel):
 class OKHResponse(SuccessResponse, LLMResponseMixin):
     """Response model for OKH manifests with standardized fields and LLM information"""
 
-    # Required fields first
     id: UUID
     title: str
     version: str
@@ -43,7 +38,6 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
     documentation_language: Union[str, List[str]]
     function: str
 
-    # Optional fields after
     repo: Optional[str] = None
     description: Optional[str] = None
     intended_use: Optional[str] = None
@@ -69,7 +63,6 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
     parts: List[Dict[str, Any]] = []
     metadata: Dict[str, Any] = {}
 
-    # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
 
@@ -145,26 +138,22 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
 class OKHValidationResponse(BaseModel):
     """Response model for OKH validation"""
 
-    # Required fields first
     valid: bool
     normalized_content: Dict[str, Any]
     completeness_score: float
 
-    # Optional fields after
     issues: Optional[List[ValidationIssue]] = None
 
 
 class OKHExtractResponse(BaseModel):
     """Response model for requirement extraction"""
 
-    # Required fields only
     requirements: List[ProcessRequirement]
 
 
 class OKHListResponse(BaseModel):
     """Response model for listing OKH manifests"""
 
-    # Required fields first
     results: List[OKHResponse]
     total: int
     page: int
@@ -174,12 +163,10 @@ class OKHListResponse(BaseModel):
 class OKHUploadResponse(BaseModel):
     """Response model for OKH file upload"""
 
-    # Required fields first
     success: bool
     message: str
     okh: OKHResponse
 
-    # Optional fields after
     validation_issues: Optional[List[ValidationIssue]] = None
     completeness_score: Optional[float] = None
 
@@ -187,25 +174,21 @@ class OKHUploadResponse(BaseModel):
 class OKHGenerateResponse(BaseModel):
     """Response model for OKH manifest generation from URL"""
 
-    # Required fields first
     success: bool
     message: str
     manifest: Dict[str, Any]
 
-    # Optional fields after
     quality_report: Optional[Dict[str, Any]] = None
 
 
 class OKHExportResponse(BaseModel):
     """Response model for OKH schema export"""
 
-    # Required fields first
     success: bool
     message: str
     json_schema: Dict[
         str, Any
     ]  # Renamed from 'schema' to avoid shadowing BaseModel.schema
 
-    # Optional fields after
     schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"
     model_name: Optional[str] = "OKHManifest"

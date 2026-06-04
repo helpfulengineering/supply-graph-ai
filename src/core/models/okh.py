@@ -833,26 +833,40 @@ class OKHManifest:
             )
 
         # Handle document references
-        for doc_field in [
-            "manufacturing_files",
-            "design_files",
-            "making_instructions",
-            "operating_instructions",
-            "technical_specifications",
-            "publications",
-        ]:
+        _FIELD_DOC_TYPE = {
+            "manufacturing_files": DocumentationType.MANUFACTURING_FILES,
+            "design_files": DocumentationType.DESIGN_FILES,
+            "making_instructions": DocumentationType.MAKING_INSTRUCTIONS,
+            "operating_instructions": DocumentationType.OPERATING_INSTRUCTIONS,
+            "technical_specifications": DocumentationType.TECHNICAL_SPECIFICATIONS,
+            "publications": DocumentationType.PUBLICATIONS,
+        }
+        for doc_field in _FIELD_DOC_TYPE:
             if doc_field in data and data[doc_field] is not None:
                 doc_list = []
                 for doc_data in data[doc_field]:
-                    doc_type = DocumentationType(
-                        doc_data.get("type", DocumentationType.DESIGN_FILES.value)
-                    )
-                    doc = DocumentRef(
-                        title=doc_data.get("title", ""),
-                        path=doc_data.get("path", ""),
-                        type=doc_type,
-                        metadata=doc_data.get("metadata", {}),
-                    )
+                    if isinstance(doc_data, str):
+                        # Plain string (e.g. an instruction step) → title with no file path
+                        doc = DocumentRef(
+                            title=doc_data,
+                            path="",
+                            type=_FIELD_DOC_TYPE[doc_field],
+                        )
+                    elif isinstance(doc_data, dict):
+                        doc_type = DocumentationType(
+                            doc_data.get("type", _FIELD_DOC_TYPE[doc_field].value)
+                        )
+                        doc = DocumentRef(
+                            title=doc_data.get("title", ""),
+                            path=doc_data.get("path", ""),
+                            type=doc_type,
+                            metadata=doc_data.get("metadata", {}),
+                        )
+                    else:
+                        raise ValueError(
+                            f"'{doc_field}' items must be a string or dict, "
+                            f"got {type(doc_data).__name__!r}"
+                        )
                     doc_list.append(doc)
                 setattr(instance, doc_field, doc_list)
 
@@ -955,12 +969,21 @@ class OKHManifest:
         if "standards_used" in data and data["standards_used"] is not None:
             instance.standards_used = []
             for std_data in data["standards_used"]:
-                std = Standard(
-                    standard_title=std_data.get("standard_title", ""),
-                    publisher=std_data.get("publisher"),
-                    reference=std_data.get("reference"),
-                    certifications=std_data.get("certifications", []),
-                )
+                if isinstance(std_data, str):
+                    # Plain string (e.g. "CC0-1.0") → standard title
+                    std = Standard(standard_title=std_data)
+                elif isinstance(std_data, dict):
+                    std = Standard(
+                        standard_title=std_data.get("standard_title", ""),
+                        publisher=std_data.get("publisher"),
+                        reference=std_data.get("reference"),
+                        certifications=std_data.get("certifications", []),
+                    )
+                else:
+                    raise ValueError(
+                        f"'standards_used' items must be a string or dict, "
+                        f"got {type(std_data).__name__!r}"
+                    )
                 instance.standards_used.append(std)
 
         # Handle software

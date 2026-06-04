@@ -32,13 +32,11 @@ class SupplyTreeCreateRequest(BaseAPIRequest, LLMRequestMixin):
         }
     )
 
-    # Required fields first
     facility_id: UUID
     facility_name: str
     okh_reference: str
     confidence_score: float
 
-    # Optional fields after
     estimated_cost: Optional[float] = None
     estimated_time: Optional[str] = None
     materials_required: List[str] = Field(default_factory=list)
@@ -61,7 +59,6 @@ class SupplyTreeOptimizeRequest(BaseAPIRequest):
         }
     )
 
-    # Required fields
     criteria: Dict[str, Any] = Field(
         ..., description="Optimization criteria with priority and weights"
     )
@@ -70,7 +67,6 @@ class SupplyTreeOptimizeRequest(BaseAPIRequest):
 class SupplyTreeValidateRequest(BaseModel):
     """Request model for validating a supply tree"""
 
-    # Optional fields
     okh_reference: Optional[str] = None
     okw_references: Optional[List[str]] = None
     domain: Optional[str] = Field(

@@ -40,7 +40,6 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
         }
     )
 
-    # Required fields first
     id: UUID
     facility_id: UUID
     facility_name: str
@@ -48,7 +47,6 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
     confidence_score: float
     creation_time: str
 
-    # Optional fields after
     estimated_cost: Optional[float] = None
     estimated_time: Optional[str] = None
     materials_required: List[str] = []
@@ -56,7 +54,6 @@ class SupplyTreeResponse(SuccessResponse, LLMResponseMixin):
     match_type: str = "unknown"
     metadata: Dict[str, Any] = {}
 
-    # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
 
@@ -68,7 +65,6 @@ SimplifiedSupplyTreeResponse = SupplyTreeResponse
 class OptimizationMetrics(BaseModel):
     """Response model for optimization metrics"""
 
-    # All optional fields
     cost: Optional[float] = None
     time: Optional[str] = None
 
@@ -83,11 +79,9 @@ class SupplyTreeOptimizationResponse(SupplyTreeResponse):
 class ValidationIssue(BaseModel):
     """Model for validation issues"""
 
-    # Required fields first
     type: str  # "error", "warning", "info"
     message: str
 
-    # Optional fields after
     path: Optional[str] = None
     component: Optional[str] = None
 
@@ -95,18 +89,15 @@ class ValidationIssue(BaseModel):
 class ValidationResult(BaseModel):
     """Response model for validation results"""
 
-    # Required fields first
     valid: bool
     confidence: float
 
-    # Optional fields after
     issues: List[Dict[str, Any]] = []
 
 
 class SupplyTreeListResponse(BaseModel):
     """Response model for listing supply trees"""
 
-    # Required fields first
     results: List[SupplyTreeResponse]
     total: int
     page: int
@@ -116,6 +107,5 @@ class SupplyTreeListResponse(BaseModel):
 class SuccessResponse(BaseModel):
     """Response model for successful operations"""
 
-    # Required fields only
     success: bool
     message: str

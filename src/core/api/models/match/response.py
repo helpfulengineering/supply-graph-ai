@@ -26,14 +26,11 @@ class SupplyTreeSummary(BaseModel):
     @classmethod
     def from_supply_tree(cls, tree: "SupplyTree") -> "SupplyTreeSummary":
         """Create a summary from a full SupplyTree"""
-        # Get name and description from metadata or use defaults
         name = tree.metadata.get("okh_title", f"Supply Tree {str(tree.id)[:8]}")
         description = tree.metadata.get(
             "description",
             f'Manufacturing solution for {tree.metadata.get("okh_title", "hardware project")}',
         )
-
-        # Calculate node and edge counts from workflows
         total_nodes = sum(
             len(workflow.graph.nodes) for workflow in tree.workflows.values()
         )
@@ -95,12 +92,9 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
         }
     )
 
-    # Core response data
     solutions: List[dict] = []
     total_solutions: int = 0
     processing_time: float = 0.0
-
-    # Enhanced metadata
     matching_metrics: Optional[dict] = None
     validation_results: Optional[List[BaseValidationResult]] = None
     match_summary: Optional[Dict[str, Any]] = None
@@ -114,11 +108,8 @@ class MatchResponse(SuccessResponse, LLMResponseMixin):
 class ValidationResult(BaseModel):
     """Response model for validation results"""
 
-    # Required fields first
     valid: bool
     confidence: float
-
-    # Optional fields after
     issues: List[Dict[str, Any]] = Field(
         default_factory=list, description="List of validation issues if any"
     )
@@ -149,12 +140,10 @@ class SimulateResponse(SuccessResponse):
         }
     )
 
-    # Required fields
     completion_time: str = Field(
         ..., description="Estimated completion time (ISO format)"
     )
 
-    # Optional fields
     critical_path: List[Dict[str, Any]] = Field(
         default_factory=list, description="Critical path in the supply tree"
     )
@@ -169,11 +158,8 @@ class SimulateResponse(SuccessResponse):
 class SimulationResult(BaseModel):
     """Response model for simulation results"""
 
-    # Required fields first
     success: bool
     completion_time: str
-
-    # Optional fields after
     critical_path: List[Dict[str, Any]] = []
     bottlenecks: List[Dict[str, Any]] = []
     resource_utilization: Dict[str, Any] = {}

@@ -6,12 +6,10 @@ from pydantic import BaseModel, Field
 class OKWUpdateRequest(BaseModel):
     """Request model for updating an OKW facility"""
 
-    # Required fields first
     name: str
     location: Dict[str, Any]
     facility_status: str
 
-    # Optional fields after
     owner: Optional[Dict[str, Any]] = None
     contact: Optional[Dict[str, Any]] = None
     affiliations: List[Dict[str, Any]] = Field(default_factory=list)
@@ -33,15 +31,12 @@ class OKWUpdateRequest(BaseModel):
 class OKWValidateRequest(BaseModel):
     """Request model for validating an OKW object"""
 
-    # Required fields only
     content: Dict[str, Any]
 
-    # Optional fields after
     validation_context: Optional[str] = None
 
 
 class OKWExtractRequest(BaseModel):
     """Request model for extracting capabilities from an OKW object"""
 
-    # Required fields only
     content: Dict[str, Any]

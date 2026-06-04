@@ -40,7 +40,6 @@ class PackageBuildRequest(BaseAPIRequest, LLMRequestMixin):
 class PackagePushRequest(BaseModel):
     """Request model for pushing a package to remote storage"""
 
-    # Required fields
     package_name: str = Field(..., description="Package name (e.g., 'org/project')")
     version: str = Field(..., description="Package version")
 
@@ -54,11 +53,9 @@ class PackagePushRequest(BaseModel):
 class PackagePullRequest(BaseModel):
     """Request model for pulling a package from remote storage"""
 
-    # Required fields
     package_name: str = Field(..., description="Package name (e.g., 'org/project')")
     version: str = Field(..., description="Package version")
 
-    # Optional fields
     output_dir: Optional[str] = Field(
         None, description="Output directory for the pulled package"
     )

@@ -126,7 +126,6 @@ DOMAIN_KEYWORDS = {
         "allergen",
         "temperature",
         "cooking time",
-        # New keywords for OKH/OKW detection
         "oven",
         "stove",
         "refrigerator",
