@@ -22,7 +22,6 @@ class DomainFilterRequest(BaseAPIRequest, LLMRequestMixin):
         }
     )
 
-    # Optional fields
     name: Optional[str] = None
     active_only: bool = True
 
@@ -45,7 +44,6 @@ class ContextFilterRequest(BaseAPIRequest, LLMRequestMixin):
         }
     )
 
-    # Optional fields
     name: Optional[str] = None
     include_deprecated: bool = False
     with_details: bool = False

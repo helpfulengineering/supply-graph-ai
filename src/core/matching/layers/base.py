@@ -423,22 +423,14 @@ class BaseMatchingLayer(ABC):
         Returns:
             True if strings differ only in whitespace
         """
-        import re
-
-        # Check if strings are identical when normalized
         norm1 = re.sub(r"\s+", " ", str1.strip())
         norm2 = re.sub(r"\s+", " ", str2.strip())
 
-        # If normalized strings are the same, check if original strings differ
         if norm1 == norm2:
-            # Check if original strings differ in whitespace
-            # Remove all whitespace and compare
             no_ws1 = re.sub(r"\s", "", str1)
             no_ws2 = re.sub(r"\s", "", str2)
             return no_ws1 == no_ws2 and str1 != str2
-        else:
-            # Strings differ in content, not just whitespace
-            return False
+        return False
 
     def normalize_process_name(self, process_name: str) -> str:
         """

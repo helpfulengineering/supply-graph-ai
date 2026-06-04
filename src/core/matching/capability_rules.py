@@ -18,6 +18,7 @@ Architecture:
 """
 
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -238,9 +239,6 @@ class CapabilityRuleSet:
                 logger.warning(
                     f"Rule {rule_id} has domain '{rule.domain}' but rule set is for domain '{self.domain}'"
                 )
-
-        # Validate version format (semantic versioning) - warning only
-        import re
 
         if not re.match(r"^\d+\.\d+\.\d+$", self.version):
             logger.warning(

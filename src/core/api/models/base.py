@@ -56,7 +56,6 @@ class ErrorCode(str, Enum):
 class BaseAPIRequest(BaseModel):
     """Base class for all API requests with common fields and validation."""
 
-    # Optional metadata fields
     request_id: Optional[str] = Field(
         None, description="Unique request identifier for tracking"
     )
@@ -87,14 +86,11 @@ class BaseAPIRequest(BaseModel):
 class BaseAPIResponse(BaseModel):
     """Base class for all API responses with standardized fields."""
 
-    # Required fields
     status: APIStatus = Field(..., description="Response status")
     message: str = Field(..., description="Human-readable response message")
     timestamp: datetime = Field(
         default_factory=datetime.now, description="Response timestamp"
     )
-
-    # Optional fields
     request_id: Optional[str] = Field(
         None, description="Request identifier if provided"
     )

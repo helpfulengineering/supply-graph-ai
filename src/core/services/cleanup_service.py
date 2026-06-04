@@ -273,12 +273,7 @@ class CleanupService:
 
                 # Resolve the link path relative to the markdown file's location
                 try:
-                    # Handle relative paths (../foo/bar.md)
-                    if link_path.startswith("../") or link_path.startswith("./"):
-                        link_resolved = (md_file.parent / link_path).resolve()
-                    else:
-                        # Relative path from file's directory
-                        link_resolved = (md_file.parent / link_path).resolve()
+                    link_resolved = (md_file.parent / link_path).resolve()
 
                     # Check if the resolved path points to a removed file
                     if link_resolved in removed_paths:

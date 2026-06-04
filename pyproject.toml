@@ -169,3 +169,8 @@ skips = [
   "B608",  # false positives on large LLM prompt f-strings (not SQL)
   "B104",  # intentional 0.0.0.0 API bind / CLI localhost rewrite
 ]
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.1.0",
+]

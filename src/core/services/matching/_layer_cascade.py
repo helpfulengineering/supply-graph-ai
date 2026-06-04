@@ -39,8 +39,6 @@ async def evaluate_layers(
     veto_threshold: float = 0.2,
 ) -> LayerEvaluation:
     """Run direct → heuristic → NLP with optional NLP veto on fuzzy/heuristic hits."""
-    notes_veto: list[str] = []
-
     dm, dpath = await direct_eval()
 
     if mode == "cascade":
@@ -75,6 +73,8 @@ async def evaluate_layers(
         )
 
     # veto mode
+    notes_veto: list[str] = []
+
     if dm and dpath == "strong":
         return LayerEvaluation(
             matched=True,

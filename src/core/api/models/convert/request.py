@@ -24,7 +24,6 @@ class ConvertToDatasheetRequest(BaseAPIRequest):
     documentation_language: Optional[Union[str, List[str]]] = None
     function: str
 
-    # Optional OKH fields
     repo: Optional[str] = None
     description: Optional[str] = None
     intended_use: Optional[str] = None

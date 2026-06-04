@@ -9,7 +9,6 @@ from ..base import ValidationResult as BaseValidationResult
 class Domain(BaseModel):
     """Model for domain information"""
 
-    # Required fields only
     id: str
     name: str
     description: str
@@ -18,10 +17,8 @@ class Domain(BaseModel):
 class DomainsResponse(SuccessResponse, LLMResponseMixin):
     """Response model for available domains with standardized fields and LLM information"""
 
-    # Required fields only
     domains: List[Domain]
 
-    # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
 
@@ -53,7 +50,6 @@ class DomainsResponse(SuccessResponse, LLMResponseMixin):
 class Context(BaseModel):
     """Model for validation context information"""
 
-    # Required fields only
     id: str
     name: str
     description: str
@@ -62,10 +58,8 @@ class Context(BaseModel):
 class ContextsResponse(SuccessResponse, LLMResponseMixin):
     """Response model for validation contexts with standardized fields and LLM information"""
 
-    # Required fields only
     contexts: List[Context]
 
-    # Additional fields for enhanced response
     processing_time: float = 0.0
     validation_results: Optional[List[BaseValidationResult]] = None
 
@@ -97,5 +91,4 @@ class ContextsResponse(SuccessResponse, LLMResponseMixin):
 class ErrorResponse(BaseModel):
     """Response model for API errors"""
 
-    # Required fields first
     error: Dict[str, Any]  # Contains code, message, details

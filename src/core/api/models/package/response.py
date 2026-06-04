@@ -42,12 +42,10 @@ class PackageResponse(SuccessResponse, LLMResponseMixin):
 class PackageMetadataResponse(BaseModel):
     """Response model for package metadata"""
 
-    # Required fields
     name: str
     version: str
     package_path: str
 
-    # Optional fields
     created_at: Optional[str] = None
     size: Optional[int] = None
     checksum: Optional[str] = None
@@ -57,7 +55,6 @@ class PackageMetadataResponse(BaseModel):
 class PackageListResponse(BaseModel):
     """Response model for listing packages"""
 
-    # Required fields
     packages: List[PackageMetadataResponse]
     total: int
     page: int
@@ -67,11 +64,9 @@ class PackageListResponse(BaseModel):
 class PackageVerificationResponse(BaseModel):
     """Response model for package verification"""
 
-    # Required fields
     valid: bool
     checksum_match: bool
 
-    # Optional fields
     errors: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
@@ -80,11 +75,9 @@ class PackageVerificationResponse(BaseModel):
 class PackagePushResponse(BaseModel):
     """Response model for package push operations"""
 
-    # Required fields
     success: bool
     message: str
 
-    # Optional fields
     remote_path: Optional[str] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
@@ -92,10 +85,8 @@ class PackagePushResponse(BaseModel):
 class PackagePullResponse(BaseModel):
     """Response model for package pull operations"""
 
-    # Required fields
     success: bool
     message: str
 
-    # Optional fields
     local_path: Optional[str] = None
     metadata: Optional[PackageMetadataResponse] = None

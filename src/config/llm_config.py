@@ -347,7 +347,6 @@ class LLMConfigManager:
             "request_timeout_seconds", 60
         )
 
-        # Load providers
         for provider_name, provider_data in config_data.get("providers", {}).items():
             provider = LLMProvider(provider_name)
             self.config.providers[provider] = LLMProviderConfig(
@@ -369,7 +368,6 @@ class LLMConfigManager:
                 enabled=provider_data.get("enabled", True),
             )
 
-        # Load models
         for model_name, model_data in config_data.get("models", {}).items():
             self.config.models[model_name] = LLMModelConfig(
                 name=model_name,
@@ -387,7 +385,6 @@ class LLMConfigManager:
 
     def _load_from_environment(self):
         """Load configuration from environment variables"""
-        # Global LLM settings
         if os.getenv("LLM_ENABLED"):
             self.config.enabled = os.getenv("LLM_ENABLED").lower() in ("true", "1", "t")
 
@@ -404,11 +401,9 @@ class LLMConfigManager:
         if os.getenv("LLM_DEFAULT_MODEL"):
             self.config.default_model = os.getenv("LLM_DEFAULT_MODEL")
 
-        # Provider-specific settings
         for provider in LLMProvider:
             provider_name = provider.value.upper()
 
-            # API Key
             api_key = os.getenv(f"{provider_name}_API_KEY")
             if api_key:
                 if provider not in self.config.providers:
@@ -417,7 +412,6 @@ class LLMConfigManager:
                     )
                 self.config.providers[provider].api_key = api_key
 
-            # Base URL
             api_base_url = os.getenv(f"{provider_name}_API_BASE_URL")
             if api_base_url:
                 if provider not in self.config.providers:
@@ -450,11 +444,9 @@ class LLMConfigManager:
         if not provider_config or not provider_config.enabled:
             return False
 
-        # Check if API key is available
         if provider_config.api_key:
             return True
 
-        # Check environment variables as fallback
         provider_name = provider.value.upper()
         return os.getenv(f"{provider_name}_API_KEY") is not None
 
@@ -468,11 +460,11 @@ class LLMConfigManager:
 
     def get_available_models(self) -> List[str]:
         """Get list of available models"""
-        available_models = []
-        for model_name, model_config in self.config.models.items():
-            if self.is_provider_configured(model_config.provider):
-                available_models.append(model_name)
-        return available_models
+        return [
+            name
+            for name, cfg in self.config.models.items()
+            if self.is_provider_configured(cfg.provider)
+        ]
 
     def validate_config(self) -> Dict[str, Any]:
         """Validate the current configuration"""
@@ -484,11 +476,9 @@ class LLMConfigManager:
             "models": {},
         }
 
-        # Check if LLM is enabled
         if not self.config.enabled:
             validation_result["warnings"].append("LLM integration is disabled")
 
-        # Validate providers
         for provider in LLMProvider:
             provider_config = self.get_provider_config(provider)
             provider_status = {
@@ -511,7 +501,6 @@ class LLMConfigManager:
 
             validation_result["providers"][provider.value] = provider_status
 
-        # Validate models
         for model_name, model_config in self.config.models.items():
             model_status = {
                 "configured": True,
@@ -531,7 +520,6 @@ class LLMConfigManager:
 
             validation_result["models"][model_name] = model_status
 
-        # Overall validation
         if validation_result["errors"]:
             validation_result["valid"] = False
 
@@ -540,7 +528,6 @@ class LLMConfigManager:
     def save_config(self):
         """Save configuration to file"""
         try:
-            # Ensure directory exists
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
 
             # Save configuration (excluding sensitive data)
