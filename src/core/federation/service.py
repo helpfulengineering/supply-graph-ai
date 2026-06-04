@@ -93,14 +93,20 @@ class FederationService(BaseService["FederationService"]):
         if self.identity is None or self.store is None:
             raise RuntimeError("Federation identity or store not loaded")
 
+    def federation_context(self) -> tuple[NodeIdentity, FederationStore]:
+        """Return identity and store; call after ``ensure_federation_ready``."""
+        if self.identity is None or self.store is None:
+            raise RuntimeError("Federation identity or store not loaded")
+        return self.identity, self.store
+
     async def build_catalog_index(self) -> CatalogIndex:
         """Build a signed catalog snapshot from local OKH storage."""
         await self.ensure_federation_ready()
-        assert self.identity is not None
+        identity, _store = self.federation_context()
         from ..services.okh_service import OKHService
 
         okh_service = await OKHService.get_instance()
-        return await build_catalog_index(okh_service, self.identity)
+        return await build_catalog_index(okh_service, identity)
 
     def list_peers(self) -> list[PeerState]:
         """Return known peers from local store."""
@@ -116,18 +122,17 @@ class FederationService(BaseService["FederationService"]):
     ) -> list[PeerState]:
         """Discover peers via manual URLs and mDNS, resolve via ``/identify``."""
         await self.ensure_federation_ready()
-        assert self.identity is not None
-        assert self.store is not None
+        identity, store = self.federation_context()
 
         mdns_peers = []
         if settings.OHM_FEDERATION_MDNS_ENABLED and self.capabilities.advertise_mdns:
             mdns_peers = await asyncio.to_thread(browse_mdns_peers, mdns_timeout)
 
-        registry = PeerRegistry(self.store)
+        registry = PeerRegistry(store)
         return await registry.refresh(
             manual_urls=settings.OHM_FEDERATION_MANUAL_PEERS,
             mdns_peers=mdns_peers,
-            local_did=self.identity.did,
+            local_did=identity.did,
             extra_manual_urls=extra_manual_urls,
         )
 
@@ -205,14 +210,14 @@ class FederationService(BaseService["FederationService"]):
     async def get_status(self) -> dict:
         """Dashboard-friendly federation status snapshot."""
         await self.ensure_federation_ready()
-        assert self.identity is not None
+        identity, _store = self.federation_context()
         index = await self.build_catalog_index()
         peers = self.list_peers()
         followed = [p for p in peers if p.followed or self.is_followed(p.did)]
         metrics = self.metrics.snapshot
         return {
-            "did": self.identity.did,
-            "display_name": self.identity.display_name,
+            "did": identity.did,
+            "display_name": identity.display_name,
             "role": self.role.value,
             "catalog_record_count": index.record_count,
             "merkle_root": index.merkle_root,
@@ -234,20 +239,19 @@ class FederationService(BaseService["FederationService"]):
     async def sync_with_url(self, peer_url: str) -> SyncPeerResult:
         """Identify a peer URL, ensure it is followed, and sync."""
         await self.ensure_federation_ready()
-        assert self.identity is not None
-        assert self.store is not None
+        identity, store = self.federation_context()
 
-        registry = PeerRegistry(self.store)
+        registry = PeerRegistry(store)
         updated = await registry.refresh(
             manual_urls=[peer_url],
             mdns_peers=[],
-            local_did=self.identity.did,
+            local_did=identity.did,
         )
         if not updated:
             raise RuntimeError(f"Could not identify peer at {peer_url}")
         peer = updated[0]
-        if not self.store.is_followed(peer.did):
-            self.store.set_followed(peer.did, True)
+        if not store.is_followed(peer.did):
+            store.set_followed(peer.did, True)
             peer = peer.model_copy(update={"followed": True})
         result = await sync_with_peer(self, peer)
         self.record_sync_result(result)
@@ -258,10 +262,10 @@ class FederationService(BaseService["FederationService"]):
     ) -> list[SyncPeerResult]:
         """Sync with every followed peer in the local registry."""
         await self.ensure_federation_ready()
-        assert self.store is not None
+        _identity, store = self.federation_context()
         results: list[SyncPeerResult] = []
-        for peer in self.store.load_peers():
-            if peer.followed or self.store.is_followed(peer.did):
+        for peer in store.load_peers():
+            if peer.followed or store.is_followed(peer.did):
                 peer = peer.model_copy(update={"followed": True})
                 result = await sync_with_peer(self, peer)
                 self.record_sync_result(result, background=background)

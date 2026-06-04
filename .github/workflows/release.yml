@@ -177,3 +177,42 @@ jobs:
           echo "  ${{ env.IMAGE }}:${{ needs.validate.outputs.version }}"
           echo "  ${{ env.IMAGE }}:${{ needs.validate.outputs.major_minor }}"
           echo "  ${{ env.IMAGE }}:latest"
+
+  # Git tags alone do not appear under GitHub → Releases. This job creates the
+  # Release page entry (notes, source archives) after Docker publish succeeds.
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, publish]
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build release notes
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          python3 scripts/extract_changelog_section.py "$VERSION" -o /tmp/release-notes.md
+          {
+            echo ""
+            echo "---"
+            echo ""
+            echo "### Docker"
+            echo ""
+            echo '```bash'
+            echo "docker pull ${{ env.IMAGE }}:${VERSION}"
+            echo '```'
+            echo ""
+            echo "Multi-arch: \`${{ env.PLATFORMS }}\`"
+          } >> /tmp/release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Open Hardware Manager ${{ needs.validate.outputs.version }}
+          body_path: /tmp/release-notes.md
+          generate_release_notes: false
+          make_latest: true

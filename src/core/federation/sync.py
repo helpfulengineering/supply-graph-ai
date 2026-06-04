@@ -114,10 +114,12 @@ async def sync_with_peer(
     """
     from ..services.okh_service import OKHService
 
-    assert service.identity is not None
-    assert service.store is not None
+    if service.identity is None or service.store is None:
+        raise RuntimeError("Federation identity or store not loaded")
+    identity = service.identity
+    store = service.store
 
-    if not peer.followed and not service.store.is_followed(peer.did):
+    if not peer.followed and not store.is_followed(peer.did):
         return SyncPeerResult(
             peer_did=peer.did,
             base_url=peer.base_url,
@@ -130,7 +132,7 @@ async def sync_with_peer(
     digest = build_sync_digest(
         merkle_root=local_index.merkle_root,
         record_count=local_index.record_count,
-        publisher_did=service.identity.did,
+        publisher_did=identity.did,
         leaf_hashes=sorted(local_hashes),
     )
 
@@ -164,7 +166,7 @@ async def sync_with_peer(
                 ingest_result = await verify_and_store(
                     signed,
                     publisher_did=signed.catalog_record.publisher_did,
-                    store=service.store,
+                    store=store,
                     okh_service=okh_service,
                     local_content_hashes=local_hashes,
                 )
@@ -188,7 +190,9 @@ def _update_peer_sync_state(
     peer: PeerState,
     result: SyncPeerResult,
 ) -> None:
-    assert service.store is not None
+    store = service.store
+    if store is None:
+        raise RuntimeError("Federation store not loaded")
     updated = peer.model_copy(
         update={
             "last_sync_at": utc_now(),

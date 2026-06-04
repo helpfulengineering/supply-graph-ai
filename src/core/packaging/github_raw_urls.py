@@ -20,6 +20,14 @@ from typing import Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
+def _urlopen_https(req: urllib.request.Request, *, timeout: float):
+    """Open only HTTPS URLs (packaging metadata lookups)."""
+    url = req.full_url
+    if urllib.parse.urlparse(url).scheme != "https":
+        raise ValueError(f"Refusing non-HTTPS URL: {url}")
+    return urllib.request.urlopen(req, timeout=timeout)  # nosec B310
+
+
 def parse_github_owner_repo(repo_url: str) -> Optional[Tuple[str, str]]:
     """
     Parse ``owner`` and ``repo`` from a GitHub browser or git HTTPS URL.
@@ -64,7 +72,7 @@ def get_github_default_branch(owner: str, repo: str) -> str:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=12) as resp:
+        with _urlopen_https(req, timeout=12) as resp:
             data = json.load(resp)
         branch = data.get("default_branch")
         if isinstance(branch, str) and branch:

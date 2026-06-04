@@ -147,4 +147,4 @@ jobs:
         run: uv run pip-audit
 
       - name: Static security scan
-        run: uv run bandit -q -r src -x tests
+        run: uv run bandit -q -r src -c pyproject.toml -x tests

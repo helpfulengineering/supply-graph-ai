@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 import os
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -105,12 +106,18 @@ class GitHubExtractor(ProjectExtractor):
                         )
                     else:
                         self.cache_dir = (
-                            Path("/tmp") / ".cache" / "supply-graph-ai" / "github"
+                            Path(tempfile.gettempdir())
+                            / ".cache"
+                            / "supply-graph-ai"
+                            / "github"
                         )
                 except (RuntimeError, OSError):
-                    # If Path.home() fails (e.g., no home directory), use /tmp
+                    # If Path.home() fails (e.g., no home directory), use temp dir
                     self.cache_dir = (
-                        Path("/tmp") / ".cache" / "supply-graph-ai" / "github"
+                        Path(tempfile.gettempdir())
+                        / ".cache"
+                        / "supply-graph-ai"
+                        / "github"
                     )
 
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -650,7 +657,7 @@ class GitHubExtractor(ProjectExtractor):
 
     def _get_cache_key(self, url: str) -> str:
         """Generate a cache key for a URL"""
-        return hashlib.md5(url.encode()).hexdigest()
+        return hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()
 
     def _get_cache_path(self, cache_key: str) -> Path:
         """Get the cache file path for a cache key"""

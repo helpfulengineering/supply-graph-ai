@@ -633,7 +633,7 @@ def _generate_cache_key(
 
     # Combine and hash
     key_string = "|".join(str(part) for part in key_parts)
-    key_hash = hashlib.md5(key_string.encode()).hexdigest()
+    key_hash = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
 
     return f"cache:{key_hash}"
 

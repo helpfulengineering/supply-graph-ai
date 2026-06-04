@@ -111,12 +111,18 @@ class GitLabExtractor(ProjectExtractor):
                         )
                     else:
                         self.cache_dir = (
-                            Path("/tmp") / ".cache" / "supply-graph-ai" / "gitlab"
+                            Path(tempfile.gettempdir())
+                            / ".cache"
+                            / "supply-graph-ai"
+                            / "gitlab"
                         )
                 except (RuntimeError, OSError):
-                    # If Path.home() fails (e.g., no home directory), use /tmp
+                    # If Path.home() fails (e.g., no home directory), use temp dir
                     self.cache_dir = (
-                        Path("/tmp") / ".cache" / "supply-graph-ai" / "gitlab"
+                        Path(tempfile.gettempdir())
+                        / ".cache"
+                        / "supply-graph-ai"
+                        / "gitlab"
                     )
 
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -356,7 +362,7 @@ class GitLabExtractor(ProjectExtractor):
         """
         try:
             # Create unique directory name based on URL and timestamp
-            url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
+            url_hash = hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()[:8]
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             clone_dir = self.temp_dir / f"repo_{url_hash}_{timestamp}"
 
@@ -626,7 +632,7 @@ class GitLabExtractor(ProjectExtractor):
 
     def _get_cache_key(self, url: str) -> str:
         """Generate a cache key for a URL"""
-        return hashlib.md5(url.encode()).hexdigest()
+        return hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()
 
     def _get_cache_path(self, cache_key: str) -> Path:
         """Get the cache file path for a cache key"""

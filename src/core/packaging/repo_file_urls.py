@@ -25,6 +25,14 @@ from .github_raw_urls import (
 logger = logging.getLogger(__name__)
 
 
+def _urlopen_https(req: urllib.request.Request, *, timeout: float):
+    """Open only HTTPS URLs (packaging metadata lookups)."""
+    url = req.full_url
+    if urllib.parse.urlparse(url).scheme != "https":
+        raise ValueError(f"Refusing non-HTTPS URL: {url}")
+    return urllib.request.urlopen(req, timeout=timeout)  # nosec B310
+
+
 def _is_github_repo(repo_url: str) -> bool:
     return bool(repo_url and "github.com" in repo_url.lower())
 
@@ -99,7 +107,7 @@ def get_gitlab_default_branch(origin: str, project_path: str) -> str:
         },
     )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with _urlopen_https(req, timeout=15) as resp:
             data = json.load(resp)
         branch = data.get("default_branch")
         if isinstance(branch, str) and branch.strip():

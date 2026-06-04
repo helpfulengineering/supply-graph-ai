@@ -50,7 +50,7 @@ class UUIDValidator:
         import hashlib
 
         # Create a hash of the input string
-        hash_obj = hashlib.md5(input_string.encode("utf-8"))
+        hash_obj = hashlib.md5(input_string.encode("utf-8"), usedforsecurity=False)
         hash_hex = hash_obj.hexdigest()
 
         # Format as UUID

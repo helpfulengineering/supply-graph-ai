@@ -184,7 +184,7 @@ class LocalStorageProvider(StorageProvider):
             await f.write(data)
 
         # Generate metadata
-        etag = hashlib.md5(data).hexdigest()
+        etag = hashlib.md5(data, usedforsecurity=False).hexdigest()
         now = datetime.now()
         storage_metadata = StorageMetadata(
             content_type=content_type,

@@ -155,3 +155,17 @@ select = ["E9", "F63", "F7", "F82"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["F401"]
+
+# Bandit (CI security job). Fix real issues in code; skip noisy rules for established patterns.
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "build", "dist"]
+skips = [
+  "B110",  # try/except/pass on best-effort cleanup paths
+  "B112",  # try/except/continue on iterative recovery
+  "B404",  # subprocess import (B603 covers invocation)
+  "B603",  # subprocess.run with argv list, shell=False
+  "B607",  # partial executable path for git in PATH
+  "B105",  # false positives on enum names and dev-only default constant names
+  "B608",  # false positives on large LLM prompt f-strings (not SQL)
+  "B104",  # intentional 0.0.0.0 API bind / CLI localhost rewrite
+]

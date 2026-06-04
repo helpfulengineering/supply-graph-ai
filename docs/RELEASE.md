@@ -43,8 +43,28 @@ Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true
 5. Merge to `main` and wait for CI to pass (quality, test, contract-stability, security, docker-build-test).
 6. Create git tag `vX.Y.Z` on the release commit.
 7. Push the tag — the **Release** workflow validates the tag, runs tests, builds from `uv.lock`, and pushes a **multi-arch** manifest (`linux/amd64`, `linux/arm64`) to Docker Hub.
-8. Create a [GitHub Release](https://github.com/helpfulengineering/supply-graph-ai/releases) with notes from `CHANGELOG.md`.
+8. Push the git tag — the **Release** workflow creates the [GitHub Release](https://github.com/helpfulengineering/supply-graph-ai/releases) automatically after Docker publish (notes from `CHANGELOG.md` via `scripts/extract_changelog_section.py`).
 9. Smoke-test the pulled image (see below).
+
+## Git tags vs GitHub Releases
+
+| Artifact | What it is | How you create it |
+|----------|------------|-------------------|
+| **Git tag** (`v0.8.0`) | A pointer to a commit in git | `git tag v0.8.0 && git push origin v0.8.0` |
+| **GitHub Release** | A project page: title, notes, optional assets, zip/tarball source downloads | Created by the `github-release` job in `.github/workflows/release.yml`, or manually in the UI |
+
+Pushing a tag **starts** the Release workflow and publishes Docker images, but GitHub does **not** list a release until the `github-release` job runs (or you create one manually). That is why Docker Hub can show `0.8.0` while **Releases** is empty.
+
+`workflow_dispatch` with `dry_run: false` republishes Docker images only; it does **not** create a GitHub Release (no tag push).
+
+### Retroactive release for an existing tag
+
+If `v0.8.0` exists but no GitHub Release was created:
+
+```bash
+uv run python scripts/extract_changelog_section.py 0.8.0 -o /tmp/notes.md
+gh release create v0.8.0 --title "Open Hardware Manager 0.8.0" --notes-file /tmp/notes.md
+```
 
 ## GitHub Actions: Release workflow
 

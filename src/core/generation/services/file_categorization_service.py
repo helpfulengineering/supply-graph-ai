@@ -529,8 +529,12 @@ class FileCategorizationService:
         """
         if file_info.content is None:
             # For files without content, use path as key
-            return hashlib.md5(file_info.path.encode("utf-8")).hexdigest()
+            return hashlib.md5(
+                file_info.path.encode("utf-8"), usedforsecurity=False
+            ).hexdigest()
 
         # Hash file content
-        content_hash = hashlib.md5(file_info.content.encode("utf-8")).hexdigest()
+        content_hash = hashlib.md5(
+            file_info.content.encode("utf-8"), usedforsecurity=False
+        ).hexdigest()
         return content_hash

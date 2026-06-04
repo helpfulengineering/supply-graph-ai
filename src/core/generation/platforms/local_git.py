@@ -125,7 +125,7 @@ class LocalGitExtractor(ProjectExtractor):
         """
         try:
             # Create unique directory name based on URL and timestamp
-            url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
+            url_hash = hashlib.md5(url.encode(), usedforsecurity=False).hexdigest()[:8]
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             clone_dir = self.temp_dir / f"repo_{url_hash}_{timestamp}"
 

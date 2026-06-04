@@ -100,7 +100,8 @@ async def identify(
     service: FederationService = Depends(require_federation_api),
 ) -> IdentifyResponse:
     index = await service.build_catalog_index()
-    assert service.identity is not None
+    if service.identity is None:
+        raise RuntimeError("Federation identity not loaded")
     return IdentifyResponse(
         did=service.identity.did,
         display_name=service.identity.display_name,

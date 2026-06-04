@@ -12,7 +12,7 @@ command for a guided experience.
 import dataclasses
 import inspect
 from enum import Enum
-from typing import Any, Dict, Type, get_args, get_origin
+from typing import Any, Dict, Type, get_args, get_origin, get_type_hints
 
 # Built-in collection types that should default to empty list
 _LIST_ORIGINS = (list,)
@@ -55,7 +55,9 @@ def build_blank_template(cls: Type) -> Dict[str, Any]:
 
                 module = sys.modules.get(cls.__module__, None)
                 ns = getattr(module, "__dict__", {}) if module else {}
-                field_type = eval(field_type, ns)  # noqa: S307
+                field_type = get_type_hints(cls, globalns=ns, localns=ns).get(
+                    f.name, str
+                )
             except Exception:
                 # If we can't resolve, default to ""
                 result[f.name] = ""
