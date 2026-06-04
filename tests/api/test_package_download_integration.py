@@ -4,7 +4,8 @@ Live API integration test for package download (requires running OHM API).
 Run against a server with the org/project/version route fix, e.g. after
 ``docker compose build ohm-api && docker compose up -d ohm-api``:
 
-    OHM_API_BASE=http://localhost:8001 pytest tests/api/test_package_download_integration.py -m integration
+    RUN_LIVE_API_TESTS=1 OHM_API_BASE=http://localhost:8001 \\
+        pytest tests/api/test_package_download_integration.py -m integration
 """
 
 from __future__ import annotations
@@ -16,7 +17,13 @@ import tempfile
 import httpx
 import pytest
 
-pytestmark = pytest.mark.integration
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skipif(
+        os.environ.get("RUN_LIVE_API_TESTS", "0") != "1",
+        reason="Set RUN_LIVE_API_TESTS=1 and a reachable OHM_API_BASE to run",
+    ),
+]
 
 
 @pytest.mark.allow_network

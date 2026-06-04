@@ -12,6 +12,8 @@ import pytest
 
 _TESTS_ROOT = Path(__file__).resolve().parent
 
+_LANE_MARKERS = frozenset({"unit", "contract", "integration", "e2e", "benchmark"})
+
 _LANE_BY_DIR = {
     "unit": _TESTS_ROOT / "unit",
     "contract": None,  # api + cli handled below
@@ -47,10 +49,14 @@ def pytest_collection_modifyitems(
 ) -> None:
     for item in items:
         path = Path(str(item.fspath))
+        existing = {mark.name for mark in item.iter_markers()}
+        # Respect explicit lane markers (e.g. integration tests under tests/api/).
+        if existing & _LANE_MARKERS:
+            continue
         lane = _lane_for_path(path)
         if lane is None:
             continue
-        if lane not in {mark.name for mark in item.iter_markers()}:
+        if lane not in existing:
             item.add_marker(getattr(pytest.mark, lane))
 
 
