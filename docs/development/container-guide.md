@@ -15,20 +15,48 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
 
 ## Quick Start
 
-### Published image (release 0.8.0)
+### Published image (release 0.8.1)
 
 For a pre-built image matching CI and release automation:
 
 ```bash
-docker pull touchthesun/openhardwaremanager:0.8.0
+docker pull touchthesun/openhardwaremanager:0.8.1
+```
+
+**With local storage (no credentials needed):**
+
+```bash
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.8.0
+  touchthesun/openhardwaremanager:0.8.1
+```
+
+**With remote storage (Azure Blob, AWS S3, or GCS):**
+
+> **Important:** The published image does not contain a `.env` file. Storage credentials set only in a local `.env` are not visible to the container — they must be passed explicitly at runtime.
+
+The recommended approach is `--env-file`, which mirrors what `docker-compose` does via its `env_file:` directive:
+
+```bash
+docker run -p 8001:8001 \
+  --env-file .env \
+  touchthesun/openhardwaremanager:0.8.1
+```
+
+You can also pass individual variables with `-e` flags:
+
+```bash
+docker run -p 8001:8001 \
+  -e STORAGE_PROVIDER=azure_blob \
+  -e AZURE_STORAGE_ACCOUNT=<account-name> \
+  -e AZURE_STORAGE_KEY=<account-key> \
+  -e AZURE_STORAGE_CONTAINER=<container-name> \
+  touchthesun/openhardwaremanager:0.8.1
 ```
 
 - API documentation: http://localhost:8001/v1/docs
-- Health check: http://localhost:8001/health (expect `"version": "0.8.0"`)
+- Health check: http://localhost:8001/health (expect `"version": "0.8.1"`)
 - Federation is **off by default** (`OHM_FEDERATION_ENABLED=false`). See [federation infrastructure](federation-infra.md) to enable peer sync.
 
 Other tags: `touchthesun/openhardwaremanager:0.8`, `:latest`. Images are **multi-arch** (`linux/amd64`, `linux/arm64`). See [Release process](../RELEASE.md).
@@ -92,16 +120,48 @@ The container supports configuration through environment variables. See `env.tem
 
 #### Essential Configuration
 
-- `API_HOST`: API server host (default: 0.0.0.0)
-- `API_PORT`: API server port (default: 8001)
+- `API_HOST`: API server host (default: `0.0.0.0`)
+- `API_PORT`: API server port (default: `8001`)
 - `API_KEYS`: Comma-separated list of API keys for authentication
-- `LOG_LEVEL`: Logging level (default: INFO)
-- `DEBUG`: Enable debug mode (default: false)
+- `LOG_LEVEL`: Logging level (default: `INFO`)
+- `DEBUG`: Enable debug mode (default: `false`)
 
 #### Storage Configuration
 
-- `STORAGE_PROVIDER`: Storage provider (local, aws_s3, azure_blob, gcp_storage)
-- `STORAGE_BUCKET_NAME`: Storage bucket/container name
+`STORAGE_PROVIDER` selects the backend (default: `local`). The credential variables required depend on the provider:
+
+**Local storage** (default, no credentials needed):
+```
+STORAGE_PROVIDER=local
+LOCAL_STORAGE_PATH=storage   # path inside the container; mount a volume here for persistence
+```
+
+**Azure Blob Storage:**
+```
+STORAGE_PROVIDER=azure_blob
+AZURE_STORAGE_ACCOUNT=<storage-account-name>
+AZURE_STORAGE_KEY=<storage-account-key>
+AZURE_STORAGE_CONTAINER=<container-name>
+```
+
+**AWS S3:**
+```
+STORAGE_PROVIDER=aws_s3
+AWS_ACCESS_KEY_ID=<access-key-id>
+AWS_SECRET_ACCESS_KEY=<secret-access-key>
+AWS_S3_BUCKET=<bucket-name>
+AWS_DEFAULT_REGION=us-east-1   # optional, defaults to us-east-1
+```
+
+**Google Cloud Storage:**
+```
+STORAGE_PROVIDER=gcs
+GCP_PROJECT_ID=<project-id>
+GCP_CREDENTIALS_JSON=<path-to-service-account-json-or-json-string>
+GCP_STORAGE_BUCKET=<bucket-name>
+```
+
+> **None of these are baked into the published image.** Pass them via `--env-file .env` or `-e KEY=VALUE` flags. When using `docker-compose` from source, `env_file: - .env` in `docker-compose.yml` handles this automatically.
 
 #### LLM Configuration
 
@@ -303,7 +363,7 @@ docker-compose -f docker-compose.prod.yml up -d
      --environment-variables \
        API_KEYS=your-api-key \
        STORAGE_PROVIDER=azure_blob \
-       AZURE_STORAGE_ACCOUNT_NAME=your-account \
+       AZURE_STORAGE_ACCOUNT=your-account \
      --registry-login-server your-registry.azurecr.io \
      --registry-username your-username \
      --registry-password your-password
@@ -416,12 +476,42 @@ For production, consider using:
    - Verify firewall settings
    - Check container health
 
-3. **Storage issues:**
-   - Verify volume mounts
-   - Check storage provider credentials
-   - Ensure proper permissions
+3. **Storage falling back to local unexpectedly, or DNS failure on the Azure/S3 hostname:**
 
-4. **Memory issues:**
+   Two related causes:
+
+   **a) Credentials not reaching the container.** When running the published image directly (not via `docker-compose`), the `.env` file on your host is invisible to the container.
+
+   **b) Quoted values in `.env` passed via `docker run --env-file`.** `docker run --env-file` passes values verbatim — if your `.env` has `AZURE_STORAGE_ACCOUNT="myaccount"`, the variable will contain the literal quote characters, producing a URL like `https://"myaccount".blob.core.windows.net` and a DNS failure. `docker-compose` (via python-dotenv) strips surrounding quotes automatically. As of `0.8.1`, `storage_config.py` strips quotes defensively; if you're on an older image, remove the quotes from the values in your `.env`.
+
+   Verify which provider the container is actually using:
+   ```bash
+   docker logs <container-id> 2>&1 | grep -i "storage provider\|storage_provider\|azure\|bucket"
+   ```
+
+   Fix by passing the env file explicitly:
+   ```bash
+   docker run -p 8001:8001 --env-file .env touchthesun/openhardwaremanager:0.8.1
+   ```
+
+   To verify connectivity once the container is running, use the `storage setup` CLI command (it will connect to the configured provider and report any credential errors):
+   ```bash
+   docker run --rm --env-file .env \
+     touchthesun/openhardwaremanager:0.8.1 \
+     cli storage setup --provider azure_blob
+   ```
+
+   From source (outside Docker), the `scripts/explore_remote_storage.py` script lists objects in each prefix and is the fastest way to confirm the configuration is correct:
+   ```bash
+   uv run python scripts/explore_remote_storage.py
+   ```
+
+4. **Volume mounts / permissions:**
+   - Verify volume mounts with `docker inspect <container-id>`
+   - Check storage provider credentials
+   - Ensure proper file permissions on mounted paths
+
+5. **Memory issues:**
    - Monitor memory usage
    - Adjust container limits
    - Check for memory leaks

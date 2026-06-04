@@ -216,7 +216,10 @@ class APIClient:
                 )
             except Exception as e:
                 logger.debug(f"Unexpected error to {full_url}: {e}", exc_info=True)
-                raise click.ClickException(f"Unexpected error: {str(e)}")
+                exc_detail = str(e) or f"<{type(e).__name__}>"
+                raise click.ClickException(
+                    f"Unexpected error ({type(e).__name__}): {exc_detail}"
+                )
 
     async def upload_file(
         self,
@@ -257,7 +260,10 @@ class APIClient:
                     f"Request timed out after {self.config.timeout}s"
                 )
             except Exception as e:
-                raise click.ClickException(f"Unexpected error: {str(e)}")
+                exc_detail = str(e) or f"<{type(e).__name__}>"
+                raise click.ClickException(
+                    f"Unexpected error ({type(e).__name__}): {exc_detail}"
+                )
             finally:
                 # Ensure file is closed
                 if "files" in locals():

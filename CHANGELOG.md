@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2] - 2026-06-04
+
+### Fixed
+
+- **Docker `--env-file` breaks remote storage (quoted env values):** `docker run --env-file` passes values verbatim including surrounding quotes, while `docker-compose` / `python-dotenv` strips them. The `_env()` helper in `storage_config.py` now defensively strips `"` and `'` from all credential and bucket-name variables, preventing DNS failures such as `Cannot connect to host '"myaccount"'.blob.core.windows.net`.
+- **Azure Key Vault init noise on every command:** The secrets manager incorrectly detected an Azure Key Vault environment whenever `AZURE_STORAGE_ACCOUNT` was present in `.env`, triggering a noisy warning about missing optional packages on every CLI invocation. Detection now requires `AZURE_KEY_VAULT_URL` or `WEBSITE_INSTANCE_ID` to be set.
+- **Blank `"Unexpected error: "` message:** `APIClient.request()`'s catch-all exception handler now always includes the exception type in the message (`Unexpected error (ExcType): detail`), so errors can never silently produce an empty description.
+
+### Documentation
+
+- `README.md` and `docs/development/container-guide.md` updated with explicit `docker run --env-file` guidance, per-provider env-var tables, and a troubleshooting section on the quoted-value DNS failure.
+
+[0.8.2]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.1...v0.8.2
+
 ## [0.8.1] - 2026-06-04
 
 ### Fixed

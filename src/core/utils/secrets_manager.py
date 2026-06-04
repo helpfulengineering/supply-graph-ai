@@ -66,8 +66,8 @@ class SecretsManager:
             # GCP environment
             return SecretsProvider.GCP
 
-        if os.getenv("WEBSITE_INSTANCE_ID") or os.getenv("AZURE_STORAGE_ACCOUNT"):
-            # Azure environment
+        if os.getenv("AZURE_KEY_VAULT_URL") or os.getenv("WEBSITE_INSTANCE_ID"):
+            # Azure Key Vault explicitly configured or running in Azure App Service
             return SecretsProvider.AZURE
 
         # Default to environment variables

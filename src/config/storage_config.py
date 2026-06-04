@@ -47,10 +47,24 @@ class MissingCredentialsError(StorageConfigError):
     pass
 
 
+def _env(key: str, default: Optional[str] = None) -> Optional[str]:
+    """Read an env var and strip surrounding quotes.
+
+    `docker run --env-file` passes values verbatim (quotes included), while
+    python-dotenv (used by docker-compose and load_dotenv()) strips them.
+    Stripping here makes both invocation styles produce identical credentials.
+    """
+    value = os.getenv(key, default)
+    if value is None:
+        return None
+    stripped = value.strip().strip("\"'")
+    return stripped if stripped else None
+
+
 def get_azure_credentials() -> Dict[str, str]:
     """Get Azure Blob Storage credentials from environment variables"""
-    account_name = os.getenv("AZURE_STORAGE_ACCOUNT")
-    account_key = os.getenv("AZURE_STORAGE_KEY")
+    account_name = _env("AZURE_STORAGE_ACCOUNT")
+    account_key = _env("AZURE_STORAGE_KEY")
 
     if not account_name or not account_key:
         raise MissingCredentialsError(
@@ -63,9 +77,9 @@ def get_azure_credentials() -> Dict[str, str]:
 
 def get_aws_credentials() -> Dict[str, str]:
     """Get AWS S3 credentials from environment variables"""
-    access_key = os.getenv("AWS_ACCESS_KEY_ID")
-    secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    region = os.getenv("AWS_DEFAULT_REGION", "us-east-1")
+    access_key = _env("AWS_ACCESS_KEY_ID")
+    secret_key = _env("AWS_SECRET_ACCESS_KEY")
+    region = _env("AWS_DEFAULT_REGION") or "us-east-1"
 
     if not access_key or not secret_key:
         raise MissingCredentialsError(
@@ -86,9 +100,9 @@ def get_gcp_credentials() -> Dict[str, str]:
 
     GCP_PROJECT_ID is optional if it's in the credentials JSON.
     """
-    project_id = os.getenv("GCP_PROJECT_ID")
-    credentials_json = os.getenv("GCP_CREDENTIALS_JSON")
-    credentials_path = os.getenv("GCP_CREDENTIALS_PATH")
+    project_id = _env("GCP_PROJECT_ID")
+    credentials_json = _env("GCP_CREDENTIALS_JSON")
+    credentials_path = _env("GCP_CREDENTIALS_PATH")
 
     # If credentials_path is explicitly set, use it
     if credentials_path:
@@ -143,18 +157,18 @@ def create_storage_config(
     if provider == "azure_blob":
         credentials = get_azure_credentials()
         if not bucket_name:
-            bucket_name = os.getenv("AZURE_STORAGE_CONTAINER")
+            bucket_name = _env("AZURE_STORAGE_CONTAINER")
     elif provider == "aws_s3":
         credentials = get_aws_credentials()
         if not bucket_name:
-            bucket_name = os.getenv("AWS_S3_BUCKET")
+            bucket_name = _env("AWS_S3_BUCKET")
     elif provider == "gcs":
         credentials = get_gcp_credentials()
         if not bucket_name:
-            bucket_name = os.getenv("GCP_STORAGE_BUCKET")
+            bucket_name = _env("GCP_STORAGE_BUCKET")
     elif provider == "local":
         if not bucket_name:
-            bucket_name = os.getenv("LOCAL_STORAGE_PATH", "storage")
+            bucket_name = _env("LOCAL_STORAGE_PATH") or "storage"
     else:
         raise StorageConfigError(f"Unsupported storage provider: {provider}")
 
@@ -188,5 +202,5 @@ def get_default_storage_config() -> StorageConfig:
     Raises:
         StorageConfigError: If configuration is invalid or credentials are missing
     """
-    provider = os.getenv("STORAGE_PROVIDER", "local")
+    provider = _env("STORAGE_PROVIDER") or "local"
     return create_storage_config(provider)

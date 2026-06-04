@@ -25,13 +25,37 @@ After installing, open a new terminal so the tools are on your PATH.
 
 ### Option A: Published Docker image (fastest — no clone required)
 
+**Local storage (no credentials needed):**
+
 ```bash
-docker pull touchthesun/openhardwaremanager:0.8.0
+docker pull touchthesun/openhardwaremanager:0.8.1
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.8.0
+  touchthesun/openhardwaremanager:0.8.1
 ```
+
+**Remote storage (Azure Blob, AWS S3, or GCS):**
+
+The published image does not include a `.env` file — you must pass your storage credentials at runtime. The simplest way is `--env-file`:
+
+```bash
+# Copy the template, fill in your provider and credentials, then:
+docker run -p 8001:8001 \
+  --env-file .env \
+  touchthesun/openhardwaremanager:0.8.1
+```
+
+The minimum `.env` keys for Azure Blob are:
+
+```
+STORAGE_PROVIDER=azure_blob
+AZURE_STORAGE_ACCOUNT=<your-account-name>
+AZURE_STORAGE_KEY=<your-account-key>
+AZURE_STORAGE_CONTAINER=<your-container-name>
+```
+
+See [Container Guide](docs/development/container-guide.md) for the full list of storage env vars and examples for AWS S3 and GCS.
 
 The API is at `http://localhost:8001`. Docs: `http://localhost:8001/v1/docs`. Check version: `curl -s http://localhost:8001/health`.
 
