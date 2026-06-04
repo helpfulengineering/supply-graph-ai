@@ -283,7 +283,7 @@ curl http://localhost:7071/api/listOKHsummaries
 # Test API health
 curl http://localhost:8001/health
 
-# Expected: {"status": "ok", "domains": [...], "version": "1.0.0"}
+# Expected: {"status": "ok", "domains": [...], "version": "0.8.0"}
 
 # Test API documentation
 open http://localhost:8001/v1/docs

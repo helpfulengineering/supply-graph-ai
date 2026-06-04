@@ -450,11 +450,17 @@ async def status(
 
         async def fallback_status():
             """Get status using direct service calls"""
+            from src.core.version import get_version
+
             cli_ctx.log("Using direct service status check...", "info")
             domains = list(DomainRegistry.get_registered_domains())
 
             return {
-                "health": {"status": "ok", "domains": domains, "version": "1.0.0"},
+                "health": {
+                    "status": "ok",
+                    "domains": domains,
+                    "version": get_version(),
+                },
                 "domains": {
                     "domains": [
                         {
@@ -665,12 +671,11 @@ def info(
         if cli_ctx.is_llm_enabled():
             log_llm_usage(cli_ctx, "System information")
 
-        # Import version info
         try:
-            from . import __version__
+            from src.core.version import get_version
 
-            version = __version__
-        except ImportError:
+            version = get_version()
+        except Exception:
             version = "Unknown"
 
         if output_format == "json":

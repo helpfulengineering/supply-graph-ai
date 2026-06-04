@@ -132,9 +132,9 @@ cli.add_command(federation_group, name="federation")
 @cli.command()
 def version() -> None:
     """Show OHM version information."""
-    from . import __version__
+    from src.core.version import get_version
 
-    click.echo(f"Open Hardware Manager CLI v{__version__}")
+    click.echo(f"Open Hardware Manager CLI v{get_version()}")
 
 
 @cli.command()

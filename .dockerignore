@@ -3,12 +3,12 @@
 .gitignore
 .gitattributes
 
-# Documentation
-README.md
+# Documentation (README.md required for setuptools — do not exclude)
+docs/
 CONTRIBUTING.md
 LICENSE
-docs/
 *.md
+!README.md
 
 # Python
 __pycache__/

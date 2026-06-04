@@ -1,0 +1,171 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build and test only; do not push to Docker Hub
+        type: boolean
+        default: true
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: touchthesun/openhardwaremanager
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  validate:
+    name: Validate release version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      major_minor: ${{ steps.meta.outputs.major_minor }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate tag vs pyproject.toml
+        id: meta
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python3 scripts/validate_release_version.py --tag "${GITHUB_REF_NAME}"
+          else
+            python3 scripts/validate_release_version.py
+          fi
+
+  test:
+    name: Pre-release tests
+    runs-on: ubuntu-latest
+    needs: validate
+    env:
+      ENVIRONMENT: test
+      LOG_LEVEL: INFO
+      STORAGE_PROVIDER: local
+      LLM_ENABLED: false
+      RUN_AZURE_CHAIN_TESTS: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: |
+          uv sync --extra dev
+          uv pip install pytest-cov pip-audit
+
+      - name: Run unit lane
+        run: |
+          uv run pytest tests \
+            -m "unit and not llm and not quarantine" \
+            --maxfail=1
+
+      - name: Run contract lane
+        run: |
+          uv run pytest tests \
+            -m "contract and not llm and not quarantine" \
+            --maxfail=1
+
+      - name: Run contract stability suite
+        run: |
+          uv run pytest \
+            tests/api/test_scaffold_cleanup_endpoint.py \
+            tests/api/test_package_download_route.py \
+            tests/cli/test_scaffold_cleanup_cli.py \
+            tests/federation/test_federation_routes.py \
+            -m "not llm and not quarantine" \
+            --maxfail=1
+
+      - name: Dependency vulnerability scan
+        run: uv run pip-audit
+
+  docker-smoke:
+    name: Docker build and smoke test
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ env.IMAGE }}:${{ needs.validate.outputs.version }}
+          build-args: |
+            APP_VERSION=${{ needs.validate.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test container
+        run: |
+          EXPECTED="${{ needs.validate.outputs.version }}"
+          docker run -d --name release-smoke \
+            -p 8001:8001 \
+            -e ENVIRONMENT=test \
+            -e STORAGE_PROVIDER=local \
+            -e LLM_ENABLED=false \
+            "${{ env.IMAGE }}:${EXPECTED}"
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8001/health >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          ACTUAL=$(curl -sf http://localhost:8001/health | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          echo "health version=$ACTUAL (expected $EXPECTED)"
+          test "$ACTUAL" = "$EXPECTED"
+          docker rm -f release-smoke
+
+  publish:
+    name: Publish to Docker Hub
+    runs-on: ubuntu-latest
+    needs: [validate, test, docker-smoke]
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ needs.validate.outputs.version }}
+            ${{ env.IMAGE }}:${{ needs.validate.outputs.major_minor }}
+            ${{ env.IMAGE }}:latest
+          build-args: |
+            APP_VERSION=${{ needs.validate.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Publish summary
+        run: |
+          echo "Published:"
+          echo "  ${{ env.IMAGE }}:${{ needs.validate.outputs.version }}"
+          echo "  ${{ env.IMAGE }}:${{ needs.validate.outputs.major_minor }}"
+          echo "  ${{ env.IMAGE }}:latest"
