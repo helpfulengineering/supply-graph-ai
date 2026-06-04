@@ -2,8 +2,13 @@ name: Docker Build and Test
 
 on:
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, dev]
+  push:
+    branches: [main]
   workflow_dispatch:
+
+env:
+  IMAGE: supply-graph-ai
 
 jobs:
   docker-test:
@@ -12,6 +17,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Read expected version from pyproject.toml
+        id: version
+        run: |
+          VERSION=$(grep -E '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "expected=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Expected app version: $VERSION"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -22,13 +34,14 @@ jobs:
           context: .
           push: false
           load: true
-          tags: supply-graph-ai:test
+          tags: ${{ env.IMAGE }}:test
+          build-args: |
+            APP_VERSION=${{ steps.version.outputs.expected }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Test Docker image
         run: |
-          # Start container in background
           docker run -d \
             --name test-container \
             -p 8001:8001 \
@@ -36,7 +49,7 @@ jobs:
             -e LOG_LEVEL=INFO \
             -e STORAGE_PROVIDER=local \
             -e LLM_ENABLED=false \
-            supply-graph-ai:test
+            ${{ env.IMAGE }}:test
 
       - name: Wait for container to be ready
         run: |
@@ -57,21 +70,18 @@ jobs:
 
       - name: Run health checks
         run: |
-          # Test basic health endpoint
-          curl -f http://localhost:8001/health
-          
-          # Test liveness probe
+          EXPECTED="${{ steps.version.outputs.expected }}"
+          BODY=$(curl -sf http://localhost:8001/health)
+          echo "$BODY"
+          ACTUAL=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])")
+          echo "version=$ACTUAL (expected $EXPECTED)"
+          test "$ACTUAL" = "$EXPECTED"
           curl -f http://localhost:8001/health/liveness
-          
-          # Test readiness probe (may fail if dependencies aren't ready, that's ok)
           curl -f http://localhost:8001/health/readiness || echo "Readiness check returned non-zero (expected in test environment)"
 
       - name: Test metrics endpoint
         run: |
-          # Test JSON metrics
           curl -f http://localhost:8001/v1/api/utility/metrics?format=json
-          
-          # Test Prometheus metrics
           curl -f http://localhost:8001/v1/api/utility/metrics?format=prometheus
 
       - name: Check container logs
@@ -87,4 +97,3 @@ jobs:
         run: |
           docker stop test-container || true
           docker rm test-container || true
-

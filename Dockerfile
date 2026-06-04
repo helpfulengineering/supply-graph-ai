@@ -1,79 +1,71 @@
-# Multi-stage build for smaller final image
-# Stage 1: Build dependencies
-FROM python:3.12-slim as builder
+# Multi-stage build: frozen dependencies from uv.lock (matches CI), non-editable install.
+# Stage 1: Build dependencies and application
+FROM python:3.12-slim AS builder
 
-# Set environment variables
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_PROJECT_ENVIRONMENT=/opt/venv
 
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
 WORKDIR /app
 
-# Copy package config first for better caching
-COPY pyproject.toml .
-
-# Install Python dependencies to a virtual environment
-RUN python -m venv /opt/venv
+RUN uv venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
-RUN pip install --no-cache-dir .
+
+# Lockfile-first install for reproducible dependency resolution (same as CI).
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-install-project --no-editable
+
+COPY src/ ./src/
+COPY config/ ./config/
+
+RUN uv sync --frozen --no-dev --no-editable
+
+# Required for NLP processing
+RUN python -m spacy download en_core_web_md
 
 # Stage 2: Runtime image
-FROM python:3.12-slim
+FROM python:3.12-slim AS runtime
 
-# Set environment variables
+ARG APP_VERSION=0.8.0
+LABEL org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.title="Open Hardware Manager (OHM)" \
+      org.opencontainers.image.source="https://github.com/helpfulengineering/supply-graph-ai/supply-graph-ai"
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
-    PYTHONPATH="/app"
+    PYTHONPATH="/app" \
+    APP_VERSION="${APP_VERSION}"
 
-# Install only runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
-# Set work directory
 WORKDIR /app
 
-# Copy only necessary application files (respects .dockerignore)
-# Copy package configuration
-COPY pyproject.toml ./
-
-# Copy source code
+COPY pyproject.toml uv.lock README.md ./
 COPY src/ ./src/
-
-# Copy configuration files
 COPY config/ ./config/
-
-# Copy entrypoint and runtime config
 COPY deploy/docker/docker-entrypoint.sh deploy/docker/gunicorn.conf.py ./
 
-# Install the package in editable mode (creates 'ohm' command)
-RUN pip install --no-cache-dir -e .
-
-# Download spaCy model (required for NLP processing)
-RUN python -m spacy download en_core_web_md
-
-# Create necessary directories with proper permissions
 RUN mkdir -p logs storage storage/federation temp_context temp_matching_context && \
     chmod -R 755 logs storage temp_context temp_matching_context
 
-# Create entrypoint script executable
 RUN chmod +x docker-entrypoint.sh && \
     mv docker-entrypoint.sh /usr/local/bin/
 
-# Create a non-root user for security (entrypoint drops from root to ohm at runtime)
 RUN groupadd -r ohm && useradd -r -g ohm ohm && \
     chown -R ohm:ohm /app && \
     chown -R ohm:ohm /opt/venv
@@ -81,16 +73,11 @@ RUN groupadd -r ohm && useradd -r -g ohm ohm && \
 # Entrypoint fixes named-volume ownership, then execs as ohm
 USER root
 
-# Expose port for API server (Cloud Run will override with PORT env var)
 EXPOSE 8001
 
-# Health check
-# Use shell form to allow variable expansion for PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD sh -c 'curl -f http://localhost:${PORT:-8001}/health || exit 1'
 
-# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
-# Default command (can be overridden)
 CMD ["api"]
