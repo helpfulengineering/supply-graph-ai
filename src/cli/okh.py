@@ -78,28 +78,39 @@ async def _display_validation_results(
     """Print validation results to the console or structured log."""
     validation = result.get("validation", result)
     is_valid = validation.get("is_valid", False)
+    metadata = validation.get("metadata") or {}
 
     if is_valid:
         cli_ctx.log("Manifest is valid", "success")
     else:
         cli_ctx.log("Manifest validation failed", "error")
 
-    # Display errors
     if validation.get("errors"):
         for error in validation["errors"]:
             cli_ctx.log(f"Error: {error}", "error")
 
-    # Display warnings
     if validation.get("warnings"):
         for warning in validation["warnings"]:
             cli_ctx.log(f"Warning: {warning}", "warning")
 
-    # Display completeness score
-    if validation.get("completeness_score"):
-        score = validation["completeness_score"]
-        cli_ctx.log(f"Completeness Score: {score:.1%}", "info")
+    if "required_coverage" in metadata:
+        cli_ctx.log(
+            f"Required field coverage: {metadata['required_coverage']:.1%}", "info"
+        )
+    if "optional_coverage" in metadata:
+        cli_ctx.log(
+            f"Optional field coverage: {metadata['optional_coverage']:.1%}", "info"
+        )
+    elif metadata.get("completeness_score") is not None:
+        cli_ctx.log(f"Completeness Score: {metadata['completeness_score']:.1%}", "info")
 
-    # Format output based on format preference
+    if cli_ctx.verbose and metadata.get("field_presence"):
+        missing = [
+            f for f, present in metadata["field_presence"].items() if not present
+        ]
+        if missing:
+            cli_ctx.log(f"Missing fields: {', '.join(missing)}", "warning")
+
     if output_format == "json":
         output_data = format_llm_output(result, cli_ctx)
         click.echo(output_data)

@@ -160,11 +160,15 @@ def validate_okh_manifest(
             okh_manifest, quality_level, strict_mode, result, detected_domain
         )
 
-        # Step 4: Calculate completeness score
+        # Step 4: Calculate completeness score (quality-level-dependent)
         completeness_score = _calculate_okh_completeness(
             okh_manifest, quality_level, detected_domain
         )
         result.details["completeness_score"] = completeness_score
+
+        # Step 4b: Compute quality-agnostic field presence and coverage scores
+        presence_data = _compute_okh_field_presence(okh_manifest)
+        result.details.update(presence_data)
 
         # Step 5: Generate suggestions for improvement
         _generate_okh_suggestions(okh_manifest, quality_level, result, detected_domain)
@@ -484,6 +488,79 @@ def _validate_okw_quality_level(
                 result.add_error(
                     f"Required field '{field_name}' is missing (strict mode)"
                 )
+
+
+_OKH_REQUIRED_FIELDS = [
+    "title",
+    "version",
+    "license",
+    "licensor",
+    "documentation_language",
+    "function",
+]
+
+_OKH_OPTIONAL_FIELDS = [
+    "description",
+    "intended_use",
+    "keywords",
+    "project_link",
+    "health_safety_notice",
+    "contact",
+    "contributors",
+    "organization",
+    "image",
+    "version_date",
+    "readme",
+    "contribution_guide",
+    "development_stage",
+    "attestation",
+    "technology_readiness_level",
+    "documentation_readiness_level",
+    "manufacturing_files",
+    "documentation_home",
+    "archive_download",
+    "design_files",
+    "making_instructions",
+    "operating_instructions",
+    "technical_specifications",
+    "publications",
+    "tool_list",
+    "manufacturing_processes",
+    "materials",
+    "manufacturing_specs",
+    "bom",
+    "standards_used",
+    "cpc_patent_class",
+    "tsdc",
+    "parts",
+    "derivative_of",
+    "variant_of",
+    "sub_parts",
+]
+
+
+def _field_is_present(value) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, (list, dict)):
+        return len(value) > 0
+    if isinstance(value, str):
+        return bool(value.strip())
+    return True
+
+
+def _compute_okh_field_presence(manifest: OKHManifest) -> Dict[str, Any]:
+    """Return per-field presence map and quality-agnostic coverage scores."""
+    manifest_dict = manifest.to_dict()
+    all_fields = _OKH_REQUIRED_FIELDS + _OKH_OPTIONAL_FIELDS
+    field_presence = {f: _field_is_present(manifest_dict.get(f)) for f in all_fields}
+    required_present = sum(field_presence[f] for f in _OKH_REQUIRED_FIELDS)
+    optional_present = sum(field_presence[f] for f in _OKH_OPTIONAL_FIELDS)
+    return {
+        "field_presence": field_presence,
+        "required_coverage": required_present / len(_OKH_REQUIRED_FIELDS),
+        "optional_coverage": optional_present / len(_OKH_OPTIONAL_FIELDS),
+    }
 
 
 def _calculate_okh_completeness(
