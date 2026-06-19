@@ -452,6 +452,22 @@ async def match_requirements_to_capabilities(
             )
             response_data["suggestions"] = suggestions
             response_data["suggestion_codes"] = suggestion_codes
+
+            _GEO_KEYS = {"country", "region", "city"}
+            applied_filters = {
+                k: v
+                for k, v in {
+                    "access_type": request.access_type,
+                    "facility_status": request.facility_status,
+                    "location": request.location,
+                }.items()
+                if v is not None
+            }
+            applied_filters.update(
+                {k: v for k, v in (request.okw_filters or {}).items() if k in _GEO_KEYS}
+            )
+            response_data["applied_filters"] = applied_filters
+
             optional_human_summary = _build_optional_human_summary(
                 request=request,
                 match_summary=match_summary,
@@ -2481,6 +2497,15 @@ async def _get_filtered_facilities(
 
             filtered_facilities.append(facility)
 
+        # Apply geographic filters from okw_filters (country, region, city)
+        _GEO_KEYS = {"country", "region", "city"}
+        okw_filters = getattr(request, "okw_filters", None) or {}
+        geo_filters = {k: v for k, v in okw_filters.items() if k in _GEO_KEYS}
+        if geo_filters:
+            filtered_facilities = [
+                f for f in filtered_facilities if _matches_filters(f, geo_filters)
+            ]
+
         logger.info(
             f"Filtered facilities: {len(filtered_facilities)} out of {len(facilities)}",
             extra={
@@ -2491,6 +2516,7 @@ async def _get_filtered_facilities(
                     "access_type": request.access_type,
                     "facility_status": request.facility_status,
                     "location": request.location,
+                    **geo_filters,
                 },
             },
         )
@@ -3025,22 +3051,36 @@ def _matches_filters(facility, filters: dict) -> bool:
         else:
             facility_dict = facility
 
-        # Location filter
-        if "location" in filters:
+        facility_location = facility_dict.get("location", {})
+
+        # Location filter (nested format: {"location": {"country": ..., "city": ...}})
+        if "location" in filters and isinstance(facility_location, dict):
             location_filter = filters["location"]
-            location = facility_dict.get("location", {})
-            if isinstance(location, dict):
-                if "country" in location_filter:
-                    if (
-                        location.get("country", "").lower()
-                        != location_filter["country"].lower()
-                    ):
-                        return False
-                if "city" in location_filter:
-                    if (
-                        location.get("city", "").lower()
-                        != location_filter["city"].lower()
-                    ):
+            if "country" in location_filter:
+                if (
+                    facility_location.get("country", "").lower()
+                    != location_filter["country"].lower()
+                ):
+                    return False
+            if "city" in location_filter:
+                if (
+                    facility_location.get("city", "").lower()
+                    != location_filter["city"].lower()
+                ):
+                    return False
+
+        # Geographic filters (flat keys: country, region, city — string or list)
+        if isinstance(facility_location, dict):
+            for geo_key in ("country", "region", "city"):
+                if geo_key in filters:
+                    filter_val = filters[geo_key]
+                    allowed = (
+                        [filter_val]
+                        if isinstance(filter_val, str)
+                        else list(filter_val)
+                    )
+                    facility_val = (facility_location.get(geo_key) or "").lower()
+                    if not any(v.lower() == facility_val for v in allowed if v):
                         return False
 
         # Capability filter

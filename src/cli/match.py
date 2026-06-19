@@ -75,6 +75,12 @@ def match_group() -> None:
     help="Filter by facility status",
 )
 @click.option("--location", help="Filter by location (city, country, or region)")
+@click.option(
+    "--country", help="Filter facilities by country (exact match, case-insensitive)"
+)
+@click.option(
+    "--region", help="Filter facilities by region/state (exact match, case-insensitive)"
+)
 @click.option("--capabilities", help="Comma-separated list of required capabilities")
 @click.option("--materials", help="Comma-separated list of required materials")
 @click.option(
@@ -260,6 +266,8 @@ async def requirements(
     access_type: Optional[str],
     facility_status: Optional[str],
     location: Optional[str],
+    country: Optional[str],
+    region: Optional[str],
     capabilities: Optional[str],
     materials: Optional[str],
     min_confidence: float,
@@ -342,6 +350,8 @@ async def requirements(
             access_type,
             facility_status,
             location,
+            country,
+            region,
             capabilities,
             materials,
             min_confidence,
@@ -1469,6 +1479,8 @@ def _parse_match_filters(
     access_type: Optional[str],
     facility_status: Optional[str],
     location: Optional[str],
+    country: Optional[str],
+    region: Optional[str],
     capabilities: Optional[str],
     materials: Optional[str],
     min_confidence: float,
@@ -1483,11 +1495,14 @@ def _parse_match_filters(
         "max_results": max_results,
     }
 
-    # Parse comma-separated lists
     if capabilities:
         filters["capabilities"] = [cap.strip() for cap in capabilities.split(",")]
     if materials:
         filters["materials"] = [mat.strip() for mat in materials.split(",")]
+
+    geo_filters = {k: v for k, v in {"country": country, "region": region}.items() if v}
+    if geo_filters:
+        filters["okw_filters"] = geo_filters
 
     return filters
 
