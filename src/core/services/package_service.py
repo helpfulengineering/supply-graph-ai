@@ -6,6 +6,7 @@ from uuid import UUID
 
 import aiofiles
 
+from ..federation.identity import NodeIdentity
 from ..models.okh import OKHManifest
 from ..models.package import BuildOptions, PackageMetadata, calculate_file_checksum
 from ..packaging.builder import PackageAssetDownloadError, PackageBuilder
@@ -78,7 +79,10 @@ class PackageService:
             raise RuntimeError("Package service not initialized")
 
     async def build_package_from_manifest(
-        self, manifest: OKHManifest, options: Optional[BuildOptions] = None
+        self,
+        manifest: OKHManifest,
+        options: Optional[BuildOptions] = None,
+        identity: Optional[NodeIdentity] = None,
     ) -> PackageMetadata:
         """
         Build a package from an OKH manifest
@@ -154,10 +158,23 @@ class PackageService:
         logger.info(
             f"Package built successfully: {metadata.package_name}/{metadata.version}"
         )
+
+        if identity is not None:
+            try:
+                from ..packaging.signing import sign_package
+
+                sign_package(Path(metadata.package_path), identity)
+                logger.info("Package signed with identity: %s", identity.did)
+            except Exception as e:
+                logger.warning("Package signing failed (package still usable): %s", e)
+
         return metadata
 
     async def build_package_from_dict(
-        self, manifest_data: Dict[str, Any], options: Optional[BuildOptions] = None
+        self,
+        manifest_data: Dict[str, Any],
+        options: Optional[BuildOptions] = None,
+        identity: Optional[NodeIdentity] = None,
     ) -> PackageMetadata:
         """
         Build a package from manifest dictionary data
@@ -165,13 +182,13 @@ class PackageService:
         Args:
             manifest_data: Dictionary containing OKH manifest data
             options: Build options (defaults to include all files)
+            identity: Optional signing identity; if provided, signs the package
 
         Returns:
             PackageMetadata with build information
         """
-        # Create manifest from dictionary
         manifest = OKHManifest.from_dict(manifest_data)
-        return await self.build_package_from_manifest(manifest, options)
+        return await self.build_package_from_manifest(manifest, options, identity)
 
     async def build_package_from_storage(
         self, manifest_id: UUID, options: Optional[BuildOptions] = None

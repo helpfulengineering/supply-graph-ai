@@ -15,8 +15,10 @@ import yaml
 from ..config import settings
 from ..core.models.okh import OKHManifest
 from ..core.models.package import BuildOptions
+from ..core.federation.identity import load_or_create_identity
 from ..core.packaging.pin import create_pin_record, load_pin_record, verify_pin_record
 from ..core.packaging.remote_storage import PackageRemoteStorage
+from ..core.packaging.signing import load_signature_record, verify_package_signature
 from ..core.services.package_service import PackageService
 from ..core.services.storage_service import StorageService
 from .base import (
@@ -318,13 +320,30 @@ async def build(
             cli_ctx.log("Using direct service building...", "info")
             manifest = OKHManifest.from_dict(manifest_data)
             package_service = await PackageService.get_instance()
+
+            # Try to load the node identity for signing; skip gracefully if absent.
+            identity = None
+            try:
+                data_dir = Path(settings.OHM_FEDERATION_DATA_DIR).expanduser()
+                identity_path = data_dir / "identity.json"
+                if identity_path.exists():
+                    identity = load_or_create_identity(data_dir, "")
+                else:
+                    cli_ctx.log(
+                        "No federation identity found — package will not be signed",
+                        "warning",
+                    )
+            except Exception as e:
+                cli_ctx.log(f"Could not load signing identity: {e}", "warning")
+
             metadata = await package_service.build_package_from_manifest(
-                manifest, options
+                manifest, options, identity
             )
             return {
                 "status": "success",
                 "message": "Package built successfully",
                 "metadata": metadata.to_dict(),
+                "signed": identity is not None,
             }
 
         # Execute build with fallback
@@ -1527,4 +1546,46 @@ async def verify_pin(ctx, package_name, version_parts, verbose):
         )
         for path in changed:
             cli_ctx.log(f"  changed: {path}", "error")
+        raise click.Exit(1)
+
+
+@package_group.command("verify-signature")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version_parts", nargs=-1, required=True, metavar="VERSION")
+@click.option("--verbose", "-v", is_flag=True)
+@async_command
+@click.pass_context
+async def verify_signature(ctx, package_name, version_parts, verbose):
+    """Verify the cryptographic signature of a built package."""
+    version = _cli_version_from_parts(version_parts)
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+
+    package_service = await PackageService.get_instance()
+    metadata = await package_service.get_package_metadata(package_name, version)
+    if metadata is None:
+        raise click.ClickException(f"Package not found: {package_name} {version}")
+
+    package_path = Path(metadata.package_path)
+    sig = load_signature_record(package_path)
+    if sig is None:
+        raise click.ClickException(
+            f"{package_name} {version} has no signature. "
+            "Build with a federation identity to sign packages."
+        )
+
+    valid = verify_package_signature(package_path)
+    if valid:
+        cli_ctx.log(
+            f"{package_name} {version}: signature valid (signed by {sig['signed_by']})",
+            "success",
+        )
+        if cli_ctx.verbose:
+            cli_ctx.log(f"  Signed at: {sig['signed_at']}", "info")
+            cli_ctx.log(f"  Algorithm: {sig['algorithm']}", "info")
+    else:
+        cli_ctx.log(
+            f"{package_name} {version}: signature INVALID — file-manifest.json has been tampered",
+            "error",
+        )
         raise click.Exit(1)
