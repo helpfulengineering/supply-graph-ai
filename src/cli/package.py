@@ -15,6 +15,7 @@ import yaml
 from ..config import settings
 from ..core.models.okh import OKHManifest
 from ..core.models.package import BuildOptions
+from ..core.packaging.pin import create_pin_record, load_pin_record, verify_pin_record
 from ..core.packaging.remote_storage import PackageRemoteStorage
 from ..core.services.package_service import PackageService
 from ..core.services.storage_service import StorageService
@@ -25,7 +26,7 @@ from .base import (
     format_llm_output,
     log_llm_usage,
 )
-from .decorators import standard_cli_command
+from .decorators import async_command, standard_cli_command
 
 
 @click.group()
@@ -593,9 +594,12 @@ async def list_packages(
                 for pkg in packages:
                     package_name = pkg.get("package_name", "Unknown")
                     version = pkg.get("version", "Unknown")
-                    click.echo(f"📦 {package_name}")
+                    pkg_path = pkg.get("package_path", "")
+                    pin = load_pin_record(Path(pkg_path)) if pkg_path else None
+                    pin_label = " [PINNED]" if pin else ""
+                    click.echo(f"📦 {package_name}{pin_label}")
                     click.echo(f"   📌 Version: {version}")
-                    click.echo(f"   📁 {pkg.get('package_path', 'Unknown')}")
+                    click.echo(f"   📁 {pkg_path or 'Unknown'}")
                     cli_ctx.log(
                         f"   📄 {pkg.get('total_files', 0)} files, {pkg.get('total_size_bytes', 0):,} bytes",
                         "info",
@@ -603,6 +607,11 @@ async def list_packages(
                     cli_ctx.log(
                         f"   🕒 Built: {pkg.get('build_timestamp', 'Unknown')}", "info"
                     )
+                    if pin and cli_ctx.verbose:
+                        cli_ctx.log(
+                            f"   🔒 Pinned: {pin.get('pinned_at', '?')} by {pin.get('pinned_by', '?')}",
+                            "info",
+                        )
                     cli_ctx.log("", "info")  # Empty line for spacing
         else:
             cli_ctx.log("No packages found", "info")
@@ -1442,3 +1451,80 @@ async def list_remote(
     except Exception as e:
         cli_ctx.log(f"Remote listing failed: {str(e)}", "error")
         raise
+
+
+@package_group.command("pin")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version_parts", nargs=-1, required=True, metavar="VERSION")
+@click.option("--note", "-n", default=None, help="Optional certification note")
+@click.option(
+    "--pinned-by",
+    default=None,
+    help="Identity string (defaults to current OS user)",
+)
+@click.option("--verbose", "-v", is_flag=True)
+@async_command
+@click.pass_context
+async def pin_package(ctx, package_name, version_parts, note, pinned_by, verbose):
+    """Pin a package version: lock its content hashes as a certified snapshot."""
+    import getpass
+
+    version = _cli_version_from_parts(version_parts)
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+
+    package_service = await PackageService.get_instance()
+    metadata = await package_service.get_package_metadata(package_name, version)
+    if metadata is None:
+        raise click.ClickException(f"Package not found: {package_name} {version}")
+
+    by = pinned_by or getpass.getuser()
+    package_path = Path(metadata.package_path)
+    pin_record = create_pin_record(package_path, pinned_by=by, note=note)
+
+    cli_ctx.log(
+        f"Pinned {package_name} {version} at {pin_record['pinned_at']}", "success"
+    )
+    cli_ctx.log(f"  Content hash: {pin_record['manifest_content_hash']}", "info")
+    cli_ctx.log(f"  Files locked: {len(pin_record['file_hashes'])}", "info")
+    if note:
+        cli_ctx.log(f"  Note: {note}", "info")
+
+
+@package_group.command("verify-pin")
+@click.argument("package_name", type=str, metavar="PACKAGE_NAME")
+@click.argument("version_parts", nargs=-1, required=True, metavar="VERSION")
+@click.option("--verbose", "-v", is_flag=True)
+@async_command
+@click.pass_context
+async def verify_pin(ctx, package_name, version_parts, verbose):
+    """Verify a pinned package: recompute hashes and confirm nothing has changed."""
+    version = _cli_version_from_parts(version_parts)
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+
+    package_service = await PackageService.get_instance()
+    metadata = await package_service.get_package_metadata(package_name, version)
+    if metadata is None:
+        raise click.ClickException(f"Package not found: {package_name} {version}")
+
+    package_path = Path(metadata.package_path)
+    try:
+        ok, changed = verify_pin_record(package_path)
+    except FileNotFoundError:
+        raise click.ClickException(
+            f"{package_name} {version} has no pin record. Run 'ohm package pin' first."
+        )
+
+    if ok:
+        cli_ctx.log(
+            f"{package_name} {version}: pin verified — no changes detected", "success"
+        )
+    else:
+        cli_ctx.log(
+            f"{package_name} {version}: pin FAILED — {len(changed)} file(s) changed",
+            "error",
+        )
+        for path in changed:
+            cli_ctx.log(f"  changed: {path}", "error")
+        raise click.Exit(1)
