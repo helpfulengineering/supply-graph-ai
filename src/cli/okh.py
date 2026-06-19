@@ -104,6 +104,9 @@ async def _display_validation_results(
     elif metadata.get("completeness_score") is not None:
         cli_ctx.log(f"Completeness Score: {metadata['completeness_score']:.1%}", "info")
 
+    if metadata.get("component_count"):
+        cli_ctx.log(f"Components: {metadata['component_count']}", "info")
+
     if cli_ctx.verbose and metadata.get("field_presence"):
         missing = [
             f for f, present in metadata["field_presence"].items() if not present

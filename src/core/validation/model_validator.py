@@ -168,6 +168,7 @@ def validate_okh_manifest(
 
         # Step 4b: Compute quality-agnostic field presence and coverage scores
         presence_data = _compute_okh_field_presence(okh_manifest)
+        presence_data["component_count"] = len(okh_manifest.components)
         result.details.update(presence_data)
 
         # Step 5: Generate suggestions for improvement
@@ -533,6 +534,7 @@ _OKH_OPTIONAL_FIELDS = [
     "cpc_patent_class",
     "tsdc",
     "parts",
+    "components",
     "derivative_of",
     "variant_of",
     "sub_parts",

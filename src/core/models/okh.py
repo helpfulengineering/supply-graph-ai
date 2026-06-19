@@ -404,6 +404,30 @@ class PartSpec:
 
 
 @dataclass
+class Component:
+    """A named component within an OKH assembly — sub-assembly or purchased part."""
+
+    name: str
+    quantity: int = 1
+    replaceable: bool = False
+    salvageable: bool = False
+    okh_ref: Optional[str] = None
+    product_url: Optional[str] = None
+    notes: Optional[str] = None
+
+    def to_dict(self) -> Dict:
+        return {
+            "name": self.name,
+            "quantity": self.quantity,
+            "replaceable": self.replaceable,
+            "salvageable": self.salvageable,
+            "okh_ref": self.okh_ref,
+            "product_url": self.product_url,
+            "notes": self.notes,
+        }
+
+
+@dataclass
 class OKHManifest:
     """Primary OKH manifest structure representing an open hardware module"""
 
@@ -473,6 +497,7 @@ class OKHManifest:
 
     # Parts and components
     parts: List[PartSpec] = field(default_factory=list)
+    components: List[Component] = field(default_factory=list)
 
     # Relationship to other projects
     derivative_of: Optional[Dict] = None
@@ -626,6 +651,7 @@ class OKHManifest:
             "cpc_patent_class": self.cpc_patent_class,
             "tsdc": self.tsdc,
             "parts": [part.to_dict() for part in self.parts],
+            "components": [c.to_dict() for c in self.components],
             "derivative_of": self.derivative_of,
             "variant_of": self.variant_of,
             "sub_parts": self.sub_parts,
@@ -964,6 +990,25 @@ class OKHManifest:
                     "(common for KiCad/BOM designators; OKH PartSpec.id requires UUID)",
                     coerced_part_ids,
                 )
+
+        # Handle components
+        if "components" in data and data["components"] is not None:
+            instance.components = []
+            for item in data["components"]:
+                if isinstance(item, str):
+                    instance.components.append(Component(name=item))
+                elif isinstance(item, dict):
+                    instance.components.append(
+                        Component(
+                            name=item.get("name", ""),
+                            quantity=item.get("quantity", 1),
+                            replaceable=item.get("replaceable", False),
+                            salvageable=item.get("salvageable", False),
+                            okh_ref=item.get("okh_ref"),
+                            product_url=item.get("product_url"),
+                            notes=item.get("notes"),
+                        )
+                    )
 
         # Handle standards
         if "standards_used" in data and data["standards_used"] is not None:
