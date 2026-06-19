@@ -14,6 +14,11 @@ import click
 
 from ..core.generation.built_directory import BuiltDirectoryExporter
 from ..core.models.okh import OKHManifest
+from ..core.packaging.collection import (
+    analyse_import,
+    diff_collection,
+    export_collection,
+)
 from ..core.services.okh_service import OKHService
 from ..core.validation.auto_fix import auto_fix_okh_manifest
 from ..core.validation.model_validator import validate_okh_manifest
@@ -24,7 +29,7 @@ from .base import (
     format_llm_output,
     log_llm_usage,
 )
-from .decorators import standard_cli_command
+from .decorators import async_command, standard_cli_command
 from .progress import emit_status_line
 
 
@@ -2264,3 +2269,160 @@ def create_interactive(ctx, output: Optional[str], store: bool, output_format: s
                 click.echo(f"✅ Manifest created and stored (id: {manifest_id})")
         except Exception as e:
             click.echo(f"❌ Failed to store manifest: {str(e)}", err=True)
+
+
+@okh_group.command("export-collection")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    required=True,
+    help="Output path for the collection archive (.zip)",
+)
+@click.option("--verbose", "-v", is_flag=True)
+@async_command
+@click.pass_context
+async def export_collection_cmd(ctx, output, verbose):
+    """Export the local OKH collection as a portable zip archive.
+
+    The archive contains every stored manifest plus a collection-index.json,
+    keyed by content hash.  Pass the archive to another OHM node and run
+    'ohm okh import-collection' to ingest it.
+
+    \b
+    Examples:
+      ohm okh export-collection --output my-collection.zip
+    """
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+
+    okh_service = await OKHService.get_instance()
+    manifests, total = await okh_service.list(page=1, page_size=10_000)
+
+    if not manifests:
+        raise click.ClickException("No OKH manifests found in local collection.")
+
+    cli_ctx.log(f"Exporting {total} manifest(s)...", "info")
+    archive_bytes = export_collection(manifests)
+
+    output_path = Path(output)
+    output_path.write_bytes(archive_bytes)
+    cli_ctx.log(
+        f"Collection exported: {output_path} ({len(archive_bytes):,} bytes, {total} manifest(s))",
+        "success",
+    )
+
+
+@okh_group.command("import-collection")
+@click.argument("archive", type=click.Path(exists=True))
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Analyse without writing (show what would be imported)",
+)
+@click.option("--verbose", "-v", is_flag=True)
+@async_command
+@click.pass_context
+async def import_collection_cmd(ctx, archive, dry_run, verbose):
+    """Import an OKH collection archive into the local store.
+
+    Each manifest in the archive is classified as:
+    - new:       not present locally → will be imported
+    - duplicate: identical content hash already present → skipped
+    - conflict:  same title/version but different content → skipped (logged)
+
+    Use --dry-run to preview without writing anything.
+
+    \b
+    Examples:
+      ohm okh import-collection partner-collection.zip
+      ohm okh import-collection partner-collection.zip --dry-run
+    """
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+
+    archive_bytes = Path(archive).read_bytes()
+
+    okh_service = await OKHService.get_instance()
+    local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+
+    report, incoming = analyse_import(archive_bytes, local_manifests)
+
+    cli_ctx.log(
+        f"Archive analysis: {len(report.new)} new, "
+        f"{len(report.duplicate)} duplicate, "
+        f"{len(report.conflict)} conflict",
+        "info",
+    )
+
+    for entry in report.conflict:
+        cli_ctx.log(
+            f"  conflict (skipped): {entry['title']} {entry['version']} "
+            f"({entry['content_hash'][:20]}...)",
+            "warning",
+        )
+
+    if dry_run:
+        for entry in report.new:
+            cli_ctx.log(f"  would import: {entry['title']} {entry['version']}", "info")
+        cli_ctx.log(
+            f"Dry run complete — {len(report.new)} manifest(s) would be imported.",
+            "info",
+        )
+        return
+
+    imported = 0
+    for manifest in incoming.values():
+        await okh_service.create(manifest)
+        imported += 1
+
+    cli_ctx.log(f"Imported {imported} manifest(s).", "success")
+
+
+@okh_group.command("diff-collection")
+@click.argument("archive", type=click.Path(exists=True))
+@click.option("--verbose", "-v", is_flag=True)
+@async_command
+@click.pass_context
+async def diff_collection_cmd(ctx, archive, verbose):
+    """Show the symmetric diff between an archive and the local collection.
+
+    Reports manifests present only in the archive (available to import) and
+    manifests present only locally (unique to this node).
+
+    \b
+    Examples:
+      ohm okh diff-collection partner-collection.zip
+    """
+    cli_ctx = ctx.obj
+    cli_ctx.verbose = verbose
+
+    archive_bytes = Path(archive).read_bytes()
+
+    okh_service = await OKHService.get_instance()
+    local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+
+    diff = diff_collection(archive_bytes, local_manifests)
+
+    only_archive = diff["only_in_archive"]
+    only_local = diff["only_local"]
+
+    if not only_archive and not only_local:
+        cli_ctx.log("Collections are identical.", "success")
+        return
+
+    if only_archive:
+        cli_ctx.log(f"Only in archive ({len(only_archive)}):", "info")
+        for entry in only_archive:
+            cli_ctx.log(
+                f"  {entry['title']} {entry['version']} ({entry['content_hash'][:20]}...)",
+                "info",
+            )
+
+    if only_local:
+        cli_ctx.log(f"Only local ({len(only_local)}):", "info")
+        for entry in only_local:
+            cli_ctx.log(
+                f"  {entry['title']} {entry['version']} ({entry['content_hash'][:20]}...)",
+                "info",
+            )
