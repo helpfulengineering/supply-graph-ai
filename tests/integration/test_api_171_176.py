@@ -1,18 +1,27 @@
 """Integration smoke tests for API endpoints added in issues #171-176.
 
 Run against a live OHM API:
-    pytest tests/integration/test_api_171_176.py -v
+    RUN_LIVE_API_TESTS=1 pytest tests/integration/test_api_171_176.py -v
 """
 
 from __future__ import annotations
 
 import io
 import json
+import os
 import zipfile
 from pathlib import Path
 
 import pytest
 import httpx
+
+pytestmark = [
+    pytest.mark.integration,
+    pytest.mark.skipif(
+        os.environ.get("RUN_LIVE_API_TESTS", "0") != "1",
+        reason="Set RUN_LIVE_API_TESTS=1 and a reachable OHM API at localhost:8001 to run",
+    ),
+]
 
 BASE = "http://localhost:8001/v1"
 
