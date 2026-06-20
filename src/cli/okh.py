@@ -2293,22 +2293,35 @@ async def export_collection_cmd(ctx, output, verbose):
     Examples:
       ohm okh export-collection --output my-collection.zip
     """
+    import httpx
+
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
 
-    okh_service = await OKHService.get_instance()
-    manifests, total = await okh_service.list(page=1, page_size=10_000)
+    async def http_export():
+        async with cli_ctx.api_client.get_client() as client:
+            response = await client.get("/api/okh/export-collection")
+            response.raise_for_status()
+            return response.content  # raw bytes
 
-    if not manifests:
-        raise click.ClickException("No OKH manifests found in local collection.")
+    async def fallback_export():
+        okh_service = await OKHService.get_instance()
+        manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        if not manifests:
+            raise click.ClickException("No OKH manifests found in local collection.")
+        return export_collection(manifests)
 
-    cli_ctx.log(f"Exporting {total} manifest(s)...", "info")
-    archive_bytes = export_collection(manifests)
+    try:
+        archive_bytes = await http_export()
+        cli_ctx.log("Fetched collection archive from API.", "info")
+    except (click.ClickException, httpx.ConnectError):
+        cli_ctx.log("API unavailable — building archive locally.", "info")
+        archive_bytes = await fallback_export()
 
     output_path = Path(output)
     output_path.write_bytes(archive_bytes)
     cli_ctx.log(
-        f"Collection exported: {output_path} ({len(archive_bytes):,} bytes, {total} manifest(s))",
+        f"Collection exported: {output_path} ({len(archive_bytes):,} bytes)",
         "success",
     )
 
@@ -2341,42 +2354,57 @@ async def import_collection_cmd(ctx, archive, dry_run, verbose):
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
 
-    archive_bytes = Path(archive).read_bytes()
+    async def http_import():
+        return await cli_ctx.api_client.upload_file(
+            "POST",
+            f"/api/okh/import-collection?dry_run={str(dry_run).lower()}",
+            archive,
+            file_field_name="file",
+        )
 
-    okh_service = await OKHService.get_instance()
-    local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+    async def fallback_import():
+        archive_bytes = Path(archive).read_bytes()
+        okh_service = await OKHService.get_instance()
+        local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        report, incoming = analyse_import(archive_bytes, local_manifests)
+        imported = 0
+        if not dry_run:
+            for manifest in incoming.values():
+                await okh_service.create(manifest)
+                imported += 1
+        return {
+            "new": report.new,
+            "duplicate": report.duplicate,
+            "conflict": report.conflict,
+            "imported": imported,
+        }
 
-    report, incoming = analyse_import(archive_bytes, local_manifests)
+    command = SmartCommand(cli_ctx)
+    result = await command.execute_with_fallback(http_import, fallback_import)
+
+    new = result.get("new", [])
+    duplicate = result.get("duplicate", [])
+    conflict = result.get("conflict", [])
+    imported = result.get("imported", 0)
 
     cli_ctx.log(
-        f"Archive analysis: {len(report.new)} new, "
-        f"{len(report.duplicate)} duplicate, "
-        f"{len(report.conflict)} conflict",
+        f"Archive analysis: {len(new)} new, {len(duplicate)} duplicate, {len(conflict)} conflict",
         "info",
     )
-
-    for entry in report.conflict:
+    for entry in conflict:
         cli_ctx.log(
             f"  conflict (skipped): {entry['title']} {entry['version']} "
             f"({entry['content_hash'][:20]}...)",
             "warning",
         )
-
     if dry_run:
-        for entry in report.new:
+        for entry in new:
             cli_ctx.log(f"  would import: {entry['title']} {entry['version']}", "info")
         cli_ctx.log(
-            f"Dry run complete — {len(report.new)} manifest(s) would be imported.",
-            "info",
+            f"Dry run complete — {len(new)} manifest(s) would be imported.", "info"
         )
-        return
-
-    imported = 0
-    for manifest in incoming.values():
-        await okh_service.create(manifest)
-        imported += 1
-
-    cli_ctx.log(f"Imported {imported} manifest(s).", "success")
+    else:
+        cli_ctx.log(f"Imported {imported} manifest(s).", "success")
 
 
 @okh_group.command("diff-collection")
@@ -2397,15 +2425,25 @@ async def diff_collection_cmd(ctx, archive, verbose):
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
 
-    archive_bytes = Path(archive).read_bytes()
+    async def http_diff():
+        return await cli_ctx.api_client.upload_file(
+            "POST",
+            "/api/okh/diff-collection",
+            archive,
+            file_field_name="file",
+        )
 
-    okh_service = await OKHService.get_instance()
-    local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+    async def fallback_diff():
+        archive_bytes = Path(archive).read_bytes()
+        okh_service = await OKHService.get_instance()
+        local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        return diff_collection(archive_bytes, local_manifests)
 
-    diff = diff_collection(archive_bytes, local_manifests)
+    command = SmartCommand(cli_ctx)
+    result = await command.execute_with_fallback(http_diff, fallback_diff)
 
-    only_archive = diff["only_in_archive"]
-    only_local = diff["only_local"]
+    only_archive = result.get("only_in_archive", [])
+    only_local = result.get("only_local", [])
 
     if not only_archive and not only_local:
         cli_ctx.log("Collections are identical.", "success")

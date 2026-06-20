@@ -659,6 +659,147 @@ async def verify_package(
         )
 
 
+@router.post("/{org}/{project}/{version}/pin", response_model=Dict[str, Any])
+async def pin_package(
+    org: str,
+    project: str,
+    version: str,
+    pinned_by: Optional[str] = None,
+    note: Optional[str] = None,
+    package_service: PackageService = Depends(get_package_service),
+) -> Any:
+    """Lock a package version's content hashes as a certified snapshot (pin record)."""
+    import getpass
+
+    from ...packaging.pin import create_pin_record
+
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+
+    metadata = await package_service.get_package_metadata(package_name, version)
+    if metadata is None:
+        raise HTTPException(status_code=404, detail="Package not found")
+
+    by = pinned_by or getpass.getuser()
+    try:
+        record = create_pin_record(Path(metadata.package_path), pinned_by=by, note=note)
+        return create_success_response(
+            message=f"Package {package_name}/{version} pinned",
+            data={"pin_record": record},
+            request_id=None,
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Ensure the package was built successfully before pinning",
+        )
+        logger.error(f"Error pinning package: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get("/{org}/{project}/{version}/verify-pin", response_model=Dict[str, Any])
+async def verify_pin(
+    org: str,
+    project: str,
+    version: str,
+    package_service: PackageService = Depends(get_package_service),
+) -> Any:
+    """Verify a pinned package: recompute hashes and confirm nothing has changed."""
+    from ...packaging.pin import verify_pin_record
+
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+
+    metadata = await package_service.get_package_metadata(package_name, version)
+    if metadata is None:
+        raise HTTPException(status_code=404, detail="Package not found")
+
+    try:
+        ok, changed = verify_pin_record(Path(metadata.package_path))
+        return create_success_response(
+            message=(
+                "Pin verified — no changes detected"
+                if ok
+                else f"Pin failed — {len(changed)} file(s) changed"
+            ),
+            data={"verified": ok, "changed_files": changed},
+            request_id=None,
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail="No pin record found. Run pin first.",
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support",
+        )
+        logger.error(f"Error verifying pin: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.get(
+    "/{org}/{project}/{version}/verify-signature", response_model=Dict[str, Any]
+)
+async def verify_signature(
+    org: str,
+    project: str,
+    version: str,
+    package_service: PackageService = Depends(get_package_service),
+) -> Any:
+    """Verify the cryptographic Ed25519 signature of a built package."""
+    from ...packaging.signing import load_signature_record, verify_package_signature
+
+    package_name = _package_name_from_path(org, project)
+    version = _decode_path_segment(version)
+
+    metadata = await package_service.get_package_metadata(package_name, version)
+    if metadata is None:
+        raise HTTPException(status_code=404, detail="Package not found")
+
+    sig = load_signature_record(Path(metadata.package_path))
+    if sig is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No signature record found. Build with a federation identity to sign packages.",
+        )
+
+    try:
+        valid = verify_package_signature(Path(metadata.package_path))
+        return create_success_response(
+            message=(
+                "Signature valid"
+                if valid
+                else "Signature INVALID — file-manifest has been tampered"
+            ),
+            data={"valid": valid, "signature_record": sig},
+            request_id=None,
+        )
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support",
+        )
+        logger.error(f"Error verifying signature: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
 @router.delete("/{org}/{project}/{version}", response_model=Dict[str, Any])
 async def delete_package(
     org: str,

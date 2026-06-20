@@ -61,6 +61,7 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
     materials: List[Dict[str, Any]] = []
     manufacturing_specs: Optional[Dict[str, Any]] = None
     parts: List[Dict[str, Any]] = []
+    components: List[Dict[str, Any]] = []
     metadata: Dict[str, Any] = {}
 
     processing_time: float = 0.0

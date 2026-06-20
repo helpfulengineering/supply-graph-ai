@@ -1488,24 +1488,50 @@ async def pin_package(ctx, package_name, version_parts, note, pinned_by, verbose
     """Pin a package version: lock its content hashes as a certified snapshot."""
     import getpass
 
+    from .base import SmartCommand
+
     version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
 
-    package_service = await PackageService.get_instance()
-    metadata = await package_service.get_package_metadata(package_name, version)
-    if metadata is None:
-        raise click.ClickException(f"Package not found: {package_name} {version}")
-
     by = pinned_by or getpass.getuser()
-    package_path = Path(metadata.package_path)
-    pin_record = create_pin_record(package_path, pinned_by=by, note=note)
-
-    cli_ctx.log(
-        f"Pinned {package_name} {version} at {pin_record['pinned_at']}", "success"
+    org, project = (
+        package_name.split("/", 1) if "/" in package_name else ("", package_name)
     )
-    cli_ctx.log(f"  Content hash: {pin_record['manifest_content_hash']}", "info")
-    cli_ctx.log(f"  Files locked: {len(pin_record['file_hashes'])}", "info")
+
+    async def http_pin():
+        params = {"pinned_by": by}
+        if note:
+            params["note"] = note
+        return await cli_ctx.api_client.request(
+            "POST", f"/api/package/{org}/{project}/{version}/pin", params=params
+        )
+
+    async def fallback_pin():
+        package_service = await PackageService.get_instance()
+        metadata = await package_service.get_package_metadata(package_name, version)
+        if metadata is None:
+            raise click.ClickException(f"Package not found: {package_name} {version}")
+        return {
+            "pin_record": create_pin_record(
+                Path(metadata.package_path), pinned_by=by, note=note
+            )
+        }
+
+    command = SmartCommand(cli_ctx)
+    result = await command.execute_with_fallback(http_pin, fallback_pin)
+
+    pin_record = result.get("data", result).get(
+        "pin_record", result.get("pin_record", {})
+    )
+    cli_ctx.log(
+        f"Pinned {package_name} {version} at {pin_record.get('pinned_at', '')}",
+        "success",
+    )
+    cli_ctx.log(
+        f"  Content hash: {pin_record.get('manifest_content_hash', '')}", "info"
+    )
+    cli_ctx.log(f"  Files locked: {len(pin_record.get('file_hashes', {}))}", "info")
     if note:
         cli_ctx.log(f"  Note: {note}", "info")
 
@@ -1518,22 +1544,40 @@ async def pin_package(ctx, package_name, version_parts, note, pinned_by, verbose
 @click.pass_context
 async def verify_pin(ctx, package_name, version_parts, verbose):
     """Verify a pinned package: recompute hashes and confirm nothing has changed."""
+    from .base import SmartCommand
+
     version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
 
-    package_service = await PackageService.get_instance()
-    metadata = await package_service.get_package_metadata(package_name, version)
-    if metadata is None:
-        raise click.ClickException(f"Package not found: {package_name} {version}")
+    org, project = (
+        package_name.split("/", 1) if "/" in package_name else ("", package_name)
+    )
 
-    package_path = Path(metadata.package_path)
-    try:
-        ok, changed = verify_pin_record(package_path)
-    except FileNotFoundError:
-        raise click.ClickException(
-            f"{package_name} {version} has no pin record. Run 'ohm package pin' first."
+    async def http_verify_pin():
+        return await cli_ctx.api_client.request(
+            "GET", f"/api/package/{org}/{project}/{version}/verify-pin"
         )
+
+    async def fallback_verify_pin():
+        package_service = await PackageService.get_instance()
+        metadata = await package_service.get_package_metadata(package_name, version)
+        if metadata is None:
+            raise click.ClickException(f"Package not found: {package_name} {version}")
+        try:
+            ok, changed = verify_pin_record(Path(metadata.package_path))
+            return {"verified": ok, "changed_files": changed}
+        except FileNotFoundError:
+            raise click.ClickException(
+                f"{package_name} {version} has no pin record. Run 'ohm package pin' first."
+            )
+
+    command = SmartCommand(cli_ctx)
+    result = await command.execute_with_fallback(http_verify_pin, fallback_verify_pin)
+
+    data = result.get("data", result)
+    ok = data.get("verified", True)
+    changed = data.get("changed_files", [])
 
     if ok:
         cli_ctx.log(
@@ -1557,32 +1601,51 @@ async def verify_pin(ctx, package_name, version_parts, verbose):
 @click.pass_context
 async def verify_signature(ctx, package_name, version_parts, verbose):
     """Verify the cryptographic signature of a built package."""
+    from .base import SmartCommand
+
     version = _cli_version_from_parts(version_parts)
     cli_ctx = ctx.obj
     cli_ctx.verbose = verbose
 
-    package_service = await PackageService.get_instance()
-    metadata = await package_service.get_package_metadata(package_name, version)
-    if metadata is None:
-        raise click.ClickException(f"Package not found: {package_name} {version}")
+    org, project = (
+        package_name.split("/", 1) if "/" in package_name else ("", package_name)
+    )
 
-    package_path = Path(metadata.package_path)
-    sig = load_signature_record(package_path)
-    if sig is None:
-        raise click.ClickException(
-            f"{package_name} {version} has no signature. "
-            "Build with a federation identity to sign packages."
+    async def http_verify_sig():
+        return await cli_ctx.api_client.request(
+            "GET", f"/api/package/{org}/{project}/{version}/verify-signature"
         )
 
-    valid = verify_package_signature(package_path)
+    async def fallback_verify_sig():
+        package_service = await PackageService.get_instance()
+        metadata = await package_service.get_package_metadata(package_name, version)
+        if metadata is None:
+            raise click.ClickException(f"Package not found: {package_name} {version}")
+        package_path = Path(metadata.package_path)
+        sig = load_signature_record(package_path)
+        if sig is None:
+            raise click.ClickException(
+                f"{package_name} {version} has no signature. "
+                "Build with a federation identity to sign packages."
+            )
+        valid = verify_package_signature(package_path)
+        return {"valid": valid, "signature_record": sig}
+
+    command = SmartCommand(cli_ctx)
+    result = await command.execute_with_fallback(http_verify_sig, fallback_verify_sig)
+
+    data = result.get("data", result)
+    valid = data.get("valid", False)
+    sig = data.get("signature_record", {})
+
     if valid:
         cli_ctx.log(
-            f"{package_name} {version}: signature valid (signed by {sig['signed_by']})",
+            f"{package_name} {version}: signature valid (signed by {sig.get('signed_by', '?')})",
             "success",
         )
         if cli_ctx.verbose:
-            cli_ctx.log(f"  Signed at: {sig['signed_at']}", "info")
-            cli_ctx.log(f"  Algorithm: {sig['algorithm']}", "info")
+            cli_ctx.log(f"  Signed at: {sig.get('signed_at', '')}", "info")
+            cli_ctx.log(f"  Algorithm: {sig.get('algorithm', '')}", "info")
     else:
         cli_ctx.log(
             f"{package_name} {version}: signature INVALID — file-manifest.json has been tampered",
