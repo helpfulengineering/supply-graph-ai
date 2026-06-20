@@ -27,7 +27,7 @@ _REQUIRED = {
 }
 
 
-def _manifest(title: str, version: str = "1.0") -> "OKHManifest":
+def _manifest(title: str, version: str = "1.0"):
     from src.core.models.okh import OKHManifest
 
     d = {**_REQUIRED, "title": title, "version": version}
