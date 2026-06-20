@@ -17,6 +17,7 @@ from fastapi import (
     status,
 )
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import Response
 
 
 from ...services.cleanup_service import CleanupOptions, CleanupService
@@ -174,6 +175,30 @@ async def get_okh_template(http_request: Request = None) -> Any:
 
     template = okh_blank_template()
     return {"success": True, "template": template, "model_name": "OKHManifest"}
+
+
+@router.get(
+    "/export-collection",
+    summary="Export OKH collection as zip archive",
+)
+async def export_collection_endpoint(
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Return all stored OKH manifests as a downloadable zip archive."""
+    from ...packaging.collection import export_collection
+
+    manifests, _ = await okh_service.list(page=1, page_size=10_000)
+    if not manifests:
+        raise HTTPException(
+            status_code=404, detail="No OKH manifests found in collection"
+        )
+
+    archive_bytes = export_collection(manifests)
+    return Response(
+        content=archive_bytes,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=ohm-collection.zip"},
+    )
 
 
 @router.get("/{id}", response_model=OKHResponse)
@@ -1014,6 +1039,106 @@ async def cleanup_project(
             },
             exc_info=True,
         )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+# ---------------------------------------------------------------------------
+# Collection import / export / diff  (#176)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/import-collection",
+    summary="Import OKH manifests from a collection archive",
+    response_model=dict,
+)
+async def import_collection_endpoint(
+    file: UploadFile = File(
+        ..., description="Collection zip archive produced by export-collection"
+    ),
+    dry_run: bool = Query(False, description="Analyse without writing"),
+    okh_service: OKHService = Depends(get_okh_service),
+    http_request: Request = None,
+) -> Any:
+    """Classify and optionally import manifests from a collection archive."""
+    from ...packaging.collection import analyse_import
+
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    archive_bytes = await file.read()
+
+    try:
+        local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        report, incoming = analyse_import(archive_bytes, local_manifests)
+
+        imported = 0
+        if not dry_run:
+            for manifest in incoming.values():
+                await okh_service.create(manifest)
+                imported += 1
+
+        return {
+            "status": "success",
+            "request_id": request_id,
+            "dry_run": dry_run,
+            "new": report.new,
+            "duplicate": report.duplicate,
+            "conflict": report.conflict,
+            "imported": imported,
+        }
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Ensure the archive was produced by 'ohm okh export-collection'",
+        )
+        logger.error(f"Error importing collection: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.post(
+    "/diff-collection",
+    summary="Diff an archive against the local OKH collection",
+    response_model=dict,
+)
+async def diff_collection_endpoint(
+    file: UploadFile = File(..., description="Collection zip archive to compare"),
+    okh_service: OKHService = Depends(get_okh_service),
+    http_request: Request = None,
+) -> Any:
+    """Return the symmetric diff between an archive and the local collection."""
+    from ...packaging.collection import diff_collection
+
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    archive_bytes = await file.read()
+
+    try:
+        local_manifests, _ = await okh_service.list(page=1, page_size=10_000)
+        diff = diff_collection(archive_bytes, local_manifests)
+        return {
+            "status": "success",
+            "request_id": request_id,
+            "only_in_archive": diff["only_in_archive"],
+            "only_local": diff["only_local"],
+        }
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Ensure the archive was produced by 'ohm okh export-collection'",
+        )
+        logger.error(f"Error diffing collection: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),

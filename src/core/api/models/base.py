@@ -388,6 +388,14 @@ class ValidationResult(BaseModel):
     suggestions: List[str] = Field(
         default_factory=list, description="Improvement suggestions"
     )
+    metadata: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Additional validation metadata. For OKH manifests includes "
+            "`field_presence` (per-field bool map), `required_coverage`, "
+            "and `optional_coverage` (0.0–1.0)."
+        ),
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -399,6 +407,21 @@ class ValidationResult(BaseModel):
                 "suggestions": [
                     "Consider adding a description for better documentation"
                 ],
+                "metadata": {
+                    "completeness_score": 0.857,
+                    "required_coverage": 1.0,
+                    "optional_coverage": 0.22,
+                    "field_presence": {
+                        "title": True,
+                        "version": True,
+                        "license": True,
+                        "licensor": True,
+                        "documentation_language": True,
+                        "function": True,
+                        "description": True,
+                        "bom": False,
+                    },
+                },
             }
         },
     )

@@ -144,7 +144,7 @@ jobs:
           uv pip install pip-audit bandit
 
       - name: Dependency vulnerability scan
-        run: uv run pip-audit
+        run: uv run pip-audit --skip-editable
 
       - name: Static security scan
         run: uv run bandit -q -r src -c pyproject.toml -x tests

@@ -67,6 +67,7 @@ class Location:
     directions: Optional[str] = None
     what3words: Optional[What3Words] = None
     city: Optional[str] = None
+    region: Optional[str] = None
     country: Optional[str] = None
 
     def to_dict(self) -> Dict:
@@ -87,6 +88,8 @@ class Location:
             }
         if self.city:
             result["city"] = self.city
+        if self.region:
+            result["region"] = self.region
         if self.country:
             result["country"] = self.country
         return result
@@ -562,6 +565,7 @@ class ManufacturingFacility:
             directions=location_data.get("directions"),
             what3words=what3words,
             city=location_data.get("city"),
+            region=location_data.get("region"),
             country=location_data.get("country"),
         )
 

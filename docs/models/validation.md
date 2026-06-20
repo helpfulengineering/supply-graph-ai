@@ -307,28 +307,46 @@ Validation responses include structured error and warning information:
 
 ```json
 {
-  "valid": true,
-  "normalized_content": { /* validated and normalized data */ },
-  "completeness_score": 0.95,
-  "issues": [
-    {
-      "severity": "warning",
-      "message": "Optional field 'description' is missing, consider adding for better documentation",
-      "path": ["description"],
-      "code": "optional_field_missing"
-    }
-  ],
-  "context": {
-    "name": "professional_okh_validation",
-    "domain": "manufacturing",
-    "quality_level": "professional",
-    "strict_mode": false
-  },
+  "is_valid": true,
+  "score": 0.857,
+  "errors": [],
+  "warnings": ["Missing optional field: description"],
+  "suggestions": ["Consider adding a description for better documentation"],
   "metadata": {
-    "completeness_score": 0.95,
-    "validation_time_ms": 45
+    "completeness_score": 0.857,
+    "required_coverage": 1.0,
+    "optional_coverage": 0.22,
+    "field_presence": {
+      "title": true,
+      "version": true,
+      "license": true,
+      "licensor": true,
+      "documentation_language": true,
+      "function": true,
+      "description": false,
+      "bom": false
+    },
+    "component_count": 3
   }
 }
+```
+
+#### OKH Completeness Metadata Fields (#171)
+
+The `metadata` object in OKH validate responses includes quality-agnostic completeness
+metrics in addition to the quality-level-specific `completeness_score`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `completeness_score` | float (0–1) | Weighted score based on quality level; required fields weighted more heavily than optional |
+| `required_coverage` | float (0–1) | Fraction of required OKH fields that are present (1.0 = all required fields filled) |
+| `optional_coverage` | float (0–1) | Fraction of optional OKH fields that are present |
+| `field_presence` | `Dict[str, bool]` | Per-field boolean map — `true` if the field has a non-empty value |
+| `component_count` | int | Number of `Component` entries in the manifest's `components` list |
+
+These fields are always present in OKH validate responses regardless of quality level.
+`required_coverage` and `optional_coverage` are independent of `quality_level` and
+provide a stable baseline for comparison across validation runs.
 ```
 
 ## Validation Context Factory
