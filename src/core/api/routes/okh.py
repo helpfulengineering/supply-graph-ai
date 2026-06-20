@@ -177,6 +177,30 @@ async def get_okh_template(http_request: Request = None) -> Any:
     return {"success": True, "template": template, "model_name": "OKHManifest"}
 
 
+@router.get(
+    "/export-collection",
+    summary="Export OKH collection as zip archive",
+)
+async def export_collection_endpoint(
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Return all stored OKH manifests as a downloadable zip archive."""
+    from ...packaging.collection import export_collection
+
+    manifests, _ = await okh_service.list(page=1, page_size=10_000)
+    if not manifests:
+        raise HTTPException(
+            status_code=404, detail="No OKH manifests found in collection"
+        )
+
+    archive_bytes = export_collection(manifests)
+    return Response(
+        content=archive_bytes,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=ohm-collection.zip"},
+    )
+
+
 @router.get("/{id}", response_model=OKHResponse)
 async def get_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
@@ -1024,30 +1048,6 @@ async def cleanup_project(
 # ---------------------------------------------------------------------------
 # Collection import / export / diff  (#176)
 # ---------------------------------------------------------------------------
-
-
-@router.get(
-    "/export-collection",
-    summary="Export OKH collection as zip archive",
-)
-async def export_collection_endpoint(
-    okh_service: OKHService = Depends(get_okh_service),
-) -> Any:
-    """Return all stored OKH manifests as a downloadable zip archive."""
-    from ...packaging.collection import export_collection
-
-    manifests, _ = await okh_service.list(page=1, page_size=10_000)
-    if not manifests:
-        raise HTTPException(
-            status_code=404, detail="No OKH manifests found in collection"
-        )
-
-    archive_bytes = export_collection(manifests)
-    return Response(
-        content=archive_bytes,
-        media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=ohm-collection.zip"},
-    )
 
 
 @router.post(
