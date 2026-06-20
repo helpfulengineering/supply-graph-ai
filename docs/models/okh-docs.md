@@ -61,6 +61,7 @@ class OKHManifest:
     
     # Parts and components
     parts: List[PartSpec] = field(default_factory=list)
+    components: List[Component] = field(default_factory=list)  # Sub-assemblies and purchased parts
     tsdc: List[str] = field(default_factory=list)  # Technology-specific Documentation Criteria
 ```
 
@@ -182,7 +183,37 @@ class ManufacturingSpec:
     notes: str = ""
 ```
 
-### 8. PartSpec
+### 8. Component
+A named sub-assembly or purchased part within an OKH assembly. Added to `OKHManifest` to
+support the `components` field (#173).
+
+```python
+@dataclass
+class Component:
+    """A named component within an OKH assembly — sub-assembly or purchased part."""
+    name: str
+    quantity: int = 1
+    replaceable: bool = False
+    salvageable: bool = False
+    okh_ref: Optional[str] = None       # Reference to another OKH manifest
+    product_url: Optional[str] = None   # Purchasing URL
+    notes: Optional[str] = None
+```
+
+#### Key Properties
+- `name` — Component name (e.g., "M3 hex nut", "Arduino Nano")
+- `quantity` — Number of units required (default: 1)
+- `replaceable` — Whether the component can be replaced with an equivalent
+- `salvageable` — Whether the component can be salvaged from another build
+- `okh_ref` — Optional reference to a sibling OKH manifest (sub-assembly linkage)
+- `product_url` — Purchasing link for sourcing
+- `notes` — Free-text notes for procurement or assembly context
+
+The `components` list on `OKHManifest` is serialized and deserialized by `to_dict()` /
+`from_dict()`. It is also surfaced in the API response (`OKHResponse.components`) and
+counted in validate metadata (`component_count`).
+
+### 9. PartSpec
 Specification for a part of the OKH module.
 
 ```python

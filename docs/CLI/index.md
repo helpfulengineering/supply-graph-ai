@@ -257,6 +257,76 @@ ohm package list-remote
 - Package sizes
 - Total count
 
+### `ohm package pin`
+
+Create a pin record that captures the cryptographic state of a built package. Use this to
+freeze a package and detect future file changes.
+
+```bash
+ohm package pin PACKAGE_NAME VERSION [OPTIONS]
+```
+
+**Arguments:**
+- `PACKAGE_NAME` - Package name (e.g., "org/project")
+- `VERSION` - Package version
+
+**Options:**
+- `--by TEXT` - Identifier of the person creating the pin (defaults to current username)
+- `--note TEXT` - Optional note describing why the pin was created
+
+**Examples:**
+```bash
+# Pin a package
+ohm package pin community/my-project 1.0.0 --by alice --note "pre-release freeze"
+```
+
+**Output:**
+Returns the pin record including `pinned_at`, `pinned_by`, `note`, and `manifest_content_hash`.
+
+### `ohm package verify-pin`
+
+Verify that a pinned package has not changed since it was pinned.
+
+```bash
+ohm package verify-pin PACKAGE_NAME VERSION
+```
+
+**Arguments:**
+- `PACKAGE_NAME` - Package name (e.g., "org/project")
+- `VERSION` - Package version
+
+**Examples:**
+```bash
+ohm package verify-pin community/my-project 1.0.0
+```
+
+**Output:**
+- `verified: true` — package unchanged since pinning
+- `verified: false` — package has changed; `changed_files` lists the affected paths
+- Returns 404 if no pin record exists for the package
+
+### `ohm package verify-signature`
+
+Verify the cryptographic signature attached to a built package.
+
+```bash
+ohm package verify-signature PACKAGE_NAME VERSION
+```
+
+**Arguments:**
+- `PACKAGE_NAME` - Package name (e.g., "org/project")
+- `VERSION` - Package version
+
+**Examples:**
+```bash
+ohm package verify-signature community/my-project 1.0.0
+```
+
+**Output:**
+- `valid: true` — signature is valid
+- `valid: false` — signature check failed
+- Returns 404 if the package has no attached signature record
+
 ---
 
 ## OKH Commands
@@ -642,6 +712,88 @@ ohm okh export --output okh-schema.json
 # Export with JSON output format
 ohm okh export --output okh-schema.json --json
 ```
+
+### `ohm okh export-collection`
+
+Export the entire local OKH manifest collection as a zip archive. The archive contains a
+`collection-index.json` summary and one JSON file per manifest named by content hash.
+
+```bash
+ohm okh export-collection [OPTIONS]
+```
+
+**Options:**
+- `--output, -o PATH` - Output file path (default: `ohm-collection.zip`)
+
+**Examples:**
+```bash
+# Export collection to default filename
+ohm okh export-collection
+
+# Export to specific file
+ohm okh export-collection --output backup-2026-06-19.zip
+```
+
+**Output:**
+Writes a zip archive. Returns an error if the local collection is empty.
+Archive format: `collection-index.json` + `manifests/sha256_<hash12>.okh.json` per manifest.
+
+### `ohm okh import-collection`
+
+Import manifests from a collection zip archive. New manifests are written; duplicates
+(identical content hash) are silently skipped; conflicts (same title+version, different
+content) are reported but not written.
+
+```bash
+ohm okh import-collection ARCHIVE_FILE [OPTIONS]
+```
+
+**Arguments:**
+- `ARCHIVE_FILE` - Path to collection zip archive
+
+**Options:**
+- `--dry-run` - Analyse the archive and report what would be imported without writing anything
+
+**Examples:**
+```bash
+# Preview what would be imported
+ohm okh import-collection collection.zip --dry-run
+
+# Live import
+ohm okh import-collection collection.zip
+```
+
+**Output:**
+```
+new: 5  duplicate: 12  conflict: 1  imported: 5  dry_run: false
+```
+
+Full JSON output lists each manifest in each category.
+
+### `ohm okh diff-collection`
+
+Compare a collection zip archive against the local manifest store. Reports manifests that
+are only in the archive or only in the local collection.
+
+```bash
+ohm okh diff-collection ARCHIVE_FILE
+```
+
+**Arguments:**
+- `ARCHIVE_FILE` - Path to collection zip archive
+
+**Examples:**
+```bash
+ohm okh diff-collection peer-node.zip
+```
+
+**Output:**
+```
+only_in_archive: 3  only_local: 1
+```
+
+Full JSON output lists the summary entries for each side of the diff. An empty diff means
+both collections are identical.
 
 ---
 

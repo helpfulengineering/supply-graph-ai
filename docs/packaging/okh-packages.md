@@ -576,11 +576,189 @@ ohm package list-remote
 - **Metadata Preservation**: All package metadata maintained in remote storage
 
 
+## Package Pinning (#174)
+
+A **pin record** captures the cryptographic state of a built package at a point in time.
+Pinning lets you verify later that no files have changed since the pin was created.
+
+### Creating a Pin
+
+```bash
+# Pin via CLI
+ohm package pin community/my-project 1.0.0 --by alice --note "pre-release freeze"
+
+# Pin via API
+curl -X POST "http://localhost:8001/v1/api/package/community/my-project/1.0.0/pin" \
+  -G --data-urlencode "pinned_by=alice" --data-urlencode "note=pre-release freeze"
+```
+
+The response includes a `pin_record` with the manifest content hash at pin time:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "pin_record": {
+      "pinned_at": "2026-06-19T12:00:00Z",
+      "pinned_by": "alice",
+      "note": "pre-release freeze",
+      "manifest_content_hash": "sha256:abc123..."
+    }
+  }
+}
+```
+
+### Verifying a Pin
+
+```bash
+# Verify via CLI (checks current files against stored pin hash)
+ohm package verify-pin community/my-project 1.0.0
+
+# Verify via API
+curl "http://localhost:8001/v1/api/package/community/my-project/1.0.0/verify-pin"
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "verified": true,
+    "changed_files": []
+  }
+}
+```
+
+`verified: false` means at least one file has changed since pinning. `changed_files` lists
+the specific paths that differ.
+
+---
+
+## Package Signing (#175)
+
+OHM supports verifying cryptographic signatures attached to built packages.
+
+### Verifying a Signature
+
+```bash
+# Verify via CLI
+ohm package verify-signature community/my-project 1.0.0
+
+# Verify via API
+curl "http://localhost:8001/v1/api/package/community/my-project/1.0.0/verify-signature"
+```
+
+Response when valid:
+
+```json
+{
+  "data": {
+    "valid": true,
+    "signature_record": {
+      "signed_at": "2026-06-19T10:00:00Z",
+      "signer": "alice@example.com",
+      "algorithm": "ed25519"
+    }
+  }
+}
+```
+
+A 404 is returned if the package has no attached signature.
+
+---
+
+## OKH Collection Management (#176)
+
+OHM can export, import, and diff the entire local OKH manifest collection as a zip archive.
+This supports backup, sharing between OHM instances, and federation scenarios.
+
+### Archive Format
+
+Each collection archive is a zip file containing:
+
+```
+collection-index.json                # Array of summary entries (title, version, content_hash)
+manifests/sha256_<first12>.okh.json  # One file per manifest, named by content hash
+```
+
+### Exporting a Collection
+
+```bash
+# Export via CLI
+ohm okh export-collection --output collection.zip
+
+# Export via API
+curl "http://localhost:8001/v1/api/okh/export-collection" --output collection.zip
+```
+
+Returns a `application/zip` response with `Content-Disposition: attachment; filename=ohm-collection.zip`.
+Returns 404 if the collection is empty.
+
+### Importing a Collection
+
+```bash
+# Dry run — see what would be imported without writing
+ohm okh import-collection collection.zip --dry-run
+
+# Live import
+ohm okh import-collection collection.zip
+```
+
+**API:**
+
+```bash
+curl -X POST "http://localhost:8001/v1/api/okh/import-collection?dry_run=true" \
+  -F "file=@collection.zip"
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "new": [ /* manifests not yet in local collection */ ],
+  "duplicate": [ /* manifests already present with same hash */ ],
+  "conflict": [ /* manifests with same title+version but different content */ ],
+  "imported": 5,
+  "dry_run": true
+}
+```
+
+In dry-run mode `imported` is always 0. In live mode it counts how many new manifests were
+written. Duplicates are silently skipped; conflicts are reported but not written.
+
+### Diffing a Collection
+
+```bash
+# Compare an archive against the local collection
+ohm okh diff-collection collection.zip
+```
+
+**API:**
+
+```bash
+curl -X POST "http://localhost:8001/v1/api/okh/diff-collection" \
+  -F "file=@collection.zip"
+```
+
+Response:
+
+```json
+{
+  "only_in_archive": [ /* summary entries present in the archive but not locally */ ],
+  "only_local":    [ /* local manifests not in the archive */ ]
+}
+```
+
+Diff compares by content hash — identical manifests on both sides are considered equal
+regardless of when they were created.
+
+---
+
 ## Future Enhancements
 
 Planned features for future releases:
 
-- **Package Signing**: Cryptographic signing for package integrity
 - **Dependency Resolution**: Automatic resolution of package dependencies
 - **Delta Updates**: Efficient updates for package versions
 - **Package Caching**: Local caching for improved performance
