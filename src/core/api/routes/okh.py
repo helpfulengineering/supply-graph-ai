@@ -17,6 +17,7 @@ from fastapi import (
     status,
 )
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import Response
 
 
 from ...services.cleanup_service import CleanupOptions, CleanupService
@@ -1033,8 +1034,6 @@ async def export_collection_endpoint(
     okh_service: OKHService = Depends(get_okh_service),
 ) -> Any:
     """Return all stored OKH manifests as a downloadable zip archive."""
-    from fastapi.responses import Response
-
     from ...packaging.collection import export_collection
 
     manifests, _ = await okh_service.list(page=1, page_size=10_000)
