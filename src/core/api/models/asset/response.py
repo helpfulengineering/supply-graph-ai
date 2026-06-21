@@ -8,6 +8,7 @@ class AssetResponse(BaseModel):
     manifest_id: str
     asset_tag: str
     location: Optional[str] = None
+    status: str = "active"
     component_states: List[Dict[str, Any]] = []
     last_triaged_at: Optional[str] = None
     triage_notes: Optional[str] = None

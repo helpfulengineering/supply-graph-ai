@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from pydantic import BaseModel
 
-from ...models.asset import AssetRecord, ComponentState
+from ...models.asset import AssetRecord, AssetStatus, ComponentState
 from ...services.asset_service import AssetService
 from ...utils.logging import get_logger
 from ..models.asset.response import (
@@ -45,6 +45,7 @@ class AssetCreateRequest(BaseModel):
 class AssetUpdateRequest(BaseModel):
     asset_tag: Optional[str] = None
     location: Optional[str] = None
+    status: Optional[str] = None
     triage_notes: Optional[str] = None
 
 
@@ -71,6 +72,7 @@ def _to_response(record: AssetRecord) -> AssetResponse:
         manifest_id=record.manifest_id,
         asset_tag=record.asset_tag,
         location=record.location,
+        status=record.status.value,
         component_states=[cs.to_dict() for cs in record.component_states],
         last_triaged_at=(
             record.last_triaged_at.isoformat() if record.last_triaged_at else None
@@ -131,6 +133,9 @@ async def get_asset(
 
     Pass `?manifest_id=<uuid>` to return only assets for that OKH manifest.
 
+    Pass `?status=<value>` to filter by lifecycle status
+    (`active` | `under_triage` | `parts_pending` | `under_repair` | `restored` | `condemned`).
+
     Pass `?harvest_viable=true` to filter component_states on each asset down
     to only those where `harvest_viable` is True; assets with no such states
     are excluded from the response.
@@ -140,12 +145,26 @@ async def list_assets(
     manifest_id: Optional[str] = Query(
         None, description="Filter to this manifest UUID"
     ),
+    status_filter: Optional[str] = Query(
+        None, alias="status", description="Filter by lifecycle status"
+    ),
     harvest_viable: Optional[bool] = Query(
         None, description="When true, return only assets with harvestable components"
     ),
     svc: AssetService = Depends(get_asset_service),
 ) -> Any:
     records = await svc.list(manifest_id=manifest_id)
+
+    if status_filter is not None:
+        try:
+            wanted = AssetStatus(status_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid status {status_filter!r}. Valid values: "
+                + ", ".join(s.value for s in AssetStatus),
+            )
+        records = [r for r in records if r.status == wanted]
 
     if harvest_viable:
         filtered = []
@@ -181,6 +200,15 @@ async def update_asset(
         record.location = body.location
     if body.triage_notes is not None:
         record.triage_notes = body.triage_notes
+    if body.status is not None:
+        try:
+            record.status = AssetStatus(body.status)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid status {body.status!r}. Valid values: "
+                + ", ".join(s.value for s in AssetStatus),
+            )
     updated = await svc.update(id, record.to_dict())
     return _to_response(updated)
 

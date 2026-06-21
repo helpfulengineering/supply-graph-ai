@@ -16,6 +16,15 @@ class ComponentCondition(Enum):
     UNKNOWN = "unknown"
 
 
+class AssetStatus(Enum):
+    ACTIVE = "active"
+    UNDER_TRIAGE = "under_triage"
+    PARTS_PENDING = "parts_pending"
+    UNDER_REPAIR = "under_repair"
+    RESTORED = "restored"
+    CONDEMNED = "condemned"
+
+
 @dataclass
 class ComponentState:
     """Observed condition of one component on a specific physical unit."""
@@ -82,6 +91,7 @@ class AssetRecord:
     asset_tag: str  # facility-assigned identifier
     id: UUID = field(default_factory=uuid4)
     location: Optional[str] = None
+    status: AssetStatus = AssetStatus.ACTIVE
     component_states: List[ComponentState] = field(default_factory=list)
     last_triaged_at: Optional[datetime] = None
     triage_notes: Optional[str] = None
@@ -92,6 +102,7 @@ class AssetRecord:
             "manifest_id": self.manifest_id,
             "asset_tag": self.asset_tag,
             "location": self.location,
+            "status": self.status.value,
             "component_states": [cs.to_dict() for cs in self.component_states],
             "last_triaged_at": (
                 self.last_triaged_at.isoformat() if self.last_triaged_at else None
@@ -105,6 +116,11 @@ class AssetRecord:
             parsed_id = UUID(str(data["id"])) if data.get("id") else uuid4()
         except (ValueError, AttributeError):
             parsed_id = uuid4()
+
+        try:
+            status = AssetStatus(data.get("status") or "active")
+        except ValueError:
+            status = AssetStatus.ACTIVE
 
         last_triaged_at = None
         if data.get("last_triaged_at"):
@@ -125,6 +141,7 @@ class AssetRecord:
             manifest_id=str(data["manifest_id"]),
             asset_tag=str(data["asset_tag"]),
             location=data.get("location"),
+            status=status,
             component_states=component_states,
             last_triaged_at=last_triaged_at,
             triage_notes=data.get("triage_notes"),

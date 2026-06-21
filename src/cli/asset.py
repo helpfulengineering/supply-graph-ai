@@ -122,6 +122,21 @@ async def get_cmd(ctx, asset_id):
 @asset_group.command("list")
 @click.option("--manifest-id", default=None, help="Filter to this manifest UUID")
 @click.option(
+    "--status",
+    default=None,
+    type=click.Choice(
+        [
+            "active",
+            "under_triage",
+            "parts_pending",
+            "under_repair",
+            "restored",
+            "condemned",
+        ]
+    ),
+    help="Filter by lifecycle status",
+)
+@click.option(
     "--harvest-viable",
     is_flag=True,
     default=False,
@@ -130,13 +145,14 @@ async def get_cmd(ctx, asset_id):
 @click.option("--output", "-o", default=None, help="Write results to a JSON file")
 @async_command
 @click.pass_context
-async def list_cmd(ctx, manifest_id, harvest_viable, output):
+async def list_cmd(ctx, manifest_id, status, harvest_viable, output):
     """List asset records, optionally filtered.
 
     \b
     Examples:
       ohm asset list
       ohm asset list --manifest-id <uuid>
+      ohm asset list --status under_triage
       ohm asset list --harvest-viable
     """
     cli_ctx = ctx.obj
@@ -145,6 +161,8 @@ async def list_cmd(ctx, manifest_id, harvest_viable, output):
         params: Dict[str, Any] = {}
         if manifest_id:
             params["manifest_id"] = manifest_id
+        if status:
+            params["status"] = status
         if harvest_viable:
             params["harvest_viable"] = "true"
         async with cli_ctx.api_client.get_client() as client:
@@ -153,8 +171,13 @@ async def list_cmd(ctx, manifest_id, harvest_viable, output):
             return r.json()
 
     async def fallback_list():
+        from ..core.models.asset import AssetStatus as _S
+
         svc = await AssetService.get_instance()
         records = await svc.list(manifest_id=manifest_id)
+        if status:
+            wanted = _S(status)
+            records = [r for r in records if r.status == wanted]
         if harvest_viable:
             filtered = []
             for rec in records:
@@ -172,9 +195,10 @@ async def list_cmd(ctx, manifest_id, harvest_viable, output):
     cli_ctx.log(f"{data.get('total', len(assets))} asset(s) found.", "success")
     for a in assets:
         states_n = len(a.get("component_states", []))
+        status_str = f"  status={a.get('status', 'active')}" if a.get("status") else ""
         cli_ctx.log(
             f"  [{a['id'][:8]}…] tag={a['asset_tag']}  manifest={a['manifest_id'][:8]}…"
-            f"  states={states_n}",
+            f"  states={states_n}{status_str}",
             "info",
         )
     if output:
@@ -191,15 +215,31 @@ async def list_cmd(ctx, manifest_id, harvest_viable, output):
 @click.argument("asset_id")
 @click.option("--asset-tag", default=None, help="New asset tag")
 @click.option("--location", default=None, help="New location")
+@click.option(
+    "--status",
+    default=None,
+    type=click.Choice(
+        [
+            "active",
+            "under_triage",
+            "parts_pending",
+            "under_repair",
+            "restored",
+            "condemned",
+        ]
+    ),
+    help="Lifecycle status",
+)
 @click.option("--triage-notes", default=None, help="Update triage notes")
 @async_command
 @click.pass_context
-async def update_cmd(ctx, asset_id, asset_tag, location, triage_notes):
+async def update_cmd(ctx, asset_id, asset_tag, location, status, triage_notes):
     """Update top-level fields on an asset record.
 
     \b
     Examples:
       ohm asset update <asset-id> --location "Ward 4B"
+      ohm asset update <asset-id> --status under_repair
       ohm asset update <asset-id> --triage-notes "Cleared for reuse after repairs"
     """
     cli_ctx = ctx.obj
@@ -208,6 +248,8 @@ async def update_cmd(ctx, asset_id, asset_tag, location, triage_notes):
         payload["asset_tag"] = asset_tag
     if location:
         payload["location"] = location
+    if status:
+        payload["status"] = status
     if triage_notes:
         payload["triage_notes"] = triage_notes
 
@@ -218,6 +260,8 @@ async def update_cmd(ctx, asset_id, asset_tag, location, triage_notes):
             return r.json()
 
     async def fallback_update():
+        from ..core.models.asset import AssetStatus as _S
+
         svc = await AssetService.get_instance()
         record = await svc.get(UUID(asset_id))
         if record is None:
@@ -226,6 +270,8 @@ async def update_cmd(ctx, asset_id, asset_tag, location, triage_notes):
             record.asset_tag = asset_tag
         if location:
             record.location = location
+        if status:
+            record.status = _S(status)
         if triage_notes:
             record.triage_notes = triage_notes
         updated = await svc.update(UUID(asset_id), record.to_dict())
@@ -591,6 +637,7 @@ def _print_asset(cli_ctx: CLIContext, data: Dict[str, Any]) -> None:
     cli_ctx.log(f"Asset {data['id']}", "success")
     cli_ctx.log(f"  Tag        : {data['asset_tag']}", "info")
     cli_ctx.log(f"  Manifest   : {data['manifest_id']}", "info")
+    cli_ctx.log(f"  Status     : {data.get('status', 'active')}", "info")
     if data.get("location"):
         cli_ctx.log(f"  Location   : {data['location']}", "info")
     if data.get("last_triaged_at"):
