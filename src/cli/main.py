@@ -10,6 +10,7 @@ from typing import Optional, cast
 import click
 from click import Context
 
+from .asset import asset_group
 from .base import CLIConfig, CLIContext
 from .convert import convert_group
 from .federation import federation_group
@@ -114,6 +115,7 @@ def cli(
 
 
 # Add subcommand groups
+cli.add_command(asset_group, name="asset")
 cli.add_command(package_group, name="package")
 cli.add_command(okh_group, name="okh")
 cli.add_command(okw_group, name="okw")
