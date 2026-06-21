@@ -118,3 +118,71 @@ class TriageReport:
                 "decommission": self.decommission_count,
             },
         }
+
+
+@dataclass
+class ChecklistItem:
+    """One component on the triage checklist — input-oriented view.
+
+    Used to drive a triage form before results are known. Carries the manifest
+    design context and any already-recorded state, so the technician knows what
+    to look for and what has already been observed.
+    """
+
+    component_name: str
+    assessed: bool  # True iff a ComponentState has been recorded for this component
+    replaceable: bool = False
+    salvageable: bool = False
+    consumable: bool = False
+    part_number: Optional[str] = None
+    current_condition: Optional[str] = None
+    current_state: Optional[Dict[str, Any]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "component_name": self.component_name,
+            "assessed": self.assessed,
+            "replaceable": self.replaceable,
+            "salvageable": self.salvageable,
+            "consumable": self.consumable,
+            "part_number": self.part_number,
+            "current_condition": self.current_condition,
+            "current_state": self.current_state,
+        }
+
+
+@dataclass
+class TriageChecklist:
+    """Checklist for one physical unit — generated from manifest + existing observations."""
+
+    asset_id: str
+    manifest_id: str
+    asset_tag: str
+    status: str
+    items: List[ChecklistItem] = field(default_factory=list)
+    last_triaged_at: Optional[str] = None
+
+    @property
+    def total_components(self) -> int:
+        return len(self.items)
+
+    @property
+    def assessed_count(self) -> int:
+        return sum(1 for i in self.items if i.assessed)
+
+    @property
+    def pending_count(self) -> int:
+        return sum(1 for i in self.items if not i.assessed)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "asset_id": self.asset_id,
+            "manifest_id": self.manifest_id,
+            "asset_tag": self.asset_tag,
+            "status": self.status,
+            "last_triaged_at": self.last_triaged_at,
+            "items": [i.to_dict() for i in self.items],
+            "total_components": self.total_components,
+            "assessed_count": self.assessed_count,
+            "pending_count": self.pending_count,
+        }

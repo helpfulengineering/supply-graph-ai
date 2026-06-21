@@ -8,7 +8,13 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from ..models.asset import AssetRecord, ComponentCondition, ComponentState
-from ..models.repair import TriageAction, TriageItem, TriageReport
+from ..models.repair import (
+    ChecklistItem,
+    TriageAction,
+    TriageChecklist,
+    TriageItem,
+    TriageReport,
+)
 from ..models.salvage import SalvageMatch, SalvageMatchResult
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
@@ -338,6 +344,76 @@ class AssetService(BaseService["AssetService"]):
                 record.last_triaged_at.isoformat() if record.last_triaged_at else None
             ),
             triage_notes=record.triage_notes,
+        )
+
+    # ------------------------------------------------------------------
+    # Triage checklist
+    # ------------------------------------------------------------------
+
+    async def generate_triage_checklist(self, asset_id: UUID) -> TriageChecklist:
+        """Return the manifest component list pre-filled with any existing observations.
+
+        Each item carries ``assessed=True/False`` and ``current_state`` so a UI or
+        CLI can render a form showing what has been observed and what still needs
+        assessment.  Components observed but absent from the manifest appear at the
+        end of the list with design flags defaulting to False.
+        """
+        await self.ensure_initialized()
+
+        record = await self.get(asset_id)
+        if record is None:
+            raise KeyError(f"AssetRecord {asset_id} not found")
+
+        from .okh_service import OKHService
+
+        okh_svc = await OKHService.get_instance()
+        manifest = await okh_svc.get(UUID(record.manifest_id))
+
+        observed: Dict[str, Any] = {
+            cs.component_name: cs for cs in record.component_states
+        }
+
+        items: List[ChecklistItem] = []
+        seen: set = set()
+
+        if manifest and manifest.components:
+            for comp in manifest.components:
+                cs = observed.get(comp.name)
+                seen.add(comp.name)
+                items.append(
+                    ChecklistItem(
+                        component_name=comp.name,
+                        assessed=cs is not None,
+                        replaceable=comp.replaceable,
+                        salvageable=comp.salvageable,
+                        consumable=comp.consumable,
+                        part_number=comp.part_number,
+                        current_condition=cs.condition.value if cs else None,
+                        current_state=cs.to_dict() if cs else None,
+                    )
+                )
+
+        # Append any observed components not in the manifest (e.g. unlisted parts)
+        for name, cs in observed.items():
+            if name not in seen:
+                items.append(
+                    ChecklistItem(
+                        component_name=name,
+                        assessed=True,
+                        current_condition=cs.condition.value,
+                        current_state=cs.to_dict(),
+                    )
+                )
+
+        return TriageChecklist(
+            asset_id=str(record.id),
+            manifest_id=record.manifest_id,
+            asset_tag=record.asset_tag,
+            status=record.status.value,
+            items=items,
+            last_triaged_at=(
+                record.last_triaged_at.isoformat() if record.last_triaged_at else None
+            ),
         )
 
     # ------------------------------------------------------------------

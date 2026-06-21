@@ -14,6 +14,8 @@ from ...utils.logging import get_logger
 from ..models.asset.response import (
     AssetListResponse,
     AssetResponse,
+    ChecklistItemResponse,
+    ChecklistResponse,
     SalvageMatchItemResponse,
     SalvageMatchResponse,
     SalvageQueryResponse,
@@ -305,6 +307,48 @@ async def get_triage_report(
             no_action=report.no_action_count,
             decommission=report.decommission_count,
         ),
+    )
+
+
+@router.get(
+    "/{id}/triage-checklist",
+    response_model=ChecklistResponse,
+    summary="Get the triage checklist for an asset",
+    description="""
+    Returns the manifest's full component list pre-filled with any existing
+    `ComponentState` observations.  Use this as the starting point for a triage
+    session: it shows what needs to be assessed and what has already been recorded.
+
+    Each item carries:
+    - `assessed` — whether a `ComponentState` has been recorded for this component
+    - `current_condition` / `current_state` — the recorded observation (null if not yet assessed)
+    - `replaceable`, `salvageable`, `consumable`, `part_number` — from the OKH manifest,
+      to guide the technician's assessment
+
+    Summary fields `assessed_count` and `pending_count` let a caller display progress
+    without iterating items.
+    """,
+)
+async def get_triage_checklist(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        checklist = await svc.generate_triage_checklist(id)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return ChecklistResponse(
+        asset_id=checklist.asset_id,
+        manifest_id=checklist.manifest_id,
+        asset_tag=checklist.asset_tag,
+        status=checklist.status,
+        last_triaged_at=checklist.last_triaged_at,
+        items=[ChecklistItemResponse(**item.to_dict()) for item in checklist.items],
+        total_components=checklist.total_components,
+        assessed_count=checklist.assessed_count,
+        pending_count=checklist.pending_count,
     )
 
 

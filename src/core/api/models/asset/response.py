@@ -53,6 +53,29 @@ class TriageReportResponse(BaseModel):
     summary: TriageSummaryResponse
 
 
+class ChecklistItemResponse(BaseModel):
+    component_name: str
+    assessed: bool
+    replaceable: bool = False
+    salvageable: bool = False
+    consumable: bool = False
+    part_number: Optional[str] = None
+    current_condition: Optional[str] = None
+    current_state: Optional[Dict[str, Any]] = None
+
+
+class ChecklistResponse(BaseModel):
+    asset_id: str
+    manifest_id: str
+    asset_tag: str
+    status: str
+    last_triaged_at: Optional[str] = None
+    items: List[ChecklistItemResponse]
+    total_components: int
+    assessed_count: int
+    pending_count: int
+
+
 class SalvageMatchItemResponse(BaseModel):
     asset_id: str
     asset_tag: str

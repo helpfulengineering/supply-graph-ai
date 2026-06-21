@@ -529,6 +529,88 @@ async def triage_report_cmd(ctx, asset_id, output):
 
 
 # ---------------------------------------------------------------------------
+# triage-checklist
+# ---------------------------------------------------------------------------
+
+
+@asset_group.command("triage-checklist")
+@click.argument("asset_id")
+@click.option("--output", "-o", default=None, help="Write checklist JSON to a file")
+@async_command
+@click.pass_context
+async def triage_checklist_cmd(ctx, asset_id, output):
+    """Show the triage checklist for an asset.
+
+    Lists every component from the OKH manifest with its current observation
+    status.  Use this as the starting point for a triage session — it shows
+    what still needs to be assessed and what has already been recorded.
+
+    \b
+    Examples:
+      ohm asset triage-checklist <asset-id>
+      ohm asset triage-checklist <asset-id> --output checklist.json
+    """
+    cli_ctx = ctx.obj
+
+    async def http_checklist():
+        async with cli_ctx.api_client.get_client() as client:
+            r = await client.get(f"/api/asset/{asset_id}/triage-checklist")
+            r.raise_for_status()
+            return r.json()
+
+    async def fallback_checklist():
+        svc = await AssetService.get_instance()
+        checklist = await svc.generate_triage_checklist(UUID(asset_id))
+        return checklist.to_dict()
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_checklist, fallback_checklist)
+
+    assessed = data.get("assessed_count", 0)
+    total = data.get("total_components", 0)
+    pending = data.get("pending_count", 0)
+    cli_ctx.log(
+        f"Triage checklist for asset {data['asset_id'][:8]}…  tag={data['asset_tag']}",
+        "success",
+    )
+    cli_ctx.log(
+        f"  Status: {data.get('status', 'active')}  |  "
+        f"Progress: {assessed}/{total} assessed  ({pending} pending)",
+        "info",
+    )
+    if data.get("last_triaged_at"):
+        cli_ctx.log(f"  Last triaged: {data['last_triaged_at']}", "info")
+    cli_ctx.log("", "info")
+
+    for item in data.get("items", []):
+        marker = "[x]" if item["assessed"] else "[ ]"
+        flags = []
+        if item.get("salvageable"):
+            flags.append("salvageable")
+        if item.get("replaceable"):
+            flags.append("replaceable")
+        if item.get("consumable"):
+            flags.append("consumable")
+        flag_str = f"  ({', '.join(flags)})" if flags else ""
+        cond = (
+            f"  [{item['current_condition']}]" if item.get("current_condition") else ""
+        )
+        cli_ctx.log(
+            f"  {marker} {item['component_name']}{cond}{flag_str}",
+            "info",
+        )
+        if item.get("part_number"):
+            cli_ctx.log(f"       pn={item['part_number']}", "info")
+        state = item.get("current_state") or {}
+        if state.get("notes"):
+            cli_ctx.log(f"       notes: {state['notes']}", "info")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"\nWritten to {output}", "info")
+
+
+# ---------------------------------------------------------------------------
 # salvage-match
 # ---------------------------------------------------------------------------
 
