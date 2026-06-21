@@ -475,6 +475,40 @@ class AssetService(BaseService["AssetService"]):
     # Salvage matching
     # ------------------------------------------------------------------
 
+    async def claim_component(
+        self,
+        asset_id: UUID,
+        component_name: str,
+        claimed_by: str,
+    ) -> ComponentState:
+        """Mark a component on an asset as claimed by a coordinator.
+
+        Raises KeyError if the asset or component is not found.
+        Raises ValueError if the component is already claimed (use as 409 signal).
+        """
+        await self.ensure_initialized()
+        record = await self.get(asset_id)
+        if record is None:
+            raise KeyError(f"AssetRecord {asset_id} not found")
+
+        cs = next(
+            (s for s in record.component_states if s.component_name == component_name),
+            None,
+        )
+        if cs is None:
+            raise KeyError(
+                f"Component {component_name!r} not found on asset {asset_id}"
+            )
+        if cs.is_claimed:
+            raise ValueError(
+                f"Component {component_name!r} is already claimed by {cs.claimed_by!r}"
+            )
+
+        cs.claimed_by = claimed_by
+        cs.claimed_at = datetime.now(timezone.utc)
+        await self.update(asset_id, record)
+        return cs
+
     async def salvage_match(
         self,
         component_name: Optional[str] = None,
@@ -482,6 +516,7 @@ class AssetService(BaseService["AssetService"]):
         manifest_id: Optional[str] = None,
         conditions: Optional[List[str]] = None,
         exclude_asset_id: Optional[str] = None,
+        exclude_claimed: bool = True,
     ) -> SalvageMatchResult:
         """Find harvestable components across the asset fleet matching the query.
 
@@ -511,6 +546,8 @@ class AssetService(BaseService["AssetService"]):
                 continue
             comp_map = await _get_comp_map(record.manifest_id)
             for cs in record.component_states:
+                if exclude_claimed and cs.is_claimed:
+                    continue
                 comp = comp_map.get(cs.component_name)
                 if not _is_salvage_match(
                     cs, comp, component_name, part_number, conditions
@@ -532,6 +569,10 @@ class AssetService(BaseService["AssetService"]):
                         part_number=getattr(comp, "part_number", None),
                         salvageable=getattr(comp, "salvageable", False),
                         replaceable=getattr(comp, "replaceable", False),
+                        claimed_by=cs.claimed_by,
+                        claimed_at=(
+                            cs.claimed_at.isoformat() if cs.claimed_at else None
+                        ),
                     )
                 )
 

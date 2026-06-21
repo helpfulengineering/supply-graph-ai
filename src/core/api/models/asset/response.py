@@ -107,6 +107,8 @@ class SalvageMatchItemResponse(BaseModel):
     part_number: Optional[str] = None
     salvageable: bool = False
     replaceable: bool = False
+    claimed_by: Optional[str] = None
+    claimed_at: Optional[str] = None
 
 
 class SalvageQueryResponse(BaseModel):
@@ -119,3 +121,11 @@ class SalvageMatchResponse(BaseModel):
     matches: List[SalvageMatchItemResponse]
     total: int
     query: SalvageQueryResponse
+
+
+class ClaimComponentResponse(BaseModel):
+    success: bool
+    asset_id: str
+    component_name: str
+    claimed_by: str
+    claimed_at: str

@@ -705,11 +705,17 @@ async def resolve_sourcing_cmd(ctx, asset_id, output):
     type=click.Choice(["intact", "damaged", "missing", "unknown"]),
     help="Filter by observed condition (repeatable)",
 )
+@click.option(
+    "--include-claimed",
+    is_flag=True,
+    default=False,
+    help="Include components already claimed by another coordinator",
+)
 @click.option("--output", "-o", default=None, help="Write results to a JSON file")
 @async_command
 @click.pass_context
 async def salvage_match_cmd(
-    ctx, component_name, part_number, manifest_id, conditions, output
+    ctx, component_name, part_number, manifest_id, conditions, include_claimed, output
 ):
     """Find harvestable components across the asset fleet.
 
@@ -730,7 +736,7 @@ async def salvage_match_cmd(
             "Provide at least one of --component-name or --part-number"
         )
 
-    payload: Dict[str, Any] = {}
+    payload: Dict[str, Any] = {"exclude_claimed": not include_claimed}
     if component_name:
         payload["component_name"] = component_name
     if part_number:
@@ -753,6 +759,7 @@ async def salvage_match_cmd(
             part_number=part_number,
             manifest_id=manifest_id,
             conditions=list(conditions) if conditions else None,
+            exclude_claimed=not include_claimed,
         )
         return result.to_dict()
 
@@ -779,12 +786,76 @@ async def salvage_match_cmd(
         )
         if m.get("part_number"):
             cli_ctx.log(f"    pn={m['part_number']}", "info")
+        if m.get("claimed_by"):
+            cli_ctx.log(f"    CLAIMED by {m['claimed_by']}", "warning")
         if m.get("notes"):
             cli_ctx.log(f"    notes: {m['notes']}", "info")
 
     if output:
         Path(output).write_text(json.dumps(data, indent=2))
         cli_ctx.log(f"Written to {output}", "info")
+
+
+# ---------------------------------------------------------------------------
+# claim-component
+# ---------------------------------------------------------------------------
+
+
+@asset_group.command("claim-component")
+@click.option("--asset-id", required=True, help="UUID of the asset")
+@click.option("--component-name", required=True, help="Name of the component to claim")
+@click.option("--claimed-by", required=True, help="Coordinator ID making the claim")
+@async_command
+@click.pass_context
+async def claim_component_cmd(ctx, asset_id, component_name, claimed_by):
+    """Claim a component on an asset to prevent concurrent dispatch.
+
+    Marks the component unavailable in salvage-match queries (default behaviour).
+    Claims expire after 48 hours.
+
+    \b
+    Examples:
+      ohm asset claim-component --asset-id <uuid> --component-name "Blood pump" --claimed-by coord-1
+    """
+    cli_ctx = ctx.obj
+
+    async def http_claim():
+        async with cli_ctx.api_client.get_client() as client:
+            r = await client.post(
+                f"/api/asset/{asset_id}/claim-component",
+                json={"component_name": component_name, "claimed_by": claimed_by},
+            )
+            if r.status_code == 409:
+                raise click.ClickException(
+                    r.json().get("detail", "Component already claimed")
+                )
+            r.raise_for_status()
+            return r.json()
+
+    async def fallback_claim():
+        svc = await AssetService.get_instance()
+        cs = await svc.claim_component(
+            asset_id=UUID(asset_id),
+            component_name=component_name,
+            claimed_by=claimed_by,
+        )
+        return {
+            "success": True,
+            "asset_id": asset_id,
+            "component_name": cs.component_name,
+            "claimed_by": cs.claimed_by,
+            "claimed_at": cs.claimed_at.isoformat() if cs.claimed_at else None,
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_claim, fallback_claim)
+
+    cli_ctx.log(
+        f"Claimed {data['component_name']!r} on asset {data['asset_id'][:8]}… "
+        f"for {data['claimed_by']}",
+        "success",
+    )
+    cli_ctx.log(f"  Claim expires 48h after {data.get('claimed_at', 'now')}", "info")
 
 
 # ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ from ..models.asset.response import (
     AssetResponse,
     ChecklistItemResponse,
     ChecklistResponse,
+    ClaimComponentResponse,
     SalvageMatchItemResponse,
     SalvageMatchResponse,
     SalvageQueryResponse,
@@ -63,6 +64,12 @@ class SalvageMatchRequest(BaseModel):
     part_number: Optional[str] = None
     manifest_id: Optional[str] = None
     conditions: Optional[List[str]] = None
+    exclude_claimed: bool = True
+
+
+class ClaimComponentRequest(BaseModel):
+    component_name: str
+    claimed_by: str
 
 
 # ---------------------------------------------------------------------------
@@ -427,6 +434,7 @@ async def salvage_match(
         part_number=body.part_number,
         manifest_id=body.manifest_id,
         conditions=body.conditions,
+        exclude_claimed=body.exclude_claimed,
     )
     return SalvageMatchResponse(
         matches=[SalvageMatchItemResponse(**m.to_dict()) for m in result.matches],
@@ -436,4 +444,41 @@ async def salvage_match(
             part_number=result.query_part_number,
             manifest_id=result.query_manifest_id,
         ),
+    )
+
+
+@router.post(
+    "/{id}/claim-component",
+    response_model=ClaimComponentResponse,
+    summary="Claim a component on an asset for retrieval",
+    description="""
+    Mark a specific component on an asset as claimed by a coordinator,
+    preventing it from appearing in concurrent salvage-match queries.
+
+    Claims expire automatically after 48 hours (lazy-checked on read).
+    Returns **409 Conflict** if the component is already claimed.
+    """,
+    status_code=status.HTTP_200_OK,
+)
+async def claim_component(
+    id: UUID = Path(...),
+    body: ClaimComponentRequest = ...,
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        cs = await svc.claim_component(
+            asset_id=id,
+            component_name=body.component_name,
+            claimed_by=body.claimed_by,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return ClaimComponentResponse(
+        success=True,
+        asset_id=str(id),
+        component_name=cs.component_name,
+        claimed_by=cs.claimed_by,
+        claimed_at=cs.claimed_at.isoformat(),
     )

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID, uuid4
+
+_CLAIM_TTL = timedelta(hours=48)
 
 
 class ComponentCondition(Enum):
@@ -37,6 +39,18 @@ class ComponentState:
     notes: Optional[str] = None
     observed_at: Optional[datetime] = None
     assessed_by: Optional[str] = None
+    claimed_by: Optional[str] = None
+    claimed_at: Optional[datetime] = None
+
+    @property
+    def is_claimed(self) -> bool:
+        """True if a non-expired claim exists (48h TTL, lazy-checked on read)."""
+        if not self.claimed_by or not self.claimed_at:
+            return False
+        ct = self.claimed_at
+        if ct.tzinfo is None:
+            ct = ct.replace(tzinfo=timezone.utc)
+        return datetime.now(timezone.utc) - ct < _CLAIM_TTL
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -48,6 +62,8 @@ class ComponentState:
             "notes": self.notes,
             "observed_at": self.observed_at.isoformat() if self.observed_at else None,
             "assessed_by": self.assessed_by,
+            "claimed_by": self.claimed_by,
+            "claimed_at": self.claimed_at.isoformat() if self.claimed_at else None,
         }
 
     @classmethod
@@ -64,6 +80,13 @@ class ComponentState:
             except (ValueError, TypeError):
                 pass
 
+        claimed_at = None
+        if data.get("claimed_at"):
+            try:
+                claimed_at = datetime.fromisoformat(data["claimed_at"])
+            except (ValueError, TypeError):
+                pass
+
         return cls(
             component_name=data["component_name"],
             condition=condition,
@@ -73,6 +96,8 @@ class ComponentState:
             notes=data.get("notes"),
             observed_at=observed_at,
             assessed_by=data.get("assessed_by"),
+            claimed_by=data.get("claimed_by"),
+            claimed_at=claimed_at,
         )
 
 

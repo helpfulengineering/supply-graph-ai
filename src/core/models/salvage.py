@@ -23,6 +23,8 @@ class SalvageMatch:
     part_number: Optional[str] = None
     salvageable: bool = False
     replaceable: bool = False
+    claimed_by: Optional[str] = None
+    claimed_at: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -38,6 +40,8 @@ class SalvageMatch:
             "part_number": self.part_number,
             "salvageable": self.salvageable,
             "replaceable": self.replaceable,
+            "claimed_by": self.claimed_by,
+            "claimed_at": self.claimed_at,
         }
 
 
