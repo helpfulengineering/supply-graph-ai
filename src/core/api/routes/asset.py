@@ -11,7 +11,13 @@ from pydantic import BaseModel
 from ...models.asset import AssetRecord, ComponentState
 from ...services.asset_service import AssetService
 from ...utils.logging import get_logger
-from ..models.asset.response import AssetListResponse, AssetResponse
+from ..models.asset.response import (
+    AssetListResponse,
+    AssetResponse,
+    TriageItemResponse,
+    TriageReportResponse,
+    TriageSummaryResponse,
+)
 
 logger = get_logger(__name__)
 
@@ -216,3 +222,49 @@ async def record_triage(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
         )
     return _to_response(record)
+
+
+@router.get(
+    "/{id}/triage-report",
+    response_model=TriageReportResponse,
+    summary="Generate a repair triage report for an asset",
+    description="""
+    Join the AssetRecord (physical observations) with the linked OKH manifest
+    (design flags) to produce a per-component repair recommendation.
+
+    **Recommended actions:**
+    - `assess` — component not yet triaged, or condition is unknown
+    - `no_action` — component is intact, no work needed
+    - `repair_in_place` — damaged but technician flagged as repair-feasible
+    - `harvest` — damaged/missing, salvageable per design, pull for use elsewhere
+    - `source_new` — damaged/missing, replaceable per design, must be sourced
+    - `decommission` — damaged/missing, not replaceable or salvageable
+    """,
+)
+async def get_triage_report(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        report = await svc.generate_triage_report(id)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return TriageReportResponse(
+        asset_id=report.asset_id,
+        manifest_id=report.manifest_id,
+        asset_tag=report.asset_tag,
+        last_triaged_at=report.last_triaged_at,
+        triage_notes=report.triage_notes,
+        items=[TriageItemResponse(**item.to_dict()) for item in report.items],
+        summary=TriageSummaryResponse(
+            total_components=report.total_components,
+            needs_assessment=report.needs_assessment,
+            repair_in_place=report.repair_in_place_count,
+            harvest=report.harvest_count,
+            source_new=report.source_new_count,
+            no_action=report.no_action_count,
+            decommission=report.decommission_count,
+        ),
+    )

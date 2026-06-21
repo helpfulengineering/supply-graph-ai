@@ -7,7 +7,8 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
-from ..models.asset import AssetRecord, ComponentState
+from ..models.asset import AssetRecord, ComponentCondition, ComponentState
+from ..models.repair import TriageAction, TriageItem, TriageReport
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
 from .base import BaseService, ServiceConfig
@@ -16,6 +17,30 @@ from .storage_service import StorageService
 logger = get_logger(__name__)
 
 _PREFIX = "asset"
+
+
+def _derive_action(cs: Optional[ComponentState], comp: Any) -> TriageAction:
+    """Derive the recommended action from observed condition + manifest design flags."""
+    if cs is None or cs.condition == ComponentCondition.UNKNOWN:
+        return TriageAction.ASSESS
+    if cs.condition == ComponentCondition.INTACT:
+        return TriageAction.NO_ACTION
+    if cs.condition == ComponentCondition.DAMAGED:
+        if cs.repair_feasible is True:
+            return TriageAction.REPAIR_IN_PLACE
+        salvageable = getattr(comp, "salvageable", False) if comp else False
+        replaceable = getattr(comp, "replaceable", False) if comp else False
+        if salvageable:
+            return TriageAction.HARVEST
+        if replaceable:
+            return TriageAction.SOURCE_NEW
+        return TriageAction.DECOMMISSION
+    if cs.condition == ComponentCondition.MISSING:
+        replaceable = getattr(comp, "replaceable", False) if comp else False
+        if replaceable:
+            return TriageAction.SOURCE_NEW
+        return TriageAction.DECOMMISSION
+    return TriageAction.ASSESS
 
 
 class AssetService(BaseService["AssetService"]):
@@ -160,6 +185,75 @@ class AssetService(BaseService["AssetService"]):
             record.triage_notes = triage_notes
 
         return await self.update(asset_id, record.to_dict())
+
+    # ------------------------------------------------------------------
+    # Triage report
+    # ------------------------------------------------------------------
+
+    async def generate_triage_report(self, asset_id: UUID) -> TriageReport:
+        """Join AssetRecord + OKHManifest to produce a per-component TriageReport."""
+        await self.ensure_initialized()
+
+        record = await self.get(asset_id)
+        if record is None:
+            raise KeyError(f"AssetRecord {asset_id} not found")
+
+        from .okh_service import OKHService
+
+        okh_svc = await OKHService.get_instance()
+        manifest = await okh_svc.get(UUID(record.manifest_id))
+
+        # Build a lookup of observed states
+        observed: Dict[str, ComponentState] = {
+            cs.component_name: cs for cs in record.component_states
+        }
+
+        items: list[TriageItem] = []
+
+        if manifest and manifest.components:
+            for comp in manifest.components:
+                cs = observed.get(comp.name)
+                action = _derive_action(cs, comp)
+                items.append(
+                    TriageItem(
+                        component_name=comp.name,
+                        recommended_action=action,
+                        condition=cs.condition.value if cs else "not_assessed",
+                        repair_feasible=cs.repair_feasible if cs else None,
+                        harvest_viable=cs.harvest_viable if cs else None,
+                        source_required=cs.source_required if cs else None,
+                        notes=cs.notes if cs else None,
+                        replaceable=comp.replaceable,
+                        salvageable=comp.salvageable,
+                        consumable=comp.consumable,
+                        part_number=comp.part_number,
+                    )
+                )
+        else:
+            # No manifest components — emit one item per observed state
+            for cs in record.component_states:
+                items.append(
+                    TriageItem(
+                        component_name=cs.component_name,
+                        recommended_action=_derive_action(cs, None),
+                        condition=cs.condition.value,
+                        repair_feasible=cs.repair_feasible,
+                        harvest_viable=cs.harvest_viable,
+                        source_required=cs.source_required,
+                        notes=cs.notes,
+                    )
+                )
+
+        return TriageReport(
+            asset_id=str(record.id),
+            manifest_id=record.manifest_id,
+            asset_tag=record.asset_tag,
+            items=items,
+            last_triaged_at=(
+                record.last_triaged_at.isoformat() if record.last_triaged_at else None
+            ),
+            triage_notes=record.triage_notes,
+        )
 
     # ------------------------------------------------------------------
     # Internal

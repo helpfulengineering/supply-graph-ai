@@ -16,3 +16,37 @@ class AssetResponse(BaseModel):
 class AssetListResponse(BaseModel):
     assets: List[AssetResponse]
     total: int
+
+
+class TriageItemResponse(BaseModel):
+    component_name: str
+    recommended_action: str
+    condition: str
+    repair_feasible: Optional[bool] = None
+    harvest_viable: Optional[bool] = None
+    source_required: Optional[bool] = None
+    notes: Optional[str] = None
+    replaceable: bool = False
+    salvageable: bool = False
+    consumable: bool = False
+    part_number: Optional[str] = None
+
+
+class TriageSummaryResponse(BaseModel):
+    total_components: int
+    needs_assessment: int
+    repair_in_place: int
+    harvest: int
+    source_new: int
+    no_action: int
+    decommission: int
+
+
+class TriageReportResponse(BaseModel):
+    asset_id: str
+    manifest_id: str
+    asset_tag: str
+    last_triaged_at: Optional[str] = None
+    triage_notes: Optional[str] = None
+    items: List[TriageItemResponse]
+    summary: TriageSummaryResponse

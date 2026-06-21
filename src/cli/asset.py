@@ -400,6 +400,89 @@ async def triage_cmd(
 
 
 # ---------------------------------------------------------------------------
+# triage-report
+# ---------------------------------------------------------------------------
+
+_ACTION_LABELS: Dict[str, str] = {
+    "assess": "  ASSESS     ",
+    "no_action": "  OK         ",
+    "repair_in_place": "  REPAIR     ",
+    "harvest": "  HARVEST    ",
+    "source_new": "  SOURCE NEW ",
+    "decommission": "  DECOMMISION",
+}
+
+
+@asset_group.command("triage-report")
+@click.argument("asset_id")
+@click.option("--output", "-o", default=None, help="Write report JSON to a file")
+@async_command
+@click.pass_context
+async def triage_report_cmd(ctx, asset_id, output):
+    """Generate a repair triage report for an asset.
+
+    Joins the asset's observed component states with the design's repair flags
+    (replaceable / salvageable / consumable) to produce a per-component
+    recommended action.
+
+    \b
+    Examples:
+      ohm asset triage-report <asset-id>
+      ohm asset triage-report <asset-id> --output report.json
+    """
+    cli_ctx = ctx.obj
+
+    async def http_report():
+        async with cli_ctx.api_client.get_client() as client:
+            r = await client.get(f"/api/asset/{asset_id}/triage-report")
+            r.raise_for_status()
+            return r.json()
+
+    async def fallback_report():
+        svc = await AssetService.get_instance()
+        report = await svc.generate_triage_report(UUID(asset_id))
+        return report.to_dict()
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_report, fallback_report)
+
+    s = data.get("summary", {})
+    cli_ctx.log(
+        f"Triage report for asset {data['asset_id'][:8]}…  tag={data['asset_tag']}",
+        "success",
+    )
+    if data.get("last_triaged_at"):
+        cli_ctx.log(f"  Last triaged: {data['last_triaged_at']}", "info")
+    cli_ctx.log(
+        f"  Summary: {s.get('total_components', 0)} components — "
+        f"assess={s.get('needs_assessment', 0)}  "
+        f"repair={s.get('repair_in_place', 0)}  "
+        f"harvest={s.get('harvest', 0)}  "
+        f"source_new={s.get('source_new', 0)}  "
+        f"ok={s.get('no_action', 0)}  "
+        f"decommission={s.get('decommission', 0)}",
+        "info",
+    )
+    cli_ctx.log("", "info")
+    for item in data.get("items", []):
+        label = _ACTION_LABELS.get(
+            item["recommended_action"], f"  {item['recommended_action']:<13}"
+        )
+        cli_ctx.log(
+            f"{label} {item['component_name']}  [{item['condition']}]",
+            "info",
+        )
+        if item.get("notes"):
+            cli_ctx.log(f"              notes: {item['notes']}", "info")
+
+    if output:
+        from pathlib import Path
+
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"\nWritten to {output}", "info")
+
+
+# ---------------------------------------------------------------------------
 # Display helper
 # ---------------------------------------------------------------------------
 
