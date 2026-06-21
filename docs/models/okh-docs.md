@@ -863,7 +863,20 @@ ohm okh extract-repair-docs guide.pdf --output patch.json
 | `DocumentationType` value | Typical filenames | Key signals |
 |---|---|---|
 | `troubleshooting-guide` | `*troubleshoot*`, `*fault*` | Error/fault code tables, symptom→action tables |
-| `parts-catalog` | `*parts*`, `*catalog*` | `POS.NO` / `PART.NO` / `DESCRIPTION` columns |
+| `parts-catalog` | `*parts*`, `*catalog*` | `POS.NO` / `POS. NO` / `PART NO.` / `DESCRIPTION` columns |
 | `service-manual` | `*service*`, `*technical*` | Calibration, maintenance schedules, periodic inspection |
 | `operations-manual` | `*operations*`, `*operator*`, `*user*` | Operating instructions |
 | `disassembly-guide` | `*disassembly*`, `*teardown*` | Step-by-step removal/reassembly |
+
+### Extraction quality and when to use `--use-llm`
+
+The programmatic pass works well for structured documents with clear parts tables
+(manufacturer parts catalogs, iFixit-style guides). It degrades gracefully for:
+
+- **Dense technical manuals** — inline `part no. XXXXX` references yield real P/Ns but
+  generic or missing component names. The LLM pass resolves names from surrounding prose.
+- **Non-standard table layouts** — formats where part numbers and descriptions are in
+  non-contiguous columns (e.g. `DESCRIPTION / PART_115V / PART_220V`) yield zero
+  components from the programmatic pass. Use `--use-llm` for these.
+- **Operations manuals** — product variant model numbers are extracted as components;
+  the LLM pass distinguishes spare parts from product identifiers.
