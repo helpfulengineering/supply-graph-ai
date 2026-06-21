@@ -67,9 +67,12 @@ _PARTS_HEADERS = {
 _TOOLS_HEADERS = {
     "tools required",
     "tools needed",
+    "tools:",  # iFixit PDF style
+    "tools",  # iFixit sometimes omits the colon
     "equipment required",
     "tools and materials",
     "what you need",
+    "what you'll need",  # iFixit web style
     "materials required",
     "required tools",
     "you will need",
@@ -81,15 +84,34 @@ _TOOLS_HEADERS = {
 # ---------------------------------------------------------------------------
 
 # Explicit part-number callouts (P/N, Part No., etc.)
+# \b after the abbreviation prevents matching inside words like "pneumatic"
 _PN_EXPLICIT = re.compile(
-    r"(?i)(?:p/?n|part\s+(?:no\.?|number|#))\s*:?\s*([A-Z0-9][A-Z0-9\-/\.]{2,25})",
+    r"(?i)(?:p/?n|part\s+(?:no\.?|number|#))\b\s*:?\s*([A-Z0-9][A-Z0-9\-/\.]{2,25})",
 )
 
-# Parts-table rows: optional position number + part-number-like token + description
-# Matches lines like: "  1   316571702   TRIM-DRAWER,UPPER"
-_TABLE_ROW = re.compile(
-    r"^\s*(?:\d+\s+)?([A-Z0-9][A-Z0-9\-/\.]{2,20})\s{2,}(.{5,80})\s*$"
-)
+# Words that look like P/Ns but are actually column headers or common nouns
+_PN_BLACKLIST = {
+    "description",
+    "qty",
+    "quantity",
+    "ref",
+    "reference",
+    "notes",
+    "unit",
+    "price",
+    "no",
+    "yes",
+    "na",
+    "tbd",
+    "see",
+    "above",
+    "below",
+}
+
+# Parts-table rows: optional position number + part-number-like token + description.
+# Single-space separation (\s+) handles Frigidaire-style compact tables as well as
+# wider-spaced formats.
+_TABLE_ROW = re.compile(r"^\s*(?:\d+\s+)?([A-Z0-9][A-Z0-9\-/\.]{2,20})\s+(.{5,80})\s*$")
 
 # Diagnostic/error codes
 _DIAG_WORD = re.compile(r"(?<!\w)([A-Z]{2,8}(?:ERR|ALM|FLT|WARN|FAULT))(?!\w)")
@@ -118,7 +140,8 @@ _NEVER_LINE = re.compile(r"(?i)\bnever\b.{5,120}", re.MULTILINE)
 
 # List items
 _LIST_ITEM = re.compile(r"^\s*[-*•·]\s*(.+)$", re.MULTILINE)
-_NUMBERED_ITEM = re.compile(r"^\s*\d+[.)]\s*(.+)$", re.MULTILINE)
+# Require at least one space after the delimiter so "13.25mm" isn't mistaken for "13. 25mm"
+_NUMBERED_ITEM = re.compile(r"^\s*\d+[.)]\s+(.+)$", re.MULTILINE)
 
 # Document-type classification keywords
 _DOCTYPE_KEYWORDS: Dict[DocumentationType, List[str]] = {
@@ -136,7 +159,9 @@ _DOCTYPE_KEYWORDS: Dict[DocumentationType, List[str]] = {
         "parts catalog",
         "parts list",
         "pos.no",
+        "pos. no",
         "part.no",
+        "part no",
         "part number",
         "exploded",
         "bill of materials",
@@ -230,8 +255,11 @@ class RepairDocExtractor:
         )
     """
 
-    # Heuristic: ignore P/N tokens that are obviously page numbers or generic codes
-    _PN_IGNORE = re.compile(r"^(?:\d{1,4}|[A-Z]{1,2}\d?)$")
+    # Ignore tokens that are clearly position indices, short codes, or section refs:
+    # - \d{1,4}[A-Z]? : page/position numbers (18A, 5B, 99)
+    # - [A-Z]{1,2}\d? : very short letter codes (AC, B1)
+    # - \d+(?:\.\d+)+[A-Z]? : section numbers (1.0, 2.4.2, 2.1A)
+    _PN_IGNORE = re.compile(r"^(?:\d{1,4}[A-Z]?|[A-Z]{1,2}\d?|\d+(?:\.\d+)+[A-Z]?)$")
 
     def extract(self, file_paths: List[Path]) -> RepairExtractionResult:
         """Programmatic extraction. Works offline, no LLM required."""
@@ -317,18 +345,26 @@ class RepairDocExtractor:
 
     def _extract_text(self, file_path: Path) -> str:
         suffix = file_path.suffix.lower()
-        if suffix == ".pdf":
-            return self._extract_pdf(file_path)
-        # Plain text fallback for .txt, .md, etc.
-        return file_path.read_text(errors="replace")
+        raw = (
+            self._extract_pdf(file_path)
+            if suffix == ".pdf"
+            else file_path.read_text(errors="replace")
+        )
+        return self._normalise_whitespace(raw)
 
     def _extract_pdf(self, file_path: Path) -> str:
         from .utils.file_content_parser import FileContentParser
 
         parser = FileContentParser()
-        # _extract_pdf_text is an internal helper that returns Optional[str]
         text = parser._extract_pdf_text(file_path)
         return text or ""
+
+    @staticmethod
+    def _normalise_whitespace(text: str) -> str:
+        """Replace tabs with spaces and collapse runs of 3+ spaces to two."""
+        text = text.replace("\t", " ")
+        text = re.sub(r" {3,}", "  ", text)
+        return text
 
     # ------------------------------------------------------------------
     # Private: document type
@@ -374,20 +410,28 @@ class RepairDocExtractor:
         # Step 4: pick up explicit P/N callouts outside tables
         table_pns = {c.part_number for c in components if c.part_number}
         for match in _PN_EXPLICIT.finditer(text):
-            pn = match.group(1).strip()
+            pn = match.group(1).strip().rstrip(".:,;")
             if pn in table_pns or self._PN_IGNORE.match(pn):
                 continue
-            # Try to get the surrounding context as a name
-            start = max(0, match.start() - 60)
-            ctx = text[start : match.end() + 60].strip().replace("\n", " ")
-            components.append(
-                Component(
-                    name=f"Component (P/N {pn})",
-                    part_number=pn,
-                    replaceable=True,
-                    notes=ctx[:120] if len(ctx) > 20 else None,
-                )
-            )
+            if pn.lower() in _PN_BLACKLIST:
+                continue
+
+            # Look for a description on the same line, after the P/N
+            line_end = text.find("\n", match.end())
+            after = text[
+                match.end() : line_end if line_end != -1 else match.end() + 80
+            ].strip()
+            # Strip trailing dotleaders ("............ 5-3") and trailing punctuation
+            after = re.sub(r"\.{3,}.*$", "", after).strip()
+            after = after.rstrip(")].,:;")
+
+            if 3 < len(after) < 70 and after.lower() not in _PN_BLACKLIST:
+                name = after
+            else:
+                # Fall back to the P/N itself — still useful for the LLM pass
+                name = pn
+
+            components.append(Component(name=name, part_number=pn, replaceable=True))
             table_pns.add(pn)
 
         return components
@@ -407,15 +451,21 @@ class RepairDocExtractor:
                 continue
             token, description = m.group(1), m.group(2).strip()
 
-            # Skip header-like rows
-            if token.lower() in {"pos", "item", "part", "ref", "qty", "no"}:
+            # Skip header-like rows (strip trailing punctuation before comparing)
+            if token.rstrip(".:,;").lower() in {
+                "pos",
+                "item",
+                "part",
+                "ref",
+                "qty",
+                "no",
+                "description",
+            }:
                 continue
             if self._PN_IGNORE.match(token):
                 continue
-
-            # Bare numbers alone (like page numbers) without a description that
-            # looks like a component name are skipped.
-            if token.isdigit() and not re.search(r"[A-Z]", description):
+            # Skip tokens that don't look like part numbers (e.g. "RECEIVING", "CHECK")
+            if not self._looks_like_pn(token):
                 continue
 
             name = description[:80]
@@ -439,6 +489,31 @@ class RepairDocExtractor:
             components.append(component)
 
         return components
+
+    @staticmethod
+    def _looks_like_pn(token: str) -> bool:
+        """Return True only if the token plausibly looks like a part number."""
+        has_digit = bool(re.search(r"\d", token))
+        has_sep = bool(re.search(r"[-/.]", token))
+        # Long digit string (e.g. manufacturer catalogue number 316571702)
+        if token.isdigit():
+            return len(token) >= 5
+        # Reject US phone numbers like "800-227-2572"
+        if re.match(r"^\d{3}-\d{3}-\d{4}$", token):
+            return False
+        if "/" in token:
+            segs = token.split("/")
+            # Reject "QUARTERLY/1000", "P/N", "A/C" — first segment is all letters
+            if segs[0].isalpha():
+                return False
+            # Reject voltage/frequency specs "100/120/220/240V", "50/60Hz":
+            # all segments numeric after stripping trailing letters
+            stripped = [re.sub(r"[A-Za-z]+$", "", s) for s in segs]
+            if all(s.isdigit() and s for s in stripped):
+                return False
+        # Must contain at least one digit; separators alone aren't sufficient
+        # (filters "U.S.", "SPECIFICATIONS." etc.)
+        return has_digit
 
     def _is_consumable(self, name: str) -> bool:
         """Heuristically identify consumable components."""
@@ -510,14 +585,37 @@ class RepairDocExtractor:
         tools: List[str] = []
         sections = self._extract_section_texts(text, _TOOLS_HEADERS, max_lines=30)
         for section in sections:
+            found: List[str] = []
             for m in _LIST_ITEM.finditer(section):
                 tool = m.group(1).strip()
                 if 3 < len(tool) < 80:
-                    tools.append(tool)
+                    found.append(tool)
             for m in _NUMBERED_ITEM.finditer(section):
                 tool = m.group(1).strip()
                 if 3 < len(tool) < 80:
-                    tools.append(tool)
+                    found.append(tool)
+            # Fallback for iFixit-style plain-line lists (no bullet markers).
+            # Stop at the first step marker so guide steps aren't collected.
+            if not found:
+                for line in section.splitlines():
+                    line = line.strip()
+                    # Hard stop: iFixit step headers and dash-prefixed instructions
+                    if re.match(r"^(?:step\s+\d|—\s*\w)", line, re.IGNORECASE):
+                        break
+                    # Skip quantity markers, bare numbers, and NOTE/WARNING lines
+                    if re.match(r"^\(\d+\)$", line):
+                        continue
+                    if re.match(
+                        r"^(?:note|warning|caution|danger|important)\s*:",
+                        line,
+                        re.IGNORECASE,
+                    ):
+                        continue
+                    if not re.search(r"[A-Za-z]", line):
+                        continue
+                    if 5 < len(line) < 80:
+                        found.append(line)
+            tools.extend(found)
         return list(dict.fromkeys(tools))  # deduplicate, preserve order
 
     # ------------------------------------------------------------------
@@ -562,7 +660,8 @@ class RepairDocExtractor:
     def _extract_author(self, text: str) -> Optional[str]:
         m = _AUTHOR.search(text[:3000])
         if m:
-            author = m.group(1).strip().rstrip(".,")
+            # Collapse tabs/runs of spaces left by PDF extraction
+            author = re.sub(r"\s+", " ", m.group(1)).strip().rstrip(".,")
             if 3 < len(author) < 60:
                 return author
         return None
