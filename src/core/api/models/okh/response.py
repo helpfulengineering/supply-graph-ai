@@ -195,3 +195,18 @@ class OKHExportResponse(BaseModel):
 
     schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"
     model_name: Optional[str] = "OKHManifest"
+
+
+class OKHRepairExtractResponse(BaseModel):
+    """Response model for repair document extraction."""
+
+    success: bool
+    message: str
+    components: List[Dict[str, Any]]
+    repair_guides: List[Dict[str, Any]]
+    documentation_type: Optional[str]
+    source_files: List[str]
+    llm_enhanced: bool
+    notes: List[str]
+
+    manifest_id: Optional[str] = None  # set when merged into an existing manifest

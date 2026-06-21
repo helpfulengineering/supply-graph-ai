@@ -2468,3 +2468,156 @@ async def diff_collection_cmd(ctx, archive, verbose):
                 f"  {entry['title']} {entry['version']} ({entry['content_hash'][:20]}...)",
                 "info",
             )
+
+
+@okh_group.command("extract-repair-docs")
+@click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(
+    "--manifest-id", default=None, help="Merge extracted fields into this manifest"
+)
+@click.option(
+    "--use-llm", is_flag=True, default=False, help="Run optional LLM enrichment pass"
+)
+@click.option("--output", "-o", default=None, help="Write extracted JSON patch to file")
+@async_command
+@click.pass_context
+async def extract_repair_docs_cmd(ctx, files, manifest_id, use_llm, output):
+    """Extract repair fields from service manuals, parts catalogs, and repair guides.
+
+    Accepts one or more PDF or text documents. Runs a programmatic extraction pass
+    that works fully offline, with an optional LLM enrichment pass when --use-llm
+    is set and an LLM provider is configured.
+
+    Extracts: components, part numbers, diagnostic codes, tools, safety
+    prerequisites, repair guides, and document type classification.
+
+    \b
+    Examples:
+      ohm okh extract-repair-docs fresenius-service-manual.pdf
+      ohm okh extract-repair-docs manual.pdf parts.pdf --use-llm
+      ohm okh extract-repair-docs guide.pdf --manifest-id abc123 --output patch.json
+    """
+    from ..core.generation.repair_doc_extractor import RepairDocExtractor
+
+    cli_ctx = ctx.obj
+    file_paths = [Path(f) for f in files]
+
+    async def http_extract():
+        file_handles = []
+        try:
+            multipart_files = []
+            for fp in file_paths:
+                fh = open(fp, "rb")
+                file_handles.append(fh)
+                multipart_files.append(
+                    ("files", (fp.name, fh, "application/octet-stream"))
+                )
+            form_data: Dict[str, Any] = {"use_llm": str(use_llm).lower()}
+            if manifest_id:
+                form_data["manifest_id"] = manifest_id
+
+            async with cli_ctx.api_client.get_client() as client:
+                response = await client.post(
+                    "/api/okh/extract-repair-docs",
+                    files=multipart_files,
+                    data=form_data,
+                )
+                response.raise_for_status()
+                return response.json()
+        finally:
+            for fh in file_handles:
+                fh.close()
+
+    async def fallback_extract():
+        extractor = RepairDocExtractor()
+        if use_llm:
+            try:
+                from ..core.llm.service import LLMService, LLMServiceConfig
+
+                llm_cfg = LLMServiceConfig()
+                llm_svc = LLMService("RepairExtractCLI", llm_cfg)
+                result = await extractor.extract_with_llm(file_paths, llm_svc)
+            except Exception as llm_err:
+                cli_ctx.log(
+                    f"LLM unavailable, running programmatic pass only: {llm_err}",
+                    "warning",
+                )
+                result = extractor.extract(file_paths)
+        else:
+            result = extractor.extract(file_paths)
+
+        # Merge into existing manifest if requested
+        if manifest_id:
+            okh_service = await OKHService.get_instance()
+            from uuid import UUID as _UUID
+
+            existing = await okh_service.get(_UUID(manifest_id))
+            if existing is None:
+                raise click.ClickException(f"Manifest {manifest_id!r} not found.")
+            patch = result.to_patch()
+            existing_dict = existing.to_dict()
+            existing_dict["components"] = existing_dict.get(
+                "components", []
+            ) + patch.get("components", [])
+            existing_dict["repair_guides"] = existing_dict.get(
+                "repair_guides", []
+            ) + patch.get("repair_guides", [])
+            await okh_service.update(_UUID(manifest_id), existing_dict)
+
+        return {
+            "success": True,
+            "message": (
+                f"Extracted repair fields from {len(result.source_files)} file(s)"
+                + (" with LLM enhancement" if result.llm_enhanced else "")
+            ),
+            "components": [c.to_dict() for c in result.components],
+            "repair_guides": [g.to_dict() for g in result.repair_guides],
+            "documentation_type": (
+                result.documentation_type.value if result.documentation_type else None
+            ),
+            "source_files": result.source_files,
+            "llm_enhanced": result.llm_enhanced,
+            "notes": result.notes,
+            "manifest_id": manifest_id,
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_extract, fallback_extract)
+
+    cli_ctx.log(data.get("message", "Done."), "success")
+
+    doc_type = data.get("documentation_type")
+    if doc_type:
+        cli_ctx.log(f"Document type: {doc_type}", "info")
+
+    components = data.get("components", [])
+    if components:
+        cli_ctx.log(f"\nComponents ({len(components)}):", "info")
+        for c in components:
+            pn = f" [{c['part_number']}]" if c.get("part_number") else ""
+            consumable = " (consumable)" if c.get("consumable") else ""
+            codes = (
+                f" codes={c['diagnostic_codes']}" if c.get("diagnostic_codes") else ""
+            )
+            cli_ctx.log(f"  {c['name']}{pn}{consumable}{codes}", "info")
+
+    guides = data.get("repair_guides", [])
+    if guides:
+        cli_ctx.log(f"\nRepair guides ({len(guides)}):", "info")
+        for g in guides:
+            author = f" by {g['author']}" if g.get("author") else ""
+            tools_n = len(g.get("tools_required", []))
+            cli_ctx.log(f"  {g['title']}{author} ({tools_n} tool(s))", "info")
+
+    notes = data.get("notes", [])
+    for note in notes:
+        cli_ctx.log(f"Note: {note}", "warning")
+
+    if output:
+        patch = {
+            "components": components,
+            "repair_guides": guides,
+            "documentation_type": doc_type,
+        }
+        Path(output).write_text(json.dumps(patch, indent=2))
+        cli_ctx.log(f"Patch written to {output}", "info")

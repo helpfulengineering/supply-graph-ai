@@ -773,3 +773,97 @@ For best results with the OKH framework:
 3. **Handle Uncertainty** - Utilize confidence scores and validation metrics to handle ambiguous or incomplete data appropriately.
 
 4. **Extend Through Inheritance** - Create domain-specific implementations by extending the base classes rather than modifying them.
+
+---
+
+## Repair Document Extraction Pipeline
+
+`RepairDocExtractor` (`src/core/generation/repair_doc_extractor.py`) extracts structured
+OKH repair fields from uploaded documents such as service manuals, parts catalogs,
+troubleshooting guides, and iFixit-style repair guides.
+
+### Two-pass architecture
+
+**Pass 1 — programmatic (always runs, fully offline):**
+- Classifies document type by filename keywords and content scoring.
+- Extracts components from parts-table patterns (`POS.NO / PART.NO / DESCRIPTION`).
+- Picks up explicit part-number callouts (`P/N`, `Part No.`, `PART#`).
+- Marks consumable components (filters, catalysts, seals, fuses, …).
+- Extracts diagnostic codes from fault-code sections (`FLWERR`, `!WATER`, `F1`, …).
+- Collects tools from "Tools Required" sections (list items under the header).
+- Collects safety prerequisites from `WARNING:` / `CAUTION:` blocks and "Never …" statements.
+- Extracts guide author from `Written By:` / `Author:` attributions.
+- Extracts applicable model variants from "Applies to: …" patterns.
+
+**Pass 2 — LLM enrichment (optional):**
+Enabled by setting `use_llm=true`. Requires a configured LLM provider.
+- Validates programmatic components and removes false positives.
+- Adds components mentioned in prose that regex cannot reach.
+- Infers `skill_level` and `estimated_time_minutes` from document language.
+- Maps orphaned diagnostic codes to specific component names.
+- Fills `applies_to_models` when implied but not stated explicitly.
+
+### API endpoint
+
+```
+POST /v1/api/okh/extract-repair-docs
+Content-Type: multipart/form-data
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `files` | `UploadFile[]` | yes | One or more repair documents (PDF or text) |
+| `manifest_id` | `string` | no | Merge extracted fields into this manifest |
+| `use_llm` | `bool` | no (default `false`) | Enable LLM enrichment pass |
+
+Response (`OKHRepairExtractResponse`):
+
+```json
+{
+  "success": true,
+  "message": "Extracted repair fields from 2 file(s)",
+  "components": [ { "name": "...", "part_number": "...", "consumable": false, ... } ],
+  "repair_guides": [ { "title": "...", "tools_required": [...], "safety_prerequisites": [...] } ],
+  "documentation_type": "service-manual",
+  "source_files": ["fresenius-2008h-troubleshooting.pdf"],
+  "llm_enhanced": false,
+  "notes": [],
+  "manifest_id": null
+}
+```
+
+### CLI command
+
+```bash
+# Programmatic extraction only (offline)
+ohm okh extract-repair-docs fresenius-service-manual.pdf
+
+# Multiple documents
+ohm okh extract-repair-docs manual.pdf parts.pdf
+
+# With LLM enrichment pass
+ohm okh extract-repair-docs manual.pdf --use-llm
+
+# Merge into an existing manifest
+ohm okh extract-repair-docs guide.pdf --manifest-id <uuid>
+
+# Save the JSON patch to a file
+ohm okh extract-repair-docs guide.pdf --output patch.json
+```
+
+### Supported document formats
+
+| Format | Extension | Notes |
+|---|---|---|
+| PDF | `.pdf` | Parsed via `pypdf`; tables are linearised but column order is preserved |
+| Plain text | `.txt`, `.md`, `.rst` | Read directly |
+
+### Recognised document types
+
+| `DocumentationType` value | Typical filenames | Key signals |
+|---|---|---|
+| `troubleshooting-guide` | `*troubleshoot*`, `*fault*` | Error/fault code tables, symptom→action tables |
+| `parts-catalog` | `*parts*`, `*catalog*` | `POS.NO` / `PART.NO` / `DESCRIPTION` columns |
+| `service-manual` | `*service*`, `*technical*` | Calibration, maintenance schedules, periodic inspection |
+| `operations-manual` | `*operations*`, `*operator*`, `*user*` | Operating instructions |
+| `disassembly-guide` | `*disassembly*`, `*teardown*` | Step-by-step removal/reassembly |

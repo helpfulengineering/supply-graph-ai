@@ -62,6 +62,7 @@ from ..models.okh.response import (
     OKHExportResponse,
     OKHExtractResponse,
     OKHGenerateResponse,
+    OKHRepairExtractResponse,
     OKHResponse,
     OKHUploadResponse,
 )
@@ -1142,4 +1143,123 @@ async def diff_collection_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.post(
+    "/extract-repair-docs",
+    response_model=OKHRepairExtractResponse,
+    summary="Extract repair fields from uploaded documents",
+    description="""
+    Upload one or more repair documents (PDF, service manuals, parts catalogs, etc.)
+    and extract structured OKH repair fields: components with part numbers, repair
+    guides with tools and safety prerequisites, diagnostic codes, and document type.
+
+    **Pass 1 (always runs)**: programmatic heuristics — works fully offline.
+    **Pass 2 (optional)**: LLM enrichment — set `use_llm=true` and ensure an LLM
+    provider is configured to enable this pass.
+
+    If `manifest_id` is provided, the extracted fields are merged into that manifest
+    and the manifest's new state is reflected in the response.
+    """,
+)
+async def extract_repair_docs(
+    files: list[UploadFile] = File(..., description="Repair documents to analyse"),
+    manifest_id: Optional[str] = Form(None, description="Merge into this manifest"),
+    use_llm: bool = Form(False, description="Run optional LLM enrichment pass"),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Extract repair-specific OKH fields from uploaded documents."""
+    import tempfile
+    from pathlib import Path as FsPath
+    from uuid import UUID as UUIDType
+
+    from ...generation.repair_doc_extractor import RepairDocExtractor
+
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one file must be provided.",
+        )
+
+    try:
+        # Write uploads to a temp directory so the extractor can read them
+        extractor = RepairDocExtractor()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_paths: list[FsPath] = []
+            for upload in files:
+                dest = FsPath(tmp_dir) / (upload.filename or "document")
+                dest.write_bytes(await upload.read())
+                tmp_paths.append(dest)
+
+            if use_llm:
+                try:
+                    from ...llm.service import LLMService, LLMServiceConfig
+
+                    llm_cfg = LLMServiceConfig()
+                    llm_svc = LLMService("RepairExtract", llm_cfg)
+                    result = await extractor.extract_with_llm(tmp_paths, llm_svc)
+                except Exception as llm_err:
+                    logger.warning(
+                        f"LLM init failed for repair extraction; falling back to "
+                        f"programmatic: {llm_err}"
+                    )
+                    result = extractor.extract(tmp_paths)
+            else:
+                result = extractor.extract(tmp_paths)
+
+        merged_manifest_id: Optional[str] = None
+        if manifest_id:
+            try:
+                existing = await okh_service.get(UUIDType(manifest_id))
+                if existing is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Manifest {manifest_id!r} not found.",
+                    )
+                patch = result.to_patch()
+                existing_dict = existing.to_dict()
+                existing_dict["components"] = existing_dict.get(
+                    "components", []
+                ) + patch.get("components", [])
+                existing_dict["repair_guides"] = existing_dict.get(
+                    "repair_guides", []
+                ) + patch.get("repair_guides", [])
+                await okh_service.update(UUIDType(manifest_id), existing_dict)
+                merged_manifest_id = manifest_id
+            except HTTPException:
+                raise
+            except Exception as merge_err:
+                logger.error(
+                    f"Failed to merge into manifest {manifest_id}: {merge_err}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Extraction succeeded but manifest merge failed: {merge_err}",
+                )
+
+        return OKHRepairExtractResponse(
+            success=True,
+            message=(
+                f"Extracted repair fields from {len(result.source_files)} file(s)"
+                + (" with LLM enhancement" if result.llm_enhanced else "")
+            ),
+            components=[c.to_dict() for c in result.components],
+            repair_guides=[g.to_dict() for g in result.repair_guides],
+            documentation_type=(
+                result.documentation_type.value if result.documentation_type else None
+            ),
+            source_files=result.source_files,
+            llm_enhanced=result.llm_enhanced,
+            notes=result.notes,
+            manifest_id=merged_manifest_id,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in extract-repair-docs: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during repair document extraction.",
         )
