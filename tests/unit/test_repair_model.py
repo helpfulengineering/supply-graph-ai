@@ -6,7 +6,7 @@ import pytest
 
 from src.core.models.asset import ComponentCondition, ComponentState
 from src.core.models.repair import TriageAction, TriageItem, TriageReport
-from src.core.services.asset_service import _derive_action
+from src.core.services.asset_service import _derive_action, _derive_flags
 
 
 # ---------------------------------------------------------------------------
@@ -84,6 +84,75 @@ class TestDeriveAction:
         # When no manifest component is available, damaged → decommission
         cs = self._cs(ComponentCondition.DAMAGED)
         assert _derive_action(cs, None) == TriageAction.DECOMMISSION
+
+
+# ---------------------------------------------------------------------------
+# _derive_flags — flag write-back for record_triage (GAP-1)
+# ---------------------------------------------------------------------------
+
+
+class TestDeriveFlags:
+    def test_harvest_sets_harvest_viable_true(self):
+        flags = _derive_flags(TriageAction.HARVEST)
+        assert flags["harvest_viable"] is True
+        assert flags["repair_feasible"] is False
+        assert flags["source_required"] is False
+
+    def test_source_new_sets_source_required_true(self):
+        flags = _derive_flags(TriageAction.SOURCE_NEW)
+        assert flags["source_required"] is True
+        assert flags["harvest_viable"] is False
+        assert flags["repair_feasible"] is False
+
+    def test_repair_in_place_sets_repair_feasible_true(self):
+        flags = _derive_flags(TriageAction.REPAIR_IN_PLACE)
+        assert flags["repair_feasible"] is True
+        assert flags["harvest_viable"] is False
+        assert flags["source_required"] is False
+
+    def test_decommission_sets_all_false(self):
+        flags = _derive_flags(TriageAction.DECOMMISSION)
+        assert flags["harvest_viable"] is False
+        assert flags["repair_feasible"] is False
+        assert flags["source_required"] is False
+
+    def test_no_action_sets_only_source_required_false(self):
+        flags = _derive_flags(TriageAction.NO_ACTION)
+        assert flags["source_required"] is False
+        assert "harvest_viable" not in flags
+        assert "repair_feasible" not in flags
+
+    def test_assess_returns_empty(self):
+        assert _derive_flags(TriageAction.ASSESS) == {}
+
+    def test_caller_value_wins_over_derived(self):
+        """Simulate what record_triage does: only fill None fields."""
+        cs = ComponentState(
+            component_name="X",
+            condition=ComponentCondition.DAMAGED,
+            harvest_viable=True,  # caller explicitly set True
+        )
+        flags = _derive_flags(TriageAction.HARVEST)
+        # harvest_viable is not None, so it should not be overwritten
+        for flag, value in flags.items():
+            if getattr(cs, flag) is None:
+                setattr(cs, flag, value)
+        assert cs.harvest_viable is True  # unchanged
+
+    def test_none_fields_are_filled(self):
+        """Simulate what record_triage does for a component with no flags set."""
+        cs = ComponentState(
+            component_name="Blood pump",
+            condition=ComponentCondition.DAMAGED,
+            # harvest_viable, repair_feasible, source_required all None
+        )
+        flags = _derive_flags(TriageAction.HARVEST)
+        for flag, value in flags.items():
+            if getattr(cs, flag) is None:
+                setattr(cs, flag, value)
+        assert cs.harvest_viable is True
+        assert cs.repair_feasible is False
+        assert cs.source_required is False
 
 
 # ---------------------------------------------------------------------------

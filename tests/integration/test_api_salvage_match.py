@@ -262,3 +262,168 @@ class TestSalvageMatchFilters:
         )
         assert r.status_code == 200
         assert r.json()["total"] >= 1
+
+
+# ---------------------------------------------------------------------------
+# TestGap1FlagWriteback — verifies GAP-1 fix: harvest_viable auto-populated
+# ---------------------------------------------------------------------------
+
+
+class TestGap1FlagWriteback:
+    """record_triage() now derives harvest_viable/source_required/repair_feasible
+    from condition + manifest flags when the caller leaves them None.
+    These tests verify the closed loop: triage with no flags → salvage-match finds it.
+    """
+
+    def test_salvageable_component_findable_without_explicit_harvest_viable(
+        self, client, manifest_id
+    ):
+        """The critical GAP-1 scenario: technician records condition only,
+        system fills harvest_viable=True from manifest salvageable flag."""
+        r = client.post(
+            "/api/asset/",
+            json={"manifest_id": manifest_id, "asset_tag": "SN-GAP1-01"},
+        )
+        assert r.status_code == 201
+        asset_id = r.json()["id"]
+
+        try:
+            # Triage with condition only — no harvest_viable supplied
+            triage_r = client.post(
+                f"/api/asset/{asset_id}/triage",
+                json={
+                    "component_states": [
+                        {
+                            "component_name": "Blood pump module",
+                            "condition": "damaged",
+                            "repair_feasible": False,
+                            # harvest_viable intentionally omitted
+                        }
+                    ]
+                },
+            )
+            assert triage_r.status_code == 200
+            states = {
+                cs["component_name"]: cs for cs in triage_r.json()["component_states"]
+            }
+            # System should have derived harvest_viable=True (manifest: salvageable=True)
+            assert states["Blood pump module"]["harvest_viable"] is True
+            assert states["Blood pump module"]["source_required"] is False
+
+            # The component now appears in salvage-match without the caller having set the flag
+            match_r = client.post(
+                "/api/asset/salvage-match",
+                json={"component_name": "Blood pump", "manifest_id": manifest_id},
+            )
+            assert match_r.status_code == 200
+            assert match_r.json()["total"] >= 1
+        finally:
+            client.delete(f"/api/asset/{asset_id}")
+
+    def test_replaceable_missing_component_gets_source_required(
+        self, client, manifest_id
+    ):
+        r = client.post(
+            "/api/asset/",
+            json={"manifest_id": manifest_id, "asset_tag": "SN-GAP1-02"},
+        )
+        assert r.status_code == 201
+        asset_id = r.json()["id"]
+
+        try:
+            triage_r = client.post(
+                f"/api/asset/{asset_id}/triage",
+                json={
+                    "component_states": [
+                        {
+                            "component_name": "Pre-filter cartridge",
+                            "condition": "missing",
+                            # source_required intentionally omitted
+                        }
+                    ]
+                },
+            )
+            assert triage_r.status_code == 200
+            states = {
+                cs["component_name"]: cs for cs in triage_r.json()["component_states"]
+            }
+            # manifest: replaceable=True → source_required derived True
+            assert states["Pre-filter cartridge"]["source_required"] is True
+            assert states["Pre-filter cartridge"]["harvest_viable"] is False
+        finally:
+            client.delete(f"/api/asset/{asset_id}")
+
+    def test_explicit_caller_value_wins_over_derived(self, client, manifest_id):
+        """Caller sets harvest_viable=False even though manifest says salvageable.
+        The caller's judgment must be preserved."""
+        r = client.post(
+            "/api/asset/",
+            json={"manifest_id": manifest_id, "asset_tag": "SN-GAP1-03"},
+        )
+        assert r.status_code == 201
+        asset_id = r.json()["id"]
+
+        try:
+            triage_r = client.post(
+                f"/api/asset/{asset_id}/triage",
+                json={
+                    "component_states": [
+                        {
+                            "component_name": "Blood pump module",
+                            "condition": "damaged",
+                            "repair_feasible": False,
+                            "harvest_viable": False,  # explicit override
+                        }
+                    ]
+                },
+            )
+            assert triage_r.status_code == 200
+            states = {
+                cs["component_name"]: cs for cs in triage_r.json()["component_states"]
+            }
+            # Caller said False; derived would say True — caller wins
+            assert states["Blood pump module"]["harvest_viable"] is False
+
+            # Should NOT appear in salvage-match
+            match_r = client.post(
+                "/api/asset/salvage-match",
+                json={"component_name": "Blood pump", "manifest_id": manifest_id},
+            )
+            blood_pump_matches = [
+                m for m in match_r.json()["matches"] if m["asset_id"] == asset_id
+            ]
+            assert blood_pump_matches == []
+        finally:
+            client.delete(f"/api/asset/{asset_id}")
+
+    def test_intact_component_harvest_viable_not_set_by_default(
+        self, client, manifest_id
+    ):
+        """NO_ACTION (intact) does not auto-set harvest_viable — that stays None
+        so a decommission scenario can still mark it harvestable explicitly."""
+        r = client.post(
+            "/api/asset/",
+            json={"manifest_id": manifest_id, "asset_tag": "SN-GAP1-04"},
+        )
+        assert r.status_code == 201
+        asset_id = r.json()["id"]
+
+        try:
+            triage_r = client.post(
+                f"/api/asset/{asset_id}/triage",
+                json={
+                    "component_states": [
+                        {"component_name": "Flow sensor", "condition": "intact"}
+                    ]
+                },
+            )
+            assert triage_r.status_code == 200
+            states = {
+                cs["component_name"]: cs for cs in triage_r.json()["component_states"]
+            }
+            # harvest_viable should remain None (not forced False for intact components)
+            assert states["Flow sensor"]["harvest_viable"] is None
+            # source_required should be False (intact = nothing to replace)
+            assert states["Flow sensor"]["source_required"] is False
+        finally:
+            client.delete(f"/api/asset/{asset_id}")

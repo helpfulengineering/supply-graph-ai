@@ -44,6 +44,43 @@ def _derive_action(cs: Optional[ComponentState], comp: Any) -> TriageAction:
     return TriageAction.ASSESS
 
 
+def _derive_flags(action: TriageAction) -> Dict[str, bool]:
+    """Map a TriageAction to the flag values it implies.
+
+    Only returns flags where the implication is unambiguous. Callers apply
+    these as defaults — caller-supplied values on ComponentState take precedence.
+    """
+    if action == TriageAction.REPAIR_IN_PLACE:
+        return {
+            "repair_feasible": True,
+            "harvest_viable": False,
+            "source_required": False,
+        }
+    if action == TriageAction.HARVEST:
+        return {
+            "harvest_viable": True,
+            "repair_feasible": False,
+            "source_required": False,
+        }
+    if action == TriageAction.SOURCE_NEW:
+        return {
+            "source_required": True,
+            "harvest_viable": False,
+            "repair_feasible": False,
+        }
+    if action == TriageAction.DECOMMISSION:
+        return {
+            "harvest_viable": False,
+            "repair_feasible": False,
+            "source_required": False,
+        }
+    if action == TriageAction.NO_ACTION:
+        # Intact: definitely doesn't need sourcing. harvest_viable left to caller.
+        return {"source_required": False}
+    # ASSESS: condition unknown, nothing to derive.
+    return {}
+
+
 def _is_salvage_match(
     cs: ComponentState,
     comp: Any,
@@ -192,11 +229,34 @@ class AssetService(BaseService["AssetService"]):
         states: List[ComponentState],
         triage_notes: Optional[str] = None,
     ) -> AssetRecord:
-        """Upsert component states by component_name and stamp last_triaged_at."""
+        """Upsert component states by component_name and stamp last_triaged_at.
+
+        For each incoming state, derives harvest_viable / repair_feasible /
+        source_required from the manifest design flags and fills any None fields.
+        Caller-supplied non-None values always win over derived defaults.
+        """
         await self.ensure_initialized()
         record = await self.get(asset_id)
         if record is None:
             raise KeyError(f"AssetRecord {asset_id} not found")
+
+        # Load manifest once to drive flag derivation.
+        from .okh_service import OKHService
+
+        okh_svc = await OKHService.get_instance()
+        manifest = await okh_svc.get(UUID(record.manifest_id))
+        comp_map: Dict[str, Any] = (
+            {c.name: c for c in manifest.components}
+            if manifest and manifest.components
+            else {}
+        )
+
+        # Fill None flags from the action implied by condition + manifest flags.
+        for cs in states:
+            action = _derive_action(cs, comp_map.get(cs.component_name))
+            for flag, value in _derive_flags(action).items():
+                if getattr(cs, flag) is None:
+                    setattr(cs, flag, value)
 
         existing: Dict[str, ComponentState] = {
             cs.component_name: cs for cs in record.component_states
