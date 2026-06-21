@@ -1,6 +1,9 @@
 from .response import (
     AssetListResponse,
     AssetResponse,
+    SalvageMatchItemResponse,
+    SalvageMatchResponse,
+    SalvageQueryResponse,
     TriageItemResponse,
     TriageReportResponse,
     TriageSummaryResponse,
@@ -12,4 +15,7 @@ __all__ = [
     "TriageItemResponse",
     "TriageReportResponse",
     "TriageSummaryResponse",
+    "SalvageMatchItemResponse",
+    "SalvageMatchResponse",
+    "SalvageQueryResponse",
 ]

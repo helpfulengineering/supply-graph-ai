@@ -50,3 +50,30 @@ class TriageReportResponse(BaseModel):
     triage_notes: Optional[str] = None
     items: List[TriageItemResponse]
     summary: TriageSummaryResponse
+
+
+class SalvageMatchItemResponse(BaseModel):
+    asset_id: str
+    asset_tag: str
+    manifest_id: str
+    location: Optional[str] = None
+    component_name: str
+    condition: str
+    notes: Optional[str] = None
+    assessed_by: Optional[str] = None
+    observed_at: Optional[str] = None
+    part_number: Optional[str] = None
+    salvageable: bool = False
+    replaceable: bool = False
+
+
+class SalvageQueryResponse(BaseModel):
+    component_name: Optional[str] = None
+    part_number: Optional[str] = None
+    manifest_id: Optional[str] = None
+
+
+class SalvageMatchResponse(BaseModel):
+    matches: List[SalvageMatchItemResponse]
+    total: int
+    query: SalvageQueryResponse

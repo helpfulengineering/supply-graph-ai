@@ -9,6 +9,7 @@ from uuid import UUID
 
 from ..models.asset import AssetRecord, ComponentCondition, ComponentState
 from ..models.repair import TriageAction, TriageItem, TriageReport
+from ..models.salvage import SalvageMatch, SalvageMatchResult
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
 from .base import BaseService, ServiceConfig
@@ -41,6 +42,30 @@ def _derive_action(cs: Optional[ComponentState], comp: Any) -> TriageAction:
             return TriageAction.SOURCE_NEW
         return TriageAction.DECOMMISSION
     return TriageAction.ASSESS
+
+
+def _is_salvage_match(
+    cs: ComponentState,
+    comp: Any,
+    component_name: Optional[str],
+    part_number: Optional[str],
+    conditions: Optional[List[str]],
+) -> bool:
+    """Return True if a ComponentState satisfies the salvage query filters."""
+    if not cs.harvest_viable:
+        return False
+    if conditions and cs.condition.value not in conditions:
+        return False
+    if (
+        component_name is not None
+        and component_name.lower() not in cs.component_name.lower()
+    ):
+        return False
+    if part_number is not None:
+        comp_pn = getattr(comp, "part_number", None) if comp else None
+        if comp_pn != part_number:
+            return False
+    return True
 
 
 class AssetService(BaseService["AssetService"]):
@@ -253,6 +278,74 @@ class AssetService(BaseService["AssetService"]):
                 record.last_triaged_at.isoformat() if record.last_triaged_at else None
             ),
             triage_notes=record.triage_notes,
+        )
+
+    # ------------------------------------------------------------------
+    # Salvage matching
+    # ------------------------------------------------------------------
+
+    async def salvage_match(
+        self,
+        component_name: Optional[str] = None,
+        part_number: Optional[str] = None,
+        manifest_id: Optional[str] = None,
+        conditions: Optional[List[str]] = None,
+    ) -> SalvageMatchResult:
+        """Find harvestable components across the asset fleet matching the query.
+
+        At least one of ``component_name`` or ``part_number`` must be provided.
+        Name matching is case-insensitive substring; part_number is exact.
+        """
+        await self.ensure_initialized()
+
+        records = await self.list(manifest_id=manifest_id)
+
+        from .okh_service import OKHService
+
+        okh_svc = await OKHService.get_instance()
+        manifest_cache: Dict[str, Any] = {}
+
+        async def _get_comp_map(mid: str) -> Dict[str, Any]:
+            if mid not in manifest_cache:
+                m = await okh_svc.get(UUID(mid))
+                manifest_cache[mid] = (
+                    {c.name: c for c in m.components} if m and m.components else {}
+                )
+            return manifest_cache[mid]
+
+        matches: List[SalvageMatch] = []
+        for record in records:
+            comp_map = await _get_comp_map(record.manifest_id)
+            for cs in record.component_states:
+                comp = comp_map.get(cs.component_name)
+                if not _is_salvage_match(
+                    cs, comp, component_name, part_number, conditions
+                ):
+                    continue
+                matches.append(
+                    SalvageMatch(
+                        asset_id=str(record.id),
+                        asset_tag=record.asset_tag,
+                        manifest_id=record.manifest_id,
+                        location=record.location,
+                        component_name=cs.component_name,
+                        condition=cs.condition.value,
+                        notes=cs.notes,
+                        assessed_by=cs.assessed_by,
+                        observed_at=(
+                            cs.observed_at.isoformat() if cs.observed_at else None
+                        ),
+                        part_number=getattr(comp, "part_number", None),
+                        salvageable=getattr(comp, "salvageable", False),
+                        replaceable=getattr(comp, "replaceable", False),
+                    )
+                )
+
+        return SalvageMatchResult(
+            matches=matches,
+            query_component_name=component_name,
+            query_part_number=part_number,
+            query_manifest_id=manifest_id,
         )
 
     # ------------------------------------------------------------------

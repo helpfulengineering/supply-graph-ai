@@ -483,6 +483,106 @@ async def triage_report_cmd(ctx, asset_id, output):
 
 
 # ---------------------------------------------------------------------------
+# salvage-match
+# ---------------------------------------------------------------------------
+
+
+@asset_group.command("salvage-match")
+@click.option(
+    "--component-name", default=None, help="Substring to match against component names"
+)
+@click.option("--part-number", default=None, help="Exact part number to match")
+@click.option("--manifest-id", default=None, help="Scope search to this manifest UUID")
+@click.option(
+    "--condition",
+    "conditions",
+    multiple=True,
+    type=click.Choice(["intact", "damaged", "missing", "unknown"]),
+    help="Filter by observed condition (repeatable)",
+)
+@click.option("--output", "-o", default=None, help="Write results to a JSON file")
+@async_command
+@click.pass_context
+async def salvage_match_cmd(
+    ctx, component_name, part_number, manifest_id, conditions, output
+):
+    """Find harvestable components across the asset fleet.
+
+    At least one of --component-name or --part-number is required.
+    Name matching is case-insensitive substring; part number is exact.
+
+    \b
+    Examples:
+      ohm asset salvage-match --component-name "Blood pump"
+      ohm asset salvage-match --part-number BLOODPUMP-01
+      ohm asset salvage-match --component-name pump --manifest-id <uuid>
+      ohm asset salvage-match --component-name pump --condition damaged --condition intact
+    """
+    cli_ctx = ctx.obj
+
+    if not component_name and not part_number:
+        raise click.UsageError(
+            "Provide at least one of --component-name or --part-number"
+        )
+
+    payload: Dict[str, Any] = {}
+    if component_name:
+        payload["component_name"] = component_name
+    if part_number:
+        payload["part_number"] = part_number
+    if manifest_id:
+        payload["manifest_id"] = manifest_id
+    if conditions:
+        payload["conditions"] = list(conditions)
+
+    async def http_match():
+        async with cli_ctx.api_client.get_client() as client:
+            r = await client.post("/api/asset/salvage-match", json=payload)
+            r.raise_for_status()
+            return r.json()
+
+    async def fallback_match():
+        svc = await AssetService.get_instance()
+        result = await svc.salvage_match(
+            component_name=component_name,
+            part_number=part_number,
+            manifest_id=manifest_id,
+            conditions=list(conditions) if conditions else None,
+        )
+        return result.to_dict()
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_match, fallback_match)
+
+    total = data.get("total", len(data.get("matches", [])))
+    cli_ctx.log(f"{total} match(es) found.", "success")
+    for m in data.get("matches", []):
+        flags = []
+        if m.get("salvageable"):
+            flags.append("salvageable")
+        if m.get("replaceable"):
+            flags.append("replaceable")
+        flag_str = f"  [{', '.join(flags)}]" if flags else ""
+        loc = f"  @ {m['location']}" if m.get("location") else ""
+        cli_ctx.log(
+            f"  {m['component_name']}  [{m['condition']}]{flag_str}",
+            "info",
+        )
+        cli_ctx.log(
+            f"    asset={m['asset_id'][:8]}…  tag={m['asset_tag']}{loc}",
+            "info",
+        )
+        if m.get("part_number"):
+            cli_ctx.log(f"    pn={m['part_number']}", "info")
+        if m.get("notes"):
+            cli_ctx.log(f"    notes: {m['notes']}", "info")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Written to {output}", "info")
+
+
+# ---------------------------------------------------------------------------
 # Display helper
 # ---------------------------------------------------------------------------
 

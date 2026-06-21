@@ -14,6 +14,9 @@ from ...utils.logging import get_logger
 from ..models.asset.response import (
     AssetListResponse,
     AssetResponse,
+    SalvageMatchItemResponse,
+    SalvageMatchResponse,
+    SalvageQueryResponse,
     TriageItemResponse,
     TriageReportResponse,
     TriageSummaryResponse,
@@ -48,6 +51,13 @@ class AssetUpdateRequest(BaseModel):
 class AssetTriageRequest(BaseModel):
     component_states: List[Dict[str, Any]]
     triage_notes: Optional[str] = None
+
+
+class SalvageMatchRequest(BaseModel):
+    component_name: Optional[str] = None
+    part_number: Optional[str] = None
+    manifest_id: Optional[str] = None
+    conditions: Optional[List[str]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -266,5 +276,48 @@ async def get_triage_report(
             source_new=report.source_new_count,
             no_action=report.no_action_count,
             decommission=report.decommission_count,
+        ),
+    )
+
+
+@router.post(
+    "/salvage-match",
+    response_model=SalvageMatchResponse,
+    summary="Find harvestable components matching a query",
+    description="""
+    Search the asset fleet for components that are marked `harvest_viable=True`
+    and match the supplied filters.
+
+    At least one of `component_name` or `part_number` must be provided.
+
+    - `component_name` — case-insensitive substring match against component names
+    - `part_number` — exact match against the manifest component's part number
+    - `manifest_id` — scope the search to assets linked to one design
+    - `conditions` — restrict to specific observed conditions
+      (`intact` | `damaged` | `missing` | `unknown`)
+    """,
+)
+async def salvage_match(
+    body: SalvageMatchRequest,
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    if body.component_name is None and body.part_number is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one of 'component_name' or 'part_number' is required.",
+        )
+    result = await svc.salvage_match(
+        component_name=body.component_name,
+        part_number=body.part_number,
+        manifest_id=body.manifest_id,
+        conditions=body.conditions,
+    )
+    return SalvageMatchResponse(
+        matches=[SalvageMatchItemResponse(**m.to_dict()) for m in result.matches],
+        total=result.total,
+        query=SalvageQueryResponse(
+            component_name=result.query_component_name,
+            part_number=result.query_part_number,
+            manifest_id=result.query_manifest_id,
         ),
     )
