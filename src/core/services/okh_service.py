@@ -400,6 +400,91 @@ class OKHService(BaseService["OKHService"]):
 
         return manifest
 
+    async def import_repair_doc(
+        self,
+        result: Any,
+        manifest_id: Optional[UUID] = None,
+        title: Optional[str] = None,
+    ) -> OKHManifest:
+        """Merge repair extraction output into a manifest with conservative defaults.
+
+        For each extracted component:
+        - If a component with the same name already exists: preserve all existing
+          flags (replaceable, salvageable, consumable); update part_number only if
+          currently unset; append new diagnostic_codes and failure_modes.
+        - If the component is new: import with replaceable=False, salvageable=False
+          regardless of what the extractor inferred, to require human annotation.
+
+        For repair guides: deduplicate by title; append new ones.
+
+        If ``manifest_id`` is given, patches the existing manifest. Otherwise creates
+        a new manifest using ``title`` for its title field.
+        """
+        await self.ensure_initialized()
+        from ..models.okh import Component
+
+        if manifest_id is not None:
+            manifest = await self.get(manifest_id)
+            if manifest is None:
+                raise KeyError(f"OKH manifest {manifest_id} not found")
+        else:
+            if not title:
+                raise ValueError("title is required when creating a new manifest")
+            manifest = OKHManifest.from_dict(
+                {
+                    "title": title,
+                    "version": "0.1.0",
+                    "license": {"hardware": "CERN-OHL-S-2.0"},
+                    "licensor": "Imported",
+                    "documentation_language": "en",
+                    "function": f"Imported from {', '.join(result.source_files)}",
+                }
+            )
+
+        # Merge components by name
+        existing: Dict[str, Any] = {
+            c.name.lower(): c for c in (manifest.components or [])
+        }
+        for extracted in result.components:
+            key = extracted.name.lower()
+            if key in existing:
+                comp = existing[key]
+                # Preserve existing repair flags; only fill genuinely missing data
+                if not comp.part_number and extracted.part_number:
+                    comp.part_number = extracted.part_number
+                for code in extracted.diagnostic_codes or []:
+                    if code not in (comp.diagnostic_codes or []):
+                        comp.diagnostic_codes = (comp.diagnostic_codes or []) + [code]
+                for mode in extracted.failure_modes or []:
+                    if mode not in (comp.failure_modes or []):
+                        comp.failure_modes = (comp.failure_modes or []) + [mode]
+            else:
+                existing[key] = Component(
+                    name=extracted.name,
+                    part_number=extracted.part_number,
+                    consumable=extracted.consumable,
+                    # Conservative defaults — human must annotate before triage
+                    replaceable=False,
+                    salvageable=False,
+                    diagnostic_codes=extracted.diagnostic_codes or [],
+                    failure_modes=extracted.failure_modes or [],
+                    repair_notes=extracted.repair_notes,
+                )
+        manifest.components = list(existing.values())
+
+        # Merge repair guides by title (dedup)
+        existing_guide_titles = {
+            g.title.lower() for g in (manifest.repair_guides or [])
+        }
+        for guide in result.repair_guides or []:
+            if guide.title.lower() not in existing_guide_titles:
+                manifest.repair_guides = (manifest.repair_guides or []) + [guide]
+                existing_guide_titles.add(guide.title.lower())
+
+        if manifest_id is not None:
+            return await self.update(manifest_id, manifest.to_dict())
+        return await self.create(manifest.to_dict())
+
     async def delete(self, manifest_id: UUID) -> bool:
         """Delete an OKH manifest by locating its actual storage key.
 

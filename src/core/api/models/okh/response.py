@@ -221,3 +221,18 @@ class OKHRepairExtractResponse(BaseModel):
     notes: List[str]
 
     manifest_id: Optional[str] = None  # set when merged into an existing manifest
+
+
+class OKHImportRepairDocResponse(BaseModel):
+    """Response model for repair doc import — merge with conservative defaults."""
+
+    success: bool
+    message: str
+    manifest_id: str
+    components_added: int
+    components_updated: int
+    guides_added: int
+    source_files: List[str]
+    llm_enhanced: bool
+    notes: List[str]
+    annotation_reminder: str

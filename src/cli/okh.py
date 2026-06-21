@@ -2623,6 +2623,135 @@ async def extract_repair_docs_cmd(ctx, files, manifest_id, use_llm, output):
         cli_ctx.log(f"Patch written to {output}", "info")
 
 
+@okh_group.command("import-repair-doc")
+@click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option("--manifest-id", default=None, help="Patch this existing manifest")
+@click.option(
+    "--title",
+    default=None,
+    help="Title for the new manifest (required when no --manifest-id)",
+)
+@click.option("--use-llm", is_flag=True, default=False, help="Run LLM enrichment pass")
+@click.option(
+    "--output", "-o", default=None, help="Write imported manifest JSON to file"
+)
+@async_command
+@click.pass_context
+async def import_repair_doc_cmd(ctx, files, manifest_id, title, use_llm, output):
+    """Import repair documents into an OKH manifest with conservative flag defaults.
+
+    Extracts components and repair guides from uploaded files and merges them into
+    an existing manifest or creates a new one.
+
+    \b
+    Merge semantics (distinct from extract-repair-docs):
+      - Components already in the manifest keep their existing flags.
+      - New components default to replaceable=False, salvageable=False.
+      - Deduplication is by component name.
+
+    \b
+    Examples:
+      ohm okh import-repair-doc fresenius-service-manual.pdf --title "Fresenius 2008H"
+      ohm okh import-repair-doc parts.pdf --manifest-id <uuid>
+      ohm okh import-repair-doc manual.pdf parts.pdf --manifest-id <uuid> --use-llm
+    """
+    cli_ctx = ctx.obj
+    file_paths = [Path(f) for f in files]
+
+    if not manifest_id and not title:
+        raise click.UsageError(
+            "Provide --manifest-id (to patch) or --title (to create a new manifest)."
+        )
+
+    async def http_import():
+        file_handles = []
+        try:
+            multipart_files = []
+            for fp in file_paths:
+                fh = open(fp, "rb")
+                file_handles.append(fh)
+                multipart_files.append(
+                    ("files", (fp.name, fh, "application/octet-stream"))
+                )
+            form_data: Dict[str, Any] = {"use_llm": str(use_llm).lower()}
+            if manifest_id:
+                form_data["manifest_id"] = manifest_id
+            if title:
+                form_data["title"] = title
+
+            async with cli_ctx.api_client.get_client() as client:
+                r = await client.post(
+                    "/api/okh/import-repair-doc",
+                    files=multipart_files,
+                    data=form_data,
+                )
+                r.raise_for_status()
+                return r.json()
+        finally:
+            for fh in file_handles:
+                fh.close()
+
+    async def fallback_import():
+        from ..core.generation.repair_doc_extractor import RepairDocExtractor
+
+        extractor = RepairDocExtractor()
+        if use_llm:
+            try:
+                from ..core.llm.service import LLMService, LLMServiceConfig
+
+                llm_svc = LLMService("ImportRepairDocCLI", LLMServiceConfig())
+                result = await extractor.extract_with_llm(file_paths, llm_svc)
+            except Exception as llm_err:
+                cli_ctx.log(
+                    f"LLM unavailable, running programmatic pass: {llm_err}", "warning"
+                )
+                result = extractor.extract(file_paths)
+        else:
+            result = extractor.extract(file_paths)
+
+        okh_svc = await OKHService.get_instance()
+        mid = UUID(manifest_id) if manifest_id else None
+        manifest = await okh_svc.import_repair_doc(result, manifest_id=mid, title=title)
+        return {
+            "success": True,
+            "message": f"Imported {len(result.source_files)} file(s) into manifest {manifest.id}",
+            "manifest_id": str(manifest.id),
+            "components_added": len([c for c in result.components]),
+            "components_updated": 0,
+            "guides_added": len(result.repair_guides),
+            "source_files": result.source_files,
+            "llm_enhanced": result.llm_enhanced,
+            "notes": result.notes,
+            "annotation_reminder": (
+                "New components have been imported with replaceable=False and "
+                "salvageable=False. Annotate these flags before using the manifest "
+                "for triage or salvage matching."
+            ),
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_import, fallback_import)
+
+    cli_ctx.log(data.get("message", "Done."), "success")
+    cli_ctx.log(f"  Manifest ID: {data['manifest_id']}", "info")
+    cli_ctx.log(
+        f"  Components: {data['components_added']} added, "
+        f"{data['components_updated']} updated",
+        "info",
+    )
+    if data.get("guides_added"):
+        cli_ctx.log(f"  Repair guides added: {data['guides_added']}", "info")
+
+    for note in data.get("notes", []):
+        cli_ctx.log(f"Note: {note}", "warning")
+
+    cli_ctx.log(f"\n⚠  {data.get('annotation_reminder', '')}", "warning")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Written to {output}", "info")
+
+
 @okh_group.command("harvest-parts")
 @click.argument("manifest_ids", nargs=-1, required=True)
 @click.option(

@@ -64,6 +64,7 @@ from ..models.okh.response import (
     OKHExtractResponse,
     OKHGenerateResponse,
     OKHHarvestResponse,
+    OKHImportRepairDocResponse,
     OKHRepairExtractResponse,
     OKHResponse,
     OKHUploadResponse,
@@ -1264,6 +1265,142 @@ async def extract_repair_docs(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during repair document extraction.",
+        )
+
+
+_ANNOTATION_REMINDER = (
+    "New components have been imported with replaceable=False and salvageable=False. "
+    "Annotate these flags in the manifest before using it for triage or salvage matching."
+)
+
+
+@router.post(
+    "/import-repair-doc",
+    response_model=OKHImportRepairDocResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Import repair documents into an OKH manifest with conservative defaults",
+    description="""
+    Extract repair fields from one or more uploaded documents and merge them into an
+    OKH manifest, or create a new manifest from the extraction output.
+
+    **Merge semantics** (distinct from `/extract-repair-docs`):
+    - Components already in the manifest keep their existing `replaceable` and
+      `salvageable` flags.
+    - Newly-extracted components are imported with `replaceable=False` and
+      `salvageable=False` regardless of what the extractor inferred.  A human must
+      annotate these flags before the manifest can drive triage or salvage matching.
+    - Deduplication is by component name (case-insensitive).
+    - Repair guides are deduplicated by title.
+
+    **Create mode** (`manifest_id` omitted): set `title` to name the new manifest.
+    **Patch mode** (`manifest_id` provided): merges into the named manifest.
+    """,
+)
+async def import_repair_doc(
+    files: list[UploadFile] = File(..., description="Repair documents to analyse"),
+    manifest_id: Optional[str] = Form(None, description="Patch this manifest"),
+    title: Optional[str] = Form(None, description="Title for a new manifest"),
+    use_llm: bool = Form(False, description="Run optional LLM enrichment pass"),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    import tempfile
+    from pathlib import Path as FsPath
+    from uuid import UUID as UUIDType
+
+    from ...generation.repair_doc_extractor import RepairDocExtractor
+
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one file must be provided.",
+        )
+    if manifest_id is None and not title:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Provide either manifest_id (to patch) or title (to create).",
+        )
+
+    try:
+        extractor = RepairDocExtractor()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_paths: list[FsPath] = []
+            for upload in files:
+                dest = FsPath(tmp_dir) / (upload.filename or "document")
+                dest.write_bytes(await upload.read())
+                tmp_paths.append(dest)
+
+            if use_llm:
+                try:
+                    from ...llm.service import LLMService, LLMServiceConfig
+
+                    llm_svc = LLMService("ImportRepairDoc", LLMServiceConfig())
+                    result = await extractor.extract_with_llm(tmp_paths, llm_svc)
+                except Exception as llm_err:
+                    logger.warning(
+                        f"LLM init failed; falling back to programmatic: {llm_err}"
+                    )
+                    result = extractor.extract(tmp_paths)
+            else:
+                result = extractor.extract(tmp_paths)
+
+        # Count before to report what changed
+        mid_uuid = UUIDType(manifest_id) if manifest_id else None
+        if mid_uuid:
+            pre = await okh_service.get(mid_uuid)
+            pre_comp_names = (
+                {c.name.lower() for c in (pre.components or [])} if pre else set()
+            )
+            pre_guide_titles = (
+                {g.title.lower() for g in (pre.repair_guides or [])} if pre else set()
+            )
+        else:
+            pre_comp_names = set()
+            pre_guide_titles = set()
+
+        manifest = await okh_service.import_repair_doc(
+            result, manifest_id=mid_uuid, title=title
+        )
+
+        new_comp_names = {c.name.lower() for c in (manifest.components or [])}
+        added = len(new_comp_names - pre_comp_names)
+        updated = len(
+            new_comp_names
+            & pre_comp_names
+            & {c.name.lower() for c in result.components}
+        )
+        new_guide_titles = {g.title.lower() for g in (manifest.repair_guides or [])}
+        guides_added = len(new_guide_titles - pre_guide_titles)
+
+        action = "merged into" if mid_uuid else "created"
+        return OKHImportRepairDocResponse(
+            success=True,
+            message=(
+                f"Imported {len(result.source_files)} file(s) — {action} manifest {manifest.id}"
+                + (" with LLM enhancement" if result.llm_enhanced else "")
+            ),
+            manifest_id=str(manifest.id),
+            components_added=added,
+            components_updated=updated,
+            guides_added=guides_added,
+            source_files=result.source_files,
+            llm_enhanced=result.llm_enhanced,
+            notes=result.notes,
+            annotation_reminder=_ANNOTATION_REMINDER,
+        )
+
+    except HTTPException:
+        raise
+    except KeyError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error in import-repair-doc: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during repair document import.",
         )
 
 
