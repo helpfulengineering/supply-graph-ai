@@ -63,6 +63,10 @@ class OKHManifest:
     parts: List[PartSpec] = field(default_factory=list)
     components: List[Component] = field(default_factory=list)  # Sub-assemblies and purchased parts
     tsdc: List[str] = field(default_factory=list)  # Technology-specific Documentation Criteria
+
+    # Repair documentation
+    repair_guides: List[RepairGuide] = field(default_factory=list)
+    disassembly_guides: List[DocumentRef] = field(default_factory=list)
 ```
 
 #### Key Properties
@@ -127,14 +131,26 @@ class DocumentRef:
     path: str  # Can be relative path or URL
     type: DocumentationType
     metadata: Dict = field(default_factory=dict)
-    
-    def validate(self) -> bool:
-        """Validate the document reference"""
-        # Check if path exists (if it's a relative path)
-        if not (self.path.startswith('http://') or self.path.startswith('https://')):
-            return os.path.exists(self.path)
-        return True
 ```
+
+`DocumentationType` enum values:
+
+| Value | Constant | Typical source |
+|---|---|---|
+| `"design-files"` | `DESIGN_FILES` | CAD, PCB source files |
+| `"manufacturing-files"` | `MANUFACTURING_FILES` | Toolpaths, gerbers |
+| `"making-instructions"` | `MAKING_INSTRUCTIONS` | Assembly guides |
+| `"operating-instructions"` | `OPERATING_INSTRUCTIONS` | End-user manuals |
+| `"technical-specifications"` | `TECHNICAL_SPECIFICATIONS` | Datasheets, specs |
+| `"schematics"` | `SCHEMATICS` | Electrical schematics |
+| `"risk-assessment"` | `RISK_ASSESSMENT` | Safety/FMEA docs |
+| `"publications"` | `PUBLICATIONS` | Papers, articles |
+| `"repair-guide"` | `REPAIR_GUIDE` | Step-by-step repair procedures (e.g. iFixit) |
+| `"disassembly-guide"` | `DISASSEMBLY_GUIDE` | Teardown/disassembly references |
+| `"parts-catalog"` | `PARTS_CATALOG` | Exploded-diagram parts references (POS.NO / PART.NO tables) |
+| `"service-manual"` | `SERVICE_MANUAL` | Professional technician service docs (calibration, compliance, replacement parts) |
+| `"troubleshooting-guide"` | `TROUBLESHOOTING_GUIDE` | Flowchart/decision-tree symptom-to-cause guides |
+| `"operations-manual"` | `OPERATIONS_MANUAL` | Operator-facing docs covering operation, basic maintenance, and owner-serviceable parts |
 
 ### 5. MaterialSpec
 Specification for materials used in the module.
@@ -185,7 +201,7 @@ class ManufacturingSpec:
 
 ### 8. Component
 A named sub-assembly or purchased part within an OKH assembly. Added to `OKHManifest` to
-support the `components` field (#173).
+support the `components` field (#173). Extended with repair fields in the repair epic.
 
 ```python
 @dataclass
@@ -195,9 +211,14 @@ class Component:
     quantity: int = 1
     replaceable: bool = False
     salvageable: bool = False
+    consumable: bool = False
     okh_ref: Optional[str] = None       # Reference to another OKH manifest
     product_url: Optional[str] = None   # Purchasing URL
+    part_number: Optional[str] = None   # Manufacturer/supplier part number
     notes: Optional[str] = None
+    failure_modes: List[str] = field(default_factory=list)
+    diagnostic_codes: List[str] = field(default_factory=list)
+    repair_notes: Optional[str] = None
 ```
 
 #### Key Properties
@@ -205,13 +226,58 @@ class Component:
 - `quantity` — Number of units required (default: 1)
 - `replaceable` — Whether the component can be replaced with an equivalent
 - `salvageable` — Whether the component can be salvaged from another build
+- `consumable` — Whether the component is a periodic-replacement consumable (filter, catalyst, seal). Consumables are expected to be replaced on a schedule regardless of failure state, which affects their salvage value.
 - `okh_ref` — Optional reference to a sibling OKH manifest (sub-assembly linkage)
 - `product_url` — Purchasing link for sourcing
+- `part_number` — Manufacturer or supplier part number (e.g., `"P/N 10036"`, `"MOTOR 120 DC"`)
 - `notes` — Free-text notes for procurement or assembly context
+- `failure_modes` — List of known failure modes (e.g., `["contact oxidation", "stuck closed"]`)
+- `diagnostic_codes` — Machine-readable alarm or error codes that identify this component's failures (e.g., `["FLWERR", "!WATER"]` for a Fresenius flow pump; `["F1", "F3"]` for an appliance control board)
+- `repair_notes` — Component-level repair guidance (replacement specs, sourcing notes)
 
 The `components` list on `OKHManifest` is serialized and deserialized by `to_dict()` /
 `from_dict()`. It is also surfaced in the API response (`OKHResponse.components`) and
-counted in validate metadata (`component_count`).
+counted in validate metadata (`component_count` and `consumable_count`).
+
+### 9. RepairGuide
+A structured reference to a repair guide for an OKH assembly or component. Designed to be
+populated from sources like iFixit, manufacturer service manuals, or community documentation.
+
+```python
+@dataclass
+class RepairGuide:
+    title: str
+    path: str                                  # URL or local path to the guide
+    source: Optional[str] = None               # "ifixit", "manufacturer", "community"
+    author: Optional[str] = None               # Guide author (iFixit community guides, etc.)
+    skill_level: Optional[str] = None          # "easy", "moderate", "difficult", "expert"
+    estimated_time_minutes: Optional[int] = None
+    tools_required: List[str] = field(default_factory=list)
+    safety_prerequisites: List[str] = field(default_factory=list)
+    applies_to_components: List[str] = field(default_factory=list)
+    applies_to_models: List[str] = field(default_factory=list)
+    metadata: Dict = field(default_factory=dict)
+```
+
+#### Key Properties
+- `title` — Guide title (e.g., "Power Switch Replacement")
+- `path` — URL to the guide (iFixit, manufacturer portal) or local file path
+- `source` — Origin of the guide: `"ifixit"`, `"manufacturer"`, or `"community"`
+- `author` — Guide author; particularly important for community-written guides (iFixit, wiki). Manufacturer manuals typically omit this.
+- `skill_level` — Difficulty rating: `"easy"`, `"moderate"`, `"difficult"`, or `"expert"` (use `"expert"` for guides that require formal certification or professional training)
+- `estimated_time_minutes` — Approximate repair time
+- `tools_required` — List of tools and test equipment needed (mirrors iFixit's tools field; for service manuals, include model numbers where specified)
+- `safety_prerequisites` — Hard safety gates that must be satisfied before beginning any work. These are distinct from general repair notes and should be prominently enforced. Examples: `"Never troubleshoot with a patient connected to the machine"`, `"Use Universal Precautions when handling contaminated filters"`.
+- `applies_to_components` — Component names from the manifest's `components` list that this guide covers
+- `applies_to_models` — Product model variants this guide applies to. Use when a single document covers multiple models (e.g., `["Bactron I", "Bactron II", "Bactron IV"]` or `["PlumeSafe Whisper 602", "PlumeSafe 1202"]`).
+- `metadata` — Arbitrary additional data (step count, image URLs, revision, publication number, etc.)
+
+`repair_guides` is a top-level list on `OKHManifest`, serialized by `to_dict()` /
+`from_dict()`, and surfaced in `OKHResponse.repair_guides`. The validate endpoint also
+returns `repair_guide_count` in its metadata block.
+
+The `disassembly_guides` field on `OKHManifest` uses `DocumentRef` with type
+`DocumentationType.DISASSEMBLY_GUIDE` for structured teardown/disassembly references.
 
 ### 9. PartSpec
 Specification for a part of the OKH module.

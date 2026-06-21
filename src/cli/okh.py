@@ -111,6 +111,10 @@ async def _display_validation_results(
 
     if metadata.get("component_count"):
         cli_ctx.log(f"Components: {metadata['component_count']}", "info")
+    if metadata.get("consumable_count"):
+        cli_ctx.log(f"Consumables: {metadata['consumable_count']}", "info")
+    if metadata.get("repair_guide_count"):
+        cli_ctx.log(f"Repair guides: {metadata['repair_guide_count']}", "info")
 
     if cli_ctx.verbose and metadata.get("field_presence"):
         missing = [

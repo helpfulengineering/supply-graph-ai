@@ -169,6 +169,10 @@ def validate_okh_manifest(
         # Step 4b: Compute quality-agnostic field presence and coverage scores
         presence_data = _compute_okh_field_presence(okh_manifest)
         presence_data["component_count"] = len(okh_manifest.components)
+        presence_data["consumable_count"] = sum(
+            1 for c in okh_manifest.components if c.consumable
+        )
+        presence_data["repair_guide_count"] = len(okh_manifest.repair_guides)
         result.details.update(presence_data)
 
         # Step 5: Generate suggestions for improvement
