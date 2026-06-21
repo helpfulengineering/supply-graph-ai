@@ -525,11 +525,21 @@ class AssetService(BaseService["AssetService"]):
         """
         await self.ensure_initialized()
 
-        records = await self.list(manifest_id=manifest_id)
-
         from .okh_service import OKHService
 
         okh_svc = await OKHService.get_instance()
+
+        search_manifest_ids: Optional[set] = None
+        if manifest_id:
+            search_manifest_ids = {manifest_id}
+            primary = await okh_svc.get(UUID(manifest_id))
+            if primary and primary.compatible_manifest_ids:
+                search_manifest_ids.update(primary.compatible_manifest_ids)
+
+        records = await self.list()
+        if search_manifest_ids is not None:
+            records = [r for r in records if r.manifest_id in search_manifest_ids]
+
         manifest_cache: Dict[str, Any] = {}
 
         async def _get_comp_map(mid: str) -> Dict[str, Any]:

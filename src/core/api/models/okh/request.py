@@ -42,6 +42,14 @@ class OKHUpdateRequest(BaseModel):
     parts: List[Dict[str, Any]] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
+    compatible_manifest_ids: List[str] = Field(
+        default_factory=list,
+        description=(
+            "UUIDs of manifests with physically interchangeable components. "
+            "salvage_match expands fleet search across these manifests."
+        ),
+    )
+
     # Additional fields from OKH-LOSH format
     okhv: Optional[str] = None
     id: Optional[str] = None

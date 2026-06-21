@@ -64,6 +64,7 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
     components: List[Dict[str, Any]] = []
     repair_guides: List[Dict[str, Any]] = []
     disassembly_guides: List[Dict[str, Any]] = []
+    compatible_manifest_ids: List[str] = []
     metadata: Dict[str, Any] = {}
 
     processing_time: float = 0.0

@@ -551,6 +551,11 @@ class OKHManifest:
     repair_guides: List[RepairGuide] = field(default_factory=list)
     disassembly_guides: List[DocumentRef] = field(default_factory=list)
 
+    # UUIDs of manifests whose components are physically interchangeable with
+    # components in this manifest. salvage_match expands its fleet search to
+    # include assets linked to these IDs when this field is populated.
+    compatible_manifest_ids: List[str] = field(default_factory=list)
+
     # Relationship to other projects
     derivative_of: Optional[Dict] = None
     variant_of: Optional[Dict] = None
@@ -706,6 +711,7 @@ class OKHManifest:
             "components": [c.to_dict() for c in self.components],
             "repair_guides": [g.to_dict() for g in self.repair_guides],
             "disassembly_guides": [d.to_dict() for d in self.disassembly_guides],
+            "compatible_manifest_ids": self.compatible_manifest_ids,
             "derivative_of": self.derivative_of,
             "variant_of": self.variant_of,
             "sub_parts": self.sub_parts,
@@ -1142,6 +1148,10 @@ class OKHManifest:
                             metadata=d.get("metadata", {}),
                         )
                     )
+
+        raw_compat = data.get("compatible_manifest_ids")
+        if raw_compat and isinstance(raw_compat, list):
+            instance.compatible_manifest_ids = [str(x) for x in raw_compat if x]
 
         return instance
 
