@@ -16,6 +16,11 @@ from ..models.repair import (
     TriageReport,
 )
 from ..models.salvage import SalvageMatch, SalvageMatchResult
+from ..models.sourcing import (
+    SourcingResolution,
+    SourcingResolutionItem,
+    SourcingVerdict,
+)
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..utils.logging import get_logger
 from .base import BaseService, ServiceConfig
@@ -417,6 +422,56 @@ class AssetService(BaseService["AssetService"]):
         )
 
     # ------------------------------------------------------------------
+    # Sourcing resolution
+    # ------------------------------------------------------------------
+
+    async def resolve_sourcing(self, asset_id: UUID) -> SourcingResolution:
+        """For each source_new component on this asset, check fleet availability.
+
+        Runs salvage_match for every component the triage report marks source_new,
+        excluding the requesting asset itself. Returns a per-component verdict of
+        fleet_available (matches found) or procure_new (nothing in fleet).
+        """
+        await self.ensure_initialized()
+
+        record = await self.get(asset_id)
+        if record is None:
+            raise KeyError(f"AssetRecord {asset_id} not found")
+
+        report = await self.generate_triage_report(asset_id)
+        source_new_items = [
+            i for i in report.items if i.recommended_action == TriageAction.SOURCE_NEW
+        ]
+
+        resolution_items: List[SourcingResolutionItem] = []
+        for item in source_new_items:
+            result = await self.salvage_match(
+                component_name=item.component_name,
+                manifest_id=record.manifest_id,
+                exclude_asset_id=str(asset_id),
+            )
+            verdict = (
+                SourcingVerdict.FLEET_AVAILABLE
+                if result.matches
+                else SourcingVerdict.PROCURE_NEW
+            )
+            resolution_items.append(
+                SourcingResolutionItem(
+                    component_name=item.component_name,
+                    verdict=verdict,
+                    part_number=item.part_number,
+                    matches=[m.to_dict() for m in result.matches],
+                )
+            )
+
+        return SourcingResolution(
+            asset_id=str(record.id),
+            asset_tag=record.asset_tag,
+            manifest_id=record.manifest_id,
+            items=resolution_items,
+        )
+
+    # ------------------------------------------------------------------
     # Salvage matching
     # ------------------------------------------------------------------
 
@@ -426,6 +481,7 @@ class AssetService(BaseService["AssetService"]):
         part_number: Optional[str] = None,
         manifest_id: Optional[str] = None,
         conditions: Optional[List[str]] = None,
+        exclude_asset_id: Optional[str] = None,
     ) -> SalvageMatchResult:
         """Find harvestable components across the asset fleet matching the query.
 
@@ -451,6 +507,8 @@ class AssetService(BaseService["AssetService"]):
 
         matches: List[SalvageMatch] = []
         for record in records:
+            if exclude_asset_id and str(record.id) == exclude_asset_id:
+                continue
             comp_map = await _get_comp_map(record.manifest_id)
             for cs in record.component_states:
                 comp = comp_map.get(cs.component_name)

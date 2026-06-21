@@ -76,6 +76,24 @@ class ChecklistResponse(BaseModel):
     pending_count: int
 
 
+class SourcingResolutionItemResponse(BaseModel):
+    component_name: str
+    verdict: str
+    part_number: Optional[str] = None
+    matches: List[Dict[str, Any]] = []
+    match_count: int = 0
+
+
+class SourcingResolutionResponse(BaseModel):
+    asset_id: str
+    asset_tag: str
+    manifest_id: str
+    items: List[SourcingResolutionItemResponse]
+    total_components: int
+    fleet_available_count: int
+    procure_new_count: int
+
+
 class SalvageMatchItemResponse(BaseModel):
     asset_id: str
     asset_tag: str

@@ -19,6 +19,8 @@ from ..models.asset.response import (
     SalvageMatchItemResponse,
     SalvageMatchResponse,
     SalvageQueryResponse,
+    SourcingResolutionItemResponse,
+    SourcingResolutionResponse,
     TriageItemResponse,
     TriageReportResponse,
     TriageSummaryResponse,
@@ -349,6 +351,48 @@ async def get_triage_checklist(
         total_components=checklist.total_components,
         assessed_count=checklist.assessed_count,
         pending_count=checklist.pending_count,
+    )
+
+
+@router.get(
+    "/{id}/resolve-sourcing",
+    response_model=SourcingResolutionResponse,
+    summary="Resolve sourcing for components that need replacement",
+    description="""
+    For every component the triage report marks `source_new`, checks whether a
+    harvestable match exists elsewhere in the fleet before escalating to procurement.
+
+    The requesting asset is excluded from its own salvage search.
+
+    Per-component verdicts:
+    - `fleet_available` — a harvestable match was found; `matches` lists the assets
+    - `procure_new` — no fleet match; component must be ordered externally
+
+    Summary fields `fleet_available_count` and `procure_new_count` give a quick
+    at-a-glance breakdown without iterating items.
+    """,
+)
+async def resolve_sourcing(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        resolution = await svc.resolve_sourcing(id)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return SourcingResolutionResponse(
+        asset_id=resolution.asset_id,
+        asset_tag=resolution.asset_tag,
+        manifest_id=resolution.manifest_id,
+        items=[
+            SourcingResolutionItemResponse(**item.to_dict())
+            for item in resolution.items
+        ],
+        total_components=len(resolution.items),
+        fleet_available_count=resolution.fleet_available_count,
+        procure_new_count=resolution.procure_new_count,
     )
 
 

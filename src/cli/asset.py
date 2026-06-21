@@ -611,6 +611,83 @@ async def triage_checklist_cmd(ctx, asset_id, output):
 
 
 # ---------------------------------------------------------------------------
+# resolve-sourcing
+# ---------------------------------------------------------------------------
+
+
+@asset_group.command("resolve-sourcing")
+@click.argument("asset_id")
+@click.option("--output", "-o", default=None, help="Write resolution JSON to a file")
+@async_command
+@click.pass_context
+async def resolve_sourcing_cmd(ctx, asset_id, output):
+    """Resolve sourcing for components that need replacement.
+
+    Reads the triage report and checks whether each source_new component has a
+    harvestable match in the fleet before escalating to procurement.
+
+    \b
+    Verdicts:
+      fleet_available — a harvestable match exists; details listed below
+      procure_new     — no fleet match; component must be ordered externally
+
+    \b
+    Examples:
+      ohm asset resolve-sourcing <asset-id>
+      ohm asset resolve-sourcing <asset-id> --output sourcing-plan.json
+    """
+    cli_ctx = ctx.obj
+
+    async def http_resolve():
+        async with cli_ctx.api_client.get_client() as client:
+            r = await client.get(f"/api/asset/{asset_id}/resolve-sourcing")
+            r.raise_for_status()
+            return r.json()
+
+    async def fallback_resolve():
+        svc = await AssetService.get_instance()
+        resolution = await svc.resolve_sourcing(UUID(asset_id))
+        return resolution.to_dict()
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_resolve, fallback_resolve)
+
+    total = data.get("total_components", 0)
+    fleet_n = data.get("fleet_available_count", 0)
+    procure_n = data.get("procure_new_count", 0)
+    cli_ctx.log(
+        f"Sourcing resolution for asset {data['asset_id'][:8]}…  tag={data['asset_tag']}",
+        "success",
+    )
+    cli_ctx.log(
+        f"  {total} component(s) need sourcing  |  "
+        f"fleet_available={fleet_n}  procure_new={procure_n}",
+        "info",
+    )
+    cli_ctx.log("", "info")
+
+    for item in data.get("items", []):
+        verdict = item["verdict"]
+        verdict_label = "FLEET  " if verdict == "fleet_available" else "PROCURE"
+        pn = f"  pn={item['part_number']}" if item.get("part_number") else ""
+        cli_ctx.log(
+            f"  [{verdict_label}] {item['component_name']}{pn}",
+            "info",
+        )
+        if verdict == "fleet_available":
+            for m in item.get("matches", []):
+                loc = f"  @ {m['location']}" if m.get("location") else ""
+                cli_ctx.log(
+                    f"             asset={m['asset_id'][:8]}…  tag={m['asset_tag']}{loc}",
+                    "info",
+                )
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"\nWritten to {output}", "info")
+
+
+# ---------------------------------------------------------------------------
 # salvage-match
 # ---------------------------------------------------------------------------
 
