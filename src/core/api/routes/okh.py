@@ -55,6 +55,7 @@ from ..models.okh.request import (
     OKHExtractRequest,
     OKHFromStorageRequest,
     OKHGenerateRequest,
+    OKHHarvestRequest,
     OKHUpdateRequest,
     OKHValidateRequest,
 )
@@ -62,6 +63,7 @@ from ..models.okh.response import (
     OKHExportResponse,
     OKHExtractResponse,
     OKHGenerateResponse,
+    OKHHarvestResponse,
     OKHRepairExtractResponse,
     OKHResponse,
     OKHUploadResponse,
@@ -1263,3 +1265,70 @@ async def extract_repair_docs(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred during repair document extraction.",
         )
+
+
+@router.post(
+    "/harvest-parts",
+    response_model=OKHHarvestResponse,
+    summary="Harvest components from one or more manifests",
+    description="""
+    Given one or more manifest IDs, return a flat inventory of their components,
+    each annotated with the source manifest ID and title.
+
+    Use the filter flags to narrow results to components that are specifically
+    relevant for repair or parts reuse:
+    - **replaceable_only** — components the designer marked as field-replaceable
+    - **salvageable_only** — components that can be harvested for use elsewhere
+    - **consumable_only** — periodic-replacement items (filters, seals, fuses, …)
+    - **has_part_number** — components with a manufacturer/supplier part number
+    """,
+)
+async def harvest_parts(
+    request: OKHHarvestRequest,
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Return a flat component inventory harvested from the requested manifests."""
+    from uuid import UUID as UUIDType
+
+    components: list[dict] = []
+    found_ids: list[str] = []
+
+    for mid in request.manifest_ids:
+        try:
+            manifest = await okh_service.get(UUIDType(mid))
+        except (ValueError, AttributeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid manifest ID: {mid!r}",
+            )
+        if manifest is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Manifest {mid!r} not found.",
+            )
+
+        found_ids.append(mid)
+        title = getattr(manifest, "title", None) or mid
+
+        for component in manifest.components:
+            c = component.to_dict()
+            if request.replaceable_only and not c.get("replaceable"):
+                continue
+            if request.salvageable_only and not c.get("salvageable"):
+                continue
+            if request.consumable_only and not c.get("consumable"):
+                continue
+            if request.has_part_number and not c.get("part_number"):
+                continue
+            c["source_manifest_id"] = mid
+            c["source_manifest_title"] = title
+            components.append(c)
+
+    return OKHHarvestResponse(
+        components=components,
+        total=len(components),
+        replaceable_count=sum(1 for c in components if c.get("replaceable")),
+        consumable_count=sum(1 for c in components if c.get("consumable")),
+        salvageable_count=sum(1 for c in components if c.get("salvageable")),
+        source_manifests=found_ids,
+    )

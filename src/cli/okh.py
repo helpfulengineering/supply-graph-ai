@@ -2621,3 +2621,144 @@ async def extract_repair_docs_cmd(ctx, files, manifest_id, use_llm, output):
         }
         Path(output).write_text(json.dumps(patch, indent=2))
         cli_ctx.log(f"Patch written to {output}", "info")
+
+
+@okh_group.command("harvest-parts")
+@click.argument("manifest_ids", nargs=-1, required=True)
+@click.option(
+    "--replaceable-only",
+    is_flag=True,
+    default=False,
+    help="Return only components marked as replaceable",
+)
+@click.option(
+    "--salvageable-only",
+    is_flag=True,
+    default=False,
+    help="Return only components marked as salvageable",
+)
+@click.option(
+    "--consumable-only",
+    is_flag=True,
+    default=False,
+    help="Return only consumable components (filters, seals, fuses, …)",
+)
+@click.option(
+    "--has-part-number",
+    is_flag=True,
+    default=False,
+    help="Return only components that have a manufacturer/supplier part number",
+)
+@click.option(
+    "--output", "-o", default=None, help="Write component inventory to a JSON file"
+)
+@async_command
+@click.pass_context
+async def harvest_parts_cmd(
+    ctx,
+    manifest_ids,
+    replaceable_only,
+    salvageable_only,
+    consumable_only,
+    has_part_number,
+    output,
+):
+    """Harvest a flat component inventory from one or more OKH manifests.
+
+    Returns every component across the given manifests, annotated with its
+    source manifest ID and title. Use the filter flags to narrow to components
+    relevant for repair or parts reuse.
+
+    \b
+    Examples:
+      ohm okh harvest-parts <manifest-id>
+      ohm okh harvest-parts <id-1> <id-2> --replaceable-only
+      ohm okh harvest-parts <id> --has-part-number --output inventory.json
+    """
+    cli_ctx = ctx.obj
+    ids = list(manifest_ids)
+
+    payload: Dict[str, Any] = {
+        "manifest_ids": ids,
+        "replaceable_only": replaceable_only,
+        "salvageable_only": salvageable_only,
+        "consumable_only": consumable_only,
+        "has_part_number": has_part_number,
+    }
+
+    async def http_harvest():
+        async with cli_ctx.api_client.get_client() as client:
+            response = await client.post("/api/okh/harvest-parts", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    async def fallback_harvest():
+        from uuid import UUID as _UUID
+
+        okh_service = await OKHService.get_instance()
+        components: list = []
+        found_ids: list = []
+
+        for mid in ids:
+            manifest = await okh_service.get(_UUID(mid))
+            if manifest is None:
+                raise click.ClickException(f"Manifest {mid!r} not found.")
+            found_ids.append(mid)
+            title = getattr(manifest, "title", None) or mid
+            for component in manifest.components:
+                c = component.to_dict()
+                if replaceable_only and not c.get("replaceable"):
+                    continue
+                if salvageable_only and not c.get("salvageable"):
+                    continue
+                if consumable_only and not c.get("consumable"):
+                    continue
+                if has_part_number and not c.get("part_number"):
+                    continue
+                c["source_manifest_id"] = mid
+                c["source_manifest_title"] = title
+                components.append(c)
+
+        return {
+            "components": components,
+            "total": len(components),
+            "replaceable_count": sum(1 for c in components if c.get("replaceable")),
+            "consumable_count": sum(1 for c in components if c.get("consumable")),
+            "salvageable_count": sum(1 for c in components if c.get("salvageable")),
+            "source_manifests": found_ids,
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_harvest, fallback_harvest)
+
+    total = data.get("total", 0)
+    cli_ctx.log(
+        f"Harvested {total} component(s) from {len(data.get('source_manifests', []))} manifest(s).",
+        "success",
+    )
+    cli_ctx.log(
+        f"  replaceable={data.get('replaceable_count', 0)}  "
+        f"consumable={data.get('consumable_count', 0)}  "
+        f"salvageable={data.get('salvageable_count', 0)}",
+        "info",
+    )
+
+    components = data.get("components", [])
+    if components:
+        cli_ctx.log(f"\nComponents:", "info")
+        for c in components:
+            pn = f" [{c['part_number']}]" if c.get("part_number") else ""
+            flags = []
+            if c.get("replaceable"):
+                flags.append("replaceable")
+            if c.get("consumable"):
+                flags.append("consumable")
+            if c.get("salvageable"):
+                flags.append("salvageable")
+            flag_str = f" ({', '.join(flags)})" if flags else ""
+            src = c.get("source_manifest_title", "")
+            cli_ctx.log(f"  [{src}] {c['name']}{pn}{flag_str}", "info")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Inventory written to {output}", "info")

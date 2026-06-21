@@ -776,6 +776,77 @@ For best results with the OKH framework:
 
 ---
 
+## Parts Harvesting
+
+Harvest a flat component inventory from one or more OKH manifests. Each component
+is annotated with its source manifest ID and title for traceability.
+
+### API endpoint
+
+```
+POST /v1/api/okh/harvest-parts
+Content-Type: application/json
+```
+
+Request body:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `manifest_ids` | `string[]` | yes | One or more manifest UUIDs |
+| `replaceable_only` | `bool` | no (default `false`) | Only components marked replaceable |
+| `salvageable_only` | `bool` | no (default `false`) | Only components marked salvageable |
+| `consumable_only` | `bool` | no (default `false`) | Only consumable components |
+| `has_part_number` | `bool` | no (default `false`) | Only components with a part number |
+
+Multiple filter flags are ANDed together.
+
+Response:
+
+```json
+{
+  "components": [
+    {
+      "name": "Pre-filter cartridge",
+      "part_number": "FILTER-04",
+      "replaceable": true,
+      "salvageable": true,
+      "consumable": true,
+      "source_manifest_id": "3fa85f64-...",
+      "source_manifest_title": "Fresenius 2008H"
+    }
+  ],
+  "total": 1,
+  "replaceable_count": 1,
+  "consumable_count": 1,
+  "salvageable_count": 1,
+  "source_manifests": ["3fa85f64-..."]
+}
+```
+
+### CLI command
+
+```bash
+# Harvest all components from a manifest
+ohm okh harvest-parts <manifest-id>
+
+# Harvest from multiple manifests
+ohm okh harvest-parts <id-1> <id-2>
+
+# Filter to replaceable components with known part numbers
+ohm okh harvest-parts <id> --replaceable-only --has-part-number
+
+# Save inventory to a file
+ohm okh harvest-parts <id> --output inventory.json
+```
+
+### Relationship to AssetRecord
+
+Parts harvesting currently operates on **design-level** component data — what the
+manifest author declared as replaceable, salvageable, or consumable. Once `AssetRecord`
+is implemented (see `docs/models/asset-docs.md`), harvesting can be enriched with
+observed physical state: components where a technician has confirmed `harvest_viable=True`
+on a specific unit.
+
 ## Repair Document Extraction Pipeline
 
 `RepairDocExtractor` (`src/core/generation/repair_doc_extractor.py`) extracts structured

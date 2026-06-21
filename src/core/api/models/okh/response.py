@@ -197,6 +197,17 @@ class OKHExportResponse(BaseModel):
     model_name: Optional[str] = "OKHManifest"
 
 
+class OKHHarvestResponse(BaseModel):
+    """Response model for parts harvesting across one or more manifests."""
+
+    components: List[Dict[str, Any]]
+    total: int
+    replaceable_count: int
+    consumable_count: int
+    salvageable_count: int
+    source_manifests: List[str]
+
+
 class OKHRepairExtractResponse(BaseModel):
     """Response model for repair document extraction."""
 

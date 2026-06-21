@@ -130,3 +130,23 @@ class OKHFromStorageRequest(BaseAPIRequest):
     manifest_id: str = Field(
         ..., description="ID of the stored OKH manifest to retrieve"
     )
+
+
+class OKHHarvestRequest(BaseModel):
+    """Request model for harvesting components from one or more manifests."""
+
+    manifest_ids: List[str] = Field(
+        ..., min_length=1, description="One or more manifest UUIDs to harvest from"
+    )
+    replaceable_only: bool = Field(
+        False, description="Return only replaceable components"
+    )
+    salvageable_only: bool = Field(
+        False, description="Return only salvageable components"
+    )
+    consumable_only: bool = Field(
+        False, description="Return only consumable components"
+    )
+    has_part_number: bool = Field(
+        False, description="Return only components that have a part number"
+    )
