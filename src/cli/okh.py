@@ -2779,6 +2779,12 @@ async def import_repair_doc_cmd(ctx, files, manifest_id, title, use_llm, output)
     help="Return only components that have a manufacturer/supplier part number",
 )
 @click.option(
+    "--enrich-fleet",
+    is_flag=True,
+    default=False,
+    help="Attach fleet availability count and asset IDs to each component",
+)
+@click.option(
     "--output", "-o", default=None, help="Write component inventory to a JSON file"
 )
 @async_command
@@ -2790,6 +2796,7 @@ async def harvest_parts_cmd(
     salvageable_only,
     consumable_only,
     has_part_number,
+    enrich_fleet,
     output,
 ):
     """Harvest a flat component inventory from one or more OKH manifests.
@@ -2813,6 +2820,7 @@ async def harvest_parts_cmd(
         "salvageable_only": salvageable_only,
         "consumable_only": consumable_only,
         "has_part_number": has_part_number,
+        "enrich_fleet": enrich_fleet,
     }
 
     async def http_harvest():
@@ -2823,6 +2831,8 @@ async def harvest_parts_cmd(
 
     async def fallback_harvest():
         from uuid import UUID as _UUID
+
+        from src.core.services.asset_service import AssetService as _AssetSvc
 
         okh_service = await OKHService.get_instance()
         components: list = []
@@ -2847,6 +2857,13 @@ async def harvest_parts_cmd(
                 c["source_manifest_id"] = mid
                 c["source_manifest_title"] = title
                 components.append(c)
+
+        if enrich_fleet:
+            asset_svc = await _AssetSvc.get_instance()
+            for c in components:
+                result = await asset_svc.salvage_match(component_name=c["name"])
+                c["fleet_available_count"] = len(result.matches)
+                c["fleet_asset_ids"] = [m.asset_id for m in result.matches]
 
         return {
             "components": components,
@@ -2886,7 +2903,12 @@ async def harvest_parts_cmd(
                 flags.append("salvageable")
             flag_str = f" ({', '.join(flags)})" if flags else ""
             src = c.get("source_manifest_title", "")
-            cli_ctx.log(f"  [{src}] {c['name']}{pn}{flag_str}", "info")
+            fleet_str = (
+                f" [fleet:{c['fleet_available_count']}]"
+                if "fleet_available_count" in c
+                else ""
+            )
+            cli_ctx.log(f"  [{src}] {c['name']}{pn}{flag_str}{fleet_str}", "info")
 
     if output:
         Path(output).write_text(json.dumps(data, indent=2))

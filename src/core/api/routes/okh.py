@@ -21,6 +21,7 @@ from fastapi.responses import Response
 
 
 from ...services.cleanup_service import CleanupOptions, CleanupService
+from ...services.asset_service import AssetService
 from ...services.okh_service import OKHService
 from ...services.scaffold_service import ScaffoldService
 from ...services.storage_service import StorageService
@@ -85,6 +86,10 @@ router = APIRouter(
 async def get_okh_service() -> OKHService:
     """Get OKH service instance."""
     return await OKHService.get_instance()
+
+
+async def get_asset_service() -> AssetService:
+    return await AssetService.get_instance()
 
 
 async def get_storage_service() -> StorageService:
@@ -1423,6 +1428,7 @@ async def import_repair_doc(
 async def harvest_parts(
     request: OKHHarvestRequest,
     okh_service: OKHService = Depends(get_okh_service),
+    asset_service: AssetService = Depends(get_asset_service),
 ) -> Any:
     """Return a flat component inventory harvested from the requested manifests."""
     from uuid import UUID as UUIDType
@@ -1460,6 +1466,12 @@ async def harvest_parts(
             c["source_manifest_id"] = mid
             c["source_manifest_title"] = title
             components.append(c)
+
+    if request.enrich_fleet:
+        for c in components:
+            result = await asset_service.salvage_match(component_name=c["name"])
+            c["fleet_available_count"] = len(result.matches)
+            c["fleet_asset_ids"] = [m.asset_id for m in result.matches]
 
     return OKHHarvestResponse(
         components=components,

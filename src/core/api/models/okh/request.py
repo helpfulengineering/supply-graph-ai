@@ -150,3 +150,10 @@ class OKHHarvestRequest(BaseModel):
     has_part_number: bool = Field(
         False, description="Return only components that have a part number"
     )
+    enrich_fleet: bool = Field(
+        False,
+        description=(
+            "When true, attach fleet availability data to each component: "
+            "fleet_available_count and fleet_asset_ids from a salvage-match query"
+        ),
+    )
