@@ -51,7 +51,7 @@ class FederationService(BaseService["FederationService"]):
         self.data_dir: Path = Path(settings.OHM_FEDERATION_DATA_DIR)
         self._mdns_advertiser: MdnsAdvertiser | None = None
         self._sync_task: asyncio.Task[None] | None = None
-        self.metrics = FederationMetricsCollector()
+        self.federation_metrics = FederationMetricsCollector()
 
     async def _initialize_dependencies(self) -> None:
         if not settings.OHM_FEDERATION_ENABLED:
@@ -187,7 +187,7 @@ class FederationService(BaseService["FederationService"]):
         await self.ensure_federation_ready()
         if not self.capabilities.can_accept_inbound_sync:
             raise RuntimeError("This node role does not accept inbound sync")
-        self.metrics.record_inbound_digest()
+        self.federation_metrics.record_inbound_digest()
         index = await self.build_catalog_index()
         local_hashes = {r.content_hash for r in index.records}
         return respond_to_sync_digest(
@@ -199,7 +199,7 @@ class FederationService(BaseService["FederationService"]):
     def record_sync_result(
         self, result: SyncPeerResult, *, background: bool = False
     ) -> None:
-        self.metrics.record_sync_run(
+        self.federation_metrics.record_sync_run(
             peer_did=result.peer_did,
             pulled=result.pulled,
             skipped=result.skipped,
@@ -214,7 +214,7 @@ class FederationService(BaseService["FederationService"]):
         index = await self.build_catalog_index()
         peers = self.list_peers()
         followed = [p for p in peers if p.followed or self.is_followed(p.did)]
-        metrics = self.metrics.snapshot
+        metrics = self.federation_metrics.snapshot
         return {
             "did": identity.did,
             "display_name": identity.display_name,

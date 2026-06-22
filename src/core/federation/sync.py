@@ -140,14 +140,14 @@ async def sync_with_peer(
     limiter = get_federation_rate_limiter()
     outbound_limit = limiter.check(peer.did)
     if not outbound_limit.allowed:
-        service.metrics.record_rate_limit_rejection()
+        service.federation_metrics.record_rate_limit_rejection()
         return SyncPeerResult(
             peer_did=peer.did,
             base_url=peer.base_url,
             errors=[f"outbound rate limit exceeded for {peer.did}"],
             rate_limited=True,
         )
-    service.metrics.record_outbound_digest()
+    service.federation_metrics.record_outbound_digest()
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         try:

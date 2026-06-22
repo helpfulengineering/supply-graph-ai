@@ -9,7 +9,7 @@ class OKHUpdateRequest(BaseModel):
     """Request model for updating an OKH manifest"""
 
     title: str
-    repo: str
+    repo: Optional[str] = None
     version: str
     license: Dict[str, Any]
     licensor: Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]

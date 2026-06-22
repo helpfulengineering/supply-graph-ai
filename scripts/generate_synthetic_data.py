@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Synthetic Data Generator for OKH and OKW Models
+Synthetic Data Generator for OKH, OKW, and AssetRecord Models
 
-This script generates realistic synthetic data for testing the matching engine.
-It can create both OKH manifests and OKW facilities with configurable complexity levels.
+This script generates realistic synthetic data for testing the matching engine
+and repair workflow.  It can create OKH manifests, OKW facilities, and
+AssetRecord instances with configurable complexity levels and repair scenarios.
 
 Alignment: Uses the same canonical models as the rest of the codebase (src.core.models.okh,
 src.core.models.okw, src.core.domains.cooking.models). Run from project root so path
@@ -16,6 +17,8 @@ Usage:
     python generate_synthetic_data.py --type okw --count 20 --complexity mixed --output-dir ./facilities
     python generate_synthetic_data.py --type okw --count 34 --country "US" --output-dir ./facilities
     python generate_synthetic_data.py --type okw --count 34 --region EU --output-dir ./facilities
+    python generate_synthetic_data.py --type asset --count 20 --manifests-dir ./data --output-dir ./assets
+    python generate_synthetic_data.py --type asset --count 20 --scenario condemned --output-dir ./assets
 """
 
 import argparse
@@ -24,7 +27,7 @@ import os
 import random
 import sys
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Union
 
 from faker import Faker
@@ -43,7 +46,14 @@ except ImportError:
 # Add the src directory to the path so we can import the models
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+from core.models.asset import (
+    AssetRecord,
+    AssetStatus,
+    ComponentCondition,
+    ComponentState,
+)
 from core.models.okh import (
+    Component as OKHComponent,
     DocumentationType,
     DocumentRef,
     License,
@@ -4108,6 +4118,470 @@ def analyze_okh_process_requirements(
     return facility_plan
 
 
+class AssetGenerator(SyntheticDataGenerator):
+    """Generate AssetRecord instances simulating devices in various repair states.
+
+    Device templates include named components so that triage, harvest-parts,
+    and salvage-match calls use realistic, meaningful component names.
+    """
+
+    # Ready-to-use device templates for the repair scenario.
+    # Each template includes an OKH manifest skeleton and a component list.
+    DEVICE_TEMPLATES = [
+        {
+            "type": "ventilator",
+            "title": "Mechanical Ventilator MV-3000",
+            "version": "2.1.0",
+            "function": "Positive-pressure mechanical ventilation for adult patients in resource-limited settings",
+            "manufacturing_processes": ["PCB", "3DP", "Assembly"],
+            "tsdc": ["PCB", "3DP"],
+            "components": [
+                {
+                    "name": "Blower Motor",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "BM-240V",
+                },
+                {
+                    "name": "Pressure Sensor",
+                    "replaceable": True,
+                    "salvageable": False,
+                    "part_number": "PS-100",
+                },
+                {
+                    "name": "Flow Control Valve",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "FCV-5L",
+                },
+                {
+                    "name": "Control Board",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "CB-ESP32",
+                },
+                {
+                    "name": "Patient Circuit Connector",
+                    "replaceable": True,
+                    "consumable": True,
+                    "part_number": "PCC-22mm",
+                },
+                {
+                    "name": "Power Supply Unit",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "PSU-12V",
+                },
+            ],
+            "tag_prefix": "VEN",
+        },
+        {
+            "type": "oxygen_concentrator",
+            "title": "Portable Oxygen Concentrator OC-5L",
+            "version": "1.4.0",
+            "function": "Continuous-flow oxygen delivery at up to 5 L/min for patients requiring supplemental oxygen",
+            "manufacturing_processes": ["CNC", "Assembly", "PCB"],
+            "tsdc": ["CNC", "PCB"],
+            "components": [
+                {
+                    "name": "Compressor",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "COMP-OC5",
+                },
+                {
+                    "name": "Molecular Sieve Bed A",
+                    "replaceable": True,
+                    "salvageable": False,
+                    "part_number": "MSB-A",
+                },
+                {
+                    "name": "Molecular Sieve Bed B",
+                    "replaceable": True,
+                    "salvageable": False,
+                    "part_number": "MSB-B",
+                },
+                {
+                    "name": "Flow Meter",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "FM-5L",
+                },
+                {
+                    "name": "Pressure Regulator",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "PR-3BAR",
+                },
+                {
+                    "name": "Controller PCB",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "CPCB-OC",
+                },
+                {
+                    "name": "Cooling Fan",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "FAN-80mm",
+                },
+            ],
+            "tag_prefix": "OXY",
+        },
+        {
+            "type": "pulse_oximeter",
+            "title": "Clip Pulse Oximeter PO-100",
+            "version": "3.0.1",
+            "function": "Non-invasive blood oxygen saturation (SpO2) and pulse rate measurement",
+            "manufacturing_processes": ["PCB", "3DP"],
+            "tsdc": ["PCB", "3DP"],
+            "components": [
+                {
+                    "name": "LED Sensor Assembly",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "LED-SPO2",
+                },
+                {
+                    "name": "OLED Display",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "OLED-128",
+                },
+                {
+                    "name": "Battery Pack",
+                    "replaceable": True,
+                    "consumable": True,
+                    "part_number": "BAT-AAA2",
+                },
+                {
+                    "name": "Signal Processor IC",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "IC-MAX30102",
+                },
+                {
+                    "name": "Probe Casing",
+                    "replaceable": True,
+                    "salvageable": False,
+                    "part_number": "CASE-PO",
+                },
+            ],
+            "tag_prefix": "OXM",
+        },
+        {
+            "type": "cpap",
+            "title": "CPAP Therapy Device C-PAP 20",
+            "version": "1.2.3",
+            "function": "Continuous positive airway pressure therapy for sleep apnea and respiratory support",
+            "manufacturing_processes": ["3DP", "PCB", "Assembly"],
+            "tsdc": ["3DP", "PCB"],
+            "components": [
+                {
+                    "name": "Blower Unit",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "BLW-CPAP",
+                },
+                {
+                    "name": "Humidifier Chamber",
+                    "replaceable": True,
+                    "salvageable": False,
+                    "part_number": "HUM-300ml",
+                },
+                {
+                    "name": "Pressure Transducer",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "PT-0-30",
+                },
+                {
+                    "name": "Motor Driver Board",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "MDB-CPAP",
+                },
+                {
+                    "name": "Mask Interface Port",
+                    "replaceable": True,
+                    "consumable": True,
+                    "part_number": "MIP-22mm",
+                },
+                {
+                    "name": "Power Adapter",
+                    "replaceable": True,
+                    "salvageable": True,
+                    "part_number": "PWR-24V",
+                },
+            ],
+            "tag_prefix": "CPP",
+        },
+    ]
+
+    # Scenario profiles define how component conditions are distributed.
+    # Percentages must sum to 1.0 per profile.
+    SCENARIO_PROFILES: Dict[str, Dict[str, Any]] = {
+        "active": {
+            "status": AssetStatus.ACTIVE,
+            "intact_pct": 0.95,
+            "damaged_pct": 0.05,
+            "missing_pct": 0.00,
+            "unknown_pct": 0.00,
+            "harvest_viable_if_intact": False,
+            "repair_feasible_if_damaged": False,
+            "source_required_if_missing": False,
+        },
+        "under_triage": {
+            "status": AssetStatus.UNDER_TRIAGE,
+            "intact_pct": 0.50,
+            "damaged_pct": 0.30,
+            "missing_pct": 0.15,
+            "unknown_pct": 0.05,
+            "harvest_viable_if_intact": False,
+            "repair_feasible_if_damaged": True,
+            "source_required_if_missing": True,
+        },
+        "parts_pending": {
+            "status": AssetStatus.PARTS_PENDING,
+            "intact_pct": 0.65,
+            "damaged_pct": 0.20,
+            "missing_pct": 0.15,
+            "unknown_pct": 0.00,
+            "harvest_viable_if_intact": False,
+            "repair_feasible_if_damaged": True,
+            "source_required_if_missing": True,
+        },
+        "under_repair": {
+            "status": AssetStatus.UNDER_REPAIR,
+            "intact_pct": 0.70,
+            "damaged_pct": 0.20,
+            "missing_pct": 0.10,
+            "unknown_pct": 0.00,
+            "harvest_viable_if_intact": False,
+            "repair_feasible_if_damaged": True,
+            "source_required_if_missing": False,
+        },
+        "restored": {
+            "status": AssetStatus.RESTORED,
+            "intact_pct": 1.00,
+            "damaged_pct": 0.00,
+            "missing_pct": 0.00,
+            "unknown_pct": 0.00,
+            "harvest_viable_if_intact": False,
+            "repair_feasible_if_damaged": False,
+            "source_required_if_missing": False,
+        },
+        "condemned": {
+            "status": AssetStatus.CONDEMNED,
+            "intact_pct": 0.35,
+            "damaged_pct": 0.40,
+            "missing_pct": 0.20,
+            "unknown_pct": 0.05,
+            "harvest_viable_if_intact": True,
+            "repair_feasible_if_damaged": False,
+            "source_required_if_missing": False,
+        },
+    }
+
+    _LOCATIONS = [
+        "Bay 1 — Triage",
+        "Bay 2 — Repair",
+        "Storage A — Parts",
+        "Ward B — Active",
+        "Warehouse — Condemned",
+        "Field Site C",
+    ]
+
+    _ASSESSORS = [f"Tech-{n}" for n in range(101, 115)]
+
+    _DAMAGE_NOTES: Dict[str, List[str]] = {
+        "damaged": [
+            "Physical impact damage observed.",
+            "Corrosion visible on connectors.",
+            "Worn contacts — intermittent failure.",
+            "Cracked housing, function uncertain.",
+            "Overheating marks on PCB.",
+        ],
+        "missing": [
+            "Component removed — whereabouts unknown.",
+            "Stripped in previous salvage attempt.",
+            "Missing since last field deployment.",
+            "Not present on intake inspection.",
+        ],
+        "intact": [
+            "No defects observed.",
+            "Functional — passed bench test.",
+            "Within spec.",
+        ],
+        "unknown": [
+            "Could not inspect — access restricted.",
+            "Assessment pending specialist.",
+            "Submerged previously, status unclear.",
+        ],
+    }
+
+    def _pick_condition(self, profile: Dict) -> ComponentCondition:
+        r = random.random()
+        if r < profile["intact_pct"]:
+            return ComponentCondition.INTACT
+        r -= profile["intact_pct"]
+        if r < profile["damaged_pct"]:
+            return ComponentCondition.DAMAGED
+        r -= profile["damaged_pct"]
+        if r < profile["missing_pct"]:
+            return ComponentCondition.MISSING
+        return ComponentCondition.UNKNOWN
+
+    def _note(self, condition: ComponentCondition) -> Optional[str]:
+        pool = self._DAMAGE_NOTES.get(condition.value, [])
+        return random.choice(pool) if self.should_include_field() and pool else None
+
+    def generate_asset(
+        self,
+        manifest: OKHManifest,
+        scenario: Optional[str] = None,
+        tag_prefix: str = "ASSET",
+    ) -> AssetRecord:
+        """Generate one AssetRecord for *manifest* under the given *scenario* profile."""
+        if scenario is None:
+            scenario = random.choice(list(self.SCENARIO_PROFILES.keys()))
+
+        profile = self.SCENARIO_PROFILES[scenario]
+        component_names = (
+            [c.name for c in manifest.components]
+            if manifest.components
+            else ["Main Assembly", "Control Unit", "Power Module", "Sensor Array"]
+        )
+
+        now = datetime.now(timezone.utc)
+        component_states = []
+        for name in component_names:
+            condition = self._pick_condition(profile)
+            harvest_viable = (
+                True
+                if (
+                    condition == ComponentCondition.INTACT
+                    and profile["harvest_viable_if_intact"]
+                )
+                else None
+            )
+            repair_feasible = (
+                True
+                if (
+                    condition == ComponentCondition.DAMAGED
+                    and profile["repair_feasible_if_damaged"]
+                )
+                else None
+            )
+            source_required = (
+                True
+                if (
+                    condition == ComponentCondition.MISSING
+                    and profile["source_required_if_missing"]
+                )
+                else None
+            )
+
+            cs = ComponentState(
+                component_name=name,
+                condition=condition,
+                harvest_viable=harvest_viable,
+                repair_feasible=repair_feasible,
+                source_required=source_required,
+                notes=self._note(condition),
+                observed_at=now - timedelta(days=random.randint(0, 30)),
+                assessed_by=random.choice(self._ASSESSORS),
+            )
+            component_states.append(cs)
+
+        triage_notes_map = {
+            "active": None,
+            "under_triage": "Initial triage — damage extent still being assessed.",
+            "parts_pending": "Triage complete. Sourcing replacement parts.",
+            "under_repair": "Repair in progress — critical components replaced.",
+            "restored": "Fully repaired and tested. Returned to service.",
+            "condemned": "Beyond economical repair. Flagged for component harvest.",
+        }
+
+        return AssetRecord(
+            manifest_id=str(manifest.id),
+            asset_tag=f"{tag_prefix}-{random.randint(1000, 9999)}",
+            location=random.choice(self._LOCATIONS),
+            status=profile["status"],
+            component_states=component_states,
+            last_triaged_at=(
+                now - timedelta(days=random.randint(0, 14))
+                if scenario != "active"
+                else None
+            ),
+            triage_notes=triage_notes_map.get(scenario),
+        )
+
+    def generate_device_manifest(self, template: Dict) -> OKHManifest:
+        """Generate an OKHManifest from one of the DEVICE_TEMPLATES."""
+        manifest = OKHManifest(
+            title=template["title"],
+            version=template["version"],
+            license=License(
+                hardware="CERN-OHL-S-2.0",
+                documentation="CC-BY-4.0",
+                software="GPL-3.0-or-later",
+            ),
+            licensor=Person(
+                name="Open Hardware Medical Collective", email="contact@ohmc.org"
+            ),
+            documentation_language="en",
+            function=template["function"],
+            repo=f"https://github.com/open-hardware-medical/{template['type']}",
+            development_stage="production",
+            technology_readiness_level="TRL-9",
+            manufacturing_processes=template.get("manufacturing_processes", []),
+            tsdc=template.get("tsdc", []),
+        )
+        manifest.components = [
+            OKHComponent(
+                name=c["name"],
+                replaceable=c.get("replaceable", False),
+                salvageable=c.get("salvageable", False),
+                consumable=c.get("consumable", False),
+                part_number=c.get("part_number"),
+            )
+            for c in template["components"]
+        ]
+        return manifest
+
+    def generate_fleet(
+        self,
+        manifest: OKHManifest,
+        tag_prefix: str = "ASSET",
+        scenario_distribution: Optional[Dict[str, int]] = None,
+    ) -> List[AssetRecord]:
+        """Generate a fleet of assets for *manifest* using an explicit scenario distribution.
+
+        *scenario_distribution* maps scenario name → count, e.g.
+        {"active": 4, "condemned": 2, "under_triage": 1}.
+        If omitted, a default realistic distribution is used.
+        """
+        if scenario_distribution is None:
+            scenario_distribution = {
+                "active": 4,
+                "under_triage": 2,
+                "parts_pending": 1,
+                "under_repair": 1,
+                "restored": 1,
+                "condemned": 2,
+            }
+        assets = []
+        for scenario, count in scenario_distribution.items():
+            for _ in range(count):
+                assets.append(
+                    self.generate_asset(
+                        manifest, scenario=scenario, tag_prefix=tag_prefix
+                    )
+                )
+        return assets
+
+
 def validate_record(record: Union[OKHManifest, ManufacturingFacility, Dict]) -> bool:
     """Validate a generated record"""
     try:
@@ -4140,12 +4614,17 @@ def validate_record(record: Union[OKHManifest, ManufacturingFacility, Dict]) -> 
 
 
 def save_record(
-    record: Union[OKHManifest, ManufacturingFacility, Dict], output_dir: str, index: int
+    record: Union[OKHManifest, ManufacturingFacility, AssetRecord, Dict],
+    output_dir: str,
+    index: int,
 ) -> str:
     """Save a record to a JSON file"""
     os.makedirs(output_dir, exist_ok=True)
 
-    if isinstance(record, OKHManifest):
+    if isinstance(record, AssetRecord):
+        filename = f"{record.id}.json"
+        data = record.to_dict()
+    elif isinstance(record, OKHManifest):
         # Use title and version for OKH files
         safe_title = "".join(
             c for c in record.title if c.isalnum() or c in (" ", "-", "_")
@@ -4299,7 +4778,74 @@ def main():
         help="Region for all generated facilities. Overrides --country. Options: US, EU, SE_ASIA, AFRICA, LATAM, ASIA",
     )
 
+    # Asset generation options (--type asset)
+    parser.add_argument(
+        "--manifests-dir",
+        type=str,
+        help="Directory of OKH manifest JSON files to use as templates for asset generation (--type asset).",
+    )
+    parser.add_argument(
+        "--scenario",
+        choices=list(AssetGenerator.SCENARIO_PROFILES.keys()),
+        default=None,
+        help=(
+            "Fix all generated assets to a single scenario profile. "
+            "If omitted, assets are distributed across all profiles. "
+            "Valid values: active, under_triage, parts_pending, under_repair, restored, condemned."
+        ),
+    )
+
     args = parser.parse_args()
+
+    # Asset generation is domain-independent; handle it before domain validation.
+    if args.type == "asset":
+        generator = AssetGenerator(args.complexity)
+        manifests: List[OKHManifest] = []
+
+        if args.manifests_dir:
+            for fname in os.listdir(args.manifests_dir):
+                if not fname.endswith(".json"):
+                    continue
+                fpath = os.path.join(args.manifests_dir, fname)
+                try:
+                    with open(fpath, encoding="utf-8") as fh:
+                        manifests.append(OKHManifest.from_dict(json.load(fh)))
+                except Exception as exc:
+                    print(f"Warning: could not load {fpath}: {exc}")
+        else:
+            # Fall back to the built-in device templates
+            manifests = [
+                generator.generate_device_manifest(t)
+                for t in AssetGenerator.DEVICE_TEMPLATES
+            ]
+
+        if not manifests:
+            parser.error(
+                "No manifests found. Provide --manifests-dir or omit it to use built-in device templates."
+            )
+
+        print(
+            f"Generating {args.count} ASSET records from {len(manifests)} manifest(s)..."
+        )
+
+        generated_count = 0
+        failed_count = 0
+        for i in range(args.count):
+            try:
+                manifest = manifests[i % len(manifests)]
+                asset = generator.generate_asset(manifest, scenario=args.scenario)
+                filepath = save_record(asset, args.output_dir, i + 1)
+                print(f"Generated: {filepath}  [{asset.status.value}]")
+                generated_count += 1
+            except Exception as exc:
+                print(f"Error generating record {i + 1}: {exc}")
+                failed_count += 1
+
+        print(f"\nGeneration complete!")
+        print(f"Successfully generated: {generated_count} asset records")
+        print(f"Failed: {failed_count} records")
+        print(f"Output directory: {args.output_dir}")
+        return
 
     # Validate type based on domain
     if args.domain == "manufacturing":

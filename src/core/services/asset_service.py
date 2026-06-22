@@ -136,7 +136,6 @@ class AssetService(BaseService["AssetService"]):
 
     async def initialize(self) -> None:
         await self.ensure_initialized()
-        await self._ensure_domains_registered()
         self.add_dependency("storage", self.storage)
         self.logger.info("AssetService initialized")
 

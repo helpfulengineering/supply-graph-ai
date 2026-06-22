@@ -1,11 +1,12 @@
 import json
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 import yaml
 from fastapi import (
     APIRouter,
+    Body,
     Depends,
     File,
     Form,
@@ -208,6 +209,50 @@ async def export_collection_endpoint(
         media_type="application/zip",
         headers={"Content-Disposition": "attachment; filename=ohm-collection.zip"},
     )
+
+
+@router.post(
+    "/manifests/",
+    response_model=OKHResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an OKH manifest",
+    description="Create a new OKH manifest from a JSON body. Generates a UUID and persists to storage.",
+)
+async def create_okh_manifest(
+    data: Dict[str, Any] = Body(...),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    try:
+        manifest = await okh_service.create(data)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    return OKHResponse.model_validate(
+        {
+            **manifest.to_dict(),
+            "status": APIStatus.SUCCESS,
+            "message": "OKH manifest created successfully",
+        }
+    )
+
+
+@router.delete(
+    "/manifests/{id}",
+    response_model=SuccessResponse,
+    summary="Delete an OKH manifest (path alias)",
+)
+async def delete_okh_manifest_alias(
+    id: UUID = Path(...),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Alias for DELETE /{id} — used by integration test cleanup."""
+    existing = await okh_service.get(id)
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    success = await okh_service.delete(id)
+    return SuccessResponse(success=success, message=f"OKH manifest {id} deleted")
 
 
 @router.get("/{id}", response_model=OKHResponse)
@@ -415,7 +460,13 @@ async def update_okh(
 
         # Call service to update OKH manifest
         result = await okh_service.update(id, request.model_dump(mode="json"))
-        return result
+        return OKHResponse.model_validate(
+            {
+                **result.to_dict(),
+                "status": APIStatus.SUCCESS,
+                "message": "OKH manifest updated successfully",
+            }
+        )
     except ValueError as e:
         # Handle validation errors
         raise HTTPException(

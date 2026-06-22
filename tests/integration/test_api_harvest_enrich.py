@@ -9,24 +9,15 @@ from __future__ import annotations
 import os
 import uuid
 
-import httpx
 import pytest
 
 pytestmark = [
     pytest.mark.integration,
     pytest.mark.skipif(
         os.environ.get("RUN_LIVE_API_TESTS", "0") != "1",
-        reason="Set RUN_LIVE_API_TESTS=1 and a reachable OHM API at localhost:8001 to run",
+        reason="Set RUN_LIVE_API_TESTS=1 to run integration tests",
     ),
 ]
-
-BASE = "http://localhost:8001/v1"
-
-
-@pytest.fixture(scope="module")
-def client():
-    with httpx.Client(base_url=BASE, timeout=30) as c:
-        yield c
 
 
 @pytest.fixture()
