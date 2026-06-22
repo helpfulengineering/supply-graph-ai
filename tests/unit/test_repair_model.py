@@ -8,7 +8,6 @@ from src.core.models.asset import ComponentCondition, ComponentState
 from src.core.models.repair import TriageAction, TriageItem, TriageReport
 from src.core.services.asset_service import _derive_action, _derive_flags
 
-
 # ---------------------------------------------------------------------------
 # Minimal stand-in for a manifest Component
 # ---------------------------------------------------------------------------

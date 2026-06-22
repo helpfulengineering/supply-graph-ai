@@ -43,7 +43,6 @@ from core.models.okh import OKHManifest  # noqa: E402
 sys.path.insert(0, str(_ROOT / "scripts"))
 from generate_synthetic_data import AssetGenerator  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # Scenario distribution — controls how many assets per scenario per device type.
 # Deliberately uneven to exercise all branches of the repair workflow.

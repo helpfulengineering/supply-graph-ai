@@ -9,7 +9,6 @@ import pytest
 
 from src.core.models.asset import AssetRecord, ComponentCondition, ComponentState
 
-
 # ---------------------------------------------------------------------------
 # ComponentCondition
 # ---------------------------------------------------------------------------
