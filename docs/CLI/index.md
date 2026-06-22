@@ -90,8 +90,9 @@ Top-level commands from `ohm --help` (names match Click registration in `src/cli
 
 | Command | Purpose |
 |---------|---------|
+| `asset` | Physical device unit lifecycle — triage, salvage-match, claim-component |
 | `package` | OKH package build, push, pull, verify |
-| `okh` | OKH manifest lifecycle |
+| `okh` | OKH manifest lifecycle (including repair-doc import and harvest-parts) |
 | `okw` | OKW facility lifecycle |
 | `match` | Matching and related operations |
 | `llm` | LLM operations (optional; requires optional deps) |
@@ -105,6 +106,163 @@ Top-level commands from `ohm --help` (names match Click registration in `src/cli
 | `config` | Show effective CLI configuration |
 
 Sections below follow this layout. Supply trees are created or validated via the **HTTP API** or match flows; persisted solutions are managed with **`ohm solution`** (not a separate `supply-tree` CLI group).
+
+---
+
+## Asset Commands
+
+Manage physical device units in the field. See [Repair Workflow](../models/repair-workflow.md) for the full end-to-end walkthrough.
+
+### `ohm asset create`
+
+Register a new physical device unit linked to an OKH manifest.
+
+```bash
+ohm asset create --manifest-id <uuid> --asset-tag VEN-007 --location "Bay 1"
+```
+
+### `ohm asset get` / `ohm asset list`
+
+```bash
+ohm asset get <asset-id>
+ohm asset list                                   # all assets
+ohm asset list --manifest-id <uuid>              # scoped to one manifest
+ohm asset list --status under_triage             # lifecycle status filter
+ohm asset list --harvest-viable                  # only assets with harvestable parts
+```
+
+### `ohm asset update`
+
+```bash
+ohm asset update <asset-id> --status under_repair
+ohm asset update <asset-id> --location "Bay 2 — Repair" --triage-notes "Cleared"
+```
+
+### `ohm asset delete`
+
+```bash
+ohm asset delete <asset-id>
+```
+
+### `ohm asset triage`
+
+Record observed component conditions for an asset. `harvest_viable`,
+`repair_feasible`, and `source_required` are auto-derived from condition + manifest
+design flags; pass `--harvest-viable` / `--repair-feasible` to override.
+
+```bash
+ohm asset triage <asset-id> \
+  --component "Blower Motor" --condition damaged \
+  --component "Control Board" --condition intact \
+  --notes "Motor casing cracked from drop"
+```
+
+### `ohm asset triage-report`
+
+Generate a per-component repair recommendation.
+
+```bash
+ohm asset triage-report <asset-id>
+```
+
+Recommended actions: `assess`, `no_action`, `repair_in_place`, `harvest`,
+`source_new`, `decommission`.
+
+### `ohm asset triage-checklist`
+
+Get the component list pre-filled with current observations — use as the starting
+point for a triage session.
+
+```bash
+ohm asset triage-checklist <asset-id>
+```
+
+### `ohm asset resolve-sourcing`
+
+For every component needing replacement, check the fleet before escalating to
+procurement.
+
+```bash
+ohm asset resolve-sourcing <asset-id>
+```
+
+### `ohm asset salvage-match`
+
+Search the fleet for harvestable components matching a part need. Scoped searches
+automatically expand to compatible manifests if declared.
+
+```bash
+ohm asset salvage-match --component-name "Blower Motor"
+ohm asset salvage-match --part-number BM-240V --manifest-id <uuid>
+ohm asset salvage-match --component-name "Pump" --include-claimed
+```
+
+### `ohm asset claim-component`
+
+Reserve a component for a specific coordinator, blocking concurrent allocation.
+
+```bash
+ohm asset claim-component --asset-id <uuid> \
+  --component-name "Blower Motor" \
+  --claimed-by coord-alice
+```
+
+---
+
+## OKH Repair Commands
+
+The following `ohm okh` subcommands support the repair workflow in addition to the
+standard manifest lifecycle commands (validate, get, list, delete, upload, generate, export, …).
+
+### `ohm okh harvest-parts`
+
+Harvest a flat component inventory from one or more manifests. With `--enrich-fleet`,
+each component includes live fleet availability counts.
+
+```bash
+ohm okh harvest-parts <manifest-id>
+ohm okh harvest-parts <id-1> <id-2> --replaceable-only --enrich-fleet
+ohm okh harvest-parts <id> --has-part-number --output inventory.json
+```
+
+### `ohm okh set-compatible-manifests`
+
+Manage `compatible_manifest_ids` — the list of manifests whose components are
+physically interchangeable with the primary. Salvage-match automatically expands
+across linked manifests.
+
+```bash
+# Replace the list entirely
+ohm okh set-compatible-manifests <primary-id> <compat-id-1> <compat-id-2>
+
+# Incremental add / remove
+ohm okh set-compatible-manifests <primary-id> --add <compat-id>
+ohm okh set-compatible-manifests <primary-id> --remove <compat-id>
+
+# Clear all links
+ohm okh set-compatible-manifests <primary-id> --clear
+```
+
+### `ohm okh extract-repair-docs`
+
+Extract repair fields (components, repair guides, prerequisites) from service
+manuals or parts catalogs. Works fully offline; add `--use-llm` for enrichment.
+
+```bash
+ohm okh extract-repair-docs fresenius-service-manual.pdf
+ohm okh extract-repair-docs manual.pdf parts.pdf --use-llm
+ohm okh extract-repair-docs guide.pdf --manifest-id <uuid> --output patch.json
+```
+
+### `ohm okh import-repair-doc`
+
+Merge extracted repair fields into an existing stored manifest using conservative
+merge semantics (components added if not present; existing entries not overwritten).
+
+```bash
+ohm okh import-repair-doc fresenius-service-manual.pdf --manifest-id <uuid>
+ohm okh import-repair-doc manual.pdf --title "New Manifest" --use-llm
+```
 
 ---
 

@@ -2913,3 +2913,110 @@ async def harvest_parts_cmd(
     if output:
         Path(output).write_text(json.dumps(data, indent=2))
         cli_ctx.log(f"Inventory written to {output}", "info")
+
+
+@okh_group.command("set-compatible-manifests")
+@click.argument("manifest_id")
+@click.argument("compat_ids", nargs=-1, required=False)
+@click.option(
+    "--add",
+    "add_ids",
+    multiple=True,
+    metavar="ID",
+    help="Add one compatible manifest ID without replacing the existing list",
+)
+@click.option(
+    "--remove",
+    "remove_ids",
+    multiple=True,
+    metavar="ID",
+    help="Remove one compatible manifest ID from the list",
+)
+@click.option(
+    "--clear", is_flag=True, default=False, help="Remove all compatible manifest links"
+)
+@click.option(
+    "--output", "-o", default=None, help="Write updated manifest to a JSON file"
+)
+@async_command
+@click.pass_context
+async def set_compatible_manifests_cmd(
+    ctx, manifest_id, compat_ids, add_ids, remove_ids, clear, output
+):
+    """Manage compatible_manifest_ids on an OKH manifest (GAP-8).
+
+    Manifests listed as compatible share physically interchangeable components,
+    allowing salvage-match to search across all linked manifests when a
+    scoped query is run.
+
+    Positional COMPAT_IDS replace the current list entirely.
+    Use --add / --remove to make incremental changes.
+    Use --clear to remove all links.
+
+    \b
+    Examples:
+      ohm okh set-compatible-manifests <id> <compat-id-1> <compat-id-2>
+      ohm okh set-compatible-manifests <id> --add <compat-id>
+      ohm okh set-compatible-manifests <id> --remove <compat-id>
+      ohm okh set-compatible-manifests <id> --clear
+    """
+    cli_ctx = ctx.obj
+
+    async def http_set(cli_ctx: CLIContext):
+        import httpx
+
+        base = cli_ctx.server_url.rstrip("/")
+        async with httpx.AsyncClient(timeout=30) as http:
+            r = await http.get(f"{base}/v1/api/okh/{manifest_id}")
+            if r.status_code == 404:
+                raise click.ClickException(f"Manifest {manifest_id} not found")
+            r.raise_for_status()
+            data = r.json()
+
+        new_ids = _compute_new_ids(data.get("compatible_manifest_ids", []))
+        data["compatible_manifest_ids"] = new_ids
+
+        async with httpx.AsyncClient(timeout=30) as http:
+            r2 = await http.put(f"{base}/v1/api/okh/{manifest_id}", json=data)
+            r2.raise_for_status()
+            return r2.json()
+
+    async def fallback_set(cli_ctx: CLIContext):
+        svc = await OKHService.get_instance()
+        manifest = await svc.get(UUID(manifest_id))
+        if manifest is None:
+            raise click.ClickException(f"Manifest {manifest_id} not found")
+        d = manifest.to_dict()
+        d["compatible_manifest_ids"] = _compute_new_ids(
+            d.get("compatible_manifest_ids", [])
+        )
+        updated = await svc.update(UUID(manifest_id), d)
+        return updated.to_dict()
+
+    def _compute_new_ids(current):
+        if clear:
+            return []
+        if compat_ids:
+            result = list(compat_ids)
+        else:
+            result = list(current)
+        for aid in add_ids:
+            if aid not in result:
+                result.append(aid)
+        for rid in remove_ids:
+            result = [x for x in result if x != rid]
+        return result
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_set, fallback_set)
+
+    ids = data.get("compatible_manifest_ids", [])
+    cli_ctx.log(
+        f"Manifest {manifest_id} now has {len(ids)} compatible manifest(s).", "success"
+    )
+    for cid in ids:
+        cli_ctx.log(f"  {cid}", "info")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Updated manifest written to {output}", "info")

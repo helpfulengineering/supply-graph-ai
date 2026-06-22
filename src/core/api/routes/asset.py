@@ -6,11 +6,17 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
-from pydantic import BaseModel
 
 from ...models.asset import AssetRecord, AssetStatus, ComponentState
 from ...services.asset_service import AssetService
 from ...utils.logging import get_logger
+from ..models.asset.request import (
+    AssetCreateRequest,
+    AssetTriageRequest,
+    AssetUpdateRequest,
+    ClaimComponentRequest,
+    SalvageMatchRequest,
+)
 from ..models.asset.response import (
     AssetListResponse,
     AssetResponse,
@@ -37,47 +43,11 @@ async def get_asset_service() -> AssetService:
 
 
 # ---------------------------------------------------------------------------
-# Request bodies
-# ---------------------------------------------------------------------------
-
-
-class AssetCreateRequest(BaseModel):
-    manifest_id: str
-    asset_tag: str
-    location: Optional[str] = None
-
-
-class AssetUpdateRequest(BaseModel):
-    asset_tag: Optional[str] = None
-    location: Optional[str] = None
-    status: Optional[str] = None
-    triage_notes: Optional[str] = None
-
-
-class AssetTriageRequest(BaseModel):
-    component_states: List[Dict[str, Any]]
-    triage_notes: Optional[str] = None
-
-
-class SalvageMatchRequest(BaseModel):
-    component_name: Optional[str] = None
-    part_number: Optional[str] = None
-    manifest_id: Optional[str] = None
-    conditions: Optional[List[str]] = None
-    exclude_claimed: bool = True
-
-
-class ClaimComponentRequest(BaseModel):
-    component_name: str
-    claimed_by: str
-
-
-# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
-def _to_response(record: AssetRecord) -> AssetResponse:
+def _to_response(record: AssetRecord, message: str = "") -> AssetResponse:
     return AssetResponse(
         id=str(record.id),
         manifest_id=record.manifest_id,
@@ -89,6 +59,7 @@ def _to_response(record: AssetRecord) -> AssetResponse:
             record.last_triaged_at.isoformat() if record.last_triaged_at else None
         ),
         triage_notes=record.triage_notes,
+        message=message,
     )
 
 
@@ -115,7 +86,7 @@ async def create_asset(
             "location": body.location,
         }
     )
-    return _to_response(record)
+    return _to_response(record, message="Asset record created")
 
 
 @router.get(
@@ -132,7 +103,7 @@ async def get_asset(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
         )
-    return _to_response(record)
+    return _to_response(record, message="Asset record retrieved")
 
 
 @router.get(
@@ -187,7 +158,9 @@ async def list_assets(
         records = filtered
 
     assets = [_to_response(r) for r in records]
-    return AssetListResponse(assets=assets, total=len(assets))
+    return AssetListResponse(
+        assets=assets, total=len(assets), message=f"{len(assets)} asset(s) found"
+    )
 
 
 @router.put(
@@ -221,7 +194,7 @@ async def update_asset(
                 + ", ".join(s.value for s in AssetStatus),
             )
     updated = await svc.update(id, record.to_dict())
-    return _to_response(updated)
+    return _to_response(updated, message="Asset record updated")
 
 
 @router.delete(
@@ -270,7 +243,7 @@ async def record_triage(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
         )
-    return _to_response(record)
+    return _to_response(record, message="Triage recorded")
 
 
 @router.get(
@@ -316,6 +289,7 @@ async def get_triage_report(
             no_action=report.no_action_count,
             decommission=report.decommission_count,
         ),
+        message=f"Triage report for {report.asset_tag}: {report.total_components} component(s)",
     )
 
 
@@ -358,6 +332,7 @@ async def get_triage_checklist(
         total_components=checklist.total_components,
         assessed_count=checklist.assessed_count,
         pending_count=checklist.pending_count,
+        message=f"{checklist.assessed_count}/{checklist.total_components} components assessed",
     )
 
 
@@ -400,6 +375,10 @@ async def resolve_sourcing(
         total_components=len(resolution.items),
         fleet_available_count=resolution.fleet_available_count,
         procure_new_count=resolution.procure_new_count,
+        message=(
+            f"{resolution.fleet_available_count} component(s) available from fleet, "
+            f"{resolution.procure_new_count} require procurement"
+        ),
     )
 
 
@@ -444,6 +423,7 @@ async def salvage_match(
             part_number=result.query_part_number,
             manifest_id=result.query_manifest_id,
         ),
+        message=f"{result.total} harvestable match(es) found",
     )
 
 
@@ -481,4 +461,5 @@ async def claim_component(
         component_name=cs.component_name,
         claimed_by=cs.claimed_by,
         claimed_at=cs.claimed_at.isoformat(),
+        message=f"Component '{cs.component_name}' claimed by {cs.claimed_by}",
     )

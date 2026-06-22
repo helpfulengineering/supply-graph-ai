@@ -6,7 +6,24 @@ The Open Hardware Manager uses several interconnected data models to represent r
 
 ## Core Models
 
-### 1. [Supply Trees](supply-tree.md)
+### 1. [AssetRecord](asset-docs.md) — Physical state of device units
+
+The third top-level domain object (alongside OKH design and OKW capability).
+Tracks which specific units exist in the field, their current lifecycle status,
+and the observed condition of each component. Drives the repair workflow:
+triage → salvage-match → claim → resolve-sourcing.
+
+See [Repair Workflow](repair-workflow.md) for the full end-to-end guide.
+
+```
+AssetRecord
+  id, manifest_id, asset_tag, location
+  status: active | under_triage | parts_pending | under_repair | restored | condemned
+  component_states: [ComponentState ...]
+    component_name, condition, harvest_viable, repair_feasible, source_required
+```
+
+### 2. [Supply Trees](supply-tree.md)
 The central data structure representing complete manufacturing solutions.
 - Direct facility mapping for manufacturing solutions
 - Context-aware validation and confidence scoring
