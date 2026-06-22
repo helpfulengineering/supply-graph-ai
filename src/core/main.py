@@ -21,6 +21,7 @@ from src.core.api.routes.convert import router as convert_router
 from src.core.api.routes.federation import router as federation_router
 from src.core.api.routes.llm import router as llm_router
 from src.core.api.routes.match import router as match_router
+from src.core.api.routes.asset import router as asset_router
 from src.core.api.routes.okh import router as okh_router
 from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.package import router as package_router
@@ -302,6 +303,7 @@ api_v1 = FastAPI(
 api_v1.include_router(match_router, prefix="/api/match", tags=["match"])
 api_v1.include_router(okh_router, prefix="/api/okh", tags=["okh"])
 api_v1.include_router(okw_router, prefix="/api/okw", tags=["okw"])
+api_v1.include_router(asset_router, prefix="/api/asset", tags=["asset"])
 api_v1.include_router(
     supply_tree_router, tags=["supply-tree"]
 )  # Already has /api/supply-tree prefix

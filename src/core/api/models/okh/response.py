@@ -62,6 +62,9 @@ class OKHResponse(SuccessResponse, LLMResponseMixin):
     manufacturing_specs: Optional[Dict[str, Any]] = None
     parts: List[Dict[str, Any]] = []
     components: List[Dict[str, Any]] = []
+    repair_guides: List[Dict[str, Any]] = []
+    disassembly_guides: List[Dict[str, Any]] = []
+    compatible_manifest_ids: List[str] = []
     metadata: Dict[str, Any] = {}
 
     processing_time: float = 0.0
@@ -193,3 +196,44 @@ class OKHExportResponse(BaseModel):
 
     schema_version: Optional[str] = "http://json-schema.org/draft-07/schema#"
     model_name: Optional[str] = "OKHManifest"
+
+
+class OKHHarvestResponse(BaseModel):
+    """Response model for parts harvesting across one or more manifests."""
+
+    components: List[Dict[str, Any]]
+    total: int
+    replaceable_count: int
+    consumable_count: int
+    salvageable_count: int
+    source_manifests: List[str]
+
+
+class OKHRepairExtractResponse(BaseModel):
+    """Response model for repair document extraction."""
+
+    success: bool
+    message: str
+    components: List[Dict[str, Any]]
+    repair_guides: List[Dict[str, Any]]
+    documentation_type: Optional[str]
+    source_files: List[str]
+    llm_enhanced: bool
+    notes: List[str]
+
+    manifest_id: Optional[str] = None  # set when merged into an existing manifest
+
+
+class OKHImportRepairDocResponse(BaseModel):
+    """Response model for repair doc import — merge with conservative defaults."""
+
+    success: bool
+    message: str
+    manifest_id: str
+    components_added: int
+    components_updated: int
+    guides_added: int
+    source_files: List[str]
+    llm_enhanced: bool
+    notes: List[str]
+    annotation_reminder: str

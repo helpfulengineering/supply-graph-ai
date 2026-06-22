@@ -63,6 +63,10 @@ class OKHManifest:
     parts: List[PartSpec] = field(default_factory=list)
     components: List[Component] = field(default_factory=list)  # Sub-assemblies and purchased parts
     tsdc: List[str] = field(default_factory=list)  # Technology-specific Documentation Criteria
+
+    # Repair documentation
+    repair_guides: List[RepairGuide] = field(default_factory=list)
+    disassembly_guides: List[DocumentRef] = field(default_factory=list)
 ```
 
 #### Key Properties
@@ -127,14 +131,26 @@ class DocumentRef:
     path: str  # Can be relative path or URL
     type: DocumentationType
     metadata: Dict = field(default_factory=dict)
-    
-    def validate(self) -> bool:
-        """Validate the document reference"""
-        # Check if path exists (if it's a relative path)
-        if not (self.path.startswith('http://') or self.path.startswith('https://')):
-            return os.path.exists(self.path)
-        return True
 ```
+
+`DocumentationType` enum values:
+
+| Value | Constant | Typical source |
+|---|---|---|
+| `"design-files"` | `DESIGN_FILES` | CAD, PCB source files |
+| `"manufacturing-files"` | `MANUFACTURING_FILES` | Toolpaths, gerbers |
+| `"making-instructions"` | `MAKING_INSTRUCTIONS` | Assembly guides |
+| `"operating-instructions"` | `OPERATING_INSTRUCTIONS` | End-user manuals |
+| `"technical-specifications"` | `TECHNICAL_SPECIFICATIONS` | Datasheets, specs |
+| `"schematics"` | `SCHEMATICS` | Electrical schematics |
+| `"risk-assessment"` | `RISK_ASSESSMENT` | Safety/FMEA docs |
+| `"publications"` | `PUBLICATIONS` | Papers, articles |
+| `"repair-guide"` | `REPAIR_GUIDE` | Step-by-step repair procedures (e.g. iFixit) |
+| `"disassembly-guide"` | `DISASSEMBLY_GUIDE` | Teardown/disassembly references |
+| `"parts-catalog"` | `PARTS_CATALOG` | Exploded-diagram parts references (POS.NO / PART.NO tables) |
+| `"service-manual"` | `SERVICE_MANUAL` | Professional technician service docs (calibration, compliance, replacement parts) |
+| `"troubleshooting-guide"` | `TROUBLESHOOTING_GUIDE` | Flowchart/decision-tree symptom-to-cause guides |
+| `"operations-manual"` | `OPERATIONS_MANUAL` | Operator-facing docs covering operation, basic maintenance, and owner-serviceable parts |
 
 ### 5. MaterialSpec
 Specification for materials used in the module.
@@ -185,7 +201,7 @@ class ManufacturingSpec:
 
 ### 8. Component
 A named sub-assembly or purchased part within an OKH assembly. Added to `OKHManifest` to
-support the `components` field (#173).
+support the `components` field (#173). Extended with repair fields in the repair epic.
 
 ```python
 @dataclass
@@ -195,9 +211,14 @@ class Component:
     quantity: int = 1
     replaceable: bool = False
     salvageable: bool = False
+    consumable: bool = False
     okh_ref: Optional[str] = None       # Reference to another OKH manifest
     product_url: Optional[str] = None   # Purchasing URL
+    part_number: Optional[str] = None   # Manufacturer/supplier part number
     notes: Optional[str] = None
+    failure_modes: List[str] = field(default_factory=list)
+    diagnostic_codes: List[str] = field(default_factory=list)
+    repair_notes: Optional[str] = None
 ```
 
 #### Key Properties
@@ -205,13 +226,58 @@ class Component:
 - `quantity` — Number of units required (default: 1)
 - `replaceable` — Whether the component can be replaced with an equivalent
 - `salvageable` — Whether the component can be salvaged from another build
+- `consumable` — Whether the component is a periodic-replacement consumable (filter, catalyst, seal). Consumables are expected to be replaced on a schedule regardless of failure state, which affects their salvage value.
 - `okh_ref` — Optional reference to a sibling OKH manifest (sub-assembly linkage)
 - `product_url` — Purchasing link for sourcing
+- `part_number` — Manufacturer or supplier part number (e.g., `"P/N 10036"`, `"MOTOR 120 DC"`)
 - `notes` — Free-text notes for procurement or assembly context
+- `failure_modes` — List of known failure modes (e.g., `["contact oxidation", "stuck closed"]`)
+- `diagnostic_codes` — Machine-readable alarm or error codes that identify this component's failures (e.g., `["FLWERR", "!WATER"]` for a Fresenius flow pump; `["F1", "F3"]` for an appliance control board)
+- `repair_notes` — Component-level repair guidance (replacement specs, sourcing notes)
 
 The `components` list on `OKHManifest` is serialized and deserialized by `to_dict()` /
 `from_dict()`. It is also surfaced in the API response (`OKHResponse.components`) and
-counted in validate metadata (`component_count`).
+counted in validate metadata (`component_count` and `consumable_count`).
+
+### 9. RepairGuide
+A structured reference to a repair guide for an OKH assembly or component. Designed to be
+populated from sources like iFixit, manufacturer service manuals, or community documentation.
+
+```python
+@dataclass
+class RepairGuide:
+    title: str
+    path: str                                  # URL or local path to the guide
+    source: Optional[str] = None               # "ifixit", "manufacturer", "community"
+    author: Optional[str] = None               # Guide author (iFixit community guides, etc.)
+    skill_level: Optional[str] = None          # "easy", "moderate", "difficult", "expert"
+    estimated_time_minutes: Optional[int] = None
+    tools_required: List[str] = field(default_factory=list)
+    safety_prerequisites: List[str] = field(default_factory=list)
+    applies_to_components: List[str] = field(default_factory=list)
+    applies_to_models: List[str] = field(default_factory=list)
+    metadata: Dict = field(default_factory=dict)
+```
+
+#### Key Properties
+- `title` — Guide title (e.g., "Power Switch Replacement")
+- `path` — URL to the guide (iFixit, manufacturer portal) or local file path
+- `source` — Origin of the guide: `"ifixit"`, `"manufacturer"`, or `"community"`
+- `author` — Guide author; particularly important for community-written guides (iFixit, wiki). Manufacturer manuals typically omit this.
+- `skill_level` — Difficulty rating: `"easy"`, `"moderate"`, `"difficult"`, or `"expert"` (use `"expert"` for guides that require formal certification or professional training)
+- `estimated_time_minutes` — Approximate repair time
+- `tools_required` — List of tools and test equipment needed (mirrors iFixit's tools field; for service manuals, include model numbers where specified)
+- `safety_prerequisites` — Hard safety gates that must be satisfied before beginning any work. These are distinct from general repair notes and should be prominently enforced. Examples: `"Never troubleshoot with a patient connected to the machine"`, `"Use Universal Precautions when handling contaminated filters"`.
+- `applies_to_components` — Component names from the manifest's `components` list that this guide covers
+- `applies_to_models` — Product model variants this guide applies to. Use when a single document covers multiple models (e.g., `["Bactron I", "Bactron II", "Bactron IV"]` or `["PlumeSafe Whisper 602", "PlumeSafe 1202"]`).
+- `metadata` — Arbitrary additional data (step count, image URLs, revision, publication number, etc.)
+
+`repair_guides` is a top-level list on `OKHManifest`, serialized by `to_dict()` /
+`from_dict()`, and surfaced in `OKHResponse.repair_guides`. The validate endpoint also
+returns `repair_guide_count` in its metadata block.
+
+The `disassembly_guides` field on `OKHManifest` uses `DocumentRef` with type
+`DocumentationType.DISASSEMBLY_GUIDE` for structured teardown/disassembly references.
 
 ### 9. PartSpec
 Specification for a part of the OKH module.
@@ -707,3 +773,181 @@ For best results with the OKH framework:
 3. **Handle Uncertainty** - Utilize confidence scores and validation metrics to handle ambiguous or incomplete data appropriately.
 
 4. **Extend Through Inheritance** - Create domain-specific implementations by extending the base classes rather than modifying them.
+
+---
+
+## Parts Harvesting
+
+Harvest a flat component inventory from one or more OKH manifests. Each component
+is annotated with its source manifest ID and title for traceability.
+
+### API endpoint
+
+```
+POST /v1/api/okh/harvest-parts
+Content-Type: application/json
+```
+
+Request body:
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `manifest_ids` | `string[]` | yes | One or more manifest UUIDs |
+| `replaceable_only` | `bool` | no (default `false`) | Only components marked replaceable |
+| `salvageable_only` | `bool` | no (default `false`) | Only components marked salvageable |
+| `consumable_only` | `bool` | no (default `false`) | Only consumable components |
+| `has_part_number` | `bool` | no (default `false`) | Only components with a part number |
+
+Multiple filter flags are ANDed together.
+
+Response:
+
+```json
+{
+  "components": [
+    {
+      "name": "Pre-filter cartridge",
+      "part_number": "FILTER-04",
+      "replaceable": true,
+      "salvageable": true,
+      "consumable": true,
+      "source_manifest_id": "3fa85f64-...",
+      "source_manifest_title": "Fresenius 2008H"
+    }
+  ],
+  "total": 1,
+  "replaceable_count": 1,
+  "consumable_count": 1,
+  "salvageable_count": 1,
+  "source_manifests": ["3fa85f64-..."]
+}
+```
+
+### CLI command
+
+```bash
+# Harvest all components from a manifest
+ohm okh harvest-parts <manifest-id>
+
+# Harvest from multiple manifests
+ohm okh harvest-parts <id-1> <id-2>
+
+# Filter to replaceable components with known part numbers
+ohm okh harvest-parts <id> --replaceable-only --has-part-number
+
+# Save inventory to a file
+ohm okh harvest-parts <id> --output inventory.json
+```
+
+### Relationship to AssetRecord
+
+Parts harvesting currently operates on **design-level** component data — what the
+manifest author declared as replaceable, salvageable, or consumable. Once `AssetRecord`
+is implemented (see `docs/models/asset-docs.md`), harvesting can be enriched with
+observed physical state: components where a technician has confirmed `harvest_viable=True`
+on a specific unit.
+
+## Repair Document Extraction Pipeline
+
+`RepairDocExtractor` (`src/core/generation/repair_doc_extractor.py`) extracts structured
+OKH repair fields from uploaded documents such as service manuals, parts catalogs,
+troubleshooting guides, and iFixit-style repair guides.
+
+### Two-pass architecture
+
+**Pass 1 — programmatic (always runs, fully offline):**
+- Classifies document type by filename keywords and content scoring.
+- Extracts components from parts-table patterns (`POS.NO / PART.NO / DESCRIPTION`).
+- Picks up explicit part-number callouts (`P/N`, `Part No.`, `PART#`).
+- Marks consumable components (filters, catalysts, seals, fuses, …).
+- Extracts diagnostic codes from fault-code sections (`FLWERR`, `!WATER`, `F1`, …).
+- Collects tools from "Tools Required" sections (list items under the header).
+- Collects safety prerequisites from `WARNING:` / `CAUTION:` blocks and "Never …" statements.
+- Extracts guide author from `Written By:` / `Author:` attributions.
+- Extracts applicable model variants from "Applies to: …" patterns.
+
+**Pass 2 — LLM enrichment (optional):**
+Enabled by setting `use_llm=true`. Requires a configured LLM provider.
+- Validates programmatic components and removes false positives.
+- Adds components mentioned in prose that regex cannot reach.
+- Infers `skill_level` and `estimated_time_minutes` from document language.
+- Maps orphaned diagnostic codes to specific component names.
+- Fills `applies_to_models` when implied but not stated explicitly.
+
+### API endpoint
+
+```
+POST /v1/api/okh/extract-repair-docs
+Content-Type: multipart/form-data
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `files` | `UploadFile[]` | yes | One or more repair documents (PDF or text) |
+| `manifest_id` | `string` | no | Merge extracted fields into this manifest |
+| `use_llm` | `bool` | no (default `false`) | Enable LLM enrichment pass |
+
+Response (`OKHRepairExtractResponse`):
+
+```json
+{
+  "success": true,
+  "message": "Extracted repair fields from 2 file(s)",
+  "components": [ { "name": "...", "part_number": "...", "consumable": false, ... } ],
+  "repair_guides": [ { "title": "...", "tools_required": [...], "safety_prerequisites": [...] } ],
+  "documentation_type": "service-manual",
+  "source_files": ["fresenius-2008h-troubleshooting.pdf"],
+  "llm_enhanced": false,
+  "notes": [],
+  "manifest_id": null
+}
+```
+
+### CLI command
+
+```bash
+# Programmatic extraction only (offline)
+ohm okh extract-repair-docs fresenius-service-manual.pdf
+
+# Multiple documents
+ohm okh extract-repair-docs manual.pdf parts.pdf
+
+# With LLM enrichment pass
+ohm okh extract-repair-docs manual.pdf --use-llm
+
+# Merge into an existing manifest
+ohm okh extract-repair-docs guide.pdf --manifest-id <uuid>
+
+# Save the JSON patch to a file
+ohm okh extract-repair-docs guide.pdf --output patch.json
+```
+
+### Supported document formats
+
+| Format | Extension | Notes |
+|---|---|---|
+| PDF | `.pdf` | Parsed via `pypdf`; tables are linearised but column order is preserved |
+| Plain text | `.txt`, `.md`, `.rst` | Read directly |
+
+### Recognised document types
+
+| `DocumentationType` value | Typical filenames | Key signals |
+|---|---|---|
+| `troubleshooting-guide` | `*troubleshoot*`, `*fault*` | Error/fault code tables, symptom→action tables |
+| `parts-catalog` | `*parts*`, `*catalog*` | `POS.NO` / `POS. NO` / `PART NO.` / `DESCRIPTION` columns |
+| `service-manual` | `*service*`, `*technical*` | Calibration, maintenance schedules, periodic inspection |
+| `operations-manual` | `*operations*`, `*operator*`, `*user*` | Operating instructions |
+| `disassembly-guide` | `*disassembly*`, `*teardown*` | Step-by-step removal/reassembly |
+
+### Extraction quality and when to use `--use-llm`
+
+The programmatic pass works well for structured documents with clear parts tables
+(manufacturer parts catalogs, iFixit-style guides). It degrades gracefully for:
+
+- **Dense technical manuals** — inline `part no. XXXXX` references yield real P/Ns but
+  generic or missing component names. The LLM pass resolves names from surrounding prose.
+- **Non-standard table layouts** — formats where part numbers and descriptions are in
+  non-contiguous columns (e.g. `DESCRIPTION / PART_115V / PART_220V`) yield zero
+  components from the programmatic pass. Use `--use-llm` for these.
+- **Operations manuals** — product variant model numbers are extracted as components;
+  the LLM pass distinguishes spare parts from product identifiers.

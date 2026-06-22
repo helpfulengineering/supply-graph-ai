@@ -1,11 +1,12 @@
 import json
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 from uuid import UUID
 
 import yaml
 from fastapi import (
     APIRouter,
+    Body,
     Depends,
     File,
     Form,
@@ -21,6 +22,7 @@ from fastapi.responses import Response
 
 
 from ...services.cleanup_service import CleanupOptions, CleanupService
+from ...services.asset_service import AssetService
 from ...services.okh_service import OKHService
 from ...services.scaffold_service import ScaffoldService
 from ...services.storage_service import StorageService
@@ -55,6 +57,7 @@ from ..models.okh.request import (
     OKHExtractRequest,
     OKHFromStorageRequest,
     OKHGenerateRequest,
+    OKHHarvestRequest,
     OKHUpdateRequest,
     OKHValidateRequest,
 )
@@ -62,6 +65,9 @@ from ..models.okh.response import (
     OKHExportResponse,
     OKHExtractResponse,
     OKHGenerateResponse,
+    OKHHarvestResponse,
+    OKHImportRepairDocResponse,
+    OKHRepairExtractResponse,
     OKHResponse,
     OKHUploadResponse,
 )
@@ -81,6 +87,10 @@ router = APIRouter(
 async def get_okh_service() -> OKHService:
     """Get OKH service instance."""
     return await OKHService.get_instance()
+
+
+async def get_asset_service() -> AssetService:
+    return await AssetService.get_instance()
 
 
 async def get_storage_service() -> StorageService:
@@ -199,6 +209,50 @@ async def export_collection_endpoint(
         media_type="application/zip",
         headers={"Content-Disposition": "attachment; filename=ohm-collection.zip"},
     )
+
+
+@router.post(
+    "/manifests/",
+    response_model=OKHResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an OKH manifest",
+    description="Create a new OKH manifest from a JSON body. Generates a UUID and persists to storage.",
+)
+async def create_okh_manifest(
+    data: Dict[str, Any] = Body(...),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    try:
+        manifest = await okh_service.create(data)
+    except Exception as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    return OKHResponse.model_validate(
+        {
+            **manifest.to_dict(),
+            "status": APIStatus.SUCCESS,
+            "message": "OKH manifest created successfully",
+        }
+    )
+
+
+@router.delete(
+    "/manifests/{id}",
+    response_model=SuccessResponse,
+    summary="Delete an OKH manifest (path alias)",
+)
+async def delete_okh_manifest_alias(
+    id: UUID = Path(...),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Alias for DELETE /{id} — used by integration test cleanup."""
+    existing = await okh_service.get(id)
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    success = await okh_service.delete(id)
+    return SuccessResponse(success=success, message=f"OKH manifest {id} deleted")
 
 
 @router.get("/{id}", response_model=OKHResponse)
@@ -406,7 +460,13 @@ async def update_okh(
 
         # Call service to update OKH manifest
         result = await okh_service.update(id, request.model_dump(mode="json"))
-        return result
+        return OKHResponse.model_validate(
+            {
+                **result.to_dict(),
+                "status": APIStatus.SUCCESS,
+                "message": "OKH manifest updated successfully",
+            }
+        )
     except ValueError as e:
         # Handle validation errors
         raise HTTPException(
@@ -1143,3 +1203,332 @@ async def diff_collection_endpoint(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
         )
+
+
+@router.post(
+    "/extract-repair-docs",
+    response_model=OKHRepairExtractResponse,
+    summary="Extract repair fields from uploaded documents",
+    description="""
+    Upload one or more repair documents (PDF, service manuals, parts catalogs, etc.)
+    and extract structured OKH repair fields: components with part numbers, repair
+    guides with tools and safety prerequisites, diagnostic codes, and document type.
+
+    **Pass 1 (always runs)**: programmatic heuristics — works fully offline.
+    **Pass 2 (optional)**: LLM enrichment — set `use_llm=true` and ensure an LLM
+    provider is configured to enable this pass.
+
+    If `manifest_id` is provided, the extracted fields are merged into that manifest
+    and the manifest's new state is reflected in the response.
+    """,
+)
+async def extract_repair_docs(
+    files: list[UploadFile] = File(..., description="Repair documents to analyse"),
+    manifest_id: Optional[str] = Form(None, description="Merge into this manifest"),
+    use_llm: bool = Form(False, description="Run optional LLM enrichment pass"),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    """Extract repair-specific OKH fields from uploaded documents."""
+    import tempfile
+    from pathlib import Path as FsPath
+    from uuid import UUID as UUIDType
+
+    from ...generation.repair_doc_extractor import RepairDocExtractor
+
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one file must be provided.",
+        )
+
+    try:
+        # Write uploads to a temp directory so the extractor can read them
+        extractor = RepairDocExtractor()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_paths: list[FsPath] = []
+            for upload in files:
+                dest = FsPath(tmp_dir) / (upload.filename or "document")
+                dest.write_bytes(await upload.read())
+                tmp_paths.append(dest)
+
+            if use_llm:
+                try:
+                    from ...llm.service import LLMService, LLMServiceConfig
+
+                    llm_cfg = LLMServiceConfig()
+                    llm_svc = LLMService("RepairExtract", llm_cfg)
+                    result = await extractor.extract_with_llm(tmp_paths, llm_svc)
+                except Exception as llm_err:
+                    logger.warning(
+                        f"LLM init failed for repair extraction; falling back to "
+                        f"programmatic: {llm_err}"
+                    )
+                    result = extractor.extract(tmp_paths)
+            else:
+                result = extractor.extract(tmp_paths)
+
+        merged_manifest_id: Optional[str] = None
+        if manifest_id:
+            try:
+                existing = await okh_service.get(UUIDType(manifest_id))
+                if existing is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Manifest {manifest_id!r} not found.",
+                    )
+                patch = result.to_patch()
+                existing_dict = existing.to_dict()
+                existing_dict["components"] = existing_dict.get(
+                    "components", []
+                ) + patch.get("components", [])
+                existing_dict["repair_guides"] = existing_dict.get(
+                    "repair_guides", []
+                ) + patch.get("repair_guides", [])
+                await okh_service.update(UUIDType(manifest_id), existing_dict)
+                merged_manifest_id = manifest_id
+            except HTTPException:
+                raise
+            except Exception as merge_err:
+                logger.error(
+                    f"Failed to merge into manifest {manifest_id}: {merge_err}"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Extraction succeeded but manifest merge failed: {merge_err}",
+                )
+
+        return OKHRepairExtractResponse(
+            success=True,
+            message=(
+                f"Extracted repair fields from {len(result.source_files)} file(s)"
+                + (" with LLM enhancement" if result.llm_enhanced else "")
+            ),
+            components=[c.to_dict() for c in result.components],
+            repair_guides=[g.to_dict() for g in result.repair_guides],
+            documentation_type=(
+                result.documentation_type.value if result.documentation_type else None
+            ),
+            source_files=result.source_files,
+            llm_enhanced=result.llm_enhanced,
+            notes=result.notes,
+            manifest_id=merged_manifest_id,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in extract-repair-docs: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during repair document extraction.",
+        )
+
+
+_ANNOTATION_REMINDER = (
+    "New components have been imported with replaceable=False and salvageable=False. "
+    "Annotate these flags in the manifest before using it for triage or salvage matching."
+)
+
+
+@router.post(
+    "/import-repair-doc",
+    response_model=OKHImportRepairDocResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Import repair documents into an OKH manifest with conservative defaults",
+    description="""
+    Extract repair fields from one or more uploaded documents and merge them into an
+    OKH manifest, or create a new manifest from the extraction output.
+
+    **Merge semantics** (distinct from `/extract-repair-docs`):
+    - Components already in the manifest keep their existing `replaceable` and
+      `salvageable` flags.
+    - Newly-extracted components are imported with `replaceable=False` and
+      `salvageable=False` regardless of what the extractor inferred.  A human must
+      annotate these flags before the manifest can drive triage or salvage matching.
+    - Deduplication is by component name (case-insensitive).
+    - Repair guides are deduplicated by title.
+
+    **Create mode** (`manifest_id` omitted): set `title` to name the new manifest.
+    **Patch mode** (`manifest_id` provided): merges into the named manifest.
+    """,
+)
+async def import_repair_doc(
+    files: list[UploadFile] = File(..., description="Repair documents to analyse"),
+    manifest_id: Optional[str] = Form(None, description="Patch this manifest"),
+    title: Optional[str] = Form(None, description="Title for a new manifest"),
+    use_llm: bool = Form(False, description="Run optional LLM enrichment pass"),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    import tempfile
+    from pathlib import Path as FsPath
+    from uuid import UUID as UUIDType
+
+    from ...generation.repair_doc_extractor import RepairDocExtractor
+
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one file must be provided.",
+        )
+    if manifest_id is None and not title:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Provide either manifest_id (to patch) or title (to create).",
+        )
+
+    try:
+        extractor = RepairDocExtractor()
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_paths: list[FsPath] = []
+            for upload in files:
+                dest = FsPath(tmp_dir) / (upload.filename or "document")
+                dest.write_bytes(await upload.read())
+                tmp_paths.append(dest)
+
+            if use_llm:
+                try:
+                    from ...llm.service import LLMService, LLMServiceConfig
+
+                    llm_svc = LLMService("ImportRepairDoc", LLMServiceConfig())
+                    result = await extractor.extract_with_llm(tmp_paths, llm_svc)
+                except Exception as llm_err:
+                    logger.warning(
+                        f"LLM init failed; falling back to programmatic: {llm_err}"
+                    )
+                    result = extractor.extract(tmp_paths)
+            else:
+                result = extractor.extract(tmp_paths)
+
+        # Count before to report what changed
+        mid_uuid = UUIDType(manifest_id) if manifest_id else None
+        if mid_uuid:
+            pre = await okh_service.get(mid_uuid)
+            pre_comp_names = (
+                {c.name.lower() for c in (pre.components or [])} if pre else set()
+            )
+            pre_guide_titles = (
+                {g.title.lower() for g in (pre.repair_guides or [])} if pre else set()
+            )
+        else:
+            pre_comp_names = set()
+            pre_guide_titles = set()
+
+        manifest = await okh_service.import_repair_doc(
+            result, manifest_id=mid_uuid, title=title
+        )
+
+        new_comp_names = {c.name.lower() for c in (manifest.components or [])}
+        added = len(new_comp_names - pre_comp_names)
+        updated = len(
+            new_comp_names
+            & pre_comp_names
+            & {c.name.lower() for c in result.components}
+        )
+        new_guide_titles = {g.title.lower() for g in (manifest.repair_guides or [])}
+        guides_added = len(new_guide_titles - pre_guide_titles)
+
+        action = "merged into" if mid_uuid else "created"
+        return OKHImportRepairDocResponse(
+            success=True,
+            message=(
+                f"Imported {len(result.source_files)} file(s) — {action} manifest {manifest.id}"
+                + (" with LLM enhancement" if result.llm_enhanced else "")
+            ),
+            manifest_id=str(manifest.id),
+            components_added=added,
+            components_updated=updated,
+            guides_added=guides_added,
+            source_files=result.source_files,
+            llm_enhanced=result.llm_enhanced,
+            notes=result.notes,
+            annotation_reminder=_ANNOTATION_REMINDER,
+        )
+
+    except HTTPException:
+        raise
+    except KeyError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Error in import-repair-doc: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during repair document import.",
+        )
+
+
+@router.post(
+    "/harvest-parts",
+    response_model=OKHHarvestResponse,
+    summary="Harvest components from one or more manifests",
+    description="""
+    Given one or more manifest IDs, return a flat inventory of their components,
+    each annotated with the source manifest ID and title.
+
+    Use the filter flags to narrow results to components that are specifically
+    relevant for repair or parts reuse:
+    - **replaceable_only** — components the designer marked as field-replaceable
+    - **salvageable_only** — components that can be harvested for use elsewhere
+    - **consumable_only** — periodic-replacement items (filters, seals, fuses, …)
+    - **has_part_number** — components with a manufacturer/supplier part number
+    """,
+)
+async def harvest_parts(
+    request: OKHHarvestRequest,
+    okh_service: OKHService = Depends(get_okh_service),
+    asset_service: AssetService = Depends(get_asset_service),
+) -> Any:
+    """Return a flat component inventory harvested from the requested manifests."""
+    from uuid import UUID as UUIDType
+
+    components: list[dict] = []
+    found_ids: list[str] = []
+
+    for mid in request.manifest_ids:
+        try:
+            manifest = await okh_service.get(UUIDType(mid))
+        except (ValueError, AttributeError):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid manifest ID: {mid!r}",
+            )
+        if manifest is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Manifest {mid!r} not found.",
+            )
+
+        found_ids.append(mid)
+        title = getattr(manifest, "title", None) or mid
+
+        for component in manifest.components:
+            c = component.to_dict()
+            if request.replaceable_only and not c.get("replaceable"):
+                continue
+            if request.salvageable_only and not c.get("salvageable"):
+                continue
+            if request.consumable_only and not c.get("consumable"):
+                continue
+            if request.has_part_number and not c.get("part_number"):
+                continue
+            c["source_manifest_id"] = mid
+            c["source_manifest_title"] = title
+            components.append(c)
+
+    if request.enrich_fleet:
+        for c in components:
+            result = await asset_service.salvage_match(component_name=c["name"])
+            c["fleet_available_count"] = len(result.matches)
+            c["fleet_asset_ids"] = [m.asset_id for m in result.matches]
+
+    return OKHHarvestResponse(
+        components=components,
+        total=len(components),
+        replaceable_count=sum(1 for c in components if c.get("replaceable")),
+        consumable_count=sum(1 for c in components if c.get("consumable")),
+        salvageable_count=sum(1 for c in components if c.get("salvageable")),
+        source_manifests=found_ids,
+    )

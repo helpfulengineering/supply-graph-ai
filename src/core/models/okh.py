@@ -29,6 +29,12 @@ class DocumentationType(Enum):
     )
     OPERATING_INSTRUCTIONS = "operating-instructions"  # Consolidates USER_MANUAL
     PUBLICATIONS = "publications"
+    REPAIR_GUIDE = "repair-guide"
+    DISASSEMBLY_GUIDE = "disassembly-guide"
+    PARTS_CATALOG = "parts-catalog"
+    SERVICE_MANUAL = "service-manual"
+    TROUBLESHOOTING_GUIDE = "troubleshooting-guide"
+    OPERATIONS_MANUAL = "operations-manual"
 
     @classmethod
     def _missing_(cls, value):
@@ -411,9 +417,14 @@ class Component:
     quantity: int = 1
     replaceable: bool = False
     salvageable: bool = False
+    consumable: bool = False
     okh_ref: Optional[str] = None
     product_url: Optional[str] = None
+    part_number: Optional[str] = None
     notes: Optional[str] = None
+    failure_modes: List[str] = field(default_factory=list)
+    diagnostic_codes: List[str] = field(default_factory=list)
+    repair_notes: Optional[str] = None
 
     def to_dict(self) -> Dict:
         return {
@@ -421,9 +432,46 @@ class Component:
             "quantity": self.quantity,
             "replaceable": self.replaceable,
             "salvageable": self.salvageable,
+            "consumable": self.consumable,
             "okh_ref": self.okh_ref,
             "product_url": self.product_url,
+            "part_number": self.part_number,
             "notes": self.notes,
+            "failure_modes": self.failure_modes,
+            "diagnostic_codes": self.diagnostic_codes,
+            "repair_notes": self.repair_notes,
+        }
+
+
+@dataclass
+class RepairGuide:
+    """A structured reference to a repair guide (iFixit, manufacturer manual, community doc)."""
+
+    title: str
+    path: str  # URL or local path to the guide
+    source: Optional[str] = None  # e.g. "ifixit", "manufacturer", "community"
+    author: Optional[str] = None  # Guide author (important for community guides)
+    skill_level: Optional[str] = None  # "easy", "moderate", "difficult"
+    estimated_time_minutes: Optional[int] = None
+    tools_required: List[str] = field(default_factory=list)
+    safety_prerequisites: List[str] = field(default_factory=list)
+    applies_to_components: List[str] = field(default_factory=list)
+    applies_to_models: List[str] = field(default_factory=list)
+    metadata: Dict = field(default_factory=dict)
+
+    def to_dict(self) -> Dict:
+        return {
+            "title": self.title,
+            "path": self.path,
+            "source": self.source,
+            "author": self.author,
+            "skill_level": self.skill_level,
+            "estimated_time_minutes": self.estimated_time_minutes,
+            "tools_required": self.tools_required,
+            "safety_prerequisites": self.safety_prerequisites,
+            "applies_to_components": self.applies_to_components,
+            "applies_to_models": self.applies_to_models,
+            "metadata": self.metadata,
         }
 
 
@@ -498,6 +546,15 @@ class OKHManifest:
     # Parts and components
     parts: List[PartSpec] = field(default_factory=list)
     components: List[Component] = field(default_factory=list)
+
+    # Repair documentation
+    repair_guides: List[RepairGuide] = field(default_factory=list)
+    disassembly_guides: List[DocumentRef] = field(default_factory=list)
+
+    # UUIDs of manifests whose components are physically interchangeable with
+    # components in this manifest. salvage_match expands its fleet search to
+    # include assets linked to these IDs when this field is populated.
+    compatible_manifest_ids: List[str] = field(default_factory=list)
 
     # Relationship to other projects
     derivative_of: Optional[Dict] = None
@@ -652,6 +709,9 @@ class OKHManifest:
             "tsdc": self.tsdc,
             "parts": [part.to_dict() for part in self.parts],
             "components": [c.to_dict() for c in self.components],
+            "repair_guides": [g.to_dict() for g in self.repair_guides],
+            "disassembly_guides": [d.to_dict() for d in self.disassembly_guides],
+            "compatible_manifest_ids": self.compatible_manifest_ids,
             "derivative_of": self.derivative_of,
             "variant_of": self.variant_of,
             "sub_parts": self.sub_parts,
@@ -1004,9 +1064,14 @@ class OKHManifest:
                             quantity=item.get("quantity", 1),
                             replaceable=item.get("replaceable", False),
                             salvageable=item.get("salvageable", False),
+                            consumable=item.get("consumable", False),
                             okh_ref=item.get("okh_ref"),
                             product_url=item.get("product_url"),
+                            part_number=item.get("part_number"),
                             notes=item.get("notes"),
+                            failure_modes=item.get("failure_modes", []),
+                            diagnostic_codes=item.get("diagnostic_codes", []),
+                            repair_notes=item.get("repair_notes"),
                         )
                     )
 
@@ -1040,6 +1105,53 @@ class OKHManifest:
                     installation_guide=sw_data.get("installation_guide"),
                 )
                 instance.software.append(sw)
+
+        # Handle repair guides
+        if "repair_guides" in data and data["repair_guides"] is not None:
+            instance.repair_guides = []
+            for g in data["repair_guides"]:
+                if isinstance(g, dict):
+                    instance.repair_guides.append(
+                        RepairGuide(
+                            title=g.get("title", ""),
+                            path=g.get("path", ""),
+                            source=g.get("source"),
+                            author=g.get("author"),
+                            skill_level=g.get("skill_level"),
+                            estimated_time_minutes=g.get("estimated_time_minutes"),
+                            tools_required=g.get("tools_required", []),
+                            safety_prerequisites=g.get("safety_prerequisites", []),
+                            applies_to_components=g.get("applies_to_components", []),
+                            applies_to_models=g.get("applies_to_models", []),
+                            metadata=g.get("metadata", {}),
+                        )
+                    )
+
+        # Handle disassembly guides (reuse DocumentRef with DISASSEMBLY_GUIDE type)
+        if "disassembly_guides" in data and data["disassembly_guides"] is not None:
+            instance.disassembly_guides = []
+            for d in data["disassembly_guides"]:
+                if isinstance(d, str):
+                    instance.disassembly_guides.append(
+                        DocumentRef(
+                            title=d,
+                            path="",
+                            type=DocumentationType.DISASSEMBLY_GUIDE,
+                        )
+                    )
+                elif isinstance(d, dict):
+                    instance.disassembly_guides.append(
+                        DocumentRef(
+                            title=d.get("title", ""),
+                            path=d.get("path", ""),
+                            type=DocumentationType.DISASSEMBLY_GUIDE,
+                            metadata=d.get("metadata", {}),
+                        )
+                    )
+
+        raw_compat = data.get("compatible_manifest_ids")
+        if raw_compat and isinstance(raw_compat, list):
+            instance.compatible_manifest_ids = [str(x) for x in raw_compat if x]
 
         return instance
 

@@ -9,7 +9,7 @@ class OKHUpdateRequest(BaseModel):
     """Request model for updating an OKH manifest"""
 
     title: str
-    repo: str
+    repo: Optional[str] = None
     version: str
     license: Dict[str, Any]
     licensor: Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]
@@ -41,6 +41,14 @@ class OKHUpdateRequest(BaseModel):
     manufacturing_specs: Optional[Dict[str, Any]] = None
     parts: List[Dict[str, Any]] = Field(default_factory=list)
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
+    compatible_manifest_ids: List[str] = Field(
+        default_factory=list,
+        description=(
+            "UUIDs of manifests with physically interchangeable components. "
+            "salvage_match expands fleet search across these manifests."
+        ),
+    )
 
     # Additional fields from OKH-LOSH format
     okhv: Optional[str] = None
@@ -129,4 +137,31 @@ class OKHFromStorageRequest(BaseAPIRequest):
 
     manifest_id: str = Field(
         ..., description="ID of the stored OKH manifest to retrieve"
+    )
+
+
+class OKHHarvestRequest(BaseModel):
+    """Request model for harvesting components from one or more manifests."""
+
+    manifest_ids: List[str] = Field(
+        ..., min_length=1, description="One or more manifest UUIDs to harvest from"
+    )
+    replaceable_only: bool = Field(
+        False, description="Return only replaceable components"
+    )
+    salvageable_only: bool = Field(
+        False, description="Return only salvageable components"
+    )
+    consumable_only: bool = Field(
+        False, description="Return only consumable components"
+    )
+    has_part_number: bool = Field(
+        False, description="Return only components that have a part number"
+    )
+    enrich_fleet: bool = Field(
+        False,
+        description=(
+            "When true, attach fleet availability data to each component: "
+            "fleet_available_count and fleet_asset_ids from a salvage-match query"
+        ),
     )

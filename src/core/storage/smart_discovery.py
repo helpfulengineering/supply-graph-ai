@@ -304,6 +304,7 @@ class SmartFileDiscovery:
             "okh": "okh/",
             "okw": "okw/",
             "supply-tree": "supply-trees/",
+            "asset": "asset/",
         }
 
         prefix = directory_prefixes.get(file_type)

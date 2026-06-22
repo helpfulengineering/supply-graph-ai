@@ -1,0 +1,465 @@
+"""REST endpoints for AssetRecord — physical state of device units in the field."""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+
+from ...models.asset import AssetRecord, AssetStatus, ComponentState
+from ...services.asset_service import AssetService
+from ...utils.logging import get_logger
+from ..models.asset.request import (
+    AssetCreateRequest,
+    AssetTriageRequest,
+    AssetUpdateRequest,
+    ClaimComponentRequest,
+    SalvageMatchRequest,
+)
+from ..models.asset.response import (
+    AssetListResponse,
+    AssetResponse,
+    ChecklistItemResponse,
+    ChecklistResponse,
+    ClaimComponentResponse,
+    SalvageMatchItemResponse,
+    SalvageMatchResponse,
+    SalvageQueryResponse,
+    SourcingResolutionItemResponse,
+    SourcingResolutionResponse,
+    TriageItemResponse,
+    TriageReportResponse,
+    TriageSummaryResponse,
+)
+
+logger = get_logger(__name__)
+
+router = APIRouter(tags=["asset"])
+
+
+async def get_asset_service() -> AssetService:
+    return await AssetService.get_instance()
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _to_response(record: AssetRecord, message: str = "") -> AssetResponse:
+    return AssetResponse(
+        id=str(record.id),
+        manifest_id=record.manifest_id,
+        asset_tag=record.asset_tag,
+        location=record.location,
+        status=record.status.value,
+        component_states=[cs.to_dict() for cs in record.component_states],
+        last_triaged_at=(
+            record.last_triaged_at.isoformat() if record.last_triaged_at else None
+        ),
+        triage_notes=record.triage_notes,
+        message=message,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/",
+    response_model=AssetResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create an asset record",
+)
+async def create_asset(
+    body: AssetCreateRequest,
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    """Register a physical unit in the field, linked to an OKH manifest."""
+    record = await svc.create(
+        {
+            "manifest_id": body.manifest_id,
+            "asset_tag": body.asset_tag,
+            "location": body.location,
+        }
+    )
+    return _to_response(record, message="Asset record created")
+
+
+@router.get(
+    "/{id}",
+    response_model=AssetResponse,
+    summary="Get an asset record",
+)
+async def get_asset(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    record = await svc.get(id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return _to_response(record, message="Asset record retrieved")
+
+
+@router.get(
+    "/",
+    response_model=AssetListResponse,
+    summary="List asset records",
+    description="""
+    List all asset records, optionally scoped to a single design.
+
+    Pass `?manifest_id=<uuid>` to return only assets for that OKH manifest.
+
+    Pass `?status=<value>` to filter by lifecycle status
+    (`active` | `under_triage` | `parts_pending` | `under_repair` | `restored` | `condemned`).
+
+    Pass `?harvest_viable=true` to filter component_states on each asset down
+    to only those where `harvest_viable` is True; assets with no such states
+    are excluded from the response.
+    """,
+)
+async def list_assets(
+    manifest_id: Optional[str] = Query(
+        None, description="Filter to this manifest UUID"
+    ),
+    status_filter: Optional[str] = Query(
+        None, alias="status", description="Filter by lifecycle status"
+    ),
+    harvest_viable: Optional[bool] = Query(
+        None, description="When true, return only assets with harvestable components"
+    ),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    records = await svc.list(manifest_id=manifest_id)
+
+    if status_filter is not None:
+        try:
+            wanted = AssetStatus(status_filter)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid status {status_filter!r}. Valid values: "
+                + ", ".join(s.value for s in AssetStatus),
+            )
+        records = [r for r in records if r.status == wanted]
+
+    if harvest_viable:
+        filtered = []
+        for r in records:
+            viable_states = [cs for cs in r.component_states if cs.harvest_viable]
+            if viable_states:
+                r.component_states = viable_states
+                filtered.append(r)
+        records = filtered
+
+    assets = [_to_response(r) for r in records]
+    return AssetListResponse(
+        assets=assets, total=len(assets), message=f"{len(assets)} asset(s) found"
+    )
+
+
+@router.put(
+    "/{id}",
+    response_model=AssetResponse,
+    summary="Update an asset record",
+)
+async def update_asset(
+    body: AssetUpdateRequest,
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    record = await svc.get(id)
+    if record is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    if body.asset_tag is not None:
+        record.asset_tag = body.asset_tag
+    if body.location is not None:
+        record.location = body.location
+    if body.triage_notes is not None:
+        record.triage_notes = body.triage_notes
+    if body.status is not None:
+        try:
+            record.status = AssetStatus(body.status)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid status {body.status!r}. Valid values: "
+                + ", ".join(s.value for s in AssetStatus),
+            )
+    updated = await svc.update(id, record.to_dict())
+    return _to_response(updated, message="Asset record updated")
+
+
+@router.delete(
+    "/{id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete an asset record",
+)
+async def delete_asset(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    deleted = await svc.delete(id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return {"success": True, "message": f"Asset {id} deleted"}
+
+
+@router.post(
+    "/{id}/triage",
+    response_model=AssetResponse,
+    summary="Record triage results for an asset",
+    description="""
+    Upsert component states by `component_name`. A second call for the same
+    component name replaces the prior state. `last_triaged_at` is updated to now.
+    """,
+)
+async def record_triage(
+    body: AssetTriageRequest,
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    states: list[ComponentState] = []
+    for raw in body.component_states:
+        try:
+            states.append(ComponentState.from_dict(raw))
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Invalid component state: {exc}",
+            )
+    try:
+        record = await svc.record_triage(id, states, body.triage_notes)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return _to_response(record, message="Triage recorded")
+
+
+@router.get(
+    "/{id}/triage-report",
+    response_model=TriageReportResponse,
+    summary="Generate a repair triage report for an asset",
+    description="""
+    Join the AssetRecord (physical observations) with the linked OKH manifest
+    (design flags) to produce a per-component repair recommendation.
+
+    **Recommended actions:**
+    - `assess` — component not yet triaged, or condition is unknown
+    - `no_action` — component is intact, no work needed
+    - `repair_in_place` — damaged but technician flagged as repair-feasible
+    - `harvest` — damaged/missing, salvageable per design, pull for use elsewhere
+    - `source_new` — damaged/missing, replaceable per design, must be sourced
+    - `decommission` — damaged/missing, not replaceable or salvageable
+    """,
+)
+async def get_triage_report(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        report = await svc.generate_triage_report(id)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return TriageReportResponse(
+        asset_id=report.asset_id,
+        manifest_id=report.manifest_id,
+        asset_tag=report.asset_tag,
+        last_triaged_at=report.last_triaged_at,
+        triage_notes=report.triage_notes,
+        items=[TriageItemResponse(**item.to_dict()) for item in report.items],
+        summary=TriageSummaryResponse(
+            total_components=report.total_components,
+            needs_assessment=report.needs_assessment,
+            repair_in_place=report.repair_in_place_count,
+            harvest=report.harvest_count,
+            source_new=report.source_new_count,
+            no_action=report.no_action_count,
+            decommission=report.decommission_count,
+        ),
+        message=f"Triage report for {report.asset_tag}: {report.total_components} component(s)",
+    )
+
+
+@router.get(
+    "/{id}/triage-checklist",
+    response_model=ChecklistResponse,
+    summary="Get the triage checklist for an asset",
+    description="""
+    Returns the manifest's full component list pre-filled with any existing
+    `ComponentState` observations.  Use this as the starting point for a triage
+    session: it shows what needs to be assessed and what has already been recorded.
+
+    Each item carries:
+    - `assessed` — whether a `ComponentState` has been recorded for this component
+    - `current_condition` / `current_state` — the recorded observation (null if not yet assessed)
+    - `replaceable`, `salvageable`, `consumable`, `part_number` — from the OKH manifest,
+      to guide the technician's assessment
+
+    Summary fields `assessed_count` and `pending_count` let a caller display progress
+    without iterating items.
+    """,
+)
+async def get_triage_checklist(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        checklist = await svc.generate_triage_checklist(id)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return ChecklistResponse(
+        asset_id=checklist.asset_id,
+        manifest_id=checklist.manifest_id,
+        asset_tag=checklist.asset_tag,
+        status=checklist.status,
+        last_triaged_at=checklist.last_triaged_at,
+        items=[ChecklistItemResponse(**item.to_dict()) for item in checklist.items],
+        total_components=checklist.total_components,
+        assessed_count=checklist.assessed_count,
+        pending_count=checklist.pending_count,
+        message=f"{checklist.assessed_count}/{checklist.total_components} components assessed",
+    )
+
+
+@router.get(
+    "/{id}/resolve-sourcing",
+    response_model=SourcingResolutionResponse,
+    summary="Resolve sourcing for components that need replacement",
+    description="""
+    For every component the triage report marks `source_new`, checks whether a
+    harvestable match exists elsewhere in the fleet before escalating to procurement.
+
+    The requesting asset is excluded from its own salvage search.
+
+    Per-component verdicts:
+    - `fleet_available` — a harvestable match was found; `matches` lists the assets
+    - `procure_new` — no fleet match; component must be ordered externally
+
+    Summary fields `fleet_available_count` and `procure_new_count` give a quick
+    at-a-glance breakdown without iterating items.
+    """,
+)
+async def resolve_sourcing(
+    id: UUID = Path(...),
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        resolution = await svc.resolve_sourcing(id)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Asset {id} not found"
+        )
+    return SourcingResolutionResponse(
+        asset_id=resolution.asset_id,
+        asset_tag=resolution.asset_tag,
+        manifest_id=resolution.manifest_id,
+        items=[
+            SourcingResolutionItemResponse(**item.to_dict())
+            for item in resolution.items
+        ],
+        total_components=len(resolution.items),
+        fleet_available_count=resolution.fleet_available_count,
+        procure_new_count=resolution.procure_new_count,
+        message=(
+            f"{resolution.fleet_available_count} component(s) available from fleet, "
+            f"{resolution.procure_new_count} require procurement"
+        ),
+    )
+
+
+@router.post(
+    "/salvage-match",
+    response_model=SalvageMatchResponse,
+    summary="Find harvestable components matching a query",
+    description="""
+    Search the asset fleet for components that are marked `harvest_viable=True`
+    and match the supplied filters.
+
+    At least one of `component_name` or `part_number` must be provided.
+
+    - `component_name` — case-insensitive substring match against component names
+    - `part_number` — exact match against the manifest component's part number
+    - `manifest_id` — scope the search to assets linked to one design
+    - `conditions` — restrict to specific observed conditions
+      (`intact` | `damaged` | `missing` | `unknown`)
+    """,
+)
+async def salvage_match(
+    body: SalvageMatchRequest,
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    if body.component_name is None and body.part_number is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="At least one of 'component_name' or 'part_number' is required.",
+        )
+    result = await svc.salvage_match(
+        component_name=body.component_name,
+        part_number=body.part_number,
+        manifest_id=body.manifest_id,
+        conditions=body.conditions,
+        exclude_claimed=body.exclude_claimed,
+    )
+    return SalvageMatchResponse(
+        matches=[SalvageMatchItemResponse(**m.to_dict()) for m in result.matches],
+        total=result.total,
+        query=SalvageQueryResponse(
+            component_name=result.query_component_name,
+            part_number=result.query_part_number,
+            manifest_id=result.query_manifest_id,
+        ),
+        message=f"{result.total} harvestable match(es) found",
+    )
+
+
+@router.post(
+    "/{id}/claim-component",
+    response_model=ClaimComponentResponse,
+    summary="Claim a component on an asset for retrieval",
+    description="""
+    Mark a specific component on an asset as claimed by a coordinator,
+    preventing it from appearing in concurrent salvage-match queries.
+
+    Claims expire automatically after 48 hours (lazy-checked on read).
+    Returns **409 Conflict** if the component is already claimed.
+    """,
+    status_code=status.HTTP_200_OK,
+)
+async def claim_component(
+    id: UUID = Path(...),
+    body: ClaimComponentRequest = ...,
+    svc: AssetService = Depends(get_asset_service),
+) -> Any:
+    try:
+        cs = await svc.claim_component(
+            asset_id=id,
+            component_name=body.component_name,
+            claimed_by=body.claimed_by,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+    return ClaimComponentResponse(
+        success=True,
+        asset_id=str(id),
+        component_name=cs.component_name,
+        claimed_by=cs.claimed_by,
+        claimed_at=cs.claimed_at.isoformat(),
+        message=f"Component '{cs.component_name}' claimed by {cs.claimed_by}",
+    )

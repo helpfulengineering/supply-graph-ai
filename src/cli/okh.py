@@ -111,6 +111,10 @@ async def _display_validation_results(
 
     if metadata.get("component_count"):
         cli_ctx.log(f"Components: {metadata['component_count']}", "info")
+    if metadata.get("consumable_count"):
+        cli_ctx.log(f"Consumables: {metadata['consumable_count']}", "info")
+    if metadata.get("repair_guide_count"):
+        cli_ctx.log(f"Repair guides: {metadata['repair_guide_count']}", "info")
 
     if cli_ctx.verbose and metadata.get("field_presence"):
         missing = [
@@ -2464,3 +2468,555 @@ async def diff_collection_cmd(ctx, archive, verbose):
                 f"  {entry['title']} {entry['version']} ({entry['content_hash'][:20]}...)",
                 "info",
             )
+
+
+@okh_group.command("extract-repair-docs")
+@click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(
+    "--manifest-id", default=None, help="Merge extracted fields into this manifest"
+)
+@click.option(
+    "--use-llm", is_flag=True, default=False, help="Run optional LLM enrichment pass"
+)
+@click.option("--output", "-o", default=None, help="Write extracted JSON patch to file")
+@async_command
+@click.pass_context
+async def extract_repair_docs_cmd(ctx, files, manifest_id, use_llm, output):
+    """Extract repair fields from service manuals, parts catalogs, and repair guides.
+
+    Accepts one or more PDF or text documents. Runs a programmatic extraction pass
+    that works fully offline, with an optional LLM enrichment pass when --use-llm
+    is set and an LLM provider is configured.
+
+    Extracts: components, part numbers, diagnostic codes, tools, safety
+    prerequisites, repair guides, and document type classification.
+
+    \b
+    Examples:
+      ohm okh extract-repair-docs fresenius-service-manual.pdf
+      ohm okh extract-repair-docs manual.pdf parts.pdf --use-llm
+      ohm okh extract-repair-docs guide.pdf --manifest-id abc123 --output patch.json
+    """
+    from ..core.generation.repair_doc_extractor import RepairDocExtractor
+
+    cli_ctx = ctx.obj
+    file_paths = [Path(f) for f in files]
+
+    async def http_extract():
+        file_handles = []
+        try:
+            multipart_files = []
+            for fp in file_paths:
+                fh = open(fp, "rb")
+                file_handles.append(fh)
+                multipart_files.append(
+                    ("files", (fp.name, fh, "application/octet-stream"))
+                )
+            form_data: Dict[str, Any] = {"use_llm": str(use_llm).lower()}
+            if manifest_id:
+                form_data["manifest_id"] = manifest_id
+
+            async with cli_ctx.api_client.get_client() as client:
+                response = await client.post(
+                    "/api/okh/extract-repair-docs",
+                    files=multipart_files,
+                    data=form_data,
+                )
+                response.raise_for_status()
+                return response.json()
+        finally:
+            for fh in file_handles:
+                fh.close()
+
+    async def fallback_extract():
+        extractor = RepairDocExtractor()
+        if use_llm:
+            try:
+                from ..core.llm.service import LLMService, LLMServiceConfig
+
+                llm_cfg = LLMServiceConfig()
+                llm_svc = LLMService("RepairExtractCLI", llm_cfg)
+                result = await extractor.extract_with_llm(file_paths, llm_svc)
+            except Exception as llm_err:
+                cli_ctx.log(
+                    f"LLM unavailable, running programmatic pass only: {llm_err}",
+                    "warning",
+                )
+                result = extractor.extract(file_paths)
+        else:
+            result = extractor.extract(file_paths)
+
+        # Merge into existing manifest if requested
+        if manifest_id:
+            okh_service = await OKHService.get_instance()
+            from uuid import UUID as _UUID
+
+            existing = await okh_service.get(_UUID(manifest_id))
+            if existing is None:
+                raise click.ClickException(f"Manifest {manifest_id!r} not found.")
+            patch = result.to_patch()
+            existing_dict = existing.to_dict()
+            existing_dict["components"] = existing_dict.get(
+                "components", []
+            ) + patch.get("components", [])
+            existing_dict["repair_guides"] = existing_dict.get(
+                "repair_guides", []
+            ) + patch.get("repair_guides", [])
+            await okh_service.update(_UUID(manifest_id), existing_dict)
+
+        return {
+            "success": True,
+            "message": (
+                f"Extracted repair fields from {len(result.source_files)} file(s)"
+                + (" with LLM enhancement" if result.llm_enhanced else "")
+            ),
+            "components": [c.to_dict() for c in result.components],
+            "repair_guides": [g.to_dict() for g in result.repair_guides],
+            "documentation_type": (
+                result.documentation_type.value if result.documentation_type else None
+            ),
+            "source_files": result.source_files,
+            "llm_enhanced": result.llm_enhanced,
+            "notes": result.notes,
+            "manifest_id": manifest_id,
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_extract, fallback_extract)
+
+    cli_ctx.log(data.get("message", "Done."), "success")
+
+    doc_type = data.get("documentation_type")
+    if doc_type:
+        cli_ctx.log(f"Document type: {doc_type}", "info")
+
+    components = data.get("components", [])
+    if components:
+        cli_ctx.log(f"\nComponents ({len(components)}):", "info")
+        for c in components:
+            pn = f" [{c['part_number']}]" if c.get("part_number") else ""
+            consumable = " (consumable)" if c.get("consumable") else ""
+            codes = (
+                f" codes={c['diagnostic_codes']}" if c.get("diagnostic_codes") else ""
+            )
+            cli_ctx.log(f"  {c['name']}{pn}{consumable}{codes}", "info")
+
+    guides = data.get("repair_guides", [])
+    if guides:
+        cli_ctx.log(f"\nRepair guides ({len(guides)}):", "info")
+        for g in guides:
+            author = f" by {g['author']}" if g.get("author") else ""
+            tools_n = len(g.get("tools_required", []))
+            cli_ctx.log(f"  {g['title']}{author} ({tools_n} tool(s))", "info")
+
+    notes = data.get("notes", [])
+    for note in notes:
+        cli_ctx.log(f"Note: {note}", "warning")
+
+    if output:
+        patch = {
+            "components": components,
+            "repair_guides": guides,
+            "documentation_type": doc_type,
+        }
+        Path(output).write_text(json.dumps(patch, indent=2))
+        cli_ctx.log(f"Patch written to {output}", "info")
+
+
+@okh_group.command("import-repair-doc")
+@click.argument("files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option("--manifest-id", default=None, help="Patch this existing manifest")
+@click.option(
+    "--title",
+    default=None,
+    help="Title for the new manifest (required when no --manifest-id)",
+)
+@click.option("--use-llm", is_flag=True, default=False, help="Run LLM enrichment pass")
+@click.option(
+    "--output", "-o", default=None, help="Write imported manifest JSON to file"
+)
+@async_command
+@click.pass_context
+async def import_repair_doc_cmd(ctx, files, manifest_id, title, use_llm, output):
+    """Import repair documents into an OKH manifest with conservative flag defaults.
+
+    Extracts components and repair guides from uploaded files and merges them into
+    an existing manifest or creates a new one.
+
+    \b
+    Merge semantics (distinct from extract-repair-docs):
+      - Components already in the manifest keep their existing flags.
+      - New components default to replaceable=False, salvageable=False.
+      - Deduplication is by component name.
+
+    \b
+    Examples:
+      ohm okh import-repair-doc fresenius-service-manual.pdf --title "Fresenius 2008H"
+      ohm okh import-repair-doc parts.pdf --manifest-id <uuid>
+      ohm okh import-repair-doc manual.pdf parts.pdf --manifest-id <uuid> --use-llm
+    """
+    cli_ctx = ctx.obj
+    file_paths = [Path(f) for f in files]
+
+    if not manifest_id and not title:
+        raise click.UsageError(
+            "Provide --manifest-id (to patch) or --title (to create a new manifest)."
+        )
+
+    async def http_import():
+        file_handles = []
+        try:
+            multipart_files = []
+            for fp in file_paths:
+                fh = open(fp, "rb")
+                file_handles.append(fh)
+                multipart_files.append(
+                    ("files", (fp.name, fh, "application/octet-stream"))
+                )
+            form_data: Dict[str, Any] = {"use_llm": str(use_llm).lower()}
+            if manifest_id:
+                form_data["manifest_id"] = manifest_id
+            if title:
+                form_data["title"] = title
+
+            async with cli_ctx.api_client.get_client() as client:
+                r = await client.post(
+                    "/api/okh/import-repair-doc",
+                    files=multipart_files,
+                    data=form_data,
+                )
+                r.raise_for_status()
+                return r.json()
+        finally:
+            for fh in file_handles:
+                fh.close()
+
+    async def fallback_import():
+        from ..core.generation.repair_doc_extractor import RepairDocExtractor
+
+        extractor = RepairDocExtractor()
+        if use_llm:
+            try:
+                from ..core.llm.service import LLMService, LLMServiceConfig
+
+                llm_svc = LLMService("ImportRepairDocCLI", LLMServiceConfig())
+                result = await extractor.extract_with_llm(file_paths, llm_svc)
+            except Exception as llm_err:
+                cli_ctx.log(
+                    f"LLM unavailable, running programmatic pass: {llm_err}", "warning"
+                )
+                result = extractor.extract(file_paths)
+        else:
+            result = extractor.extract(file_paths)
+
+        okh_svc = await OKHService.get_instance()
+        mid = UUID(manifest_id) if manifest_id else None
+        manifest = await okh_svc.import_repair_doc(result, manifest_id=mid, title=title)
+        return {
+            "success": True,
+            "message": f"Imported {len(result.source_files)} file(s) into manifest {manifest.id}",
+            "manifest_id": str(manifest.id),
+            "components_added": len([c for c in result.components]),
+            "components_updated": 0,
+            "guides_added": len(result.repair_guides),
+            "source_files": result.source_files,
+            "llm_enhanced": result.llm_enhanced,
+            "notes": result.notes,
+            "annotation_reminder": (
+                "New components have been imported with replaceable=False and "
+                "salvageable=False. Annotate these flags before using the manifest "
+                "for triage or salvage matching."
+            ),
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_import, fallback_import)
+
+    cli_ctx.log(data.get("message", "Done."), "success")
+    cli_ctx.log(f"  Manifest ID: {data['manifest_id']}", "info")
+    cli_ctx.log(
+        f"  Components: {data['components_added']} added, "
+        f"{data['components_updated']} updated",
+        "info",
+    )
+    if data.get("guides_added"):
+        cli_ctx.log(f"  Repair guides added: {data['guides_added']}", "info")
+
+    for note in data.get("notes", []):
+        cli_ctx.log(f"Note: {note}", "warning")
+
+    cli_ctx.log(f"\n⚠  {data.get('annotation_reminder', '')}", "warning")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Written to {output}", "info")
+
+
+@okh_group.command("harvest-parts")
+@click.argument("manifest_ids", nargs=-1, required=True)
+@click.option(
+    "--replaceable-only",
+    is_flag=True,
+    default=False,
+    help="Return only components marked as replaceable",
+)
+@click.option(
+    "--salvageable-only",
+    is_flag=True,
+    default=False,
+    help="Return only components marked as salvageable",
+)
+@click.option(
+    "--consumable-only",
+    is_flag=True,
+    default=False,
+    help="Return only consumable components (filters, seals, fuses, …)",
+)
+@click.option(
+    "--has-part-number",
+    is_flag=True,
+    default=False,
+    help="Return only components that have a manufacturer/supplier part number",
+)
+@click.option(
+    "--enrich-fleet",
+    is_flag=True,
+    default=False,
+    help="Attach fleet availability count and asset IDs to each component",
+)
+@click.option(
+    "--output", "-o", default=None, help="Write component inventory to a JSON file"
+)
+@async_command
+@click.pass_context
+async def harvest_parts_cmd(
+    ctx,
+    manifest_ids,
+    replaceable_only,
+    salvageable_only,
+    consumable_only,
+    has_part_number,
+    enrich_fleet,
+    output,
+):
+    """Harvest a flat component inventory from one or more OKH manifests.
+
+    Returns every component across the given manifests, annotated with its
+    source manifest ID and title. Use the filter flags to narrow to components
+    relevant for repair or parts reuse.
+
+    \b
+    Examples:
+      ohm okh harvest-parts <manifest-id>
+      ohm okh harvest-parts <id-1> <id-2> --replaceable-only
+      ohm okh harvest-parts <id> --has-part-number --output inventory.json
+    """
+    cli_ctx = ctx.obj
+    ids = list(manifest_ids)
+
+    payload: Dict[str, Any] = {
+        "manifest_ids": ids,
+        "replaceable_only": replaceable_only,
+        "salvageable_only": salvageable_only,
+        "consumable_only": consumable_only,
+        "has_part_number": has_part_number,
+        "enrich_fleet": enrich_fleet,
+    }
+
+    async def http_harvest():
+        async with cli_ctx.api_client.get_client() as client:
+            response = await client.post("/api/okh/harvest-parts", json=payload)
+            response.raise_for_status()
+            return response.json()
+
+    async def fallback_harvest():
+        from uuid import UUID as _UUID
+
+        from src.core.services.asset_service import AssetService as _AssetSvc
+
+        okh_service = await OKHService.get_instance()
+        components: list = []
+        found_ids: list = []
+
+        for mid in ids:
+            manifest = await okh_service.get(_UUID(mid))
+            if manifest is None:
+                raise click.ClickException(f"Manifest {mid!r} not found.")
+            found_ids.append(mid)
+            title = getattr(manifest, "title", None) or mid
+            for component in manifest.components:
+                c = component.to_dict()
+                if replaceable_only and not c.get("replaceable"):
+                    continue
+                if salvageable_only and not c.get("salvageable"):
+                    continue
+                if consumable_only and not c.get("consumable"):
+                    continue
+                if has_part_number and not c.get("part_number"):
+                    continue
+                c["source_manifest_id"] = mid
+                c["source_manifest_title"] = title
+                components.append(c)
+
+        if enrich_fleet:
+            asset_svc = await _AssetSvc.get_instance()
+            for c in components:
+                result = await asset_svc.salvage_match(component_name=c["name"])
+                c["fleet_available_count"] = len(result.matches)
+                c["fleet_asset_ids"] = [m.asset_id for m in result.matches]
+
+        return {
+            "components": components,
+            "total": len(components),
+            "replaceable_count": sum(1 for c in components if c.get("replaceable")),
+            "consumable_count": sum(1 for c in components if c.get("consumable")),
+            "salvageable_count": sum(1 for c in components if c.get("salvageable")),
+            "source_manifests": found_ids,
+        }
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_harvest, fallback_harvest)
+
+    total = data.get("total", 0)
+    cli_ctx.log(
+        f"Harvested {total} component(s) from {len(data.get('source_manifests', []))} manifest(s).",
+        "success",
+    )
+    cli_ctx.log(
+        f"  replaceable={data.get('replaceable_count', 0)}  "
+        f"consumable={data.get('consumable_count', 0)}  "
+        f"salvageable={data.get('salvageable_count', 0)}",
+        "info",
+    )
+
+    components = data.get("components", [])
+    if components:
+        cli_ctx.log(f"\nComponents:", "info")
+        for c in components:
+            pn = f" [{c['part_number']}]" if c.get("part_number") else ""
+            flags = []
+            if c.get("replaceable"):
+                flags.append("replaceable")
+            if c.get("consumable"):
+                flags.append("consumable")
+            if c.get("salvageable"):
+                flags.append("salvageable")
+            flag_str = f" ({', '.join(flags)})" if flags else ""
+            src = c.get("source_manifest_title", "")
+            fleet_str = (
+                f" [fleet:{c['fleet_available_count']}]"
+                if "fleet_available_count" in c
+                else ""
+            )
+            cli_ctx.log(f"  [{src}] {c['name']}{pn}{flag_str}{fleet_str}", "info")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Inventory written to {output}", "info")
+
+
+@okh_group.command("set-compatible-manifests")
+@click.argument("manifest_id")
+@click.argument("compat_ids", nargs=-1, required=False)
+@click.option(
+    "--add",
+    "add_ids",
+    multiple=True,
+    metavar="ID",
+    help="Add one compatible manifest ID without replacing the existing list",
+)
+@click.option(
+    "--remove",
+    "remove_ids",
+    multiple=True,
+    metavar="ID",
+    help="Remove one compatible manifest ID from the list",
+)
+@click.option(
+    "--clear", is_flag=True, default=False, help="Remove all compatible manifest links"
+)
+@click.option(
+    "--output", "-o", default=None, help="Write updated manifest to a JSON file"
+)
+@async_command
+@click.pass_context
+async def set_compatible_manifests_cmd(
+    ctx, manifest_id, compat_ids, add_ids, remove_ids, clear, output
+):
+    """Manage compatible_manifest_ids on an OKH manifest (GAP-8).
+
+    Manifests listed as compatible share physically interchangeable components,
+    allowing salvage-match to search across all linked manifests when a
+    scoped query is run.
+
+    Positional COMPAT_IDS replace the current list entirely.
+    Use --add / --remove to make incremental changes.
+    Use --clear to remove all links.
+
+    \b
+    Examples:
+      ohm okh set-compatible-manifests <id> <compat-id-1> <compat-id-2>
+      ohm okh set-compatible-manifests <id> --add <compat-id>
+      ohm okh set-compatible-manifests <id> --remove <compat-id>
+      ohm okh set-compatible-manifests <id> --clear
+    """
+    cli_ctx = ctx.obj
+
+    async def http_set(cli_ctx: CLIContext):
+        import httpx
+
+        base = cli_ctx.server_url.rstrip("/")
+        async with httpx.AsyncClient(timeout=30) as http:
+            r = await http.get(f"{base}/v1/api/okh/{manifest_id}")
+            if r.status_code == 404:
+                raise click.ClickException(f"Manifest {manifest_id} not found")
+            r.raise_for_status()
+            data = r.json()
+
+        new_ids = _compute_new_ids(data.get("compatible_manifest_ids", []))
+        data["compatible_manifest_ids"] = new_ids
+
+        async with httpx.AsyncClient(timeout=30) as http:
+            r2 = await http.put(f"{base}/v1/api/okh/{manifest_id}", json=data)
+            r2.raise_for_status()
+            return r2.json()
+
+    async def fallback_set(cli_ctx: CLIContext):
+        svc = await OKHService.get_instance()
+        manifest = await svc.get(UUID(manifest_id))
+        if manifest is None:
+            raise click.ClickException(f"Manifest {manifest_id} not found")
+        d = manifest.to_dict()
+        d["compatible_manifest_ids"] = _compute_new_ids(
+            d.get("compatible_manifest_ids", [])
+        )
+        updated = await svc.update(UUID(manifest_id), d)
+        return updated.to_dict()
+
+    def _compute_new_ids(current):
+        if clear:
+            return []
+        if compat_ids:
+            result = list(compat_ids)
+        else:
+            result = list(current)
+        for aid in add_ids:
+            if aid not in result:
+                result.append(aid)
+        for rid in remove_ids:
+            result = [x for x in result if x != rid]
+        return result
+
+    command = SmartCommand(cli_ctx)
+    data = await command.execute_with_fallback(http_set, fallback_set)
+
+    ids = data.get("compatible_manifest_ids", [])
+    cli_ctx.log(
+        f"Manifest {manifest_id} now has {len(ids)} compatible manifest(s).", "success"
+    )
+    for cid in ids:
+        cli_ctx.log(f"  {cid}", "info")
+
+    if output:
+        Path(output).write_text(json.dumps(data, indent=2))
+        cli_ctx.log(f"Updated manifest written to {output}", "info")
