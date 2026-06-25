@@ -5,6 +5,34 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - 2026-06-25
+
+### Added
+
+- **Repair workflow epic (GAPs 1–8):** End-to-end API and CLI surface for field-device repair workflows — `AssetRecord` physical-state domain object, `AssetStatus` lifecycle field, repair document extraction pipeline, parts harvesting (`POST /v1/api/asset/harvest-parts`), triage checklist (`POST /v1/api/asset/triage-checklist`), triage report with per-component action recommendations, salvage matching (fleet query for harvestable components), sourcing resolution (`POST /v1/api/asset/resolve-sourcing`), repair-doc import with conservative merge semantics (GAP-4), cross-manifest compatibility via `compatible_manifest_ids` (GAP-8), and claim/reservation mechanism for harvestable components (GAP-7).
+- **`make ready` gate:** Single command (`make ready`) that enforces format, lint, unit tests, service↔API↔CLI parity, docs validation, and live E2E as a pre-merge gate. Individual targets: `make parity`, `make validate-docs`, `make e2e`.
+
+### Fixed
+
+- **Azure Container Apps redirect scheme:** Gunicorn was not configured to trust `X-Forwarded-Proto` from ACA's TLS-terminating ingress, causing all trailing-slash redirects to generate `http://` URLs instead of `https://`. Added `forwarded_allow_ips = os.getenv("FORWARDED_ALLOW_IPS", "*")` to `gunicorn.conf.py`.
+- **`make ready` / parity gate:** Wired `validate-docs`, `parity`, and `e2e` targets into the project Makefile; `make parity` runs `tests/parity` to catch service↔route↔CLI drift early.
+
+[0.8.4]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.3...v0.8.4
+
+## [0.8.3] - 2026-06-20
+
+### Added
+
+- **OKH field presence and completeness metadata** (`#171`): validation output now includes a per-field coverage report.
+- **Geographic facility filtering** (`#172`): OKW search accepts `country`, `region`, and `city` query parameters.
+- **`Component` data model** (`#173`): structured sub-component references inside OKH manifests.
+- **User-driven version pinning** (`#174`): `POST /v1/api/package/pin` locks a package to a specific OKH version.
+- **Cryptographic package signing** (`#175`): packages can be signed via federation identity; signature verified on import.
+- **OKH bulk import/export** (`#176`): `POST /v1/api/okh/import-collection` and `GET /v1/api/okh/export-collection` for manual collection sync.
+- **Setup skill:** `.claude/skills/setup/SKILL.md` — natural-language onboarding wizard for OHM configuration.
+
+[0.8.3]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.2...v0.8.3
+
 ## [0.8.2] - 2026-06-04
 
 ### Fixed
