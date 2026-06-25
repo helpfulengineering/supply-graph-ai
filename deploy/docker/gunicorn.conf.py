@@ -14,6 +14,14 @@ port = port_env or api_port_env or "8001"
 port = str(port) if port else "8001"
 bind = f"0.0.0.0:{port}"
 
+# Trust X-Forwarded-Proto / X-Forwarded-For from the reverse proxy.
+# Azure Container Apps (and Cloud Run) terminate TLS at their ingress and
+# forward plain HTTP to the container, passing the original scheme in
+# X-Forwarded-Proto: https.  Without this setting Starlette sees the raw
+# HTTP scheme and generates redirect URLs with http://, breaking all
+# trailing-slash redirects (e.g. /v1 → http://…/v1/ instead of https://…).
+forwarded_allow_ips = os.getenv("FORWARDED_ALLOW_IPS", "*")
+
 # Debug output (will appear in Gunicorn startup logs)
 print(f"[Gunicorn Config] PORT env var: {port_env}")
 print(f"[Gunicorn Config] API_PORT env var: {api_port_env}")
