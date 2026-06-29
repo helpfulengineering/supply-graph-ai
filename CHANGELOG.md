@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5] - 2026-06-29
+
+### Fixed
+
+- **`GET /v1/api/okh` timeout:** `SmartFileDiscovery.discover_files()` cascaded to full-bucket strategies (metadata scan, content-validation) when the `okh/` prefix listing returned an empty list, causing it to download every blob in the Azure container. The cascade now only advances when a strategy raises an exception (storage unavailable); an empty result is treated as authoritative and stops the search immediately. `_discover_by_directory_structure` re-raises storage exceptions so the caller can make the cascade decision correctly.
+
+[0.8.5]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.4...v0.8.5
+
 ## [0.8.4] - 2026-06-25
 
 ### Added

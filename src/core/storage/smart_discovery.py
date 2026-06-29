@@ -252,7 +252,17 @@ class SmartFileDiscovery:
         ]
 
     async def discover_files(self, file_type: str) -> List[FileInfo]:
-        """Discover files using multiple strategies with fallback"""
+        """Discover files using multiple strategies with fallback.
+
+        Strategies are tried in order.  A strategy that **succeeds** (no exception)
+        but returns an empty list is treated as authoritative — no further strategies
+        run.  The cascade only advances when a strategy raises an exception, which
+        signals that the storage mechanism is unavailable or broken (e.g. the prefix
+        listing failed), not that zero files exist.
+
+        This prevents the expensive metadata-scan and content-validation strategies
+        from running a full-bucket walk just because the primary prefix is empty.
+        """
         logger.info(f"Starting discovery for file type: {file_type}")
 
         for strategy in self.discovery_strategies:
@@ -267,14 +277,17 @@ class SmartFileDiscovery:
                             "files_found": len(files),
                         },
                     )
-                    return files
                 else:
                     logger.debug(
-                        f"Strategy {strategy.__name__} returned 0 files for {file_type!r}, "
-                        "trying next strategy"
+                        f"Strategy {strategy.__name__} returned 0 files for {file_type!r}; "
+                        "treating as authoritative (no cascade to more-expensive strategies)"
                     )
+                return files
             except Exception as e:
-                logger.warning(f"Strategy {strategy.__name__} failed: {e}")
+                logger.warning(
+                    f"Strategy {strategy.__name__} failed for {file_type!r}: {e}; "
+                    "trying next strategy"
+                )
                 continue
 
         logger.warning(
@@ -342,6 +355,10 @@ class SmartFileDiscovery:
                 f"(prefix={prefix!r}): {e}",
                 exc_info=True,
             )
+            # Re-raise so discover_files can cascade to the next strategy.
+            # An exception here means storage is unavailable/broken — a different
+            # condition from "storage worked but found nothing" (empty files list).
+            raise
 
         return files
 
