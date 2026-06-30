@@ -216,9 +216,35 @@ class AzureContainerAppsDeployer(BaseDeployer):
                     f"Created container app environment: {self.container_app_env}"
                 )
 
+    def _check_service_exists(self) -> bool:
+        """Check if the Container App already exists."""
+        exit_code, _, _ = self._run_az_command(
+            [
+                "az",
+                "containerapp",
+                "show",
+                "--name",
+                self.container_app_name,
+                "--resource-group",
+                self.resource_group,
+            ],
+            check=False,
+        )
+        return exit_code == 0
+
     def deploy(self) -> str:
         """
         Deploy service to Azure Container Apps and return service URL.
+
+        ``az containerapp create`` and ``az containerapp update`` accept different
+        flag sets (confirmed against the installed CLI's ``--help`` output, not
+        assumed): ``--target-port``, ``--ingress``, ``--environment``, and
+        ``--registry-*`` are create-only — passing them to ``update`` is a CLI
+        argument error. Env vars also differ: ``create`` takes ``--env-vars``
+        (full list, nothing to preserve yet); ``update`` has no ``--env-vars``
+        flag at all and instead takes ``--set-env-vars`` (adds/updates listed
+        vars, leaves any other existing container env vars — e.g. ones set
+        directly via ``az`` outside this deployer — untouched).
 
         Returns:
             Service URL
@@ -231,19 +257,20 @@ class AzureContainerAppsDeployer(BaseDeployer):
         # Setup resources
         self.setup()
 
-        # Build environment variables
-        env_vars = []
-        for k, v in self.config.service.environment_vars.items():
-            env_vars.append(f"{k}={v}")
+        # Build environment variables as separate "K=V" tokens (NOT a single
+        # space-joined string — az's --env-vars/--set-env-vars take nargs='*',
+        # so each KEY=VALUE pair must be its own argv element).
+        env_vars = [f"{k}={v}" for k, v in self.config.service.environment_vars.items()]
 
         # Convert memory to GB
         memory_gb = self._convert_memory_to_gb(self.config.service.memory)
 
-        # Build create/update command
-        create_args = [
+        is_update = self._check_service_exists()
+
+        deploy_args = [
             "az",
             "containerapp",
-            "create" if not self._check_service_exists() else "update",
+            "update" if is_update else "create",
             "--name",
             self.container_app_name,
             "--resource-group",
@@ -258,32 +285,41 @@ class AzureContainerAppsDeployer(BaseDeployer):
             str(self.config.service.min_instances),
             "--max-replicas",
             str(self.config.service.max_instances),
-            "--target-port",
-            str(self.config.service.port),
-            "--ingress",
-            "external",
-            "--env-vars",
-            " ".join(env_vars),
         ]
 
-        if self.container_app_env:
-            create_args.extend(["--environment", self.container_app_env])
-
-        if self.registry_server:
-            create_args.extend(["--registry-server", self.registry_server])
-            if self.registry_username and self.registry_password:
-                create_args.extend(
-                    [
-                        "--registry-username",
-                        self.registry_username,
-                        "--registry-password",
-                        self.registry_password,
-                    ]
-                )
+        if is_update:
+            if env_vars:
+                deploy_args.append("--set-env-vars")
+                deploy_args.extend(env_vars)
+        else:
+            deploy_args.extend(
+                [
+                    "--target-port",
+                    str(self.config.service.port),
+                    "--ingress",
+                    "external",
+                ]
+            )
+            if env_vars:
+                deploy_args.append("--env-vars")
+                deploy_args.extend(env_vars)
+            if self.container_app_env:
+                deploy_args.extend(["--environment", self.container_app_env])
+            if self.registry_server:
+                deploy_args.extend(["--registry-server", self.registry_server])
+                if self.registry_username and self.registry_password:
+                    deploy_args.extend(
+                        [
+                            "--registry-username",
+                            self.registry_username,
+                            "--registry-password",
+                            self.registry_password,
+                        ]
+                    )
 
         # Execute deployment
-        logger.info(f"Executing: {' '.join(create_args)}")
-        exit_code, stdout, stderr = self._run_az_command(create_args, check=False)
+        logger.info(f"Executing: {' '.join(deploy_args)}")
+        exit_code, stdout, stderr = self._run_az_command(deploy_args, check=False)
 
         if exit_code != 0:
             error_msg = f"Deployment failed with exit code {exit_code}"
