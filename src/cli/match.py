@@ -461,6 +461,18 @@ async def requirements(
 
                 raise httpx.ConnectError("Use fallback for local facility file")
 
+            # MoM as OKW source requires fallback (API route loads from blob storage only)
+            from src.config.storage_config import get_okw_source
+
+            if (okw_source or get_okw_source()) == "mom":
+                cli_ctx.log(
+                    "OKW source is MoM — SPARQL discovery not supported by HTTP API, using fallback",
+                    "info",
+                )
+                import httpx
+
+                raise httpx.ConnectError("Use fallback for MoM OKW source")
+
             # If nested matching with local file, use fallback (BOM file resolution needs manifest path)
             if max_depth > 0 and not is_url:
                 cli_ctx.log(
@@ -519,7 +531,7 @@ async def requirements(
                         "info",
                     )
                 else:
-                    from ...config.storage_config import get_mom_config, get_okw_source
+                    from src.config.storage_config import get_mom_config, get_okw_source
 
                     effective_source = okw_source or get_okw_source()
 
@@ -545,7 +557,7 @@ async def requirements(
 
                         okw_service = await OKWService.get_instance()
                         try:
-                            from ...config.storage_config import (
+                            from src.config.storage_config import (
                                 get_default_storage_config,
                             )
 

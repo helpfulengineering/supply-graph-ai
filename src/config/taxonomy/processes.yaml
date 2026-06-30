@@ -55,7 +55,7 @@ processes:
   3d_printing:
     display_name: "3D Printing"
     tsdc_code: "3DP"
-    wikidata_qid: "Q785781"
+    wikidata_qid: "Q229367"
     aliases:
       - "3dp"
       - "3d printing"
@@ -110,7 +110,7 @@ processes:
   cnc_machining:
     display_name: "CNC Machining"
     tsdc_code: "CNC"
-    wikidata_qid: "Q644395"
+    wikidata_qid: "Q174689"
     aliases:
       - "cnc"
       - "cnc machining"
