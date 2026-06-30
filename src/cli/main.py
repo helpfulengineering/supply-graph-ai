@@ -157,6 +157,22 @@ def config(ctx: Context) -> None:
     click.echo(f"  Model: {config.llm_config['llm_model'] or 'default'}")
     click.echo(f"  Quality Level: {config.llm_config['quality_level']}")
     click.echo(f"  Strict Mode: {config.llm_config['strict_mode']}")
+    click.echo()
+    try:
+        from src.config.storage_config import get_mom_config, get_okw_source
+
+        okw_source = get_okw_source()
+        mom_cfg = get_mom_config()
+        click.echo("OKW Facility Source:")
+        click.echo(f"  Source: {okw_source}  (OKW_SOURCE env var, default: storage)")
+        if okw_source == "mom":
+            click.echo(f"  MoM SPARQL Endpoint: {mom_cfg['endpoint']}")
+        else:
+            click.echo(
+                f"  MoM SPARQL Endpoint: {mom_cfg['endpoint']}  (inactive — set OKW_SOURCE=mom to enable)"
+            )
+    except Exception:
+        pass
 
 
 if __name__ == "__main__":
