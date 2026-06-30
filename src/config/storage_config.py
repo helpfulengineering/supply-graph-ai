@@ -204,3 +204,63 @@ def get_default_storage_config() -> StorageConfig:
     """
     provider = _env("STORAGE_PROVIDER") or "local"
     return create_storage_config(provider)
+
+
+# ---------------------------------------------------------------------------
+# OKW facility source (separate from blob storage provider)
+# ---------------------------------------------------------------------------
+
+_MOM_SPARQL_DEFAULT = "https://mapsofmaking.org/sparql/query"
+
+
+def get_okw_source() -> str:
+    """Return the OKW facility data source used during match requests.
+
+    Set the ``OKW_SOURCE`` environment variable to switch at runtime.
+
+    Values
+    ------
+    storage (default)
+        Load facilities from the configured blob storage backend
+        (``STORAGE_PROVIDER``). Supports local, Azure Blob, AWS S3, GCS.
+
+    mom
+        Query the Maps of Making public SPARQL endpoint. No credentials
+        required. Endpoint configured by ``MOM_SPARQL_ENDPOINT``
+        (see :func:`get_mom_config`). OHM translates each OKH process
+        requirement to a Wikidata IRI via the taxonomy and issues a
+        SPARQL query against MoM's Oxigraph store.
+
+    Returns
+    -------
+    str
+        ``"storage"`` or ``"mom"``. Unknown values fall back to
+        ``"storage"`` with a warning log.
+    """
+    source = _env("OKW_SOURCE") or "storage"
+    if source not in ("storage", "mom"):
+        logger.warning(
+            "Unknown OKW_SOURCE value %r — falling back to 'storage'", source
+        )
+        return "storage"
+    return source
+
+
+def get_mom_config() -> Dict[str, str]:
+    """Return Maps of Making (MoM) integration configuration.
+
+    Environment variables
+    ---------------------
+    MOM_SPARQL_ENDPOINT
+        Public SPARQL query endpoint for MoM's Oxigraph triplestore.
+        Default: ``https://mapsofmaking.org/sparql/query``
+        No authentication required.
+
+    Returns
+    -------
+    dict
+        ``{"endpoint": <sparql_url>}``
+    """
+    return {
+        "endpoint": _env("MOM_SPARQL_ENDPOINT") or _MOM_SPARQL_DEFAULT,
+    }

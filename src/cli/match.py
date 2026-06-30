@@ -65,6 +65,21 @@ def match_group() -> None:
     help="Local facility file to use for matching (testing/debugging)",
 )
 @click.option(
+    "--okw-source",
+    "okw_source",
+    type=click.Choice(["storage", "mom"]),
+    default=None,
+    envvar="OKW_SOURCE",
+    help=(
+        "Where to load OKW facility candidates from. "
+        "'storage' (default) reads from the configured blob storage backend "
+        "(STORAGE_PROVIDER: local, azure_blob, aws_s3, gcs). "
+        "'mom' queries the Maps of Making public SPARQL endpoint, resolving each "
+        "required process to a Wikidata IRI — no credentials required. "
+        "Override the MoM endpoint with MOM_SPARQL_ENDPOINT."
+    ),
+)
+@click.option(
     "--access-type",
     type=click.Choice(["public", "private", "restricted"]),
     help="Filter by facility access type",
@@ -263,6 +278,7 @@ async def requirements(
     input_file: str,
     domain: Optional[str],
     facility_file: Optional[str],
+    okw_source: Optional[str],
     access_type: Optional[str],
     facility_status: Optional[str],
     location: Optional[str],
@@ -445,6 +461,18 @@ async def requirements(
 
                 raise httpx.ConnectError("Use fallback for local facility file")
 
+            # MoM as OKW source requires fallback (API route loads from blob storage only)
+            from src.config.storage_config import get_okw_source
+
+            if (okw_source or get_okw_source()) == "mom":
+                cli_ctx.log(
+                    "OKW source is MoM — SPARQL discovery not supported by HTTP API, using fallback",
+                    "info",
+                )
+                import httpx
+
+                raise httpx.ConnectError("Use fallback for MoM OKW source")
+
             # If nested matching with local file, use fallback (BOM file resolution needs manifest path)
             if max_depth > 0 and not is_url:
                 cli_ctx.log(
@@ -503,36 +531,59 @@ async def requirements(
                         "info",
                     )
                 else:
-                    from ..core.services.okw_service import OKWService
+                    from src.config.storage_config import get_mom_config, get_okw_source
 
-                    okw_service = await OKWService.get_instance()
-                    # Log which storage we're using (helps debug "no facilities" when remote is populated)
-                    try:
-                        from ...config.storage_config import get_default_storage_config
+                    effective_source = okw_source or get_okw_source()
 
-                        cfg = get_default_storage_config()
+                    if effective_source == "mom":
+                        from ..core.services.mom_bridge import (
+                            fetch_mom_facilities_for_manifest,
+                        )
+
+                        mom_cfg = get_mom_config()
                         cli_ctx.log(
-                            f"Loading facilities from storage: provider={cfg.provider}, container/bucket={cfg.bucket_name}",
+                            f"Loading facilities from MoM SPARQL endpoint: {mom_cfg['endpoint']}",
                             "info",
                         )
-                    except Exception:
-                        pass
-                    filter_params = {}
-                    if filters.get("access_type"):
-                        filter_params["access_type"] = filters.get("access_type")
-                    if filters.get("facility_status"):
-                        filter_params["facility_status"] = filters.get(
-                            "facility_status"
+                        facilities = await fetch_mom_facilities_for_manifest(
+                            manifest, endpoint=mom_cfg["endpoint"]
                         )
-                    if filters.get("location"):
-                        filter_params["location"] = filters.get("location")
-                    facilities, _ = await okw_service.list(
-                        filter_params=filter_params if filter_params else None
-                    )
-                    cli_ctx.log(
-                        f"Loaded {len(facilities)} facility(ies) from storage",
-                        "info",
-                    )
+                        cli_ctx.log(
+                            f"Loaded {len(facilities)} facility(ies) from MoM",
+                            "info",
+                        )
+                    else:
+                        from ..core.services.okw_service import OKWService
+
+                        okw_service = await OKWService.get_instance()
+                        try:
+                            from src.config.storage_config import (
+                                get_default_storage_config,
+                            )
+
+                            cfg = get_default_storage_config()
+                            cli_ctx.log(
+                                f"Loading facilities from storage: provider={cfg.provider}, container/bucket={cfg.bucket_name}",
+                                "info",
+                            )
+                        except Exception:
+                            pass
+                        filter_params = {}
+                        if filters.get("access_type"):
+                            filter_params["access_type"] = filters.get("access_type")
+                        if filters.get("facility_status"):
+                            filter_params["facility_status"] = filters.get(
+                                "facility_status"
+                            )
+                        if filters.get("location"):
+                            filter_params["location"] = filters.get("location")
+                        facilities, _ = await okw_service.list(
+                            filter_params=filter_params if filter_params else None
+                        )
+                        cli_ctx.log(
+                            f"Loaded {len(facilities)} facility(ies) from storage",
+                            "info",
+                        )
 
                 # Apply additional filters that aren't supported by okw_service.list()
                 # (e.g., capabilities, materials would need more complex matching logic)

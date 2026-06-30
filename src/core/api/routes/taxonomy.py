@@ -50,6 +50,7 @@ async def get_taxonomy(http_request: Request = None) -> Any:
                 "parent": defn.parent,
                 "aliases": sorted(defn.aliases),
                 "children": sorted(taxonomy.get_children(cid)),
+                "wikidata_iri": taxonomy.get_wikidata_iri(cid),
             }
         )
 

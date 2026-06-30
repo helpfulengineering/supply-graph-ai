@@ -55,6 +55,7 @@ class ProcessDefinition:
     tsdc_code: Optional[str] = None
     parent: Optional[str] = None
     aliases: FrozenSet[str] = field(default_factory=frozenset)
+    wikidata_qid: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -830,6 +831,7 @@ def load_from_yaml(path: Path) -> List[ProcessDefinition]:
             )
 
         aliases = frozenset(str(a) for a in raw_aliases if a)
+        wikidata_qid = entry.get("wikidata_qid")
 
         definitions.append(
             ProcessDefinition(
@@ -838,6 +840,7 @@ def load_from_yaml(path: Path) -> List[ProcessDefinition]:
                 tsdc_code=str(tsdc_code) if tsdc_code else None,
                 parent=str(parent) if parent else None,
                 aliases=aliases,
+                wikidata_qid=str(wikidata_qid) if wikidata_qid else None,
             )
         )
 
@@ -976,6 +979,9 @@ class ProcessTaxonomy:
         # Hierarchy: canonical_id -> set of child canonical_ids
         self._children: Dict[str, Set[str]] = {}
 
+        # Lookup: canonical_id -> Wikidata QID string (e.g. "Q3062349")
+        self._wikidata_map: Dict[str, str] = {}
+
         # Track which file was loaded (None means built-in definitions)
         self._source_path: Optional[Path] = None
 
@@ -1029,6 +1035,7 @@ class ProcessTaxonomy:
         self._alias_map = {}
         self._tsdc_map = {}
         self._children = {}
+        self._wikidata_map = {}
         self._build(new_definitions)
         self._source_path = path
 
@@ -1087,6 +1094,10 @@ class ProcessTaxonomy:
                 self._tsdc_map[tsdc_upper] = cid
                 # Also register TSDC code as alias (case-insensitive)
                 self._register_alias(defn.tsdc_code, cid)
+
+            # Register Wikidata QID
+            if defn.wikidata_qid:
+                self._wikidata_map[cid] = defn.wikidata_qid
 
         # Build children map from parent references
         for defn in definitions:
@@ -1340,6 +1351,19 @@ class ProcessTaxonomy:
             ProcessDefinition or None.
         """
         return self._definitions.get(canonical_id)
+
+    def get_wikidata_iri(self, canonical_id: str) -> Optional[str]:
+        """Return the Wikidata entity IRI for a canonical process ID.
+
+        Args:
+            canonical_id: A canonical process ID.
+
+        Returns:
+            Full Wikidata IRI (e.g. "https://www.wikidata.org/entity/Q3062349"),
+            or None if no Wikidata QID is associated with this process.
+        """
+        qid = self._wikidata_map.get(canonical_id)
+        return f"https://www.wikidata.org/entity/{qid}" if qid else None
 
     # ------------------------------------------------------------------
     # Internal helpers
