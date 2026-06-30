@@ -264,7 +264,15 @@ async def match_requirements_to_capabilities(
 
         # 3. Get available facilities with filtering
         facilities = await _get_filtered_facilities(
-            storage_service, request, request_id, domain=domain
+            storage_service,
+            request,
+            request_id,
+            domain=domain,
+            okh_manifest=(
+                requirements_data
+                if isinstance(requirements_data, OKHManifest)
+                else None
+            ),
         )
 
         if domain == "manufacturing" and required_processes and facilities:
@@ -2252,6 +2260,7 @@ async def _get_filtered_facilities(
     request: MatchRequest,
     request_id: str,
     domain: str = "manufacturing",
+    okh_manifest: Optional[OKHManifest] = None,
 ) -> List[Any]:
     """Get facilities with applied filters.
 
@@ -2326,35 +2335,80 @@ async def _get_filtered_facilities(
                         },
                     )
                 else:
-                    # Get all facilities using OKWService with proper pagination.
-                    # list() skips kitchen files — returns ManufacturingFacility only.
-                    okw_service = await OKWService.get_instance()
+                    from src.config.storage_config import get_mom_config, get_okw_source
 
-                    all_facilities = []
-                    page = 1
-                    page_size = 1000
-
-                    while True:
-                        facilities_batch, _ = await okw_service.list(
-                            page=page, page_size=page_size
+                    if get_okw_source() == "mom" and okh_manifest is not None:
+                        from src.core.services.mom_bridge import (
+                            fetch_mom_facilities_for_manifest,
                         )
-                        all_facilities.extend(facilities_batch)
 
-                        if len(facilities_batch) < page_size:
-                            break
+                        mom_cfg = get_mom_config()
+                        logger.info(
+                            "Loading OKW facilities from MoM SPARQL endpoint",
+                            extra={
+                                "request_id": request_id,
+                                "domain": domain,
+                                "endpoint": mom_cfg["endpoint"],
+                            },
+                        )
+                        facilities = await fetch_mom_facilities_for_manifest(
+                            okh_manifest, endpoint=mom_cfg["endpoint"]
+                        )
+                        logger.info(
+                            "Facility candidates loaded from MoM SPARQL",
+                            extra={
+                                "request_id": request_id,
+                                "domain": domain,
+                                "endpoint": mom_cfg["endpoint"],
+                                "facility_count": len(facilities),
+                            },
+                        )
+                    else:
+                        # Get all facilities using OKWService with proper pagination.
+                        # list() skips kitchen files — returns ManufacturingFacility only.
+                        from src.config.storage_config import get_default_storage_config
 
-                        page += 1
+                        try:
+                            cfg = get_default_storage_config()
+                            logger.info(
+                                "Loading OKW facilities from blob storage",
+                                extra={
+                                    "request_id": request_id,
+                                    "domain": domain,
+                                    "provider": cfg.provider,
+                                    "bucket": cfg.bucket_name,
+                                },
+                            )
+                        except Exception:
+                            pass
 
-                    facilities = all_facilities
-                    logger.info(
-                        "Facility candidates loaded from remote OKW storage listing "
-                        "(MATCHING_LOCAL_OKW_JSON_DIR was unset or invalid)",
-                        extra={
-                            "request_id": request_id,
-                            "domain": domain,
-                            "facility_count": len(facilities),
-                        },
-                    )
+                        okw_service = await OKWService.get_instance()
+
+                        all_facilities = []
+                        page = 1
+                        page_size = 1000
+
+                        while True:
+                            facilities_batch, _ = await okw_service.list(
+                                page=page, page_size=page_size
+                            )
+                            all_facilities.extend(facilities_batch)
+
+                            if len(facilities_batch) < page_size:
+                                break
+
+                            page += 1
+
+                        facilities = all_facilities
+                        logger.info(
+                            "Facility candidates loaded from remote OKW storage listing "
+                            "(MATCHING_LOCAL_OKW_JSON_DIR was unset or invalid)",
+                            extra={
+                                "request_id": request_id,
+                                "domain": domain,
+                                "facility_count": len(facilities),
+                            },
+                        )
 
         elif domain == "cooking":
             expected_type = KitchenCapability
