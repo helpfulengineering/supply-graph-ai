@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2026-06-30
+
+### Fixed
+
+- **MoM `OKW_SOURCE=mom` silently overridden by `MATCHING_LOCAL_OKW_JSON_DIR`:** `POST /v1/api/match` checked the local-dev JSON directory override before `OKW_SOURCE`, so an explicit request to use the Maps of Making SPARQL bridge as the facility source was silently ignored whenever that dev-convenience env var was set — a divergence from the CLI's `--okw-source mom`, which always reached MoM. `OKW_SOURCE` is now checked first in `_get_filtered_facilities`.
+- **CORS preflight 400 on deployed containers:** `CORS_ORIGINS` defaults to an empty list (deny all) in production when unset, which makes Starlette's `CORSMiddleware` reject every browser CORS preflight with 400 before the request reaches a route handler. None of the GCP/AWS/Azure deployment config paths (`deployment.yaml` via `from_dict()`, or the `deploy_gcp.py` CLI script via `with_defaults()`) ever set it. All deployment config construction paths now default `CORS_ORIGINS` to `"*"` (supply-graph-ai is a public API) unless explicitly overridden.
+
+### Added
+
+- **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
+
+[0.8.6]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.5...v0.8.6
+
 ## [0.8.5] - 2026-06-29
 
 ### Fixed
