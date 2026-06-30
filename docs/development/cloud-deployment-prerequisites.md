@@ -343,6 +343,40 @@ python deploy/scripts/test_azure_deployer.py \
 
 ---
 
+## Live deployment: Azure CD (`.github/workflows/release.yml`)
+
+Pushing a `v*.*.*` tag deploys to the live Azure Container App
+(`openhardwaremanager` / `project_data_rg`) automatically, via the `deploy-azure` job —
+no manual `az containerapp update` needed for routine releases. It runs after `publish`
+succeeds and calls `deploy/scripts/deploy_azure.py`, which uses
+`AzureContainerAppsDeployer` (`deploy/providers/azure/container_apps.py`) to update the
+image and a minimal set of non-sensitive env vars (`ENVIRONMENT`, `CORS_ORIGINS`) via
+`--set-env-vars` (additive — storage credentials and LLM encryption secrets already
+configured on the container are untouched).
+
+**Authentication:** OIDC federated credential, not a stored secret. Azure AD app
+`supply-graph-ai-github-deploy` (`AZURE_CLIENT_ID`) trusts GitHub's OIDC issuer for
+subject `repo:helpfulengineering/supply-graph-ai:environment:production` — the token is
+only issuable while a workflow run is using the `production` GitHub Environment. Scoped
+to `Container Apps Contributor` on `project_data_rg` only (not subscription-wide).
+`AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` are stored as
+environment secrets on the `production` GitHub Environment.
+
+**Known gap — `production` environment has no required-reviewer protection yet:**
+setting that requires repo *admin* (Settings → Environments → `production` → Required
+reviewers), which the identity that set this up did not have (`maintain`, not `admin`).
+Until someone with admin access adds a reviewer there, `deploy-azure` runs unattended on
+every tag push — same effective behavior as "fully automatic," not the approval-gated
+flow the OIDC trust subject was designed for. Add a reviewer to close this gap.
+
+**To deploy manually instead** (break-glass, or before the workflow exists in older
+checkouts):
+```bash
+python3 deploy/scripts/deploy_azure.py \
+  --image touchthesun/openhardwaremanager:<version> \
+  --subscription-id <subscription-id>
+```
+
 ## Common Issues and Solutions
 
 ### AWS
