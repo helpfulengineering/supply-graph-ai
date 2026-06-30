@@ -20,7 +20,6 @@ import pytest
 
 from src.core.storage.smart_discovery import SmartFileDiscovery
 
-
 # ---------------------------------------------------------------------------
 # Fake storage managers
 # ---------------------------------------------------------------------------
