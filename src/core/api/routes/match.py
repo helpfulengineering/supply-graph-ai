@@ -2313,53 +2313,57 @@ async def _get_filtered_facilities(
                 )
             else:
                 logger.info(
-                    "Facility candidates: no inline okw_facilities; checking MATCHING_LOCAL_OKW_JSON_DIR then remote storage",
+                    "Facility candidates: no inline okw_facilities; checking OKW_SOURCE then MATCHING_LOCAL_OKW_JSON_DIR then remote storage",
                     extra={
                         "request_id": request_id,
                         "domain": domain,
                         "cwd": str(Path.cwd()),
                     },
                 )
-                local_dir = _resolve_matching_local_okw_json_dir()
-                if local_dir:
-                    facilities = _load_facilities_from_local_okw_json_dir(
-                        local_dir, domain, request_id
+                from src.config.storage_config import get_mom_config, get_okw_source
+
+                # OKW_SOURCE=mom is an explicit request for MoM SPARQL data and must
+                # win over MATCHING_LOCAL_OKW_JSON_DIR (a local-storage dev convenience)
+                # so the CLI (--okw-source mom) and API behave identically regardless
+                # of that env var. See docs/runbooks/mom-integration-e2e-validation.md.
+                if get_okw_source() == "mom" and okh_manifest is not None:
+                    from src.core.services.mom_bridge import (
+                        fetch_mom_facilities_for_manifest,
                     )
+
+                    mom_cfg = get_mom_config()
                     logger.info(
-                        "Using MATCHING_LOCAL_OKW_JSON_DIR (remote OKW listing skipped)",
+                        "Loading OKW facilities from MoM SPARQL endpoint",
                         extra={
                             "request_id": request_id,
                             "domain": domain,
-                            "directory": local_dir,
+                            "endpoint": mom_cfg["endpoint"],
+                        },
+                    )
+                    facilities = await fetch_mom_facilities_for_manifest(
+                        okh_manifest, endpoint=mom_cfg["endpoint"]
+                    )
+                    logger.info(
+                        "Facility candidates loaded from MoM SPARQL",
+                        extra={
+                            "request_id": request_id,
+                            "domain": domain,
+                            "endpoint": mom_cfg["endpoint"],
                             "facility_count": len(facilities),
                         },
                     )
                 else:
-                    from src.config.storage_config import get_mom_config, get_okw_source
-
-                    if get_okw_source() == "mom" and okh_manifest is not None:
-                        from src.core.services.mom_bridge import (
-                            fetch_mom_facilities_for_manifest,
+                    local_dir = _resolve_matching_local_okw_json_dir()
+                    if local_dir:
+                        facilities = _load_facilities_from_local_okw_json_dir(
+                            local_dir, domain, request_id
                         )
-
-                        mom_cfg = get_mom_config()
                         logger.info(
-                            "Loading OKW facilities from MoM SPARQL endpoint",
+                            "Using MATCHING_LOCAL_OKW_JSON_DIR (remote OKW listing skipped)",
                             extra={
                                 "request_id": request_id,
                                 "domain": domain,
-                                "endpoint": mom_cfg["endpoint"],
-                            },
-                        )
-                        facilities = await fetch_mom_facilities_for_manifest(
-                            okh_manifest, endpoint=mom_cfg["endpoint"]
-                        )
-                        logger.info(
-                            "Facility candidates loaded from MoM SPARQL",
-                            extra={
-                                "request_id": request_id,
-                                "domain": domain,
-                                "endpoint": mom_cfg["endpoint"],
+                                "directory": local_dir,
                                 "facility_count": len(facilities),
                             },
                         )
