@@ -4,9 +4,12 @@ Base deployment configuration classes.
 Provides common configuration structures and validation for all deployment providers.
 """
 
+import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class DeploymentProvider(str, Enum):
@@ -23,6 +26,27 @@ class DeploymentConfigError(Exception):
     """Raised when deployment configuration is invalid."""
 
     pass
+
+
+def apply_cors_origins_default(environment_vars: Dict[str, str]) -> None:
+    """Default CORS_ORIGINS to "*" in-place if a deployment.yaml omits it.
+
+    The app itself defaults CORS_ORIGINS to an empty list (deny all) in
+    production when unset (src/config/settings.py), which fails every browser
+    CORS preflight with 400. supply-graph-ai is intended to be a public API,
+    so deployers should default to "*" rather than let it go unset. Set
+    CORS_ORIGINS explicitly in a deployment.yaml's environment_vars to
+    restrict allowed origins instead.
+
+    Called by every provider's from_dict() (GCP/AWS/Azure each construct
+    their own ServiceConfig rather than delegating to the base class).
+    """
+    if "CORS_ORIGINS" not in environment_vars:
+        environment_vars["CORS_ORIGINS"] = "*"
+        logger.warning(
+            "CORS_ORIGINS not set in deployment.yaml service.environment_vars; "
+            "defaulting to '*' (public API). Set it explicitly to restrict allowed origins."
+        )
 
 
 @dataclass
@@ -116,6 +140,8 @@ class BaseDeploymentConfig:
             secrets=service_data.get("secrets", {}),
             labels=service_data.get("labels", {}),
         )
+
+        apply_cors_origins_default(service.environment_vars)
 
         # Region should be provided in config or set by provider-specific config
         # No default region to avoid provider-specific assumptions

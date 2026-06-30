@@ -12,6 +12,7 @@ from ...base.config import (
     DeploymentConfigError,
     DeploymentProvider,
     ServiceConfig,
+    apply_cors_origins_default,
 )
 
 
@@ -126,6 +127,7 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
             secrets=service_data.get("secrets", {}),
             labels=service_data.get("labels", {}),
         )
+        apply_cors_origins_default(service.environment_vars)
 
         # Get GCP-specific config
         gcp_config = data.get("providers", {}).get("gcp", {})
@@ -176,6 +178,7 @@ class GCPDeploymentConfig(BaseDeploymentConfig):
             "secrets": kwargs.pop("secrets", {}),
             "labels": kwargs.pop("labels", {}),
         }
+        apply_cors_origins_default(service_kwargs["environment_vars"])
 
         # Build provider config
         provider_config = {

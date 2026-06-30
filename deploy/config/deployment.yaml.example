@@ -28,6 +28,12 @@ service:
     GCP_PROJECT_ID: your-project-id
     USE_SECRETS_MANAGER: "true"
     SECRETS_PROVIDER: gcp
+    # supply-graph-ai is a public API; the app itself defaults CORS_ORIGINS to
+    # an empty list (deny all) in production when unset, which fails every
+    # browser preflight with 400. BaseDeploymentConfig.from_dict() defaults
+    # this to "*" automatically if omitted here — set it explicitly only if
+    # you want to restrict allowed origins instead.
+    CORS_ORIGINS: "*"
   
   # Secrets (provider-specific format)
   secrets:

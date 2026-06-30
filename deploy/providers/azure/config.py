@@ -12,6 +12,7 @@ from ...base.config import (
     DeploymentConfigError,
     DeploymentProvider,
     ServiceConfig,
+    apply_cors_origins_default,
 )
 
 
@@ -111,6 +112,7 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
             secrets=service_data.get("secrets", {}),
             labels=service_data.get("labels", {}),
         )
+        apply_cors_origins_default(service.environment_vars)
 
         # Get Azure-specific config
         azure_config = data.get("providers", {}).get("azure", {})
@@ -163,6 +165,7 @@ class AzureDeploymentConfig(BaseDeploymentConfig):
             "secrets": kwargs.pop("secrets", {}),
             "labels": kwargs.pop("labels", {}),
         }
+        apply_cors_origins_default(service_kwargs["environment_vars"])
 
         # Build provider config
         provider_config = {

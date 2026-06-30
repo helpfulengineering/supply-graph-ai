@@ -365,6 +365,39 @@ python deploy/scripts/test_azure_deployer.py \
 **Issue:** "Container App Environment not found"  
 **Solution:** The deployer will create it automatically, or create it manually first.
 
+**Issue:** Browser requests to the deployed API fail with `OPTIONS ... 400` (CORS preflight),
+even though `curl`/server-to-server calls work fine.
+**Cause:** `CORS_ORIGINS` was not set when the container was deployed. `src/config/settings.py`
+defaults `CORS_ORIGINS` to an empty list in production when unset, and Starlette's
+`CORSMiddleware` returns 400 for every preflight when `allow_origins` is empty — no origin
+can ever match. Deployments created via `deploy/config/deployment.yaml.example` (or any
+`deployment.yaml` predating this note) won't have it set.
+**Fix:** As of `BaseDeploymentConfig.from_dict()`, `CORS_ORIGINS` defaults to `"*"`
+automatically if omitted from `environment_vars` — redeploying with an up-to-date deployer
+picks this up. To fix a **running** container without a redeploy:
+```bash
+# Azure Container Apps
+az containerapp update \
+  --name <container-app-name> \
+  --resource-group <resource-group> \
+  --set-env-vars CORS_ORIGINS="*"
+
+# Azure App Service (if hosted there instead)
+az webapp config appsettings set \
+  --name <app-name> \
+  --resource-group <resource-group> \
+  --settings CORS_ORIGINS="*"
+```
+Use a comma-separated origin list instead of `"*"` (e.g.
+`CORS_ORIGINS="https://app.example.com,https://staging.example.com"`) if the API should not
+be wildcard-public. Confirm the fix with a preflight check:
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -X OPTIONS <api-url>/v1/api/match \
+  -H 'Origin: https://your-frontend-origin' \
+  -H 'Access-Control-Request-Method: POST'
+# Expect 200, not 400
+```
+
 ---
 
 ## Next Steps
