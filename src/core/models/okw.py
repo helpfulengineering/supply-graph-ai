@@ -862,18 +862,22 @@ class ManufacturingFacility:
             tomli_w.dump(self.to_dict(), f)
 
     def has_process(self, process_name: str) -> bool:
-        """
-        Check if the facility supports a given manufacturing process.
+        """Check if the facility supports a given manufacturing process."""
+        from ..taxonomy import taxonomy
 
-        Matches against manufacturing_processes (exact or substring) and
-        equipment capability descriptions.
-        """
-        process_lower = process_name.lower()
+        req_id = taxonomy.normalize(process_name)
 
         for process_url in self.manufacturing_processes:
-            if process_lower in process_url.lower():
+            if req_id:
+                cap_id = taxonomy.normalize(process_url)
+                if cap_id and (
+                    req_id == cap_id or req_id in (taxonomy.get_ancestors(cap_id) or [])
+                ):
+                    return True
+            if process_name.lower() in process_url.lower():
                 return True
 
+        process_lower = process_name.lower()
         for item in self.equipment:
             if process_lower in item.equipment_type.lower():
                 return True
@@ -881,3 +885,28 @@ class ManufacturingFacility:
                 return True
 
         return False
+
+    def to_spaceapi_json(self) -> Dict:
+        """Serialize to a SpaceAPI-compatible envelope for MoM ingestion."""
+        doc: Dict = {
+            "space": self.name,
+            "state": {"open": self.facility_status == FacilityStatus.ACTIVE},
+        }
+
+        if self.location.gps_coordinates:
+            try:
+                lat_str, lon_str = self.location.gps_coordinates.split(",", 1)
+                doc["location"] = {
+                    "lat": float(lat_str.strip()),
+                    "lon": float(lon_str.strip()),
+                }
+            except (ValueError, AttributeError):
+                pass
+
+        if self.description:
+            doc["description"] = self.description
+
+        if self.manufacturing_processes:
+            doc["ext_fablab"] = {"capabilities": self.manufacturing_processes}
+
+        return doc

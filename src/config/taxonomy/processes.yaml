@@ -55,6 +55,7 @@ processes:
   3d_printing:
     display_name: "3D Printing"
     tsdc_code: "3DP"
+    wikidata_qid: "Q785781"
     aliases:
       - "3dp"
       - "3d printing"
@@ -109,6 +110,7 @@ processes:
   cnc_machining:
     display_name: "CNC Machining"
     tsdc_code: "CNC"
+    wikidata_qid: "Q644395"
     aliases:
       - "cnc"
       - "cnc machining"
@@ -120,6 +122,7 @@ processes:
   cnc_milling:
     display_name: "CNC Milling"
     parent: "cnc_machining"
+    wikidata_qid: "Q179507"
     aliases:
       - "cnc milling"
       - "cnc_milling"
@@ -130,6 +133,7 @@ processes:
   cnc_turning:
     display_name: "CNC Turning"
     parent: "cnc_machining"
+    wikidata_qid: "Q1260093"
     aliases:
       - "cnc turning"
       - "cnc_turning"
@@ -144,6 +148,7 @@ processes:
   laser_cutting:
     display_name: "Laser Cutting"
     tsdc_code: "LAS"
+    wikidata_qid: "Q3062349"
     aliases:
       - "las"
       - "laser"
@@ -158,6 +163,7 @@ processes:
   pcb_fabrication:
     display_name: "PCB Fabrication"
     tsdc_code: "PCB"
+    wikidata_qid: "Q1047286"
     aliases:
       - "pcb"
       - "pcb fabrication"
@@ -200,6 +206,7 @@ processes:
   electronics_assembly:
     display_name: "Electronics Assembly"
     parent: "assembly"
+    wikidata_qid: "Q11650"
     aliases:
       - "electronics assembly"
       - "electronics_assembly"
@@ -222,6 +229,7 @@ processes:
   welding:
     display_name: "Welding"
     tsdc_code: "WEL"
+    wikidata_qid: "Q12544"
     aliases:
       - "wel"
       - "welding"
@@ -436,6 +444,7 @@ processes:
 
   painting:
     display_name: "Painting"
+    wikidata_qid: "Q11629"
     aliases:
       - "painting"
       - "paint"

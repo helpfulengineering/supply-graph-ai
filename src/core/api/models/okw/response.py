@@ -28,6 +28,7 @@ class Capability(BaseModel):
 class OKWResponse(SuccessResponse, LLMResponseMixin):
     """Response model for OKW facilities with standardized fields and LLM information"""
 
+    message: str = "OKW facility operation completed successfully"
     id: UUID
     name: str
     location: Dict[str, Any]
