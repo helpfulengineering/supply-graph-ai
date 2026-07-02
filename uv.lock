@@ -855,6 +855,14 @@ wheels = [
 ]
 
 [[package]]
+name = "en-core-web-md"
+version = "3.8.0"
+source = { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl" }
+wheels = [
+    { url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl", hash = "sha256:5e6329fe3fecedb1d1a02c3ea2172ee0fede6cea6e4aefb6a02d832dba78a310" },
+]
+
+[[package]]
 name = "faker"
 version = "40.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3174,6 +3182,7 @@ dependencies = [
     { name = "boto3" },
     { name = "click" },
     { name = "cryptography" },
+    { name = "en-core-web-md" },
     { name = "faker" },
     { name = "fastapi" },
     { name = "geopy" },
@@ -3232,6 +3241,7 @@ requires-dist = [
     { name = "boto3", specifier = ">=1.26.0" },
     { name = "click" },
     { name = "cryptography", specifier = ">=48.0.1" },
+    { name = "en-core-web-md", url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl" },
     { name = "faker", specifier = ">=19.0.0" },
     { name = "fastapi", specifier = ">=0.120.0" },
     { name = "geopy", specifier = ">=2.3.0" },

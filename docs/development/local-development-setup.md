@@ -58,14 +58,23 @@ The Supply Graph AI server provides the matching engine API that the frontend co
 cd supply-graph-ai
 ```
 
-#### Step 2: Install Python dependencies with uv
+#### Step 2: Provision the environment (one step)
 
 From the `supply-graph-ai` directory:
 
 ```bash
-# Create .venv, install locked deps, and the `ohm` entrypoint (includes dev tools for tests)
-uv sync --extra dev
+make setup
 ```
+
+This creates `.venv`, installs all locked dependencies (including the spaCy
+NLP model `en_core_web_md`, which is pinned in `uv.lock`), and verifies the
+environment is fully online. It is idempotent — re-run it any time to repair or
+refresh your environment.
+
+> **Why not `python -m spacy download`?** The spaCy model is a pinned dependency
+> in `pyproject.toml`/`uv.lock`, so `uv sync` installs and preserves it.
+> Installing it out-of-band leaves it untracked, and uv's exact sync then
+> deletes it on the next `uv run`/`uv sync` — the model would keep "disappearing."
 
 Optional docs / MkDocs plugins:
 
@@ -73,32 +82,19 @@ Optional docs / MkDocs plugins:
 uv sync --extra docs
 ```
 
-#### Step 3: Install spaCy models
-
-The NLP matching functionality requires spaCy language models. Install the recommended model:
-
-```bash
-uv run python -m spacy download en_core_web_md
-
-# Optional: larger model (more disk)
-# uv run python -m spacy download en_core_web_lg
-```
-
-**Note**: The system will automatically fall back to `en_core_web_sm` if the preferred models are not available, but the medium model (`en_core_web_md`) provides better semantic similarity matching with word vectors.
-
-#### Step 4: Create Logs Directory (if needed)
+#### Step 3: Create Logs Directory (if needed)
 ```bash
 mkdir -p logs
 ```
 
-#### Step 5: Start the Server
+#### Step 4: Start the Server
 ```bash
 docker compose up --build ohm-api
 ```
 
 The server will start on **http://localhost:8001**
 
-#### Step 6: Verify Installation
+#### Step 5: Verify Installation
 - Open your browser to: **http://localhost:8001/v1/docs**
 - You should see the FastAPI interactive documentation for the versioned API
 - Health check: **http://localhost:8001/health**
@@ -310,29 +306,30 @@ kill -9 <PID>
 
 #### 2. Python environment issues (uv)
 ```bash
-# Recreate the project venv from the lockfile
+# Recreate and re-verify the project venv from the lockfile
 rm -rf .venv
-uv sync --extra dev
+make setup
 ```
 
 #### 2a. spaCy Model Not Found
-If you see warnings about spaCy models not being found:
+If you see warnings about spaCy models not being found, your environment is out
+of sync with the lockfile (the model `en_core_web_md` is a pinned dependency).
+Re-provision it:
 ```bash
-# Verify spaCy is installed
-uv run python -c "import spacy; print(spacy.__version__)"
-
-# Check available models
-uv run python -m spacy info
-
-# Install the recommended model
-uv run python -m spacy download en_core_web_md
+make setup
 ```
 
-**Symptoms**: You may see warnings like:
-- `spaCy model 'en_core_web_md' not found, trying next...`
-- `[W007] The model you're using has no word vectors loaded`
+`make setup` runs a verification step that fails loudly if the model cannot
+load, so a broken environment is caught immediately rather than silently
+degrading matching to the string/heuristic layers. To check the model directly:
+```bash
+make verify-env
+# or: uv run python -m spacy info
+```
 
-**Solution**: Install the spaCy model as shown above. The system will work with `en_core_web_sm` (installed by default), but `en_core_web_md` provides better semantic matching.
+**Do not** run `python -m spacy download` — installing the model out-of-band
+leaves it untracked, and uv's exact sync will delete it on the next
+`uv run`/`uv sync`.
 
 #### 3. Node.js Dependencies Issues
 ```bash

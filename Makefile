@@ -1,5 +1,20 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map validate-docs parity ready
+.PHONY: format format-check lint test check black ruff repo-map validate-docs parity ready setup verify-env
+
+# One-step contributor setup. Provisions the full uv-managed environment (all
+# dependencies incl. the pinned spaCy model) and verifies it is fully online.
+# Idempotent — safe to re-run any time to repair/refresh the environment.
+setup:
+	@command -v uv >/dev/null 2>&1 || { \
+	  echo "uv not found. Install it: https://docs.astral.sh/uv/getting-started/installation/"; \
+	  exit 1; }
+	uv sync --extra dev
+	$(MAKE) verify-env
+
+# Fail loudly if a historically fragile dependency is missing or unloadable.
+# Pure verification (no mutation), so it is also a step in the `ready` gate.
+verify-env:
+	uv run python scripts/verify_dev_env.py
 
 format: black ruff repo-map
 
@@ -34,9 +49,10 @@ parity:
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.
 ready:
-	@echo "==> [1/5] format check";    $(MAKE) format-check
-	@echo "==> [2/5] lint";            $(MAKE) lint
-	@echo "==> [3/5] unit tests";      $(MAKE) test
-	@echo "==> [4/5] service parity";  $(MAKE) parity
-	@echo "==> [5/5] docs ↔ code";     $(MAKE) validate-docs
+	@echo "==> [1/6] env verify";      $(MAKE) verify-env
+	@echo "==> [2/6] format check";    $(MAKE) format-check
+	@echo "==> [3/6] lint";            $(MAKE) lint
+	@echo "==> [4/6] unit tests";      $(MAKE) test
+	@echo "==> [5/6] service parity";  $(MAKE) parity
+	@echo "==> [6/6] docs ↔ code";     $(MAKE) validate-docs
 	@echo "==> READY: all gates passed."

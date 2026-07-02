@@ -89,8 +89,8 @@ cd supply-graph-ai
 # 2. Create your environment file
 cp env.template .env
 
-# 3. Install all dependencies (if needed)
-uv sync
+# 3. Provision the environment (one step)
+make setup
 
 # 4. Activate the virtual environment
 source .venv/bin/activate          # macOS / Linux
@@ -103,11 +103,11 @@ ohm --help
 docker compose up -d ohm-api
 ```
 
-To include development dependencies (**pytest must live in this venv** so `uv run pytest` does not pick up a foreign interpreter from `PATH`):
-
-```bash
-uv sync --extra dev
-```
+`make setup` creates `.venv`, installs **all** dependencies (runtime + dev tools
+for tests, so `uv run pytest` uses this venv rather than a foreign interpreter on
+`PATH`), **including the spaCy NLP model** `en_core_web_md` — which is pinned in
+`uv.lock`, so you never install it by hand. It then verifies the environment is
+fully online, and is safe to re-run any time to repair or refresh it.
 
 You can also run one-off commands without activating the venv:
 
@@ -250,7 +250,7 @@ docker compose up --build ohm-api
 # Interactive docs:  http://localhost:8001/v1/docs
 ```
 
-### CLI commands (requires uv setup from Option B above)
+### CLI commands (requires uv setup from Option C above)
 
 ```bash
 # Health check
