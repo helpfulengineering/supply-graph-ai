@@ -16,7 +16,6 @@ import pytest
 
 from src.core.generation.platforms.local_git import LocalGitExtractor
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

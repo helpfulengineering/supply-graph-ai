@@ -16,7 +16,6 @@ import pytest
 
 from src.core.nlp.spacy_loader import clear_spacy_cache_for_tests, load_spacy_english
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
