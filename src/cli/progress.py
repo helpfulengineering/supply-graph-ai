@@ -5,7 +5,7 @@ import click
 
 def should_render_progress(output_format: str) -> bool:
     """Return True when human-readable progress lines should be shown."""
-    return output_format != "json"
+    return True
 
 
 def build_status_line(step: str, index: int, total: int) -> str:
@@ -14,6 +14,10 @@ def build_status_line(step: str, index: int, total: int) -> str:
 
 
 def emit_status_line(output_format: str, step: str, index: int, total: int) -> None:
-    """Emit status lines for human-readable output only."""
-    if should_render_progress(output_format):
-        click.echo(build_status_line(step=step, index=index, total=total))
+    """Emit status lines to stderr.
+
+    In JSON mode stdout must stay clean for piping, so progress always goes to
+    stderr.  In text mode it also goes to stderr so it doesn't mix with any
+    printed output.
+    """
+    click.echo(build_status_line(step=step, index=index, total=total), err=True)

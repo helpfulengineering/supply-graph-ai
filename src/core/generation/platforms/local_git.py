@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 class _RetryWithoutAuth(Exception):
-    """Sentinel raised inside _fetch_github_supplementary_metadata to trigger an unauthenticated retry."""
+    """Sentinel: the last fetch attempt returned HTTP 401 (auth required or token invalid)."""
 
 
 from ..models import DocumentInfo, FileInfo, PlatformType, ProjectData
@@ -313,8 +313,9 @@ class LocalGitExtractor(ProjectExtractor):
                     topics = repo_data.get("topics", [])
                     if topics:
                         partial["topics"] = topics
-                elif repo_response.status_code == 401 and auth_token:
-                    # Invalid token — retry without auth to get unauthenticated response
+                elif repo_response.status_code == 401:
+                    # 401 without a token means the repo requires auth (private);
+                    # 401 with a token means the token is invalid.
                     raise _RetryWithoutAuth()
                 elif repo_response.status_code == 403:
                     logger.warning(
@@ -333,17 +334,29 @@ class LocalGitExtractor(ProjectExtractor):
                         partial["tag_name"] = tag
             return partial
 
+        # Default to unauthenticated — most open-hardware repos are public and
+        # do not require a token.  Only escalate to the token when the public
+        # endpoint returns 401 (private repo or auth-required scope).
         try:
-            result = await _do_fetch(token)
+            result = await _do_fetch(None)
         except _RetryWithoutAuth:
-            logger.warning(
-                "GitHub token rejected (HTTP 401) — retrying without authentication"
-            )
-            try:
-                result = await _do_fetch(None)
-            except Exception as e:
-                logger.warning(
-                    f"GitHub supplementary metadata fetch failed (non-fatal): {e}"
+            if token:
+                logger.debug(
+                    "GitHub unauthenticated fetch returned 401 — retrying with token"
+                )
+                try:
+                    result = await _do_fetch(token)
+                except _RetryWithoutAuth:
+                    logger.warning(
+                        "GitHub token rejected (HTTP 401) — supplementary metadata unavailable"
+                    )
+                except Exception as e:
+                    logger.warning(
+                        f"GitHub supplementary metadata fetch failed (non-fatal): {e}"
+                    )
+            else:
+                logger.debug(
+                    "GitHub supplementary fetch returned 401 and no token is configured — skipping"
                 )
         except Exception as e:
             logger.warning(

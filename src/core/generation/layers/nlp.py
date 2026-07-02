@@ -297,7 +297,10 @@ class NLPMatcher(BaseGenerationLayer):
         """Process project data using NLP analysis"""
         if not self.nlp:
             result = LayerResult(GenerationLayer.NLP)
-            result.add_error("spaCy model not available")
+            result.add_error(
+                "spaCy model not available — NLP layer skipped. "
+                "Install with: python -m spacy download en_core_web_sm"
+            )
             return result
 
         result = LayerResult(GenerationLayer.NLP)

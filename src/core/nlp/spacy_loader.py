@@ -61,12 +61,11 @@ def load_spacy_english() -> Optional[Any]:
             logger.debug("spaCy model %r not installed or not loadable", name)
 
     if not _no_model_logged:
-        # Avoid noisy CLI defaults: use DEBUG. Hint: set logging level or install models.
-        logger.debug(
+        logger.warning(
             "No spaCy English model could be loaded (tried: %s). "
-            "NLP-based generation/matching will use fallbacks. "
-            "To enable: pip install spacy && python -m spacy download en_core_web_sm "
-            "(or set OHM_SPACY_MODELS to a comma-separated list of model names you have).",
+            "NLP-based generation/matching will use regex fallbacks. "
+            "To enable full NLP: python -m spacy download en_core_web_sm "
+            "(or set OHM_SPACY_MODELS to a comma-separated list of installed model names).",
             ", ".join(_model_candidates()),
         )
         _no_model_logged = True
