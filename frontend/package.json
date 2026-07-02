@@ -29,6 +29,7 @@
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.2",
     "lucide-react": "^1.23.0",
+    "openapi-fetch": "^0.17.0",
     "react": "^19.0.0",
     "react-cytoscapejs": "^2.0.0",
     "react-dom": "^19.0.0",

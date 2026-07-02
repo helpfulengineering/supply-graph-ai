@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { fetchOkhList } from "../../api/okh";
+import { fetchOkhList } from "../../api/ohm/okh";
 import type { OkhManifest } from "../../types/okh";
 
 export type SortField = "title" | "version" | "documentation_language";
