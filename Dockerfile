@@ -30,8 +30,10 @@ COPY config/ ./config/
 
 RUN uv sync --frozen --no-dev --no-editable
 
-# Required for NLP processing
-RUN python -m spacy download en_core_web_md
+# The spaCy model (en_core_web_md) is a pinned dependency in pyproject.toml /
+# uv.lock, so the syncs above already installed it into /opt/venv. No separate
+# `spacy download` step — that installed it untracked, and uv's exact sync then
+# removed it on subsequent syncs.
 
 # Stage 2: Runtime image
 FROM python:3.12-slim AS runtime

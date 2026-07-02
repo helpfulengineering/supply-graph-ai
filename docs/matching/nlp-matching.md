@@ -368,12 +368,15 @@ python -m spacy download en_core_web_lg
 
 #### spaCy Model Not Found
 ```
-OSError: [E050] Can't find model 'en_core_web_sm'
+OSError: [E050] Can't find model 'en_core_web_md'
 ```
-**Solution**: Install spaCy model:
+**Solution**: Re-provision the environment — the model is a pinned dependency in
+`uv.lock`, so this reinstalls it:
 ```bash
-python -m spacy download en_core_web_sm
+make setup
 ```
+Do **not** run `python -m spacy download`: an out-of-band install is untracked
+and uv's exact sync deletes it on the next `uv run`/`uv sync`.
 
 #### Memory Issues
 ```
