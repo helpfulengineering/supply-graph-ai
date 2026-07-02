@@ -1,5 +1,15 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map validate-docs parity ready setup verify-env
+.PHONY: format format-check lint test check black ruff repo-map validate-docs parity ready setup verify-env frontend-setup frontend-ready
+
+# Web frontend verification harness (the frontend analogue of `ready`).
+# See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
+# mocked E2E + a11y + screenshots lane; nonzero on any failure.
+frontend-ready:
+	cd frontend && npm run frontend-ready
+
+# One-step frontend contributor setup: install JS deps + Playwright browser.
+frontend-setup:
+	cd frontend && npm ci && npx playwright install chromium
 
 # One-step contributor setup. Provisions the full uv-managed environment (all
 # dependencies incl. the pinned spaCy model) and verifies it is fully online.

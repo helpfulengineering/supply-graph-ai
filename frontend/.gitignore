@@ -2,3 +2,13 @@ node_modules/
 dist/
 .env
 *.local
+
+# Harness artifacts (screenshots, playwright reports, test results) — regenerable
+artifacts/
+playwright/.cache/
+test-results/
+
+# Re-include shadcn's src/lib/ — the repo-root .gitignore has a broad `lib/`
+# pattern (for Python build output) that would otherwise swallow it.
+!/src/lib/
+

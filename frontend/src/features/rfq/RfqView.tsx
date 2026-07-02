@@ -53,6 +53,7 @@ export function RfqView({ navState }: Props) {
   const { okhId, okhTitle, okhFunction, okhVersion, solutions } = navState;
 
   // Fetch the full manifest so we can embed it in the RFQ output
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- legacy reference page: conditional hook after early return. RFQ is out of v1 scope (PRD #184) and this page is slated for removal/rebuild; not refactoring throwaway code.
   const { data: fullManifest } = useQuery({
     queryKey: ["okh-detail-rfq", okhId],
     queryFn: () => fetchOkhDetail(okhId),
