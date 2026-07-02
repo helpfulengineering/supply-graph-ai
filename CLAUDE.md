@@ -4,7 +4,7 @@
 
 Passing unit tests is **not** "ready to merge." Before claiming a change is
 done, run `make ready` and show its output — it is the gate (format, lint,
-tests, service↔API↔CLI parity, docs, live E2E), not a green pytest run.
+tests, service↔API↔CLI parity, docs), not a green pytest run.
 
 A new or changed service is not done until its API endpoint, CLI command, and
 docs land in the **same change**. If a service is intentionally not exposed,
