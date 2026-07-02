@@ -41,7 +41,7 @@ export function NavBar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-slate-400 dark:text-slate-500">Reference Frontend v0.1</span>
+          <span className="text-xs text-slate-500 dark:text-slate-400">Reference Frontend v0.1</span>
           <button
             onClick={toggle}
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

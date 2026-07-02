@@ -1,0 +1,11 @@
+{
+  "$comment": "Project-specific config for the reusable web-UI verification harness. The generic harness core (vitest/playwright configs, gate runner, api-type generation) reads these values so the core can be lifted into other projects unchanged.",
+  "appStartCommand": "npm run dev",
+  "appUrl": "http://localhost:5173",
+  "apiBaseUrl": "http://localhost:8001",
+  "apiHealthUrl": "http://localhost:8001/health",
+  "apiPathPrefix": "/v1/api",
+  "openapiUrl": "http://localhost:8001/v1/openapi.json",
+  "apiTypesOutput": "src/api/generated/schema.d.ts",
+  "routesToScreenshot": ["/", "/okh", "/match"]
+}
