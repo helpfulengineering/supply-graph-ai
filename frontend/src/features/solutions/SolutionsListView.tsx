@@ -68,7 +68,13 @@ export function SolutionsListView() {
                   {Math.round(s.score * 100)}%
                 </Badge>
               </div>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-500">
+              {s.facility_name && (
+                <p className="-mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  <span aria-hidden="true">→ </span>
+                  {s.facility_name}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
                 <span>
                   {s.facility_count} facilit{s.facility_count !== 1 ? "ies" : "y"}
                 </span>
