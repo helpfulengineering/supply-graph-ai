@@ -505,8 +505,11 @@ async def match_requirements_to_capabilities(
                     best_solution_dict = solutions[0]
                     tree_dict = best_solution_dict.get("tree", {})
                     tree = SupplyTree.from_dict(tree_dict)
+                    tree_meta = tree.metadata or {}
 
-                    # Create SupplyTreeSolution from single tree
+                    # Create SupplyTreeSolution from single tree. Capture a
+                    # human-readable identity (design title + primary facility)
+                    # so saved solutions list under a friendly name, not a UUID.
                     solution = SupplyTreeSolution(
                         all_trees=[tree],
                         score=best_solution_dict.get(
@@ -515,6 +518,11 @@ async def match_requirements_to_capabilities(
                         metrics=best_solution_dict.get("metrics", {}),
                         metadata={
                             "okh_id": str(request.okh_id) if request.okh_id else None,
+                            "okh_title": tree_meta.get("okh_title"),
+                            "facility_name": (
+                                best_solution_dict.get("facility_name")
+                                or tree_meta.get("facility_name")
+                            ),
                             "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                         },
                     )
