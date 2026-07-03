@@ -5,6 +5,7 @@ export interface SolutionSummary {
   id: string;
   okh_id: string | null;
   okh_title: string | null;
+  facility_name: string | null;
   matching_mode: string | null;
   tree_count: number;
   facility_count: number;

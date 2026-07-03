@@ -9,6 +9,7 @@ describe("listSolutions", () => {
     const solutions = await listSolutions();
     expect(solutions).toHaveLength(2);
     expect(solutions.map((s) => s.okh_title)).toContain("Open Ventilator");
+    expect(solutions[0].facility_name).toBe("FabLab Drome");
     expect(solutions[0].facility_count).toBe(2);
   });
 

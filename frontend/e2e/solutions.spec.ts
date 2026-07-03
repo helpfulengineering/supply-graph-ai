@@ -12,6 +12,8 @@ test("lists saved solutions and loads one into the explorer (mocked)", async ({ 
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
   await page.goto("/solutions");
   await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeVisible();
+  // Friendly identity: the primary facility is shown alongside the design title (review #2).
+  await expect(page.getByText("FabLab Drome")).toBeVisible();
   await expect(page.getByText("95%")).toBeVisible();
   // Loading a solution navigates into the supply-tree explorer.
   await page.getByRole("link", { name: /open ventilator/i }).click();
