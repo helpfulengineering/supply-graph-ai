@@ -2,6 +2,7 @@ import { http, HttpResponse } from "msw";
 import {
   domainsFixture,
   healthFixture,
+  matchResponseFixture,
   okhDetailFixture,
   okhListFixture,
   okwDetailFixture,
@@ -20,4 +21,5 @@ export const handlers = [
   http.get("*/v1/api/okw/search", () => HttpResponse.json(okwSearchFixture)),
   http.get("*/v1/api/okw/:id", () => HttpResponse.json(okwDetailFixture)),
   http.post("*/v1/api/okw/validate", () => HttpResponse.json(validationResultFixture)),
+  http.post("*/v1/api/match", () => HttpResponse.json(matchResponseFixture)),
 ];

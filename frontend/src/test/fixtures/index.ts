@@ -133,6 +133,35 @@ export const okwDetailFixture = {
   certifications: ["ISO 9001:2015", "OHSAS 18001"],
 };
 
+/** Match response envelope: solutions + summary + coverage gaps under `data`. */
+export const matchResponseFixture = {
+  data: {
+    solutions: [
+      {
+        facility_name: "FabLab Drome",
+        facility_id: "okw-1",
+        confidence: 0.95,
+        score: 0.95,
+        rank: 1,
+        explanation_human: "✓ FabLab Drome MATCHED (confidence: 95%)\nAll requirements satisfied.",
+        tree: { id: "tree-1" },
+      },
+      {
+        facility_name: "Community Makerspace",
+        facility_id: "okw-2",
+        confidence: 0.6,
+        score: 0.6,
+        rank: 2,
+        explanation_human: "Partial match; some processes unmet.",
+        tree: { id: "tree-2" },
+      },
+    ],
+    coverage_gaps: ["CNC Machining"],
+    human_summary: { executive: "2 candidate solutions found; coverage 1/2." },
+    total_solutions: 2,
+  },
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
@@ -143,4 +172,5 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/search": okwSearchFixture,
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/match": matchResponseFixture,
 };
