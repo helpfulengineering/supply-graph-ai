@@ -33,6 +33,7 @@ export function App() {
               <Route path="okh" element={<OkhPage />} />
               <Route path="okh/:id" element={<OkhPage />} />
               <Route path="facilities" element={<OkwPage />} />
+              <Route path="facilities/:id" element={<OkwPage />} />
               <Route path="match" element={<MatchPage />} />
               <Route path="visualization" element={<VisualizationPage />} />
               <Route path="visualization/:solutionId" element={<VisualizationPage />} />

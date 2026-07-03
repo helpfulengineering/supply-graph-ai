@@ -122,6 +122,17 @@ export const okwSearchFixture = {
 
 export const okwSearchEmptyFixture = { results: [], total: 0, page: 1, page_size: 100 };
 
+/** A single OKW facility (detail payload) with equipment + certifications. */
+export const okwDetailFixture = {
+  ...okwSearchFixture.results[0],
+  description: "A membership laser-cutting lab in Austin.",
+  equipment: [
+    { make: "Trotec", model: "LS-1630", equipment_type: "https://en.wikipedia.org/wiki/Laser_cutter" },
+    { make: "Epilog", model: "Fusion Pro", equipment_type: "https://en.wikipedia.org/wiki/Laser_engraving" },
+  ],
+  certifications: ["ISO 9001:2015", "OHSAS 18001"],
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
@@ -130,4 +141,6 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okh/okh-0001": okhDetailFixture,
   "/v1/api/okh/validate": validationResultFixture,
   "/v1/api/okw/search": okwSearchFixture,
+  "/v1/api/okw/okw-1": okwDetailFixture,
+  "/v1/api/okw/validate": validationResultFixture,
 };

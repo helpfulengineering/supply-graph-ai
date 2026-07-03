@@ -1,5 +1,8 @@
 import { apiClient, ApiError, errorMessage } from "./client";
 import type { OkwFacility } from "../../types/okw";
+import type { components } from "../generated/schema";
+
+export type ValidationResult = components["schemas"]["ValidationResult"];
 
 export interface OkwSearchResult {
   results: OkwFacility[];
@@ -55,4 +58,34 @@ export async function searchOkw(
     page: body.page ?? 1,
     page_size: body.page_size ?? 0,
   };
+}
+
+/** Fetch a single OKW facility by id (fields returned at the top level). */
+export async function fetchOkwDetail(id: string): Promise<OkwFacility> {
+  const { data, error, response } = await apiClient.GET("/api/okw/{id}", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load facility (HTTP ${response.status})`),
+    );
+  }
+  return data as unknown as OkwFacility;
+}
+
+/** Validate an OKW facility against domain rules; returns the validation result. */
+export async function validateOkw(
+  content: Record<string, unknown>,
+): Promise<ValidationResult> {
+  const { data, error, response } = await apiClient.POST("/api/okw/validate", {
+    body: { content },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Validation failed (HTTP ${response.status})`),
+    );
+  }
+  return data as ValidationResult;
 }

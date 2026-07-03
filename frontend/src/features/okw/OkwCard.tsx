@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Badge } from "../../components/ui/Badge";
 import type { OkwFacility } from "../../types/okw";
 import { humanizeProcess } from "./processDisplay";
@@ -15,9 +16,12 @@ export function OkwCard({ facility }: { facility: OkwFacility }) {
   const processes = (facility.manufacturing_processes ?? []).map(humanizeProcess);
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <Link
+      to={`/facilities/${facility.id}`}
+      className="group flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm no-underline transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900"
+    >
       <div>
-        <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+        <h3 className="font-semibold text-slate-800 group-hover:text-indigo-600 dark:text-slate-100 dark:group-hover:text-indigo-400">
           {facility.name || "Unnamed facility"}
         </h3>
         {location && (
@@ -42,6 +46,6 @@ export function OkwCard({ facility }: { facility: OkwFacility }) {
           </Badge>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
