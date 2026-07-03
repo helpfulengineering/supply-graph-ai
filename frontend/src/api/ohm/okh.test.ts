@@ -7,9 +7,9 @@ import { fetchOkhList } from "./okh";
 describe("fetchOkhList", () => {
   it("returns narrowed items and pagination from the paginated envelope", async () => {
     const result = await fetchOkhList();
-    expect(result.items).toHaveLength(2);
+    expect(result.items).toHaveLength(3);
     expect(result.items.map((i) => i.title)).toContain("Open Ventilator");
-    expect(result.pagination.total_items).toBe(2);
+    expect(result.pagination.total_items).toBe(3);
   });
 
   it("passes paging/sort/filter as query params", async () => {

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Layout } from "./components/layout/Layout";
 import { HomePage } from "./pages/HomePage";
 import { OkhPage } from "./pages/OkhPage";
+import { OkwPage } from "./pages/OkwPage";
 import { MatchPage } from "./pages/MatchPage";
 import { VisualizationPage } from "./pages/VisualizationPage";
 import { RfqPage } from "./pages/RfqPage";
@@ -31,6 +32,7 @@ export function App() {
               <Route index element={<HomePage />} />
               <Route path="okh" element={<OkhPage />} />
               <Route path="okh/:id" element={<OkhPage />} />
+              <Route path="facilities" element={<OkwPage />} />
               <Route path="match" element={<MatchPage />} />
               <Route path="visualization" element={<VisualizationPage />} />
               <Route path="visualization/:solutionId" element={<VisualizationPage />} />

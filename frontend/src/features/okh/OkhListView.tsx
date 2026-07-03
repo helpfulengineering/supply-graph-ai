@@ -1,17 +1,10 @@
-import { useOkhList } from "./useOkhList";
+import { useState } from "react";
+import { useOkhCatalog } from "./useOkhList";
 import { OkhCard } from "./OkhCard";
+import { FacetPanel } from "./FacetPanel";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Pagination } from "../../components/ui/Pagination";
-import type { SortField, SortOrder } from "./useOkhList";
-
-const SORT_OPTIONS: { label: string; field: SortField; order: SortOrder }[] = [
-  { label: "Title A→Z", field: "title", order: "asc" },
-  { label: "Title Z→A", field: "title", order: "desc" },
-  { label: "Version A→Z", field: "version", order: "asc" },
-  { label: "Version Z→A", field: "version", order: "desc" },
-  { label: "Language A→Z", field: "documentation_language", order: "asc" },
-];
 
 export function OkhListView() {
   const {
@@ -19,122 +12,124 @@ export function OkhListView() {
     totalItems,
     totalPages,
     safePage,
+    facetGroups,
+    selections,
+    selectedCount,
     filterText,
-    sortField,
-    sortOrder,
     isLoading,
     isError,
     error,
     refetch,
+    toggleFacet,
+    clearFacets,
+    setFilterText,
     setPage,
-    handleFilterChange,
-    handleSortChange,
     PAGE_SIZE,
-  } = useOkhList();
+  } = useOkhCatalog();
 
-  const selectedSortKey = `${sortField}:${sortOrder}`;
+  const [showFilters, setShowFilters] = useState(false);
+
+  const panel = (
+    <FacetPanel
+      groups={facetGroups}
+      selections={selections}
+      selectedCount={selectedCount}
+      onToggle={toggleFacet}
+      onClear={clearFacets}
+    />
+  );
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
-          Open Hardware Designs
-        </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Browse OKH manifests and run facility matching.
+        <h1 className="text-2xl font-bold text-foreground">Open Hardware Designs</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Browse designs by category and capability, then run facility matching.
         </p>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {/* Search */}
-        <div className="relative flex-1 max-w-md">
-          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
-            🔍
-          </span>
-          <input
-            type="search"
-            placeholder="Filter by title, function, process…"
-            value={filterText}
-            onChange={(e) => handleFilterChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-indigo-500 dark:focus:ring-indigo-900"
-          />
-        </div>
+      <div className="flex gap-8">
+        {/* Facet sidebar (desktop) */}
+        <aside className="hidden w-60 shrink-0 lg:block">{panel}</aside>
 
-        {/* Sort */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
-            Sort by
-          </label>
-          <select
-            value={selectedSortKey}
-            onChange={(e) => {
-              const [field, order] = e.target.value.split(":") as [SortField, SortOrder];
-              handleSortChange(field, order);
-            }}
-            className="rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm text-slate-700 focus:border-indigo-400 focus:outline-none dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200"
-          >
-            {SORT_OPTIONS.map(({ label, field, order }) => (
-              <option key={`${field}:${order}`} value={`${field}:${order}`}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      {/* Results count */}
-      {!isLoading && !isError && (
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          {filterText
-            ? `${totalItems} result${totalItems !== 1 ? "s" : ""} matching "${filterText}"`
-            : `${totalItems} design${totalItems !== 1 ? "s" : ""} total`}
-        </p>
-      )}
-
-      {/* States */}
-      {isLoading && <LoadingState message="Loading designs…" />}
-      {isError && (
-        <ErrorState
-          description={error instanceof Error ? error.message : "Failed to load designs."}
-          onRetry={() => refetch()}
-        />
-      )}
-
-      {/* Grid */}
-      {!isLoading && !isError && pageItems.length === 0 && (
-        <EmptyState
-          icon="🔩"
-          title="No designs found"
-          description={filterText ? `No designs match "${filterText}". Try a different search.` : "No OKH designs are available."}
-          action={
-            filterText ? (
-              <Button variant="outline" size="sm" onClick={() => handleFilterChange("")}>
-                Clear filter
-              </Button>
-            ) : undefined
-          }
-        />
-      )}
-
-      {!isLoading && !isError && pageItems.length > 0 && (
-        <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {pageItems.map((okh) => (
-              <OkhCard key={okh.id} okh={okh} />
-            ))}
+        <div className="min-w-0 flex-1 space-y-4">
+          {/* Controls */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <input
+              type="search"
+              aria-label="Search designs"
+              placeholder="Search designs…"
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full max-w-md rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="lg:hidden"
+              onClick={() => setShowFilters((v) => !v)}
+            >
+              Filters{selectedCount > 0 ? ` (${selectedCount})` : ""}
+            </Button>
           </div>
 
-          <Pagination
-            page={safePage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            pageSize={PAGE_SIZE}
-            onPage={setPage}
-          />
-        </>
-      )}
+          {/* Facet panel (mobile disclosure) */}
+          {showFilters && (
+            <div className="rounded-lg border p-4 lg:hidden">{panel}</div>
+          )}
+
+          {!isLoading && !isError && (
+            <p className="text-xs text-muted-foreground">
+              {totalItems} design{totalItems !== 1 ? "s" : ""}
+              {selectedCount > 0 || filterText ? " (filtered)" : ""}
+            </p>
+          )}
+
+          {isLoading && <LoadingState message="Loading designs…" />}
+          {isError && (
+            <ErrorState
+              description={error instanceof Error ? error.message : "Failed to load designs."}
+              onRetry={() => refetch()}
+            />
+          )}
+
+          {!isLoading && !isError && pageItems.length === 0 && (
+            <EmptyState
+              icon="🔩"
+              title="No designs found"
+              description={
+                selectedCount > 0 || filterText
+                  ? "No designs match the current filters."
+                  : "No OKH designs are available."
+              }
+              action={
+                selectedCount > 0 || filterText ? (
+                  <Button variant="outline" size="sm" onClick={clearFacets}>
+                    Clear filters
+                  </Button>
+                ) : undefined
+              }
+            />
+          )}
+
+          {!isLoading && !isError && pageItems.length > 0 && (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {pageItems.map((okh) => (
+                  <OkhCard key={okh.id} okh={okh} />
+                ))}
+              </div>
+              <Pagination
+                page={safePage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                pageSize={PAGE_SIZE}
+                onPage={setPage}
+              />
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
