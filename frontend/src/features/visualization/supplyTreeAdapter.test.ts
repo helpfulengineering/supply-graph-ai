@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { VisualizationData } from "../../types/supply-tree";
-import { deriveKpis, isSolutionEmpty } from "./supplyTreeAdapter";
+import {
+  deriveKpis,
+  isSolutionEmpty,
+  toDependencies,
+  toProductionSequence,
+} from "./supplyTreeAdapter";
 
 function bundle(over: Partial<VisualizationData> = {}): VisualizationData {
   return {
@@ -53,5 +58,30 @@ describe("supplyTreeAdapter", () => {
     expect(isSolutionEmpty(bundle())).toBe(false);
     const empty = bundle({ supply_tree: { ...bundle().supply_tree, nodes: [] } });
     expect(isSolutionEmpty(empty)).toBe(true);
+  });
+
+  const seqBundle = bundle({
+    supply_tree: {
+      ...bundle().supply_tree,
+      nodes: [{ id: "n1", label: "Frame" } as never, { id: "n2", label: "Base" } as never],
+      production_sequence: [["n2"], ["n1"]],
+      dependency_graph: { n1: ["n2"] },
+    },
+  });
+
+  it("labels production-sequence stages in order", () => {
+    expect(toProductionSequence(seqBundle)).toEqual([
+      { index: 1, items: ["Base"] },
+      { index: 2, items: ["Frame"] },
+    ]);
+  });
+
+  it("labels dependencies and skips nodes with none", () => {
+    expect(toDependencies(seqBundle)).toEqual([{ node: "Frame", dependsOn: ["Base"] }]);
+  });
+
+  it("returns empty sequence/deps for a bare solution", () => {
+    expect(toProductionSequence(bundle())).toEqual([]);
+    expect(toDependencies(bundle())).toEqual([]);
   });
 });
