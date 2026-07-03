@@ -1009,8 +1009,7 @@ async def create_okw_facility(
         return OKWUploadResponse(
             success=True,
             message="OKW facility created and stored successfully",
-            facility=okw_response,
-            facility_id=str(facility.id),
+            okw=okw_response,
         )
     except HTTPException:
         raise
