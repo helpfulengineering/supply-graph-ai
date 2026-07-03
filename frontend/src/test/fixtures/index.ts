@@ -14,7 +14,21 @@ export const healthFixture = {
 };
 
 export const domainsFixture = {
-  domains: ["manufacturing", "cooking"],
+  data: {
+    domains: [
+      { id: "manufacturing", name: "Manufacturing", description: "Hardware manufacturing" },
+      { id: "cooking", name: "Cooking & Food Prep", description: "Recipe matching" },
+    ],
+  },
+};
+
+export const metricsFixture = {
+  data: {
+    total_requests: 1094,
+    recent_requests_1h: 111,
+    active_requests: 1,
+    error_summary: { total_errors: 0 },
+  },
 };
 
 /** A minimal OKH manifest shaped like the list payload the UI renders. */
@@ -244,6 +258,7 @@ export const solutionsEmptyFixture = { data: { result: [] } };
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
+  "/v1/api/utility/metrics": metricsFixture,
   "/v1/api/okh": okhListFixture,
   "/v1/api/okh/okh-0001": okhDetailFixture,
   "/v1/api/okh/validate": validationResultFixture,
