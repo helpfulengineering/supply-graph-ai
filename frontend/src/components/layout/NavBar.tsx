@@ -3,6 +3,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
+  { to: "/facilities", label: "Facilities", icon: "🏭" },
   { to: "/match", label: "Match", icon: "⚡" },
   { to: "/visualization", label: "Visualization", icon: "🗺️" },
   { to: "/rfq", label: "RFQ", icon: "📄" },

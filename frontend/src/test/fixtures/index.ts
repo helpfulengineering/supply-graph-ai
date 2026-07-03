@@ -74,9 +74,43 @@ export const okhListEmptyFixture = {
   items: [],
 };
 
+function okwFacility(
+  id: string,
+  name: string,
+  city: string,
+  processes: string[],
+  access_type: string,
+  facility_status: string,
+): Record<string, unknown> {
+  return {
+    id,
+    name,
+    location: { address: { city, region: "TX", country: "US" }, city, country: "US" },
+    manufacturing_processes: processes,
+    access_type,
+    facility_status,
+    description: `${name} in ${city}`,
+  };
+}
+
+/** OKW search envelope ({results,total,page,page_size}) with varied facets. */
+export const okwSearchFixture = {
+  results: [
+    okwFacility("okw-1", "Laser Fab Lab", "Austin", ["https://en.wikipedia.org/wiki/Laser_cutter"], "Membership", "Active"),
+    okwFacility("okw-2", "Community Makerspace", "Austin", ["Assembly"], "Public", "Active"),
+    okwFacility("okw-3", "Precision CNC Shop", "Denver", ["https://en.wikipedia.org/wiki/CNC_mill"], "Restricted", "Planned"),
+  ],
+  total: 3,
+  page: 1,
+  page_size: 100,
+};
+
+export const okwSearchEmptyFixture = { results: [], total: 0, page: 1, page_size: 100 };
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
   "/v1/api/okh": okhListFixture,
+  "/v1/api/okw/search": okwSearchFixture,
 };
