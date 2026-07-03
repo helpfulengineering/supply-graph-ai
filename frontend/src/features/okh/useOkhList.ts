@@ -1,17 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { fetchOkhList } from "../../api/ohm/okh";
 import type { OkhManifest } from "../../types/okh";
+import {
+  countSelected,
+  deriveFacetGroups,
+  FACET_DEFS,
+  filterItems,
+  type FacetKey,
+  type FacetSelections,
+} from "./facets";
 
-export type SortField = "title" | "version" | "documentation_language";
-export type SortOrder = "asc" | "desc";
-
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 24;
 
 /**
- * List payloads can include BOM sidecars or other JSON under okh/ that parse as
- * manifests with empty title and no licensor; detail view then fails API
- * validation. Only show rows the GET /okh/:id contract can render.
+ * List payloads can include sidecars that parse as manifests with empty title
+ * and no licensor; only show rows the GET /okh/:id contract can render.
  */
 function isApiRenderableOkhListItem(item: OkhManifest): boolean {
   if (!item.title?.trim()) return false;
@@ -19,45 +24,34 @@ function isApiRenderableOkhListItem(item: OkhManifest): boolean {
   if (lic == null) return false;
   if (typeof lic === "string") return lic.trim().length > 0;
   if (Array.isArray(lic)) return lic.length > 0;
-  if (typeof lic === "object" && lic !== null && "name" in lic) {
+  if (typeof lic === "object" && "name" in lic) {
     const n = (lic as { name?: unknown }).name;
     return typeof n === "string" && n.trim().length > 0;
   }
   return false;
 }
 
-function normalize(s: string | null | undefined) {
-  return (s ?? "").toLowerCase();
+function textMatches(item: OkhManifest, q: string): boolean {
+  if (!q) return true;
+  const hay = [
+    item.title,
+    item.function,
+    item.description,
+    ...(item.keywords ?? []),
+    ...(item.manufacturing_processes ?? []),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return hay.includes(q.trim().toLowerCase());
 }
 
-function sortItems(items: OkhManifest[], field: SortField, order: SortOrder): OkhManifest[] {
-  return [...items].sort((a, b) => {
-    const av = normalize(a[field]);
-    const bv = normalize(b[field]);
-    const cmp = av.localeCompare(bv);
-    return order === "asc" ? cmp : -cmp;
-  });
+function parseList(raw: string | null): string[] {
+  return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
 }
 
-function filterItems(items: OkhManifest[], query: string): OkhManifest[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return items;
-  return items.filter((item) => {
-    return (
-      normalize(item.title).includes(q) ||
-      normalize(item.function).includes(q) ||
-      normalize(item.description).includes(q) ||
-      item.keywords.some((k) => k.toLowerCase().includes(q)) ||
-      item.manufacturing_processes.some((p) => p.toLowerCase().includes(q))
-    );
-  });
-}
-
-export function useOkhList() {
-  const [filterText, setFilterText] = useState("");
-  const [sortField, setSortField] = useState<SortField>("title");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [page, setPage] = useState(1);
+export function useOkhCatalog() {
+  const [params, setParams] = useSearchParams();
 
   const query = useQuery({
     queryKey: ["okh-list"],
@@ -65,41 +59,87 @@ export function useOkhList() {
     staleTime: 60_000,
   });
 
-  const processed = useMemo(() => {
-    const items = (query.data?.items ?? []).filter(isApiRenderableOkhListItem);
-    const filtered = filterItems(items, filterText);
-    const sorted = sortItems(filtered, sortField, sortOrder);
-    const totalItems = sorted.length;
-    const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
-    const safePage = Math.min(page, totalPages);
-    const start = (safePage - 1) * PAGE_SIZE;
-    const pageItems = sorted.slice(start, start + PAGE_SIZE);
-    return { pageItems, totalItems, totalPages, safePage };
-  }, [query.data, filterText, sortField, sortOrder, page]);
+  const filterText = params.get("q") ?? "";
+  const page = Math.max(1, Number(params.get("page") ?? "1") || 1);
 
-  function handleFilterChange(text: string) {
-    setFilterText(text);
-    setPage(1);
+  const selections: FacetSelections = useMemo(() => {
+    const s: FacetSelections = {};
+    for (const def of FACET_DEFS) s[def.key] = parseList(params.get(def.key));
+    return s;
+  }, [params]);
+
+  const renderable = useMemo(
+    () => (query.data?.items ?? []).filter(isApiRenderableOkhListItem),
+    [query.data],
+  );
+
+  const facetGroups = useMemo(
+    () => deriveFacetGroups(renderable, selections),
+    [renderable, selections],
+  );
+
+  const matched = useMemo(() => {
+    const byFacet = filterItems(renderable, selections);
+    return byFacet.filter((i) => textMatches(i, filterText));
+  }, [renderable, selections, filterText]);
+
+  const totalItems = matched.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageItems = matched.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  function mutate(fn: (p: URLSearchParams) => void) {
+    const next = new URLSearchParams(params);
+    fn(next);
+    next.delete("page"); // any refinement resets to page 1
+    setParams(next, { replace: true });
   }
 
-  function handleSortChange(field: SortField, order: SortOrder) {
-    setSortField(field);
-    setSortOrder(order);
-    setPage(1);
+  function toggleFacet(key: FacetKey, value: string) {
+    mutate((p) => {
+      const cur = parseList(p.get(key));
+      const nextVals = cur.includes(value)
+        ? cur.filter((v) => v !== value)
+        : [...cur, value];
+      if (nextVals.length) p.set(key, nextVals.join(","));
+      else p.delete(key);
+    });
+  }
+
+  function clearFacets() {
+    mutate((p) => {
+      for (const def of FACET_DEFS) p.delete(def.key);
+      p.delete("q");
+    });
+  }
+
+  function setFilterText(text: string) {
+    mutate((p) => (text ? p.set("q", text) : p.delete("q")));
+  }
+
+  function setPage(next: number) {
+    const p = new URLSearchParams(params);
+    p.set("page", String(next));
+    setParams(p, { replace: true });
   }
 
   return {
-    ...processed,
+    pageItems,
+    totalItems,
+    totalPages,
+    safePage,
+    facetGroups,
+    selections,
+    selectedCount: countSelected(selections),
     filterText,
-    sortField,
-    sortOrder,
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,
+    toggleFacet,
+    clearFacets,
+    setFilterText,
     setPage,
-    handleFilterChange,
-    handleSortChange,
     PAGE_SIZE,
   };
 }

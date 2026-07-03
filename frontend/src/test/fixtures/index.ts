@@ -23,6 +23,8 @@ function okhItem(
   title: string,
   fn: string,
   processes: string[],
+  license: string,
+  material: string,
 ): Record<string, unknown> {
   return {
     id,
@@ -32,11 +34,11 @@ function okhItem(
     description: fn,
     keywords: [],
     documentation_language: "en",
-    license: { hardware: "CERN-OHL-S-2.0", documentation: null, software: null },
+    license: { hardware: license, documentation: null, software: null },
     licensor: { name: "OHM Test", email: null, affiliation: null, social: [] },
     contributors: [],
     manufacturing_processes: processes,
-    materials: [{ material_id: "m1", name: "PLA", quantity: 1, unit: "kg", notes: null }],
+    materials: [{ material_id: material, name: material, quantity: 1, unit: "kg", notes: null }],
     design_files: [],
     manufacturing_files: [],
     making_instructions: [],
@@ -47,7 +49,7 @@ function okhItem(
   };
 }
 
-/** Populated OKH list (paginated envelope) for catalog browse tests + screenshots. */
+/** Populated OKH list (paginated envelope) with varied facets for browse tests. */
 export const okhListFixture = {
   status: "success",
   message: "ok",
@@ -56,14 +58,15 @@ export const okhListFixture = {
   pagination: {
     page: 1,
     page_size: 100,
-    total_items: 2,
+    total_items: 3,
     total_pages: 1,
     has_next: false,
     has_previous: false,
   },
   items: [
-    okhItem("okh-0001", "Open Ventilator", "Emergency ventilator", ["3DP", "PCB"]),
-    okhItem("okh-0002", "Face Shield", "Protective face shield", ["3DP", "Laser"]),
+    okhItem("okh-0001", "Open Ventilator", "Emergency ventilator", ["3D Printing", "Assembly"], "MIT", "PLA"),
+    okhItem("okh-0002", "Face Shield", "Protective face shield", ["3D Printing", "Laser Cutting"], "GPL-2.0", "Acrylic"),
+    okhItem("okh-0003", "Test Rig", "Calibration test rig", ["Laser Cutting"], "MIT", "Steel"),
   ],
 };
 
