@@ -261,7 +261,7 @@ export function OkhDetailView({ id }: Props) {
 
         <div className="space-y-6 lg:col-span-2">
           {allFiles.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
+            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-500">
               No file references attached to this design.
             </div>
           ) : (

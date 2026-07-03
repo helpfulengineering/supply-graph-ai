@@ -37,7 +37,7 @@ export function App() {
               <Route path="facilities/:id" element={<OkwPage />} />
               <Route path="match" element={<MatchPage />} />
               <Route path="solutions" element={<SolutionsPage />} />
-              <Route path="visualization" element={<VisualizationPage />} />
+              <Route path="visualization" element={<Navigate to="/solutions" replace />} />
               <Route path="visualization/:solutionId" element={<VisualizationPage />} />
               <Route path="rfq" element={<RfqPage />} />
               <Route path="packages" element={<PackagePage />} />

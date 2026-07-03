@@ -34,7 +34,7 @@ export function Pagination({ page, totalPages, totalItems, pageSize, onPage }: P
         <PagBtn onClick={() => onPage(page - 1)} disabled={page === 1} label="← Prev" />
         {pages.map((p, i) =>
           p === "…" ? (
-            <span key={`ellipsis-${i}`} className="px-2 text-slate-400">…</span>
+            <span key={`ellipsis-${i}`} className="px-2 text-slate-500">…</span>
           ) : (
             <PagBtn
               key={p}

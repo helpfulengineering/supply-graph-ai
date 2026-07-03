@@ -11,7 +11,7 @@ export function MatchResultCard({ solution }: { solution: RankedSolution }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500">#{solution.rank}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-500">#{solution.rank}</span>
             <h3 className="font-semibold text-slate-800 dark:text-slate-100">
               {solution.facilityName}
             </h3>
