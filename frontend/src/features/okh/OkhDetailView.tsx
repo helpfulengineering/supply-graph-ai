@@ -9,7 +9,7 @@ import {
 import { LoadingState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
-import { OkhFileGroup } from "./OkhFileGroup";
+import { OkhFilesView } from "./OkhFilesView";
 import type { OkhManifest } from "../../types/okh";
 
 interface Props {
@@ -212,6 +212,15 @@ export function OkhDetailView({ id }: Props) {
             </dl>
           </section>
 
+          {okh.intended_use && (
+            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Intended Use
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{okh.intended_use}</p>
+            </section>
+          )}
+
           {(okh.license?.hardware || okh.license?.documentation || okh.license?.software) && (
             <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
               <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
@@ -260,31 +269,9 @@ export function OkhDetailView({ id }: Props) {
         </div>
 
         <div className="space-y-6 lg:col-span-2">
-          {allFiles.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-500">
-              No file references attached to this design.
-            </div>
-          ) : (
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-5 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Files &amp; Documentation
-              </h2>
-              <div className="space-y-6">
-                <OkhFileGroup title="Design Files" icon="📐" files={okh.design_files} />
-                <OkhFileGroup title="Manufacturing Files" icon="🏭" files={okh.manufacturing_files} />
-                <OkhFileGroup title="Making Instructions" icon="📋" files={okh.making_instructions} />
-              </div>
-            </section>
-          )}
-
-          {okh.intended_use && (
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Intended Use
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300">{okh.intended_use}</p>
-            </section>
-          )}
+          <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <OkhFilesView files={allFiles} />
+          </section>
         </div>
       </div>
     </div>

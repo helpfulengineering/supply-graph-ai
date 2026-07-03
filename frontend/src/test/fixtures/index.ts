@@ -92,7 +92,16 @@ export const okhListEmptyFixture = {
 };
 
 /** A single OKH manifest (detail payload, fields at top level). */
-export const okhDetailFixture = okhListFixture.items[0];
+export const okhDetailFixture = {
+  ...okhListFixture.items[0],
+  intended_use: "Emergency ventilation in resource-limited settings.",
+  design_files: [
+    { title: "README.md", path: "README.md", type: "design-files", metadata: {} },
+    { title: "Assembly Guide.pdf", path: "docs/Assembly_Guide.pdf", type: "design-files", metadata: {} },
+    { title: "schematic.pdf", path: "schematic.pdf", type: "design-files", metadata: {} },
+    { title: "image1.jpg", path: "images/image1.jpg", type: "design-files", metadata: {} },
+  ],
+};
 
 /** Validation result for the OKH validate endpoint. */
 export const validationResultFixture = {
