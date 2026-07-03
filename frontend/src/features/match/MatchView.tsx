@@ -3,9 +3,11 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchOkhList } from "../../api/ohm/okh";
 import { runMatch } from "../../api/ohm/match";
 import { toMatchView } from "./matchViewModel";
+import { buildMatchRequest, SYSTEM_MODES, type SystemMode } from "./matchRequest";
 import { MatchResultCard } from "./MatchResultCard";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolean }) {
   const designs = useQuery({
@@ -14,19 +16,24 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
     staleTime: 60_000,
   });
   const [selected, setSelected] = useState(okhId ?? "");
-  const mutation = useMutation({ mutationFn: (id: string) => runMatch({ okhId: id }) });
+  const [mode, setMode] = useState<SystemMode>("standard");
+  const mutation = useMutation({
+    mutationFn: ({ id, m }: { id: string; m: SystemMode }) =>
+      runMatch(buildMatchRequest(id, m)),
+  });
   const view = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
     [mutation.data],
   );
 
   useEffect(() => {
-    if (autoRun && okhId) mutation.mutate(okhId);
+    if (autoRun && okhId) mutation.mutate({ id: okhId, m: "standard" });
     // Run once on mount; MatchPage remounts (via key) when the design changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const renderable = (designs.data?.items ?? []).filter((d) => d.title?.trim());
+  const modeInfo = SYSTEM_MODES.find((s) => s.mode === mode);
 
   return (
     <div className="space-y-6">
@@ -37,33 +44,68 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="max-w-md flex-1 text-sm">
-          <span className="mb-1 block text-muted-foreground">Design</span>
-          <select
-            value={selected}
-            onChange={(e) => setSelected(e.target.value)}
-            aria-label="Design to match"
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+      <div className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="max-w-md flex-1 text-sm">
+            <span className="mb-1 block text-muted-foreground">Design</span>
+            <select
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              aria-label="Design to match"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">Select a design…</option>
+              {renderable.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          <Button
+            disabled={!selected || mutation.isPending}
+            onClick={() => mutation.mutate({ id: selected, m: mode })}
           >
-            <option value="">Select a design…</option>
-            {renderable.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.title}
-              </option>
+            {mutation.isPending ? "Matching…" : "⚡ Run Match"}
+          </Button>
+        </div>
+
+        <div>
+          <span className="mb-1 block text-sm text-muted-foreground">System mode</span>
+          <div
+            role="radiogroup"
+            aria-label="System mode"
+            className="inline-flex overflow-hidden rounded-md border border-input"
+          >
+            {SYSTEM_MODES.map((s) => (
+              <button
+                key={s.mode}
+                type="button"
+                role="radio"
+                aria-checked={mode === s.mode}
+                onClick={() => setMode(s.mode)}
+                className={cn(
+                  "px-3 py-1.5 text-sm transition-colors",
+                  mode === s.mode
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-foreground hover:bg-accent",
+                )}
+              >
+                {s.label}
+              </button>
             ))}
-          </select>
-        </label>
-        <Button disabled={!selected || mutation.isPending} onClick={() => mutation.mutate(selected)}>
-          {mutation.isPending ? "Matching…" : "⚡ Run Match"}
-        </Button>
+          </div>
+          {modeInfo && (
+            <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">{modeInfo.description}</p>
+          )}
+        </div>
       </div>
 
       {mutation.isPending && <LoadingState message="Matching against facilities…" />}
       {mutation.isError && (
         <ErrorState
           description={mutation.error instanceof Error ? mutation.error.message : "Match failed."}
-          onRetry={() => selected && mutation.mutate(selected)}
+          onRetry={() => selected && mutation.mutate({ id: selected, m: mode })}
         />
       )}
 
