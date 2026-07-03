@@ -17,12 +17,61 @@ export const domainsFixture = {
   domains: ["manufacturing", "cooking"],
 };
 
-/** Empty OKH list — exercises the empty-state path deterministically. */
+/** A minimal OKH manifest shaped like the list payload the UI renders. */
+function okhItem(
+  id: string,
+  title: string,
+  fn: string,
+  processes: string[],
+): Record<string, unknown> {
+  return {
+    id,
+    title,
+    version: "1.0.0",
+    function: fn,
+    description: fn,
+    keywords: [],
+    documentation_language: "en",
+    license: { hardware: "CERN-OHL-S-2.0", documentation: null, software: null },
+    licensor: { name: "OHM Test", email: null, affiliation: null, social: [] },
+    contributors: [],
+    manufacturing_processes: processes,
+    materials: [{ material_id: "m1", name: "PLA", quantity: 1, unit: "kg", notes: null }],
+    design_files: [],
+    manufacturing_files: [],
+    making_instructions: [],
+    parts: [],
+    tool_list: [],
+    image: null,
+    project_link: null,
+  };
+}
+
+/** Populated OKH list (paginated envelope) for catalog browse tests + screenshots. */
 export const okhListFixture = {
+  status: "success",
+  message: "ok",
+  timestamp: "2026-01-01T00:00:00Z",
+  request_id: "test",
+  pagination: {
+    page: 1,
+    page_size: 100,
+    total_items: 2,
+    total_pages: 1,
+    has_next: false,
+    has_previous: false,
+  },
+  items: [
+    okhItem("okh-0001", "Open Ventilator", "Emergency ventilator", ["3DP", "PCB"]),
+    okhItem("okh-0002", "Face Shield", "Protective face shield", ["3DP", "Laser"]),
+  ],
+};
+
+/** Empty OKH list — exercises the empty-state path deterministically. */
+export const okhListEmptyFixture = {
+  ...okhListFixture,
+  pagination: { ...okhListFixture.pagination, total_items: 0 },
   items: [],
-  total: 0,
-  page: 1,
-  page_size: 20,
 };
 
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */

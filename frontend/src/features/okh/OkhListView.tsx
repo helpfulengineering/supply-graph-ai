@@ -1,8 +1,7 @@
 import { useOkhList } from "./useOkhList";
 import { OkhCard } from "./OkhCard";
-import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
-import { ErrorMessage } from "../../components/ui/ErrorMessage";
-import { EmptyState } from "../../components/ui/EmptyState";
+import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import { Button } from "../../components/ui/button";
 import { Pagination } from "../../components/ui/Pagination";
 import type { SortField, SortOrder } from "./useOkhList";
 
@@ -95,23 +94,25 @@ export function OkhListView() {
       )}
 
       {/* States */}
-      {isLoading && <LoadingSpinner message="Loading designs…" />}
-      {isError && <ErrorMessage error={error} retry={() => refetch()} />}
+      {isLoading && <LoadingState message="Loading designs…" />}
+      {isError && (
+        <ErrorState
+          description={error instanceof Error ? error.message : "Failed to load designs."}
+          onRetry={() => refetch()}
+        />
+      )}
 
       {/* Grid */}
       {!isLoading && !isError && pageItems.length === 0 && (
         <EmptyState
           icon="🔩"
-          heading="No designs found"
-          body={filterText ? `No designs match "${filterText}". Try a different search.` : "No OKH designs are available."}
+          title="No designs found"
+          description={filterText ? `No designs match "${filterText}". Try a different search.` : "No OKH designs are available."}
           action={
             filterText ? (
-              <button
-                onClick={() => handleFilterChange("")}
-                className="rounded-md bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-300"
-              >
+              <Button variant="outline" size="sm" onClick={() => handleFilterChange("")}>
                 Clear filter
-              </button>
+              </Button>
             ) : undefined
           }
         />
