@@ -45,7 +45,7 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
       <div>
         <button
           onClick={() => navigate(-1)}
-          className="mb-2 text-sm text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
+          className="mb-2 text-sm text-slate-600 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400"
         >
           ← Back
         </button>
@@ -68,11 +68,11 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         return (
           <div className="grid gap-6 lg:grid-cols-2">
             <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
                 Production Sequence
               </h2>
               {sequence.length === 0 ? (
-                <p className="text-sm text-slate-400 dark:text-slate-500">
+                <p className="text-sm text-slate-600 dark:text-slate-600">
                   No production stages.
                 </p>
               ) : (
@@ -92,11 +92,11 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
                 Dependencies
               </h2>
               {deps.length === 0 ? (
-                <p className="text-sm text-slate-400 dark:text-slate-500">
+                <p className="text-sm text-slate-600 dark:text-slate-600">
                   No inter-component dependencies.
                 </p>
               ) : (

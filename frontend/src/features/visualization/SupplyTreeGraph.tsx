@@ -129,7 +129,7 @@ export function SupplyTreeGraph({ data }: Props) {
         <div className="flex items-center gap-3">
           {DEPTH_COLORS.slice(0, Math.max(1, new Set(nodes.map((n) => n.depth)).size)).map(
             (color, i) => (
-              <span key={i} className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+              <span key={i} className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400">
                 <span
                   className="inline-block h-3 w-3 rounded-full"
                   style={{ background: color }}
@@ -153,10 +153,10 @@ export function SupplyTreeGraph({ data }: Props) {
           <p className="font-medium text-slate-700 dark:text-slate-200">
             {nodes[0]?.facility_name ?? "Facility"}
           </p>
-          <p className="text-sm text-slate-400 dark:text-slate-500">
+          <p className="text-sm text-slate-600 dark:text-slate-600">
             Single-facility solution — no dependency edges
           </p>
-          <p className="text-xs text-slate-400 dark:text-slate-500">
+          <p className="text-xs text-slate-600 dark:text-slate-600">
             Run a match with <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">auto_detect_depth=true</code> for a richer graph
           </p>
         </div>
@@ -164,7 +164,7 @@ export function SupplyTreeGraph({ data }: Props) {
         <div
           ref={containerRef}
           className="h-80 w-full"
-          aria-label="Supply tree dependency graph"
+          role="img" aria-label="Supply tree dependency graph"
         />
       )}
     </div>

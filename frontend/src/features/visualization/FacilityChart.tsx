@@ -80,7 +80,7 @@ export function FacilityChart({ data }: Props) {
         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Facility Distribution
         </h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500">
+        <p className="text-xs text-slate-600 dark:text-slate-600">
           Trees assigned per facility
         </p>
       </div>
