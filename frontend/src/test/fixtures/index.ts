@@ -74,9 +74,23 @@ export const okhListEmptyFixture = {
   items: [],
 };
 
+/** A single OKH manifest (detail payload, fields at top level). */
+export const okhDetailFixture = okhListFixture.items[0];
+
+/** Validation result for the OKH validate endpoint. */
+export const validationResultFixture = {
+  is_valid: true,
+  score: 0.92,
+  errors: [],
+  warnings: ["Missing intended_use documentation"],
+  suggestions: ["Add a bill of materials for completeness"],
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
   "/v1/api/okh": okhListFixture,
+  "/v1/api/okh/okh-0001": okhDetailFixture,
+  "/v1/api/okh/validate": validationResultFixture,
 };
