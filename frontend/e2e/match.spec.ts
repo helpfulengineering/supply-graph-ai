@@ -45,3 +45,44 @@ test("System Mode selector controls the match request (mocked)", async ({ page }
   expect(body!.quality_level).toBe("medical");
   expect(body!.strict_mode).toBe(true);
 });
+
+test("selecting a facility subset sends okw_ids in the match request (mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "inspects the request body");
+  let body: { okw_ids?: string[] } | null = null;
+  await page.route("**/v1/api/match", async (route) => {
+    body = route.request().postDataJSON();
+    await route.fulfill({ json: matchResponseFixture });
+  });
+
+  await page.goto("/match");
+  await page.getByLabel("Design to match").selectOption({ label: "Open Ventilator" });
+
+  // Narrow matching to a single facility via the optional facility filter.
+  await page.getByRole("button", { name: /facilities/i }).click();
+  await page.getByLabel("Laser Fab Lab").check();
+  await expect(page.getByText(/limited to 1 facility/i)).toBeVisible();
+
+  await page.getByRole("button", { name: /run match/i }).click();
+  await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
+  expect(body!.okw_ids).toEqual(["okw-1"]);
+});
+
+test("with no facility subset the request omits okw_ids (matches all, mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "inspects the request body");
+  let body: Record<string, unknown> | null = null;
+  await page.route("**/v1/api/match", async (route) => {
+    body = route.request().postDataJSON();
+    await route.fulfill({ json: matchResponseFixture });
+  });
+
+  await page.goto("/match");
+  await page.getByLabel("Design to match").selectOption({ label: "Open Ventilator" });
+  await page.getByRole("button", { name: /run match/i }).click();
+
+  await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
+  expect(body).not.toHaveProperty("okw_ids");
+});

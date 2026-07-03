@@ -46,6 +46,8 @@ export function buildMatchRequest(
   okhId: string,
   mode: SystemMode,
   maxResults?: number,
+  okwIds?: string[],
 ): RunMatchParams {
-  return { okhId, ...MODE_PARAMS[mode], maxResults };
+  const okw = okwIds && okwIds.length > 0 ? { okwIds } : {};
+  return { okhId, ...MODE_PARAMS[mode], maxResults, ...okw };
 }
