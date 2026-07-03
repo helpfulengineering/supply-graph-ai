@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Badge } from "../../components/ui/Badge";
 import type { RankedSolution } from "./matchViewModel";
 import { confidencePct, confidenceToken } from "./confidence";
@@ -25,17 +24,6 @@ export function MatchResultCard({ solution }: { solution: RankedSolution }) {
           {token.label} · {confidencePct(solution.confidence)}%
         </Badge>
       </div>
-
-      {solution.treeId && (
-        <div className="mt-3">
-          <Link
-            to={`/visualization/${solution.treeId}`}
-            className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
-          >
-            View supply tree →
-          </Link>
-        </div>
-      )}
     </div>
   );
 }

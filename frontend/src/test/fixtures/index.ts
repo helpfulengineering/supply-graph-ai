@@ -159,6 +159,43 @@ export const matchResponseFixture = {
     coverage_gaps: ["CNC Machining"],
     human_summary: { executive: "2 candidate solutions found; coverage 1/2." },
     total_solutions: 2,
+    solution_id: "sol-1",
+  },
+};
+
+/** Visualization bundle (nested under `data`, as the API returns it). */
+export const vizBundleFixture = {
+  data: {
+    schema_version: "3.2.0",
+    source_type: "solution",
+    generated_at: "2026-01-01T00:00:00Z",
+    matching: { overview: { matching_mode: "single-level", score: 0.95, tree_count: 1 } },
+    supply_tree: {
+      solution_id: "sol-1",
+      nodes: [
+        {
+          id: "n1",
+          label: "Frame",
+          component_id: null,
+          facility_name: "FabLab Drome",
+          depth: 0,
+          production_stage: "assembly",
+          confidence_score: 0.95,
+          estimated_cost: null,
+          estimated_time: null,
+        },
+      ],
+      edges: [],
+      dependency_graph: {},
+      production_sequence: [["n1"]],
+      resource_cost: { total_estimated_cost: null, total_estimated_time: null },
+    },
+    network: {
+      facility_distribution: [{ facility_name: "FabLab Drome", tree_count: 1 }],
+      route_hints: { status: "not_provided", note: "" },
+    },
+    dashboard: { kpis: { tree_count: 1, edge_count: 0, stage_count: 1, solution_score: 0.95 } },
+    artifacts: {},
   },
 };
 
@@ -173,4 +210,5 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/match": matchResponseFixture,
+  "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
 };
