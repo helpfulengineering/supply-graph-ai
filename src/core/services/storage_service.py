@@ -407,6 +407,7 @@ class StorageService:
             "id": str(solution_id),
             "okh_id": solution.metadata.get("okh_id"),
             "okh_title": solution.metadata.get("okh_title"),
+            "facility_name": solution.metadata.get("facility_name"),
             "matching_mode": solution.metadata.get(
                 "matching_mode", MATCH_MODE_SINGLE_LEVEL
             ),
@@ -544,6 +545,7 @@ class StorageService:
                         "id": metadata_dict.get("id"),
                         "okh_id": metadata_dict.get("okh_id"),
                         "okh_title": metadata_dict.get("okh_title"),
+                        "facility_name": metadata_dict.get("facility_name"),
                         "matching_mode": metadata_dict.get("matching_mode"),
                         "tree_count": metadata_dict.get("tree_count"),
                         "component_count": metadata_dict.get("component_count"),
