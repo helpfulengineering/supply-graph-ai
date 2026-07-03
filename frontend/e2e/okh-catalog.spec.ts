@@ -31,6 +31,20 @@ test("selecting a facet narrows the results (mocked)", async ({ page }, testInfo
   await expect(page).toHaveURL(/license=GPL-2\.0/);
 });
 
+test("category facet is the primary spine and narrows results (mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts fixture data");
+  await page.goto("/okh");
+  // Category is present as a facet group. Test Rig ("Calibration test rig") is
+  // the only Test & Measurement device.
+  await expect(page.getByRole("heading", { name: "Category" })).toBeVisible();
+  await page.getByRole("checkbox", { name: /Test & Measurement/ }).check();
+  await expect(page.getByRole("heading", { name: "Test Rig" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeHidden();
+  await expect(page).toHaveURL(/category=Test/);
+});
+
 test("shows the empty state (mocked)", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "forces an empty response");
   await page.route("**/v1/api/okh**", (route) =>

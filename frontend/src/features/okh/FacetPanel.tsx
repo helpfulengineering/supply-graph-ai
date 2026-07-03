@@ -1,5 +1,5 @@
 import { Button } from "../../components/ui/button";
-import type { FacetGroup, FacetKey, FacetSelections } from "./facets";
+import { PRIMARY_FACET, type FacetGroup, type FacetKey, type FacetSelections } from "./facets";
 
 interface Props {
   groups: FacetGroup[];
@@ -31,7 +31,17 @@ export function FacetPanel({
         const selected = selections[group.key] ?? [];
         return (
           <div key={group.key}>
-            <h3 className="mb-2 font-medium text-muted-foreground">{group.label}</h3>
+            <h3 className="mb-2 flex items-center gap-1.5 font-medium text-muted-foreground">
+              {group.label}
+              {group.key === PRIMARY_FACET && (
+                <span
+                  title="Provisional categories derived from design text; a curated taxonomy is coming."
+                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-muted-foreground"
+                >
+                  provisional
+                </span>
+              )}
+            </h3>
             <ul className="space-y-1">
               {group.options.map((opt) => {
                 const checked = selected.includes(opt.value);

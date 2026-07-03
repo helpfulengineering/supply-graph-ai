@@ -1,14 +1,21 @@
 import type { OkhManifest } from "../../types/okh";
+import { deriveCategories } from "./categories";
 
 /**
  * Faceted-browse logic for the OKH catalog (pure, framework-free, unit-tested).
  *
- * Facets are derived from fields that are actually populated across the real
- * manifest corpus: manufacturing process, hardware license, and material.
- * (keywords and development_stage were dropped — too sparse / no variance.)
+ * `category` is the primary drill-down facet (provisional, derived from the
+ * manifest `function`/title/keywords — see categories.ts; swaps to the
+ * service-backed taxonomy in Epic #199). The rest are orthogonal facets derived
+ * from fields populated across the real corpus: manufacturing process, hardware
+ * license, and material. (keywords / development_stage dropped — sparse / no
+ * variance.)
  */
 
-export type FacetKey = "process" | "license" | "material";
+export type FacetKey = "category" | "process" | "license" | "material";
+
+/** The primary drill-down facet, rendered first and marked provisional. */
+export const PRIMARY_FACET: FacetKey = "category";
 
 export interface FacetDef {
   key: FacetKey;
@@ -18,6 +25,11 @@ export interface FacetDef {
 }
 
 export const FACET_DEFS: FacetDef[] = [
+  {
+    key: "category",
+    label: "Category",
+    values: (i) => deriveCategories(i),
+  },
   {
     key: "process",
     label: "Manufacturing process",
