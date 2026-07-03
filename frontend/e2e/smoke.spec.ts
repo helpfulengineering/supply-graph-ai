@@ -6,7 +6,7 @@ import { expectNoA11yViolations } from "./a11y";
 test("home page renders the app shell", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: /open hardware matchmaker/i }),
+    page.getByRole("heading", { name: /open hardware manager/i }),
   ).toBeVisible();
   // Navigation shell present (brand link).
   await expect(page.getByRole("link", { name: "OHM" })).toBeVisible();
