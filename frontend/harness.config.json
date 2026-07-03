@@ -7,5 +7,5 @@
   "apiPathPrefix": "/v1/api",
   "openapiUrl": "http://localhost:8001/v1/openapi.json",
   "apiTypesOutput": "src/api/generated/schema.d.ts",
-  "routesToScreenshot": ["/", "/okh", "/facilities", "/match"]
+  "routesToScreenshot": ["/", "/okh", "/okh/okh-0001", "/facilities", "/match"]
 }

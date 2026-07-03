@@ -1,5 +1,8 @@
 import { apiClient, ApiError, errorMessage } from "./client";
 import type { OkhManifest } from "../../types/okh";
+import type { components } from "../generated/schema";
+
+export type ValidationResult = components["schemas"]["ValidationResult"];
 
 export interface OkhPagination {
   page: number;
@@ -67,4 +70,43 @@ export async function fetchOkhList(
     items: (body.items ?? []) as OkhManifest[],
     pagination: { ...EMPTY_PAGINATION, ...body.pagination },
   };
+}
+
+/** Fetch a single OKH manifest by id (fields returned at the top level). */
+export async function fetchOkhDetail(id: string): Promise<OkhManifest> {
+  const { data, error, response } = await apiClient.GET("/api/okh/{id}", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load design (HTTP ${response.status})`),
+    );
+  }
+  return data as unknown as OkhManifest;
+}
+
+export interface ValidateOkhOptions {
+  qualityLevel?: string;
+  strictMode?: boolean;
+}
+
+/** Validate an OKH manifest against domain rules; returns the validation result. */
+export async function validateOkh(
+  content: Record<string, unknown>,
+  opts: ValidateOkhOptions = {},
+): Promise<ValidationResult> {
+  const { data, error, response } = await apiClient.POST("/api/okh/validate", {
+    params: {
+      query: { quality_level: opts.qualityLevel, strict_mode: opts.strictMode },
+    },
+    body: { content },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Validation failed (HTTP ${response.status})`),
+    );
+  }
+  return data as ValidationResult;
 }
