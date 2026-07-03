@@ -303,6 +303,26 @@ async def match_with_filters():
         return response.json()
 ```
 
+**Matching against a chosen subset of facilities:**
+
+Pass `okw_ids` to restrict matching to specific facilities the caller has already
+selected (for example, from the OKW catalog). Facilities are still loaded from the
+configured source, then filtered to these IDs before matching; an empty or omitted
+list matches against all facilities. Equivalent CLI: `ohm match ... --okw-id <id> --okw-id <id>`.
+
+```python
+async def match_selected_facilities():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/api/match",
+            json={
+                "okh_id": "…",
+                "okw_ids": ["okw-1", "okw-2", "okw-3"],
+            },
+        )
+        return response.json()
+```
+
 **Matching from URL:**
 ```python
 async def match_from_url():

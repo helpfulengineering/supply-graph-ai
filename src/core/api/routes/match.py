@@ -468,6 +468,11 @@ async def match_requirements_to_capabilities(
                     "access_type": request.access_type,
                     "facility_status": request.facility_status,
                     "location": request.location,
+                    "okw_ids": (
+                        sorted({str(i) for i in request.okw_ids})
+                        if request.okw_ids
+                        else None
+                    ),
                 }.items()
                 if v is not None
             }
@@ -505,11 +510,8 @@ async def match_requirements_to_capabilities(
                     best_solution_dict = solutions[0]
                     tree_dict = best_solution_dict.get("tree", {})
                     tree = SupplyTree.from_dict(tree_dict)
-                    tree_meta = tree.metadata or {}
 
-                    # Create SupplyTreeSolution from single tree. Capture a
-                    # human-readable identity (design title + primary facility)
-                    # so saved solutions list under a friendly name, not a UUID.
+                    # Create SupplyTreeSolution from single tree
                     solution = SupplyTreeSolution(
                         all_trees=[tree],
                         score=best_solution_dict.get(
@@ -518,11 +520,6 @@ async def match_requirements_to_capabilities(
                         metrics=best_solution_dict.get("metrics", {}),
                         metadata={
                             "okh_id": str(request.okh_id) if request.okh_id else None,
-                            "okh_title": tree_meta.get("okh_title"),
-                            "facility_name": (
-                                best_solution_dict.get("facility_name")
-                                or tree_meta.get("facility_name")
-                            ),
                             "matching_mode": MATCH_MODE_SINGLE_LEVEL,
                         },
                     )
@@ -2529,6 +2526,9 @@ async def _get_filtered_facilities(
             },
         )
 
+        # Normalize the requested id subset once (ids may be UUIDs or strings).
+        okw_id_subset = {str(i) for i in (request.okw_ids or []) if i is not None}
+
         # Apply filters
         filtered_facilities = []
         for facility in facilities:
@@ -2537,6 +2537,10 @@ async def _get_filtered_facilities(
                 facility_dict = facility.to_dict()
             else:
                 facility_dict = facility
+
+            # Apply explicit id-subset filter (facility selection before matching)
+            if okw_id_subset and str(facility_dict.get("id")) not in okw_id_subset:
+                continue
 
             # Apply access type filter
             if (
@@ -2582,6 +2586,7 @@ async def _get_filtered_facilities(
                     "access_type": request.access_type,
                     "facility_status": request.facility_status,
                     "location": request.location,
+                    "okw_ids": sorted(okw_id_subset) if okw_id_subset else None,
                     **geo_filters,
                 },
             },

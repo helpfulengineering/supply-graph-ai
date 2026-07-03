@@ -201,6 +201,14 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
         None,
         description="Optional list of OKW facilities (as dicts) to use instead of loading from storage",
     )
+    okw_ids: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Restrict matching to this subset of OKW facility IDs. Facilities are still "
+            "loaded from the configured source (or okw_facilities), then filtered to these "
+            "IDs before matching. An empty or omitted list means match against all facilities."
+        ),
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
