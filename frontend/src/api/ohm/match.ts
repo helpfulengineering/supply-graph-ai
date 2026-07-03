@@ -3,6 +3,8 @@ import { apiClient, ApiError, errorMessage } from "./client";
 export interface RunMatchParams {
   okhId: string;
   maxResults?: number;
+  qualityLevel?: string;
+  strictMode?: boolean;
 }
 
 export interface RawSolution {
@@ -41,6 +43,8 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
       max_results: params.maxResults ?? 10,
       include_human_summary: true,
       include_explanation: true,
+      quality_level: params.qualityLevel,
+      strict_mode: params.strictMode,
     } as never,
   });
   if (error || !response.ok) {
