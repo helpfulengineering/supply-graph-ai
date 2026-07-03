@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchOkhList } from "../../api/ohm/okh";
+import { searchOkw } from "../../api/ohm/okw";
 import { runMatch } from "../../api/ohm/match";
 import { toMatchView } from "./matchViewModel";
 import { buildMatchRequest, SYSTEM_MODES, type SystemMode } from "./matchRequest";
+import { FacilityFilter } from "./FacilityFilter";
 import { MatchResultCard } from "./MatchResultCard";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
@@ -16,11 +18,17 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
     queryFn: () => fetchOkhList({ page: 1, page_size: 100 }),
     staleTime: 60_000,
   });
+  const facilitiesQuery = useQuery({
+    queryKey: ["okw-search", "match-filter"],
+    queryFn: () => searchOkw({ page: 1, page_size: 100 }),
+    staleTime: 60_000,
+  });
   const [selected, setSelected] = useState(okhId ?? "");
   const [mode, setMode] = useState<SystemMode>("standard");
+  const [facilityIds, setFacilityIds] = useState<string[]>([]);
   const mutation = useMutation({
-    mutationFn: ({ id, m }: { id: string; m: SystemMode }) =>
-      runMatch(buildMatchRequest(id, m)),
+    mutationFn: ({ id, m, ids }: { id: string; m: SystemMode; ids: string[] }) =>
+      runMatch(buildMatchRequest(id, m, undefined, ids)),
   });
   const view = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
@@ -28,7 +36,7 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
   );
 
   useEffect(() => {
-    if (autoRun && okhId) mutation.mutate({ id: okhId, m: "standard" });
+    if (autoRun && okhId) mutation.mutate({ id: okhId, m: "standard", ids: [] });
     // Run once on mount; MatchPage remounts (via key) when the design changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -65,7 +73,7 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
           </label>
           <Button
             disabled={!selected || mutation.isPending}
-            onClick={() => mutation.mutate({ id: selected, m: mode })}
+            onClick={() => mutation.mutate({ id: selected, m: mode, ids: facilityIds })}
           >
             {mutation.isPending ? "Matching…" : "⚡ Run Match"}
           </Button>
@@ -100,13 +108,24 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
             <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">{modeInfo.description}</p>
           )}
         </div>
+
+        <FacilityFilter
+          facilities={(facilitiesQuery.data?.results ?? []).map((f) => ({
+            id: f.id,
+            name: f.name,
+          }))}
+          selectedIds={facilityIds}
+          onChange={setFacilityIds}
+          isLoading={facilitiesQuery.isLoading}
+          isError={facilitiesQuery.isError}
+        />
       </div>
 
       {mutation.isPending && <LoadingState message="Matching against facilities…" />}
       {mutation.isError && (
         <ErrorState
           description={mutation.error instanceof Error ? mutation.error.message : "Match failed."}
-          onRetry={() => selected && mutation.mutate({ id: selected, m: mode })}
+          onRetry={() => selected && mutation.mutate({ id: selected, m: mode, ids: facilityIds })}
         />
       )}
 

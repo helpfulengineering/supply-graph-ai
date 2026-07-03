@@ -27,4 +27,16 @@ describe("buildMatchRequest", () => {
   it("passes through maxResults", () => {
     expect(buildMatchRequest("okh-1", "standard", 5).maxResults).toBe(5);
   });
+
+  it("includes okwIds when a facility subset is chosen", () => {
+    expect(buildMatchRequest("okh-1", "standard", undefined, ["a", "b"]).okwIds).toEqual([
+      "a",
+      "b",
+    ]);
+  });
+
+  it("omits okwIds when the subset is empty (match all facilities)", () => {
+    expect(buildMatchRequest("okh-1", "standard", undefined, [])).not.toHaveProperty("okwIds");
+    expect(buildMatchRequest("okh-1", "standard")).not.toHaveProperty("okwIds");
+  });
 });
