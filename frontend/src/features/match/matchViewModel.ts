@@ -15,8 +15,6 @@ export interface RankedSolution {
   score: number;
   rank: number;
   explanation: string | null;
-  /** Supply tree id for hand-off into the explorer, when present. */
-  treeId: string | null;
 }
 
 export interface MatchView {
@@ -24,6 +22,8 @@ export interface MatchView {
   coverageGaps: string[];
   summary: string | null;
   totalSolutions: number;
+  /** Persisted solution id for hand-off into the supply-tree explorer. */
+  solutionId: string | null;
 }
 
 export function toMatchView(raw: RawMatchResponse): MatchView {
@@ -36,7 +36,6 @@ export function toMatchView(raw: RawMatchResponse): MatchView {
       score: s.score ?? 0,
       rank: s.rank ?? 0,
       explanation: s.explanation_human ?? null,
-      treeId: s.tree?.id ?? null,
     }))
     .sort((a, b) => b.confidence - a.confidence || a.rank - b.rank);
 
@@ -45,5 +44,6 @@ export function toMatchView(raw: RawMatchResponse): MatchView {
     coverageGaps: data.coverage_gaps ?? [],
     summary: data.human_summary?.executive ?? data.match_summary_text ?? null,
     totalSolutions: data.total_solutions ?? solutions.length,
+    solutionId: data.solution_id ?? null,
   };
 }

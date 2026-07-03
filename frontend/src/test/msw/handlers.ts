@@ -3,6 +3,7 @@ import {
   domainsFixture,
   healthFixture,
   matchResponseFixture,
+  vizBundleFixture,
   okhDetailFixture,
   okhListFixture,
   okwDetailFixture,
@@ -22,4 +23,7 @@ export const handlers = [
   http.get("*/v1/api/okw/:id", () => HttpResponse.json(okwDetailFixture)),
   http.post("*/v1/api/okw/validate", () => HttpResponse.json(validationResultFixture)),
   http.post("*/v1/api/match", () => HttpResponse.json(matchResponseFixture)),
+  http.get("*/v1/api/supply-tree/solution/:id/visualization", () =>
+    HttpResponse.json(vizBundleFixture),
+  ),
 ];

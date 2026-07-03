@@ -25,6 +25,8 @@ export interface RawMatchData {
   match_summary_text?: string | null;
   total_solutions?: number;
   suggestions?: string[];
+  /** Present when save_solution was requested — the persisted solution's id. */
+  solution_id?: string | null;
 }
 
 export interface RawMatchResponse {
@@ -43,6 +45,8 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
       max_results: params.maxResults ?? 10,
       include_human_summary: true,
       include_explanation: true,
+      // Persist the solution so it has an id the supply-tree explorer can load.
+      save_solution: true,
       quality_level: params.qualityLevel,
       strict_mode: params.strictMode,
     } as never,

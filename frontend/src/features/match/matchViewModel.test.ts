@@ -11,6 +11,7 @@ const raw = {
     coverage_gaps: ["CNC Machining"],
     human_summary: { executive: "3 candidate solutions found." },
     total_solutions: 3,
+    solution_id: "sol-123",
   },
 };
 
@@ -27,10 +28,9 @@ describe("toMatchView", () => {
     expect(view.totalSolutions).toBe(3);
   });
 
-  it("carries the tree id for hand-off and defaults missing fields", () => {
-    const view = toMatchView(raw);
-    expect(view.solutions[0].treeId).toBe("t-a");
-    expect(view.solutions[1].treeId).toBeNull(); // C has no tree
+  it("surfaces the persisted solution id for hand-off", () => {
+    expect(toMatchView(raw).solutionId).toBe("sol-123");
+    expect(toMatchView({ data: { solutions: [] } }).solutionId).toBeNull();
   });
 
   it("handles an empty/no-match response", () => {

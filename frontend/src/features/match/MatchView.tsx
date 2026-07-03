@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchOkhList } from "../../api/ohm/okh";
 import { runMatch } from "../../api/ohm/match";
@@ -131,9 +132,19 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
                 </p>
               </div>
             )}
-            <p className="text-xs text-muted-foreground">
-              {view.totalSolutions} solution{view.totalSolutions !== 1 ? "s" : ""}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">
+                {view.totalSolutions} solution{view.totalSolutions !== 1 ? "s" : ""}
+              </p>
+              {view.solutionId && (
+                <Link
+                  to={`/visualization/${view.solutionId}`}
+                  className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+                >
+                  View supply tree →
+                </Link>
+              )}
+            </div>
             {view.solutions.map((s, i) => (
               <MatchResultCard key={s.facilityId ?? i} solution={s} />
             ))}
