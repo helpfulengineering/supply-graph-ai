@@ -468,6 +468,11 @@ async def match_requirements_to_capabilities(
                     "access_type": request.access_type,
                     "facility_status": request.facility_status,
                     "location": request.location,
+                    "okw_ids": (
+                        sorted({str(i) for i in request.okw_ids})
+                        if request.okw_ids
+                        else None
+                    ),
                 }.items()
                 if v is not None
             }
@@ -2521,6 +2526,9 @@ async def _get_filtered_facilities(
             },
         )
 
+        # Normalize the requested id subset once (ids may be UUIDs or strings).
+        okw_id_subset = {str(i) for i in (request.okw_ids or []) if i is not None}
+
         # Apply filters
         filtered_facilities = []
         for facility in facilities:
@@ -2529,6 +2537,10 @@ async def _get_filtered_facilities(
                 facility_dict = facility.to_dict()
             else:
                 facility_dict = facility
+
+            # Apply explicit id-subset filter (facility selection before matching)
+            if okw_id_subset and str(facility_dict.get("id")) not in okw_id_subset:
+                continue
 
             # Apply access type filter
             if (
@@ -2574,6 +2586,7 @@ async def _get_filtered_facilities(
                     "access_type": request.access_type,
                     "facility_status": request.facility_status,
                     "location": request.location,
+                    "okw_ids": sorted(okw_id_subset) if okw_id_subset else None,
                     **geo_filters,
                 },
             },

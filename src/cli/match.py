@@ -89,6 +89,15 @@ def match_group() -> None:
     type=click.Choice(["active", "inactive", "maintenance"]),
     help="Filter by facility status",
 )
+@click.option(
+    "--okw-id",
+    "okw_ids",
+    multiple=True,
+    help=(
+        "Restrict matching to this OKW facility ID (repeatable). "
+        "Omit to match against all facilities."
+    ),
+)
 @click.option("--location", help="Filter by location (city, country, or region)")
 @click.option(
     "--country", help="Filter facilities by country (exact match, case-insensitive)"
@@ -281,6 +290,7 @@ async def requirements(
     okw_source: Optional[str],
     access_type: Optional[str],
     facility_status: Optional[str],
+    okw_ids: tuple[str, ...],
     location: Optional[str],
     country: Optional[str],
     region: Optional[str],
@@ -372,6 +382,7 @@ async def requirements(
             materials,
             min_confidence,
             max_results,
+            okw_ids,
         )
 
         # Add nested matching parameters
@@ -587,6 +598,18 @@ async def requirements(
 
                 # Apply additional filters that aren't supported by okw_service.list()
                 # (e.g., capabilities, materials would need more complex matching logic)
+
+                # Restrict to an explicit facility-id subset if requested (mirrors the
+                # API's okw_ids filter so --okw-id behaves the same over HTTP or locally).
+                if okw_ids:
+                    wanted = {str(i) for i in okw_ids}
+                    facilities = [
+                        f for f in facilities if str(getattr(f, "id", None)) in wanted
+                    ]
+                    cli_ctx.log(
+                        f"Restricted to {len(facilities)} facility(ies) by --okw-id",
+                        "info",
+                    )
 
                 # Determine matching mode based on max_depth
                 # Use configured default if auto_detect_depth is enabled
@@ -1536,6 +1559,7 @@ def _parse_match_filters(
     materials: Optional[str],
     min_confidence: float,
     max_results: int,
+    okw_ids: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     """Parse and validate match filter options."""
     filters = {
@@ -1545,6 +1569,9 @@ def _parse_match_filters(
         "min_confidence": min_confidence,
         "max_results": max_results,
     }
+
+    if okw_ids:
+        filters["okw_ids"] = list(okw_ids)
 
     if capabilities:
         filters["capabilities"] = [cap.strip() for cap in capabilities.split(",")]
