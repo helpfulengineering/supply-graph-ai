@@ -113,6 +113,10 @@ async def lifespan(app: FastAPI):
         logger.info("Initializing authentication service")
         await AuthenticationService.get_instance()
 
+        # Trigger plugin startup hooks
+        from src.plugins.manager import PluginManager
+        await PluginManager.get_instance().startup()
+
         # Register domain components
         logger.info("Registering domain components")
         await register_domain_components()
@@ -154,6 +158,14 @@ async def lifespan(app: FastAPI):
         raise
     finally:
         logger.info("Shutting down application")
+
+        # Shut down plugins
+        try:
+            from src.plugins.manager import PluginManager
+            await PluginManager.get_instance().shutdown()
+        except Exception as e:
+            logger.error(f"Error during plugin shutdown: {e}")
+
         # Cleanup resources
         # Uvicorn will wait for in-flight requests to complete before calling this
         await cleanup_resources()
@@ -301,6 +313,7 @@ api_v1 = FastAPI(
 
 # Include routers - those with prefixes don't need additional prefixes
 api_v1.include_router(match_router, prefix="/api/match", tags=["match"])
+
 api_v1.include_router(okh_router, prefix="/api/okh", tags=["okh"])
 api_v1.include_router(okw_router, prefix="/api/okw", tags=["okw"])
 api_v1.include_router(asset_router, prefix="/api/asset", tags=["asset"])
@@ -324,6 +337,13 @@ api_v1.include_router(
     taxonomy_router, tags=["taxonomy"]
 )  # Already has /api/taxonomy prefix
 api_v1.include_router(rfq_router, tags=["rfq"])  # Already has /api/rfq prefix
+
+# Initialize and load plugins
+from src.plugins.manager import PluginManager
+plugin_manager = PluginManager.get_instance()
+plugin_manager.discover_and_load()
+plugin_manager.register_all_routes(api_v1)
+
 api_v1.include_router(
     federation_router, tags=["federation"]
 )  # Already has /api/federation prefix

@@ -269,6 +269,10 @@ MATCHING_PREINIT_NLP = _get_secret_or_env("MATCHING_PREINIT_NLP", "true").lower(
     "t",
 )
 
+# Plugins Configuration
+_active_plugins = _get_secret_or_env("OHM_ACTIVE_PLUGINS", "")
+ACTIVE_PLUGINS = [p.strip() for p in _active_plugins.split(",") if p.strip()]
+
 # Federation (Phase 5 MVP — disabled by default)
 OHM_FEDERATION_ENABLED = _get_secret_or_env(
     "OHM_FEDERATION_ENABLED", "false"

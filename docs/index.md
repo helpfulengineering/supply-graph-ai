@@ -18,6 +18,7 @@
 
 ### Development Plans
 * [Developer Guide](development/developer-guide.md)
+* [Integration Plugin System](development/plugins.md)
 * [Conference demo readiness](development/conference-demo-readiness.md) — documentation sync and Python quality tracker
 
 ### Testing
