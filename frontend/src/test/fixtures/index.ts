@@ -148,6 +148,20 @@ export const okwDetailFixture = {
 };
 
 /** Match response envelope: solutions + summary + coverage gaps under `data`. */
+/** Network map points (endpoint returns a flat envelope, not nested in data). */
+export const mapPointsFixture = {
+  success: true,
+  points: [
+    { id: "okw-1", name: "Laser Fab Lab", lat: 30.2711, lon: -97.7437, source: "local" },
+    { id: "okw-2", name: "Community Makerspace", lat: 30.25, lon: -97.75, source: "local" },
+    { id: "urn:mak:space/lazio", name: "FabLab Lazio Roma", lat: 41.8902, lon: 12.5179, source: "mom" },
+  ],
+  local_count: 2,
+  mom_count: 1,
+  dropped_no_coords: 1,
+  mom_available: true,
+};
+
 /** Reverse-match: designs a facility can produce (data.designs[]). */
 export const facilityDesignsFixture = {
   data: {
@@ -287,6 +301,7 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
+  "/v1/api/okw/map": mapPointsFixture,
   "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
 };
