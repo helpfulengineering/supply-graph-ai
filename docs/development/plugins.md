@@ -14,7 +14,19 @@ src/plugins/my_integration/
 ├── plugin.py    # Main entry point (exports class Plugin)
 ├── routes.py    # FastAPI routes
 ├── service.py   # Business logic
-└── config.py    # Private configuration (Pydantic BaseSettings)
+├── config.py    # Private configuration (Pydantic BaseSettings)
+└── tests/       # Plugin-specific tests
+    ├── unit/
+    └── integration/
+```
+
+### Testing Plugins
+
+Plugin tests should live within the plugin's own directory in a `tests/` folder. This ensures that the plugin is fully self-contained.
+
+You can run all plugin tests using the helper script:
+```bash
+uv run python tests/plugins/runner.py
 ```
 
 ## Creating a Plugin
