@@ -364,6 +364,76 @@ class MatchingService:
             )
             raise
 
+    async def find_designs_for_facility(
+        self,
+        facility: ManufacturingFacility,
+        manifests: List[OKHManifest],
+        min_confidence: float = 0.1,
+        max_results: Optional[int] = None,
+        explicit_domain: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Reverse match: which of the given designs can this facility produce?
+
+        Runs the same per-facility matching used by forward matching, but with a
+        single-facility candidate pool, once per candidate design. A design is
+        reported when the facility yields a solution scoring at least
+        ``min_confidence``. Results are ranked by confidence (descending).
+
+        Args:
+            facility: The single OKW facility to evaluate designs against.
+            manifests: Candidate OKH designs (full manifests, as the matcher
+                extracts process requirements from them).
+            min_confidence: Minimum solution score for a design to be reported.
+            max_results: Optional cap on the number of designs returned.
+            explicit_domain: When set, skips content-based domain detection.
+
+        Returns:
+            A confidence-ranked list of dicts, each with ``okh_id``,
+            ``okh_title``, ``confidence``, and ``rank`` (1-based).
+
+        Raises:
+            RuntimeError: If the service was not initialized.
+        """
+        await self.ensure_initialized()
+
+        matched: List[Dict[str, Any]] = []
+        for manifest in manifests:
+            try:
+                solutions = await self.find_matches_with_manifest(
+                    manifest, [facility], explicit_domain=explicit_domain
+                )
+            except Exception as e:
+                logger.warning(
+                    "Reverse match skipped a design that failed to match",
+                    extra={
+                        "okh_id": str(getattr(manifest, "id", None)),
+                        "error": str(e),
+                    },
+                )
+                continue
+
+            if not solutions:
+                continue
+
+            best = max(s.score for s in solutions)
+            if best < min_confidence:
+                continue
+
+            matched.append(
+                {
+                    "okh_id": str(getattr(manifest, "id", None)),
+                    "okh_title": getattr(manifest, "title", None),
+                    "confidence": best,
+                }
+            )
+
+        matched.sort(key=lambda d: d["confidence"], reverse=True)
+        if max_results is not None:
+            matched = matched[:max_results]
+        for rank, entry in enumerate(matched, start=1):
+            entry["rank"] = rank
+        return matched
+
     async def find_composite_matches_with_manifest(
         self,
         okh_manifest: OKHManifest,
