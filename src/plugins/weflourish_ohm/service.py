@@ -1,37 +1,39 @@
 import hmac
 import hashlib
 import httpx
-import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from src.config import settings
 from src.core.models.rfq import Bid, BidStatus, Quote, QuoteStatus, QuoteItem
 from src.core.utils.logging import get_logger
+from .config import PluginSettings
 
 logger = get_logger(__name__)
 
-class RFQService:
+class WeFlourishRFQService:
     _instance = None
 
-    def __init__(self):
+    def __init__(self, settings: PluginSettings):
+        self.settings = settings
         # In a real app, these would be backed by a database
         self._bids: Dict[str, Bid] = {}
 
     @classmethod
-    async def get_instance(cls) -> "RFQService":
+    def get_instance(cls, settings: Optional[PluginSettings] = None) -> "WeFlourishRFQService":
         if cls._instance is None:
-            cls._instance = cls()
+            if settings is None:
+                raise ValueError("Settings required for service initialization")
+            cls._instance = cls(settings)
         return cls._instance
 
     def verify_signature(self, payload: bytes, signature: str) -> bool:
         """Verify the HMAC-SHA256 signature from WeFlourish."""
-        if not settings.OHM_WEBHOOK_SECRET:
+        if not self.settings.OHM_WEBHOOK_SECRET:
             logger.warning("OHM_WEBHOOK_SECRET not configured, skipping signature verification")
             return True
 
         expected_signature = hmac.new(
-            settings.OHM_WEBHOOK_SECRET.encode(),
+            self.settings.OHM_WEBHOOK_SECRET.encode(),
             payload,
             hashlib.sha256
         ).hexdigest()
@@ -40,15 +42,15 @@ class RFQService:
 
     async def create_bid_on_weflourish(self, bid: Bid) -> bool:
         """Push a bid to WeFlourish."""
-        url = f"{settings.WEFLOURISH_API_URL}/ohm/bids"
+        url = f"{self.settings.WEFLOURISH_API_URL}/ohm/bids"
         headers = {
-            "x-api-key": settings.WEFLOURISH_API_KEY,
+            "x-api-key": self.settings.WEFLOURISH_API_KEY,
             "Content-Type": "application/json"
         }
 
         payload = bid.to_dict()
         # Ensure callback URL is included
-        payload["callback_url"] = settings.OHM_CALLBACK_URL_BASE
+        payload["callback_url"] = self.settings.OHM_CALLBACK_URL_BASE
 
         async with httpx.AsyncClient() as client:
             try:
