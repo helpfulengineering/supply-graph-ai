@@ -56,7 +56,7 @@ from fastapi import Body
 
 @router.post("/bids", status_code=status.HTTP_201_CREATED)
 async def create_bid(
-    bid_request: BidCreateRequest = Body(...),
+    bid_request: BidCreateRequest = Body(..., embed=True),
     rfq_service: WeFlourishRFQService = Depends(WeFlourishRFQService.get_instance),
 ):
     """
