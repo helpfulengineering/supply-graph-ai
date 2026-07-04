@@ -77,7 +77,7 @@ def test_webhook_invalid_signature(client, webhook_secret):
 
 def test_create_bid_endpoint(client, monkeypatch):
     async def mock_create_bid_on_weflourish(self, bid):
-        bid.weflourish_id = "wf-123"
+        bid.external_id = "wf-123"
         return True
 
     monkeypatch.setattr(WeFlourishRFQService, "create_bid_on_weflourish", mock_create_bid_on_weflourish)

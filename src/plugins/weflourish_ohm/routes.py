@@ -83,6 +83,6 @@ async def create_bid(
 
     return {
         "status": "success",
-        "weflourish_id": bid.weflourish_id,
+        "weflourish_id": bid.external_id,
         "ohm_id": bid.ohm_id
     }

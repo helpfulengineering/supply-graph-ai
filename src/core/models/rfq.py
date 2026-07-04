@@ -68,7 +68,7 @@ class Bid:
     callback_url: Optional[str] = None
     status: BidStatus = BidStatus.OPEN
     metadata: Dict[str, Any] = field(default_factory=dict)
-    weflourish_id: Optional[str] = None
+    external_id: Optional[str] = None
     quotes: List[Quote] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
@@ -83,7 +83,7 @@ class Bid:
             "callback_url": self.callback_url,
             "status": self.status.value,
             "metadata": self.metadata,
-            "weflourish_id": self.weflourish_id,
+            "external_id": self.external_id,
             "quotes": [quote.to_dict() for quote in self.quotes],
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),

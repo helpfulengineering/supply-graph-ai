@@ -57,9 +57,9 @@ class WeFlourishRFQService:
                 response = await client.post(url, json=payload, headers=headers)
                 response.raise_for_status()
                 data = response.json()
-                bid.weflourish_id = data.get("id")
+                bid.external_id = data.get("id")
                 self._bids[bid.ohm_id] = bid
-                logger.info(f"Successfully created bid {bid.ohm_id} on WeFlourish (WF ID: {bid.weflourish_id})")
+                logger.info(f"Successfully created bid {bid.ohm_id} on WeFlourish (WF ID: {bid.external_id})")
                 return True
             except httpx.HTTPError as e:
                 logger.error(f"Failed to create bid on WeFlourish: {e}")
