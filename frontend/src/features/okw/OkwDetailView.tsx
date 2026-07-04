@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
 import type { OkwFacility } from "../../types/okw";
 import { humanizeProcess } from "./processDisplay";
+import { FacilityDesigns } from "./FacilityDesigns";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -174,6 +175,8 @@ export function OkwDetailView({ id }: { id: string }) {
           </div>
         </section>
       )}
+
+      <FacilityDesigns okwId={id} />
     </div>
   );
 }

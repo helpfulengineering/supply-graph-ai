@@ -148,6 +148,24 @@ export const okwDetailFixture = {
 };
 
 /** Match response envelope: solutions + summary + coverage gaps under `data`. */
+/** Reverse-match: designs a facility can produce (data.designs[]). */
+export const facilityDesignsFixture = {
+  data: {
+    okw_id: "okw-1",
+    facility_name: "Laser Fab Lab",
+    designs: [
+      { okh_id: "okh-0001", okh_title: "Open Ventilator", confidence: 0.95, rank: 1 },
+      { okh_id: "okh-0002", okh_title: "Face Shield", confidence: 0.62, rank: 2 },
+    ],
+    total_designs: 2,
+    designs_considered: 3,
+  },
+};
+
+export const facilityDesignsEmptyFixture = {
+  data: { okw_id: "okw-1", facility_name: "Laser Fab Lab", designs: [], total_designs: 0, designs_considered: 3 },
+};
+
 export const matchResponseFixture = {
   data: {
     solutions: [
@@ -268,6 +286,7 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/match": matchResponseFixture,
+  "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
 };

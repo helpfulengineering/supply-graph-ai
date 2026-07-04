@@ -1,4 +1,4 @@
-import { apiClient, ApiError, errorMessage } from "./client";
+import { apiBaseUrl, apiClient, ApiError, errorMessage } from "./client";
 
 export interface RunMatchParams {
   okhId: string;
@@ -64,4 +64,53 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
     );
   }
   return (data ?? {}) as RawMatchResponse;
+}
+
+/** A design a facility can produce (reverse-match result row). */
+export interface FacilityDesign {
+  okh_id: string;
+  okh_title: string | null;
+  confidence: number;
+  rank: number;
+}
+
+export interface FacilityDesignsResult {
+  facility_name: string | null;
+  designs: FacilityDesign[];
+  total_designs: number;
+}
+
+/**
+ * Reverse match: the designs a facility can produce, ranked by confidence.
+ *
+ * Uses a raw fetch (not the generated client) because POST /api/match/facility
+ * is newer than the committed OpenAPI schema; swap to `apiClient` once the
+ * schema is regenerated. Goes through globalThis.fetch so MSW still intercepts.
+ */
+export async function fetchDesignsForFacility(
+  okwId: string,
+  opts: { minConfidence?: number; maxResults?: number } = {},
+): Promise<FacilityDesignsResult> {
+  const response = await globalThis.fetch(`${apiBaseUrl}/api/match/facility`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      okw_id: okwId,
+      min_confidence: opts.minConfidence ?? 0.1,
+      max_results: opts.maxResults ?? 10,
+    }),
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(body, `Failed to load producible designs (HTTP ${response.status})`),
+    );
+  }
+  const data = (body as { data?: Partial<FacilityDesignsResult> })?.data ?? {};
+  return {
+    facility_name: data.facility_name ?? null,
+    designs: (data.designs ?? []) as FacilityDesign[],
+    total_designs: data.total_designs ?? (data.designs?.length ?? 0),
+  };
 }
