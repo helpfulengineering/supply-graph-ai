@@ -66,7 +66,12 @@ from ..models.base import (
 )
 
 # Import existing models and services
-from ..models.match.request import MatchRequest, SimulateRequest, ValidateMatchRequest
+from ..models.match.request import (
+    FacilityMatchRequest,
+    MatchRequest,
+    SimulateRequest,
+    ValidateMatchRequest,
+)
 from ..models.match.response import SimulateResponse
 from ..models.match.suggestion_codes import MATCH_SUGGESTION_CODES
 
@@ -106,6 +111,11 @@ async def get_storage_service() -> StorageService:
 async def get_okh_service() -> OKHService:
     """Get OKH service instance."""
     return await OKHService.get_instance()
+
+
+async def get_okw_service() -> OKWService:
+    """Get OKW service instance."""
+    return await OKWService.get_instance()
 
 
 # Main matching endpoint (enhanced version)
@@ -966,6 +976,104 @@ async def match_requirements_from_file(
             suggestion="Please try again or contact support if the issue persists",
         )
         logger.error(f"Error in file upload matching: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+# Reverse matching: designs a facility can produce
+@router.post(
+    "/facility",
+    status_code=status.HTTP_200_OK,
+    summary="Reverse Match (Designs a Facility Can Produce)",
+    description="""
+    Reverse matching: given an OKW facility, return the OKH designs it can produce.
+
+    This is the inverse of `POST /api/match` (which finds facilities for a design).
+    It evaluates every design in the catalog against the single target facility
+    using the same matching logic, and returns the designs the facility can make,
+    ranked by confidence.
+
+    **Body:**
+    - `okw_id` (required): the facility to find producible designs for
+    - `min_confidence` (default 0.1): minimum solution score to report a design
+    - `max_results` (default 10): cap on the number of designs returned
+    - `domain` (optional): explicit domain override
+    """,
+)
+@api_endpoint(
+    success_message="Reverse matching completed successfully", include_metrics=True
+)
+@track_performance("reverse_facility_matching")
+async def match_designs_for_facility(
+    request: FacilityMatchRequest,
+    http_request: Request,
+    matching_service: MatchingService = Depends(get_matching_service),
+    okh_service: OKHService = Depends(get_okh_service),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> dict[str, Any]:
+    """Return the designs a given facility can produce, ranked by confidence."""
+    request_id = getattr(http_request.state, "request_id", None)
+    start_time = datetime.now()
+
+    try:
+        facility = await okw_service.get(request.okw_id)
+        if facility is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Facility {request.okw_id} not found",
+            )
+
+        # Load the full design catalog (list yields minimal manifests; the matcher
+        # needs full manifests to extract process requirements, so re-load each).
+        manifests: List[OKHManifest] = []
+        page = 1
+        page_size = 200
+        while True:
+            summaries, _ = await okh_service.list(page=page, page_size=page_size)
+            if not summaries:
+                break
+            for summary in summaries:
+                full = await okh_service.get(summary.id)
+                if full is not None:
+                    manifests.append(full)
+            if len(summaries) < page_size:
+                break
+            page += 1
+
+        designs = await matching_service.find_designs_for_facility(
+            facility=facility,
+            manifests=manifests,
+            min_confidence=(
+                request.min_confidence if request.min_confidence is not None else 0.1
+            ),
+            max_results=request.max_results,
+            explicit_domain=request.domain,
+        )
+
+        processing_time = (datetime.now() - start_time).total_seconds()
+        # Return the plain data payload; @api_endpoint wraps it in the standard
+        # success envelope (matching the main POST /api/match handler).
+        return {
+            "okw_id": str(request.okw_id),
+            "facility_name": getattr(facility, "name", None),
+            "designs": designs,
+            "total_designs": len(designs),
+            "designs_considered": len(manifests),
+            "processing_time": processing_time,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(f"Error in reverse facility matching: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),

@@ -1152,6 +1152,92 @@ async def requirements(
 
 
 @match_group.command()
+@click.argument("okw_id", type=str)
+@click.option(
+    "--min-confidence",
+    type=float,
+    default=0.1,
+    show_default=True,
+    help="Minimum solution score for a design to be reported (0.0-1.0).",
+)
+@click.option(
+    "--max-results",
+    type=int,
+    default=10,
+    show_default=True,
+    help="Maximum number of designs to return.",
+)
+@click.option(
+    "--domain",
+    type=click.Choice(["manufacturing", "cooking"]),
+    help="Domain override (skips content-based detection).",
+)
+@standard_cli_command(
+    help_text="""
+    Reverse match: list the designs a given facility can produce.
+
+    This is the inverse of `ohm match requirements` — instead of finding
+    facilities for a design, it finds designs a facility (OKW_ID) can make,
+    ranked by confidence.
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def facility(
+    ctx: Context,
+    okw_id: str,
+    min_confidence: float,
+    max_results: int,
+    domain: Optional[str],
+    verbose: bool,
+    output_format: str,
+    # Always-injected LLM options (unused here; reverse matching is deterministic).
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List the designs a facility can produce (reverse match)."""
+    cli_ctx = ctx.obj
+
+    request_data: dict[str, Any] = {
+        "okw_id": okw_id,
+        "min_confidence": min_confidence,
+        "max_results": max_results,
+    }
+    if domain:
+        request_data["domain"] = domain
+
+    response = await cli_ctx.api_client.request(
+        "POST",
+        "/api/match/facility",
+        json_data=request_data,
+    )
+    data = response.get("data", response)
+
+    if output_format == "json":
+        click.echo(json.dumps(data, indent=2))
+        return
+
+    designs = data.get("designs", [])
+    facility_name = data.get("facility_name") or okw_id
+    if not designs:
+        click.echo(f"No designs can currently be produced by {facility_name}.")
+        return
+
+    click.echo(f"Designs {facility_name} can produce:")
+    for d in designs:
+        pct = round((d.get("confidence") or 0.0) * 100)
+        title = d.get("okh_title") or d.get("okh_id")
+        click.echo(f"  {d.get('rank')}. {title} ({d.get('okh_id')}) — {pct}%")
+
+
+@match_group.command()
 @click.argument("input_file", type=str)
 @click.option(
     "--domain",
