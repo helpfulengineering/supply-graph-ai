@@ -323,6 +323,23 @@ async def match_selected_facilities():
         return response.json()
 ```
 
+**Reverse matching (designs a facility can produce):**
+
+`POST /api/match/facility` is the inverse of `POST /api/match`: given an OKW
+facility, it returns the OKH designs that facility can produce, ranked by
+confidence. It evaluates every design in the catalog against the single facility
+using the same matching logic. Equivalent CLI: `ohm match facility <okw-id>`.
+
+```python
+async def designs_for_facility():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/api/match/facility",
+            json={"okw_id": "…", "min_confidence": 0.1, "max_results": 10},
+        )
+        return response.json()  # data.designs[] = [{okh_id, okh_title, confidence, rank}]
+```
+
 **Matching from URL:**
 ```python
 async def match_from_url():

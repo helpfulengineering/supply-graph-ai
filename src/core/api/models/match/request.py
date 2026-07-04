@@ -303,6 +303,27 @@ class ValidateMatchRequest(BaseModel):
     )
 
 
+class FacilityMatchRequest(BaseAPIRequest):
+    """Reverse-match request: which designs can a given facility produce?"""
+
+    okw_id: UUID = Field(
+        ..., description="Facility (OKW) to find producible designs for"
+    )
+    domain: Optional[str] = Field(
+        None,
+        description="Optional explicit domain; skips content-based domain detection.",
+    )
+    min_confidence: Optional[float] = Field(
+        0.1,
+        ge=0.0,
+        le=1.0,
+        description="Minimum solution score for a design to be reported.",
+    )
+    max_results: Optional[int] = Field(
+        10, ge=1, description="Maximum number of designs to return."
+    )
+
+
 class SimulationParameters(BaseModel):
     """Parameters for simulation"""
 
