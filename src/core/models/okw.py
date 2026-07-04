@@ -59,6 +59,43 @@ class What3Words:
 
 
 @dataclass
+class Coordinates:
+    """Geographic coordinates parsed from the OKW decimal-degrees string."""
+
+    latitude: float
+    longitude: float
+
+    def to_dict(self) -> Dict:
+        """Serialize as {lat, lon} (matches the SpaceAPI/MoM convention)."""
+        return {"lat": self.latitude, "lon": self.longitude}
+
+
+def parse_decimal_degrees(value: Optional[str]) -> Optional["Coordinates"]:
+    """Parse an OKW ``gps_coordinates`` string into typed ``Coordinates``.
+
+    The OKW standard stores GPS coordinates as a single decimal-degrees string
+    (e.g. ``"42.3588, -71.0578"``). This is the one place that parsing lives, so
+    the map serialization and the MoM/SpaceAPI bridge don't each reinvent it.
+
+    Returns ``None`` when the value is absent, not a ``"lat, lon"`` pair, or out
+    of the valid latitude/longitude range.
+    """
+    if not value or not isinstance(value, str):
+        return None
+    parts = value.split(",")
+    if len(parts) != 2:
+        return None
+    try:
+        lat = float(parts[0].strip())
+        lon = float(parts[1].strip())
+    except (ValueError, TypeError):
+        return None
+    if not (-90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0):
+        return None
+    return Coordinates(latitude=lat, longitude=lon)
+
+
+@dataclass
 class Location:
     """Location information with multiple addressing options"""
 
@@ -70,6 +107,10 @@ class Location:
     region: Optional[str] = None
     country: Optional[str] = None
 
+    def coordinates(self) -> Optional["Coordinates"]:
+        """Typed view of ``gps_coordinates``; ``None`` if absent or unparseable."""
+        return parse_decimal_degrees(self.gps_coordinates)
+
     def to_dict(self) -> Dict:
         """Convert to dictionary"""
         result = {}
@@ -79,6 +120,11 @@ class Location:
                 result["address"] = addr_dict
         if self.gps_coordinates:
             result["gps_coordinates"] = self.gps_coordinates
+            # Structured coordinates alongside the raw spec string, so consumers
+            # (e.g. the web map) get numeric lat/lon without re-parsing.
+            coords = self.coordinates()
+            if coords:
+                result["coordinates"] = coords.to_dict()
         if self.directions:
             result["directions"] = self.directions
         if self.what3words:
@@ -893,15 +939,9 @@ class ManufacturingFacility:
             "state": {"open": self.facility_status == FacilityStatus.ACTIVE},
         }
 
-        if self.location.gps_coordinates:
-            try:
-                lat_str, lon_str = self.location.gps_coordinates.split(",", 1)
-                doc["location"] = {
-                    "lat": float(lat_str.strip()),
-                    "lon": float(lon_str.strip()),
-                }
-            except (ValueError, AttributeError):
-                pass
+        coords = self.location.coordinates()
+        if coords:
+            doc["location"] = {"lat": coords.latitude, "lon": coords.longitude}
 
         if self.description:
             doc["description"] = self.description

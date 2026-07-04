@@ -131,16 +131,32 @@ class What3Words:
     language: str  # ISO 639-2 or ISO 639-3 language code
 
 @dataclass
+class Coordinates:
+    """Geographic coordinates parsed from the OKW decimal-degrees string."""
+    latitude: float
+    longitude: float
+    # to_dict() → {"lat": latitude, "lon": longitude}
+
+@dataclass
 class Location:
     """Location information with multiple addressing options"""
     address: Optional[Address] = None
-    gps_coordinates: Optional[str] = None  # Decimal degrees
+    gps_coordinates: Optional[str] = None  # Decimal degrees (spec: single string)
     directions: Optional[str] = None
     what3words: Optional[What3Words] = None
     city: Optional[str] = None
     country: Optional[str] = None
-    # to_dict() → delegates to Address.to_dict() and What3Words
+    # coordinates() → Optional[Coordinates]; the single typed accessor for the
+    #   decimal-degrees gps_coordinates string (None if absent/malformed/out-of-range).
+    # to_dict() → delegates to Address.to_dict() and What3Words, and additionally
+    #   emits a structured "coordinates": {"lat", "lon"} when gps_coordinates parses,
+    #   so consumers (e.g. the web map) get numeric lat/lon without re-parsing.
 ```
+
+The `gps_coordinates` string is the spec-compliant stored form (OKW standard §6.3,
+Decimal Degrees). `parse_decimal_degrees(value)` is the module-level helper behind
+`Location.coordinates()`; the MoM/SpaceAPI serialization (`to_spaceapi_json`) uses the
+same accessor so coordinate parsing lives in exactly one place.
 
 ### 4. Agent
 Person or organization associated with a facility.

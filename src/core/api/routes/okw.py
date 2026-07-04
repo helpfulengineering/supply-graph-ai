@@ -191,10 +191,12 @@ async def search_okw(
                             ),
                         }
                     ),
-                    "coordinates": {
-                        "latitude": getattr(facility.location, "latitude", None),
-                        "longitude": getattr(facility.location, "longitude", None),
-                    },
+                    "coordinates": (
+                        facility.location.coordinates().to_dict()
+                        if hasattr(facility.location, "coordinates")
+                        and facility.location.coordinates()
+                        else None
+                    ),
                 }
             )
 
@@ -560,10 +562,12 @@ async def list_okw(
                             ),
                         }
                     ),
-                    "coordinates": {
-                        "latitude": getattr(facility.location, "latitude", None),
-                        "longitude": getattr(facility.location, "longitude", None),
-                    },
+                    "coordinates": (
+                        facility.location.coordinates().to_dict()
+                        if hasattr(facility.location, "coordinates")
+                        and facility.location.coordinates()
+                        else None
+                    ),
                 }
             )
 
