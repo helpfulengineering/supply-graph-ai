@@ -53,6 +53,8 @@ def _get_secret_or_env(key: str, default: str = None) -> str:
         # List of sensitive keys that should use secrets manager
         sensitive_keys = [
             "API_KEYS",
+            "OHM_WEBHOOK_SECRET",
+            "WEFLOURISH_API_KEY",
             "OPENAI_API_KEY",
             "ANTHROPIC_API_KEY",
             "GOOGLE_AI_API_KEY",
@@ -268,6 +270,13 @@ MATCHING_PREINIT_NLP = _get_secret_or_env("MATCHING_PREINIT_NLP", "true").lower(
     "1",
     "t",
 )
+
+# WeFlourish Integration
+WEFLOURISH_API_URL = _get_secret_or_env("WEFLOURISH_API_URL", "https://weflourish.com/api")
+WEFLOURISH_API_KEY = _get_secret_or_env("WEFLOURISH_API_KEY")
+OHM_WEBHOOK_SECRET = _get_secret_or_env("OHM_WEBHOOK_SECRET")
+# The URL WeFlourish should call back to
+OHM_CALLBACK_URL_BASE = _get_secret_or_env("OHM_CALLBACK_URL_BASE", "http://localhost:8001/v1/api/rfq/webhooks/weflourish")
 
 # Federation (Phase 5 MVP — disabled by default)
 OHM_FEDERATION_ENABLED = _get_secret_or_env(
