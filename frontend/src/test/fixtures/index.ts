@@ -14,7 +14,21 @@ export const healthFixture = {
 };
 
 export const domainsFixture = {
-  domains: ["manufacturing", "cooking"],
+  data: {
+    domains: [
+      { id: "manufacturing", name: "Manufacturing", description: "Hardware manufacturing" },
+      { id: "cooking", name: "Cooking & Food Prep", description: "Recipe matching" },
+    ],
+  },
+};
+
+export const metricsFixture = {
+  data: {
+    total_requests: 1094,
+    recent_requests_1h: 111,
+    active_requests: 1,
+    error_summary: { total_errors: 0 },
+  },
 };
 
 /** A minimal OKH manifest shaped like the list payload the UI renders. */
@@ -133,14 +147,161 @@ export const okwDetailFixture = {
   certifications: ["ISO 9001:2015", "OHSAS 18001"],
 };
 
+/** Match response envelope: solutions + summary + coverage gaps under `data`. */
+/** Network map points (endpoint returns a flat envelope, not nested in data). */
+export const mapPointsFixture = {
+  success: true,
+  points: [
+    { id: "okw-1", name: "Laser Fab Lab", lat: 30.2711, lon: -97.7437, source: "local" },
+    { id: "okw-2", name: "Community Makerspace", lat: 30.25, lon: -97.75, source: "local" },
+    { id: "urn:mak:space/lazio", name: "FabLab Lazio Roma", lat: 41.8902, lon: 12.5179, source: "mom" },
+  ],
+  local_count: 2,
+  mom_count: 1,
+  dropped_no_coords: 1,
+  mom_available: true,
+};
+
+/** Reverse-match: designs a facility can produce (data.designs[]). */
+export const facilityDesignsFixture = {
+  data: {
+    okw_id: "okw-1",
+    facility_name: "Laser Fab Lab",
+    designs: [
+      { okh_id: "okh-0001", okh_title: "Open Ventilator", confidence: 0.95, rank: 1 },
+      { okh_id: "okh-0002", okh_title: "Face Shield", confidence: 0.62, rank: 2 },
+    ],
+    total_designs: 2,
+    designs_considered: 3,
+  },
+};
+
+export const facilityDesignsEmptyFixture = {
+  data: { okw_id: "okw-1", facility_name: "Laser Fab Lab", designs: [], total_designs: 0, designs_considered: 3 },
+};
+
+export const matchResponseFixture = {
+  data: {
+    solutions: [
+      {
+        facility_name: "FabLab Drome",
+        facility_id: "okw-1",
+        confidence: 0.95,
+        score: 0.95,
+        rank: 1,
+        explanation_human: "✓ FabLab Drome MATCHED (confidence: 95%)\nAll requirements satisfied.",
+        tree: { id: "tree-1" },
+      },
+      {
+        facility_name: "Community Makerspace",
+        facility_id: "okw-2",
+        confidence: 0.6,
+        score: 0.6,
+        rank: 2,
+        explanation_human: "Partial match; some processes unmet.",
+        tree: { id: "tree-2" },
+      },
+    ],
+    coverage_gaps: ["CNC Machining"],
+    human_summary: { executive: "2 candidate solutions found; coverage 1/2." },
+    total_solutions: 2,
+    solution_id: "sol-1",
+  },
+};
+
+/** Visualization bundle (nested under `data`, as the API returns it). */
+export const vizBundleFixture = {
+  data: {
+    schema_version: "3.2.0",
+    source_type: "solution",
+    generated_at: "2026-01-01T00:00:00Z",
+    matching: { overview: { matching_mode: "single-level", score: 0.95, tree_count: 1 } },
+    supply_tree: {
+      solution_id: "sol-1",
+      nodes: [
+        {
+          id: "n1",
+          label: "Frame",
+          component_id: null,
+          facility_name: "FabLab Drome",
+          depth: 0,
+          production_stage: "assembly",
+          confidence_score: 0.95,
+          estimated_cost: null,
+          estimated_time: null,
+        },
+        {
+          id: "n2",
+          label: "Base Plate",
+          component_id: null,
+          facility_name: "Community Makerspace",
+          depth: 1,
+          production_stage: "fabrication",
+          confidence_score: 0.9,
+          estimated_cost: null,
+          estimated_time: null,
+        },
+      ],
+      edges: [{ source: "n2", target: "n1", type: "depends_on" }],
+      dependency_graph: { n1: ["n2"] },
+      production_sequence: [["n2"], ["n1"]],
+      resource_cost: { total_estimated_cost: null, total_estimated_time: null },
+    },
+    network: {
+      facility_distribution: [{ facility_name: "FabLab Drome", tree_count: 1 }],
+      route_hints: { status: "not_provided", note: "" },
+    },
+    dashboard: { kpis: { tree_count: 1, edge_count: 1, stage_count: 2, solution_score: 0.95 } },
+    artifacts: {},
+  },
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
+/** Saved supply-tree solutions list (envelope: data.result[]). */
+export const solutionsListFixture = {
+  data: {
+    result: [
+      {
+        id: "sol-1",
+        okh_id: "okh-0001",
+        okh_title: "Open Ventilator",
+        facility_name: "FabLab Drome",
+        matching_mode: "single-level",
+        tree_count: 1,
+        facility_count: 2,
+        score: 0.95,
+        created_at: "2026-07-03T12:00:00Z",
+      },
+      {
+        id: "sol-2",
+        okh_id: "okh-0002",
+        okh_title: "Face Shield",
+        facility_name: null,
+        matching_mode: "single-level",
+        tree_count: 1,
+        facility_count: 1,
+        score: 0.6,
+        created_at: "2026-07-02T09:00:00Z",
+      },
+    ],
+  },
+};
+
+export const solutionsEmptyFixture = { data: { result: [] } };
+
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
+  "/v1/api/utility/metrics": metricsFixture,
   "/v1/api/okh": okhListFixture,
   "/v1/api/okh/okh-0001": okhDetailFixture,
   "/v1/api/okh/validate": validationResultFixture,
   "/v1/api/okw/search": okwSearchFixture,
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/match": matchResponseFixture,
+  "/v1/api/match/facility": facilityDesignsFixture,
+  "/v1/api/okw/map": mapPointsFixture,
+  "/v1/api/supply-tree/solutions": solutionsListFixture,
+  "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
 };

@@ -5,9 +5,9 @@ const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
   { to: "/facilities", label: "Facilities", icon: "🏭" },
   { to: "/match", label: "Match", icon: "⚡" },
-  { to: "/visualization", label: "Visualization", icon: "🗺️" },
-  { to: "/rfq", label: "RFQ", icon: "📄" },
-  { to: "/packages", label: "Packages", icon: "📦" },
+  { to: "/solutions", label: "Solutions", icon: "🌳" },
+  // RFQ and Packages are deferred to v1.1 — pages kept dormant (routes still
+  // resolve by URL), just not surfaced in the v1 nav.
 ] as const;
 
 export function NavBar() {

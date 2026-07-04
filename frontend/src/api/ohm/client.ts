@@ -21,8 +21,13 @@ const origin =
     ? window.location.origin
     : "http://localhost";
 
+/** Versioned API base (origin + /v1). Exported for the rare call that must
+ * bypass the generated client — e.g. an endpoint not yet in the committed
+ * schema. Prefer `apiClient` (typed) for everything covered by the spec. */
+export const apiBaseUrl = `${origin}/v1`;
+
 export const apiClient = createClient<paths>({
-  baseUrl: `${origin}/v1`,
+  baseUrl: apiBaseUrl,
   // Defer to the *current* global fetch on each call rather than the reference
   // captured at module load, so test-time interceptors (MSW) that replace
   // globalThis.fetch after import are honored. No-op difference in the browser.

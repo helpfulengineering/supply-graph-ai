@@ -36,7 +36,7 @@ export function FacetPanel({
               {group.key === PRIMARY_FACET && (
                 <span
                   title="Provisional categories derived from design text; a curated taxonomy is coming."
-                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-muted-foreground"
+                  className="rounded bg-muted px-1 py-0.5 text-[10px] font-normal uppercase tracking-wide text-slate-600 dark:text-slate-300"
                 >
                   provisional
                 </span>

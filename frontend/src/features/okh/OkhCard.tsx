@@ -57,7 +57,7 @@ export function OkhCard({ okh }: Props) {
         )}
 
         {/* Meta row */}
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 dark:text-slate-500">
+        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-500">
           {okh.version && <span>v{okh.version}</span>}
           {okh.documentation_language && (
             <span className="uppercase">{okh.documentation_language}</span>
@@ -73,7 +73,7 @@ export function OkhCard({ okh }: Props) {
 
       {/* Action footer */}
       <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 dark:border-slate-800">
-        <span className="text-xs text-slate-400 dark:text-slate-500 font-mono truncate max-w-[140px]">
+        <span className="text-xs text-slate-500 dark:text-slate-500 font-mono truncate max-w-[140px]">
           {okh.id.slice(0, 8)}…
         </span>
         <button

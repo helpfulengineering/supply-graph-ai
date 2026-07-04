@@ -5,6 +5,7 @@ import { HomePage } from "./pages/HomePage";
 import { OkhPage } from "./pages/OkhPage";
 import { OkwPage } from "./pages/OkwPage";
 import { MatchPage } from "./pages/MatchPage";
+import { SolutionsPage } from "./pages/SolutionsPage";
 import { VisualizationPage } from "./pages/VisualizationPage";
 import { RfqPage } from "./pages/RfqPage";
 import { PackagePage } from "./pages/PackagePage";
@@ -35,7 +36,8 @@ export function App() {
               <Route path="facilities" element={<OkwPage />} />
               <Route path="facilities/:id" element={<OkwPage />} />
               <Route path="match" element={<MatchPage />} />
-              <Route path="visualization" element={<VisualizationPage />} />
+              <Route path="solutions" element={<SolutionsPage />} />
+              <Route path="visualization" element={<Navigate to="/solutions" replace />} />
               <Route path="visualization/:solutionId" element={<VisualizationPage />} />
               <Route path="rfq" element={<RfqPage />} />
               <Route path="packages" element={<PackagePage />} />

@@ -32,7 +32,7 @@ export function OkhFileGroup({ title, icon, files }: Props) {
             <div className="min-w-0">
               <p className="truncate text-sm text-slate-700 dark:text-slate-200">{f.title || f.path.split("/").pop()}</p>
               {f.metadata && Object.keys(f.metadata).length > 0 && (
-                <p className="text-xs text-slate-400 dark:text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-500">
                   {Object.entries(f.metadata).map(([k, v]) => `${k}: ${v}`).join(" · ")}
                 </p>
               )}

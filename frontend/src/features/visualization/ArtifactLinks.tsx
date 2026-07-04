@@ -50,7 +50,7 @@ export function ArtifactLinks({ data, solutionId }: Props) {
         <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Export Artifacts
         </h3>
-        <p className="text-xs text-slate-400 dark:text-slate-500">
+        <p className="text-xs text-slate-600 dark:text-slate-600">
           Download or open generated artifacts for this solution
         </p>
       </div>
@@ -64,7 +64,7 @@ export function ArtifactLinks({ data, solutionId }: Props) {
               <span className="text-xl" aria-hidden="true">{icon}</span>
               <div>
                 <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500">{description}</p>
+                <p className="text-xs text-slate-600 dark:text-slate-600">{description}</p>
               </div>
             </div>
             {href ? (
@@ -78,7 +78,7 @@ export function ArtifactLinks({ data, solutionId }: Props) {
                 {download ? "Download" : "Open"}
               </a>
             ) : (
-              <span className="shrink-0 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+              <span className="shrink-0 rounded-md bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-600">
                 Unavailable
               </span>
             )}
