@@ -498,6 +498,99 @@ async def list_facilities(
         raise
 
 
+@okw_group.command(name="map")
+@click.option(
+    "--no-mom",
+    is_flag=True,
+    help="Exclude Maps of Making; show local OKW facilities only.",
+)
+@click.option(
+    "--refresh",
+    is_flag=True,
+    help="Force a refresh of the MoM cache before building the map.",
+)
+@standard_cli_command(
+    help_text="""
+    List network map points: local OKW facilities unioned with Maps of Making.
+
+    Each point is source-labeled ("local" or "mom"). Local facilities without
+    coordinates are counted but not plotted. MoM is served from a 24h cache and
+    degrades gracefully — if it is unreachable you get local-only points.
+    """,
+    epilog="""
+    Examples:
+      ohm okw map                 # local + MoM
+      ohm okw map --no-mom        # local facilities only
+      ohm okw map --refresh       # force a MoM cache refresh first
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def okw_map(
+    ctx,
+    no_mom: bool,
+    refresh: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """List network map points (local OKW facilities ∪ Maps of Making)."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-map")
+    include_mom = not no_mom
+
+    try:
+
+        async def http_map():
+            cli_ctx.log("Fetching map points via HTTP API...", "info")
+            params = {
+                "include_mom": str(include_mom).lower(),
+                "force_refresh": str(refresh).lower(),
+            }
+            return await cli_ctx.api_client.request(
+                "GET", "/api/okw/map", params=params
+            )
+
+        async def fallback_map():
+            cli_ctx.log("Building map points via direct service...", "info")
+            okw_service = await OKWService.get_instance()
+            return await okw_service.get_map_points(
+                include_mom=include_mom, force_refresh=refresh
+            )
+
+        command = SmartCommand(cli_ctx)
+        result = await command.execute_with_fallback(http_map, fallback_map)
+        data = result.get("data", result) if isinstance(result, dict) else result
+
+        if output_format == "json":
+            click.echo(json.dumps(data, indent=2))
+        else:
+            mom_state = "available" if data.get("mom_available") else "unavailable"
+            click.echo(
+                f"🗺️  {len(data.get('points', []))} map points "
+                f"({data.get('local_count', 0)} local + {data.get('mom_count', 0)} MoM)"
+            )
+            dropped = data.get("dropped_no_coords", 0)
+            if dropped:
+                click.echo(f"   {dropped} local facility(ies) omitted (no coordinates)")
+            if include_mom:
+                click.echo(f"   Maps of Making: {mom_state}")
+
+        cli_ctx.end_command_tracking()
+
+    except Exception as e:
+        cli_ctx.log(f"Map build failed: {str(e)}", "error")
+        raise
+
+
 @okw_group.command()
 @click.argument("facility_id", type=str)
 @click.option("--force", is_flag=True, help="Force deletion without confirmation")

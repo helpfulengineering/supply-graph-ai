@@ -2,11 +2,22 @@
 
 from __future__ import annotations
 
+import asyncio
+import logging
+import time
+from typing import Optional
+
 import httpx
 
 from ..taxonomy import taxonomy
 
+logger = logging.getLogger(__name__)
+
 MOM_SPARQL_ENDPOINT = "https://mapsofmaking.org/sparql/query"
+
+# 24h default TTL: MoM's space directory is slow-changing, and the all-spaces
+# query is heavy (thousands of rows), so we avoid re-querying on every map load.
+MOM_CACHE_TTL_SECONDS = 24 * 60 * 60
 
 _SPARQL_TEMPLATE = """
 SELECT DISTINCT ?space ?name ?lat ?lon WHERE {{
@@ -133,3 +144,121 @@ async def fetch_mom_facilities_for_manifest(
         )
         for data in space_data.values()
     ]
+
+
+# All spaces with geographic coordinates — for the network map (not filtered by
+# process, unlike the matching queries above).
+_ALL_SPACES_SPARQL = """
+SELECT DISTINCT ?space ?name ?lat ?lon WHERE {
+  GRAPH ?g {
+    ?space a <https://nicolasdb.github.io/mapsofmaking_ontology/ns#Space> ;
+           <https://schema.org/name> ?name ;
+           <https://schema.org/geo> [ <https://schema.org/latitude> ?lat ;
+                                       <https://schema.org/longitude> ?lon ] .
+  }
+}
+"""
+
+
+async def fetch_all_mom_spaces(
+    endpoint: str = MOM_SPARQL_ENDPOINT,
+    timeout: float = 20.0,
+) -> list[dict]:
+    """Fetch every MoM space that has geographic coordinates, for the map.
+
+    Args:
+        endpoint: MoM SPARQL endpoint URL.
+        timeout: Request timeout in seconds.
+
+    Returns:
+        List of dicts with keys: space (IRI), name, lat, lon.
+
+    Raises:
+        httpx.HTTPError: If the endpoint is unreachable or returns an error. The
+            caller (cache) is responsible for graceful degradation; raising here
+            lets the cache distinguish a genuine empty result from a fetch
+            failure and keep serving stale data.
+    """
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        response = await client.post(
+            endpoint,
+            data={"query": _ALL_SPACES_SPARQL},
+            headers={"Accept": "application/sparql-results+json"},
+        )
+    response.raise_for_status()
+
+    spaces: list[dict] = []
+    for b in response.json().get("results", {}).get("bindings", []):
+        try:
+            spaces.append(
+                {
+                    "space": b["space"]["value"],
+                    "name": b["name"]["value"],
+                    "lat": float(b["lat"]["value"]),
+                    "lon": float(b["lon"]["value"]),
+                }
+            )
+        except (KeyError, ValueError, TypeError):
+            # Skip malformed rows rather than failing the whole fetch.
+            continue
+    return spaces
+
+
+class MoMSpacesCache:
+    """TTL cache for the MoM all-spaces map layer.
+
+    Serves the last successful fetch for ``ttl_seconds`` (default 24h). On a
+    refresh failure it keeps serving stale data and reports ``available=True``
+    if any data was ever fetched, so the map degrades gracefully. Other events
+    (e.g. an admin action, a new facility) can force a refresh via
+    :meth:`refresh` or drop the cache via :meth:`invalidate`.
+    """
+
+    def __init__(self, ttl_seconds: float = MOM_CACHE_TTL_SECONDS) -> None:
+        self.ttl_seconds = ttl_seconds
+        self._data: Optional[list[dict]] = None
+        self._fetched_at: float = 0.0
+        self._lock = asyncio.Lock()
+
+    def is_fresh(self) -> bool:
+        return (
+            self._data is not None
+            and (time.monotonic() - self._fetched_at) < self.ttl_seconds
+        )
+
+    async def get(self, force_refresh: bool = False) -> tuple[list[dict], bool]:
+        """Return ``(spaces, available)``.
+
+        ``available`` is True when MoM data is present (fresh or stale). A single
+        in-flight refresh is serialized so a cold cache doesn't trigger a
+        thundering herd of SPARQL queries.
+        """
+        if force_refresh or not self.is_fresh():
+            async with self._lock:
+                # Re-check under the lock: another coroutine may have refreshed.
+                if force_refresh or not self.is_fresh():
+                    await self._refresh_locked()
+        return (self._data or [], self._data is not None)
+
+    async def refresh(self) -> bool:
+        """Force a refresh (the cache-refresh hook). Returns True on success."""
+        async with self._lock:
+            return await self._refresh_locked()
+
+    async def _refresh_locked(self) -> bool:
+        try:
+            self._data = await fetch_all_mom_spaces()
+            self._fetched_at = time.monotonic()
+            return True
+        except Exception as e:  # noqa: BLE001 — degrade gracefully, keep stale data
+            logger.warning("MoM all-spaces refresh failed; keeping stale data: %s", e)
+            return False
+
+    def invalidate(self) -> None:
+        """Drop cached data so the next ``get`` refetches (cache-refresh hook)."""
+        self._data = None
+        self._fetched_at = 0.0
+
+
+# Process-wide cache instance for the map layer.
+mom_spaces_cache = MoMSpacesCache()

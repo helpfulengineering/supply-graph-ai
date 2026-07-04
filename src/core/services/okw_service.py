@@ -312,6 +312,81 @@ class OKWService(BaseService["OKWService"]):
         )
         return facilities
 
+    async def get_map_points(
+        self,
+        include_mom: bool = True,
+        force_refresh: bool = False,
+    ) -> Dict[str, Any]:
+        """Build the network-map point set: local OKW facilities ∪ MoM spaces.
+
+        Each point is source-labeled (``"local"`` or ``"mom"``) so the map layer
+        is source-agnostic and can grow to further networks. Local facilities
+        without parseable coordinates are counted (``dropped_no_coords``) rather
+        than plotted. MoM is fetched from a 24h TTL cache and degrades
+        gracefully: on an unreachable endpoint the map falls back to local-only
+        and ``mom_available`` is False.
+
+        Args:
+            include_mom: When False, skip the MoM layer entirely (local only).
+            force_refresh: Force a MoM cache refresh before building the set.
+
+        Returns:
+            Dict with ``points`` and summary counts + ``mom_available``.
+        """
+        # Local facilities (paginate through the full catalog).
+        local_points: List[Dict[str, Any]] = []
+        dropped_no_coords = 0
+        page = 1
+        page_size = 500
+        while True:
+            facilities, _ = await self.list(page=page, page_size=page_size)
+            if not facilities:
+                break
+            for f in facilities:
+                coords = f.location.coordinates() if f.location else None
+                if coords is None:
+                    dropped_no_coords += 1
+                    continue
+                local_points.append(
+                    {
+                        "id": str(f.id),
+                        "name": f.name,
+                        "lat": coords.latitude,
+                        "lon": coords.longitude,
+                        "source": "local",
+                    }
+                )
+            if len(facilities) < page_size:
+                break
+            page += 1
+
+        mom_points: List[Dict[str, Any]] = []
+        mom_available = False
+        if include_mom:
+            from .mom_bridge import mom_spaces_cache
+
+            spaces, mom_available = await mom_spaces_cache.get(
+                force_refresh=force_refresh
+            )
+            mom_points = [
+                {
+                    "id": s["space"],
+                    "name": s["name"],
+                    "lat": s["lat"],
+                    "lon": s["lon"],
+                    "source": "mom",
+                }
+                for s in spaces
+            ]
+
+        return {
+            "points": local_points + mom_points,
+            "local_count": len(local_points),
+            "mom_count": len(mom_points),
+            "dropped_no_coords": dropped_no_coords,
+            "mom_available": mom_available,
+        }
+
     async def list_kitchens(self) -> List[KitchenCapability]:
         """Return all kitchen capabilities found under the ``okw/`` prefix.
 
