@@ -78,6 +78,7 @@ dependencies = [
     "cryptography>=48.0.1",
     "jsonschema>=4.0.0",
     "zeroconf>=0.149.12",
+    "pydantic-settings>=2.14.2",
 ]
 
 # Entry points for console scripts
