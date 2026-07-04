@@ -393,6 +393,49 @@ async def get_okw_template(http_request: Request = None) -> Any:
     }
 
 
+@router.get(
+    "/map",
+    summary="Network map points (local OKW ∪ Maps of Making)",
+    description="""
+    Return source-labeled geographic points for the network map: local OKW
+    facilities unioned with Maps of Making (MoM) spaces.
+
+    Each point is `{id, name, lat, lon, source}` where `source` is `"local"` or
+    `"mom"`. Local facilities without parseable coordinates are counted in
+    `dropped_no_coords` rather than plotted. MoM is served from a 24h TTL cache
+    and degrades gracefully — if MoM is unreachable the response is local-only
+    with `mom_available: false`.
+
+    Query params:
+    - `include_mom` (default true): set false for a local-only map.
+    - `force_refresh` (default false): force a MoM cache refresh first.
+    """,
+)
+async def get_okw_map(
+    include_mom: bool = True,
+    force_refresh: bool = False,
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    """Return network-map points (local OKW facilities ∪ MoM spaces)."""
+    try:
+        data = await okw_service.get_map_points(
+            include_mom=include_mom, force_refresh=force_refresh
+        )
+        return {"success": True, **data}
+    except Exception as e:
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(f"Error building OKW map points: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
 @router.get("/{id}", response_model=OKWResponse)
 async def get_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
