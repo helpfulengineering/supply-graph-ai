@@ -6,7 +6,6 @@ import {
   matchResponseFixture,
   facilityDesignsFixture,
   networkSpacesFixture,
-  solutionsListFixture,
   vizBundleFixture,
   okhDetailFixture,
   okhListFixture,
@@ -30,7 +29,6 @@ export const handlers = [
   http.post("*/v1/api/okw/validate", () => HttpResponse.json(validationResultFixture)),
   http.post("*/v1/api/match/facility", () => HttpResponse.json(facilityDesignsFixture)),
   http.post("*/v1/api/match", () => HttpResponse.json(matchResponseFixture)),
-  http.get("*/v1/api/supply-tree/solutions", () => HttpResponse.json(solutionsListFixture)),
   http.get("*/v1/api/supply-tree/solution/:id/visualization", () =>
     HttpResponse.json(vizBundleFixture),
   ),

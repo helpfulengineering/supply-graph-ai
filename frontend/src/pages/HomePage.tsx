@@ -1,8 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { fetchDomains, fetchMetrics } from "../api/ohm/utility";
 import { fetchNetworkSpaces } from "../api/ohm/network";
-import { listSolutions } from "../api/ohm/supply-tree";
 import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/states";
 import { NetworkMap } from "../features/network/NetworkMap";
@@ -37,9 +35,7 @@ export function HomePage() {
   const map = useQuery({ queryKey: ["network", "baseline"], queryFn: () => fetchNetworkSpaces(), staleTime: 300_000 });
   const domains = useQuery({ queryKey: ["domains"], queryFn: fetchDomains, staleTime: 300_000 });
   const metrics = useQuery({ queryKey: ["metrics"], queryFn: fetchMetrics, staleTime: 60_000 });
-  const solutions = useQuery({ queryKey: ["solutions"], queryFn: listSolutions, staleTime: 30_000 });
 
-  const recent = (solutions.data ?? []).slice(0, 3);
   const online = !domains.isError && !metrics.isError;
   const m = map.data;
 
@@ -98,40 +94,6 @@ export function HomePage() {
         </div>
 
         <div className="space-y-8">
-          <section aria-labelledby="recent-heading">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 id="recent-heading" className="text-lg font-semibold text-foreground">
-                Recent solutions
-              </h2>
-              <Link to="/solutions" className="text-sm text-indigo-600 hover:underline dark:text-indigo-400">
-                View all →
-              </Link>
-            </div>
-            {recent.length === 0 ? (
-              <p className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-                No saved solutions yet — run a match to create one.
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {recent.map((s) => (
-                  <li key={s.id}>
-                    <Link
-                      to={`/visualization/${s.id}`}
-                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 no-underline hover:bg-accent dark:border-slate-700 dark:bg-slate-900"
-                    >
-                      <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
-                        {s.okh_title || (s.okh_id ? `${s.okh_id.slice(0, 8)}…` : "Untitled")}
-                      </span>
-                      <Badge variant={s.score >= 0.8 ? "green" : s.score >= 0.5 ? "yellow" : "red"}>
-                        {Math.round(s.score * 100)}%
-                      </Badge>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
           <section aria-labelledby="system-heading">
             <h2 id="system-heading" className="mb-3 text-lg font-semibold text-foreground">
               System

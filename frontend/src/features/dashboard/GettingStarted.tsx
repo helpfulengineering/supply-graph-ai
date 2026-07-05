@@ -17,10 +17,10 @@ const STEPS = [
   },
   {
     n: 3,
-    title: "Explore the supply tree",
-    body: "Inspect the production plan, facility distribution, and dependencies for a solution.",
-    to: "/solutions",
-    cta: "View solutions",
+    title: "See the supply tree",
+    body: "Each match opens an interactive supply tree — production plan, facility distribution, dependencies — which you can download.",
+    to: "/match",
+    cta: "Run a match",
   },
 ];
 

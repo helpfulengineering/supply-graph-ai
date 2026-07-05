@@ -11,7 +11,9 @@ import { KpiCards } from "./KpiCards";
 import { SupplyTreeGraph } from "./SupplyTreeGraph";
 import { FacilityChart } from "./FacilityChart";
 import { ArtifactLinks } from "./ArtifactLinks";
+import { downloadSolutionJson } from "./downloadSolution";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import { Button } from "../../components/ui/button";
 
 export function VisualizationView({ solutionId }: { solutionId: string }) {
   const navigate = useNavigate();
@@ -49,10 +51,17 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
         >
           ← Back
         </button>
-        <h1 className="text-2xl font-bold text-foreground">Supply Tree</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manufacturing plan for the matched solution.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Supply Tree</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Manufacturing plan for the matched solution.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => downloadSolutionJson(solutionId, data)}>
+            ⬇ Download JSON
+          </Button>
+        </div>
       </div>
 
       <KpiCards kpis={deriveKpis(data)} />

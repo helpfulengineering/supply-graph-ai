@@ -5,7 +5,9 @@ const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
   { to: "/facilities", label: "Facilities", icon: "🏭" },
   { to: "/match", label: "Match", icon: "⚡" },
-  { to: "/solutions", label: "Solutions", icon: "🌳" },
+  // Saved solutions are per-search, user-specific, and go stale fast — a supply
+  // tree is reached directly from its match (and can be downloaded), so there is
+  // no browse list. Revisit as user-scoped history once auth lands.
   // RFQ and Packages are deferred to v1.1 — pages kept dormant (routes still
   // resolve by URL), just not surfaced in the v1 nav.
 ] as const;
