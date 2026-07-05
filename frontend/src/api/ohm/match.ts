@@ -7,6 +7,8 @@ export interface RunMatchParams {
   strictMode?: boolean;
   /** Restrict matching to these facility IDs; empty/undefined means all. */
   okwIds?: string[];
+  /** Match against the filtered network (local ∪ MoM); supersedes okwIds. */
+  networkFilter?: Record<string, string | boolean>;
 }
 
 export interface RawSolution {
@@ -51,10 +53,12 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
       save_solution: true,
       quality_level: params.qualityLevel,
       strict_mode: params.strictMode,
-      // Omit when empty so the server matches against all facilities.
-      ...(params.okwIds && params.okwIds.length > 0
-        ? { okw_ids: params.okwIds }
-        : {}),
+      // Network match (local ∪ MoM) supersedes the local-id subset.
+      ...(params.networkFilter
+        ? { network_filter: params.networkFilter }
+        : params.okwIds && params.okwIds.length > 0
+          ? { okw_ids: params.okwIds }
+          : {}),
     } as never,
   });
   if (error || !response.ok) {

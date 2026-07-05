@@ -10,9 +10,41 @@ import { FacilityFilter } from "./FacilityFilter";
 import { MatchResultCard } from "./MatchResultCard";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
+import { humanizeProcessId } from "../network/deriveFilterOptions";
 import { cn } from "@/lib/utils";
 
-export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolean }) {
+const _AXIS_LABELS: Record<string, string> = {
+  country: "country",
+  city: "city",
+  process: "process",
+  source: "source",
+  status: "status",
+  region: "region",
+  access_type: "access",
+};
+
+/** Readable summary of an active network filter for the match banner. */
+function describeNetworkFilter(filter: Record<string, string | boolean>): string {
+  const parts = Object.entries(filter)
+    .filter(([key, value]) => key in _AXIS_LABELS && value)
+    .map(([key, value]) => {
+      const shown = key === "process" ? humanizeProcessId(String(value)) : String(value);
+      return `${_AXIS_LABELS[key]}: ${shown}`;
+    });
+  const scope = filter.include_mom === false ? "OHM facilities only" : "local ∪ Maps of Making";
+  return parts.length ? `${scope} — ${parts.join(" · ")}` : scope;
+}
+
+export function MatchView({
+  okhId,
+  autoRun,
+  networkFilter,
+}: {
+  okhId?: string;
+  autoRun?: boolean;
+  networkFilter?: Record<string, string | boolean>;
+}) {
+  const networkMode = !!networkFilter;
   const designs = useQuery({
     queryKey: ["okh-list"],
     queryFn: () => fetchOkhList({ page: 1, page_size: 100 }),
@@ -22,13 +54,15 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
     queryKey: ["okw-search", "match-filter"],
     queryFn: () => searchOkw({ page: 1, page_size: 100 }),
     staleTime: 60_000,
+    // The local facility subset filter is superseded in network mode.
+    enabled: !networkMode,
   });
   const [selected, setSelected] = useState(okhId ?? "");
   const [mode, setMode] = useState<SystemMode>("standard");
   const [facilityIds, setFacilityIds] = useState<string[]>([]);
   const mutation = useMutation({
     mutationFn: ({ id, m, ids }: { id: string; m: SystemMode; ids: string[] }) =>
-      runMatch(buildMatchRequest(id, m, undefined, ids)),
+      runMatch(buildMatchRequest(id, m, undefined, ids, networkFilter)),
   });
   const view = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
@@ -109,16 +143,27 @@ export function MatchView({ okhId, autoRun }: { okhId?: string; autoRun?: boolea
           )}
         </div>
 
-        <FacilityFilter
-          facilities={(facilitiesQuery.data?.results ?? []).map((f) => ({
-            id: f.id,
-            name: f.name,
-          }))}
-          selectedIds={facilityIds}
-          onChange={setFacilityIds}
-          isLoading={facilitiesQuery.isLoading}
-          isError={facilitiesQuery.isError}
-        />
+        {networkMode ? (
+          <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-sm dark:border-indigo-800 dark:bg-indigo-950/30">
+            <p className="font-medium text-indigo-800 dark:text-indigo-300">
+              Matching against the network
+            </p>
+            <p className="mt-0.5 text-indigo-700 dark:text-indigo-400">
+              {describeNetworkFilter(networkFilter!)}
+            </p>
+          </div>
+        ) : (
+          <FacilityFilter
+            facilities={(facilitiesQuery.data?.results ?? []).map((f) => ({
+              id: f.id,
+              name: f.name,
+            }))}
+            selectedIds={facilityIds}
+            onChange={setFacilityIds}
+            isLoading={facilitiesQuery.isLoading}
+            isError={facilitiesQuery.isError}
+          />
+        )}
       </div>
 
       {mutation.isPending && <LoadingState message="Matching against facilities…" />}

@@ -36,10 +36,19 @@ test("category facet is the primary spine and narrows results (mocked)", async (
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
   await page.goto("/okh");
+  // Wait for the list (and thus the derived facets) to settle before touching a
+  // facet — otherwise the facet checkboxes can remount mid-click when the OKH
+  // query resolves, dropping the check.
+  await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeVisible();
   // Category is present as a facet group. Test Rig ("Calibration test rig") is
   // the only Test & Measurement device.
   await expect(page.getByRole("heading", { name: "Category" })).toBeVisible();
-  await page.getByRole("checkbox", { name: /Test & Measurement/ }).check();
+  // Retry until the check sticks: the facet can still remount as counts recompute,
+  // which otherwise drops the click ("did not change its state").
+  await expect(async () => {
+    await page.getByRole("checkbox", { name: /Test & Measurement/ }).check();
+    await expect(page).toHaveURL(/category=Test/);
+  }).toPass();
   await expect(page.getByRole("heading", { name: "Test Rig" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeHidden();
   await expect(page).toHaveURL(/category=Test/);
