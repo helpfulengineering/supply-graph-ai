@@ -93,8 +93,8 @@ describe("deriveFacetGroups", () => {
 
   it("omits groups with no options (category always present via fallback)", () => {
     const groups = deriveFacetGroups([item("x", [], null, [])], {});
-    // process/license/material have no values → omitted; category always yields
-    // at least the Uncategorized fallback.
+    // process/license have no values → omitted; category always yields at least
+    // the Uncategorized fallback.
     expect(groups.map((g) => g.key)).toEqual(["category"]);
   });
 });

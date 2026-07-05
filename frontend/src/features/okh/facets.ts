@@ -7,12 +7,13 @@ import { deriveCategories } from "./categories";
  * `category` is the primary drill-down facet (provisional, derived from the
  * manifest `function`/title/keywords — see categories.ts; swaps to the
  * service-backed taxonomy in Epic #199). The rest are orthogonal facets derived
- * from fields populated across the real corpus: manufacturing process, hardware
- * license, and material. (keywords / development_stage dropped — sparse / no
- * variance.)
+ * from fields populated across the real corpus: manufacturing process and
+ * hardware license. (keywords / development_stage dropped — sparse / no variance;
+ * material dropped — generate-from-url emits noisy non-material artifacts that
+ * make it useless as a filter until the pipeline's output quality is fixed.)
  */
 
-export type FacetKey = "category" | "process" | "license" | "material";
+export type FacetKey = "category" | "process" | "license";
 
 /** The primary drill-down facet, rendered first and marked provisional. */
 export const PRIMARY_FACET: FacetKey = "category";
@@ -39,12 +40,6 @@ export const FACET_DEFS: FacetDef[] = [
     key: "license",
     label: "License",
     values: (i) => (i.license?.hardware ? [i.license.hardware] : []),
-  },
-  {
-    key: "material",
-    label: "Material",
-    values: (i) =>
-      (i.materials ?? []).map((m) => m.name).filter((n): n is string => !!n),
   },
 ];
 
