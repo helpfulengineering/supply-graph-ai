@@ -328,3 +328,48 @@ async def test_get_network_spaces_applies_source_filter(monkeypatch):
     result = await svc.get_network_spaces(source="local")
     assert result["mom_count"] == 0
     assert all(s["source"] == "local" for s in result["spaces"])
+
+
+@pytest.mark.asyncio
+async def test_get_network_match_facilities_returns_facilities(monkeypatch):
+    from uuid import uuid4
+    from src.core.services.okw_service import OKWService
+    from src.core.models.okw import ManufacturingFacility
+    import src.core.services.mom_bridge as mom
+
+    svc = OKWService()
+    svc.list = AsyncMock(
+        return_value=([_facility(uuid4(), "Local A", "40.0, -70.0", [])], 1)
+    )
+
+    async def fake_get(force_refresh=False):
+        return (
+            [
+                {
+                    "space": "urn:z",
+                    "name": "MoM Z",
+                    "lat": 1.0,
+                    "lon": 2.0,
+                    "city": "Rome",
+                    "country": "IT",
+                    "status": "confirmed",
+                    "url": None,
+                    "processes": ["laser_cutting"],
+                }
+            ],
+            True,
+        )
+
+    monkeypatch.setattr(mom.mom_spaces_cache, "get", fake_get)
+
+    # Full network → both local + MoM as matchable ManufacturingFacility objects.
+    facilities = await svc.get_network_match_facilities()
+    assert all(isinstance(f, ManufacturingFacility) for f in facilities)
+    assert {f.name for f in facilities} == {"Local A", "MoM Z"}
+    # The MoM stub carries its canonical processes for process-level matching.
+    mom_stub = next(f for f in facilities if f.name == "MoM Z")
+    assert mom_stub.manufacturing_processes == ["laser_cutting"]
+
+    # source=local drops MoM from the candidate pool.
+    local_only = await svc.get_network_match_facilities(source="local")
+    assert [f.name for f in local_only] == ["Local A"]
