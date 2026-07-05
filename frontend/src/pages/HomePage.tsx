@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { fetchDomains, fetchMetrics } from "../api/ohm/utility";
-import { fetchMapPoints } from "../api/ohm/map";
+import { fetchNetworkSpaces } from "../api/ohm/network";
 import { listSolutions } from "../api/ohm/supply-tree";
 import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/states";
-import { NetworkMap } from "../features/dashboard/NetworkMap";
+import { NetworkMap } from "../features/network/NetworkMap";
 import { GettingStarted } from "../features/dashboard/GettingStarted";
-import { buildMapSummary, SOURCE_STYLES } from "../features/dashboard/mapSummary";
+import { buildNetworkSummary, SOURCE_STYLES } from "../features/network/networkSummary";
 
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
@@ -34,7 +34,7 @@ function LegendDot({ source }: { source: "local" | "mom" }) {
 }
 
 export function HomePage() {
-  const map = useQuery({ queryKey: ["map-points"], queryFn: () => fetchMapPoints(), staleTime: 300_000 });
+  const map = useQuery({ queryKey: ["network", "baseline"], queryFn: () => fetchNetworkSpaces(), staleTime: 300_000 });
   const domains = useQuery({ queryKey: ["domains"], queryFn: fetchDomains, staleTime: 300_000 });
   const metrics = useQuery({ queryKey: ["metrics"], queryFn: fetchMetrics, staleTime: 60_000 });
   const solutions = useQuery({ queryKey: ["solutions"], queryFn: listSolutions, staleTime: 30_000 });
@@ -73,11 +73,11 @@ export function HomePage() {
               onRetry={() => map.refetch()}
             />
           )}
-          {m && !map.isLoading && !map.isError && <NetworkMap points={m.points} />}
+          {m && !map.isLoading && !map.isError && <NetworkMap spaces={m.spaces} />}
         </div>
 
         {m && (
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{buildMapSummary(m)}</p>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{buildNetworkSummary(m)}</p>
         )}
       </section>
 
