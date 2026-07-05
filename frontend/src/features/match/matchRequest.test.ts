@@ -39,4 +39,13 @@ describe("buildMatchRequest", () => {
     expect(buildMatchRequest("okh-1", "standard", undefined, [])).not.toHaveProperty("okwIds");
     expect(buildMatchRequest("okh-1", "standard")).not.toHaveProperty("okwIds");
   });
+
+  it("a network filter supersedes okwIds", () => {
+    const req = buildMatchRequest("okh-1", "standard", undefined, ["a"], {
+      country: "FR",
+      include_mom: true,
+    });
+    expect(req.networkFilter).toEqual({ country: "FR", include_mom: true });
+    expect(req).not.toHaveProperty("okwIds");
+  });
 });

@@ -86,3 +86,25 @@ test("with no facility subset the request omits okw_ids (matches all, mocked)", 
   await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
   expect(body).not.toHaveProperty("okw_ids");
 });
+
+test("network mode sends network_filter and shows the banner (mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "inspects the request body");
+  let body: { network_filter?: Record<string, unknown> } | null = null;
+  await page.route("**/v1/api/match", async (route) => {
+    body = route.request().postDataJSON();
+    await route.fulfill({ json: matchResponseFixture });
+  });
+
+  // Arrive from the network surface's "Match against these" hand-off.
+  await page.goto("/match?network=1&country=FR&process=laser_cutting");
+  await expect(page.getByText(/matching against the network/i)).toBeVisible();
+  await expect(page.getByText(/country: FR/)).toBeVisible();
+
+  await page.getByLabel("Design to match").selectOption({ label: "Open Ventilator" });
+  await page.getByRole("button", { name: /run match/i }).click();
+
+  await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
+  expect(body!.network_filter).toMatchObject({ country: "FR", process: "laser_cutting", include_mom: true });
+});

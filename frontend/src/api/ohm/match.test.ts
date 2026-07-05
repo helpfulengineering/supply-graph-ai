@@ -18,6 +18,19 @@ describe("runMatch", () => {
     expect(res.data?.solutions).toEqual([]);
   });
 
+  it("sends network_filter for a network match", async () => {
+    let body: { network_filter?: Record<string, unknown>; okw_ids?: unknown } | null = null;
+    server.use(
+      http.post("*/v1/api/match", async ({ request }) => {
+        body = (await request.json()) as { network_filter?: Record<string, unknown> };
+        return HttpResponse.json({ data: { solutions: [] } });
+      }),
+    );
+    await runMatch({ okhId: "okh-1", okwIds: ["a"], networkFilter: { country: "FR", include_mom: true } });
+    expect(body!.network_filter).toEqual({ country: "FR", include_mom: true });
+    expect(body!.okw_ids).toBeUndefined(); // network filter supersedes the subset
+  });
+
   it("throws ApiError on failure", async () => {
     server.use(
       http.post("*/v1/api/match", () =>

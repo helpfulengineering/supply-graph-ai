@@ -47,7 +47,13 @@ export function buildMatchRequest(
   mode: SystemMode,
   maxResults?: number,
   okwIds?: string[],
+  networkFilter?: Record<string, string | boolean>,
 ): RunMatchParams {
-  const okw = okwIds && okwIds.length > 0 ? { okwIds } : {};
-  return { okhId, ...MODE_PARAMS[mode], maxResults, ...okw };
+  // A network filter (local ∪ MoM) supersedes the local-id subset.
+  const scope = networkFilter
+    ? { networkFilter }
+    : okwIds && okwIds.length > 0
+      ? { okwIds }
+      : {};
+  return { okhId, ...MODE_PARAMS[mode], maxResults, ...scope };
 }

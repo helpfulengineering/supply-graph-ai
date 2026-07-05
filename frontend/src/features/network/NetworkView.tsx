@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchNetworkSpaces, type NetworkFilters as Filters } from "../../api/ohm/network";
+import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
 import { buildNetworkSummary } from "./networkSummary";
 import { NetworkFilters } from "./NetworkFilters";
@@ -34,9 +36,20 @@ function ViewToggle({ view, onChange }: { view: "list" | "map"; onChange: (v: "l
 }
 
 export function NetworkView() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>({});
   const [view, setView] = useState<"list" | "map">("list");
   const [page, setPage] = useState(1);
+
+  // Carry the active filter into the match flow: pick a design there, match
+  // against exactly this filtered network (local ∪ MoM).
+  const matchAgainstThese = () => {
+    const params = new URLSearchParams({ network: "1" });
+    for (const [key, value] of Object.entries(filters)) {
+      if (value) params.set(key, String(value));
+    }
+    navigate(`/match?${params.toString()}`);
+  };
 
   const activeCount = Object.values(filters).filter(Boolean).length;
   const hasFilters = activeCount > 0;
@@ -95,7 +108,12 @@ export function NetworkView() {
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             {data && <p className="text-sm text-slate-600 dark:text-slate-400">{buildNetworkSummary(data)}</p>}
-            <ViewToggle view={view} onChange={setView} />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={matchAgainstThese}>
+                ⚡ Match a design against these
+              </Button>
+              <ViewToggle view={view} onChange={setView} />
+            </div>
           </div>
 
           {active.isLoading && <LoadingState message="Loading network…" />}

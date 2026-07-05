@@ -68,6 +68,16 @@ test("shows the empty state (mocked)", async ({ page }, testInfo) => {
   await expect(page.getByText("No spaces are available yet.")).toBeVisible();
 });
 
+test("hands the active filter off to the match flow", async ({ page }) => {
+  await page.goto("/facilities");
+  await page.getByLabel("Source").selectOption("mom");
+  await page.getByRole("button", { name: /match a design against these/i }).click();
+  await expect(page).toHaveURL(/\/match\?.*network=1/);
+  await expect(page).toHaveURL(/source=mom/);
+  // The match view enters network mode.
+  await expect(page.getByText(/matching against the network/i)).toBeVisible();
+});
+
 test("shows the error state with retry (mocked)", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "forces an error");
   await page.route("**/v1/api/okw/spaces**", (route) =>
