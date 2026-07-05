@@ -70,22 +70,6 @@ export interface VisualizationResponse {
   metadata: Record<string, unknown>;
 }
 
-export interface SolutionSummary {
-  id: string;
-  okh_id: string;
-  okh_title: string | null;
-  matching_mode: string;
-  total_trees: number;
-  total_components: number;
-  total_facilities: number;
-  average_confidence: number;
-  score: number;
-  is_nested: boolean;
-  cost_estimate: number | null;
-  time_estimate: number | null;
-  facility_distribution: { facility_name: string; count: number }[];
-}
-
 export interface SolutionListItem {
   id: string;
   okh_id: string;

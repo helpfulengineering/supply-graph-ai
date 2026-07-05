@@ -258,38 +258,6 @@ export const vizBundleFixture = {
 };
 
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
-/** Saved supply-tree solutions list (envelope: data.result[]). */
-export const solutionsListFixture = {
-  data: {
-    result: [
-      {
-        id: "sol-1",
-        okh_id: "okh-0001",
-        okh_title: "Open Ventilator",
-        facility_name: "FabLab Drome",
-        matching_mode: "single-level",
-        tree_count: 1,
-        facility_count: 2,
-        score: 0.95,
-        created_at: "2026-07-03T12:00:00Z",
-      },
-      {
-        id: "sol-2",
-        okh_id: "okh-0002",
-        okh_title: "Face Shield",
-        facility_name: null,
-        matching_mode: "single-level",
-        tree_count: 1,
-        facility_count: 1,
-        score: 0.6,
-        created_at: "2026-07-02T09:00:00Z",
-      },
-    ],
-  },
-};
-
-export const solutionsEmptyFixture = { data: { result: [] } };
-
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
   "/v1/api/utility/domains": domainsFixture,
@@ -303,6 +271,5 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,
-  "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
 };

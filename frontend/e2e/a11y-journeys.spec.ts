@@ -11,7 +11,6 @@ const ROUTES = [
   "/facilities",
   "/facilities/okw-1",
   "/match",
-  "/solutions",
   "/visualization/sol-1",
 ];
 

@@ -17,3 +17,12 @@ test("shows production sequence and dependencies (mocked)", async ({ page }, tes
   // Dependency line: "Frame depends on Base Plate" (unique to the deps section).
   await expect(page.getByText(/depends on/i)).toBeVisible();
 });
+
+test("downloads the solution as a JSON file (mocked)", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "uses a fixture solution id");
+  await page.goto("/visualization/sol-1");
+  const downloadPromise = page.waitForEvent("download");
+  await page.getByRole("button", { name: /download json/i }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toBe("ohm-solution-sol-1.json");
+});
