@@ -98,6 +98,18 @@ def match_group() -> None:
         "Omit to match against all facilities."
     ),
 )
+@click.option(
+    "--network",
+    is_flag=True,
+    help=(
+        "Match against the unified network (local OKW ∪ Maps of Making) instead of "
+        "just local facilities. Combine with --network-country / --network-process."
+    ),
+)
+@click.option("--network-country", help="Network match: filter to this country.")
+@click.option(
+    "--network-process", help="Network match: filter to this canonical process id."
+)
 @click.option("--location", help="Filter by location (city, country, or region)")
 @click.option(
     "--country", help="Filter facilities by country (exact match, case-insensitive)"
@@ -291,6 +303,9 @@ async def requirements(
     access_type: Optional[str],
     facility_status: Optional[str],
     okw_ids: tuple[str, ...],
+    network: bool,
+    network_country: Optional[str],
+    network_process: Optional[str],
     location: Optional[str],
     country: Optional[str],
     region: Optional[str],
@@ -384,6 +399,16 @@ async def requirements(
             max_results,
             okw_ids,
         )
+
+        # Network-match mode: match against local ∪ Maps of Making, optionally
+        # narrowed by country/process (same contract as GET /api/okw/spaces).
+        if network or network_country or network_process:
+            network_filter = {"include_mom": True}
+            if network_country:
+                network_filter["country"] = network_country
+            if network_process:
+                network_filter["process"] = network_process
+            filters["network_filter"] = network_filter
 
         # Add nested matching parameters
         nested_params = {

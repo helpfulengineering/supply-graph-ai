@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
 from ..domains.cooking.models import KitchenCapability
-from ..models.okw import ManufacturingFacility
+from ..models.okw import FacilityStatus, Location, ManufacturingFacility
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..taxonomy import taxonomy
 from ..utils.logging import get_logger
@@ -71,6 +71,21 @@ def _local_facility_to_space(f: ManufacturingFacility) -> Optional[Dict[str, Any
         "access_type": f.access_type.value if getattr(f, "access_type", None) else None,
         "url": getattr(owner, "website", None),
     }
+
+
+def _mom_stub_facility(s: Dict[str, Any]) -> ManufacturingFacility:
+    """Build a matchable ManufacturingFacility stub from a cached MoM space.
+
+    MoM spaces have no equipment detail, so matching against them is process-level
+    (their canonical processes vs the design's requirements) — i.e. "spaces that
+    claim these processes, worth contacting".
+    """
+    return ManufacturingFacility(
+        name=s["name"],
+        location=Location(gps_coordinates=f"{s['lat']}, {s['lon']}"),
+        facility_status=FacilityStatus.ACTIVE,
+        manufacturing_processes=s.get("processes", []),
+    )
 
 
 def _mom_space_to_space(s: Dict[str, Any]) -> Dict[str, Any]:
@@ -472,7 +487,40 @@ class OKWService(BaseService["OKWService"]):
             Dict with ``spaces`` (filtered/ranked), ``total``, per-source counts,
             ``dropped_no_coords``, and ``mom_available``.
         """
-        local_spaces: List[Dict[str, Any]] = []
+        candidates, dropped_no_coords, mom_available = (
+            await self._load_network_candidates(
+                include_mom=include_mom, force_refresh=force_refresh
+            )
+        )
+        filtered = filter_network_spaces(
+            candidates,
+            country=country,
+            city=city,
+            process=process,
+            source=source,
+            status=status,
+            region=region,
+            access_type=access_type,
+        )
+        # Strip the internal facility back-reference from the browse payload.
+        spaces = [{k: v for k, v in sp.items() if k != "_facility"} for sp in filtered]
+        return {
+            "spaces": spaces,
+            "total": len(spaces),
+            "local_count": sum(1 for s in spaces if s["source"] == "local"),
+            "mom_count": sum(1 for s in spaces if s["source"] == "mom"),
+            "dropped_no_coords": dropped_no_coords,
+            "mom_available": mom_available,
+        }
+
+    async def _load_network_candidates(
+        self, *, include_mom: bool, force_refresh: bool
+    ) -> Tuple[List[Dict[str, Any]], int, bool]:
+        """Load local ∪ MoM as unified space dicts, each carrying its ``_facility``
+        (the matchable object) under a private key. Shared by the browse surface
+        and the network-match candidate pool so filtering stays identical.
+        """
+        candidates: List[Dict[str, Any]] = []
         dropped_no_coords = 0
         page = 1
         page_size = 500
@@ -484,22 +532,47 @@ class OKWService(BaseService["OKWService"]):
                 space = _local_facility_to_space(f)
                 if space is None:
                     dropped_no_coords += 1
-                else:
-                    local_spaces.append(space)
+                    continue
+                space["_facility"] = f
+                candidates.append(space)
             if len(facilities) < page_size:
                 break
             page += 1
 
-        mom_spaces: List[Dict[str, Any]] = []
         mom_available = False
         if include_mom:
             from .mom_bridge import mom_spaces_cache
 
             raw, mom_available = await mom_spaces_cache.get(force_refresh=force_refresh)
-            mom_spaces = [_mom_space_to_space(s) for s in raw]
+            for s in raw:
+                space = _mom_space_to_space(s)
+                space["_facility"] = _mom_stub_facility(s)
+                candidates.append(space)
 
+        return candidates, dropped_no_coords, mom_available
+
+    async def get_network_match_facilities(
+        self,
+        *,
+        include_mom: bool = True,
+        force_refresh: bool = False,
+        country: Optional[str] = None,
+        city: Optional[str] = None,
+        process: Optional[str] = None,
+        source: Optional[str] = None,
+        status: Optional[str] = None,
+        region: Optional[str] = None,
+        access_type: Optional[str] = None,
+    ) -> List[ManufacturingFacility]:
+        """Return the filtered network as matchable facilities (local full objects
+        ∪ MoM process stubs), for matching a design against the same filtered set
+        the browse surface shows. Uses the identical filter as ``get_network_spaces``.
+        """
+        candidates, _, _ = await self._load_network_candidates(
+            include_mom=include_mom, force_refresh=force_refresh
+        )
         filtered = filter_network_spaces(
-            local_spaces + mom_spaces,
+            candidates,
             country=country,
             city=city,
             process=process,
@@ -508,15 +581,7 @@ class OKWService(BaseService["OKWService"]):
             region=region,
             access_type=access_type,
         )
-
-        return {
-            "spaces": filtered,
-            "total": len(filtered),
-            "local_count": sum(1 for s in filtered if s["source"] == "local"),
-            "mom_count": sum(1 for s in filtered if s["source"] == "mom"),
-            "dropped_no_coords": dropped_no_coords,
-            "mom_available": mom_available,
-        }
+        return [sp["_facility"] for sp in filtered]
 
     async def list_kitchens(self) -> List[KitchenCapability]:
         """Return all kitchen capabilities found under the ``okw/`` prefix.

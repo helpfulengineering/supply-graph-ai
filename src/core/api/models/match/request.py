@@ -209,6 +209,16 @@ class MatchRequest(BaseAPIRequest, LLMRequestMixin):
             "IDs before matching. An empty or omitted list means match against all facilities."
         ),
     )
+    network_filter: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Match against the unified network surface (local OKW ∪ Maps of Making) "
+            "narrowed by these filters — same keys as GET /api/okw/spaces "
+            "(include_mom, country, city, process, source, status, region, access_type). "
+            "When set, it supersedes the storage/okw_ids candidate pool so a design can "
+            "be matched against exactly the filtered set the network browse view shows."
+        ),
+    )
 
     model_config = ConfigDict(
         json_schema_extra={

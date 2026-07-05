@@ -303,6 +303,27 @@ async def match_with_filters():
         return response.json()
 ```
 
+**Matching against the unified network (local ∪ Maps of Making):**
+
+Pass `network_filter` to match a design against the same filtered network the
+browse surface (`GET /api/okw/spaces`) shows — local OKW facilities unioned with
+Maps of Making spaces, narrowed by the given filters. MoM spaces match at the
+process level (they have no equipment detail), surfacing "spaces that claim these
+processes — worth contacting". Equivalent CLI: `ohm match requirements … --network --network-country FR`.
+
+```python
+async def match_against_network():
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8001/v1/api/match",
+            json={
+                "okh_id": "…",
+                "network_filter": {"include_mom": True, "country": "FR", "process": "laser_cutting"},
+            },
+        )
+        return response.json()
+```
+
 **Matching against a chosen subset of facilities:**
 
 Pass `okw_ids` to restrict matching to specific facilities the caller has already

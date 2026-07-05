@@ -2387,6 +2387,36 @@ async def _get_filtered_facilities(
     candidate pool before matching begins.
     """
     try:
+        # Network-match mode: match against the unified network surface (local ∪
+        # MoM) narrowed by the same filters as the browse view. Supersedes the
+        # storage/okw_ids pool; the requirement-aware prefilter + candidate cap
+        # downstream keep the (potentially large MoM) pool bounded.
+        network_filter = getattr(request, "network_filter", None)
+        if network_filter:
+            allowed = {
+                "include_mom",
+                "force_refresh",
+                "country",
+                "city",
+                "process",
+                "source",
+                "status",
+                "region",
+                "access_type",
+            }
+            kwargs = {
+                k: v
+                for k, v in network_filter.items()
+                if k in allowed and v is not None
+            }
+            okw_service = await OKWService.get_instance()
+            facilities = await okw_service.get_network_match_facilities(**kwargs)
+            logger.info(
+                "Network-match candidate pool built",
+                extra={"request_id": request_id, "facility_count": len(facilities)},
+            )
+            return facilities
+
         if domain == "manufacturing":
             expected_type = ManufacturingFacility
             type_label = "ManufacturingFacility"
