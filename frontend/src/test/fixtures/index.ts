@@ -147,15 +147,15 @@ export const okwDetailFixture = {
   certifications: ["ISO 9001:2015", "OHSAS 18001"],
 };
 
-/** Match response envelope: solutions + summary + coverage gaps under `data`. */
-/** Network map points (endpoint returns a flat envelope, not nested in data). */
+/** Unified network surface (flat envelope, not nested in data). */
 export const mapPointsFixture = {
   success: true,
-  points: [
-    { id: "okw-1", name: "Laser Fab Lab", lat: 30.2711, lon: -97.7437, source: "local" },
-    { id: "okw-2", name: "Community Makerspace", lat: 30.25, lon: -97.75, source: "local" },
-    { id: "urn:mak:space/lazio", name: "FabLab Lazio Roma", lat: 41.8902, lon: 12.5179, source: "mom" },
+  spaces: [
+    { id: "okw-1", name: "Laser Fab Lab", lat: 30.2711, lon: -97.7437, source: "local", city: "Austin", region: "TX", country: "US", status: "active", processes: ["laser_cutting"], url: null, ambiguous: false },
+    { id: "okw-2", name: "Community Makerspace", lat: 30.25, lon: -97.75, source: "local", city: "Austin", region: "TX", country: "US", status: "active", processes: ["assembly"], url: null, ambiguous: false },
+    { id: "urn:mak:space/lazio", name: "FabLab Lazio Roma", lat: 41.8902, lon: 12.5179, source: "mom", city: "Rome", region: null, country: "IT", status: "active", processes: ["cnc_machining"], url: "https://lazio", ambiguous: false },
   ],
+  total: 3,
   local_count: 2,
   mom_count: 1,
   dropped_no_coords: 1,
@@ -180,6 +180,7 @@ export const facilityDesignsEmptyFixture = {
   data: { okw_id: "okw-1", facility_name: "Laser Fab Lab", designs: [], total_designs: 0, designs_considered: 3 },
 };
 
+/** Match response envelope: solutions + summary + coverage gaps under `data`. */
 export const matchResponseFixture = {
   data: {
     solutions: [
@@ -301,7 +302,7 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
-  "/v1/api/okw/map": mapPointsFixture,
+  "/v1/api/okw/spaces": mapPointsFixture,
   "/v1/api/supply-tree/solutions": solutionsListFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
 };

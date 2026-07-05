@@ -581,24 +581,30 @@ if facility.has_process("3d printing"):
 The check searches both `manufacturing_processes` URLs and equipment capability
 descriptions.
 
-## Network Map & Maps of Making
+## Network surface & Maps of Making
 
-`GET /api/okw/map` (and `ohm okw map`) return the point set for the web UI's
-network map: **local OKW facilities unioned with [Maps of Making](https://mapsofmaking.org)
-(MoM) spaces**. Each point is source-labeled — `{id, name, lat, lon, source}` with
-`source` in `{"local", "mom"}` — so the map layer is source-agnostic and can grow
-to further networks.
+`GET /api/okw/spaces` (and `ohm okw spaces`) return the unified, server-filtered
+network surface for the web UI's map + list views: **local OKW facilities unioned
+with [Maps of Making](https://mapsofmaking.org) (MoM) spaces**. Each space is
+source-labeled and projected to a common shape —
+`{id, name, lat, lon, city, region, country, source, status, processes, url}` with
+`source` in `{"local", "mom"}` — so the surface is source-agnostic and grows to
+further networks.
 
-- **Coordinates** come from `Location.coordinates()` (the decimal-degrees
-  accessor). Local facilities without parseable coordinates are counted in
-  `dropped_no_coords` rather than plotted.
+- **Coordinates** come from `Location.coordinates()`. Local facilities without
+  parseable coordinates are counted in `dropped_no_coords` rather than plotted.
+- **Server-side filters:** cross-source (hard) `country`, `city`, `process`
+  (canonical OHM process id), `source`, `status`; local-only (soft) `region`,
+  `access_type` — spaces that can't express a local-only axis (e.g. MoM) are
+  **kept, flagged `ambiguous`, and sorted last** rather than excluded.
 - **MoM** is fetched from a **24h TTL cache** (`MoMSpacesCache` in
-  `services/mom_bridge.py`) built on the existing SPARQL bridge. It **degrades
+  `services/mom_bridge.py`) and enriched with city (`addressLocality`), country
+  (`countryCode`), status (`operationalState`), url, and processes (`knowsAbout`
+  slugs normalized to canonical OHM process ids via the taxonomy). It **degrades
   gracefully**: if MoM is unreachable the response is local-only with
   `mom_available: false`, and a stale cache keeps serving until a refresh
   succeeds. `mom_spaces_cache.refresh()` / `.invalidate()` are the cache-refresh
-  hooks other events can call; the endpoint's `force_refresh=true` (and CLI
-  `--refresh`) trigger a refresh on demand.
+  hooks; the endpoint's `force_refresh=true` (and CLI `--refresh`) trigger one.
 
 ## CLI Commands
 
@@ -612,7 +618,7 @@ to further networks.
 | `ohm okw export` | Export the OKW JSON Schema |
 | `ohm okw template` | Output a blank facility template |
 | `ohm okw create-interactive` | Interactively build a new facility |
-| `ohm okw map` | Network map points: local facilities ∪ Maps of Making (`--no-mom`, `--refresh`) |
+| `ohm okw spaces` | Unified network surface: local ∪ Maps of Making, server-filtered (`--country`, `--city`, `--process`, `--source`, `--status`, `--region`, `--access-type`, `--no-mom`, `--refresh`) |
 
 ## API Endpoints
 
@@ -620,7 +626,7 @@ to further networks.
 |---|---|---|
 | `GET` | `/api/okw/export` | Export OKW JSON Schema |
 | `GET` | `/api/okw/template` | Get blank facility template |
-| `GET` | `/api/okw/map` | Network map points (local OKW ∪ Maps of Making); `include_mom`, `force_refresh` |
+| `GET` | `/api/okw/spaces` | Unified network surface (local OKW ∪ Maps of Making), server-filtered by `country`/`city`/`process`/`source`/`status`/`region`/`access_type` (+ `include_mom`, `force_refresh`) |
 | `POST` | `/api/okw/create` | Create facility from JSON body |
 | `POST` | `/api/okw/validate` | Validate a facility dict |
 | `POST` | `/api/okw/upload` | Upload a facility file |

@@ -27,7 +27,7 @@ test("dashboard summarizes the map, stats, and health (mocked)", async ({ page }
 
 test("dashboard falls back to local-only when MoM is unavailable (mocked)", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "forces a MoM-unavailable response");
-  await page.route("**/v1/api/okw/map**", (route) =>
+  await page.route("**/v1/api/okw/spaces**", (route) =>
     route.fulfill({
       json: {
         success: true,

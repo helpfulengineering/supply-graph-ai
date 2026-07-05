@@ -394,32 +394,50 @@ async def get_okw_template(http_request: Request = None) -> Any:
 
 
 @router.get(
-    "/map",
-    summary="Network map points (local OKW ∪ Maps of Making)",
+    "/spaces",
+    summary="Unified network surface (local OKW ∪ Maps of Making), server-filtered",
     description="""
-    Return source-labeled geographic points for the network map: local OKW
-    facilities unioned with Maps of Making (MoM) spaces.
+    Return the unified network surface for the map + list views: local OKW
+    facilities unioned with Maps of Making (MoM) spaces, source-labeled and
+    projected to a common shape `{id, name, lat, lon, city, region, country,
+    source, status, processes, url}`.
 
-    Each point is `{id, name, lat, lon, source}` where `source` is `"local"` or
-    `"mom"`. Local facilities without parseable coordinates are counted in
-    `dropped_no_coords` rather than plotted. MoM is served from a 24h TTL cache
-    and degrades gracefully — if MoM is unreachable the response is local-only
-    with `mom_available: false`.
+    Server-side filters:
+    - Cross-source (hard): `country`, `city`, `process` (canonical id), `source`
+      (`local`|`mom`), `status`.
+    - Local-only (soft): `region`, `access_type` — spaces that can't express the
+      axis (e.g. MoM) are kept, flagged `ambiguous`, and sorted last rather than
+      excluded.
 
-    Query params:
-    - `include_mom` (default true): set false for a local-only map.
-    - `force_refresh` (default false): force a MoM cache refresh first.
+    Local facilities without coordinates are counted in `dropped_no_coords`. MoM
+    comes from a 24h TTL cache and degrades gracefully (`mom_available: false`).
+    `include_mom=false` returns local only; `force_refresh=true` refreshes MoM.
     """,
 )
-async def get_okw_map(
+async def get_okw_spaces(
     include_mom: bool = True,
     force_refresh: bool = False,
+    country: Optional[str] = Query(None),
+    city: Optional[str] = Query(None),
+    process: Optional[str] = Query(None, description="Canonical OHM process id"),
+    source: Optional[str] = Query(None, description='"local" or "mom"'),
+    status: Optional[str] = Query(None),
+    region: Optional[str] = Query(None),
+    access_type: Optional[str] = Query(None),
     okw_service: OKWService = Depends(get_okw_service),
 ) -> Any:
-    """Return network-map points (local OKW facilities ∪ MoM spaces)."""
+    """Return the unified, server-filtered network surface (local OKW ∪ MoM)."""
     try:
-        data = await okw_service.get_map_points(
-            include_mom=include_mom, force_refresh=force_refresh
+        data = await okw_service.get_network_spaces(
+            include_mom=include_mom,
+            force_refresh=force_refresh,
+            country=country,
+            city=city,
+            process=process,
+            source=source,
+            status=status,
+            region=region,
+            access_type=access_type,
         )
         return {"success": True, **data}
     except Exception as e:
@@ -429,7 +447,7 @@ async def get_okw_map(
             request_id=None,
             suggestion="Please try again or contact support if the issue persists",
         )
-        logger.error(f"Error building OKW map points: {e}", exc_info=True)
+        logger.error(f"Error building OKW network spaces: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),

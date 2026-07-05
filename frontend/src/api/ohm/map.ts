@@ -21,12 +21,16 @@ export interface MapData {
 /**
  * Fetch network-map points: local OKW facilities ∪ Maps of Making spaces.
  *
- * Uses a raw fetch (not the generated client) because GET /api/okw/map is newer
- * than the committed OpenAPI schema; swap to `apiClient` once the schema is
- * regenerated. Goes through globalThis.fetch so MSW still intercepts it.
+ * Uses a raw fetch (not the generated client) because GET /api/okw/spaces is
+ * newer than the committed OpenAPI schema; swap to `apiClient` once the schema
+ * is regenerated. Goes through globalThis.fetch so MSW still intercepts it.
+ *
+ * The dashboard only needs the map points; the unified endpoint's richer
+ * `spaces` (city/country/processes/…) + server-side filters are consumed by the
+ * dedicated network surface.
  */
 export async function fetchMapPoints(includeMom = true): Promise<MapData> {
-  const url = `${apiBaseUrl}/api/okw/map?include_mom=${includeMom ? "true" : "false"}`;
+  const url = `${apiBaseUrl}/api/okw/spaces?include_mom=${includeMom ? "true" : "false"}`;
   const response = await globalThis.fetch(url);
   const body = await response.json().catch(() => null);
   if (!response.ok) {
@@ -35,9 +39,9 @@ export async function fetchMapPoints(includeMom = true): Promise<MapData> {
       errorMessage(body, `Failed to load map points (HTTP ${response.status})`),
     );
   }
-  const d = (body ?? {}) as Partial<MapData>;
+  const d = (body ?? {}) as { spaces?: MapPoint[] } & Partial<MapData>;
   return {
-    points: (d.points ?? []) as MapPoint[],
+    points: (d.spaces ?? []) as MapPoint[],
     local_count: d.local_count ?? 0,
     mom_count: d.mom_count ?? 0,
     dropped_no_coords: d.dropped_no_coords ?? 0,
