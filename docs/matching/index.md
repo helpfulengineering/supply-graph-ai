@@ -39,7 +39,15 @@ Natural language processing-based semantic matching:
 - **Fallback Robustness**: String similarity when spaCy unavailable
 - **Quality Assessment**: Multi-tier confidence scoring (PERFECT, HIGH, MEDIUM, LOW, NO_MATCH)
 
-### 4. LLM Matching Layer (Future Development)
+### 4. LLM Matching Layer
+The most advanced layer, using Large Language Models for sophisticated capability assessment:
+
+- **Crisis Response Aware**: Designed for scenarios where terminology is non-standardized and substitutions are needed
+- **Multi-Dimensional Analysis**: Evaluates process compatibility, material availability, tooling, expertise, and capacity
+- **Taxonomy-Informed Prompts**: Injects process taxonomy relationships and abbreviation knowledge directly into the prompt
+- **Structured Reasoning**: Returns a JSON analysis with per-dimension scores, substitution suggestions, risks, and recommendations
+- **Configurable Provider**: Defaults to Anthropic; provider and model are overridable via API or CLI
+- **Opt-In**: Enabled per-request via `use_llm: true` (API) or `--use-llm` (CLI)
 
 ## How It Works
 
@@ -49,7 +57,7 @@ The matching system uses a layered approach where each layer builds upon the pre
 1. **Direct Matching**: Finds exact and near-exact matches first
 2. **Capability Rules**: Applies domain-specific rules to find logical matches
 3. **NLP Matching**: Uses semantic similarity for meaning-based matching
-4. **LLM Matching**: Advanced AI-powered matching (future development)
+4. **LLM Matching**: AI-powered multi-dimensional capability assessment (opt-in via `use_llm`)
 5. **Validation & Scoring**: Ensures match quality and provides confidence scores
 
 ### Domain Awareness
@@ -112,6 +120,7 @@ To understand the matching system in detail, explore these documentation section
 - **[Direct Matching](direct-matching.md)**: Learn about exact and near-miss matching algorithms
 - **[Heuristic Matching](heuristic-matching.md)**: Understand the rule-based matching system
 - **[NLP Matching](nlp-matching.md)**: Discover semantic similarity and natural language processing
+- **[LLM Matching](llm-matching.md)**: AI-powered multi-dimensional capability assessment with crisis response context
 - **[Match Explanation](match-explanation.md)**: Request and interpret per-facility match explanations (layers, rules, confidence)
 
 ## Architecture Integration
