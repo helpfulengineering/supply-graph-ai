@@ -16,9 +16,9 @@ describe("fetchMapPoints", () => {
   it("passes include_mom=false through the query string", async () => {
     let url = "";
     server.use(
-      http.get("*/v1/api/okw/map", ({ request }) => {
+      http.get("*/v1/api/okw/spaces", ({ request }) => {
         url = request.url;
-        return HttpResponse.json({ points: [], local_count: 0, mom_count: 0, dropped_no_coords: 0, mom_available: false });
+        return HttpResponse.json({ spaces: [], local_count: 0, mom_count: 0, dropped_no_coords: 0, mom_available: false });
       }),
     );
     await fetchMapPoints(false);
@@ -27,7 +27,7 @@ describe("fetchMapPoints", () => {
 
   it("throws ApiError on failure", async () => {
     server.use(
-      http.get("*/v1/api/okw/map", () => HttpResponse.json({ detail: "boom" }, { status: 500 })),
+      http.get("*/v1/api/okw/spaces", () => HttpResponse.json({ detail: "boom" }, { status: 500 })),
     );
     await expect(fetchMapPoints()).rejects.toBeInstanceOf(ApiError);
   });

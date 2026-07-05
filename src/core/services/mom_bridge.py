@@ -146,32 +146,63 @@ async def fetch_mom_facilities_for_manifest(
     ]
 
 
-# All spaces with geographic coordinates — for the network map (not filtered by
-# process, unlike the matching queries above).
+# All spaces with coordinates — for the network surface. Pulls the fields the
+# unified /api/okw/spaces surface filters/displays on (city, country, status,
+# url, process tags), aggregating the multi-valued knowsAbout tags per space.
 _ALL_SPACES_SPARQL = """
-SELECT DISTINCT ?space ?name ?lat ?lon WHERE {
+PREFIX schema: <https://schema.org/>
+PREFIX mom: <https://nicolasdb.github.io/mapsofmaking_ontology/ns#>
+SELECT ?space ?name ?lat ?lon
+       (SAMPLE(?city_) AS ?city) (SAMPLE(?country_) AS ?country)
+       (SAMPLE(?state_) AS ?state) (SAMPLE(?url_) AS ?url)
+       (GROUP_CONCAT(DISTINCT ?tag; SEPARATOR="|") AS ?tags)
+WHERE {
   GRAPH ?g {
-    ?space a <https://nicolasdb.github.io/mapsofmaking_ontology/ns#Space> ;
-           <https://schema.org/name> ?name ;
-           <https://schema.org/geo> [ <https://schema.org/latitude> ?lat ;
-                                       <https://schema.org/longitude> ?lon ] .
+    ?space a mom:Space ;
+           schema:name ?name ;
+           schema:geo [ schema:latitude ?lat ; schema:longitude ?lon ] .
+    OPTIONAL { ?space schema:addressLocality ?city_ }
+    OPTIONAL { ?space mom:countryCode ?country_ }
+    OPTIONAL { ?space mom:operationalState ?state_ }
+    OPTIONAL { ?space schema:url ?url_ }
+    OPTIONAL { ?space schema:knowsAbout ?tag }
   }
-}
+} GROUP BY ?space ?name ?lat ?lon
 """
+
+
+def _normalize_process_tags(concat: str) -> list[str]:
+    """Map MoM's ``knowsAbout`` slugs (e.g. "laser|cnc") to canonical OHM process
+    ids via the taxonomy, so the process filter is consistent with local OKW."""
+    processes: list[str] = []
+    for raw in (concat or "").split("|"):
+        raw = raw.strip()
+        if not raw:
+            continue
+        cid = taxonomy.normalize(raw)
+        if cid and cid not in processes:
+            processes.append(cid)
+    return processes
+
+
+def _cell(binding: dict, key: str) -> "str | None":
+    """Value of a SPARQL result cell, or None when absent/empty."""
+    return binding.get(key, {}).get("value") or None
 
 
 async def fetch_all_mom_spaces(
     endpoint: str = MOM_SPARQL_ENDPOINT,
-    timeout: float = 20.0,
+    timeout: float = 30.0,
 ) -> list[dict]:
-    """Fetch every MoM space that has geographic coordinates, for the map.
+    """Fetch every MoM space with coordinates, enriched for the network surface.
 
     Args:
         endpoint: MoM SPARQL endpoint URL.
         timeout: Request timeout in seconds.
 
     Returns:
-        List of dicts with keys: space (IRI), name, lat, lon.
+        List of dicts: space (IRI), name, lat, lon, city, country, status, url,
+        processes (canonical OHM process ids).
 
     Raises:
         httpx.HTTPError: If the endpoint is unreachable or returns an error. The
@@ -190,17 +221,24 @@ async def fetch_all_mom_spaces(
     spaces: list[dict] = []
     for b in response.json().get("results", {}).get("bindings", []):
         try:
-            spaces.append(
-                {
-                    "space": b["space"]["value"],
-                    "name": b["name"]["value"],
-                    "lat": float(b["lat"]["value"]),
-                    "lon": float(b["lon"]["value"]),
-                }
-            )
+            lat = float(b["lat"]["value"])
+            lon = float(b["lon"]["value"])
         except (KeyError, ValueError, TypeError):
             # Skip malformed rows rather than failing the whole fetch.
             continue
+        spaces.append(
+            {
+                "space": b["space"]["value"],
+                "name": _cell(b, "name") or "",
+                "lat": lat,
+                "lon": lon,
+                "city": _cell(b, "city"),
+                "country": _cell(b, "country"),
+                "status": _cell(b, "state"),
+                "url": _cell(b, "url"),
+                "processes": _normalize_process_tags(_cell(b, "tags") or ""),
+            }
+        )
     return spaces
 
 
