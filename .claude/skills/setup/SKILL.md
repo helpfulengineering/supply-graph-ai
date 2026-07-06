@@ -63,6 +63,15 @@ Save the answer as `$SETUP_PATH` and use it to gate questions in Steps 3 and 4.
 
 Collect values for all required (and relevant optional) parameters. Skip any param already present in `.env`.
 
+**Configuration model (0.8.7+).** OHM resolves config in two layers: non-secret
+defaults (storage provider / account / container, `OKW_SOURCE`, CORS) are checked
+into the repo per environment at `config/environments/<ENVIRONMENT>.toml`, and your
+process environment / `.env` is layered on top and **wins**. This skill collects
+values into `.env`, which is the correct place for both secrets and any override.
+So you only need to set in `.env` what differs from the environment's TOML defaults
+(and every secret — `AZURE_STORAGE_KEY`, `API_KEYS`, `LLM_*` — which never belong in
+the checked-in TOML files). `ENVIRONMENT` selects which TOML loads.
+
 ### 3a: Environment
 
 Ask: "Are you setting this up for local development or production?"
@@ -231,6 +240,11 @@ STORAGE_PROVIDER=<value>
 # ... only params relevant to chosen options
 ```
 
+Note on `env.template`: the block between its `BEGIN/END GENERATED` markers is
+emitted from the config schema — do not hand-edit it (run `make env-template` to
+regenerate). Everything outside the markers is hand-maintained. `.env` still
+overrides both the generated defaults and the per-environment TOML files.
+
 Rules:
 - Only write params relevant to the chosen storage provider and enabled features
 - Do not write cloud provider params for providers that are not selected
@@ -344,6 +358,15 @@ For **cloud storage**: verify credentials by making a test API call after the se
 ```bash
 curl -s http://localhost:8001/health
 ```
+
+`/health` includes a `storage` fingerprint — the resolved provider / account /
+container the app is actually using, plus `okh/` and `okw/` object counts. Use it
+to confirm you are pointed at the container you expect **and** that it has data
+(counts `0` usually means an empty or mis-pointed container). Note: in
+`ENVIRONMENT=production` the app **hard-fails on startup** if storage config is
+invalid or incomplete (e.g. `azure_blob` without account/container/key); in
+`development` it warns and continues degraded — so a failed prod boot is almost
+always a missing storage value.
 
 ---
 
