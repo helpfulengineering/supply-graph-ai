@@ -184,8 +184,10 @@ jobs:
   # Azure token while running under that environment, and any required-reviewer
   # protection rule configured on it (Settings → Environments → production) blocks
   # the job until approved. Uses --set-env-vars (additive) on an existing app, so
-  # it only ever touches the image tag + ENVIRONMENT/CORS_ORIGINS -- storage and
-  # LLM encryption secrets configured directly on the container are untouched.
+  # it applies the image tag + the non-secret per-env config (ENVIRONMENT,
+  # CORS_ORIGINS, and the storage target -- provider/account/container) from
+  # config/environments/production.toml. Secrets (storage key, LLM encryption)
+  # stay secretRefs configured directly on the container and are untouched.
   deploy-azure:
     name: Deploy to Azure Container Apps
     runs-on: ubuntu-latest

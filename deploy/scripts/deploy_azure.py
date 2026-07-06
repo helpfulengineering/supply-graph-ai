@@ -2,11 +2,12 @@
 """
 Manual deployment script for Azure Container Apps.
 
-This script uses the Azure deployer to update the running container app's
-image (and a small set of non-sensitive config vars) without touching
-credentials already configured on the container directly via `az` (storage
-keys, LLM encryption secrets) -- the update path is additive
-(--set-env-vars), so anything not listed here is left alone.
+This script uses the Azure deployer to update the running container app's image
+and to authoritatively apply the **non-secret** per-environment configuration
+from ``config/environments/<environment>.toml`` (storage provider / account /
+container, etc.) via ``--set-env-vars``. Secrets (storage keys, LLM encryption
+secrets, API keys) are never applied here -- they stay Azure ``secretRef`` /
+``.env`` only, and the additive update path leaves them untouched.
 """
 
 import argparse
@@ -24,6 +25,7 @@ from deploy.providers.azure import (
     AzureDeploymentConfig,
     DeploymentError,
 )
+from src.config.schema import deploy_env_vars
 
 logging.basicConfig(
     level=logging.INFO,
@@ -59,6 +61,11 @@ def main():
         "--image",
         required=True,
         help="Docker image to deploy (e.g., touchthesun/openhardwaremanager:0.8.6)",
+    )
+    parser.add_argument(
+        "--environment",
+        default=os.getenv("ENVIRONMENT", "production"),
+        help="Target environment; selects config/environments/<env>.toml (default: production)",
     )
     parser.add_argument(
         "--cors-origins",
@@ -97,20 +104,33 @@ def main():
         )
         return 1
 
+    # Authoritatively apply the non-secret per-environment config (storage
+    # provider / account / container, etc.) from config/environments/<env>.toml,
+    # plus the runtime ENVIRONMENT and CORS_ORIGINS. Secrets are NOT included:
+    # deploy_env_vars() refuses schema-secret keys, and the additive
+    # --set-env-vars update leaves existing secretRefs (e.g. AZURE_STORAGE_KEY)
+    # untouched.
+    environment_vars = deploy_env_vars(args.environment)
+    environment_vars["ENVIRONMENT"] = args.environment
+    environment_vars["CORS_ORIGINS"] = args.cors_origins
+
     print("=" * 80)
     print("Azure Container Apps Deployment")
     print("=" * 80)
     print(f"Resource Group: {args.resource_group}")
     print(f"Container App: {args.container_app_name}")
     print(f"Image: {args.image}")
-    print(f"CORS_ORIGINS: {args.cors_origins}")
+    print(f"Environment: {args.environment}")
+    print("Applying non-secret env vars (secrets stay secretRef, untouched):")
+    for key, value in environment_vars.items():
+        print(f"  {key}={value}")
     print("=" * 80)
 
     try:
         config = AzureDeploymentConfig.from_dict(
             {
                 "provider": "azure",
-                "environment": "production",
+                "environment": args.environment,
                 "region": args.region,
                 "service": {
                     "name": args.container_app_name,
@@ -119,15 +139,11 @@ def main():
                     "cpu": args.cpu,
                     "min_instances": args.min_instances,
                     "max_instances": args.max_instances,
-                    # Deliberately minimal: this is an UPDATE to an existing
-                    # container app via --set-env-vars (additive). Storage
-                    # credentials and LLM encryption secrets are already
-                    # configured on the container outside this deployer and
-                    # are left untouched -- only image + these vars change.
-                    "environment_vars": {
-                        "ENVIRONMENT": "production",
-                        "CORS_ORIGINS": args.cors_origins,
-                    },
+                    # UPDATE to an existing container app via --set-env-vars
+                    # (additive): applies the non-secret per-env values below and
+                    # leaves everything else (secretRefs incl. AZURE_STORAGE_KEY,
+                    # LLM encryption secrets) untouched.
+                    "environment_vars": environment_vars,
                 },
                 "providers": {
                     "azure": {
