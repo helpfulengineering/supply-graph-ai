@@ -47,7 +47,20 @@ docker compose up --build ohm-api
 > var always overrides the file. Secrets (`AZURE_STORAGE_KEY`, `API_KEYS`,
 > `LLM_*`) are never in those files — keep them in `.env` locally or an Azure
 > `secretRef` in production. `ENVIRONMENT` (default `development`) selects which
-> file loads.
+> file loads. The typed schema lives in `src/config/schema.py`.
+>
+> A few consequences worth knowing (all added in 0.8.7):
+>
+> - **`env.template` is partly generated.** The block between the
+>   `BEGIN/END GENERATED` markers is emitted from the schema — regenerate it with
+>   `make env-template` (also part of `make format`); CI fails if it drifts.
+>   Everything outside the markers is still hand-maintained.
+> - **Startup validation.** In `production` the app hard-fails on invalid/missing
+>   storage config (e.g. `azure_blob` without account/container/key); in
+>   `development` it logs a warning and continues degraded.
+> - **`/health` reports a storage fingerprint** — the resolved provider / account
+>   / container the app is actually using plus `okh/` and `okw/` object counts.
+>   Use it to confirm you are pointed at the container you expect, with data in it.
 
 ### Verify Installation
 
