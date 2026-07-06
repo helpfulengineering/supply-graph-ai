@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from contextlib import asynccontextmanager
@@ -73,6 +74,12 @@ async def lifespan(app: FastAPI):
     """
     try:
         logger.info("Starting application")
+
+        # Startup posture: validate config before anything else. Hard-fails in
+        # production on invalid/missing config; warns and degrades otherwise.
+        from src.config.schema import enforce_startup_config
+
+        enforce_startup_config()
 
         # Initialize storage
         logger.info("Initializing storage service")
@@ -204,16 +211,27 @@ async def root():
 # Health check endpoint
 @app.get("/health", tags=["system"])
 async def health_check():
-    """Simple health check endpoint (liveness probe).
+    """Health check endpoint with a storage-config fingerprint.
 
-    This endpoint indicates that the application is running.
-    It does not check dependencies, making it suitable for liveness probes.
+    Always returns 200 when the process is up (suitable as a liveness probe).
+    Also reports the resolved storage target (provider / account / container) and
+    object counts under ``okh/``/``okw/`` so config/data drift is visible from a
+    public endpoint and can be asserted by the deploy gate. The fingerprint is
+    best-effort and time-boxed — storage being down or slow never fails /health.
     """
-    return {
+    result = {
         "status": "ok",
         "domains": list(DomainRegistry.get_registered_domains()),
         "version": get_version(),
     }
+    try:
+        storage_service = await StorageService.get_instance()
+        result["storage"] = await asyncio.wait_for(
+            storage_service.get_config_fingerprint(), timeout=5.0
+        )
+    except Exception as e:
+        result["storage"] = {"error": str(e)}
+    return result
 
 
 # Liveness probe endpoint

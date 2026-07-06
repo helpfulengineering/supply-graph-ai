@@ -225,6 +225,52 @@ def get_settings() -> Settings:
     return Settings()
 
 
+def storage_config_problems(settings: Settings) -> List[str]:
+    """Return human-readable problems with the storage config (empty list = OK).
+
+    Validates that the selected provider has the fields it needs. Data emptiness
+    is deliberately NOT checked here — a fresh environment may legitimately boot
+    with an empty container (that is a deploy-gate concern, a startup warning at
+    most), so this only covers configuration validity.
+    """
+    problems: List[str] = []
+    if settings.storage_provider == "azure_blob":
+        required = {
+            "AZURE_STORAGE_ACCOUNT": settings.azure_storage_account,
+            "AZURE_STORAGE_CONTAINER": settings.azure_storage_container,
+            "AZURE_STORAGE_KEY": settings.azure_storage_key,
+        }
+        for name, value in required.items():
+            if not value:
+                problems.append(f"{name} is required when STORAGE_PROVIDER=azure_blob")
+    elif settings.storage_provider not in ("local", "aws_s3", "gcs"):
+        problems.append(f"Unknown STORAGE_PROVIDER {settings.storage_provider!r}")
+    return problems
+
+
+def enforce_startup_config(settings: Optional[Settings] = None) -> List[str]:
+    """Validate configuration at startup with an environment-dependent posture.
+
+    Hard-fails (raises ``RuntimeError``) in ``production`` on any problem so a
+    mis-configured release never boots; warns and degrades in every other
+    environment. Returns the list of problems (empty when clean). Never inspects
+    data counts — see :func:`storage_config_problems`.
+    """
+    settings = settings or get_settings()
+    problems = storage_config_problems(settings)
+    if not problems:
+        return problems
+    detail = "; ".join(problems)
+    if settings.environment == "production":
+        raise RuntimeError(f"Invalid production configuration: {detail}")
+    logger.warning(
+        "Configuration problems (continuing in %s, degraded): %s",
+        settings.environment,
+        detail,
+    )
+    return problems
+
+
 def _secret_field_names() -> set[str]:
     return {
         name

@@ -215,6 +215,40 @@ class StorageService:
             "domain_stats": domain_stats,
         }
 
+    async def get_config_fingerprint(self) -> Dict[str, Any]:
+        """Resolved storage target + per-domain object counts, for drift checks.
+
+        Reports the provider / account / container the running app is *actually*
+        connected to, plus counts under ``okh/`` and ``okw/`` (metadata-only
+        listing, no downloads — the full-bucket scan of
+        :meth:`get_storage_stats` is avoided). Best-effort and never raises: it
+        is called from the public ``/health`` endpoint, so storage being down or
+        slow must not break liveness. Counts are ``None`` on error.
+        """
+        fingerprint: Dict[str, Any] = {
+            "provider": None,
+            "account": None,
+            "container": None,
+            "okh_count": None,
+            "okw_count": None,
+        }
+        try:
+            if not self._configured or not self.manager:
+                fingerprint["error"] = "storage not configured"
+                return fingerprint
+            config = self.manager.config
+            fingerprint["provider"] = config.provider
+            fingerprint["container"] = config.bucket_name
+            fingerprint["account"] = (config.credentials or {}).get("account_name")
+            for prefix, field in (("okh/", "okh_count"), ("okw/", "okw_count")):
+                count = 0
+                async for _ in self.manager.list_objects(prefix=prefix):
+                    count += 1
+                fingerprint[field] = count
+        except Exception as e:  # never propagate to /health
+            fingerprint["error"] = str(e)
+        return fingerprint
+
     async def save_supply_tree(self, tree: SupplyTree) -> str:
         """Persist a supply tree JSON object under ``supply-trees/{id}.json``.
 

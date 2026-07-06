@@ -225,6 +225,36 @@ jobs:
           echo "deployed version=$ACTUAL (expected ${{ needs.validate.outputs.version }})"
           test "$ACTUAL" = "${{ needs.validate.outputs.version }}"
 
+      - name: Verify storage fingerprint (drift + emptiness gate)
+        # Assert the live app is actually pointed at the container the repo
+        # declares (config/environments/production.toml) AND that it is non-empty.
+        # Emptiness is a deploy-gate failure (never promote a release onto an
+        # empty/mis-pointed prod container) even though it is only a startup warning.
+        run: |
+          python3 - <<'PY'
+          import json, sys, tomllib, urllib.request
+
+          host = "openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io"
+          with open("config/environments/production.toml", "rb") as f:
+              expected = tomllib.load(f).get("azure_storage_container", "")
+          with urllib.request.urlopen(f"https://{host}/health", timeout=15) as r:
+              fp = json.load(r).get("storage", {})
+
+          container, okh, okw = fp.get("container"), fp.get("okh_count"), fp.get("okw_count")
+          print(f"live container={container!r} expected={expected!r} okh={okh} okw={okw}")
+
+          errors = []
+          if expected and container != expected:
+              errors.append(f"container drift: live {container!r} != config {expected!r}")
+          if not okh:
+              errors.append("okh_count is 0 or missing")
+          if not okw:
+              errors.append("okw_count is 0 or missing")
+          if errors:
+              sys.exit("DEPLOY GATE FAILED: " + "; ".join(errors))
+          print("deploy gate passed")
+          PY
+
   # Git tags alone do not appear under GitHub → Releases. This job creates the
   # Release page entry (notes, source archives) after Docker publish succeeds.
   github-release:
