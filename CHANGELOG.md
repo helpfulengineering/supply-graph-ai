@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Typed configuration schema + per-environment files (config Slice 1):** a `pydantic-settings` schema (`src/config/schema.py`) is now the single source of truth for the storage target (provider / account / container), the runtime `environment`, `OKW_SOURCE`, and CORS. Non-secret values are checked in per environment at `config/environments/{development,test,production}.toml` and layered under process env vars (env wins); secrets (`AZURE_STORAGE_KEY`, `API_KEYS`, `LLM_*`) stay env/`secretRef`-only. `settings.py` and `storage_config.py` consumers read the schema; the old inline env-read paths were removed. Behaviour-preserving — the `docker --env-file` quote-stripping quirk is consolidated into one normalizing env source, and characterization tests pin per-setting equivalence.
+- **Config drift guards (startup posture + `/health` fingerprint + deploy gate):** the app now validates its config at startup — hard-failing in `production` on invalid/missing storage config, warning and degrading elsewhere. Public `/health` gains a best-effort, time-boxed `storage` fingerprint (resolved provider / account / container + `okh/`/`okw/` object counts) so config/data drift is visible. The release workflow's post-deploy step asserts the live container matches `config/environments/production.toml` and that counts are non-zero — an empty or mis-pointed prod container fails the deploy (this is exactly the drift that caused the live zero-match).
 
 ## [0.8.6] - 2026-06-30
 

@@ -8,7 +8,13 @@ environment normalization.
 
 import pytest
 
-from src.config.schema import Settings, get_settings, resolve_cors_origins
+from src.config.schema import (
+    Settings,
+    enforce_startup_config,
+    get_settings,
+    resolve_cors_origins,
+    storage_config_problems,
+)
 
 # Slice-1 env vars that must be neutralized for deterministic tests (the
 # developer's .env is loaded at import time and would otherwise leak in).
@@ -142,3 +148,45 @@ class TestInitOverride:
         # init > env > toml precedence
         clean_env.setenv("STORAGE_PROVIDER", "azure_blob")
         assert Settings(storage_provider="gcs").storage_provider == "gcs"
+
+
+class TestStartupPosture:
+    def test_azure_complete_has_no_problems(self, clean_env):
+        s = Settings(
+            storage_provider="azure_blob",
+            azure_storage_account="a",
+            azure_storage_container="c",
+            azure_storage_key="k",
+        )
+        assert storage_config_problems(s) == []
+
+    def test_azure_missing_fields_reported(self, clean_env):
+        s = Settings(
+            storage_provider="azure_blob",
+            azure_storage_account="a",
+            azure_storage_container=None,
+            azure_storage_key=None,
+        )
+        problems = storage_config_problems(s)
+        assert any("AZURE_STORAGE_CONTAINER" in p for p in problems)
+        assert any("AZURE_STORAGE_KEY" in p for p in problems)
+
+    def test_local_has_no_problems(self, clean_env):
+        assert storage_config_problems(Settings(storage_provider="local")) == []
+
+    def test_unknown_provider_reported(self, clean_env):
+        assert storage_config_problems(Settings(storage_provider="floppy-disk"))
+
+    def test_production_hard_fails_on_problem(self, clean_env):
+        s = Settings(environment="production", storage_provider="azure_blob")
+        with pytest.raises(RuntimeError, match="Invalid production configuration"):
+            enforce_startup_config(s)
+
+    def test_development_warns_not_raises(self, clean_env):
+        s = Settings(environment="development", storage_provider="azure_blob")
+        # Returns the problems (degraded) instead of raising.
+        assert enforce_startup_config(s)
+
+    def test_clean_config_returns_empty(self, clean_env):
+        s = Settings(environment="production", storage_provider="local")
+        assert enforce_startup_config(s) == []
