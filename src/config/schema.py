@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 
 from dotenv import load_dotenv
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import (
     BaseSettings,
     EnvSettingsSource,
@@ -138,13 +138,35 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(case_sensitive=False, extra="ignore")
 
-    environment: str = "development"
-    storage_provider: str = "local"
-    azure_storage_account: Optional[str] = None
-    azure_storage_container: Optional[str] = None
-    azure_storage_key: Optional[str] = None  # secret: env/.env only, never TOML
-    okw_source: Optional[str] = None  # unset resolves via okw_source_resolved
-    cors_origins: Optional[str] = None  # raw; parse via cors_allow_origins
+    environment: str = Field(
+        default="development",
+        description="Runtime environment; selects config/environments/<env>.toml.",
+    )
+    storage_provider: str = Field(
+        default="local",
+        description="Storage backend: local | azure_blob | aws_s3 | gcs.",
+    )
+    azure_storage_account: Optional[str] = Field(
+        default=None,
+        description="Azure Blob storage account name (when storage_provider=azure_blob).",
+    )
+    azure_storage_container: Optional[str] = Field(
+        default=None,
+        description="Azure Blob container name.",
+    )
+    azure_storage_key: Optional[str] = Field(
+        default=None,
+        description="Azure Blob access key.",
+        json_schema_extra={"secret": True},  # env/.env / secretRef only, never TOML
+    )
+    okw_source: Optional[str] = Field(
+        default=None,  # unset resolves via okw_source_resolved
+        description="OKW facility source: storage | mom. Unset resolves to storage (Slice 1).",
+    )
+    cors_origins: Optional[str] = Field(
+        default=None,  # raw; parse via cors_allow_origins
+        description="CORS allowed origins: '*' or a comma-separated list.",
+    )
 
     @field_validator("environment")
     @classmethod

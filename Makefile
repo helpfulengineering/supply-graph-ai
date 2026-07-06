@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map validate-docs parity ready setup verify-env frontend-setup frontend-ready
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs parity ready setup verify-env frontend-setup frontend-ready
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -26,7 +26,7 @@ setup:
 verify-env:
 	uv run python scripts/verify_dev_env.py
 
-format: black ruff repo-map
+format: black ruff repo-map env-template
 
 black:
 	uv run black .
@@ -47,6 +47,14 @@ check: lint format-check test
 
 repo-map:
 	uv run python scripts/generate_repo_map.py
+
+# Regenerate the schema-owned block of env.template from src/config/schema.py.
+env-template:
+	uv run python scripts/generate_env_template.py
+
+# Staleness gate (lockfile pattern): fails if the generated block is out of date.
+env-template-check:
+	uv run python scripts/generate_env_template.py --check
 
 validate-docs:
 	uv run python scripts/validate_docs.py
