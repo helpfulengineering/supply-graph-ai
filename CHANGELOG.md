@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Typed configuration schema + per-environment files (config Slice 1):** a `pydantic-settings` schema (`src/config/schema.py`) is now the single source of truth for the storage target (provider / account / container), the runtime `environment`, `OKW_SOURCE`, and CORS. Non-secret values are checked in per environment at `config/environments/{development,test,production}.toml` and layered under process env vars (env wins); secrets (`AZURE_STORAGE_KEY`, `API_KEYS`, `LLM_*`) stay env/`secretRef`-only. `settings.py` and `storage_config.py` consumers read the schema; the old inline env-read paths were removed. Behaviour-preserving — the `docker --env-file` quote-stripping quirk is consolidated into one normalizing env source, and characterization tests pin per-setting equivalence.
+- **Generated `env.template` + staleness gate:** `scripts/generate_env_template.py` emits the schema-owned settings into a marked block of `env.template` (name, default, secret-vs-not). `make env-template` regenerates it (part of `make format`), and a CI step + unit test fail if the committed block drifts from the schema — the lockfile pattern already used for the repository map.
+
+### Changed
+
+- **Deploy pipeline now applies the non-secret storage target from the repo.** `deploy/scripts/deploy_azure.py` previously only set `ENVIRONMENT` + `CORS_ORIGINS` and left `STORAGE_*` configured directly on the container app (invisible to the repo — the drift that caused live zero-match). It now authoritatively applies every non-secret value from `config/environments/<environment>.toml` (incl. `AZURE_STORAGE_CONTAINER`) via additive `--set-env-vars`. Secrets are refused by `deploy_env_vars()` and existing `secretRef`s (e.g. `AZURE_STORAGE_KEY`) are left untouched.
 
 ## [0.8.6] - 2026-06-30
 
