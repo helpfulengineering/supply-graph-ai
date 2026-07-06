@@ -8,18 +8,14 @@ environment normalization.
 
 import pytest
 
-from src.config.schema import (
-    Settings,
-    enforce_startup_config,
-    get_settings,
-    resolve_cors_origins,
-    storage_config_problems,
 import src.config.schema as schema_mod
 from src.config.schema import (
     Settings,
     deploy_env_vars,
+    enforce_startup_config,
     get_settings,
     resolve_cors_origins,
+    storage_config_problems,
 )
 
 # Slice-1 env vars that must be neutralized for deterministic tests (the
@@ -196,6 +192,8 @@ class TestStartupPosture:
     def test_clean_config_returns_empty(self, clean_env):
         s = Settings(environment="production", storage_provider="local")
         assert enforce_startup_config(s) == []
+
+
 class TestDeployEnvVars:
     def test_production_applies_storage_target(self):
         env = deploy_env_vars("production")

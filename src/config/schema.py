@@ -269,6 +269,8 @@ def enforce_startup_config(settings: Optional[Settings] = None) -> List[str]:
         detail,
     )
     return problems
+
+
 def _secret_field_names() -> set[str]:
     return {
         name
