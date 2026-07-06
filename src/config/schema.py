@@ -18,8 +18,9 @@ from __future__ import annotations
 
 import logging
 import os
+import tomllib
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from pydantic import Field, field_validator
@@ -222,3 +223,39 @@ def get_settings() -> Settings:
     functions this replaces.
     """
     return Settings()
+
+
+def _secret_field_names() -> set[str]:
+    return {
+        name
+        for name, field in Settings.model_fields.items()
+        if isinstance(field.json_schema_extra, dict)
+        and field.json_schema_extra.get("secret")
+    }
+
+
+def deploy_env_vars(environment: str) -> Dict[str, str]:
+    """Non-secret env vars to apply to ``<environment>``'s container app.
+
+    Reads ``config/environments/<environment>.toml`` — the checked-in source of
+    truth for non-secret config — and returns ``{ENV_VAR: value}`` (snake_case
+    keys mapped to their upper-case env-var names). Schema fields marked secret
+    are refused: the deploy pipeline never applies secrets, which stay an Azure
+    ``secretRef`` / ``.env`` only. Returns ``{}`` when the file is absent.
+    """
+    path = _CONFIG_ENV_DIR / f"{environment}.toml"
+    if not path.is_file():
+        return {}
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    secret_fields = _secret_field_names()
+    env_vars: Dict[str, str] = {}
+    for key, value in data.items():
+        if key in secret_fields:
+            logger.warning(
+                "Refusing to deploy secret %r from %s — use a secretRef instead.",
+                key,
+                path.name,
+            )
+            continue
+        env_vars[key.upper()] = str(value)
+    return env_vars

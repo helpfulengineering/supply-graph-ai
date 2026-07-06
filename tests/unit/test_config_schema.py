@@ -8,7 +8,13 @@ environment normalization.
 
 import pytest
 
-from src.config.schema import Settings, get_settings, resolve_cors_origins
+import src.config.schema as schema_mod
+from src.config.schema import (
+    Settings,
+    deploy_env_vars,
+    get_settings,
+    resolve_cors_origins,
+)
 
 # Slice-1 env vars that must be neutralized for deterministic tests (the
 # developer's .env is loaded at import time and would otherwise leak in).
@@ -142,3 +148,33 @@ class TestInitOverride:
         # init > env > toml precedence
         clean_env.setenv("STORAGE_PROVIDER", "azure_blob")
         assert Settings(storage_provider="gcs").storage_provider == "gcs"
+
+
+class TestDeployEnvVars:
+    def test_production_applies_storage_target(self):
+        env = deploy_env_vars("production")
+        assert env["STORAGE_PROVIDER"] == "azure_blob"
+        assert env["AZURE_STORAGE_ACCOUNT"] == "projdatablobstorage"
+        assert env["AZURE_STORAGE_CONTAINER"] == "production"
+
+    def test_development_is_local(self):
+        assert deploy_env_vars("development") == {"STORAGE_PROVIDER": "local"}
+
+    def test_missing_environment_returns_empty(self):
+        assert deploy_env_vars("does-not-exist") == {}
+
+    def test_keys_are_uppercased_env_names(self):
+        # TOML uses snake_case; deploy needs upper-case env-var names.
+        assert all(k == k.upper() for k in deploy_env_vars("production"))
+
+    def test_secret_keys_are_refused(self, tmp_path, monkeypatch):
+        # A secret accidentally placed in a per-env file must never be deployed.
+        (tmp_path / "sneaky.toml").write_text(
+            'storage_provider = "azure_blob"\n'
+            'azure_storage_key = "leaked-secret-key"\n',
+            encoding="utf-8",
+        )
+        monkeypatch.setattr(schema_mod, "_CONFIG_ENV_DIR", tmp_path)
+        env = deploy_env_vars("sneaky")
+        assert env == {"STORAGE_PROVIDER": "azure_blob"}
+        assert "AZURE_STORAGE_KEY" not in env
