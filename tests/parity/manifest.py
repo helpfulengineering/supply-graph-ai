@@ -128,15 +128,6 @@ AREAS: tuple[Area, ...] = (
         "(intentional — internal/admin operation).",
     ),
     Area(
-        "rfq",
-        None,
-        "rfq",
-        None,
-        "partial",
-        note="TODO: API only, no CLI group yet. Add a 'rfq' CLI group if this "
-        "should be operable from the command line.",
-    ),
-    Area(
         "rules",
         None,
         "rules",

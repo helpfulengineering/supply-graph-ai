@@ -6,7 +6,6 @@ const navItems = [
   { to: "/facilities", label: "Facilities", icon: "🏭" },
   { to: "/match", label: "Match", icon: "⚡" },
   { to: "/visualization", label: "Visualization", icon: "🗺️" },
-  { to: "/rfq", label: "RFQ", icon: "📄" },
   { to: "/packages", label: "Packages", icon: "📦" },
 ] as const;
 

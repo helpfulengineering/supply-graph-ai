@@ -10,7 +10,6 @@ import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { fetchOkhDetail } from "../../api/okh";
 import type { MatchSolution } from "../../types/match";
-import type { RfqNavigationState } from "../../types/rfq";
 import { MATCH_SESSION } from "./matchSessionKeys";
 import { solutionRowId } from "./solutionRowId";
 
@@ -154,20 +153,6 @@ export function MatchView({ okhId, autoRun = false }: Props) {
     triggerRef.current?.(okhId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRun, okhId, hasResult]);
-
-  const handleGenerateRfq = useCallback(() => {
-    const selectedSolutions = displaySolutions.filter((s) =>
-      selectedIds.has(solutionRowId(s))
-    );
-    const state: RfqNavigationState = {
-      okhId: okhId!,
-      okhTitle: okhDetail?.title ?? okhId ?? "Unknown Design",
-      okhFunction: okhDetail?.function ?? undefined,
-      okhVersion: okhDetail?.version ?? undefined,
-      solutions: selectedSolutions,
-    };
-    navigate("/rfq", { state });
-  }, [displaySolutions, selectedIds, okhId, okhDetail, navigate]);
 
   // Prune selected ids when a newer run returns fewer/different unique rows.
   useEffect(() => {
@@ -356,25 +341,6 @@ export function MatchView({ okhId, autoRun = false }: Props) {
               </div>
             )}
 
-            {/* Generate RFQ call-to-action */}
-            {selectedIds.size > 0 && (
-              <div className="mt-4 flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-4 dark:border-indigo-800 dark:bg-indigo-950/30">
-                <div>
-                  <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
-                    {selectedIds.size} facilit{selectedIds.size === 1 ? "y" : "ies"} selected
-                  </p>
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400">
-                    Generate a Request for Quotation document for each
-                  </p>
-                </div>
-                <button
-                  onClick={handleGenerateRfq}
-                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors dark:bg-indigo-500 dark:hover:bg-indigo-400"
-                >
-                  📄 Generate RFQ →
-                </button>
-              </div>
-            )}
           </div>
         </>
       )}

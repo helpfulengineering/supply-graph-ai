@@ -6,7 +6,6 @@ import { OkhPage } from "./pages/OkhPage";
 import { OkwPage } from "./pages/OkwPage";
 import { MatchPage } from "./pages/MatchPage";
 import { VisualizationPage } from "./pages/VisualizationPage";
-import { RfqPage } from "./pages/RfqPage";
 import { PackagePage } from "./pages/PackagePage";
 import { ThemeContext } from "./context/ThemeContext";
 import { useDarkMode } from "./hooks/useDarkMode";
@@ -37,7 +36,6 @@ export function App() {
               <Route path="match" element={<MatchPage />} />
               <Route path="visualization" element={<VisualizationPage />} />
               <Route path="visualization/:solutionId" element={<VisualizationPage />} />
-              <Route path="rfq" element={<RfqPage />} />
               <Route path="packages" element={<PackagePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

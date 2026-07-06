@@ -41,11 +41,15 @@ class PluginManager:
             logger.info("No active plugins configured.")
             return
 
+        strict_mode = os.getenv("OHM_STRICT_PLUGINS", "false").lower() == "true"
+
         for plugin_name in self.active_plugin_names:
             try:
                 self._load_plugin(plugin_name)
             except Exception as e:
                 logger.error(f"Failed to load plugin '{plugin_name}': {e}", exc_info=True)
+                if strict_mode:
+                    raise RuntimeError(f"Strict mode enabled: failed to load active plugin '{plugin_name}'") from e
 
     def _load_plugin(self, plugin_name: str):
         """Dynamically import and instantiate a plugin."""

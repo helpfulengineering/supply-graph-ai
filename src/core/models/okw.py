@@ -440,6 +440,8 @@ class ManufacturingFacility:
 
     # Record metadata
     record_data: Optional[RecordData] = None
+    provenance: Optional[str] = None  # Source of the data (e.g. plugin name, URL)
+    is_verified: bool = False  # Whether the data has been verified
 
     # Domain metadata
     domain: Optional[str] = None  # "manufacturing" or "cooking"
@@ -525,6 +527,10 @@ class ManufacturingFacility:
         if self.record_data:
             result["record_data"] = self.record_data.to_dict()
 
+        if self.provenance:
+            result["provenance"] = self.provenance
+        result["is_verified"] = self.is_verified
+
         # Domain field
         if self.domain:
             result["domain"] = self.domain
@@ -607,6 +613,11 @@ class ManufacturingFacility:
             facility.typical_products = data["typical_products"]
         if "domain" in data:
             facility.domain = data["domain"]
+
+        if "provenance" in data:
+            facility.provenance = data["provenance"]
+        if "is_verified" in data:
+            facility.is_verified = data["is_verified"]
 
         # Boolean fields
         facility.backup_generator = data.get("backup_generator", False)
