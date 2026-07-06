@@ -1,0 +1,12 @@
+# Non-secret configuration for the `production` environment (ENVIRONMENT=production).
+#
+# This is the checked-in source of truth for the production storage target. The
+# deploy pipeline will apply these values authoritatively (issue #239); until
+# then the live container app's env vars still take precedence.
+#
+# NEVER put secrets here. AZURE_STORAGE_KEY stays an Azure `secretRef`; API_KEYS
+# and LLM_* stay secret. CORS_ORIGINS is supplied by the deployment environment.
+
+storage_provider = "azure_blob"
+azure_storage_account = "projdatablobstorage"
+azure_storage_container = "production"

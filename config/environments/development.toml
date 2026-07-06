@@ -1,0 +1,11 @@
+# Non-secret configuration for the `development` environment (ENVIRONMENT=development).
+#
+# This file is the checked-in source of truth for non-secret settings; process
+# environment variables (and .env) override anything here. NEVER put secrets in
+# this file — AZURE_STORAGE_KEY, API_KEYS, and LLM_* belong in .env / secretRef.
+
+storage_provider = "local"
+
+# Optional overrides (unset here; resolved by code defaults):
+#   okw_source    = "storage"   # "storage" | "mom"; unset -> storage (Slice 1)
+#   cors_origins  = "*"         # unset in development -> allow-all ("*")

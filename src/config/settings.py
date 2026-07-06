@@ -8,6 +8,7 @@ from src.core.storage.base import StorageConfig
 
 from .auth_constants import AUTH_MODE_HYBRID
 from .llm_config import get_llm_config, is_llm_enabled, validate_llm_config
+from .schema import get_settings, resolve_cors_origins
 from .storage_config import StorageConfigError, get_default_storage_config
 
 # Import secrets manager (lazy import to avoid circular dependencies)
@@ -110,43 +111,14 @@ else:
     # Default to 8001 (matches CLI default)
     API_PORT = 8001
 
-# CORS settings
-# Parse comma-separated origins from environment variable
-CORS_ORIGINS_ENV = _get_secret_or_env("CORS_ORIGINS")
-ENVIRONMENT = _get_secret_or_env("ENVIRONMENT", "development").lower()
-
-if CORS_ORIGINS_ENV is None or CORS_ORIGINS_ENV.strip() == "":
-    # Default based on environment
-    if ENVIRONMENT == "production":
-        # In production, default to empty list (no CORS allowed)
-        # Must be explicitly configured
-        CORS_ORIGINS = []
-        logger.warning(
-            "CORS_ORIGINS not set in production. No CORS origins allowed by default. "
-            "Set CORS_ORIGINS environment variable to allow specific origins."
-        )
-    else:
-        # In development, allow all origins for convenience
-        CORS_ORIGINS = ["*"]
-        logger.info(
-            "CORS_ORIGINS not set. Allowing all origins in development mode. "
-            "Set CORS_ORIGINS environment variable to restrict origins."
-        )
-elif CORS_ORIGINS_ENV.strip() == "*":
-    # Explicit wildcard
-    if ENVIRONMENT == "production":
-        logger.warning(
-            "CORS_ORIGINS is set to '*' in production. This allows all origins. "
-            "Consider restricting to specific origins for better security."
-        )
-    CORS_ORIGINS = ["*"]
-else:
-    # Parse comma-separated list of allowed origins
-    CORS_ORIGINS = [
-        origin.strip() for origin in CORS_ORIGINS_ENV.split(",") if origin.strip()
-    ]
-    if not CORS_ORIGINS:
-        logger.warning("CORS_ORIGINS is set but empty. No CORS origins allowed.")
+# CORS + environment now come from the typed config schema (Slice 1). The
+# schema layers per-environment TOML defaults under process env vars; CORS
+# posture warnings are logged once here.
+_schema_settings = get_settings()
+ENVIRONMENT = _schema_settings.environment
+CORS_ORIGINS = resolve_cors_origins(
+    _schema_settings.cors_origins, ENVIRONMENT, log=True
+)
 
 # API Keys (backward compatibility - used for environment variable keys)
 # This is a sensitive value, so it will try secrets manager if enabled

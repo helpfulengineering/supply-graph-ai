@@ -28,6 +28,7 @@ dependencies = [
     "python-multipart>=0.0.31",
     # Data modeling
     "pydantic[email]>=2.0.0,<3.0.0",
+    "pydantic-settings>=2.2.0,<3.0.0",
     # Graph
     "networkx",
     # Storage / cloud
