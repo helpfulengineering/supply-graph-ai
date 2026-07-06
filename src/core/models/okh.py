@@ -496,6 +496,8 @@ class OKHManifest:
     # Metadata
     okhv: str = "OKH-LOSHv1.0"  # OKH specification version
     data_source: Optional[str] = None  # Platform where metadata was found
+    provenance: Optional[str] = None  # Source of the data (e.g. plugin name, URL)
+    is_verified: bool = False  # Whether the data has been verified
 
     # Optional fields
     description: Optional[str] = None
@@ -661,6 +663,8 @@ class OKHManifest:
             "licensor": licensor_dict,
             "documentation_language": self.documentation_language,
             "function": self.function,
+            "provenance": self.provenance,
+            "is_verified": self.is_verified,
         }
 
         # Add optional fields that are not None
@@ -879,6 +883,8 @@ class OKHManifest:
             "bom",
             "okhv",
             "data_source",
+            "provenance",
+            "is_verified",
             "domain",
         ]:
             if field in data and data[field] is not None:

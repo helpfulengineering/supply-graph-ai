@@ -1,10 +1,17 @@
 # Integration Plugin System
 
-OHM supports a modular plugin system for external integrations (like WeFlourish, ERPs, or custom supply chain platforms). This allows for keeping the core platform agnostic while enabling specialized commercial lifecycles.
+OHM supports a modular plugin system for external integrations. This allows for keeping the core platform agnostic while enabling specialized commercial lifecycles or connecting to external data sources.
+
+## Classes of Plugins
+
+Plugins in OHM generally fall into two categories:
+
+1.  **Data-source / interop adapters**: These plugins bring external data into OHM's model (e.g., fetching design or facility data from platforms like Appropedia or fablabs.io and normalizing it to OKH/OKW).
+2.  **Business-logic / connector plugins**: These plugins sit on top of OHM, consuming its data or bridging to external tools for specific workflows (e.g., cost estimation, RFQ, or manufacturing coordination).
 
 ## Architecture
 
-Plugins live in `src/plugins/` and are managed by the `PluginManager`. Each plugin is a self-contained directory with its own routes, services, and configuration.
+Plugins live in `src/plugins/` and are managed by the `PluginManager`. Each plugin is a self-contained directory.
 
 ### Directory Structure
 
@@ -13,87 +20,52 @@ src/plugins/my_integration/
 ├── __init__.py
 ├── plugin.py    # Main entry point (exports class Plugin)
 ├── routes.py    # FastAPI routes
-├── service.py   # Business logic
+├── service.py   # Business logic (optional)
 ├── config.py    # Private configuration (Pydantic BaseSettings)
 └── tests/       # Plugin-specific tests
-    ├── unit/
-    └── integration/
 ```
 
-### Testing Plugins
+## Plugin Contract
 
-Plugin tests should live within the plugin's own directory in a `tests/` folder. This ensures that the plugin is fully self-contained.
+All plugins must inherit from `BasePlugin` in `src/plugins/base.py`.
 
-You can run all plugin tests using the helper script:
-```bash
-uv run python tests/plugins/runner.py
-```
+### Capabilities
+
+Plugins declare the capabilities they require for least-privilege access:
+- `NETWORK_EGRESS`: Permission to make external network requests.
+- `STORAGE_READ`: Permission to read from OHM's core storage.
+- `STORAGE_WRITE`: Permission to write to OHM's core storage.
+
+### Versioning
+
+Each plugin must declare the `plugin_api_version` it was built against (e.g., `"0.1.0"`).
+
+### Data-Source Plugins
+
+For plugins that import data, inherit from `DataSourcePlugin`. This class requires implementing:
+- `fetch_records()`: An iterable that yields raw records from the source.
+- `normalize_to_okh(record)`: Normalizes a raw record into an `OKHManifest`.
+- `normalize_to_okw(record)`: Normalizes a raw record into a `ManufacturingFacility`.
+
+**Note**: All imported data is treated as unverified by default (`is_verified=False`) and should carry its `provenance` (the source of the data).
 
 ## Creating a Plugin
 
-### 1. Define Configuration (`config.py`)
+The easiest way to start is by copying the `src/plugins/template/` directory.
 
-Extend `PluginSettings` to define your environment variables.
-
-```python
-from src.plugins.base import PluginSettings as BasePluginSettings
-
-class PluginSettings(BasePluginSettings):
-    MY_API_KEY: str
-    MY_API_URL: str = "https://api.example.com"
-
-    class Config:
-        env_prefix = "MY_INTEG_"
-```
-
-### 2. Implement the Plugin Class (`plugin.py`)
-
-Your plugin must export a class named `Plugin` that inherits from `BasePlugin`.
-
-```python
-from fastapi import FastAPI
-from src.plugins.base import BasePlugin
-from .routes import router
-
-class Plugin(BasePlugin):
-    @property
-    def name(self) -> str:
-        return "my_integration"
-
-    def initialize(self) -> None:
-        # One-time synchronous setup
-        pass
-
-    def register_routes(self, app: FastAPI) -> None:
-        # Mount your APIRouter
-        app.include_router(router)
-
-    async def on_startup(self) -> None:
-        # Async setup (e.g. initializing HTTP clients)
-        pass
-
-    async def on_shutdown(self) -> None:
-        # Graceful teardown
-        pass
-```
-
-### 3. Register the Plugin
+### Registration
 
 To activate a plugin, add its directory name to the `OHM_ACTIVE_PLUGINS` environment variable (comma-separated).
 
 ```bash
-export OHM_ACTIVE_PLUGINS=weflourish_ohm,my_integration
+export OHM_ACTIVE_PLUGINS=my_integration
 ```
+
+Use `OHM_STRICT_PLUGINS=true` to force the application to hard-fail if a plugin fails to load during startup.
 
 ## Lifecycle Hooks
 
-- `initialize()`: Called immediately after the plugin is imported.
-- `register_routes(app)`: Called during FastAPI setup to mount routes.
-- `on_startup()`: Called during the FastAPI `lifespan` startup phase.
-- `on_shutdown()`: Called during the FastAPI `lifespan` shutdown phase.
-
-## Best Practices
-
-1. **Keep Core Agnostic**: Avoid importing plugin logic into `src/core`. If the core needs to interact with plugins, use an event bus or standard interfaces.
-2. **Use Core Models**: Use universal primitives from `src/core/models` (like `Bid` and `Quote`) whenever possible.
-3. **Private Configuration**: Use the `PluginSettings` class to keep integration-specific environment variables isolated.
+- `initialize()`: Synchronous setup called after import.
+- `register_routes(app)`: Mounts FastAPI routes.
+- `on_startup()`: Async hook called during application startup.
+- `on_shutdown()`: Async hook called during application shutdown.

@@ -25,7 +25,6 @@ from src.core.api.routes.asset import router as asset_router
 from src.core.api.routes.okh import router as okh_router
 from src.core.api.routes.okw import router as okw_router
 from src.core.api.routes.package import router as package_router
-from src.core.api.routes.rfq import router as rfq_router
 from src.core.api.routes.rules import router as rules_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.taxonomy import router as taxonomy_router
@@ -336,7 +335,6 @@ api_v1.include_router(
 api_v1.include_router(
     taxonomy_router, tags=["taxonomy"]
 )  # Already has /api/taxonomy prefix
-api_v1.include_router(rfq_router, tags=["rfq"])  # Already has /api/rfq prefix
 
 # Initialize and load plugins
 from src.plugins.manager import PluginManager
