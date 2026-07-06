@@ -1,0 +1,6 @@
+# Non-secret configuration for the `test` environment (ENVIRONMENT=test).
+#
+# Kept local + isolated so the suite never depends on cloud storage. Process
+# environment variables override anything here. No secrets in this file.
+
+storage_provider = "local"

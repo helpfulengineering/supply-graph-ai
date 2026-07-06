@@ -5,6 +5,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Typed configuration schema + per-environment files (config Slice 1):** a `pydantic-settings` schema (`src/config/schema.py`) is now the single source of truth for the storage target (provider / account / container), the runtime `environment`, `OKW_SOURCE`, and CORS. Non-secret values are checked in per environment at `config/environments/{development,test,production}.toml` and layered under process env vars (env wins); secrets (`AZURE_STORAGE_KEY`, `API_KEYS`, `LLM_*`) stay env/`secretRef`-only. `settings.py` and `storage_config.py` consumers read the schema; the old inline env-read paths were removed. Behaviour-preserving — the `docker --env-file` quote-stripping quirk is consolidated into one normalizing env source, and characterization tests pin per-setting equivalence.
+
 ## [0.8.6] - 2026-06-30
 
 ### Fixed

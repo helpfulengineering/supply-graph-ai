@@ -40,6 +40,15 @@ cp env.template .env
 docker compose up --build ohm-api
 ```
 
+> **Configuration layering.** Non-secret settings for the storage target,
+> `OKW_SOURCE`, and CORS are keyed by `ENVIRONMENT` in
+> `config/environments/{development,test,production}.toml` (checked in). At
+> startup these are layered *under* your process environment / `.env`, so an env
+> var always overrides the file. Secrets (`AZURE_STORAGE_KEY`, `API_KEYS`,
+> `LLM_*`) are never in those files — keep them in `.env` locally or an Azure
+> `secretRef` in production. `ENVIRONMENT` (default `development`) selects which
+> file loads.
+
 ### Verify Installation
 
 ```bash

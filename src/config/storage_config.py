@@ -62,9 +62,12 @@ def _env(key: str, default: Optional[str] = None) -> Optional[str]:
 
 
 def get_azure_credentials() -> Dict[str, str]:
-    """Get Azure Blob Storage credentials from environment variables"""
-    account_name = _env("AZURE_STORAGE_ACCOUNT")
-    account_key = _env("AZURE_STORAGE_KEY")
+    """Get Azure Blob Storage credentials from the typed settings schema."""
+    from src.config.schema import get_settings
+
+    settings = get_settings()
+    account_name = settings.azure_storage_account
+    account_key = settings.azure_storage_key
 
     if not account_name or not account_key:
         raise MissingCredentialsError(
@@ -157,7 +160,9 @@ def create_storage_config(
     if provider == "azure_blob":
         credentials = get_azure_credentials()
         if not bucket_name:
-            bucket_name = _env("AZURE_STORAGE_CONTAINER")
+            from src.config.schema import get_settings
+
+            bucket_name = get_settings().azure_storage_container
     elif provider == "aws_s3":
         credentials = get_aws_credentials()
         if not bucket_name:
@@ -202,7 +207,9 @@ def get_default_storage_config() -> StorageConfig:
     Raises:
         StorageConfigError: If configuration is invalid or credentials are missing
     """
-    provider = _env("STORAGE_PROVIDER") or "local"
+    from src.config.schema import get_settings
+
+    provider = get_settings().storage_provider
     return create_storage_config(provider)
 
 
@@ -237,13 +244,9 @@ def get_okw_source() -> str:
         ``"storage"`` or ``"mom"``. Unknown values fall back to
         ``"storage"`` with a warning log.
     """
-    source = _env("OKW_SOURCE") or "storage"
-    if source not in ("storage", "mom"):
-        logger.warning(
-            "Unknown OKW_SOURCE value %r — falling back to 'storage'", source
-        )
-        return "storage"
-    return source
+    from src.config.schema import get_settings
+
+    return get_settings().okw_source_resolved
 
 
 def get_mom_config() -> Dict[str, str]:
