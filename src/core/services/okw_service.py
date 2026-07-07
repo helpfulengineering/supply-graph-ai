@@ -1,4 +1,6 @@
 import json
+import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID
 
@@ -46,11 +48,19 @@ def _canonical_processes(raw: List[str]) -> List[str]:
     return processes
 
 
-def _local_facility_to_space(f: ManufacturingFacility) -> Optional[Dict[str, Any]]:
-    """Project a local facility to the unified network-space shape, or ``None``
-    when it has no plottable coordinates."""
+def _local_facility_to_space(
+    f: ManufacturingFacility, *, require_coords: bool = True
+) -> Optional[Dict[str, Any]]:
+    """Project a local facility to the unified network-space shape.
+
+    Returns ``None`` when the facility has no plottable coordinates *and*
+    ``require_coords`` is True (the browse/map surface needs a point). For
+    matching, callers pass ``require_coords=False`` so a capability-valid
+    facility is not dropped from the candidate pool for lacking geography;
+    ``lat``/``lon`` are then ``None``.
+    """
     coords = f.location.coordinates() if f.location else None
-    if coords is None:
+    if coords is None and require_coords:
         return None
     loc = f.location
     addr = getattr(loc, "address", None)
@@ -58,8 +68,8 @@ def _local_facility_to_space(f: ManufacturingFacility) -> Optional[Dict[str, Any
     return {
         "id": str(f.id),
         "name": f.name,
-        "lat": coords.latitude,
-        "lon": coords.longitude,
+        "lat": coords.latitude if coords else None,
+        "lon": coords.longitude if coords else None,
         "city": getattr(addr, "city", None) or getattr(loc, "city", None),
         "region": getattr(addr, "region", None) or getattr(loc, "region", None),
         "country": getattr(addr, "country", None) or getattr(loc, "country", None),
@@ -160,6 +170,92 @@ def filter_network_spaces(
     # Definite matches first, ambiguous last (stable within each group).
     kept.sort(key=lambda s: s.get("ambiguous", False))
     return kept
+
+
+# --- Local OKW JSON dir (dev convenience; storage-only, never unioned) ---------
+
+
+def resolve_matching_local_okw_json_dir() -> Optional[str]:
+    """Resolve the optional local OKW directory from env or imported settings.
+
+    Expands ``~`` and resolves relative paths against the process working
+    directory. Logs a warning when set but not pointing at a directory so
+    misconfiguration is visible. Returns ``None`` when unset/invalid.
+    """
+    from src.config import settings as _settings
+
+    val = getattr(_settings, "MATCHING_LOCAL_OKW_JSON_DIR", None)
+    raw = str(val).strip() if val else ""
+    if not raw:
+        raw = (os.getenv("MATCHING_LOCAL_OKW_JSON_DIR") or "").strip()
+    if not raw:
+        return None
+
+    path = Path(raw).expanduser()
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    try:
+        resolved = path.resolve()
+    except OSError as e:
+        logger.warning(
+            "MATCHING_LOCAL_OKW_JSON_DIR could not be resolved; using remote OKW listing",
+            extra={"raw": raw, "error": str(e)},
+        )
+        return None
+
+    if not resolved.is_dir():
+        logger.warning(
+            "MATCHING_LOCAL_OKW_JSON_DIR is not a directory; using remote OKW listing",
+            extra={"path": str(resolved), "raw": raw},
+        )
+        return None
+    logger.info(
+        "MATCHING_LOCAL_OKW_JSON_DIR resolved successfully",
+        extra={"directory": str(resolved), "raw_input": raw},
+    )
+    return str(resolved)
+
+
+def load_facilities_from_local_okw_json_dir(
+    directory: str,
+    domain: str,
+    request_id: str = "",
+) -> List[Any]:
+    """Load OKW-shaped JSON files from disk (local/dev when remote listing hangs)."""
+    root = Path(directory)
+    if not root.is_dir():
+        return []
+
+    facilities_by_id: Dict[UUID, Any] = {}
+    for path in sorted(root.rglob("*.json")):
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except Exception as e:
+            logger.warning(
+                "Skipping unreadable OKW JSON file",
+                extra={"request_id": request_id, "path": str(path), "error": str(e)},
+            )
+            continue
+        try:
+            if domain == "manufacturing":
+                if KitchenCapability.is_cooking_capability(raw):
+                    continue
+                fixed = UUIDValidator.validate_and_fix_okw_data(raw)
+                facility = ManufacturingFacility.from_dict(fixed)
+                facilities_by_id[facility.id] = facility
+            elif domain == "cooking":
+                if not KitchenCapability.is_cooking_capability(raw):
+                    continue
+                facility = KitchenCapability.from_dict(raw)
+                facilities_by_id[facility.id] = facility
+            else:
+                return []
+        except Exception as e:
+            logger.warning(
+                "Skipping invalid OKW JSON file for local dir load",
+                extra={"request_id": request_id, "path": str(path), "error": str(e)},
+            )
+    return list(facilities_by_id.values())
 
 
 class OKWService(BaseService["OKWService"]):
@@ -514,11 +610,15 @@ class OKWService(BaseService["OKWService"]):
         }
 
     async def _load_network_candidates(
-        self, *, include_mom: bool, force_refresh: bool
+        self, *, include_mom: bool, force_refresh: bool, require_coords: bool = True
     ) -> Tuple[List[Dict[str, Any]], int, bool]:
         """Load local ∪ MoM as unified space dicts, each carrying its ``_facility``
         (the matchable object) under a private key. Shared by the browse surface
         and the network-match candidate pool so filtering stays identical.
+
+        ``require_coords`` gates whether local facilities without plottable
+        coordinates are dropped — True for the map/browse surface, False for
+        matching (where geography is not required to be a valid candidate).
         """
         candidates: List[Dict[str, Any]] = []
         dropped_no_coords = 0
@@ -529,7 +629,7 @@ class OKWService(BaseService["OKWService"]):
             if not facilities:
                 break
             for f in facilities:
-                space = _local_facility_to_space(f)
+                space = _local_facility_to_space(f, require_coords=require_coords)
                 if space is None:
                     dropped_no_coords += 1
                     continue
@@ -556,6 +656,7 @@ class OKWService(BaseService["OKWService"]):
         *,
         include_mom: bool = True,
         force_refresh: bool = False,
+        require_coords: bool = True,
         country: Optional[str] = None,
         city: Optional[str] = None,
         process: Optional[str] = None,
@@ -567,9 +668,14 @@ class OKWService(BaseService["OKWService"]):
         """Return the filtered network as matchable facilities (local full objects
         ∪ MoM process stubs), for matching a design against the same filtered set
         the browse surface shows. Uses the identical filter as ``get_network_spaces``.
+
+        ``require_coords`` defaults True (browse parity); the match resolver passes
+        False so coordinate-less facilities remain matchable candidates.
         """
         candidates, _, _ = await self._load_network_candidates(
-            include_mom=include_mom, force_refresh=force_refresh
+            include_mom=include_mom,
+            force_refresh=force_refresh,
+            require_coords=require_coords,
         )
         filtered = filter_network_spaces(
             candidates,
@@ -952,3 +1058,68 @@ class OKWService(BaseService["OKWService"]):
         except Exception as e:
             logger.error(f"Failed to register domains for fallback mode: {e}")
             # Don't raise the exception - let the service continue without domains
+
+
+async def resolve_match_facilities(
+    *,
+    effective_source: str,
+    domain: str = "manufacturing",
+    request_id: str = "",
+    force_refresh: bool = False,
+    country: Optional[str] = None,
+    city: Optional[str] = None,
+    process: Optional[str] = None,
+    status: Optional[str] = None,
+    region: Optional[str] = None,
+    access_type: Optional[str] = None,
+) -> List[ManufacturingFacility]:
+    """Resolve the manufacturing match candidate pool for an effective source.
+
+    The one facility-pool resolver shared by the API match route and the CLI
+    (structural parity, not copy-paste). ``effective_source`` is the already
+    env+request-reconciled value (see
+    :func:`src.config.storage_config.resolve_effective_source`):
+
+    - ``"mom"``    → Maps of Making only. An explicit request for MoM data, so it
+      wins over ``MATCHING_LOCAL_OKW_JSON_DIR`` (a local-storage dev convenience),
+      keeping API and CLI identical.
+    - ``"storage"`` → blob storage only (``include_mom=False``); honours
+      ``MATCHING_LOCAL_OKW_JSON_DIR`` when set.
+    - ``"union"``  → storage ∪ MoM; ``MATCHING_LOCAL_OKW_JSON_DIR`` forces
+      storage-only (a local dir is never unioned with MoM).
+
+    The service instance is only loaded for the branches that read from storage,
+    so the local-dir path touches no remote storage. Facilities are matched
+    regardless of geography (``require_coords=False``).
+    """
+    if effective_source == "mom":
+        svc = await OKWService.get_instance()
+        return await svc.get_network_match_facilities(
+            include_mom=True,
+            source="mom",
+            force_refresh=force_refresh,
+            require_coords=False,
+            country=country,
+            city=city,
+            process=process,
+            status=status,
+            region=region,
+            access_type=access_type,
+        )
+
+    local_dir = resolve_matching_local_okw_json_dir()
+    if local_dir:
+        return load_facilities_from_local_okw_json_dir(local_dir, domain, request_id)
+
+    svc = await OKWService.get_instance()
+    return await svc.get_network_match_facilities(
+        include_mom=(effective_source == "union"),
+        force_refresh=force_refresh,
+        require_coords=False,
+        country=country,
+        city=city,
+        process=process,
+        status=status,
+        region=region,
+        access_type=access_type,
+    )

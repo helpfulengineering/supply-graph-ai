@@ -162,7 +162,7 @@ class Settings(BaseSettings):
     )
     okw_source: Optional[str] = Field(
         default=None,  # unset resolves via okw_source_resolved
-        description="OKW facility source: storage | mom. Unset resolves to storage (Slice 1).",
+        description="OKW facility source: storage | mom. Unset → union (storage ∪ MoM).",
     )
     cors_origins: Optional[str] = Field(
         default=None,  # raw; parse via cors_allow_origins
@@ -176,18 +176,22 @@ class Settings(BaseSettings):
 
     @property
     def okw_source_resolved(self) -> str:
-        """The effective OKW facility source: ``"storage"`` or ``"mom"``.
+        """The effective OKW facility source: ``"union"``, ``"storage"``, or ``"mom"``.
 
-        Unset falls back to ``"storage"``; unknown values fall back to
-        ``"storage"`` with a warning (behaviour-preserving for Slice 1).
+        Unset (or empty) resolves to ``"union"`` (storage ∪ MoM) — matches are not
+        silently empty when the operator has not chosen a source. Explicit
+        ``"storage"`` / ``"mom"`` restrict the universe. ``"union"`` is also accepted
+        explicitly. Unknown values fall back to ``"union"`` with a warning.
         """
-        source = self.okw_source or "storage"
-        if source not in ("storage", "mom"):
+        raw = (self.okw_source or "").strip().lower()
+        if not raw:
+            return "union"
+        if raw not in ("union", "storage", "mom"):
             logger.warning(
-                "Unknown OKW_SOURCE value %r — falling back to 'storage'", source
+                "Unknown OKW_SOURCE value %r — falling back to 'union'", self.okw_source
             )
-            return "storage"
-        return source
+            return "union"
+        return raw
 
     @property
     def cors_allow_origins(self) -> List[str]:

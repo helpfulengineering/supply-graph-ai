@@ -36,7 +36,12 @@ from ...registry.domain_registry import DomainRegistry
 from ...services.domain_service import DomainDetector
 from ...services.matching_service import MatchingService
 from ...services.okh_service import OKHService
-from ...services.okw_service import OKWService
+from ...services.okw_service import (
+    OKWService,
+    load_facilities_from_local_okw_json_dir,
+    resolve_match_facilities,
+    resolve_matching_local_okw_json_dir,
+)
 from ...services.storage_service import StorageService
 from ...matching.match_modes import MATCH_MODE_NESTED, MATCH_MODE_SINGLE_LEVEL
 from ...taxonomy import taxonomy as _process_taxonomy
@@ -2181,95 +2186,6 @@ async def _extract_recipe(
         )
 
 
-def _resolve_matching_local_okw_json_dir() -> Optional[str]:
-    """Resolve optional local OKW directory from runtime env or imported settings.
-
-    Expands ``~`` and resolves relative paths against the process working directory.
-    Logs a warning when the variable is set but does not point at a directory so
-    misconfiguration is visible in API logs.
-    """
-    from src.config import settings as _settings
-
-    val = getattr(_settings, "MATCHING_LOCAL_OKW_JSON_DIR", None)
-    raw = str(val).strip() if val else ""
-    if not raw:
-        raw = (os.getenv("MATCHING_LOCAL_OKW_JSON_DIR") or "").strip()
-
-    if not raw:
-        return None
-
-    path = Path(raw).expanduser()
-    if not path.is_absolute():
-        path = Path.cwd() / path
-    try:
-        resolved = path.resolve()
-    except OSError as e:
-        logger.warning(
-            "MATCHING_LOCAL_OKW_JSON_DIR could not be resolved; using remote OKW listing",
-            extra={"raw": raw, "error": str(e)},
-        )
-        return None
-
-    if not resolved.is_dir():
-        logger.warning(
-            "MATCHING_LOCAL_OKW_JSON_DIR is not a directory; using remote OKW listing",
-            extra={"path": str(resolved), "raw": raw},
-        )
-        return None
-    logger.info(
-        "MATCHING_LOCAL_OKW_JSON_DIR resolved successfully",
-        extra={"directory": str(resolved), "raw_input": raw},
-    )
-    return str(resolved)
-
-
-def _load_facilities_from_local_okw_json_dir(
-    directory: str,
-    domain: str,
-    request_id: str,
-) -> List[Any]:
-    """Load OKW-shaped JSON files from disk for local/dev when remote listing would hang."""
-    from src.core.validation.uuid_validator import UUIDValidator
-
-    root = Path(directory)
-    if not root.is_dir():
-        return []
-
-    facilities_by_id: Dict[UUID, Any] = {}
-
-    for path in sorted(root.rglob("*.json")):
-        try:
-            raw = json.loads(path.read_text(encoding="utf-8"))
-        except Exception as e:
-            logger.warning(
-                "Skipping unreadable OKW JSON file",
-                extra={"request_id": request_id, "path": str(path), "error": str(e)},
-            )
-            continue
-
-        try:
-            if domain == "manufacturing":
-                if KitchenCapability.is_cooking_capability(raw):
-                    continue
-                fixed = UUIDValidator.validate_and_fix_okw_data(raw)
-                facility = ManufacturingFacility.from_dict(fixed)
-                facilities_by_id[facility.id] = facility
-            elif domain == "cooking":
-                if not KitchenCapability.is_cooking_capability(raw):
-                    continue
-                facility = KitchenCapability.from_dict(raw)
-                facilities_by_id[facility.id] = facility
-            else:
-                return []
-        except Exception as e:
-            logger.warning(
-                "Skipping invalid OKW JSON file for local dir load",
-                extra={"request_id": request_id, "path": str(path), "error": str(e)},
-            )
-
-    return list(facilities_by_id.values())
-
-
 def _extract_facility_process_names_for_prefilter(facility: Any) -> set[str]:
     """Best-effort process extraction for cheap candidate prefiltering."""
     if hasattr(facility, "to_dict"):
@@ -2455,107 +2371,28 @@ async def _get_filtered_facilities(
                     },
                 )
             else:
+                # No inline facilities: resolve the pool from the effective OKW
+                # source (env universe; a classic MatchRequest carries no per-request
+                # source override). union → storage ∪ MoM, storage → blob only, mom →
+                # MoM only; MATCHING_LOCAL_OKW_JSON_DIR handled inside the resolver.
+                # One shared resolver keeps this identical to the CLI.
+                from src.config.storage_config import resolve_effective_source
+
+                effective_source = resolve_effective_source()
+                facilities = await resolve_match_facilities(
+                    effective_source=effective_source,
+                    domain=domain,
+                    request_id=request_id,
+                )
                 logger.info(
-                    "Facility candidates: no inline okw_facilities; checking OKW_SOURCE then MATCHING_LOCAL_OKW_JSON_DIR then remote storage",
+                    "Facility candidates resolved via shared resolver",
                     extra={
                         "request_id": request_id,
                         "domain": domain,
-                        "cwd": str(Path.cwd()),
+                        "effective_source": effective_source,
+                        "facility_count": len(facilities),
                     },
                 )
-                from src.config.storage_config import get_mom_config, get_okw_source
-
-                # OKW_SOURCE=mom is an explicit request for MoM SPARQL data and must
-                # win over MATCHING_LOCAL_OKW_JSON_DIR (a local-storage dev convenience)
-                # so the CLI (--okw-source mom) and API behave identically regardless
-                # of that env var. See docs/runbooks/mom-integration-e2e-validation.md.
-                if get_okw_source() == "mom" and okh_manifest is not None:
-                    from src.core.services.mom_bridge import (
-                        fetch_mom_facilities_for_manifest,
-                    )
-
-                    mom_cfg = get_mom_config()
-                    logger.info(
-                        "Loading OKW facilities from MoM SPARQL endpoint",
-                        extra={
-                            "request_id": request_id,
-                            "domain": domain,
-                            "endpoint": mom_cfg["endpoint"],
-                        },
-                    )
-                    facilities = await fetch_mom_facilities_for_manifest(
-                        okh_manifest, endpoint=mom_cfg["endpoint"]
-                    )
-                    logger.info(
-                        "Facility candidates loaded from MoM SPARQL",
-                        extra={
-                            "request_id": request_id,
-                            "domain": domain,
-                            "endpoint": mom_cfg["endpoint"],
-                            "facility_count": len(facilities),
-                        },
-                    )
-                else:
-                    local_dir = _resolve_matching_local_okw_json_dir()
-                    if local_dir:
-                        facilities = _load_facilities_from_local_okw_json_dir(
-                            local_dir, domain, request_id
-                        )
-                        logger.info(
-                            "Using MATCHING_LOCAL_OKW_JSON_DIR (remote OKW listing skipped)",
-                            extra={
-                                "request_id": request_id,
-                                "domain": domain,
-                                "directory": local_dir,
-                                "facility_count": len(facilities),
-                            },
-                        )
-                    else:
-                        # Get all facilities using OKWService with proper pagination.
-                        # list() skips kitchen files — returns ManufacturingFacility only.
-                        from src.config.storage_config import get_default_storage_config
-
-                        try:
-                            cfg = get_default_storage_config()
-                            logger.info(
-                                "Loading OKW facilities from blob storage",
-                                extra={
-                                    "request_id": request_id,
-                                    "domain": domain,
-                                    "provider": cfg.provider,
-                                    "bucket": cfg.bucket_name,
-                                },
-                            )
-                        except Exception:
-                            pass
-
-                        okw_service = await OKWService.get_instance()
-
-                        all_facilities = []
-                        page = 1
-                        page_size = 1000
-
-                        while True:
-                            facilities_batch, _ = await okw_service.list(
-                                page=page, page_size=page_size
-                            )
-                            all_facilities.extend(facilities_batch)
-
-                            if len(facilities_batch) < page_size:
-                                break
-
-                            page += 1
-
-                        facilities = all_facilities
-                        logger.info(
-                            "Facility candidates loaded from remote OKW storage listing "
-                            "(MATCHING_LOCAL_OKW_JSON_DIR was unset or invalid)",
-                            extra={
-                                "request_id": request_id,
-                                "domain": domain,
-                                "facility_count": len(facilities),
-                            },
-                        )
 
         elif domain == "cooking":
             expected_type = KitchenCapability
@@ -2603,9 +2440,9 @@ async def _get_filtered_facilities(
                         "cwd": str(Path.cwd()),
                     },
                 )
-                local_dir = _resolve_matching_local_okw_json_dir()
+                local_dir = resolve_matching_local_okw_json_dir()
                 if local_dir:
-                    facilities = _load_facilities_from_local_okw_json_dir(
+                    facilities = load_facilities_from_local_okw_json_dir(
                         local_dir, domain, request_id
                     )
                     logger.info(

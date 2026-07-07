@@ -227,26 +227,60 @@ def get_okw_source() -> str:
 
     Values
     ------
-    storage (default)
+    union (default — when ``OKW_SOURCE`` is unset)
+        Match against **storage ∪ MoM**: the configured blob storage backend
+        combined with the Maps of Making network. Chosen as the default so a
+        match is not silently empty when no source has been selected.
+
+    storage
         Load facilities from the configured blob storage backend
-        (``STORAGE_PROVIDER``). Supports local, Azure Blob, AWS S3, GCS.
+        (``STORAGE_PROVIDER``) only. Supports local, Azure Blob, AWS S3, GCS.
 
     mom
-        Query the Maps of Making public SPARQL endpoint. No credentials
-        required. Endpoint configured by ``MOM_SPARQL_ENDPOINT``
-        (see :func:`get_mom_config`). OHM translates each OKH process
-        requirement to a Wikidata IRI via the taxonomy and issues a
-        SPARQL query against MoM's Oxigraph store.
+        Query the Maps of Making network only. No credentials required.
+        Endpoint configured by ``MOM_SPARQL_ENDPOINT`` (see
+        :func:`get_mom_config`).
 
     Returns
     -------
     str
-        ``"storage"`` or ``"mom"``. Unknown values fall back to
-        ``"storage"`` with a warning log.
+        ``"union"``, ``"storage"``, or ``"mom"``. Unknown values fall back to
+        ``"union"`` with a warning log.
     """
     from src.config.schema import get_settings
 
     return get_settings().okw_source_resolved
+
+
+def resolve_effective_source(request_source: Optional[str] = None) -> str:
+    """Combine the env-configured OKW source with an optional per-request override.
+
+    Precedence: **the environment sets the universe; the request may narrow
+    within it but never broaden it.**
+
+    - env ``union`` → a request of ``"storage"``/``"mom"`` narrows the pool;
+      otherwise the effective source stays ``union``.
+    - env ``storage`` / ``mom`` are absolute — a request cannot broaden back to
+      ``union`` or cross to the other source; the env value wins.
+
+    Parameters
+    ----------
+    request_source
+        Per-request override in OKW-source vocabulary (``"storage"``, ``"mom"``,
+        ``"union"``, or ``None``). Unknown/empty values are treated as ``None``.
+
+    Returns
+    -------
+    str
+        The effective source: ``"union"``, ``"storage"``, or ``"mom"``.
+    """
+    env_source = get_okw_source()
+    req = (request_source or "").strip().lower() or None
+    if env_source != "union":
+        return env_source
+    if req in ("storage", "mom"):
+        return req
+    return "union"
 
 
 def get_mom_config() -> Dict[str, str]:

@@ -1,9 +1,13 @@
-"""Regression: match API must route to MoM SPARQL when OKW_SOURCE=mom (no inline OKWs,
-no MATCHING_LOCAL_OKW_JSON_DIR) and must not touch blob storage in that case."""
+"""OKW_SOURCE=mom routing under the unified resolver (#240).
+
+Since the union-default change, all sources route through
+``OKWService.get_network_match_facilities`` (the network surface), not the
+per-manifest ``fetch_mom_facilities_for_manifest`` path. ``OKW_SOURCE=mom`` still
+means "MoM only" and still wins over ``MATCHING_LOCAL_OKW_JSON_DIR``.
+"""
 
 from __future__ import annotations
 
-import os
 import sys
 from pathlib import Path
 from unittest.mock import AsyncMock
@@ -15,160 +19,84 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 
-@pytest.mark.asyncio
-async def test_get_filtered_facilities_uses_mom_when_okw_source_mom(monkeypatch):
-    from src.core.api.models.match.request import MatchRequest
-    from src.core.api.routes import match as match_mod
-    from src.core.models.okh import License, OKHManifest
-    from src.core.models.okw import FacilityStatus, Location, ManufacturingFacility
+def _mock_network(monkeypatch, return_value):
+    """Patch OKWService.get_instance so get_network_match_facilities is captured."""
     from src.core.services import okw_service as okw_mod
 
-    monkeypatch.setenv("OKW_SOURCE", "mom")
-    monkeypatch.setattr(match_mod, "_resolve_matching_local_okw_json_dir", lambda: None)
+    svc = AsyncMock()
+    svc.get_network_match_facilities = AsyncMock(return_value=return_value)
+    monkeypatch.setattr(okw_mod.OKWService, "get_instance", AsyncMock(return_value=svc))
+    return svc
 
-    monkeypatch.setattr(
-        okw_mod.OKWService,
-        "get_instance",
-        AsyncMock(
-            side_effect=AssertionError("OKWService must not load when OKW_SOURCE=mom")
-        ),
-    )
 
-    mom_facility = ManufacturingFacility(
+@pytest.mark.asyncio
+async def test_mom_routes_through_network_path_only(monkeypatch):
+    from src.core.services.okw_service import resolve_match_facilities
+    from src.core.models.okw import FacilityStatus, Location, ManufacturingFacility
+
+    mom_fac = ManufacturingFacility(
         name="Fab Lab Berlin",
         location=Location(gps_coordinates="52.52, 13.4"),
         facility_status=FacilityStatus.ACTIVE,
         manufacturing_processes=["laser_cutting"],
     )
+    svc = _mock_network(monkeypatch, [mom_fac])
 
-    mock_fetch = AsyncMock(return_value=[mom_facility])
+    # The requirement-aware per-manifest MoM fetch must NOT be used any more.
+    fetch = AsyncMock()
     monkeypatch.setattr(
-        "src.core.services.mom_bridge.fetch_mom_facilities_for_manifest", mock_fetch
+        "src.core.services.mom_bridge.fetch_mom_facilities_for_manifest", fetch
     )
 
-    manifest = OKHManifest(
-        title="Test Manifest",
-        version="1.0.0",
-        license=License(hardware="CERN-OHL-S-2.0"),
-        licensor="Test Licensor",
-        documentation_language="en",
-        function="Test function",
-        manufacturing_processes=["laser_cutting"],
-    )
-    req = MatchRequest.model_construct(okw_facilities=None)
+    result = await resolve_match_facilities(effective_source="mom")
 
-    facilities = await match_mod._get_filtered_facilities(
-        storage_service=None,
-        request=req,
-        request_id="unit-test",
-        domain="manufacturing",
-        okh_manifest=manifest,
-    )
-
-    assert facilities == [mom_facility]
-    mock_fetch.assert_awaited_once()
-    assert mock_fetch.call_args.args[0] is manifest
+    assert result == [mom_fac]
+    fetch.assert_not_awaited()
+    svc.get_network_match_facilities.assert_awaited_once()
+    kwargs = svc.get_network_match_facilities.await_args.kwargs
+    assert kwargs["include_mom"] is True
+    assert kwargs["source"] == "mom"
+    assert kwargs["require_coords"] is False
 
 
 @pytest.mark.asyncio
-async def test_get_filtered_facilities_mom_wins_over_local_json_dir(
-    tmp_path, monkeypatch
-):
-    """Regression: OKW_SOURCE=mom must win over MATCHING_LOCAL_OKW_JSON_DIR.
-
-    Previously the API checked MATCHING_LOCAL_OKW_JSON_DIR before OKW_SOURCE,
-    so a dev-convenience env var silently overrode an explicit mom request —
-    a divergence from the CLI, where --okw-source mom always reaches MoM.
-    See docs/runbooks/mom-integration-e2e-validation.md (Troubleshooting).
-    """
+async def test_mom_wins_over_local_json_dir(tmp_path, monkeypatch):
+    """OKW_SOURCE=mom is explicit; it must beat MATCHING_LOCAL_OKW_JSON_DIR."""
     import json
 
-    from src.core.api.models.match.request import MatchRequest
-    from src.core.api.routes import match as match_mod
-    from src.core.models.okh import License, OKHManifest
-    from src.core.models.okw import FacilityStatus, Location, ManufacturingFacility
     from src.core.services import okw_service as okw_mod
+    from src.core.services.okw_service import resolve_match_facilities
+    from src.core.models.okw import FacilityStatus, Location, ManufacturingFacility
 
-    monkeypatch.setenv("OKW_SOURCE", "mom")
-
-    local_facility = {
-        "name": "Local JSON Facility",
-        "location": {"gps_coordinates": "0.0, 0.0"},
-        "facility_status": "Active",
-        "manufacturing_processes": ["laser_cutting"],
-    }
-    (tmp_path / "facility.json").write_text(json.dumps(local_facility))
+    (tmp_path / "facility.json").write_text(
+        json.dumps(
+            {
+                "name": "Local JSON Facility",
+                "location": {"gps_coordinates": "0.0, 0.0"},
+                "facility_status": "Active",
+                "manufacturing_processes": ["laser_cutting"],
+            }
+        )
+    )
     monkeypatch.setattr(
         "src.config.settings.MATCHING_LOCAL_OKW_JSON_DIR", str(tmp_path)
     )
 
+    # If the local-dir loader were reached, this would fire the assertion.
     monkeypatch.setattr(
-        okw_mod.OKWService,
-        "get_instance",
-        AsyncMock(
-            side_effect=AssertionError("OKWService must not load when OKW_SOURCE=mom")
+        okw_mod,
+        "load_facilities_from_local_okw_json_dir",
+        lambda *a, **k: (_ for _ in ()).throw(
+            AssertionError("local dir must not be read when OKW_SOURCE=mom")
         ),
     )
 
-    mom_facility = ManufacturingFacility(
+    mom_fac = ManufacturingFacility(
         name="Fab Lab Berlin",
         location=Location(gps_coordinates="52.52, 13.4"),
         facility_status=FacilityStatus.ACTIVE,
-        manufacturing_processes=["laser_cutting"],
     )
-    mock_fetch = AsyncMock(return_value=[mom_facility])
-    monkeypatch.setattr(
-        "src.core.services.mom_bridge.fetch_mom_facilities_for_manifest", mock_fetch
-    )
+    _mock_network(monkeypatch, [mom_fac])
 
-    manifest = OKHManifest(
-        title="Test Manifest",
-        version="1.0.0",
-        license=License(hardware="CERN-OHL-S-2.0"),
-        licensor="Test Licensor",
-        documentation_language="en",
-        function="Test function",
-        manufacturing_processes=["laser_cutting"],
-    )
-    req = MatchRequest.model_construct(okw_facilities=None)
-
-    facilities = await match_mod._get_filtered_facilities(
-        storage_service=None,
-        request=req,
-        request_id="unit-test",
-        domain="manufacturing",
-        okh_manifest=manifest,
-    )
-
-    assert facilities == [mom_facility]
-    mock_fetch.assert_awaited_once()
-
-
-@pytest.mark.asyncio
-async def test_get_filtered_facilities_ignores_mom_without_okh_manifest(monkeypatch):
-    """get_okw_source()=='mom' is only honored when an OKH manifest is available
-    to derive required processes from; otherwise falls through to blob storage."""
-    from src.core.api.models.match.request import MatchRequest
-    from src.core.api.routes import match as match_mod
-    from src.core.services import okw_service as okw_mod
-
-    monkeypatch.setenv("OKW_SOURCE", "mom")
-    monkeypatch.setattr(match_mod, "_resolve_matching_local_okw_json_dir", lambda: None)
-
-    mock_get_instance = AsyncMock()
-    mock_okw_service = AsyncMock()
-    mock_okw_service.list.return_value = ([], 0)
-    mock_get_instance.return_value = mock_okw_service
-    monkeypatch.setattr(okw_mod.OKWService, "get_instance", mock_get_instance)
-
-    req = MatchRequest.model_construct(okw_facilities=None)
-
-    await match_mod._get_filtered_facilities(
-        storage_service=None,
-        request=req,
-        request_id="unit-test",
-        domain="manufacturing",
-        okh_manifest=None,
-    )
-
-    mock_get_instance.assert_awaited()
+    result = await resolve_match_facilities(effective_source="mom")
+    assert result == [mom_fac]
