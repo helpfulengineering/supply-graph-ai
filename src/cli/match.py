@@ -71,12 +71,11 @@ def match_group() -> None:
     default=None,
     envvar="OKW_SOURCE",
     help=(
-        "Where to load OKW facility candidates from. "
-        "'storage' (default) reads from the configured blob storage backend "
-        "(STORAGE_PROVIDER: local, azure_blob, aws_s3, gcs). "
-        "'mom' queries the Maps of Making public SPARQL endpoint, resolving each "
-        "required process to a Wikidata IRI — no credentials required. "
-        "Override the MoM endpoint with MOM_SPARQL_ENDPOINT."
+        "Where to load OKW facility candidates from. Omitted → union (storage ∪ "
+        "Maps of Making). 'storage' reads only from the configured blob storage "
+        "backend (STORAGE_PROVIDER: local, azure_blob, aws_s3, gcs). 'mom' queries "
+        "only the Maps of Making network — no credentials required. Override the "
+        "MoM endpoint with MOM_SPARQL_ENDPOINT."
     ),
 )
 @click.option(
@@ -497,17 +496,20 @@ async def requirements(
 
                 raise httpx.ConnectError("Use fallback for local facility file")
 
-            # MoM as OKW source requires fallback (API route loads from blob storage only)
-            from src.config.storage_config import get_okw_source
-
-            if (okw_source or get_okw_source()) == "mom":
+            # An explicit --okw-source (or OKW_SOURCE env) is a client-side override:
+            # the HTTP API resolves the source from the *server's* environment, so to
+            # honour the override we take the local fallback path (which applies the
+            # same shared resolver). With no override, the API's union default applies.
+            if okw_source:
                 cli_ctx.log(
-                    "OKW source is MoM — SPARQL discovery not supported by HTTP API, using fallback",
+                    f"OKW source override ({okw_source}) — resolving locally via fallback",
                     "info",
                 )
                 import httpx
 
-                raise httpx.ConnectError("Use fallback for MoM OKW source")
+                raise httpx.ConnectError(
+                    "Use fallback for explicit OKW source override"
+                )
 
             # If nested matching with local file, use fallback (BOM file resolution needs manifest path)
             if max_depth > 0 and not is_url:
@@ -567,59 +569,30 @@ async def requirements(
                         "info",
                     )
                 else:
-                    from src.config.storage_config import get_mom_config, get_okw_source
+                    from src.config.storage_config import resolve_effective_source
 
-                    effective_source = okw_source or get_okw_source()
+                    from ..core.services.okw_service import resolve_match_facilities
 
-                    if effective_source == "mom":
-                        from ..core.services.mom_bridge import (
-                            fetch_mom_facilities_for_manifest,
-                        )
-
-                        mom_cfg = get_mom_config()
-                        cli_ctx.log(
-                            f"Loading facilities from MoM SPARQL endpoint: {mom_cfg['endpoint']}",
-                            "info",
-                        )
-                        facilities = await fetch_mom_facilities_for_manifest(
-                            manifest, endpoint=mom_cfg["endpoint"]
-                        )
-                        cli_ctx.log(
-                            f"Loaded {len(facilities)} facility(ies) from MoM",
-                            "info",
-                        )
-                    else:
-                        from ..core.services.okw_service import OKWService
-
-                        okw_service = await OKWService.get_instance()
-                        try:
-                            from src.config.storage_config import (
-                                get_default_storage_config,
-                            )
-
-                            cfg = get_default_storage_config()
-                            cli_ctx.log(
-                                f"Loading facilities from storage: provider={cfg.provider}, container/bucket={cfg.bucket_name}",
-                                "info",
-                            )
-                        except Exception:
-                            pass
-                        filter_params = {}
-                        if filters.get("access_type"):
-                            filter_params["access_type"] = filters.get("access_type")
-                        if filters.get("facility_status"):
-                            filter_params["facility_status"] = filters.get(
-                                "facility_status"
-                            )
-                        if filters.get("location"):
-                            filter_params["location"] = filters.get("location")
-                        facilities, _ = await okw_service.list(
-                            filter_params=filter_params if filter_params else None
-                        )
-                        cli_ctx.log(
-                            f"Loaded {len(facilities)} facility(ies) from storage",
-                            "info",
-                        )
+                    # Same shared resolver the API uses: env sets the universe
+                    # (union → storage ∪ MoM, storage → blob only, mom → MoM only),
+                    # --okw-source narrows within it but cannot broaden it.
+                    effective_source = resolve_effective_source(okw_source)
+                    cli_ctx.log(
+                        f"Resolving OKW candidates (effective source: {effective_source})",
+                        "info",
+                    )
+                    facilities = await resolve_match_facilities(
+                        effective_source=effective_source,
+                        domain="manufacturing",
+                        request_id="cli",
+                    )
+                    # CLI-only pre-match narrowing (the HTTP API has no equivalent);
+                    # applied client-side so the resolver stays source-selection only.
+                    facilities = _apply_cli_facility_filters(facilities, filters)
+                    cli_ctx.log(
+                        f"Loaded {len(facilities)} facility(ies) from {effective_source}",
+                        "info",
+                    )
 
                 # Apply additional filters that aren't supported by okw_service.list()
                 # (e.g., capabilities, materials would need more complex matching logic)
@@ -1658,6 +1631,53 @@ def _detect_domain_from_data(data: dict[str, Any]) -> str:
     from src.core.utils.domain_detection import detect_domain
 
     return detect_domain(data)
+
+
+def _apply_cli_facility_filters(facilities: list, filters: dict) -> list:
+    """Apply the CLI's pre-match narrowing (``--access-type``/``--facility-status``/
+    ``--location``) to a resolved candidate pool, client-side.
+
+    The shared resolver returns a source-selected pool (matching the API's classic
+    path, which applies none of these). These are CLI-only conveniences. A facility
+    that cannot express a field (value is ``None``) is kept, so MoM stubs are not
+    dropped for lacking, e.g., an access type; matches are case-insensitive, and
+    location is a substring across city/region/country/name.
+    """
+
+    def _val(obj, attr):
+        v = getattr(obj, attr, None)
+        return getattr(v, "value", v)
+
+    access_type = (filters.get("access_type") or "").strip().lower() or None
+    status = (filters.get("facility_status") or "").strip().lower() or None
+    location = (filters.get("location") or "").strip().lower() or None
+
+    def _keep(f) -> bool:
+        if access_type:
+            at = _val(f, "access_type")
+            if at is not None and str(at).strip().lower() != access_type:
+                return False
+        if status:
+            st = _val(f, "facility_status")
+            if st is not None and str(st).strip().lower() != status:
+                return False
+        if location:
+            loc = getattr(f, "location", None)
+            haystack = " ".join(
+                str(x)
+                for x in (
+                    getattr(loc, "city", None),
+                    getattr(loc, "region", None),
+                    getattr(loc, "country", None),
+                    getattr(f, "name", None),
+                )
+                if x
+            ).lower()
+            if location not in haystack:
+                return False
+        return True
+
+    return [f for f in facilities if _keep(f)]
 
 
 def _parse_match_filters(

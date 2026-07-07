@@ -164,12 +164,13 @@ def config(ctx: Context) -> None:
         okw_source = get_okw_source()
         mom_cfg = get_mom_config()
         click.echo("OKW Facility Source:")
-        click.echo(f"  Source: {okw_source}  (OKW_SOURCE env var, default: storage)")
-        if okw_source == "mom":
+        click.echo(f"  Source: {okw_source}  (OKW_SOURCE env var, unset → union)")
+        mom_active = okw_source in ("union", "mom")
+        if mom_active:
             click.echo(f"  MoM SPARQL Endpoint: {mom_cfg['endpoint']}")
         else:
             click.echo(
-                f"  MoM SPARQL Endpoint: {mom_cfg['endpoint']}  (inactive — set OKW_SOURCE=mom to enable)"
+                f"  MoM SPARQL Endpoint: {mom_cfg['endpoint']}  (inactive — unset OKW_SOURCE or set it to mom to enable)"
             )
     except Exception:
         pass

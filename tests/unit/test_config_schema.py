@@ -92,8 +92,9 @@ class TestEnvironmentNormalization:
 
 
 class TestOkwSourceResolution:
-    def test_unset_defaults_to_storage(self, clean_env):
-        assert get_settings().okw_source_resolved == "storage"
+    def test_unset_defaults_to_union(self, clean_env):
+        # #240: unset resolves to union (storage ∪ MoM), not storage.
+        assert get_settings().okw_source_resolved == "union"
 
     def test_explicit_storage(self, clean_env):
         clean_env.setenv("OKW_SOURCE", "storage")
@@ -103,9 +104,17 @@ class TestOkwSourceResolution:
         clean_env.setenv("OKW_SOURCE", "mom")
         assert get_settings().okw_source_resolved == "mom"
 
-    def test_unknown_falls_back_to_storage(self, clean_env):
+    def test_explicit_union(self, clean_env):
+        clean_env.setenv("OKW_SOURCE", "union")
+        assert get_settings().okw_source_resolved == "union"
+
+    def test_unknown_falls_back_to_union(self, clean_env):
         clean_env.setenv("OKW_SOURCE", "nonsense")
-        assert get_settings().okw_source_resolved == "storage"
+        assert get_settings().okw_source_resolved == "union"
+
+    def test_empty_string_resolves_to_union(self, clean_env):
+        clean_env.setenv("OKW_SOURCE", "")
+        assert get_settings().okw_source_resolved == "union"
 
     def test_tristate_distinguishes_unset_from_storage(self, clean_env):
         # Raw field preserves the None-vs-"storage" distinction for #240.

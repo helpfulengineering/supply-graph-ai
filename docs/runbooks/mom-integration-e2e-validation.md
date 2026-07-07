@@ -79,10 +79,15 @@ curl -s -X POST "https://mapsofmaking.org/sparql/query" \
 
 ## 1 — CLI demo (no server needed)
 
-The CLI's `--okw-source mom` flag always forces local fallback matching (direct
-service calls, not the HTTP API) — see `src/cli/match.py` around
-`MoM as OKW source requires fallback`. This makes it the simplest way to
-demo the integration: no Docker, no `.env` storage credentials.
+The CLI's `--okw-source mom` flag forces local fallback matching (direct service
+calls, not the HTTP API) so the client-side override is honoured — see
+`src/cli/match.py`, which takes the fallback path for any explicit OKW source.
+This makes it the simplest way to demo the integration: no Docker, no `.env`
+storage credentials.
+
+> Since 0.8.8, an **unset** `OKW_SOURCE` matches against the **union** (storage ∪
+> MoM), so MoM facilities appear in default matches too. `--okw-source mom` (or
+> `OKW_SOURCE=mom`) isolates MoM, which is what this runbook exercises.
 
 ```bash
 cd supply-graph-ai

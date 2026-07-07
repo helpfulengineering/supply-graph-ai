@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-07-07
+
+### Changed
+
+- **`OKW_SOURCE` unset now defaults to `union` (storage ∪ Maps of Making), not storage.** A match with no configured source is no longer silently limited to blob storage — it draws candidates from both the configured storage backend and the MoM network. `OKW_SOURCE=storage` restricts to blob only and `OKW_SOURCE=mom` to MoM only; `MATCHING_LOCAL_OKW_JSON_DIR` still yields a storage-only local pool (never unioned). Precedence: the environment sets the candidate universe and a per-request override may narrow within it but never broaden it. `okw_source_resolved` now distinguishes unset (→ union) from an explicit `storage`.
+- **One shared facility-pool resolver for API and CLI.** `POST /v1/api/match` and the `ohm match` CLI now resolve the candidate pool through a single `OKWService.resolve_match_facilities` (structural parity, not copy-paste), which routes every source through the network surface (`get_network_match_facilities`). MoM candidate loading degrades gracefully — when MoM is unavailable, `union` still returns the storage pool. Facilities without map coordinates are retained for matching (they are only dropped from the map/browse surface).
+
 ## [0.8.7] - 2026-07-06
 
 ### Added
@@ -30,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.8.8]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.6...v0.8.7
 [0.8.6]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.5...v0.8.6
 

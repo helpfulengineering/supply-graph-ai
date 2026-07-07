@@ -30,16 +30,17 @@ def _make_facility(facility_id: str):
 
 
 def _patch_for_filtered_facilities(monkeypatch, facilities):
-    """Patch OKWService + local-dir resolver so the loader returns only `facilities`."""
-    from src.core.services import okw_service as okw_mod
+    """Make the shared resolver return exactly `facilities`.
+
+    These tests exercise the post-load --okw-id subset restriction, not source
+    resolution, so we stub the resolver rather than the storage/network path.
+    """
     import src.core.api.routes.match as match_mod
 
-    mock_service = AsyncMock()
-    mock_service.list = AsyncMock(return_value=(facilities, len(facilities)))
-    monkeypatch.setattr(
-        okw_mod.OKWService, "get_instance", AsyncMock(return_value=mock_service)
-    )
-    monkeypatch.setattr(match_mod, "_resolve_matching_local_okw_json_dir", lambda: None)
+    async def _fake_resolver(**kwargs):
+        return list(facilities)
+
+    monkeypatch.setattr(match_mod, "resolve_match_facilities", _fake_resolver)
 
 
 def _request(**overrides):
