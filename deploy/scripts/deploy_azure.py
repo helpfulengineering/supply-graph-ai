@@ -64,8 +64,14 @@ def main():
     )
     parser.add_argument(
         "--environment",
-        default=os.getenv("ENVIRONMENT", "production"),
-        help="Target environment; selects config/environments/<env>.toml (default: production)",
+        default="production",
+        help=(
+            "Target environment; selects config/environments/<env>.toml "
+            "(default: production). Deliberately NOT read from the ENVIRONMENT "
+            "env var: importing src.config loads .env, so inferring the deploy "
+            "target from it would let a developer's local .env redirect a prod "
+            "deploy. Pass --environment explicitly for anything but production."
+        ),
     )
     parser.add_argument(
         "--cors-origins",
