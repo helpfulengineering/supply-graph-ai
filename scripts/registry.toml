@@ -1,0 +1,194 @@
+# Script registry — source of truth for scripts/.
+#
+# Every executable in scripts/ (*.py, *.sh) MUST have an entry here, keyed by
+# filename without extension. `make scripts-check` fails if a script is missing
+# from the registry or an entry names a script that no longer exists (mirrors
+# tests/parity/manifest.py: declare it, or the gate fails). scripts/README.md is
+# generated from this file — edit here, not there.
+#
+# Fields per entry:
+#   category  one of: release, generate, verify, data, storage, deploy,
+#             federation, eval
+#   summary   one line: what it does / when to reach for it
+#   run       canonical invocation (<X> = required arg, [X] = optional)
+#   mutates   true if it writes files / storage / remote state; false if
+#             read-only (safe to run in a gate or to inspect state)
+#   used_by   callers that depend on it (CI job, make target, doc, script)
+
+[scripts.bump_version]
+category = "release"
+summary = "Bump the OHM version across pyproject.toml and the doc registry in lockstep; --check gates drift."
+run = "uv run python scripts/bump_version.py <X.Y.Z> | --check"
+mutates = true
+used_by = ["make ready (version-check)", "ci: quality", "docs/RELEASE.md"]
+
+[scripts.validate_release_version]
+category = "release"
+summary = "Validate a git release tag matches pyproject.toml version; emits version/major_minor to GITHUB_OUTPUT."
+run = "uv run python scripts/validate_release_version.py [--tag vX.Y.Z]"
+mutates = false
+used_by = ["ci: release"]
+
+[scripts.extract_changelog_section]
+category = "release"
+summary = "Extract one version's section from CHANGELOG.md for GitHub Release notes."
+run = "uv run python scripts/extract_changelog_section.py <X.Y.Z> [-o FILE]"
+mutates = false
+used_by = ["ci: release", "docs/RELEASE.md"]
+
+[scripts.generate_env_template]
+category = "generate"
+summary = "Regenerate the schema-owned block of env.template from the config schema; --check gates staleness."
+run = "uv run python scripts/generate_env_template.py [--check]"
+mutates = true
+used_by = ["make ready (env-template-check)", "ci: quality"]
+
+[scripts.generate_repo_map]
+category = "generate"
+summary = "Generate .repo-map.md (Aider + Sourcegraph styles) for codebase navigation."
+run = "uv run python scripts/generate_repo_map.py"
+mutates = true
+used_by = ["make format", "ci: quality"]
+
+[scripts.generate_openapi_routes_md]
+category = "generate"
+summary = "Write the MkDocs API route table from the versioned FastAPI (api_v1) OpenAPI schema."
+run = "uv run python scripts/generate_openapi_routes_md.py"
+mutates = true
+used_by = ["docs/api/routes.md"]
+
+[scripts.dump_api_routes]
+category = "generate"
+summary = "Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count."
+run = "uv run python scripts/dump_api_routes.py [--count-only]"
+mutates = false
+used_by = ["docs/development/conference-demo-readiness.md"]
+
+[scripts.generate_scripts_index]
+category = "generate"
+summary = "Generate scripts/README.md from this registry; --check gates staleness and registry completeness."
+run = "uv run python scripts/generate_scripts_index.py [--check]"
+mutates = true
+used_by = ["make ready (scripts-check)", "ci: quality"]
+
+[scripts.verify_dev_env]
+category = "verify"
+summary = "Verify the local dev environment is fully provisioned (historically fragile deps load)."
+run = "uv run python scripts/verify_dev_env.py"
+mutates = false
+used_by = ["make setup", "make ready (verify-env)"]
+
+[scripts.validate_docs]
+category = "verify"
+summary = "Validate documentation claims against the code implementation."
+run = "uv run python scripts/validate_docs.py"
+mutates = false
+used_by = ["make ready (validate-docs)"]
+
+[scripts.validate_okw_in_storage]
+category = "verify"
+summary = "Read configured storage (local or remote) and report the OKW facilities found — quick config sanity check."
+run = "uv run python scripts/validate_okw_in_storage.py"
+mutates = false
+used_by = ["docs/development/container-guide.md"]
+
+[scripts.generate_synthetic_data]
+category = "data"
+summary = "Synthetic-data generator for OKH, OKW, and AssetRecord models — the primary fixture/demo dataset source."
+run = "uv run python scripts/generate_synthetic_data.py [options]"
+mutates = true
+used_by = ["dev fixtures", "matching_batch"]
+
+[scripts.populate_ohm_storage_from_synthetic_data]
+category = "data"
+summary = "Upload OKH/OKW from synthetic_data/ into an Azure Blob container (seed a deployment)."
+run = "uv run python scripts/populate_ohm_storage_from_synthetic_data.py [options]"
+mutates = true
+
+[scripts.seed_repair_scenario]
+category = "data"
+summary = "Seed a local OHM storage directory with a realistic repair-workflow scenario (asset + manifests)."
+run = "uv run python scripts/seed_repair_scenario.py [options]"
+mutates = true
+
+[scripts.copy_container_blobs]
+category = "storage"
+summary = "Copy all blobs from one Azure container to another via OHM's storage provider (bypasses RBAC data-plane grant)."
+run = "uv run python scripts/copy_container_blobs.py <src-container> <dst-container>"
+mutates = true
+
+[scripts.clear_storage]
+category = "storage"
+summary = "Delete OKH and OKW files from configured storage — dev reset."
+run = "uv run python scripts/clear_storage.py [options]"
+mutates = true
+
+[scripts.setup_storage]
+category = "storage"
+summary = "Bootstrap storage for a new environment (create/verify container + credentials) before a deploy."
+run = "uv run python scripts/setup_storage.py [options]"
+mutates = true
+used_by = ["docs/development/gcp-cloud-run-setup.md"]
+
+[scripts.deploy_cloud_run]
+category = "deploy"
+summary = "Build, push, and deploy the API to Google Cloud Run (non-Azure deployment pathway)."
+run = "./scripts/deploy_cloud_run.sh"
+mutates = true
+
+[scripts.complete_deployment]
+category = "deploy"
+summary = "Finish a Cloud Run deployment after the image build completes."
+run = "./scripts/complete_deployment.sh"
+mutates = true
+
+[scripts.extract_package_from_container]
+category = "deploy"
+summary = "Extract a built package artifact from a Docker container onto the host."
+run = "./scripts/extract_package_from_container.sh"
+mutates = false
+
+[scripts.federation_e2e]
+category = "federation"
+summary = "End-to-end federation smoke test: seed a manifest on peer A, sync to peer B, assert arrival."
+run = "./scripts/federation_e2e.sh"
+mutates = false
+used_by = ["docs/development/federation-infra.md", "federation_regression"]
+
+[scripts.federation_regression]
+category = "federation"
+summary = "Pre-merge federation regression checks; runs federation_e2e.sh when a two-node stack is up."
+run = "./scripts/federation_regression.sh"
+mutates = false
+
+[scripts.matching_batch]
+category = "eval"
+summary = "Batch matching eval: run 'ohm match requirements' against every generated OKH manifest."
+run = "uv run python scripts/matching_batch.py [options]"
+mutates = false
+used_by = ["docs/llm/chunked-mode.md"]
+
+[scripts.okh_generation_batch]
+category = "eval"
+summary = "Batch LLM OKH generation over the test repository set — core of the generation eval harness."
+run = "uv run python scripts/okh_generation_batch.py [options]"
+mutates = true
+used_by = ["docs/llm/chunked-mode.md"]
+
+[scripts.okh_generation_baseline_report]
+category = "eval"
+summary = "Produce the OKH-generation baseline report used as the eval comparison point."
+run = "uv run python scripts/okh_generation_baseline_report.py [options]"
+mutates = true
+
+[scripts.okh_generation_chunked_evaluation]
+category = "eval"
+summary = "Evaluate chunked-LLM canary quality gates against a baseline batch report."
+run = "uv run python scripts/okh_generation_chunked_evaluation.py [options]"
+mutates = false
+
+[scripts.okh_generation_layer_compare]
+category = "eval"
+summary = "Compare 3-layer vs 4-layer OKH manifests on disk with heuristic quality metrics."
+run = "uv run python scripts/okh_generation_layer_compare.py [options]"
+mutates = false

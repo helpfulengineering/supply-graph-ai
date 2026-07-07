@@ -53,6 +53,9 @@ jobs:
       - name: Verify uv.lock is up to date
         run: uv lock --check
 
+      - name: Verify scripts registry is complete and current
+        run: uv run python scripts/generate_scripts_index.py --check
+
   test:
     name: Test (stable CI subset)
     runs-on: ubuntu-latest

@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check parity ready setup verify-env frontend-setup frontend-ready
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -69,6 +69,14 @@ version-check:
 lock-check:
 	uv lock --check
 
+# Regenerate scripts/README.md from scripts/registry.toml.
+scripts:
+	uv run python scripts/generate_scripts_index.py
+
+# Script registry gate: fails if a script is unregistered or README is stale.
+scripts-check:
+	uv run python scripts/generate_scripts_index.py --check
+
 # Service <-> API <-> CLI parity gate. Fails when a service, route, or CLI
 # group drifts from the declared contract in tests/parity/manifest.py.
 parity:
@@ -77,12 +85,13 @@ parity:
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.
 ready:
-	@echo "==> [1/8] env verify";      $(MAKE) verify-env
-	@echo "==> [2/8] format check";    $(MAKE) format-check
-	@echo "==> [3/8] lint";            $(MAKE) lint
-	@echo "==> [4/8] unit tests";      $(MAKE) test
-	@echo "==> [5/8] service parity";  $(MAKE) parity
-	@echo "==> [6/8] docs ↔ code";     $(MAKE) validate-docs
-	@echo "==> [7/8] version sync";    $(MAKE) version-check
-	@echo "==> [8/8] lockfile sync";   $(MAKE) lock-check
+	@echo "==> [1/9] env verify";      $(MAKE) verify-env
+	@echo "==> [2/9] format check";    $(MAKE) format-check
+	@echo "==> [3/9] lint";            $(MAKE) lint
+	@echo "==> [4/9] unit tests";      $(MAKE) test
+	@echo "==> [5/9] service parity";  $(MAKE) parity
+	@echo "==> [6/9] docs ↔ code";     $(MAKE) validate-docs
+	@echo "==> [7/9] version sync";    $(MAKE) version-check
+	@echo "==> [8/9] lockfile sync";   $(MAKE) lock-check
+	@echo "==> [9/9] script registry"; $(MAKE) scripts-check
 	@echo "==> READY: all gates passed."

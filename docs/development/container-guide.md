@@ -502,9 +502,9 @@ For production, consider using:
      cli storage setup --provider azure_blob
    ```
 
-   From source (outside Docker), the `scripts/explore_remote_storage.py` script lists objects in each prefix and is the fastest way to confirm the configuration is correct:
+   From source (outside Docker), `scripts/validate_okw_in_storage.py` reads the configured storage and reports what it finds — a quick way to confirm the configuration is correct:
    ```bash
-   uv run python scripts/explore_remote_storage.py
+   uv run python scripts/validate_okw_in_storage.py
    ```
 
 4. **Volume mounts / permissions:**
