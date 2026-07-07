@@ -201,6 +201,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install dependencies
+        # deploy_azure.py imports src.config (pydantic-settings, python-dotenv,
+        # …), so the deploy step needs the project's runtime deps installed.
+        run: uv sync
+
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
@@ -209,10 +217,13 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy
+        # --environment is explicit: the deploy target must never be inferred
+        # (locally it would be read from a developer's .env — a prod footgun).
         run: |
-          python3 deploy/scripts/deploy_azure.py \
+          uv run python deploy/scripts/deploy_azure.py \
             --image ${{ env.IMAGE }}:${{ needs.validate.outputs.version }} \
-            --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+            --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
+            --environment production
 
       - name: Verify deployment
         run: |
