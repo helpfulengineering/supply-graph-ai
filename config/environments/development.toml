@@ -7,5 +7,5 @@
 storage_provider = "local"
 
 # Optional overrides (unset here; resolved by code defaults):
-#   okw_source    = "storage"   # "storage" | "mom"; unset -> storage (Slice 1)
+#   okw_source    = "storage"   # "storage" | "mom"; unset -> union (storage ∪ MoM)
 #   cors_origins  = "*"         # unset in development -> allow-all ("*")
