@@ -4,22 +4,27 @@ This document describes how to cut and publish an OHM release. For the 0.8.0 pla
 
 ## Current release
 
+The canonical version lives in `pyproject.toml`. For the current release number
+and its notes, see [README.md](../README.md) and [CHANGELOG.md](../CHANGELOG.md);
+this document describes the *process*, not a specific version.
+
 | Item | Value |
 |------|-------|
-| Application version | `0.8.0` (defined in `pyproject.toml`) |
-| Git tag | `v0.8.0` |
 | Docker image | `touchthesun/openhardwaremanager` |
-| Image tags | `0.8.0`, `0.8`, `latest` |
+| Image tags | `X.Y.Z` (exact), `X.Y` (floating minor), `latest` |
 | Platforms | `linux/amd64`, `linux/arm64` (multi-arch manifest via `docker buildx`) |
 
 ### Pull and run
 
+The `:0.8` tag below floats to the latest `0.8.x` patch, so these commands never
+go stale. Pin an exact `:X.Y.Z` tag for reproducibility.
+
 ```bash
-docker pull touchthesun/openhardwaremanager:0.8.0
+docker pull touchthesun/openhardwaremanager:0.8
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.8.0
+  touchthesun/openhardwaremanager:0.8
 curl -s http://localhost:8001/health
 ```
 
@@ -105,10 +110,10 @@ docker build --build-arg APP_VERSION=0.8.0 -t openhardwaremanager:0.8.0 .
 ## Post-publish smoke test
 
 ```bash
-docker pull touchthesun/openhardwaremanager:0.8.0
+docker pull touchthesun/openhardwaremanager:0.8
 docker run -d --name ohm-smoke -p 8001:8001 \
   -e STORAGE_PROVIDER=local -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.8.0
+  touchthesun/openhardwaremanager:0.8
 curl -sf http://localhost:8001/health
 curl -sf http://localhost:8001/health/liveness
 # Federation disabled by default:
@@ -116,7 +121,7 @@ curl -sf http://localhost:8001/v1/api/federation/identify | head -c 200
 docker rm -f ohm-smoke
 ```
 
-Expect `"version": "0.8.0"` on `/health` and federation routes to return 404 when federation is disabled.
+Expect `/health` to report the version you just published and federation routes to return 404 when federation is disabled.
 
 ## Multi-architecture images
 
@@ -127,8 +132,8 @@ Smoke tests in CI still run a single **amd64** image loaded on the runner (`dock
 To verify locally after publish:
 
 ```bash
-docker buildx imagetools inspect touchthesun/openhardwaremanager:0.8.0
-docker pull touchthesun/openhardwaremanager:0.8.0   # uses host architecture
+docker buildx imagetools inspect touchthesun/openhardwaremanager:0.8
+docker pull touchthesun/openhardwaremanager:0.8   # uses host architecture
 ```
 
 To rebuild an already-published tag (e.g. add arm64 to `0.8.0`), re-run **Release** with `workflow_dispatch` and `dry_run: false` on `main` at the release commit, or push a new patch tag (`v0.8.1`).

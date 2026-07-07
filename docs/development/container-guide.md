@@ -15,12 +15,13 @@ This guide covers running and deploying the Open Hardware Manager (OHM) in conta
 
 ## Quick Start
 
-### Published image (release 0.8.1)
+### Published image
 
-For a pre-built image matching CI and release automation:
+For a pre-built image matching CI and release automation. The `:0.8` tag floats
+to the latest `0.8.x` patch; pin an exact `:X.Y.Z` tag for reproducibility.
 
 ```bash
-docker pull touchthesun/openhardwaremanager:0.8.1
+docker pull touchthesun/openhardwaremanager:0.8
 ```
 
 **With local storage (no credentials needed):**
@@ -29,7 +30,7 @@ docker pull touchthesun/openhardwaremanager:0.8.1
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.8.1
+  touchthesun/openhardwaremanager:0.8
 ```
 
 **With remote storage (Azure Blob, AWS S3, or GCS):**
@@ -41,7 +42,7 @@ The recommended approach is `--env-file`, which mirrors what `docker-compose` do
 ```bash
 docker run -p 8001:8001 \
   --env-file .env \
-  touchthesun/openhardwaremanager:0.8.1
+  touchthesun/openhardwaremanager:0.8
 ```
 
 You can also pass individual variables with `-e` flags:
@@ -52,11 +53,11 @@ docker run -p 8001:8001 \
   -e AZURE_STORAGE_ACCOUNT=<account-name> \
   -e AZURE_STORAGE_KEY=<account-key> \
   -e AZURE_STORAGE_CONTAINER=<container-name> \
-  touchthesun/openhardwaremanager:0.8.1
+  touchthesun/openhardwaremanager:0.8
 ```
 
 - API documentation: http://localhost:8001/v1/docs
-- Health check: http://localhost:8001/health (expect `"version": "0.8.1"`)
+- Health check: http://localhost:8001/health (the `version` field reports the running release)
 - Federation is **off by default** (`OHM_FEDERATION_ENABLED=false`). See [federation infrastructure](federation-infra.md) to enable peer sync.
 
 Other tags: `touchthesun/openhardwaremanager:0.8`, `:latest`. Images are **multi-arch** (`linux/amd64`, `linux/arm64`). See [Release process](../RELEASE.md).
@@ -491,13 +492,13 @@ For production, consider using:
 
    Fix by passing the env file explicitly:
    ```bash
-   docker run -p 8001:8001 --env-file .env touchthesun/openhardwaremanager:0.8.1
+   docker run -p 8001:8001 --env-file .env touchthesun/openhardwaremanager:0.8
    ```
 
    To verify connectivity once the container is running, use the `storage setup` CLI command (it will connect to the configured provider and report any credential errors):
    ```bash
    docker run --rm --env-file .env \
-     touchthesun/openhardwaremanager:0.8.1 \
+     touchthesun/openhardwaremanager:0.8 \
      cli storage setup --provider azure_blob
    ```
 
