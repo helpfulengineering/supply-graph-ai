@@ -47,6 +47,9 @@ jobs:
           uv run python scripts/generate_env_template.py
           git diff --exit-code env.template
 
+      - name: Verify version references are in sync
+        run: uv run python scripts/bump_version.py --check
+
   test:
     name: Test (stable CI subset)
     runs-on: ubuntu-latest
