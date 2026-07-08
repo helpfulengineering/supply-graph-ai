@@ -300,6 +300,10 @@ def deploy_env_vars(environment: str) -> Dict[str, str]:
     secret_fields = _secret_field_names()
     env_vars: Dict[str, str] = {}
     for key, value in data.items():
+        if isinstance(value, dict):
+            # Nested tables (e.g. [frontend]) belong to another service's deploy
+            # config, not the backend container. See frontend_deploy_env_vars().
+            continue
         if key in secret_fields:
             logger.warning(
                 "Refusing to deploy secret %r from %s — use a secretRef instead.",
@@ -309,3 +313,24 @@ def deploy_env_vars(environment: str) -> Dict[str, str]:
             continue
         env_vars[key.upper()] = str(value)
     return env_vars
+
+
+def frontend_deploy_env_vars(environment: str) -> Dict[str, str]:
+    """Non-secret env vars to apply to ``<environment>``'s **frontend** container.
+
+    Reads the ``[frontend]`` table of ``config/environments/<environment>.toml``
+    — the same centralized, checked-in config surface the backend uses — and
+    returns ``{ENV_VAR: value}`` for the frontend nginx container
+    (``api_upstream_url`` → ``API_UPSTREAM_URL``, ``port`` → ``PORT``). Read
+    directly rather than modeled on the backend ``Settings`` schema: this is the
+    frontend's *deploy* config, not backend *runtime* state. Returns ``{}`` when
+    the file or its ``[frontend]`` table is absent.
+    """
+    path = _CONFIG_ENV_DIR / f"{environment}.toml"
+    if not path.is_file():
+        return {}
+    data = tomllib.loads(path.read_text(encoding="utf-8"))
+    frontend = data.get("frontend")
+    if not isinstance(frontend, dict):
+        return {}
+    return {key.upper(): str(value) for key, value in frontend.items()}
