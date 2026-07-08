@@ -1,0 +1,38 @@
+{
+  "$comment": "Multi-loop triage harness config. Enable modules independently as they come online. Frontend UI gate remains in frontend/harness/.",
+  "api_base_url": "http://localhost:8001",
+  "api_health_url": "http://localhost:8001/health",
+  "openapi_url": "http://localhost:8001/v1/openapi.json",
+  "frontend_url": "http://localhost:5173",
+  "frontend_dir": "frontend",
+  "committed_schema": "frontend/src/api/generated/schema.d.ts",
+  "modules": {
+    "parity": {
+      "enabled": true,
+      "options": {
+        "note": "Extends tests/parity service↔API↔CLI; FE route inventory lands next."
+      }
+    },
+    "red": {
+      "enabled": true,
+      "options": {
+        "metrics_path": "/v1/api/utility/metrics",
+        "error_rate_warn": 0.05,
+        "p95_ms_warn": 2000
+      }
+    },
+    "synthetic_smoke": {
+      "enabled": true,
+      "options": {
+        "lane": "real-api",
+        "journey_specs": ["e2e/smoke.spec.ts"]
+      }
+    },
+    "client_drift": {
+      "enabled": true,
+      "options": {
+        "note": "Online: live api_v1.openapi() vs committed schema.d.ts ops."
+      }
+    }
+  }
+}

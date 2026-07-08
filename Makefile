@@ -1,11 +1,17 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
 # mocked E2E + a11y + screenshots lane; nonzero on any failure.
 frontend-ready:
 	cd frontend && npm run frontend-ready
+
+# Multi-loop triage harness (parity / RED / synthetic smoke / client drift).
+# Modules load independently; stubs report ok until each judge comes online.
+# See harness/README.md. Not part of `make ready` (merge gate) yet.
+harness:
+	uv run python -m harness.runner
 
 # One-step frontend contributor setup: install JS deps + Playwright browser.
 frontend-setup:
