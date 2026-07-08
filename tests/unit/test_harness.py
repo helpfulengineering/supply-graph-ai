@@ -18,28 +18,34 @@ pytestmark = pytest.mark.unit
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_known_modules_are_the_four_early_adoption_loops():
+def test_known_modules_include_loops_and_probes():
     assert known_modules() == [
         "parity",
         "red",
         "synthetic_smoke",
         "client_drift",
+        "probe_match",
+        "probe_latency",
+        "probe_cache",
+        "probe_okh_files",
     ]
 
 
 def test_load_default_config_from_repo_root():
     cfg = load_config(_REPO_ROOT / "harness.config.json")
     assert cfg.api_base_url.startswith("http")
+    assert cfg.api_path_prefix == "/v1/api"
     assert set(cfg.modules) >= set(known_modules())
     assert cfg.module("parity").enabled is True
+    assert cfg.module("probe_match").enabled is False
 
 
 def test_each_module_instantiates_and_runs():
     cfg = load_config(_REPO_ROOT / "harness.config.json")
     expected_status = {
-        "parity": LoopStatus.STUB,
-        "red": LoopStatus.STUB,
-        "synthetic_smoke": LoopStatus.STUB,
+        "parity": LoopStatus.ONLINE,
+        "red": LoopStatus.ONLINE,
+        "synthetic_smoke": LoopStatus.ONLINE,
         "client_drift": LoopStatus.ONLINE,
     }
     for name in known_modules():
@@ -47,10 +53,20 @@ def test_each_module_instantiates_and_runs():
         assert isinstance(mod, BaseLoopModule)
         report = mod.run()
         assert report.module == name
-        assert report.status == expected_status[name]
+        if not cfg.module(name).enabled:
+            assert report.status == LoopStatus.SKIPPED
+            assert report.ok is True
+            continue
+        if name == "synthetic_smoke":
+            assert report.status in (LoopStatus.ONLINE, LoopStatus.SKIPPED)
+        elif name.startswith("probe_"):
+            assert report.status in (LoopStatus.ONLINE, LoopStatus.SKIPPED)
+        else:
+            assert report.status == expected_status[name]
         assert report.error is None
-        # Stubs always ok; online modules ok only if no ERROR findings.
         if report.status == LoopStatus.STUB:
+            assert report.ok is True
+        elif report.status == LoopStatus.SKIPPED:
             assert report.ok is True
 
 
@@ -67,7 +83,9 @@ def test_run_modules_subset():
     assert len(result.reports) == 1
     assert result.reports[0].module == "parity"
     assert result.ok is True
-    assert result.to_dict()["stub_count"] == 1
+    payload = result.to_dict()
+    assert payload["stub_count"] == 0
+    assert payload["online_count"] == 1
 
 
 def test_parity_discover_loads_manifest_areas():
@@ -86,14 +104,16 @@ def test_client_drift_discover_sees_committed_schema():
 
 def test_runner_list_and_json(capsys):
     assert main(["--list"]) == 0
-    listed = capsys.readouterr().out.strip().splitlines()
+    listed = [
+        line.split("\t")[0] for line in capsys.readouterr().out.strip().splitlines()
+    ]
     assert listed == known_modules()
 
     assert main(["--json", "--modules", "red"]) == 0
     payload = json.loads(capsys.readouterr().out)
     assert payload["ok"] is True
     assert payload["modules"][0]["module"] == "red"
-    assert payload["modules"][0]["status"] == "stub"
+    assert payload["modules"][0]["status"] == "online"
 
 
 def test_unknown_module_exits():

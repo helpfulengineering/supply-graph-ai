@@ -3,6 +3,8 @@
 Usage:
     uv run python -m harness.runner
     uv run python -m harness.runner --modules parity,client_drift
+    uv run python -m harness.runner --probes
+    uv run python -m harness.runner --write-proposals
     uv run python -m harness.runner --list
     uv run python -m harness.runner --json
 """
@@ -16,9 +18,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional, Sequence
 
-from harness.config import HarnessConfig, load_config
-from harness.modules import instantiate, known_modules
-from harness.protocol import LoopReport, LoopStatus, Severity
+from harness.config import HarnessConfig, load_config, repo_root
+from harness.modules import instantiate, known_loops, known_modules, known_probes
+from harness.probes.proposal import write_probe_proposals
+from harness.protocol import Finding, LoopReport, LoopStatus, Severity
 
 
 @dataclass
@@ -93,12 +96,25 @@ def _print_human(result: HarnessRunResult) -> None:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Run OHM triage harness loops (parity, RED, smoke, client drift).",
+        description=(
+            "Run OHM triage harness loops (parity, RED, smoke, client drift) "
+            "and optional production probes."
+        ),
     )
     parser.add_argument(
         "--modules",
         "-m",
-        help="Comma-separated module names (default: all).",
+        help="Comma-separated module names (default: all enabled in config).",
+    )
+    parser.add_argument(
+        "--probes",
+        action="store_true",
+        help="Run only production probe modules (probe_*).",
+    )
+    parser.add_argument(
+        "--loops",
+        action="store_true",
+        help="Run only verification loops (exclude probe_*).",
     )
     parser.add_argument(
         "--config",
@@ -115,23 +131,54 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         action="store_true",
         help="Emit machine-readable JSON report.",
     )
+    parser.add_argument(
+        "--write-proposals",
+        action="store_true",
+        help=(
+            "Write draft fix proposals under docs/proposals/ for probe ERROR "
+            "findings (human review before implementation)."
+        ),
+    )
     args = parser.parse_args(argv)
 
     if args.list:
         for name in known_modules():
-            print(name)
+            kind = "probe" if name.startswith("probe_") else "loop"
+            print(f"{name}\t{kind}")
         return 0
 
     config = load_config(args.config) if args.config else load_config()
-    names = (
-        [n.strip() for n in args.modules.split(",") if n.strip()]
-        if args.modules
-        else None
-    )
+
+    if args.modules:
+        names = [n.strip() for n in args.modules.split(",") if n.strip()]
+    elif args.probes:
+        names = known_probes()
+    elif args.loops:
+        names = known_loops()
+    else:
+        names = [n for n in known_modules() if config.module(n).enabled]
+
     result = run_modules(names=names, config=config)
 
+    if args.write_proposals:
+        findings: list[Finding] = [f for r in result.reports for f in r.findings]
+        written = write_probe_proposals(
+            findings,
+            repo_root() / "docs" / "proposals",
+        )
+        if not args.json:
+            if written:
+                print("Proposals written:")
+                for path in written:
+                    print(f"  {path.relative_to(repo_root())}")
+            else:
+                print("No probe ERROR findings — no proposals written.")
+
     if args.json:
-        json.dump(result.to_dict(), sys.stdout, indent=2)
+        payload = result.to_dict()
+        if args.write_proposals:
+            payload["proposals_dir"] = str(repo_root() / "docs" / "proposals")
+        json.dump(payload, sys.stdout, indent=2)
         sys.stdout.write("\n")
     else:
         _print_human(result)

@@ -29,6 +29,7 @@ class HarnessConfig:
 
     api_base_url: str = "http://localhost:8001"
     api_health_url: str = "http://localhost:8001/health"
+    api_path_prefix: str = "/v1/api"
     openapi_url: str = "http://localhost:8001/v1/openapi.json"
     frontend_url: str = "http://localhost:5173"
     frontend_dir: str = "frontend"
@@ -43,12 +44,16 @@ def load_config(path: Optional[Path] = None) -> HarnessConfig:
     """Load ``harness.config.json``; missing file yields defaults with all modules enabled."""
     cfg_path = path or _DEFAULT_CONFIG
     if not cfg_path.is_file():
-        return HarnessConfig(
-            modules={
-                name: ModuleConfig(enabled=True)
-                for name in ("parity", "red", "synthetic_smoke", "client_drift")
-            }
+        loop_names = ("parity", "red", "synthetic_smoke", "client_drift")
+        probe_names = (
+            "probe_match",
+            "probe_latency",
+            "probe_cache",
+            "probe_okh_files",
         )
+        modules = {name: ModuleConfig(enabled=True) for name in loop_names}
+        modules.update({name: ModuleConfig(enabled=False) for name in probe_names})
+        return HarnessConfig(modules=modules)
 
     raw = json.loads(cfg_path.read_text(encoding="utf-8"))
     modules_raw = raw.get("modules") or {}
@@ -62,10 +67,18 @@ def load_config(path: Optional[Path] = None) -> HarnessConfig:
     # Ensure known modules always appear even if omitted from JSON.
     for name in ("parity", "red", "synthetic_smoke", "client_drift"):
         modules.setdefault(name, ModuleConfig(enabled=True))
+    for name in (
+        "probe_match",
+        "probe_latency",
+        "probe_cache",
+        "probe_okh_files",
+    ):
+        modules.setdefault(name, ModuleConfig(enabled=False))
 
     return HarnessConfig(
         api_base_url=str(raw.get("api_base_url", HarnessConfig.api_base_url)),
         api_health_url=str(raw.get("api_health_url", HarnessConfig.api_health_url)),
+        api_path_prefix=str(raw.get("api_path_prefix", HarnessConfig.api_path_prefix)),
         openapi_url=str(raw.get("openapi_url", HarnessConfig.openapi_url)),
         frontend_url=str(raw.get("frontend_url", HarnessConfig.frontend_url)),
         frontend_dir=str(raw.get("frontend_dir", HarnessConfig.frontend_dir)),
