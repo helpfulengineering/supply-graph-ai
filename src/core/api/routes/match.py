@@ -27,7 +27,11 @@ from fastapi import (
     status,
 )
 
-from src.config.settings import MAX_DEPTH
+from src.config.settings import (
+    MATCHING_EAGER_INIT,
+    MATCHING_INIT_TIMEOUT_SECONDS,
+    MAX_DEPTH,
+)
 
 from ...domains.cooking.models import KitchenCapability
 from ...models.okh import OKHManifest
@@ -91,19 +95,26 @@ logger = get_logger(__name__)
 
 # Service dependencies
 async def get_matching_service() -> MatchingService:
-    """Get matching service instance."""
+    """Get matching service instance (initialized at startup when eager init is on)."""
     logger.info("Resolving matching service dependency")
     try:
-        service = await asyncio.wait_for(MatchingService.get_instance(), timeout=20)
+        service = await asyncio.wait_for(
+            MatchingService.get_instance(),
+            timeout=MATCHING_INIT_TIMEOUT_SECONDS,
+        )
         logger.info("Resolved matching service dependency")
         return service
     except asyncio.TimeoutError:
-        logger.error("Timed out initializing matching service dependency")
+        logger.error(
+            "Timed out initializing matching service dependency after %ss",
+            MATCHING_INIT_TIMEOUT_SECONDS,
+        )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=(
                 "Matching service initialization timed out. "
-                "Try again or reduce candidate scope."
+                "The service may still be starting — retry shortly, or contact "
+                "support with the request ID shown in this response."
             ),
         )
 

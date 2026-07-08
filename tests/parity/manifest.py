@@ -24,6 +24,10 @@ intentionally has no presence there:
   * ``api_tag``   -> FastAPI router ``tags=[...]`` value mounted in
                      ``src/core/main.py``.
   * ``cli_group`` -> click group name registered in ``src/cli/main.py``.
+  * ``fe_routes``   -> top-level React Router path prefixes the UI exposes
+                       (``None`` = no frontend surface for this area).
+  * ``fe_api_prefixes`` -> ``/api/<tag>`` path prefixes the frontend calls
+                           (``None`` = no frontend API usage declared).
 """
 
 from __future__ import annotations
@@ -42,6 +46,8 @@ class Area:
     cli_group: Optional[str]
     status: str  # aligned | exposed | partial | internal | review
     note: str = ""
+    fe_routes: Optional[tuple[str, ...]] = None
+    fe_api_prefixes: Optional[tuple[str, ...]] = None
 
 
 # Click commands that are intentionally top-level utilities, not feature areas.
@@ -50,10 +56,34 @@ TOP_LEVEL_CLI = {"config", "version"}
 
 AREAS: tuple[Area, ...] = (
     # --- Fully aligned: service + API + CLI all present -------------------
-    Area("okh", "okh", "okh", "okh", "aligned"),
-    Area("okw", "okw", "okw", "okw", "aligned"),
+    Area(
+        "okh",
+        "okh",
+        "okh",
+        "okh",
+        "aligned",
+        fe_routes=("/okh",),
+        fe_api_prefixes=("/api/okh",),
+    ),
+    Area(
+        "okw",
+        "okw",
+        "okw",
+        "okw",
+        "aligned",
+        fe_routes=("/facilities",),
+        fe_api_prefixes=("/api/okw",),
+    ),
     Area("asset", "asset", "asset", "asset", "aligned"),
-    Area("package", "package", "package", "package", "aligned"),
+    Area(
+        "package",
+        "package",
+        "package",
+        "package",
+        "aligned",
+        fe_routes=("/packages",),
+        fe_api_prefixes=("/api/package",),
+    ),
     Area(
         "match",
         "matching",
@@ -62,6 +92,8 @@ AREAS: tuple[Area, ...] = (
         "aligned",
         note="REVIEW: service is 'matching_service' while API/CLI use 'match'. "
         "Internal rename candidate (matching_service -> match_service).",
+        fe_routes=("/match",),
+        fe_api_prefixes=("/api/match",),
     ),
     # --- Exposed via API + CLI but no conventionally-named service --------
     Area(
@@ -106,6 +138,8 @@ AREAS: tuple[Area, ...] = (
         "utility",
         "exposed",
         note="Catch-all maintenance endpoints; backs scaffold/cleanup services.",
+        fe_routes=("/",),
+        fe_api_prefixes=("/api/utility",),
     ),
     Area(
         "supply-tree",
@@ -116,6 +150,8 @@ AREAS: tuple[Area, ...] = (
         note="REVIEW: NAME MISMATCH — API tag is 'supply-tree' but the CLI group "
         "is 'solution'. Pick one name (external surface; needs deprecation "
         "cycle, not a bare rename).",
+        fe_routes=("/visualization",),
+        fe_api_prefixes=("/api/supply-tree",),
     ),
     # --- Partial exposure -------------------------------------------------
     Area(
@@ -135,6 +171,8 @@ AREAS: tuple[Area, ...] = (
         "partial",
         note="TODO: API only, no CLI group yet. Add a 'rfq' CLI group if this "
         "should be operable from the command line.",
+        fe_routes=("/rfq",),
+        fe_api_prefixes=("/api/rfq",),
     ),
     Area(
         "rules",
@@ -231,3 +269,21 @@ def expected_api_tags() -> set[str]:
 def expected_cli_groups() -> set[str]:
     """CLI group names the manifest declares to exist (excluding top-level)."""
     return {a.cli_group for a in AREAS if a.cli_group is not None}
+
+
+def expected_fe_routes() -> set[str]:
+    """Frontend route prefixes the manifest declares."""
+    routes: set[str] = set()
+    for area in AREAS:
+        if area.fe_routes:
+            routes.update(area.fe_routes)
+    return routes
+
+
+def expected_fe_api_prefixes() -> set[str]:
+    """Frontend API path prefixes the manifest declares."""
+    prefixes: set[str] = set()
+    for area in AREAS:
+        if area.fe_api_prefixes:
+            prefixes.update(area.fe_api_prefixes)
+    return prefixes

@@ -111,6 +111,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/match/facility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reverse Match (Designs a Facility Can Produce)
+         * @description Reverse matching: given an OKW facility, return the OKH designs it can produce.
+         *
+         *         This is the inverse of `POST /api/match` (which finds facilities for a design).
+         *         It evaluates every design in the catalog against the single target facility
+         *         using the same matching logic, and returns the designs the facility can make,
+         *         ranked by confidence.
+         *
+         *         **Body:**
+         *         - `okw_id` (required): the facility to find producible designs for
+         *         - `min_confidence` (default 0.1): minimum solution score to report a design
+         *         - `max_results` (default 10): cap on the number of designs returned
+         *         - `domain` (optional): explicit domain override
+         */
+        post: operations["match_designs_for_facility_api_match_facility_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/match/domains": {
         parameters: {
             query?: never;
@@ -821,6 +852,40 @@ export interface paths {
          *         fill them in and then validate with ``POST /api/okw/validate``.
          */
         get: operations["get_okw_template_api_okw_template_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Unified network surface (local OKW ∪ Maps of Making), server-filtered
+         * @description Return the unified network surface for the map + list views: local OKW
+         *         facilities unioned with Maps of Making (MoM) spaces, source-labeled and
+         *         projected to a common shape `{id, name, lat, lon, city, region, country,
+         *         source, status, processes, url}`.
+         *
+         *         Server-side filters:
+         *         - Cross-source (hard): `country`, `city`, `process` (canonical id), `source`
+         *           (`local`|`mom`), `status`.
+         *         - Local-only (soft): `region`, `access_type` — spaces that can't express the
+         *           axis (e.g. MoM) are kept, flagged `ambiguous`, and sorted last rather than
+         *           excluded.
+         *
+         *         Local facilities without coordinates are counted in `dropped_no_coords`. MoM
+         *         comes from a 24h TTL cache and degrades gracefully (`mom_available: false`).
+         *         `include_mom=false` returns local only; `force_refresh=true` refreshes MoM.
+         */
+        get: operations["get_okw_spaces_api_okw_spaces_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3687,6 +3752,68 @@ export interface components {
              */
             additional_days: number;
         };
+        /**
+         * FacilityMatchRequest
+         * @description Reverse-match request: which designs can a given facility produce?
+         * @example {
+         *       "client_info": {
+         *         "user_agent": "OHM-Client/1.0",
+         *         "version": "1.0.0"
+         *       },
+         *       "quality_level": "professional",
+         *       "request_id": "req_123456789",
+         *       "strict_mode": false
+         *     }
+         */
+        FacilityMatchRequest: {
+            /**
+             * Request Id
+             * @description Unique request identifier for tracking
+             */
+            request_id?: string | null;
+            /**
+             * Client Info
+             * @description Client information and context
+             */
+            client_info?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Quality Level
+             * @description Quality level: hobby, professional, or medical
+             * @default professional
+             */
+            quality_level: string | null;
+            /**
+             * Strict Mode
+             * @description Enable strict validation mode
+             * @default false
+             */
+            strict_mode: boolean | null;
+            /**
+             * Okw Id
+             * Format: uuid
+             * @description Facility (OKW) to find producible designs for
+             */
+            okw_id: string;
+            /**
+             * Domain
+             * @description Optional explicit domain; skips content-based domain detection.
+             */
+            domain?: string | null;
+            /**
+             * Min Confidence
+             * @description Minimum solution score for a design to be reported.
+             * @default 0.1
+             */
+            min_confidence: number | null;
+            /**
+             * Max Results
+             * @description Maximum number of designs to return.
+             * @default 10
+             */
+            max_results: number | null;
+        };
         /** FederationHealthResponse */
         FederationHealthResponse: {
             /**
@@ -4268,6 +4395,18 @@ export interface components {
             okw_facilities?: {
                 [key: string]: unknown;
             }[] | null;
+            /**
+             * Okw Ids
+             * @description Restrict matching to this subset of OKW facility IDs. Facilities are still loaded from the configured source (or okw_facilities), then filtered to these IDs before matching. An empty or omitted list means match against all facilities.
+             */
+            okw_ids?: string[] | null;
+            /**
+             * Network Filter
+             * @description Match against the unified network surface (local OKW ∪ Maps of Making) narrowed by these filters — same keys as GET /api/okw/spaces (include_mom, country, city, process, source, status, region, access_type). When set, it supersedes the storage/okw_ids candidate pool so a design can be matched against exactly the filtered set the network browse view shows.
+             */
+            network_filter?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * OKHExportResponse
@@ -7537,6 +7676,60 @@ export interface operations {
             };
         };
     };
+    match_designs_for_facility_api_match_facility_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FacilityMatchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     list_domains_api_match_domains_get: {
         parameters: {
             query?: {
@@ -9106,6 +9299,66 @@ export interface operations {
     get_okw_template_api_okw_template_get: {
         parameters: {
             query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okw_spaces_api_okw_spaces_get: {
+        parameters: {
+            query?: {
+                include_mom?: boolean;
+                force_refresh?: boolean;
+                country?: string | null;
+                city?: string | null;
+                /** @description Canonical OHM process id */
+                process?: string | null;
+                /** @description "local" or "mom" */
+                source?: string | null;
+                status?: string | null;
+                region?: string | null;
+                access_type?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;

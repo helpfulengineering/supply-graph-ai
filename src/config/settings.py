@@ -241,6 +241,21 @@ MATCHING_PREINIT_NLP = _get_secret_or_env("MATCHING_PREINIT_NLP", "true").lower(
     "t",
 )
 
+# When true (default), MatchingService.initialize() runs during app lifespan startup
+# so POST /match does not pay cold-init cost on the first user request. Readiness
+# stays not_ready until init completes. Set false only for fast local dev without NLP.
+MATCHING_EAGER_INIT = _get_secret_or_env("MATCHING_EAGER_INIT", "true").lower() in (
+    "true",
+    "1",
+    "t",
+)
+
+# Max seconds to wait for MatchingService.get_instance() during startup pre-init
+# and FastAPI Depends resolution (spaCy load can exceed 20s on constrained hosts).
+MATCHING_INIT_TIMEOUT_SECONDS = float(
+    _get_secret_or_env("MATCHING_INIT_TIMEOUT_SECONDS", "120")
+)
+
 # Federation (Phase 5 MVP — disabled by default)
 OHM_FEDERATION_ENABLED = _get_secret_or_env(
     "OHM_FEDERATION_ENABLED", "false"

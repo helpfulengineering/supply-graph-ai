@@ -1,0 +1,89 @@
+{
+  "$comment": "Multi-loop triage harness config. Enable modules independently as they come online. Frontend UI gate remains in frontend/harness/.",
+  "api_base_url": "https://openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io",
+  "api_health_url": "https://openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io/health",
+  "api_path_prefix": "/v1/api",
+  "openapi_url": "https://openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io/v1/openapi.json",
+  "frontend_url": "https://openhardwaremanager-frontend.blackdune-e38fce01.westus3.azurecontainerapps.io/",
+  "frontend_dir": "frontend",
+  "committed_schema": "frontend/src/api/generated/schema.d.ts",
+  "modules": {
+    "parity": {
+      "enabled": true,
+      "options": {
+        "note": "Online: service/API/CLI + FE routes/API prefixes vs manifest."
+      }
+    },
+    "red": {
+      "enabled": true,
+      "options": {
+        "source": "in-process",
+        "metrics_path": "/v1/api/utility/metrics",
+        "error_rate_warn": 0.05,
+        "p95_ms_warn": 2000,
+        "min_requests": 1
+      }
+    },
+    "synthetic_smoke": {
+      "enabled": true,
+      "options": {
+        "lane": "real-api",
+        "skip_if_unreachable": true,
+        "skip_if_playwright_unavailable": true,
+        "timeout_seconds": 300,
+        "journey_specs": [
+          "e2e/smoke.spec.ts",
+          "e2e/dashboard.spec.ts",
+          "e2e/okh-catalog.spec.ts",
+          "e2e/match.spec.ts",
+          "e2e/network.spec.ts"
+        ]
+      }
+    },
+    "client_drift": {
+      "enabled": true,
+      "options": {
+        "note": "Online: live api_v1.openapi() vs committed schema.d.ts ops."
+      }
+    },
+    "probe_match": {
+      "enabled": true,
+      "options": {
+        "skip_if_unreachable": true,
+        "attempts": 5,
+        "max_503_rate": 0.0,
+        "timeout_seconds": 120,
+        "okh_id": null,
+        "note": "Pain point: intermittent POST /match 503 (MatchingService init timeout on ACA)."
+      }
+    },
+    "probe_latency": {
+      "enabled": true,
+      "options": {
+        "skip_if_unreachable": true,
+        "okh_id": null,
+        "note": "Pain point: 10–30s responses on hot paths."
+      }
+    },
+    "probe_cache": {
+      "enabled": true,
+      "options": {
+        "skip_if_unreachable": true,
+        "min_speedup_ratio": 0.5,
+        "probe_paths": [
+          "/okh?page=1&page_size=5",
+          "/utility/domains"
+        ],
+        "note": "Pain point: missing/misconfigured cache (in-memory LRU vs multi-replica ACA)."
+      }
+    },
+    "probe_okh_files": {
+      "enabled": true,
+      "options": {
+        "skip_if_unreachable": true,
+        "okh_id": null,
+        "note": "Pain point: OKH detail file links use raw paths / broken externals."
+      }
+    }
+  }
+}

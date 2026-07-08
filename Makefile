@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness harness-probes
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -7,9 +7,24 @@
 frontend-ready:
 	cd frontend && npm run frontend-ready
 
-# One-step frontend contributor setup: install JS deps + Playwright browser.
+# Multi-loop triage harness (parity / RED / synthetic smoke / client drift).
+# Modules load independently; stubs report ok until each judge comes online.
+# See harness/README.md. Not part of `make ready` (merge gate) yet.
+harness:
+	uv run python -m harness.runner --loops
+
+# Production probes for Azure ACA pain points (match 503, latency, cache, OKH files).
+# Enable probe modules in harness.config.json and point URLs at staging first.
+harness-probes:
+	uv run python -m harness.runner --probes --write-proposals
+
+# One-step frontend contributor setup: JS deps + Playwright browsers + verify.
+# Installs Chromium and the headless shell (both required by @playwright/test).
 frontend-setup:
-	cd frontend && npm ci && npx playwright install chromium
+	cd frontend && npm ci
+	cd frontend && npx playwright install chromium chromium-headless-shell
+	@echo "==> Verifying Playwright can launch headless Chromium..."
+	@cd frontend && node -e 'const { chromium } = require("@playwright/test"); chromium.launch({ headless: true }).then(b => b.close()).then(() => console.log("==> Playwright Chromium ready")).catch(e => { console.error("==> Playwright verify FAILED:", e.message); process.exit(1); })'
 
 # One-step contributor setup. Provisions the full uv-managed environment (all
 # dependencies incl. the pinned spaCy model) and verifies it is fully online.

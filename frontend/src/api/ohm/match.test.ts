@@ -34,10 +34,17 @@ describe("runMatch", () => {
   it("throws ApiError on failure", async () => {
     server.use(
       http.post("*/v1/api/match", () =>
-        HttpResponse.json({ message: "boom" }, { status: 500 }),
+        HttpResponse.json(
+          { message: "boom", request_id: "req-503" },
+          { status: 503, headers: { "x-request-id": "req-503" } },
+        ),
       ),
     );
-    await expect(runMatch({ okhId: "x" })).rejects.toBeInstanceOf(ApiError);
+    await expect(runMatch({ okhId: "x" })).rejects.toMatchObject({
+      name: "ApiError",
+      status: 503,
+      requestId: "req-503",
+    });
   });
 });
 
