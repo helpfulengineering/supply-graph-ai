@@ -10,3 +10,10 @@
 storage_provider = "azure_blob"
 azure_storage_account = "projdatablobstorage"
 azure_storage_container = "production"
+
+# Frontend (nginx) container deploy config — applied to the frontend container
+# app by the frontend deploy step (schema.frontend_deploy_env_vars), NOT the
+# backend. api_upstream_url is the backend ORIGIN (scheme + host, no /v1 path).
+[frontend]
+api_upstream_url = "https://openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io"
+port = 8080

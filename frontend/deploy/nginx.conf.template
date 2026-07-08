@@ -1,0 +1,54 @@
+# nginx site config for the OHM frontend container.
+#
+# Rendered at container start: the base nginx image runs envsubst over
+# /etc/nginx/templates/*.template, substituting ONLY environment variables that
+# are set (so nginx's own $uri / $host / $proxy_host are left untouched).
+#
+# Host-specific values (${API_UPSTREAM_URL}, ${PORT}) are injected from the
+# centralized config surface at deploy time — never hardcoded here.
+#
+#   API_UPSTREAM_URL  backend ORIGIN, scheme + host, NO trailing slash and NO
+#                     /v1 path (e.g. https://api.example.com). The /v1 prefix is
+#                     preserved by proxy_pass because it carries no URI part.
+#   PORT              port nginx listens on (default 8080).
+
+server {
+    listen       ${PORT};
+    listen       [::]:${PORT};
+    server_name  _;
+
+    root  /usr/share/nginx/html;
+    index index.html;
+
+    # Long-cache fingerprinted build assets; never cache the HTML entry point.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # SPA: serve the file if it exists, else hand off to client-side routing.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Versioned backend API, proxied so the browser sees ONE origin (no CORS).
+    # The backend stays an independently-hosted service reached only via its API.
+    location /v1/ {
+        proxy_pass              ${API_UPSTREAM_URL};
+        proxy_http_version      1.1;
+        proxy_ssl_server_name   on;
+        proxy_set_header        Host              $proxy_host;
+        proxy_set_header        X-Real-IP         $remote_addr;
+        proxy_set_header        X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header        X-Forwarded-Proto $scheme;
+        proxy_read_timeout      120s;
+    }
+
+    # Container-platform liveness probe. Does not touch the backend.
+    location = /healthz {
+        access_log off;
+        add_header Content-Type text/plain;
+        return 200 "ok\n";
+    }
+}
