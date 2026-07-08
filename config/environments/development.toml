@@ -7,5 +7,13 @@
 storage_provider = "local"
 
 # Optional overrides (unset here; resolved by code defaults):
-#   okw_source    = "storage"   # "storage" | "mom"; unset -> storage (Slice 1)
+#   okw_source    = "storage"   # "storage" | "mom"; unset -> union (storage ∪ MoM)
 #   cors_origins  = "*"         # unset in development -> allow-all ("*")
+
+# Frontend (nginx) container deploy config (see schema.frontend_deploy_env_vars).
+# api_upstream_url = backend ORIGIN (no /v1). Local dev normally runs Vite
+# (`npm run dev`, OHM_API_BASE_URL) instead of this container; these values apply
+# only when the frontend container itself is deployed for development.
+[frontend]
+api_upstream_url = "http://localhost:8001"
+port = 8080

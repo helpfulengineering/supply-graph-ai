@@ -13,6 +13,7 @@ from src.config.schema import (
     Settings,
     deploy_env_vars,
     enforce_startup_config,
+    frontend_deploy_env_vars,
     get_settings,
     resolve_cors_origins,
     storage_config_problems,
@@ -231,3 +232,29 @@ class TestDeployEnvVars:
         env = deploy_env_vars("sneaky")
         assert env == {"STORAGE_PROVIDER": "azure_blob"}
         assert "AZURE_STORAGE_KEY" not in env
+
+    def test_frontend_table_does_not_leak_into_backend_env(self):
+        # The [frontend] table is another service's deploy config; the backend
+        # container must not receive it as a FRONTEND / API_UPSTREAM_URL var.
+        env = deploy_env_vars("production")
+        assert "FRONTEND" not in env
+        assert "API_UPSTREAM_URL" not in env
+        assert env["STORAGE_PROVIDER"] == "azure_blob"
+
+
+class TestFrontendDeployEnvVars:
+    def test_production_frontend_config(self):
+        env = frontend_deploy_env_vars("production")
+        assert env["API_UPSTREAM_URL"].startswith("https://openhardwaremanager")
+        assert "/v1" not in env["API_UPSTREAM_URL"]  # origin only, proxy adds /v1
+        assert env["PORT"] == "8080"
+
+    def test_keys_are_uppercased_env_names(self):
+        assert all(k == k.upper() for k in frontend_deploy_env_vars("production"))
+
+    def test_absent_table_returns_empty(self):
+        # test.toml intentionally has no [frontend] table (no frontend deploy).
+        assert frontend_deploy_env_vars("test") == {}
+
+    def test_missing_environment_returns_empty(self):
+        assert frontend_deploy_env_vars("does-not-exist") == {}
