@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchOkhList } from "../../api/ohm/okh";
 import { searchOkw } from "../../api/ohm/okw";
 import { runMatch } from "../../api/ohm/match";
+import { ApiError } from "../../api/ohm/client";
 import { toMatchView } from "./matchViewModel";
 import { buildMatchRequest, SYSTEM_MODES, type SystemMode } from "./matchRequest";
 import { FacilityFilter } from "./FacilityFilter";
@@ -169,7 +170,20 @@ export function MatchView({
       {mutation.isPending && <LoadingState message="Matching against facilities…" />}
       {mutation.isError && (
         <ErrorState
-          description={mutation.error instanceof Error ? mutation.error.message : "Match failed."}
+          description={
+            mutation.error instanceof ApiError
+              ? [
+                  mutation.error.message,
+                  mutation.error.requestId
+                    ? `Request ID: ${mutation.error.requestId}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(" — ")
+              : mutation.error instanceof Error
+                ? mutation.error.message
+                : "Match failed."
+          }
           onRetry={() => selected && mutation.mutate({ id: selected, m: mode, ids: facilityIds })}
         />
       )}

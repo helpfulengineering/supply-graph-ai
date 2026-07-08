@@ -91,3 +91,15 @@ closed.
 
 - [Triage harness operator reference](triage-harness.md)
 - [`harness/README.md`](../../harness/README.md)
+
+## ACA deployment: match cold start
+
+Set these on the API container (Azure Container Apps env / secretRef):
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `MATCHING_EAGER_INIT` | `true` | Pre-load MatchingService during app startup |
+| `MATCHING_INIT_TIMEOUT_SECONDS` | `120` | Max wait for spaCy/NLP init at startup and in Depends |
+| `MATCHING_PREINIT_NLP` | `true` | Load spaCy at init (set `false` only if NLP deferred) |
+
+Point ACA **readiness** at `/health/readiness` (not `/health`) so traffic waits until matching is warm. Verify with `make harness-probes` → `probe_match` clean.

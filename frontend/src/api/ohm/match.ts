@@ -1,4 +1,4 @@
-import { apiBaseUrl, apiClient, ApiError, errorMessage } from "./client";
+import { apiBaseUrl, apiClient, ApiError, errorMessage, requestIdFromError } from "./client";
 
 export interface RunMatchParams {
   okhId: string;
@@ -65,6 +65,7 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
     throw new ApiError(
       response.status,
       errorMessage(error, `Match failed (HTTP ${response.status})`),
+      requestIdFromError(error, response),
     );
   }
   return (data ?? {}) as RawMatchResponse;
@@ -109,6 +110,7 @@ export async function fetchDesignsForFacility(
     throw new ApiError(
       response.status,
       errorMessage(body, `Failed to load producible designs (HTTP ${response.status})`),
+      requestIdFromError(body, response),
     );
   }
   const data = (body as { data?: Partial<FacilityDesignsResult> })?.data ?? {};

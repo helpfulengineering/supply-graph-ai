@@ -39,18 +39,39 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    public readonly requestId?: string,
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
 
+/** Extract request_id from an OHM error envelope or response header. */
+export function requestIdFromError(
+  body: unknown,
+  response: Response,
+): string | undefined {
+  const header = response.headers.get("x-request-id");
+  if (header) return header;
+  if (body && typeof body === "object") {
+    const id = (body as { request_id?: unknown }).request_id;
+    if (typeof id === "string" && id.trim()) return id;
+  }
+  return undefined;
+}
+
 /** Best-effort human message from a JSON error body ({message} or {detail}). */
 export function errorMessage(body: unknown, fallback: string): string {
   if (body && typeof body === "object") {
-    const b = body as { message?: unknown; detail?: unknown };
-    if (typeof b.message === "string") return b.message;
+    const b = body as {
+      message?: unknown;
+      detail?: unknown;
+      errors?: Array<{ message?: unknown }>;
+    };
     if (typeof b.detail === "string") return b.detail;
+    if (typeof b.message === "string") return b.message;
+    const first = b.errors?.[0]?.message;
+    if (typeof first === "string") return first;
   }
   return fallback;
 }

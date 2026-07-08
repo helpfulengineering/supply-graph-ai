@@ -82,8 +82,17 @@ class MatchingService:
         """
         if cls._instance is None:
             cls._instance = cls()
+        try:
             await cls._instance.initialize(okh_service, okw_service)
+        except Exception:
+            cls._instance = None
+            raise
         return cls._instance
+
+    @classmethod
+    def is_ready(cls) -> bool:
+        """True when the process-wide singleton finished :meth:`initialize`."""
+        return cls._instance is not None and cls._instance._initialized
 
     async def initialize(
         self,

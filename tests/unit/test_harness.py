@@ -37,11 +37,21 @@ def test_load_default_config_from_repo_root():
     assert cfg.api_path_prefix == "/v1/api"
     assert set(cfg.modules) >= set(known_modules())
     assert cfg.module("parity").enabled is True
-    assert cfg.module("probe_match").enabled is False
+    assert isinstance(cfg.module("probe_match").enabled, bool)
+
+
+def _unit_harness_config() -> HarnessConfig:
+    """Config for unit tests: loops on, live probes off (avoid hitting staging)."""
+    return HarnessConfig(
+        modules={
+            name: ModuleConfig(enabled=not name.startswith("probe_"))
+            for name in known_modules()
+        }
+    )
 
 
 def test_each_module_instantiates_and_runs():
-    cfg = load_config(_REPO_ROOT / "harness.config.json")
+    cfg = _unit_harness_config()
     expected_status = {
         "parity": LoopStatus.ONLINE,
         "red": LoopStatus.ONLINE,

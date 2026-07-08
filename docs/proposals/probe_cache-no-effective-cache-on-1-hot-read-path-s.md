@@ -14,10 +14,10 @@ No effective cache on 1 hot read path(s)
   "ineffective_paths": [
     {
       "path": "/utility/domains",
-      "first_ms": 122.6,
-      "second_ms": 116.6,
+      "first_ms": 140.3,
+      "second_ms": 108.8,
       "second_cached_flag": false,
-      "speedup_ratio": 0.049,
+      "speedup_ratio": 0.225,
       "effective_cache": false,
       "first_status": 200,
       "second_status": 200

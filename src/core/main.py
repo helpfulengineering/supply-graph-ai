@@ -48,6 +48,7 @@ from src.core.registry.domain_registry import (
     DomainStatus,
 )
 from src.core.services.auth_service import AuthenticationService
+from src.core.services.matching_service import MatchingService
 from src.core.services.storage_service import StorageService
 from src.core.utils.logging import get_logger, setup_logging
 
@@ -150,6 +151,37 @@ async def lifespan(app: FastAPI):
             logger.info(
                 "Federation disabled (set OHM_FEDERATION_ENABLED=true in the "
                 "server process environment to enable /v1/api/federation/*)"
+            )
+
+        if settings.MATCHING_EAGER_INIT:
+            logger.info(
+                "Pre-initializing matching service (MATCHING_EAGER_INIT=true, "
+                "timeout=%ss)",
+                settings.MATCHING_INIT_TIMEOUT_SECONDS,
+            )
+            try:
+                await asyncio.wait_for(
+                    MatchingService.get_instance(),
+                    timeout=settings.MATCHING_INIT_TIMEOUT_SECONDS,
+                )
+                logger.info("Matching service pre-initialization complete")
+            except asyncio.TimeoutError:
+                logger.error(
+                    "Matching service pre-init timed out after %ss; "
+                    "/health/readiness will report not_ready until init completes",
+                    settings.MATCHING_INIT_TIMEOUT_SECONDS,
+                )
+            except Exception as e:
+                logger.error(
+                    "Matching service pre-init failed: %s. "
+                    "Readiness will stay not_ready until init succeeds.",
+                    e,
+                    exc_info=True,
+                )
+        else:
+            logger.info(
+                "Skipping matching service pre-init (MATCHING_EAGER_INIT=false); "
+                "first POST /match may stall while NLP loads"
             )
 
         logger.info("Application startup complete")
@@ -255,7 +287,12 @@ async def readiness_check():
     It verifies that critical dependencies (storage, auth service, domains) are initialized.
     Used by Kubernetes, Cloud Run, ECS, etc. to determine if traffic should be routed to this instance.
     """
-    checks = {"storage": False, "auth_service": False, "domains": False}
+    checks = {
+        "storage": False,
+        "auth_service": False,
+        "domains": False,
+        "matching_service": MatchingService.is_ready(),
+    }
     errors = []
 
     # Check storage service
@@ -281,6 +318,9 @@ async def readiness_check():
             checks["domains"] = True
     except Exception as e:
         errors.append(f"Domain registration failed: {str(e)}")
+
+    if settings.MATCHING_EAGER_INIT and not checks["matching_service"]:
+        errors.append("Matching service not ready")
 
     # Determine overall readiness
     all_ready = all(checks.values())

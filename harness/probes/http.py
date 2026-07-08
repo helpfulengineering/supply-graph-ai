@@ -137,4 +137,11 @@ def extract_detail(body: Any) -> str:
         val = body.get(key)
         if isinstance(val, str) and val.strip():
             return val
+    errors = body.get("errors")
+    if isinstance(errors, list) and errors:
+        first = errors[0]
+        if isinstance(first, dict):
+            msg = first.get("message")
+            if isinstance(msg, str) and msg.strip():
+                return msg
     return json.dumps(body)[:500]
