@@ -6,7 +6,7 @@ The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designe
 
 OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose, from a [published Docker image](https://hub.docker.com/r/touchthesun/openhardwaremanager), or deployed serverlessly using the configurations in `deploy/`.
 
-**Current release:** `0.8.8` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
+**Current release:** `0.8.9` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
 
 ## Quick Start for New Users
 
@@ -28,11 +28,11 @@ After installing, open a new terminal so the tools are on your PATH.
 **Local storage (no credentials needed):**
 
 ```bash
-docker pull touchthesun/openhardwaremanager:0.8.8
+docker pull touchthesun/openhardwaremanager:0.8.9
 docker run -p 8001:8001 \
   -e STORAGE_PROVIDER=local \
   -e LLM_ENABLED=false \
-  touchthesun/openhardwaremanager:0.8.8
+  touchthesun/openhardwaremanager:0.8.9
 ```
 
 **Remote storage (Azure Blob, AWS S3, or GCS):**
@@ -43,7 +43,7 @@ The published image does not include a `.env` file — you must pass your storag
 # Copy the template, fill in your provider and credentials, then:
 docker run -p 8001:8001 \
   --env-file .env \
-  touchthesun/openhardwaremanager:0.8.8
+  touchthesun/openhardwaremanager:0.8.9
 ```
 
 The minimum `.env` keys for Azure Blob are:
