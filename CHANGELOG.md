@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.10] - 2026-07-08
+
+### Added
+
+- **OKH manifest file proxy (#272):** `GET /v1/api/okh/{id}/files/{path}` streams design and manufacturing files from blob storage or the manifest `repo` URL; OKH detail enriches file refs with `url`; frontend uses proxied links; `ohm okh download-file`; `probe_okh_files` prefers `url` / `download_url`.
+
+### Fixed
+
+- **ACA production stability:** Gunicorn defaults to 1 worker and 300s timeout in `production.toml` (prevents OOM crash loop on 1 vCPU with eager NLP init).
+- **Frontend ACA deploy:** fractional CPU values (e.g. 0.5) accepted for the nginx sidecar.
+- **Release workflow:** deploy verify retries with clearer logging against `/health/liveness`.
+
 ## [0.8.9] - 2026-07-08
 
 ### Added
@@ -49,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.8.10]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.6...v0.8.7
