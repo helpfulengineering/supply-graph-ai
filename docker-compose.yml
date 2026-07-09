@@ -57,6 +57,10 @@ services:
       - OHM_FEDERATION_DATA_DIR=${OHM_FEDERATION_DATA_DIR:-/app/storage/federation}
       - OHM_FEDERATION_MANUAL_PEERS=${OHM_FEDERATION_MANUAL_PEERS:-}
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=${OHM_FEDERATION_SYNC_INTERVAL_SEC:-60}
+      # Cache (memory default; set redis + CACHE_REDIS_URL when redis service is up)
+      - CACHE_BACKEND=${CACHE_BACKEND:-memory}
+      - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
+      - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX:-ohm}
     volumes:
       - ohm-storage:/app/storage
       - ohm-logs:/app/logs
@@ -71,11 +75,30 @@ services:
       # Note: Healthcheck uses hardcoded port 8001 (default)
       # If PORT or API_PORT is changed, update this accordingly
       # The Dockerfile healthcheck uses ${PORT:-8001} which is more flexible
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health/readiness"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 120s
+
+  # Redis / Valkey for distributed response cache (multi-replica / ACA).
+  # Start with: docker compose up redis
+  # Then set CACHE_BACKEND=redis on ohm-api (or in .env).
+  redis:
+    image: redis:7-alpine
+    container_name: ohm-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ohm-network
+    restart: unless-stopped
+    profiles:
+      - redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # Prometheus for metrics collection
   prometheus:

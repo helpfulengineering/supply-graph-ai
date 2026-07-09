@@ -44,6 +44,9 @@ def _read_cache_settings() -> dict[str, Any]:
 
         return {
             "CACHE_ENABLED": getattr(cfg, "CACHE_ENABLED", None),
+            "CACHE_BACKEND": getattr(cfg, "CACHE_BACKEND", None),
+            "CACHE_REDIS_URL": bool(getattr(cfg, "CACHE_REDIS_URL", None)),
+            "CACHE_KEY_PREFIX": getattr(cfg, "CACHE_KEY_PREFIX", None),
             "CACHE_MAX_SIZE": getattr(cfg, "CACHE_MAX_SIZE", None),
             "CACHE_CLEANUP_INTERVAL": getattr(cfg, "CACHE_CLEANUP_INTERVAL", None),
         }
@@ -63,8 +66,8 @@ class ProbeCacheLoop(ProbeModule):
                     self.module_config.options.get("probe_paths") or DEFAULT_PROBE_PATHS
                 ),
                 "note": (
-                    "CacheService is in-memory LRU (single-replica); ACA multi-replica "
-                    "needs shared cache (Redis) for hit rate across instances."
+                    "Use CACHE_BACKEND=redis + CACHE_REDIS_URL for multi-replica ACA; "
+                    "memory backend is per-process only."
                 ),
             },
             notes=[

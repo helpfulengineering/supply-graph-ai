@@ -175,6 +175,11 @@ CACHE_ENABLED = _get_secret_or_env("CACHE_ENABLED", "true").lower() in (
 )
 CACHE_MAX_SIZE = int(_get_secret_or_env("CACHE_MAX_SIZE", "1000"))
 CACHE_CLEANUP_INTERVAL = int(_get_secret_or_env("CACHE_CLEANUP_INTERVAL", "60"))
+# ``memory`` = in-process LRU (default, zero deps). ``redis`` = Redis protocol
+# (Valkey, Azure Cache for Redis, ElastiCache, self-hosted Redis sidecar).
+CACHE_BACKEND = (_get_secret_or_env("CACHE_BACKEND", "memory") or "memory").lower()
+CACHE_REDIS_URL = (_get_secret_or_env("CACHE_REDIS_URL", "") or "").strip() or None
+CACHE_KEY_PREFIX = (_get_secret_or_env("CACHE_KEY_PREFIX", "ohm") or "ohm").strip()
 
 # Rate Limiting Configuration
 RATE_LIMIT_ENABLED = _get_secret_or_env("RATE_LIMIT_ENABLED", "true").lower() in (

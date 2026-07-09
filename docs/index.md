@@ -24,6 +24,7 @@
 * [Test Harness Standards](testing/harness-standards.md)
 * [Triage harness (operator reference)](testing/triage-harness.md) — post-deploy drift / RED / smoke loops (`make harness`)
 * [Production probe workflow](testing/probe-workflow.md) — ACA pain-point probes and fix proposals (`make harness-probes`)
+* [Distributed cache deployment](testing/cache-deployment.md) — `CACHE_BACKEND` memory vs Redis (#271)
 * [Canonical Test Workflows](testing/workflows/README.md)
 
 ### Data Models

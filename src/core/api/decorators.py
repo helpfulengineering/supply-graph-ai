@@ -377,7 +377,11 @@ def cache_response(ttl_seconds: int = 300, cache_key_prefix: str = None):
         @wraps(func)
         async def wrapper(*args, **kwargs):
 
+            from src.config.settings import CACHE_ENABLED
             from ..services.cache_service import get_cache_service
+
+            if not CACHE_ENABLED:
+                return await func(*args, **kwargs)
 
             # Extract request object if available
             request = None
