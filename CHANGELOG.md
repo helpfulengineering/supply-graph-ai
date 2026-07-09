@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.9] - 2026-07-08
+
+### Added
+
+- **Unified distributed cache (#271):** pluggable `CacheBackend` with `memory` (default) and `redis` backends; shared by `@cache_response` and `cached()`; cache stats on `GET /v1/api/utility/metrics`. Optional Redis service in `docker compose --profile redis`.
+- **ACA triage harness and production probes:** `make harness` / `make harness-probes` with `probe_match`, `probe_cache`, `probe_okh_files`, and `probe_latency`; proposal workflow under `docs/testing/probe-workflow.md`.
+
+### Fixed
+
+- **Match 503 cold start on ACA (#270):** `MATCHING_EAGER_INIT` pre-loads `MatchingService` during app lifespan; `/health/readiness` reports `matching_service`; frontend surfaces API `request_id` on match errors.
+- **Release workflow:** backend deploy verify tolerates ACA cold-start; frontend publish waits on backend tests; changelog gate for tagged releases.
+
 ## [0.8.8] - 2026-07-07
 
 ### Changed
@@ -37,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.8.9]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.7...v0.8.8
 [0.8.7]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.6...v0.8.7
 [0.8.6]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.5...v0.8.6

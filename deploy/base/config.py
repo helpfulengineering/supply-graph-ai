@@ -57,7 +57,7 @@ class ServiceConfig:
     image: str
     port: int = 8080
     memory: str = "4Gi"  # Updated: Required for NLP matching operations
-    cpu: int = 2
+    cpu: float = 2
     min_instances: int = 1
     max_instances: int = 100
     timeout: int = 300  # 5 minutes for long-running matching operations
@@ -73,8 +73,8 @@ class ServiceConfig:
             raise DeploymentConfigError("Service image is required")
         if self.port < 1 or self.port > 65535:
             raise DeploymentConfigError(f"Invalid port: {self.port}")
-        if self.cpu < 1:
-            raise DeploymentConfigError(f"CPU must be at least 1, got {self.cpu}")
+        if self.cpu < 0.25:
+            raise DeploymentConfigError(f"CPU must be at least 0.25, got {self.cpu}")
         if self.min_instances < 0:
             raise DeploymentConfigError(
                 f"min_instances must be >= 0, got {self.min_instances}"

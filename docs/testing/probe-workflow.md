@@ -104,3 +104,5 @@ Set these on the API container (Azure Container Apps env / secretRef):
 | `MATCHING_PREINIT_NLP` | `true` | Load spaCy at init (set `false` only if NLP deferred) |
 
 Point ACA **readiness** at `/health/readiness` (not `/health`) so traffic waits until matching is warm. Verify with `make harness-probes` → `probe_match` clean.
+
+**Gunicorn on ACA (1 vCPU):** use `GUNICORN_WORKERS=1` and `GUNICORN_TIMEOUT=300`. The default `nproc*2+1` workers each run eager NLP init and can OOM or exceed the 120s worker timeout on a 2Gi container. These are set in `config/environments/production.toml` and applied by the release deploy step.

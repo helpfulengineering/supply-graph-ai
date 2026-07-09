@@ -30,16 +30,18 @@ print(f"[Gunicorn Config] Binding to: {bind}")
 
 backlog = 2048
 
-# Worker processes
-workers = int(os.getenv("GUNICORN_WORKERS", multiprocessing.cpu_count() * 2 + 1))
+# Worker processes — default low on small containers (ACA 1 vCPU + eager NLP init).
+_cpu_count = multiprocessing.cpu_count()
+_default_workers = 1 if _cpu_count <= 2 else min(_cpu_count * 2 + 1, _cpu_count + 2)
+workers = int(os.getenv("GUNICORN_WORKERS", str(_default_workers)))
 # Use uvicorn workers for async FastAPI application
 worker_class = os.getenv("GUNICORN_WORKER_CLASS", "uvicorn.workers.UvicornWorker")
 worker_connections = int(os.getenv("GUNICORN_WORKER_CONNECTIONS", "1000"))
 max_requests = int(os.getenv("GUNICORN_MAX_REQUESTS", "1000"))
 max_requests_jitter = int(os.getenv("GUNICORN_MAX_REQUESTS_JITTER", "100"))
 
-# Timeout settings
-timeout = int(os.getenv("GUNICORN_TIMEOUT", "120"))
+# Timeout settings (must exceed MATCHING_INIT_TIMEOUT_SECONDS + storage startup)
+timeout = int(os.getenv("GUNICORN_TIMEOUT", "300"))
 keepalive = int(os.getenv("GUNICORN_KEEPALIVE", "5"))
 
 # Logging

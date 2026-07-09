@@ -48,14 +48,13 @@ start_api() {
         echo "================================"
         # Use Gunicorn with uvicorn workers for production
         # Note: bind address is configured in gunicorn.conf.py to use PORT env var
+        # Workers/timeout come from gunicorn.conf.py (GUNICORN_WORKERS / GUNICORN_TIMEOUT).
         exec gunicorn src.core.main:app \
             --config gunicorn.conf.py \
-            --workers "${GUNICORN_WORKERS:-$(($(nproc) * 2 + 1))}" \
             --worker-class uvicorn.workers.UvicornWorker \
             --access-logfile - \
             --error-logfile - \
             --log-level "${LOG_LEVEL:-info}" \
-            --timeout "${GUNICORN_TIMEOUT:-120}" \
             --graceful-timeout 30 \
             --keep-alive 5
     else

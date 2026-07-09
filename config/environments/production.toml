@@ -11,6 +11,11 @@ storage_provider = "azure_blob"
 azure_storage_account = "projdatablobstorage"
 azure_storage_container = "production"
 
+# Gunicorn (ENVIRONMENT=production). ACA runs 1 vCPU / 2Gi — a single worker
+# avoids 3× spaCy eager-init OOM; timeout must exceed MATCHING_INIT_TIMEOUT_SECONDS.
+gunicorn_workers = "1"
+gunicorn_timeout = "300"
+
 # Frontend (nginx) container deploy config — applied to the frontend container
 # app by the frontend deploy step (schema.frontend_deploy_env_vars), NOT the
 # backend. api_upstream_url is the backend ORIGIN (scheme + host, no /v1 path).

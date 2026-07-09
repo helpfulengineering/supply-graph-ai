@@ -247,18 +247,21 @@ jobs:
           url = f"https://{host}/health/liveness"
           actual = None
 
-          for attempt in range(1, 49):
+          for attempt in range(1, 37):
               try:
-                  with urllib.request.urlopen(url, timeout=30) as resp:
+                  with urllib.request.urlopen(url, timeout=10) as resp:
                       body = json.load(resp)
                   actual = body.get("version")
                   if actual == expected:
-                      print(f"deployed version={actual} (expected {expected})")
+                      print(f"deployed version={actual} (expected {expected})", flush=True)
                       sys.exit(0)
-                  print(f"attempt {attempt}/48: version={actual!r} (waiting for {expected!r})")
+                  print(
+                      f"attempt {attempt}/36: version={actual!r} (waiting for {expected!r})",
+                      flush=True,
+                  )
               except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
-                  print(f"attempt {attempt}/48: not ready ({type(exc).__name__})")
-              time.sleep(5)
+                  print(f"attempt {attempt}/36: not ready ({type(exc).__name__})", flush=True)
+              time.sleep(10)
 
           print(f"deployed version={actual!r} (expected {expected!r})")
           sys.exit(1)

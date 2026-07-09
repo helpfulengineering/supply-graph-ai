@@ -210,6 +210,8 @@ class TestDeployEnvVars:
         assert env["STORAGE_PROVIDER"] == "azure_blob"
         assert env["AZURE_STORAGE_ACCOUNT"] == "projdatablobstorage"
         assert env["AZURE_STORAGE_CONTAINER"] == "production"
+        assert env["GUNICORN_WORKERS"] == "1"
+        assert env["GUNICORN_TIMEOUT"] == "300"
 
     def test_development_is_local(self):
         assert deploy_env_vars("development") == {"STORAGE_PROVIDER": "local"}
