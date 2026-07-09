@@ -418,11 +418,18 @@ async def get_metrics(
             return tracker.get_endpoint_metrics(method=method, path=path)
 
         if summary:
-            return tracker.get_summary()
+            from ...services.cache_service import get_cache_service
+
+            payload = tracker.get_summary()
+            payload["cache"] = get_cache_service().get_stats()
+            return payload
+
+        from ...services.cache_service import get_cache_service
 
         return {
             "summary": tracker.get_summary(),
             "endpoints": tracker.get_endpoint_metrics(),
+            "cache": get_cache_service().get_stats(),
         }
     except HTTPException:
         raise

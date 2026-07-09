@@ -90,6 +90,7 @@ closed.
 ## Related docs
 
 - [Triage harness operator reference](triage-harness.md)
+- [Distributed cache deployment](cache-deployment.md) — `CACHE_BACKEND` memory vs Redis (#271)
 - [`harness/README.md`](../../harness/README.md)
 
 ## ACA deployment: match cold start

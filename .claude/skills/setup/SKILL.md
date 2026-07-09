@@ -200,8 +200,11 @@ Present as a menu — user can skip all:
 
 **Cache settings** (rarely needed):
 - `CACHE_ENABLED` — boolean; default: `true`
-- `CACHE_MAX_SIZE` — integer; default: `1000`; max LRU cache entries
-- `CACHE_CLEANUP_INTERVAL` — integer seconds; default: `60`
+- `CACHE_BACKEND` — `memory` or `redis`; default: `memory` (use `redis` for multi-replica / ACA)
+- `CACHE_REDIS_URL` — Redis protocol URL; required when `CACHE_BACKEND=redis` (e.g. `redis://redis:6379/0`)
+- `CACHE_KEY_PREFIX` — string; default: `ohm`; namespace for all cache keys
+- `CACHE_MAX_SIZE` — integer; default: `1000`; max LRU entries (memory backend only)
+- `CACHE_CLEANUP_INTERVAL` — integer seconds; default: `60` (memory backend only)
 
 **Rate limiting** (rarely needed):
 - `RATE_LIMIT_ENABLED` — boolean; default: `true`
