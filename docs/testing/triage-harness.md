@@ -394,4 +394,6 @@ ERROR findings can auto-generate draft fix proposals under `docs/proposals/`
 - Map `Finding.suggested_state` → issue tracker (triage bot)
 - Cloud `harness.config.json` overlay pointing at staging URLs
 - Expand synthetic journeys as real-api coverage grows
-- Implement approved probe proposals (match init, shared cache, file proxy)
+- ~~Implement approved probe proposals (match init, shared cache, file proxy)~~ — match (#270) and cache (#271) **done**; file proxy ([#272](https://github.com/helpfulengineering/supply-graph-ai/issues/272)) **remaining**
+- Codify ACA Gunicorn defaults in release deploy (landed in `production.toml`; confirm on next tag)
+- Optional: dedicated latency work if `probe_latency` warnings persist on `okh_list`

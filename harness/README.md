@@ -26,14 +26,14 @@ uv run python -m harness.runner --json          # machine-readable
 
 ## Production probes (opt-in)
 
-| Module | Pain point |
-|--------|------------|
-| `probe_match` | Intermittent match 503 |
-| `probe_latency` | Slow hot-path SLO breaches |
-| `probe_cache` | Missing / ineffective read cache |
-| `probe_okh_files` | OKH file refs not proxied / broken |
+| Module | Pain point | Status |
+|--------|------------|--------|
+| `probe_match` | Intermittent match 503 | Resolved (#270, v0.8.9) |
+| `probe_latency` | Slow hot-path SLO breaches | Improved (monitor) |
+| `probe_cache` | Missing / ineffective read cache | Resolved (#271, Redis on ACA) |
+| `probe_okh_files` | OKH file refs not proxied / broken | In progress (#272, v0.8.10+) |
 
-See **[docs/testing/probe-workflow.md](../docs/testing/probe-workflow.md)**.
+See **[docs/testing/probe-workflow.md](../docs/testing/probe-workflow.md)** for progress tracker.
 
 ## Layout
 

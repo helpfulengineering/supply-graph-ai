@@ -407,6 +407,50 @@ async def get(
         raise
 
 
+@okh_group.command("download-file")
+@click.argument("manifest_id", type=str)
+@click.argument("file_path", type=str)
+@click.option(
+    "--output", "-o", required=True, type=click.Path(), help="Output file path"
+)
+@standard_cli_command(
+    help_text="Download an OKH manifest attachment via the API file proxy.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=False,
+    add_llm_config=False,
+)
+@click.pass_context
+async def download_file(
+    ctx,
+    manifest_id: str,
+    file_path: str,
+    output: str,
+    verbose: bool,
+    output_format: str,
+):
+    """Download a design/manufacturing file for an OKH manifest."""
+    from urllib.parse import quote
+
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-download-file")
+    encoded = "/".join(quote(part, safe="") for part in file_path.split("/") if part)
+    path = f"/api/okh/{manifest_id}/files/{encoded}"
+
+    try:
+        async with cli_ctx.api_client.get_client() as client:
+            response = await client.get(path)
+            response.raise_for_status()
+            with open(output, "wb") as out:
+                out.write(response.content)
+        cli_ctx.log(f"Wrote {output}", "success")
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Download failed: {e}", "error")
+        raise
+
+
 @okh_group.command()
 @click.argument("manifest_file", type=click.Path(exists=True))
 @standard_cli_command(

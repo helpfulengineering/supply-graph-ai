@@ -11,6 +11,41 @@ requests against a running API.
 
 ---
 
+## Progress (ACA production, v0.8.9)
+
+First cloud UI deployment triage — status as of **2026-07-08** after `v0.8.9` is
+live on Azure Container Apps (`openhardwaremanager…westus3.azurecontainerapps.io`).
+
+| Probe | Pain point | Issue | Status | Outcome |
+|-------|------------|-------|--------|---------|
+| `probe_match` | Intermittent POST `/match` **503** | [#270](https://github.com/helpfulengineering/supply-graph-ai/issues/270) | **Resolved** | `MATCHING_EAGER_INIT` + `/health/readiness` `matching_service` check; frontend shows `request_id` on errors. Probe clean post-deploy. |
+| `probe_cache` | **Missing cache** on hot reads | [#271](https://github.com/helpfulengineering/supply-graph-ai/issues/271) | **Resolved** | Unified `CacheBackend` (`memory` / `redis`); ACA on Azure Managed Redis (`CACHE_BACKEND=redis`). Metrics at `/v1/api/utility/metrics` → `data.cache`. Site noticeably more responsive. |
+| `probe_latency` | **10–30s** responses | — | **Improved** | Latency down with warm matching + Redis; `okh_list` may still warn on SLO — monitor, no dedicated issue yet. |
+| `probe_okh_files` | **OKH file links** broken | [#272](https://github.com/helpfulengineering/supply-graph-ai/issues/272) | **In progress** | File proxy API + frontend landed; verify on ACA with `make harness-probes`. |
+
+### Release / ops lessons (0.8.9)
+
+| Topic | What happened | Fix |
+|-------|---------------|-----|
+| Deploy verify hang | `curl \| json.load` on empty responses during cold start; 100s window too short | Release workflow: robust retry loop, `/health/liveness`, flushed logs |
+| Container crash loop | Gunicorn `nproc*2+1` → 3 workers on 1 vCPU, each eager-loading spaCy | `GUNICORN_WORKERS=1`, `GUNICORN_TIMEOUT=300` in `production.toml` + entrypoint defaults |
+| Frontend deploy | `ServiceConfig` rejected `0.5` CPU | Allow fractional CPU (min `0.25`) for nginx SPA container |
+| GitHub Release job | Missing `## [0.8.9]` in `CHANGELOG.md` | Changelog section added; gate requires section per tag |
+
+### Verification commands
+
+```bash
+# Quick live check
+curl -sS https://openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io/health | jq .
+
+# Full probe sweep (point harness.config.json at ACA first)
+make harness-probes
+```
+
+**Next:** deploy #272 to ACA, run `make harness-probes` until `probe_okh_files` is clean, then close the triage loop.
+
+---
+
 ## Pain points and probes
 
 | Probe | Pain point | What it checks |

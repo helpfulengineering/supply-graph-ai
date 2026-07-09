@@ -20,12 +20,14 @@ def _collect_file_refs(manifest: dict[str, Any]) -> list[dict[str, str]]:
             if not isinstance(item, dict):
                 continue
             path = str(item.get("path") or "").strip()
-            if path:
+            url = str(item.get("url") or item.get("download_url") or "").strip()
+            check_url = url or path
+            if check_url:
                 refs.append(
                     {
                         "field": field,
                         "title": str(item.get("title") or ""),
-                        "path": path,
+                        "path": check_url,
                         "type": str(item.get("type") or ""),
                     }
                 )
