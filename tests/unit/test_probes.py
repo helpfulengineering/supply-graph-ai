@@ -25,10 +25,12 @@ def _probe_assumes_api_reachable():
         yield
 
 
-def _cfg(**options) -> HarnessConfig:
+def _cfg(module: str = "probe_match", **options) -> HarnessConfig:
+    """Probe module config for unit tests (no live API required)."""
+    options.setdefault("skip_if_unreachable", False)
     return HarnessConfig(
         modules={
-            "probe_match": ModuleConfig(enabled=True, options=options),
+            module: ModuleConfig(enabled=True, options=options),
         }
     )
 
@@ -95,23 +97,17 @@ def test_probe_latency_exceeds_error_slo(mock_api):
 
     mock_api.return_value = HttpResult("GET", "u", 200, 15000, body={"items": []})
     mod = ProbeLatencyLoop(
-        HarnessConfig(
-            modules={
-                "probe_latency": ModuleConfig(
-                    enabled=True,
-                    options={
-                        "checks": [
-                            {
-                                "name": "slow",
-                                "method": "GET",
-                                "path": "/okh?page=1",
-                                "warn_ms": 1000,
-                                "error_ms": 5000,
-                            }
-                        ]
-                    },
-                )
-            }
+        _cfg(
+            "probe_latency",
+            checks=[
+                {
+                    "name": "slow",
+                    "method": "GET",
+                    "path": "/okh?page=1",
+                    "warn_ms": 1000,
+                    "error_ms": 5000,
+                }
+            ],
         )
     )
     report = mod.run()
@@ -126,14 +122,7 @@ def test_probe_cache_flags_ineffective_paths(mock_api):
         HttpResult("GET", "u", 200, 950, body={}),
     ]
     mod = ProbeCacheLoop(
-        HarnessConfig(
-            modules={
-                "probe_cache": ModuleConfig(
-                    enabled=True,
-                    options={"probe_paths": ["/okh?page=1&page_size=5"]},
-                )
-            }
-        )
+        _cfg("probe_cache", probe_paths=["/okh?page=1&page_size=5"]),
     )
     report = mod.run()
     assert not report.ok
@@ -162,11 +151,7 @@ def test_probe_okh_files_flags_relative_paths(mock_api):
             },
         ),
     ]
-    mod = ProbeOkhFilesLoop(
-        HarnessConfig(
-            modules={"probe_okh_files": ModuleConfig(enabled=True, options={})}
-        )
-    )
+    mod = ProbeOkhFilesLoop(_cfg("probe_okh_files"))
     report = mod.run()
     assert not report.ok
     assert any("not API-proxied" in f.title for f in report.findings)

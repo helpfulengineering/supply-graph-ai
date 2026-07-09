@@ -227,30 +227,68 @@ jobs:
             --environment production
 
       - name: Verify deployment
+        env:
+          API_HOST: openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io
+          EXPECTED_VERSION: ${{ needs.validate.outputs.version }}
+        # Lifespan startup (storage + MATCHING_EAGER_INIT up to 120s) can exceed
+        # the old 20×5s window; use liveness (no storage fingerprint) and tolerate
+        # empty/non-JSON gateway responses during revision rollout.
         run: |
-          for i in $(seq 1 20); do
-            ACTUAL=$(curl -sf https://openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io/health \
-              | python3 -c "import sys,json; print(json.load(sys.stdin)['version'])" || true)
-            [ "$ACTUAL" = "${{ needs.validate.outputs.version }}" ] && break
-            sleep 5
-          done
-          echo "deployed version=$ACTUAL (expected ${{ needs.validate.outputs.version }})"
-          test "$ACTUAL" = "${{ needs.validate.outputs.version }}"
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import time
+          import urllib.error
+          import urllib.request
+
+          host = os.environ["API_HOST"]
+          expected = os.environ["EXPECTED_VERSION"]
+          url = f"https://{host}/health/liveness"
+          actual = None
+
+          for attempt in range(1, 49):
+              try:
+                  with urllib.request.urlopen(url, timeout=30) as resp:
+                      body = json.load(resp)
+                  actual = body.get("version")
+                  if actual == expected:
+                      print(f"deployed version={actual} (expected {expected})")
+                      sys.exit(0)
+                  print(f"attempt {attempt}/48: version={actual!r} (waiting for {expected!r})")
+              except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
+                  print(f"attempt {attempt}/48: not ready ({type(exc).__name__})")
+              time.sleep(5)
+
+          print(f"deployed version={actual!r} (expected {expected!r})")
+          sys.exit(1)
+          PY
 
       - name: Verify storage fingerprint (drift + emptiness gate)
         # Assert the live app is actually pointed at the container the repo
         # declares (config/environments/production.toml) AND that it is non-empty.
         # Emptiness is a deploy-gate failure (never promote a release onto an
         # empty/mis-pointed prod container) even though it is only a startup warning.
+        env:
+          API_HOST: openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io
         run: |
           python3 - <<'PY'
-          import json, sys, tomllib, urllib.request
+          import json, sys, time, tomllib, urllib.error, urllib.request, os
 
-          host = "openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io"
+          host = os.environ["API_HOST"]
           with open("config/environments/production.toml", "rb") as f:
               expected = tomllib.load(f).get("azure_storage_container", "")
-          with urllib.request.urlopen(f"https://{host}/health", timeout=15) as r:
-              fp = json.load(r).get("storage", {})
+
+          fp = {}
+          for attempt in range(1, 13):
+              try:
+                  with urllib.request.urlopen(f"https://{host}/health", timeout=30) as r:
+                      fp = json.load(r).get("storage", {})
+                  if fp.get("container") is not None:
+                      break
+              except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+                  print(f"attempt {attempt}/12: /health not ready ({type(exc).__name__})")
+              time.sleep(5)
 
           container, okh, okw = fp.get("container"), fp.get("okh_count"), fp.get("okw_count")
           print(f"live container={container!r} expected={expected!r} okh={okh} okw={okw}")
@@ -273,7 +311,7 @@ jobs:
   publish-frontend:
     name: Publish frontend multi-arch to Docker Hub
     runs-on: ubuntu-latest
-    needs: [validate]
+    needs: [validate, test, docker-smoke]
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
@@ -323,7 +361,7 @@ jobs:
   deploy-frontend-azure:
     name: Deploy frontend to Azure Container Apps
     runs-on: ubuntu-latest
-    needs: [validate, publish-frontend]
+    needs: [validate, publish, publish-frontend]
     if: github.event_name == 'push'
     environment: production
     permissions:
