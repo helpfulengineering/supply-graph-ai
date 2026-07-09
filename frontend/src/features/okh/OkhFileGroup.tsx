@@ -1,6 +1,8 @@
 import type { OkhFileRef } from "../../types/okh";
+import { okhFileHref, okhFileOpensInline } from "./okhFileHref";
 
 interface Props {
+  okhId: string;
   title: string;
   icon: string;
   files: OkhFileRef[];
@@ -11,7 +13,7 @@ function fileExtension(path: string): string {
   return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "FILE";
 }
 
-export function OkhFileGroup({ title, icon, files }: Props) {
+export function OkhFileGroup({ okhId, title, icon, files }: Props) {
   if (files.length === 0) return null;
 
   return (
@@ -38,9 +40,10 @@ export function OkhFileGroup({ title, icon, files }: Props) {
               )}
             </div>
             <a
-              href={f.path}
+              href={okhFileHref(okhId, f)}
               target="_blank"
               rel="noopener noreferrer"
+              download={okhFileOpensInline(f) ? undefined : ""}
               className="shrink-0 rounded bg-white px-2 py-0.5 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200 hover:text-indigo-600 hover:ring-indigo-300 transition-colors dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600 dark:hover:text-indigo-400"
             >
               {fileExtension(f.path)}

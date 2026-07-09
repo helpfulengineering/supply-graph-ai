@@ -270,9 +270,9 @@ export function OkhDetailView({ id }: Props) {
                 Files &amp; Documentation
               </h2>
               <div className="space-y-6">
-                <OkhFileGroup title="Design Files" icon="📐" files={okh.design_files} />
-                <OkhFileGroup title="Manufacturing Files" icon="🏭" files={okh.manufacturing_files} />
-                <OkhFileGroup title="Making Instructions" icon="📋" files={okh.making_instructions} />
+                <OkhFileGroup okhId={okh.id} title="Design Files" icon="📐" files={okh.design_files} />
+                <OkhFileGroup okhId={okh.id} title="Manufacturing Files" icon="🏭" files={okh.manufacturing_files} />
+                <OkhFileGroup okhId={okh.id} title="Making Instructions" icon="📋" files={okh.making_instructions} />
               </div>
             </section>
           )}

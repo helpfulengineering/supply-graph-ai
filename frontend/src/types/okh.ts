@@ -3,6 +3,8 @@
 export interface OkhFileRef {
   title: string;
   path: string;
+  /** API-proxied download/view URL when path is storage-relative */
+  url?: string;
   type: string;
   metadata: Record<string, string>;
 }

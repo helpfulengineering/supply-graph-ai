@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 from uuid import UUID
 
+import httpx
 import yaml
 from fastapi import (
     APIRouter,
@@ -23,6 +24,12 @@ from fastapi.responses import Response
 
 from ...services.cleanup_service import CleanupOptions, CleanupService
 from ...services.asset_service import AssetService
+from ...services.okh_file_resolver import (
+    OkhFileNotFoundError,
+    content_disposition,
+    is_inline_media_type,
+    resolve_okh_file_bytes,
+)
 from ...services.okh_service import OKHService
 from ...services.scaffold_service import ScaffoldService
 from ...services.storage_service import StorageService
@@ -39,6 +46,7 @@ from ..decorators import (
     track_performance,
 )
 from ..error_handlers import create_error_response
+from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
 # Import new standardized components
 from ..models.base import (
@@ -255,6 +263,74 @@ async def delete_okh_manifest_alias(
     return SuccessResponse(success=success, message=f"OKH manifest {id} deleted")
 
 
+@router.get(
+    "/{id}/files/{file_path:path}",
+    summary="Download or view an OKH manifest file",
+    response_class=Response,
+)
+async def get_okh_file(
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    file_path: str = Path(..., title="Manifest-relative file path"),
+    http_request: Request = None,
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Response:
+    """Stream a design/manufacturing/instruction file via OHM storage or source repo."""
+    request_id = (
+        getattr(http_request.state, "request_id", None) if http_request else None
+    )
+    try:
+        content, media_type, filename = await resolve_okh_file_bytes(
+            okh_service, id, file_path
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except OkhFileNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "message": str(exc),
+                "request_id": request_id,
+            },
+        )
+    except httpx.HTTPError as exc:
+        logger.warning(
+            "Upstream fetch failed for OKH %s file %s: %s", id, file_path, exc
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail={
+                "message": "Failed to fetch file from upstream repository",
+                "request_id": request_id,
+            },
+        )
+    except Exception as exc:
+        logger.error(
+            "Error resolving OKH file %s for %s: %s",
+            file_path,
+            id,
+            exc,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=create_error_response(
+                error=exc,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                request_id=request_id,
+            ).model_dump(mode="json"),
+        )
+
+    inline = is_inline_media_type(media_type)
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": content_disposition(filename, inline=inline),
+            "Cache-Control": "private, max-age=300",
+        },
+    )
+
+
 @router.get("/{id}", response_model=OKHResponse)
 async def get_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
@@ -286,6 +362,10 @@ async def get_okh(
 
         # Convert OKHManifest to dict
         manifest_dict = result.to_dict()
+        if http_request is not None:
+            enrich_manifest_file_urls(
+                manifest_dict, api_base_from_request(http_request), id
+            )
 
         # Construct OKHResponse with required SuccessResponse fields
         # Use model_validate for more robust construction that handles type conversions

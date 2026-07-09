@@ -157,6 +157,41 @@ def test_probe_okh_files_flags_relative_paths(mock_api):
     assert any("not API-proxied" in f.title for f in report.findings)
 
 
+@patch("harness.modules.probe_okh_files._check_file_url")
+@patch("harness.modules.probe_okh_files.api_request")
+def test_probe_okh_files_clean_when_urls_proxied(mock_api, mock_check):
+    mock_check.return_value = {
+        "path": "https://api.example/v1/api/okh/m1/files/docs/plan.pdf",
+        "reachable": True,
+        "status": 200,
+        "kind": "external",
+    }
+    mock_api.side_effect = [
+        HttpResult("GET", "u", 200, 50, body={"items": [{"id": "m1"}]}),
+        HttpResult(
+            "GET",
+            "u",
+            200,
+            80,
+            body={
+                "data": {
+                    "id": "m1",
+                    "design_files": [
+                        {
+                            "path": "docs/plan.pdf",
+                            "url": "https://api.example/v1/api/okh/m1/files/docs/plan.pdf",
+                            "title": "Plan",
+                        }
+                    ],
+                }
+            },
+        ),
+    ]
+    mod = ProbeOkhFilesLoop(_cfg("probe_okh_files"))
+    report = mod.run()
+    assert report.ok
+
+
 def test_check_file_url_relative_path():
     result = _check_file_url("relative/path.stl")
     assert result["reachable"] is False
