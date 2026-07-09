@@ -18,6 +18,13 @@ from harness.protocol import Finding, FindingKind, Severity
 pytestmark = pytest.mark.unit
 
 
+@pytest.fixture(autouse=True)
+def _probe_assumes_api_reachable():
+    """Unit tests mock HTTP; do not require a live API on api_health_url."""
+    with patch("harness.probes.base.check_api_reachable", return_value=True):
+        yield
+
+
 def _cfg(**options) -> HarnessConfig:
     return HarnessConfig(
         modules={
