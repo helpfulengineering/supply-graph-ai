@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import mimetypes
 from pathlib import PurePosixPath
 from typing import Optional
 from uuid import UUID
@@ -10,6 +9,7 @@ from uuid import UUID
 import httpx
 
 from ..packaging.repo_file_urls import resolve_repo_relative_file_url
+from ..taxonomy.file_type_taxonomy import file_type_taxonomy
 from ..utils.logging import get_logger
 from .okh_service import OKHService
 
@@ -50,12 +50,7 @@ def candidate_storage_keys(
 
 
 def guess_media_type(path: str, content: Optional[bytes] = None) -> str:
-    media_type, _ = mimetypes.guess_type(path)
-    if media_type:
-        return media_type
-    if content and content[:5] == b"%PDF-":
-        return "application/pdf"
-    return "application/octet-stream"
+    return file_type_taxonomy.guess_mime_type(path, content)
 
 
 def content_disposition(filename: str, *, inline: bool) -> str:
@@ -72,6 +67,8 @@ def is_inline_media_type(media_type: str) -> bool:
         "text/plain",
         "text/markdown",
         "text/html",
+        "text/csv",
+        "application/json",
     }:
         return True
     return False

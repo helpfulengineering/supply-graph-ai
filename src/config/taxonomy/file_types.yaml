@@ -1,0 +1,277 @@
+# =============================================================================
+# Canonical File Type Taxonomy
+# =============================================================================
+#
+# Single source of truth for file extension → technical type, OKH role, and
+# UI render tier. See docs/architecture/file-type-taxonomy-adr.md.
+#
+# HOW TO ADD OR MODIFY FILE TYPES:
+#   1. Each key under "file_types:" is the canonical_id (lowercase snake_case).
+#   2. Required: display_name, extensions, okh_role, render_tier
+#   3. Optional: parent, mime_types, aliases
+#   4. Validate: ohm file-types validate
+#
+# okh_role: design | manufacturing | grey_zone | documentation | software
+# render_tier: native_inline | text_viewer | wasm_3d | download_only
+#
+# =============================================================================
+
+version: "1.0.0"
+description: "Canonical file type taxonomy for the Open Hardware Manager"
+metadata:
+  maintainer: "OHM Team"
+  last_updated: "2026-07-09"
+
+file_types:
+
+  # ---------------------------------------------------------------------------
+  # Images
+  # ---------------------------------------------------------------------------
+
+  image:
+    display_name: "Image"
+    extensions: []
+    okh_role: documentation
+    render_tier: native_inline
+
+  image_raster:
+    display_name: "Raster Image"
+    parent: image
+    extensions: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"]
+    mime_types: ["image/png", "image/jpeg", "image/gif", "image/webp", "image/bmp", "image/svg+xml"]
+    okh_role: documentation
+    render_tier: native_inline
+
+  # ---------------------------------------------------------------------------
+  # Documents
+  # ---------------------------------------------------------------------------
+
+  document:
+    display_name: "Document"
+    extensions: []
+    okh_role: documentation
+    render_tier: download_only
+
+  document_pdf:
+    display_name: "PDF"
+    parent: document
+    extensions: [".pdf"]
+    mime_types: ["application/pdf"]
+    okh_role: documentation
+    render_tier: native_inline
+
+  document_markdown:
+    display_name: "Markdown"
+    parent: document
+    extensions: [".md", ".markdown", ".mdown"]
+    mime_types: ["text/markdown", "text/x-markdown"]
+    okh_role: documentation
+    render_tier: text_viewer
+
+  document_plain_text:
+    display_name: "Plain Text"
+    parent: document
+    extensions: [".txt", ".log", ".csv"]
+    mime_types: ["text/plain", "text/csv"]
+    okh_role: documentation
+    render_tier: text_viewer
+
+  document_structured:
+    display_name: "Structured Text"
+    parent: document
+    extensions: [".json", ".yaml", ".yml", ".xml", ".toml"]
+    mime_types: ["application/json", "application/yaml", "text/xml", "application/xml"]
+    okh_role: documentation
+    render_tier: text_viewer
+
+  document_office:
+    display_name: "Office Document"
+    parent: document
+    extensions: [".doc", ".docx", ".odt", ".rtf"]
+    okh_role: documentation
+    render_tier: download_only
+
+  # ---------------------------------------------------------------------------
+  # 3D meshes (grey-zone or manufacturing)
+  # ---------------------------------------------------------------------------
+
+  mesh_3d:
+    display_name: "3D Mesh"
+    extensions: []
+    okh_role: grey_zone
+    render_tier: wasm_3d
+
+  mesh_stl:
+    display_name: "STL Mesh"
+    parent: mesh_3d
+    extensions: [".stl"]
+    mime_types: ["model/stl", "application/sla", "application/vnd.ms-pki.stl"]
+    okh_role: grey_zone
+    render_tier: wasm_3d
+
+  mesh_obj:
+    display_name: "OBJ Mesh"
+    parent: mesh_3d
+    extensions: [".obj"]
+    mime_types: ["model/obj", "text/plain"]
+    okh_role: grey_zone
+    render_tier: wasm_3d
+
+  mesh_3mf:
+    display_name: "3MF"
+    parent: mesh_3d
+    extensions: [".3mf"]
+    mime_types: ["model/3mf", "application/vnd.ms-package.3dmanufacturing-3dmodel+xml"]
+    okh_role: manufacturing
+    render_tier: download_only
+
+  mesh_amf:
+    display_name: "AMF"
+    parent: mesh_3d
+    extensions: [".amf"]
+    okh_role: manufacturing
+    render_tier: download_only
+
+  mesh_ply:
+    display_name: "PLY Mesh"
+    parent: mesh_3d
+    extensions: [".ply"]
+    okh_role: grey_zone
+    render_tier: wasm_3d
+
+  # ---------------------------------------------------------------------------
+  # CAD source / exchange
+  # ---------------------------------------------------------------------------
+
+  cad:
+    display_name: "CAD"
+    extensions: []
+    okh_role: design
+    render_tier: download_only
+
+  cad_step:
+    display_name: "STEP"
+    parent: cad
+    extensions: [".step", ".stp"]
+    mime_types: ["application/step", "model/step"]
+    okh_role: design
+    render_tier: download_only
+
+  cad_scad:
+    display_name: "OpenSCAD"
+    parent: cad
+    extensions: [".scad"]
+    okh_role: design
+    render_tier: text_viewer
+
+  cad_dxf:
+    display_name: "DXF"
+    parent: cad
+    extensions: [".dxf"]
+    okh_role: grey_zone
+    render_tier: download_only
+
+  cad_iges:
+    display_name: "IGES"
+    parent: cad
+    extensions: [".iges", ".igs"]
+    okh_role: design
+    render_tier: download_only
+
+  cad_fcstd:
+    display_name: "FreeCAD"
+    parent: cad
+    extensions: [".fcstd"]
+    okh_role: design
+    render_tier: download_only
+
+  cad_f3d:
+    display_name: "Fusion 360"
+    parent: cad
+    extensions: [".f3d"]
+    okh_role: design
+    render_tier: download_only
+
+  cad_dwg:
+    display_name: "AutoCAD DWG"
+    parent: cad
+    extensions: [".dwg"]
+    okh_role: design
+    render_tier: download_only
+
+  # ---------------------------------------------------------------------------
+  # Manufacturing machine-ready
+  # ---------------------------------------------------------------------------
+
+  manufacturing:
+    display_name: "Manufacturing"
+    extensions: []
+    okh_role: manufacturing
+    render_tier: download_only
+
+  gcode:
+    display_name: "G-code"
+    parent: manufacturing
+    extensions: [".gcode", ".bgcode", ".nc", ".tap", ".cnc", ".ngc"]
+    okh_role: manufacturing
+    render_tier: text_viewer
+
+  gerber:
+    display_name: "Gerber"
+    parent: manufacturing
+    extensions: [".gbr", ".ger"]
+    okh_role: manufacturing
+    render_tier: text_viewer
+
+  drill:
+    display_name: "Drill File"
+    parent: manufacturing
+    extensions: [".drl", ".xln"]
+    okh_role: manufacturing
+    render_tier: text_viewer
+
+  # ---------------------------------------------------------------------------
+  # EDA
+  # ---------------------------------------------------------------------------
+
+  eda:
+    display_name: "EDA"
+    extensions: []
+    okh_role: design
+    render_tier: download_only
+
+  eda_kicad_pcb:
+    display_name: "KiCad PCB"
+    parent: eda
+    extensions: [".kicad_pcb"]
+    okh_role: design
+    render_tier: download_only
+
+  eda_schematic:
+    display_name: "Schematic"
+    parent: eda
+    extensions: [".sch", ".brd"]
+    okh_role: design
+    render_tier: download_only
+
+  # ---------------------------------------------------------------------------
+  # Archives, code, unknown
+  # ---------------------------------------------------------------------------
+
+  archive:
+    display_name: "Archive"
+    extensions: [".zip", ".tar", ".gz", ".tgz", ".tar.gz", ".7z", ".rar"]
+    okh_role: documentation
+    render_tier: download_only
+
+  code:
+    display_name: "Source Code"
+    extensions: [".py", ".js", ".ts", ".cpp", ".c", ".h", ".java", ".go", ".rs", ".sh"]
+    okh_role: software
+    render_tier: text_viewer
+
+  unknown:
+    display_name: "Unknown"
+    extensions: []
+    okh_role: documentation
+    render_tier: download_only

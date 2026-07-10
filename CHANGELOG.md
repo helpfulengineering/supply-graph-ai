@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.11] - 2026-07-10
+
+### Added
+
+- **File type taxonomy:** canonical YAML taxonomy (`src/config/taxonomy/file_types.yaml`) with technical type, OKH role, and render tier (`native_inline`, `text_viewer`, `wasm_3d`, `download_only`); `GET /v1/api/file-types` and `ohm file-types list|validate`; ADR at `docs/architecture/file-type-taxonomy-adr.md`.
+- **OKH file browsing UX:** path-normalized `display_path` / directory grouping in a nested tree (root-first); inline preview panel for images, PDF, and markdown/text; full-page preview at `/okh/:id/files/*`; download for CAD/mesh and other non-previewable types. Detail responses enrich file refs with `display_path`, `directory`, `file_type`, `render_tier`, and `mime_type`.
+- **Local Build Package:** OKH detail (and RFQ) **Build Package** writes a package folder on the user's machine via the directory picker (Chrome/Edge), with write-access probe and per-file graceful failures; Firefox/Safari fall back to a browser-built `.zip`.
+
+### Changed
+
+- **OKH detail layout:** Intended Use section moved above Files & Documentation.
+
 ## [0.8.10] - 2026-07-08
 
 ### Added
@@ -61,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.8.11]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.8...v0.8.9
 [0.8.8]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.7...v0.8.8

@@ -115,6 +115,14 @@ AREAS: tuple[Area, ...] = (
         note="No taxonomy_service module; logic lives under src/core/taxonomy/.",
     ),
     Area(
+        "file-types",
+        None,
+        "file-types",
+        "file-types",
+        "exposed",
+        note="No file_types_service module; logic lives under src/core/taxonomy/file_type_taxonomy.py.",
+    ),
+    Area(
         "federation",
         None,
         "federation",

@@ -30,6 +30,7 @@ from src.core.api.routes.rfq import router as rfq_router
 from src.core.api.routes.rules import router as rules_router
 from src.core.api.routes.supply_tree import router as supply_tree_router
 from src.core.api.routes.taxonomy import router as taxonomy_router
+from src.core.api.routes.file_types import router as file_types_router
 from src.core.api.routes.utility import router as utility_router
 from src.core.domains.cooking.extractors import CookingExtractor
 from src.core.domains.cooking.matchers import CookingMatcher
@@ -381,6 +382,9 @@ api_v1.include_router(
 api_v1.include_router(
     taxonomy_router, tags=["taxonomy"]
 )  # Already has /api/taxonomy prefix
+api_v1.include_router(
+    file_types_router, tags=["file-types"]
+)  # Already has /api/file-types prefix
 api_v1.include_router(rfq_router, tags=["rfq"])  # Already has /api/rfq prefix
 api_v1.include_router(
     federation_router, tags=["federation"]
