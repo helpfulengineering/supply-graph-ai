@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { okhFileHref, okhFileOpensInline } from "./okhFileHref";
+import { okhFileHref } from "./okhFileHref";
+import { canPreviewFile, enrichFileRef } from "./okhFilePath";
 
 describe("okhFileHref", () => {
   it("prefers API url from enriched manifest", () => {
@@ -25,22 +26,26 @@ describe("okhFileHref", () => {
     ).toBe("/v1/api/okh/abc/files/images/a.png");
   });
 
-  it("detects inline-friendly types", () => {
+  it("detects previewable types via enrichment fallback", () => {
     expect(
-      okhFileOpensInline({
-        title: "x",
-        path: "x.pdf",
-        type: "design",
-        metadata: {},
-      }),
+      canPreviewFile(
+        enrichFileRef({
+          title: "x",
+          path: "x.pdf",
+          type: "design",
+          metadata: {},
+        }),
+      ),
     ).toBe(true);
     expect(
-      okhFileOpensInline({
-        title: "x",
-        path: "x.stl",
-        type: "design",
-        metadata: {},
-      }),
+      canPreviewFile(
+        enrichFileRef({
+          title: "x",
+          path: "x.stl",
+          type: "design",
+          metadata: {},
+        }),
+      ),
     ).toBe(false);
   });
 });

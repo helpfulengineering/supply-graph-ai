@@ -7,6 +7,15 @@ export interface OkhFileRef {
   url?: string;
   type: string;
   metadata: Record<string, string>;
+  /** Repo-relative path for display (enriched by API) */
+  display_path?: string;
+  directory?: string;
+  basename?: string;
+  file_type?: string;
+  file_type_display?: string;
+  render_tier?: "native_inline" | "text_viewer" | "wasm_3d" | "download_only";
+  mime_type?: string;
+  okh_role?: string;
 }
 
 export interface OkhMaterial {

@@ -10,6 +10,7 @@ import { LoadingState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
 import { OkhFileGroup } from "./OkhFileGroup";
+import { BuildPackageButton } from "../package/BuildPackageButton";
 import type { OkhManifest } from "../../types/okh";
 
 interface Props {
@@ -173,7 +174,8 @@ export function OkhDetailView({ id }: Props) {
           </div>
         </div>
 
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <BuildPackageButton okh={okh} />
           <Button onClick={() => navigate(`/match?okh_id=${okh.id}&autorun=1`)}>
             ⚡ Run Match
           </Button>
@@ -260,6 +262,15 @@ export function OkhDetailView({ id }: Props) {
         </div>
 
         <div className="space-y-6 lg:col-span-2">
+          {okh.intended_use && (
+            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Intended Use
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{okh.intended_use}</p>
+            </section>
+          )}
+
           {allFiles.length === 0 ? (
             <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-500">
               No file references attached to this design.
@@ -274,15 +285,6 @@ export function OkhDetailView({ id }: Props) {
                 <OkhFileGroup okhId={okh.id} title="Manufacturing Files" icon="🏭" files={okh.manufacturing_files} />
                 <OkhFileGroup okhId={okh.id} title="Making Instructions" icon="📋" files={okh.making_instructions} />
               </div>
-            </section>
-          )}
-
-          {okh.intended_use && (
-            <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Intended Use
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300">{okh.intended_use}</p>
             </section>
           )}
         </div>

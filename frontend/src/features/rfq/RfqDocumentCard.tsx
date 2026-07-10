@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { packageDownloadUrl } from "../../api/package";
-import { buildPackage } from "../../api/rfq";
+import { BuildPackageButton, okhFromUnknown } from "../package/BuildPackageButton";
 import type { RFQDocument } from "../../types/rfq";
 
 interface Props {
@@ -24,27 +23,7 @@ function ConfidencePill({ score }: { score: number }) {
 
 export function RfqDocumentCard({ doc }: Props) {
   const [copied, setCopied] = useState(false);
-  const [buildStatus, setBuildStatus] = useState<"idle" | "building" | "done" | "error">("idle");
-  const [packageRef, setPackageRef] = useState<{ name: string; version: string } | null>(null);
-
-  const handleBuildPackage = () => {
-    if (!doc.okh_manifest) return;
-    const manifestId = (doc.okh_manifest.id as string) ?? "";
-    if (!manifestId) {
-      setBuildStatus("error");
-      return;
-    }
-    buildPackage(manifestId)
-      .then((result) => {
-        const meta = result?.data?.metadata;
-        if (meta) {
-          setPackageRef({ name: meta.package_name, version: meta.version });
-          setBuildStatus("done");
-        }
-      })
-      .catch(() => setBuildStatus("error"));
-    setBuildStatus("building");
-  };
+  const okh = okhFromUnknown(doc.okh_manifest);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(doc.text).then(() => {
@@ -126,41 +105,9 @@ export function RfqDocumentCard({ doc }: Props) {
           >
             ↓ .json
           </button>
-          {doc.okh_manifest && (
-            <button
-              onClick={handleBuildPackage}
-              disabled={buildStatus === "building"}
-              className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-60 transition-colors dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400 dark:hover:bg-emerald-900/40"
-            >
-              {buildStatus === "building"
-                ? "Building…"
-                : buildStatus === "done"
-                ? "✓ Package built"
-                : buildStatus === "error"
-                ? "⚠ Build failed"
-                : "📦 Build package"}
-            </button>
-          )}
+          {okh && <BuildPackageButton okh={okh} />}
         </div>
       </div>
-
-      {/* Package download link after build completes */}
-      {packageRef && (
-        <div className="border-b border-slate-100 bg-emerald-50 px-5 py-2.5 dark:border-slate-800 dark:bg-emerald-950/20">
-          <p className="text-xs text-emerald-700 dark:text-emerald-400">
-            Package built:{" "}
-            <span className="font-mono font-medium">{packageRef.name} @ {packageRef.version}</span>
-            {" · "}
-            <a
-              href={packageDownloadUrl(packageRef.name, packageRef.version)}
-              download
-              className="underline hover:no-underline"
-            >
-              Download ↓
-            </a>
-          </p>
-        </div>
-      )}
 
       {/* Document preview */}
       <pre className="overflow-x-auto whitespace-pre-wrap break-words px-5 py-4 font-mono text-xs leading-relaxed text-slate-700 dark:text-slate-300">

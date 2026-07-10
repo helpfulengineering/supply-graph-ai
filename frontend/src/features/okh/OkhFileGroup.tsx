@@ -1,5 +1,8 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { OkhFileRef } from "../../types/okh";
-import { okhFileHref, okhFileOpensInline } from "./okhFileHref";
+import { OkhFileDirectoryGroup } from "./OkhFileDirectoryGroup";
+import { OkhFilePreviewContent } from "./OkhFilePreviewContent";
+import { buildDirectoryTree } from "./okhFilePath";
 
 interface Props {
   okhId: string;
@@ -8,12 +11,19 @@ interface Props {
   files: OkhFileRef[];
 }
 
-function fileExtension(path: string): string {
-  const parts = path.split(".");
-  return parts.length > 1 ? parts[parts.length - 1].toUpperCase() : "FILE";
-}
-
 export function OkhFileGroup({ okhId, title, icon, files }: Props) {
+  const [previewFile, setPreviewFile] = useState<OkhFileRef | null>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
+  const tree = useMemo(() => buildDirectoryTree(files), [files]);
+  const topLevelCount = tree.children.length + (tree.files.length > 0 ? 1 : 0);
+  const collapseByDefault = topLevelCount > 8;
+
+  useEffect(() => {
+    if (previewFile && previewRef.current) {
+      previewRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [previewFile]);
+
   if (files.length === 0) return null;
 
   return (
@@ -25,32 +35,30 @@ export function OkhFileGroup({ okhId, title, icon, files }: Props) {
           {files.length}
         </span>
       </h3>
-      <ul className="space-y-1.5">
-        {files.map((f, i) => (
-          <li
-            key={i}
-            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 dark:border-slate-800 dark:bg-slate-800/50"
+
+      {previewFile && (
+        <div ref={previewRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setPreviewFile(null)}
+            className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Close preview"
           >
-            <div className="min-w-0">
-              <p className="truncate text-sm text-slate-700 dark:text-slate-200">{f.title || f.path.split("/").pop()}</p>
-              {f.metadata && Object.keys(f.metadata).length > 0 && (
-                <p className="text-xs text-slate-500 dark:text-slate-500">
-                  {Object.entries(f.metadata).map(([k, v]) => `${k}: ${v}`).join(" · ")}
-                </p>
-              )}
-            </div>
-            <a
-              href={okhFileHref(okhId, f)}
-              target="_blank"
-              rel="noopener noreferrer"
-              download={okhFileOpensInline(f) ? undefined : ""}
-              className="shrink-0 rounded bg-white px-2 py-0.5 text-xs font-medium text-slate-500 shadow-sm ring-1 ring-slate-200 hover:text-indigo-600 hover:ring-indigo-300 transition-colors dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600 dark:hover:text-indigo-400"
-            >
-              {fileExtension(f.path)}
-            </a>
-          </li>
-        ))}
-      </ul>
+            ✕
+          </button>
+          <OkhFilePreviewContent okhId={okhId} file={previewFile} />
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <OkhFileDirectoryGroup
+          node={tree}
+          okhId={okhId}
+          selectedPath={previewFile?.path ?? null}
+          onPreview={setPreviewFile}
+          defaultCollapsed={collapseByDefault}
+        />
+      </div>
     </div>
   );
 }
