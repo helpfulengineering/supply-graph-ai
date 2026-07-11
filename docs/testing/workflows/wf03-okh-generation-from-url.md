@@ -280,5 +280,5 @@ These items should be addressed by **Issue 1.1.2** (test dataset creation):
 
 Generation **content** quality (field presence, Materials near-dups / prose heuristics,
 blocking-field baseline vs ground truth) is measured by the package at
-[`tests/data/okh_generation/`](../../../tests/data/okh_generation/README.md)
-([spec](../okh-generation-quality-spec.md)). That harness is separate from this e2e WF-3 workflow.
+[`tests/data/okh_generation/`](../../../tests/data/okh_generation/README.md).
+That harness is separate from this e2e WF-3 workflow.

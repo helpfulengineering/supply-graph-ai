@@ -653,7 +653,6 @@ When the user asks a question about OHM configuration, features, or usage, find 
 | Developer Guide | docs/development/developer-guide.md | How to set up a local dev environment and contribute |
 | Container Guide | docs/development/container-guide.md | Docker and docker-compose workflows; all storage env vars |
 | Roadmap | docs/development/roadmap.md | Planned features and development priorities |
-| Conference Demo Readiness | docs/development/conference-demo-readiness.md | Demo setup checklist; how to regenerate OpenAPI route counts |
 | Data Models Overview | docs/models/index.md | Supply trees, BOM, process requirements, and validation contexts |
 | Bill of Materials | docs/models/bom.md | BOM data model for nested component requirements |
 | Supply Trees | docs/models/supply-tree.md | Central data structure for manufacturing solutions |
@@ -664,7 +663,6 @@ When the user asks a question about OHM configuration, features, or usage, find 
 | OKW Specification | docs/models/okw-specification.md | Full OKW specification |
 | Format Conversion | docs/conversion/index.md | Bi-directional OKH ↔ external format conversion (MSF Datasheet) |
 | MSF Datasheet | docs/conversion/msf-datasheet.md | Convert between OKH and MSF .docx datasheet format |
-| Matching Accuracy Baseline | docs/metrics/matching-accuracy-baseline.md | Baseline metrics for matching algorithm accuracy |
 | Domains Overview | docs/domains/index.md | Multi-domain system: manufacturing and cooking; domain detection and health |
 | Manufacturing Domain | docs/domains/manufacturing.md | Manufacturing-specific extractors, matchers, and validators |
 | Cooking Domain | docs/domains/cooking.md | Cooking domain components and use cases |

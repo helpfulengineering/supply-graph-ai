@@ -167,7 +167,7 @@ The dev server proxies all `/v1` requests to the OHM API. If your API is not at 
 
 ## Documentation
 
-This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally. For an active checklist aligned with the public API and CLI (conference demos, doc drift), see [docs/development/conference-demo-readiness.md](docs/development/conference-demo-readiness.md).
+This README provides a quick start guide and basic project information. For full documentation, run MkDocs locally.
 
 ### Building Documentation Locally
 

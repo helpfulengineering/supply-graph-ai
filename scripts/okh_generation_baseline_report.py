@@ -65,8 +65,11 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=REPO_ROOT / "docs/metrics/okh_generation_baseline.json",
-        help="Output JSON path (default: docs/metrics/okh_generation_baseline.json)",
+        default=REPO_ROOT / "tests/data/okh_generation/last_baseline_report.json",
+        help=(
+            "Output JSON path "
+            "(default: tests/data/okh_generation/last_baseline_report.json; gitignored)"
+        ),
     )
     parser.add_argument(
         "--layer",

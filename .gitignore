@@ -195,6 +195,8 @@ service-account.json
 # Test repo clones / batch reports (populated during generation testing)
 tests/data/okh_generation/clones/
 tests/data/okh_generation/last_batch_report.json
+tests/data/okh_generation/last_baseline_report.json
+tests/data/okh_generation/last_layer_compare.json
 .llm_chunk_cache/*
 
 

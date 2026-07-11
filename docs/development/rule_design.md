@@ -50,19 +50,17 @@ Before heuristic matching, both requirement and capability are normalized by `Ma
    ```bash
    pytest tests/e2e/test_matching_accuracy.py -v
    ```
-2. **Rule performance**: Run the heuristic rule analyzer to see which rules fire and their precision:
+2. **Rule performance**: Run the heuristic rule analyzer to see which rules fire and their precision (writes under gitignored `notes/`):
    ```bash
-   python -m tests.data.matching.heuristic_rule_analyzer --markdown docs/metrics/heuristic_rule_performance.md --json docs/metrics/heuristic_rule_performance.json
+   python -m tests.data.matching.heuristic_rule_analyzer \
+     --markdown notes/heuristic_rule_performance.md \
+     --json notes/heuristic_rule_performance.json
    ```
 3. **No regressions**: Ensure combined accuracy and per-layer thresholds in `tests/e2e/test_matching_accuracy.py` still pass.
 
 ## Performance report
 
-The latest per-rule hit counts and precision are in:
-- **Markdown**: [docs/metrics/heuristic_rule_performance.md](../metrics/heuristic_rule_performance.md)
-- **JSON**: `docs/metrics/heuristic_rule_performance.json`
-
-Rules that "never triggered" in the report just mean no ground-truth case (in the current 115-case set) had that capability/requirement combination after direct match was skipped; they are not necessarily bad rules.
+Per-rule hit counts are ephemeral benchmarking output — regenerate into `notes/` as above when tuning rules. Rules that "never triggered" just mean no ground-truth case (in the current suite) had that capability/requirement combination after direct match was skipped; they are not necessarily bad rules.
 
 ## Examples
 
@@ -95,6 +93,4 @@ Rules that "never triggered" in the report just mean no ground-truth case (in th
 
 ## Related
 
-- [Matching accuracy baseline](../metrics/matching-accuracy-baseline.md)
-- [Mismatch analysis](../metrics/mismatch-analysis.md)
 - `src/core/matching/capability_rules.py` — rule loading and `CapabilityMatcher`

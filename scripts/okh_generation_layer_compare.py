@@ -42,7 +42,11 @@ def main() -> int:
     parser.add_argument(
         "--output",
         type=Path,
-        default=REPO_ROOT / "docs/metrics/okh_generation_3l_vs_4l.json",
+        default=REPO_ROOT / "tests/data/okh_generation/last_layer_compare.json",
+        help=(
+            "Output JSON path "
+            "(default: tests/data/okh_generation/last_layer_compare.json; gitignored)"
+        ),
     )
     parser.add_argument(
         "--stdout",

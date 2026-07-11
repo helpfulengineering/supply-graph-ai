@@ -1,7 +1,9 @@
 # OKH generation quality harness
 
-Supports the scripts under `scripts/okh_generation_*.py`. See
-[`docs/testing/okh-generation-quality-spec.md`](../../../docs/testing/okh-generation-quality-spec.md).
+Supports the scripts under `scripts/okh_generation_*.py`. This package is the
+durable entry point for unit metrics, offline baseline scoring, and live canary
+batch runs. Process notes for the Materials quality workstream live under
+`notes/` (gitignored), not under `docs/`.
 
 ## Layout
 
@@ -43,8 +45,8 @@ Default manifest directory for batch / baseline / layer-compare is
 
 ## Materials baseline (Phase 4 canary, 4L, core set)
 
-See [`docs/metrics/okh_generation_materials_baseline.json`](../../../docs/metrics/okh_generation_materials_baseline.json)
-for the latest scored core run. Snapshot from the 2026-07-10 canary refresh:
+Snapshot from the 2026-07-10 canary refresh (regenerate locally with the batch +
+baseline scripts; report JSON defaults are gitignored under this package):
 
 | Repo | materials | near-dups | prose-like | score |
 |------|-----------|-----------|------------|-------|
