@@ -383,6 +383,7 @@ class GenerationEngine:
                 missing_fields=missing_fields,
                 include_file_metadata=include_file_metadata,
             )
+            self._prepare_materials_review_queue(result)
 
             # Update metrics
             processing_time = time.time() - start_time
@@ -630,6 +631,7 @@ class GenerationEngine:
                 full_bom=full_bom_object,
                 include_file_metadata=include_file_metadata,
             )
+            await self._apply_materials_confidence_routing(result)
 
             # Update metrics
             processing_time = time.time() - start_time
@@ -650,6 +652,102 @@ class GenerationEngine:
                 f"Async manifest generation failed after {processing_time:.2f}s: {e}"
             )
             raise
+
+    def _prepare_materials_review_queue(self, result: ManifestGeneration) -> None:
+        """Normalize materials and populate ``review_items["materials"]`` (no LLM)."""
+        mats_field = result.generated_fields.get("materials")
+        raw: Any = mats_field.value if isinstance(mats_field, FieldGeneration) else []
+        normalized = result._normalize_materials(
+            raw, result.full_bom, result.project_data
+        )
+        low = result.review_items.get("materials") or []
+        conf = 0.65 if low else 0.9
+        layer = (
+            mats_field.source_layer
+            if isinstance(mats_field, FieldGeneration)
+            else GenerationLayer.HEURISTIC
+        )
+        result.generated_fields["materials"] = FieldGeneration(
+            value=normalized,
+            confidence=conf,
+            source_layer=layer,
+            generation_method="materials_scored",
+            raw_source="materials_normalize",
+        )
+        result.confidence_scores["materials"] = conf
+
+    async def _apply_materials_confidence_routing(
+        self, result: ManifestGeneration
+    ) -> None:
+        """Score materials, optionally LLM-triage low-confidence names, refresh queue."""
+        self._prepare_materials_review_queue(result)
+        low = list(result.review_items.get("materials") or [])
+        if not low or not (self.config.use_llm and self.config.is_llm_configured()):
+            return
+
+        try:
+            from .materials_filter import build_materials_corpus, normalize_material_key
+            from .materials_llm_triage import (
+                MaterialTriageDecision,
+                apply_material_triage_decisions,
+                triage_low_confidence_materials,
+            )
+
+            # Deterministic reject for chat/sales before spending LLM tokens
+            auto = [
+                MaterialTriageDecision(name=item.name, action="reject")
+                for item in low
+                if item.reason == "chat_or_sales_line"
+            ]
+            llm_candidates = [
+                item for item in low if item.reason != "chat_or_sales_line"
+            ]
+
+            llm_service = await self._get_llm_service_for_review()
+            decisions = auto + list(
+                await triage_low_confidence_materials(
+                    llm_candidates,
+                    build_materials_corpus(result.project_data),
+                    llm_service,
+                )
+            )
+            if not decisions:
+                return
+
+            mats_field = result.generated_fields.get("materials")
+            materials = (
+                list(mats_field.value)
+                if isinstance(mats_field, FieldGeneration)
+                and isinstance(mats_field.value, list)
+                else []
+            )
+            updated, new_review = apply_material_triage_decisions(
+                materials,
+                decisions,
+                generate_material_id=result._generate_material_id,
+            )
+            for decision in decisions:
+                if decision.action == "reject" and decision.name:
+                    result.materials_rejected_keys.add(
+                        normalize_material_key(decision.name)
+                    )
+            conf = 0.65 if new_review else 0.85
+            result.generated_fields["materials"] = FieldGeneration(
+                value=updated,
+                confidence=conf,
+                source_layer=GenerationLayer.LLM,
+                generation_method="materials_llm_triage",
+                raw_source=f"Triaged {len(decisions)} low-confidence material(s)",
+            )
+            result.confidence_scores["materials"] = conf
+            result.review_items["materials"] = new_review
+            logger.info(
+                "Materials LLM triage: %s decision(s), %s remaining for review",
+                len(decisions),
+                len(new_review),
+            )
+        except Exception as exc:
+            logger.warning("Materials confidence LLM routing failed: %s", exc)
 
     async def _progressive_enhancement_async(
         self,

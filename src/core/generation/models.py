@@ -384,6 +384,10 @@ class ManifestGeneration:
     full_bom: Optional[Any] = None  # Store full BillOfMaterials object for export
     unified_bom_mode: bool = False  # Whether to include full BOM in manifest
     include_file_metadata: bool = False  # Whether to include metadata in file entries
+    # Item-level review queues (e.g. materials) — not part of MaterialSpec
+    review_items: Dict[str, List[Any]] = field(default_factory=dict)
+    # Keys rejected by LLM/human triage; suppress re-harvest on re-normalize
+    materials_rejected_keys: set = field(default_factory=set)
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format"""
@@ -451,6 +455,20 @@ class ManifestGeneration:
                 k: round(v, 3) for k, v in sorted(self.confidence_scores.items())
             }
 
+        materials_normalized = self._normalize_materials(
+            fields_dict.get("materials", []),
+            self.full_bom,
+            self.project_data,
+        )
+        if self.review_items:
+            generation_review: Dict[str, List[Dict[str, Any]]] = {}
+            for key, items in self.review_items.items():
+                generation_review[key] = [
+                    item.to_dict() if hasattr(item, "to_dict") else dict(item)
+                    for item in items
+                ]
+            manifest_metadata["generation_review"] = generation_review
+
         # Build proper OKH manifest structure
         manifest = {
             "okhv": "OKH-LOSHv1.0",
@@ -491,11 +509,7 @@ class ManifestGeneration:
             ),
             "tool_list": fields_dict.get("tool_list", []),
             "manufacturing_processes": fields_dict.get("manufacturing_processes", []),
-            "materials": self._normalize_materials(
-                fields_dict.get("materials", []),
-                self.full_bom,
-                self.project_data,
-            ),
+            "materials": materials_normalized,
             "manufacturing_specs": self._generate_manufacturing_specs(
                 fields_dict, self.project_data
             ),
@@ -749,6 +763,8 @@ class ManifestGeneration:
         Converts string arrays to MaterialSpec objects with required
         material_id and name fields. Drops prose/table-like names and
         (when project docs are available) names without part-reference evidence.
+        Scores kept materials and populates ``review_items["materials"]`` for
+        low-confidence names (still included in the returned list).
 
         Args:
             materials_value: Materials value from generated fields (list of strings or MaterialSpec dicts)
@@ -758,28 +774,38 @@ class ManifestGeneration:
         Returns:
             List of MaterialSpec dictionaries
         """
+        from .materials_confidence import (
+            build_material_review_items,
+            score_material,
+        )
         from .materials_filter import (
             build_materials_corpus,
+            harvest_materials_from_project,
             has_part_reference_evidence,
             is_prose_like,
+            is_rejected_material_token,
             normalize_material_key,
         )
 
-        if not isinstance(materials_value, list):
-            return []
-
         pd = project_data if project_data is not None else self.project_data
         corpus = build_materials_corpus(pd)
-        bom_names: List[str] = []
+        harvested = harvest_materials_from_project(pd)
+        harvested_keys = {normalize_material_key(n) for n in harvested}
+        bom_component_names: List[str] = []
         if bom is not None and getattr(bom, "components", None):
-            bom_names = [
+            bom_component_names = [
                 str(c.name) for c in bom.components if getattr(c, "name", None)
             ]
+        bom_keys = {normalize_material_key(n) for n in bom_component_names}
+        bom_names: List[str] = list(harvested) + bom_component_names
         require_evidence = bool(corpus.strip() or bom_names)
 
         def _keep_name(name: str) -> bool:
             text = name.strip()
-            if not text or is_prose_like(text):
+            if not text or is_prose_like(text) or is_rejected_material_token(text):
+                return False
+            key = normalize_material_key(text)
+            if key and key in self.materials_rejected_keys:
                 return False
             if not require_evidence:
                 return True
@@ -787,9 +813,35 @@ class ManifestGeneration:
                 text, corpus, bom_component_names=bom_names
             )
 
-        materials: List[Dict[str, Any]] = []
-        seen_keys: set = set()
+        def _source_for(name: str, from_harvest: bool) -> str:
+            key = normalize_material_key(name)
+            if from_harvest or key in harvested_keys:
+                return "harvest"
+            if key in bom_keys:
+                return "bom"
+            return "extracted"
+
+        # Merge extracted candidates with doc-harvested parts (shopping list / parts YAML)
+        if not isinstance(materials_value, list):
+            materials_value = []
+        # (payload, from_harvest)
+        merged: List[tuple] = [(mat, False) for mat in materials_value]
+        existing_keys = set()
         for mat in materials_value:
+            if isinstance(mat, str):
+                existing_keys.add(normalize_material_key(mat))
+            elif isinstance(mat, dict):
+                existing_keys.add(normalize_material_key(str(mat.get("name") or "")))
+        for name in harvested:
+            key = normalize_material_key(name)
+            if key and key not in existing_keys:
+                existing_keys.add(key)
+                merged.append((name, True))
+
+        materials: List[Dict[str, Any]] = []
+        scored: List[tuple] = []
+        seen_keys: set = set()
+        for mat, from_harvest in merged:
             if isinstance(mat, str):
                 if not _keep_name(mat):
                     continue
@@ -817,6 +869,24 @@ class ManifestGeneration:
             if key:
                 seen_keys.add(key)
             materials.append(row)
+
+            source = _source_for(name, from_harvest)
+            has_ev = has_part_reference_evidence(
+                name, corpus, bom_component_names=bom_names
+            )
+            confidence, reason = score_material(
+                name, source=source, has_evidence=has_ev or from_harvest
+            )
+            scored.append((name, confidence, source, reason, row.get("material_id")))
+
+        self.review_items["materials"] = build_material_review_items(scored)
+        if self.review_items["materials"]:
+            rec = (
+                f"Review {len(self.review_items['materials'])} low-confidence "
+                "material(s) (see metadata.generation_review.materials)"
+            )
+            if rec not in self.quality_report.recommendations:
+                self.quality_report.recommendations.append(rec)
 
         return materials
 

@@ -175,6 +175,13 @@ run = "uv run python scripts/okh_generation_batch.py [options]"
 mutates = true
 used_by = ["docs/llm/chunked-mode.md"]
 
+[scripts.okh_generation_materials_regen_compare]
+category = "eval"
+summary = "Sequential from-URL regen with before/after Materials metrics tracker (no cloud writes)."
+run = "uv run python scripts/okh_generation_materials_regen_compare.py [--core-only] [options]"
+mutates = true
+used_by = ["tests/data/okh_generation/README.md"]
+
 [scripts.okh_generation_baseline_report]
 category = "eval"
 summary = "Produce the OKH-generation baseline report used as the eval comparison point."

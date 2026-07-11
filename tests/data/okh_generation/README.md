@@ -30,9 +30,14 @@ uv run python scripts/okh_generation_layer_compare.py --stdout
 # C — live canary (optional LLM)
 export GITLAB_SELF_HOSTED_HOSTS=gitlab.waag.org   # Waag BioHack repos
 uv run python scripts/okh_generation_batch.py \
-  --core-only --skip-existing --stdout-summary \
+  --core-only --skip-existing \
   --repo-timeout-seconds 600 \
   --progress-interval-seconds 30
+
+# Phase 5 validation — sequential from-URL regen with before/after Materials tracker
+uv run python scripts/okh_generation_materials_regen_compare.py --core-only
+# Tracker: tests/data/okh_generation/materials_regen_tracker.json (gitignored)
+# After manifests: tests/data/okh_generation/clones-regen/ (gitignored)
 ```
 
 Batch progress prints `[i/n] id starting|still running|ok|error` on stderr, enforces a

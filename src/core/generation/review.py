@@ -59,6 +59,7 @@ class ReviewInterface:
             "e": self._edit_field,
             "a": self._add_field,
             "r": self._remove_field,
+            "m": self.review_materials_queue,
             "q": self._show_quality_report,
             "s": self._show_field_sources,
             "l": self._show_llm_fields,
@@ -89,6 +90,19 @@ class ReviewInterface:
         llm_fields = self._get_llm_fields()
         if llm_fields:
             print(f"🤖 LLM-Generated Fields: {len(llm_fields)}")
+
+        materials_queue = list(
+            self.manifest_generation.review_items.get("materials") or []
+        )
+        if materials_queue:
+            print(
+                f"⚠️  Low-confidence materials needing review: {len(materials_queue)} "
+                "(command: m)"
+            )
+            for item in materials_queue[:8]:
+                print(f"   • {item.name} ({item.confidence:.2f}) — {item.reason}")
+            if len(materials_queue) > 8:
+                print(f"   … and {len(materials_queue) - 8} more")
 
         print()
 
@@ -132,6 +146,91 @@ class ReviewInterface:
             summary_parts.append(f"{layer}: {count}")
 
         return ", ".join(summary_parts)
+
+    def _get_materials_list(self) -> list:
+        mats_field = self.manifest_generation.generated_fields.get("materials")
+        if mats_field is None or not isinstance(mats_field.value, list):
+            return []
+        return list(mats_field.value)
+
+    def _set_materials_list(self, materials: list) -> None:
+        self.manifest_generation.generated_fields["materials"] = FieldGeneration(
+            value=materials,
+            confidence=1.0,
+            source_layer=GenerationLayer.USER_EDIT,
+            generation_method="user_materials_review",
+            raw_source="user_input",
+        )
+        self.manifest_generation.confidence_scores["materials"] = 1.0
+
+    @staticmethod
+    def _material_row_name(row) -> str:
+        if isinstance(row, dict):
+            return str(row.get("name") or "").strip()
+        return str(row).strip()
+
+    def review_materials_queue(self) -> None:
+        """Interactively accept, edit, or drop low-confidence materials."""
+        from .materials_filter import normalize_material_key
+
+        queue = list(self.manifest_generation.review_items.get("materials") or [])
+        if not queue:
+            print("\n✅ No low-confidence materials to review")
+            return
+
+        print(f"\n📦 MATERIALS REVIEW QUEUE ({len(queue)})")
+        print("=" * 50)
+        materials = self._get_materials_list()
+        remaining = []
+
+        for item in queue:
+            print(
+                f"\n• {item.name} (confidence={item.confidence:.2f}, "
+                f"reason={item.reason})"
+            )
+            action = (
+                input("  [a]ccept / [e]dit name / [d]rop / [s]kip> ").strip().lower()
+            )
+            if action in {"a", "accept", ""}:
+                continue
+            if action in {"d", "drop"}:
+                materials = [
+                    row
+                    for row in materials
+                    if self._material_row_name(row) != item.name
+                ]
+                self.manifest_generation.materials_rejected_keys.add(
+                    normalize_material_key(item.name)
+                )
+                print(f"  Dropped '{item.name}'")
+                continue
+            if action in {"e", "edit"}:
+                new_name = input("  New name: ").strip()
+                if not new_name:
+                    print("  Empty name — skipped")
+                    remaining.append(item)
+                    continue
+                mid = self.manifest_generation._generate_material_id(new_name)
+                updated = []
+                for row in materials:
+                    if self._material_row_name(row) != item.name:
+                        updated.append(row)
+                    elif isinstance(row, dict):
+                        updated.append({**row, "name": new_name, "material_id": mid})
+                    else:
+                        updated.append(new_name)
+                materials = updated
+                print(f"  Renamed to '{new_name}'")
+                continue
+            remaining.append(item)
+
+        self._set_materials_list(materials)
+        self.manifest_generation.review_items["materials"] = remaining
+        self._regenerate_quality_report()
+        print(
+            f"\n✅ Materials review done. Remaining flagged: {len(remaining)}; "
+            f"materials count: {len(materials)}"
+        )
 
     def _get_llm_fields(self) -> Dict[str, FieldGeneration]:
         """
@@ -450,7 +549,10 @@ class ReviewInterface:
         print("  e - Edit field")
         print("  a - Add field")
         print("  r - Remove field")
+        print("  m - Review low-confidence materials queue")
         print("  q - Show quality report")
+        print("  s - Show field sources")
+        print("  l - Show LLM-generated fields")
         print("  x - Export manifest")
         print("  h - Show help")
         print("  quit - Quit review")

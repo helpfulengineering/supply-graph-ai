@@ -73,3 +73,4 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | `okh_generation_batch` ✎ | Batch LLM OKH generation over the test repository set — core of the generation eval harness. | `uv run python scripts/okh_generation_batch.py [options]` |
 | `okh_generation_chunked_evaluation` | Evaluate chunked-LLM canary quality gates against a baseline batch report. | `uv run python scripts/okh_generation_chunked_evaluation.py [options]` |
 | `okh_generation_layer_compare` | Compare 3-layer vs 4-layer OKH manifests on disk with heuristic quality metrics. | `uv run python scripts/okh_generation_layer_compare.py [options]` |
+| `okh_generation_materials_regen_compare` ✎ | Sequential from-URL regen with before/after Materials metrics tracker (no cloud writes). | `uv run python scripts/okh_generation_materials_regen_compare.py [--core-only] [options]` |
