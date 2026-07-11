@@ -11,18 +11,16 @@ plus Materials extensions from the generation quality spec:
 from __future__ import annotations
 
 import re
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Sequence
+
+from src.core.generation.materials_filter import (
+    is_prose_like,
+    near_dup_pair_count,
+)
 
 _LICENSE_LEAK_RE = re.compile(
     r"\b(mit|gpl|agpl|lgpl|apache|bsd|cern[- ]?ohl|cc[- ]?by|mozilla|mpl)\b",
     re.I,
-)
-_INSTRUCTION_OPENERS = (
-    "make sure",
-    "in case you",
-    "you could",
-    "you will",
-    "you can also",
 )
 
 
@@ -42,8 +40,8 @@ def heuristic_manifest_quality(manifest: Dict[str, Any]) -> Dict[str, Any]:
     generation_confidence = sum(1.0 for p in presence if p) / len(presence)
 
     names = _material_names(manifest.get("materials") or [])
-    near_dups = _near_dup_pair_count(names)
-    prose_count = sum(1 for n in names if _is_prose_like(n))
+    near_dups = near_dup_pair_count(names)
+    prose_count = sum(1 for n in names if is_prose_like(n))
     materials_count = len(names)
     materials_quality_score = _materials_quality_score(
         materials_count, near_dups, prose_count
@@ -95,45 +93,6 @@ def _material_names(materials: Sequence[Any]) -> List[str]:
         elif item is not None:
             names.append(str(item).strip())
     return [n for n in names if n]
-
-
-def _normalize_material_key(name: str) -> str:
-    key = " ".join(name.casefold().split())
-    if len(key) > 1 and key.endswith("s") and not key.endswith("ss"):
-        key = key[:-1]
-    return key
-
-
-def _near_dup_pair_count(names: Sequence[str]) -> int:
-    """Count unordered pairs with the same normalized key but different surface forms."""
-    indexed: List[Tuple[str, str]] = [(n, _normalize_material_key(n)) for n in names]
-    count = 0
-    for i, (a_raw, a_key) in enumerate(indexed):
-        for b_raw, b_key in indexed[i + 1 :]:
-            if a_key and a_key == b_key and a_raw != b_raw:
-                count += 1
-    return count
-
-
-def _is_prose_like(name: str) -> bool:
-    text = name.strip()
-    if not text:
-        return False
-    lower = text.casefold()
-    words = text.split()
-    if len(words) >= 8 or len(text) > 90:
-        return True
-    if "|" in text:
-        return True
-    if "http://" in lower or "https://" in lower:
-        return True
-    if text.endswith(".") and len(words) >= 5:
-        return True
-    if any(
-        lower.startswith(op) or f" {op} " in f" {lower} " for op in _INSTRUCTION_OPENERS
-    ):
-        return True
-    return False
 
 
 def _materials_quality_score(count: int, near_dups: int, prose: int) -> float:

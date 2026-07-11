@@ -492,7 +492,9 @@ class ManifestGeneration:
             "tool_list": fields_dict.get("tool_list", []),
             "manufacturing_processes": fields_dict.get("manufacturing_processes", []),
             "materials": self._normalize_materials(
-                fields_dict.get("materials", []), self.full_bom
+                fields_dict.get("materials", []),
+                self.full_bom,
+                self.project_data,
             ),
             "manufacturing_specs": self._generate_manufacturing_specs(
                 fields_dict, self.project_data
@@ -736,65 +738,85 @@ class ManifestGeneration:
         return licensor_value
 
     def _normalize_materials(
-        self, materials_value: Any, bom: Optional[Any] = None
+        self,
+        materials_value: Any,
+        bom: Optional[Any] = None,
+        project_data: Optional[ProjectData] = None,
     ) -> List[Dict[str, Any]]:
         """
         Normalize materials to MaterialSpec array format.
 
         Converts string arrays to MaterialSpec objects with required
-        material_id and name fields.
+        material_id and name fields. Drops prose/table-like names and
+        (when project docs are available) names without part-reference evidence.
 
         Args:
             materials_value: Materials value from generated fields (list of strings or MaterialSpec dicts)
             bom: Optional BOM object to extract additional materials from
+            project_data: Optional project docs for reverse-lookup evidence
 
         Returns:
             List of MaterialSpec dictionaries
         """
-        materials = []
+        from .materials_filter import (
+            build_materials_corpus,
+            has_part_reference_evidence,
+            is_prose_like,
+            normalize_material_key,
+        )
 
-        # If already MaterialSpec objects (dicts with material_id)
-        if isinstance(materials_value, list) and materials_value:
-            if (
-                isinstance(materials_value[0], dict)
-                and "material_id" in materials_value[0]
-            ):
-                seen_ids: set = set()
-                deduped: List[Dict[str, Any]] = []
-                for row in materials_value:
-                    if not isinstance(row, dict):
-                        deduped.append(row)
-                        continue
-                    mid = row.get("material_id")
-                    if mid is not None and mid in seen_ids:
-                        continue
-                    if mid is not None:
-                        seen_ids.add(mid)
-                    deduped.append(row)
-                return deduped
+        if not isinstance(materials_value, list):
+            return []
 
-        # If string array, convert to MaterialSpec
-        if isinstance(materials_value, list):
-            for mat in materials_value:
-                if isinstance(mat, str):
-                    material_id = self._generate_material_id(mat)
-                    materials.append(
-                        {
-                            "material_id": material_id,
-                            "name": mat,
-                            "quantity": None,
-                            "unit": None,
-                            "notes": None,
-                        }
-                    )
-                elif isinstance(mat, dict):
-                    # If dict but missing material_id, add it
-                    if "material_id" not in mat and "name" in mat:
-                        mat["material_id"] = self._generate_material_id(mat["name"])
-                    materials.append(mat)
+        pd = project_data if project_data is not None else self.project_data
+        corpus = build_materials_corpus(pd)
+        bom_names: List[str] = []
+        if bom is not None and getattr(bom, "components", None):
+            bom_names = [
+                str(c.name) for c in bom.components if getattr(c, "name", None)
+            ]
+        require_evidence = bool(corpus.strip() or bom_names)
 
-        # TODO: Extract from BOM if available
-        # This will be implemented when BOM structure is better understood
+        def _keep_name(name: str) -> bool:
+            text = name.strip()
+            if not text or is_prose_like(text):
+                return False
+            if not require_evidence:
+                return True
+            return has_part_reference_evidence(
+                text, corpus, bom_component_names=bom_names
+            )
+
+        materials: List[Dict[str, Any]] = []
+        seen_keys: set = set()
+        for mat in materials_value:
+            if isinstance(mat, str):
+                if not _keep_name(mat):
+                    continue
+                row: Dict[str, Any] = {
+                    "material_id": self._generate_material_id(mat),
+                    "name": mat,
+                    "quantity": None,
+                    "unit": None,
+                    "notes": None,
+                }
+            elif isinstance(mat, dict):
+                name = str(mat.get("name") or "").strip()
+                if name and not _keep_name(name):
+                    continue
+                row = dict(mat)
+                if "material_id" not in row and "name" in row:
+                    row["material_id"] = self._generate_material_id(str(row["name"]))
+            else:
+                continue
+
+            name = str(row.get("name") or "").strip()
+            key = normalize_material_key(name) if name else ""
+            if key and key in seen_keys:
+                continue
+            if key:
+                seen_keys.add(key)
+            materials.append(row)
 
         return materials
 

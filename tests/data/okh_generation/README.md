@@ -43,21 +43,22 @@ the platform API. Override shallow-clone wait with `OHM_GIT_CLONE_TIMEOUT` (defa
 Default manifest directory for batch / baseline / layer-compare is
 `tests/data/okh_generation/clones/`.
 
-## Materials baseline (Phase 4 canary, 4L, core set)
+## Materials baseline
 
-Snapshot from the 2026-07-10 canary refresh (regenerate locally with the batch +
-baseline scripts; report JSON defaults are gitignored under this package):
+Phase 4 canary (2026-07-10) exposed the failure modes. Phase 5 normalize gate
+(shape + doc evidence + near-dup) applied offline to those manifests:
 
 | Repo | materials | near-dups | prose-like | score |
 |------|-----------|-----------|------------|-------|
 | repo-001 (rover) | 5 | 0 | 0 | 1.00 |
 | repo-002 (openflexure) | 4 | 0 | 0 | 1.00 |
-| repo-012 (iris-case) | 7 | 1 | 0 | 0.85 |
-| bha-centrifuge | 24 | 0 | 22 | 0.00 |
-| bha-stirrer | 27 | 0 | 27 | 0.00 |
-| bha-thermocycler | 18 | 0 | 17 | 0.00 |
-| air-quality-sensor… | 15 | 3 | 0 | 0.55 |
+| repo-012 (iris-case) | 6 | 0 | 0 | 1.00 |
+| bha-centrifuge | 0 | 0 | 0 | 1.00 |
+| bha-stirrer | 0 | 0 | 0 | 1.00 |
+| bha-thermocycler | 0 | 0 | 0 | 1.00 |
+| air-quality-sensor… | 12 | 0 | 0 | 1.00 |
 
-**Totals:** 4 near-dup pairs across 2 repos; 66 prose-like rows across 3 BHA repos.
-Materials quality is measured by these heuristics (not GT allowlists). Pipeline fixes
-that improve those scores are Phase 5.
+**Phase 4 totals (before fix):** 4 near-dup pairs; 66 prose-like rows.
+**After Phase 5 filter:** 0 near-dups; 0 prose-like. BHA repos drop to empty
+materials when every extracted row was junk (prefer empty over polluted).
+Regenerate with batch for live evidence-gate coverage against project docs.
