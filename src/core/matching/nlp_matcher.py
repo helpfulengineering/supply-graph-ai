@@ -18,15 +18,15 @@ import warnings
 from difflib import SequenceMatcher
 from typing import List, Optional
 
-# Import spaCy for NLP processing
+# Import spaCy availability only; models load via shared loader
 try:
-    import spacy
+    import spacy  # noqa: F401
 
     SPACY_AVAILABLE = True
 except ImportError:
     SPACY_AVAILABLE = False
-    spacy = None
 
+from ..nlp.spacy_loader import load_spacy_english
 from .layers.base import BaseMatchingLayer, MatchingLayer, MatchingResult, MatchQuality
 
 logger = logging.getLogger(__name__)
@@ -50,8 +50,7 @@ class NLPMatcher(BaseMatchingLayer):
     - Fallback to string similarity when spaCy is not available
 
     The implementation follows the same pattern as the generation system's NLP layer,
-    using spaCy with preference for en_core_web_md (with word vectors) for semantic understanding.
-    Falls back to en_core_web_lg or en_core_web_sm if md is not available.
+    using :func:`load_spacy_english` (preferring ``en_core_web_md`` with word vectors).
     """
 
     def __init__(self, domain: str = "general", similarity_threshold: float = None):
@@ -100,25 +99,16 @@ class NLPMatcher(BaseMatchingLayer):
             self._nlp_initialized = True
             return None
 
-        # Try to load models in order of preference (best to fallback)
-        model_preferences = ["en_core_web_md", "en_core_web_lg", "en_core_web_sm"]
-
-        for model_name in model_preferences:
-            try:
-                logger.info(f"Loading spaCy model '{model_name}' (lazy loading)")
-                self._nlp = spacy.load(model_name)
-                has_vectors = self._nlp.vocab.vectors.size > 0
-                logger.info(
-                    f"spaCy model '{model_name}' loaded successfully (vectors: {has_vectors})"
-                )
-                break
-            except OSError:
-                logger.warning(f"spaCy model '{model_name}' not found, trying next...")
-                continue
-
-        if self._nlp is None:
+        self._nlp = load_spacy_english()
+        if self._nlp is not None:
+            has_vectors = self._nlp.vocab.vectors.size > 0
+            logger.info(
+                "spaCy model loaded for NLP matching (vectors: %s)", has_vectors
+            )
+        else:
             logger.warning(
-                "No spaCy models found. NLP matching will use fallback string similarity."
+                "No spaCy English model could be loaded. "
+                "NLP matching will use fallback string similarity."
             )
 
         self._nlp_initialized = True

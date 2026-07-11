@@ -5,10 +5,13 @@ Environment
 -----------
 ``OHM_SPACY_MODELS``
     Comma-separated list of model names to try, in order.
-    Default: ``en_core_web_sm,en_core_web_md,en_core_web_lg``
+    Default: ``en_core_web_md,en_core_web_lg,en_core_web_sm``
+
+    Prefer ``en_core_web_md`` (bundled word vectors). ``en_core_web_sm`` has no
+    vectors and is only a last-resort fallback.
 
 If no model loads, returns ``None``; callers should disable NLP features without
-printing to stdout (use logging at debug level).
+printing to stdout (use logging).
 """
 
 from __future__ import annotations
@@ -20,14 +23,13 @@ from typing import Any, List, Optional
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_MODELS = "en_core_web_md,en_core_web_lg,en_core_web_sm"
 _spacy_import_failed_logged = False
 _no_model_logged = False
 
 
 def _model_candidates() -> List[str]:
-    raw = os.environ.get(
-        "OHM_SPACY_MODELS", "en_core_web_sm,en_core_web_md,en_core_web_lg"
-    )
+    raw = os.environ.get("OHM_SPACY_MODELS", _DEFAULT_MODELS)
     return [p.strip() for p in raw.split(",") if p.strip()]
 
 
@@ -64,8 +66,9 @@ def load_spacy_english() -> Optional[Any]:
         logger.warning(
             "No spaCy English model could be loaded (tried: %s). "
             "NLP-based generation/matching will use regex fallbacks. "
-            "To enable full NLP: python -m spacy download en_core_web_sm "
-            "(or set OHM_SPACY_MODELS to a comma-separated list of installed model names).",
+            "Preferred model is en_core_web_md (with word vectors), installed via "
+            "`uv sync` / the project lockfile. "
+            "Or set OHM_SPACY_MODELS to a comma-separated list of installed model names.",
             ", ".join(_model_candidates()),
         )
         _no_model_logged = True

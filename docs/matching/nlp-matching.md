@@ -78,13 +78,13 @@ def _ensure_nlp_initialized(self):
         self._nlp_initialized = True
         return None
     
-    try:
-        logger.info("Loading spaCy model 'en_core_web_sm' (lazy loading)")
-        self._nlp = spacy.load("en_core_web_sm")
-        logger.info("spaCy model 'en_core_web_sm' loaded successfully")
-    except OSError:
-        logger.warning("spaCy English model 'en_core_web_sm' not found. NLP matching will use fallback string similarity.")
-        self._nlp = None
+    # Prefer en_core_web_md (word vectors) via the shared loader
+    self._nlp = load_spacy_english()
+    if self._nlp is None:
+        logger.warning(
+            "No spaCy English model could be loaded. "
+            "NLP matching will use fallback string similarity."
+        )
     
     self._nlp_initialized = True
     return self._nlp

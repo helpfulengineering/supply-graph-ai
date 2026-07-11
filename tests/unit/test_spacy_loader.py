@@ -50,7 +50,7 @@ def test_no_model_emits_warning_not_debug(caplog):
 
 
 def test_no_model_warning_contains_install_hint(caplog):
-    """The WARNING message must include the spacy download command."""
+    """The WARNING message must include how to get en_core_web_md."""
     spacy_mock = MagicMock()
     spacy_mock.load.side_effect = OSError("model not found")
 
@@ -62,8 +62,8 @@ def test_no_model_warning_contains_install_hint(caplog):
         r.message for r in caplog.records if r.levelno == logging.WARNING
     )
     assert (
-        "spacy download" in full_text.lower() or "en_core_web_sm" in full_text
-    ), "WARNING should reference the install command or model name"
+        "en_core_web_md" in full_text or "uv sync" in full_text.lower()
+    ), "WARNING should reference en_core_web_md or uv sync"
 
 
 def test_spacy_import_missing_returns_none(caplog):
@@ -133,9 +133,8 @@ async def test_nlp_matcher_error_message_is_actionable():
     assert layer_result.errors, "Expected at least one error in LayerResult"
     combined_errors = " ".join(layer_result.errors)
     assert (
-        "spacy download" in combined_errors.lower()
-        or "en_core_web_sm" in combined_errors
-    ), "Error message should include the install command or model name"
+        "en_core_web_md" in combined_errors or "uv sync" in combined_errors.lower()
+    ), "Error message should include en_core_web_md or uv sync"
 
 
 @pytest.mark.asyncio

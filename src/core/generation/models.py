@@ -2051,7 +2051,7 @@ class LayerConfig:
             "confidence_threshold": 0.6,
         }
         default_nlp_config = {
-            "spacy_model": "en_core_web_sm",
+            "spacy_model": "en_core_web_md",
             "max_text_length": 1000000,
             "entity_extraction": True,
             "semantic_analysis": True,
