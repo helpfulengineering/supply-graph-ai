@@ -69,7 +69,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | Script | What it does | Run |
 | --- | --- | --- |
 | `matching_batch` | Batch matching eval: run 'ohm match requirements' against every generated OKH manifest. | `uv run python scripts/matching_batch.py [options]` |
-| `okh_generation_baseline_report` ✎ | Produce the OKH-generation baseline report used as the eval comparison point. | `uv run python scripts/okh_generation_baseline_report.py [options]` |
-| `okh_generation_batch` ✎ | Batch LLM OKH generation over the test repository set — core of the generation eval harness. | `uv run python scripts/okh_generation_batch.py [options]` |
+| `okh_generation_baseline_report` ✎ | Produce the OKH-generation baseline report used as the eval comparison point. Requires `tests/data/okh_generation/` (see package README). | `uv run python scripts/okh_generation_baseline_report.py [options]` |
+| `okh_generation_batch` ✎ | Batch LLM OKH generation over the test repository set — writes to `tests/data/okh_generation/clones/` by default. | `uv run python scripts/okh_generation_batch.py [options]` |
 | `okh_generation_chunked_evaluation` | Evaluate chunked-LLM canary quality gates against a baseline batch report. | `uv run python scripts/okh_generation_chunked_evaluation.py [options]` |
 | `okh_generation_layer_compare` | Compare 3-layer vs 4-layer OKH manifests on disk with heuristic quality metrics. | `uv run python scripts/okh_generation_layer_compare.py [options]` |

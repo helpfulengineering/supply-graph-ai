@@ -275,3 +275,10 @@ These items should be addressed by **Issue 1.1.2** (test dataset creation):
 - **Parameterize**: `repo_url` (2-3 URLs), `llm_mode` (`live`, `mock`)
 - **Shared conftest**: `tests/e2e/conftest.py`
 - **Environment**: `GITHUB_TOKEN`, LLM API keys (for live mode)
+
+## Related: offline quality harness
+
+Generation **content** quality (field presence, Materials near-dups / prose heuristics,
+blocking-field baseline vs ground truth) is measured by the package at
+[`tests/data/okh_generation/`](../../../tests/data/okh_generation/README.md)
+([spec](../okh-generation-quality-spec.md)). That harness is separate from this e2e WF-3 workflow.

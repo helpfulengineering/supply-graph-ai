@@ -2,13 +2,13 @@
 """
 Batch OKH generation for every supported entry in tests/data/okh_generation/repositories.json.
 
-Writes manifests to **tmp/oshwa/okh-manifests/** by default using the generated
-OKH **title** as a kebab-case stem: ``<title-slug>-<layer>.json`` (e.g.
+Writes manifests to **tests/data/okh_generation/clones/** by default using the
+generated OKH **title** as a kebab-case stem: ``<title-slug>-<layer>.json`` (e.g.
 ``open-source-rover-4L.json``), plus an optional ``-<layer>-bom.json`` sidecar.
 The dataset ``id`` from ``repositories.json`` is only used for ``--only-ids``,
 clone paths under ``repos/<id>/``, and report metadata—not for the manifest
 filename. Override ``--output-dir`` for other layouts. Run report defaults to
-**tmp/oshwa/last_batch_report.json**.
+**tests/data/okh_generation/last_batch_report.json**.
 
 Typical workflow (clone + BOM normalization, same as manual ``--clone --no-review``):
 
@@ -18,15 +18,15 @@ Typical workflow (clone + BOM normalization, same as manual ``--clone --no-revie
     # From repo root: uv sync --extra dev
 
     # 3-layer baseline (default layer tag: 3L)
-    uv run python scripts/okh_generation_batch.py --stdout-summary
+    uv run python scripts/okh_generation_batch.py --no-llm
 
     # 4-layer (LLM + chunked map-reduce) — default; layer tag 4L
-    uv run python scripts/okh_generation_batch.py --stdout-summary
+    uv run python scripts/okh_generation_batch.py
 
     # Fast batch without LLM
-    uv run python scripts/okh_generation_batch.py --no-llm --stdout-summary
+    uv run python scripts/okh_generation_batch.py --no-llm
 
-    uv run python scripts/okh_generation_baseline_report.py --manifests-dir tmp/oshwa/okh-manifests
+    uv run python scripts/okh_generation_baseline_report.py
     uv run python scripts/okh_generation_layer_compare.py
 
 Options:
@@ -39,12 +39,15 @@ Options:
     --no-llm         3-layer manifests only (skip LLM)
     --no-llm-chunked Single LLM request per repo (no map-reduce; may truncate)
     --llm-chunked-mode  Redundant with defaults; kept for backward compatibility
+    --repo-timeout-seconds N   Per-repo wall-clock limit (default 600; 0 = none)
+    --progress-interval-seconds N  Heartbeat while a repo runs (default 30; 0 = off)
 
 Environment:
     ``GITLAB_SELF_HOSTED_HOSTS`` is read from :func:`os.environ` each time the
     router checks a URL (not cached at import). This script also loads the
     repo-root ``.env`` at startup with ``override=False`` so shell exports win
     over file values. Use ``--no-env-banner`` to hide the startup diagnostic line.
+    ``OHM_GIT_CLONE_TIMEOUT`` — git clone timeout in seconds (default 300).
 """
 
 from __future__ import annotations
@@ -108,14 +111,20 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--output-dir",
         type=Path,
-        default=REPO_ROOT / "tmp/oshwa/okh-manifests",
-        help="Directory for <title-slug>-<layer>.json outputs (default: tmp/oshwa/okh-manifests)",
+        default=REPO_ROOT / "tests/data/okh_generation/clones",
+        help=(
+            "Directory for <title-slug>-<layer>.json outputs "
+            "(default: tests/data/okh_generation/clones)"
+        ),
     )
     p.add_argument(
         "--report",
         type=Path,
-        default=REPO_ROOT / "tmp/oshwa/last_batch_report.json",
-        help="Write machine-readable run summary (default: tmp/oshwa/last_batch_report.json)",
+        default=REPO_ROOT / "tests/data/okh_generation/last_batch_report.json",
+        help=(
+            "Write machine-readable run summary "
+            "(default: tests/data/okh_generation/last_batch_report.json)"
+        ),
     )
     p.add_argument(
         "--no-report",
@@ -207,12 +216,24 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument(
         "--stdout-summary",
         action="store_true",
-        help="Print one-line summary per repo to stdout",
+        help="[Deprecated] Progress lines are always printed to stderr",
     )
     p.add_argument(
         "--no-env-banner",
         action="store_true",
         help="Do not print GITLAB_SELF_HOSTED_HOSTS diagnostic to stderr at startup",
+    )
+    p.add_argument(
+        "--repo-timeout-seconds",
+        type=int,
+        default=600,
+        help="Per-repo wall-clock timeout in seconds (default 600; 0 disables)",
+    )
+    p.add_argument(
+        "--progress-interval-seconds",
+        type=int,
+        default=30,
+        help="Print heartbeat every N seconds while a repo runs (default 30; 0 off)",
     )
     return p.parse_args()
 
@@ -236,9 +257,70 @@ def _select_repos(
     return out
 
 
+def _stderr(msg: str) -> None:
+    print(msg, file=sys.stderr, flush=True)
+
+
+def _rel_to_repo(path: Path) -> str:
+    try:
+        return str(path.relative_to(REPO_ROOT.resolve()))
+    except ValueError:
+        return str(path)
+
+
+def _write_report(
+    path: Path,
+    *,
+    args: argparse.Namespace,
+    layer_tag: str,
+    use_llm: bool,
+    llm_chunked: bool,
+    use_clone: bool,
+    selected: List[Dict[str, Any]],
+    rows: List[Dict[str, Any]],
+    errors: int,
+) -> None:
+    report: Dict[str, Any] = {
+        "schema_version": "1.0.0",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "repositories_json": str(args.repositories_json.relative_to(REPO_ROOT)),
+        "layer": layer_tag,
+        "layer_cli_override": args.layer,
+        "use_clone": use_clone,
+        "save_clones": bool(args.save_clones),
+        "use_llm": bool(use_llm),
+        "llm_chunked_mode": bool(use_llm and llm_chunked),
+        "llm_chunk_max_tokens": (
+            args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
+        ),
+        "llm_chunk_overlap_tokens": (
+            args.llm_chunk_overlap_tokens if args.llm_chunk_overlap_tokens > 0 else None
+        ),
+        "repo_timeout_seconds": args.repo_timeout_seconds,
+        "selected_count": len(selected),
+        "processed_count": len(rows),
+        "error_count": errors,
+        "repos": rows,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+
+async def _heartbeat(rid: str, index: int, total: int, interval: float) -> None:
+    started = time.perf_counter()
+    while True:
+        await asyncio.sleep(interval)
+        _stderr(
+            f"[{index}/{total}] {rid}\tstill running\t"
+            f"{time.perf_counter() - started:.0f}s"
+        )
+
+
 async def _run() -> int:
     args = _parse_args()
-    # Load .env before any generation imports so GITLAB_* matches shell + file intent.
     _load_repo_dotenv_if_present()
     if not args.no_env_banner:
         _print_gitlab_self_hosted_banner()
@@ -246,16 +328,12 @@ async def _run() -> int:
     use_llm = not args.no_llm
     if args.use_llm and args.no_llm:
         raise SystemExit("Cannot combine --use-llm with --no-llm")
-    llm_chunked = not args.no_llm_chunked
-    if args.llm_chunked_mode:
+    llm_chunked = bool(use_llm) and not args.no_llm_chunked
+    if args.llm_chunked_mode and use_llm:
         llm_chunked = True
-    if not use_llm:
-        llm_chunked = False
     layer_tag = args.layer if args.layer is not None else ("4L" if use_llm else "3L")
-    use_clone = bool(args.clone) and not args.no_clone
-    if not args.clone and not args.no_clone:
-        # Default: clone when user runs batch without explicit flags (safest for GitLab)
-        use_clone = True
+    # Default: clone unless --no-clone (--clone is redundant with the default).
+    use_clone = not args.no_clone
 
     from tests.data.okh_generation.baseline_report import load_repositories_dataset
     from tests.data.okh_generation.manifest_discovery import (
@@ -273,6 +351,13 @@ async def _run() -> int:
 
     data = load_repositories_dataset(args.repositories_json)
     selected = _select_repos(data, args)
+    total = len(selected)
+    _stderr(
+        f"[okh_generation_batch] selected={total} layer={layer_tag} "
+        f"use_llm={use_llm} use_clone={use_clone} "
+        f"repo_timeout={args.repo_timeout_seconds}s "
+        f"output={args.output_dir}"
+    )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     if args.save_clones:
@@ -282,20 +367,48 @@ async def _run() -> int:
     errors = 0
     used_output_stems: set[str] = set()
 
-    for repo in selected:
+    def _persist_report() -> None:
+        if not args.no_report:
+            _write_report(
+                args.report,
+                args=args,
+                layer_tag=layer_tag,
+                use_llm=use_llm,
+                llm_chunked=llm_chunked,
+                use_clone=use_clone,
+                selected=selected,
+                rows=rows,
+                errors=errors,
+            )
+
+    def _record_error(
+        rid: str, url: Any, message: str, elapsed: float, index: int
+    ) -> None:
+        nonlocal errors
+        errors += 1
+        rows.append(
+            {
+                "id": rid,
+                "url": url,
+                "status": "error",
+                "error": message,
+                "seconds": round(elapsed, 2),
+            }
+        )
+        _stderr(f"[{index}/{total}] {rid}\terror\t{message}\t{elapsed:.1f}s")
+
+    for index, repo in enumerate(selected, start=1):
         rid = repo.get("id", "unknown")
         url = repo.get("url")
         t0 = time.perf_counter()
+        _stderr(f"[{index}/{total}] {rid}\tstarting\t{url}")
 
         if args.skip_existing and url:
             existing = find_generated_manifest_path(
                 args.output_dir, layer_tag, url, dataset_id=rid
             )
             if existing is not None:
-                try:
-                    rel = str(existing.relative_to(REPO_ROOT.resolve()))
-                except ValueError:
-                    rel = str(existing)
+                rel = _rel_to_repo(existing)
                 rows.append(
                     {
                         "id": rid,
@@ -305,16 +418,25 @@ async def _run() -> int:
                         "manifest_path": rel,
                     }
                 )
-                if args.stdout_summary:
-                    print(f"{rid}\tskipped_exists\t{url}", file=sys.stderr)
+                _stderr(f"[{index}/{total}] {rid}\tskipped_exists\t{rel}")
+                _persist_report()
                 continue
 
         save_clone: Optional[Path] = None
         if args.save_clones and use_clone:
             save_clone = args.output_dir / "repos" / rid
 
+        def _batch_log(message: str, level: str = "info") -> None:
+            _stderr(f"[{index}/{total}] {rid}\t{level}\t{message}")
+
+        heartbeat: Optional[asyncio.Task] = None
+        if args.progress_interval_seconds > 0:
+            heartbeat = asyncio.create_task(
+                _heartbeat(rid, index, total, float(args.progress_interval_seconds))
+            )
+
         try:
-            result = await generate_manifest_for_repository(
+            gen_coro = generate_manifest_for_repository(
                 url,
                 clone=use_clone,
                 save_clone=save_clone,
@@ -329,14 +451,23 @@ async def _run() -> int:
                     if args.llm_chunk_overlap_tokens > 0
                     else None
                 ),
+                log=_batch_log,
             )
+            if args.repo_timeout_seconds > 0:
+                result = await asyncio.wait_for(
+                    gen_coro, timeout=float(args.repo_timeout_seconds)
+                )
+            else:
+                result = await gen_coro
+
             manifest = result.to_okh_manifest(
                 include_field_confidence=args.include_confidence
             )
             title_raw = manifest.get("title")
             title_str = title_raw.strip() if isinstance(title_raw, str) else ""
-            base_slug = title_slug_for_filename(title_str, rid)
-            output_stem = allocate_unique_slug(base_slug, used_output_stems)
+            output_stem = allocate_unique_slug(
+                title_slug_for_filename(title_str, rid), used_output_stems
+            )
             manifest_path = args.output_dir / f"{output_stem}-{layer_tag}.json"
             manifest_path.write_text(
                 json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
@@ -353,87 +484,52 @@ async def _run() -> int:
 
             elapsed = time.perf_counter() - t0
             heur = heuristic_manifest_quality(manifest)
-            try:
-                manifest_rel = str(manifest_path.relative_to(REPO_ROOT.resolve()))
-            except ValueError:
-                manifest_rel = str(manifest_path)
-            row = {
+            row: Dict[str, Any] = {
                 "id": rid,
                 "output_stem": output_stem,
                 "url": url,
                 "status": "ok",
-                "manifest_path": manifest_rel,
+                "manifest_path": _rel_to_repo(manifest_path),
                 "seconds": round(elapsed, 2),
                 "heuristic_quality": heur,
             }
             if bom_path.is_file():
-                try:
-                    row["bom_path"] = str(bom_path.relative_to(REPO_ROOT.resolve()))
-                except ValueError:
-                    row["bom_path"] = str(bom_path)
+                row["bom_path"] = _rel_to_repo(bom_path)
             rows.append(row)
-            if args.stdout_summary:
-                conf = heur.get("generation_confidence")
-                leak = heur.get("function_suspected_license_leak")
-                print(
-                    f"{rid}\tok\tconf={conf}\tlicense_leak={leak}\t{elapsed:.1f}s",
-                    file=sys.stderr,
-                )
-        except Exception as e:
-            errors += 1
-            elapsed = time.perf_counter() - t0
-            rows.append(
-                {
-                    "id": rid,
-                    "url": url,
-                    "status": "error",
-                    "error": str(e),
-                    "seconds": round(elapsed, 2),
-                }
+            _stderr(
+                f"[{index}/{total}] {rid}\tok\t"
+                f"conf={heur.get('generation_confidence')}\t"
+                f"materials_prose={heur.get('materials_prose_like_count')}\t"
+                f"near_dups={heur.get('materials_near_dup_pairs')}\t"
+                f"{elapsed:.1f}s"
             )
-            if args.stdout_summary:
-                print(f"{rid}\terror\t{e}\t{elapsed:.1f}s", file=sys.stderr)
-
-    report: Dict[str, Any] = {
-        "schema_version": "1.0.0",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "repositories_json": str(args.repositories_json.relative_to(REPO_ROOT)),
-        "layer": layer_tag,
-        "layer_cli_override": args.layer,
-        "use_clone": use_clone,
-        "save_clones": bool(args.save_clones),
-        "use_llm": bool(use_llm),
-        "llm_chunked_mode": bool(use_llm and llm_chunked),
-        "llm_chunk_max_tokens": (
-            args.llm_chunk_max_tokens if args.llm_chunk_max_tokens > 0 else None
-        ),
-        "llm_chunk_overlap_tokens": (
-            args.llm_chunk_overlap_tokens if args.llm_chunk_overlap_tokens > 0 else None
-        ),
-        "selected_count": len(selected),
-        "processed_count": len(rows),
-        "error_count": errors,
-        "repos": rows,
-    }
+        except asyncio.TimeoutError:
+            _record_error(
+                rid,
+                url,
+                f"repo timeout after {args.repo_timeout_seconds}s",
+                time.perf_counter() - t0,
+                index,
+            )
+        except Exception as e:
+            _record_error(rid, url, str(e), time.perf_counter() - t0, index)
+        finally:
+            if heartbeat is not None:
+                heartbeat.cancel()
+                try:
+                    await heartbeat
+                except asyncio.CancelledError:
+                    pass
+            _persist_report()
 
     if not args.no_report:
-        args.report.parent.mkdir(parents=True, exist_ok=True)
-        args.report.write_text(
-            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
-        print(f"Wrote {args.report}", file=sys.stderr)
+        _stderr(f"Wrote {args.report}")
 
-    print(
+    _stderr(
         json.dumps(
-            {
-                "selected": len(selected),
-                "rows": len(rows),
-                "errors": errors,
-            },
+            {"selected": len(selected), "rows": len(rows), "errors": errors},
             indent=2,
-        ),
-        file=sys.stderr,
+        )
     )
     return 1 if errors else 0
 
