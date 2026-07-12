@@ -111,6 +111,12 @@ summary = "Seed a local OHM storage directory with a realistic repair-workflow s
 run = "uv run python scripts/seed_repair_scenario.py [options]"
 mutates = true
 
+[scripts.import_okh_losh_batch]
+category = "data"
+summary = "Bulk-convert+validate+import a directory of OKH-LOSH v2.4 TOML manifests through OKHService.create()."
+run = "uv run python scripts/import_okh_losh_batch.py --data-dir <DIR> [--dry-run] [--report FILE]"
+mutates = true
+
 [scripts.copy_container_blobs]
 category = "storage"
 summary = "Copy all blobs from one Azure container to another via OHM's storage provider (bypasses RBAC data-plane grant)."

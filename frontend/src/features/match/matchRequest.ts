@@ -49,11 +49,11 @@ export function buildMatchRequest(
   okwIds?: string[],
   networkFilter?: Record<string, string | boolean>,
 ): RunMatchParams {
-  // A network filter (local ∪ MoM) supersedes the local-id subset.
-  const scope = networkFilter
-    ? { networkFilter }
-    : okwIds && okwIds.length > 0
-      ? { okwIds }
-      : {};
-  return { okhId, ...MODE_PARAMS[mode], maxResults, ...scope };
+  const subset = okwIds && okwIds.length > 0 ? { okwIds } : {};
+  // Network filter (local ∪ MoM) can combine with an explicit id subset so the
+  // Match page can pick individual MoM/local spaces from the network list.
+  if (networkFilter) {
+    return { okhId, ...MODE_PARAMS[mode], maxResults, networkFilter, ...subset };
+  }
+  return { okhId, ...MODE_PARAMS[mode], maxResults, ...subset };
 }

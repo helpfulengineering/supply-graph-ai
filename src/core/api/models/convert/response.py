@@ -70,3 +70,38 @@ class ConvertFromDatasheetResponse(SuccessResponse):
             }
         },
     )
+
+
+class ConvertFromOkhLoshResponse(SuccessResponse):
+    """Response model for OKH-LOSH v2.4 TOML → OKH conversion.
+
+    Returns the full OKH manifest data parsed from the uploaded
+    OKH-LOSH TOML file.
+    """
+
+    manifest: Dict[str, Any] = Field(
+        ..., description="The parsed OKH manifest as a JSON object"
+    )
+    manifest_title: str = Field(
+        ..., description="Title extracted from the OKH-LOSH manifest"
+    )
+    fields_populated: int = Field(
+        0, description="Number of OKH fields populated from the manifest"
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "success": True,
+                "message": "OKH-LOSH TOML converted to OKH manifest successfully",
+                "manifest_title": "M19O2",
+                "manifest": {
+                    "title": "M19O2",
+                    "version": "3.0.0",
+                    "license": {"hardware": "CC-BY-4.0"},
+                    "function": "Oxygen Concentrator based on the Pressure Swing Absorption cycle",
+                },
+                "fields_populated": 18,
+            }
+        },
+    )

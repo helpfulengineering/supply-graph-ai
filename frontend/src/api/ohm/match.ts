@@ -53,12 +53,11 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
       save_solution: true,
       quality_level: params.qualityLevel,
       strict_mode: params.strictMode,
-      // Network match (local ∪ MoM) supersedes the local-id subset.
-      ...(params.networkFilter
-        ? { network_filter: params.networkFilter }
-        : params.okwIds && params.okwIds.length > 0
-          ? { okw_ids: params.okwIds }
-          : {}),
+      // Network match (local ∪ MoM) can combine with an explicit id subset.
+      ...(params.networkFilter ? { network_filter: params.networkFilter } : {}),
+      ...(params.okwIds && params.okwIds.length > 0
+        ? { okw_ids: params.okwIds }
+        : {}),
     } as never,
   });
   if (error || !response.ok) {

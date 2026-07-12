@@ -93,6 +93,8 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "pytest-timeout>=2.3.1",
     "httpx>=0.24.0",
+    # Pin to match .pre-commit-config.yaml so `make format` and the black hook agree.
+    "black==24.10.0",
 ]
 docs = [
     "mkdocs",

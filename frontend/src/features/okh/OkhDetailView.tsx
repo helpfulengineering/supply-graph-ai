@@ -176,7 +176,7 @@ export function OkhDetailView({ id }: Props) {
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <BuildPackageButton okh={okh} />
-          <Button onClick={() => navigate(`/match?okh_id=${okh.id}&autorun=1`)}>
+          <Button onClick={() => navigate(`/match?okh_id=${okh.id}`)}>
             ⚡ Run Match
           </Button>
           <Button variant="outline" onClick={handleValidate} disabled={validateState === "running"}>

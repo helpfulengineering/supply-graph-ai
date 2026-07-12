@@ -103,6 +103,7 @@ nav:
   - Conversion:
     - Overview: conversion/index.md
     - MSF Datasheet: conversion/msf-datasheet.md
+    - OKH-LOSH TOML: conversion/okh-losh-toml.md
   - Domains:
     - Overview: domains/index.md
     - Manufacturing: domains/manufacturing.md

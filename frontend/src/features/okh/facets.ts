@@ -1,5 +1,6 @@
 import type { OkhManifest } from "../../types/okh";
 import { deriveCategories } from "./categories";
+import { normalizeHardwareLicense } from "./normalizeHardwareLicense";
 
 /**
  * Faceted-browse logic for the OKH catalog (pure, framework-free, unit-tested).
@@ -39,7 +40,10 @@ export const FACET_DEFS: FacetDef[] = [
   {
     key: "license",
     label: "License",
-    values: (i) => (i.license?.hardware ? [i.license.hardware] : []),
+    values: (i) => {
+      const n = normalizeHardwareLicense(i.license?.hardware);
+      return n ? [n] : [];
+    },
   },
 ];
 
@@ -107,7 +111,13 @@ export function deriveFacetGroups(
     }
     const options = [...counts.entries()]
       .map(([value, count]) => ({ value, count }))
-      .sort((a, b) => b.count - a.count || a.value.localeCompare(b.value));
+      .sort((a, b) =>
+        // Licenses: alphabetical (family names are easier to scan than by count).
+        // Other facets: count desc, then alpha for ties.
+        def.key === "license"
+          ? a.value.localeCompare(b.value)
+          : b.count - a.count || a.value.localeCompare(b.value),
+      );
     return { key: def.key, label: def.label, options };
   }).filter((g) => g.options.length > 0);
 }

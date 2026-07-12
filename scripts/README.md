@@ -38,6 +38,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | Script | What it does | Run |
 | --- | --- | --- |
 | `generate_synthetic_data` ✎ | Synthetic-data generator for OKH, OKW, and AssetRecord models — the primary fixture/demo dataset source. | `uv run python scripts/generate_synthetic_data.py [options]` |
+| `import_okh_losh_batch` ✎ | Bulk-convert+validate+import a directory of OKH-LOSH v2.4 TOML manifests through OKHService.create(). | `uv run python scripts/import_okh_losh_batch.py --data-dir <DIR> [--dry-run] [--report FILE]` |
 | `populate_ohm_storage_from_synthetic_data` ✎ | Upload OKH/OKW from synthetic_data/ into an Azure Blob container (seed a deployment). | `uv run python scripts/populate_ohm_storage_from_synthetic_data.py [options]` |
 | `seed_repair_scenario` ✎ | Seed a local OHM storage directory with a realistic repair-workflow scenario (asset + manifests). | `uv run python scripts/seed_repair_scenario.py [options]` |
 
@@ -69,6 +70,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | Script | What it does | Run |
 | --- | --- | --- |
 | `matching_batch` | Batch matching eval: run 'ohm match requirements' against every generated OKH manifest. | `uv run python scripts/matching_batch.py [options]` |
+| `okh_generation_azure_regen_replace` ✎ | Re-generate every OKH in Azure blob from its repo URL and overwrite the same blob key. | `uv run python scripts/okh_generation_azure_regen_replace.py [--dry-run] [--force] [options]` |
 | `okh_generation_baseline_report` ✎ | Produce the OKH-generation baseline report used as the eval comparison point. | `uv run python scripts/okh_generation_baseline_report.py [options]` |
 | `okh_generation_batch` ✎ | Batch LLM OKH generation over the test repository set — core of the generation eval harness. | `uv run python scripts/okh_generation_batch.py [options]` |
 | `okh_generation_chunked_evaluation` | Evaluate chunked-LLM canary quality gates against a baseline batch report. | `uv run python scripts/okh_generation_chunked_evaluation.py [options]` |

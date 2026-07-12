@@ -6,7 +6,7 @@ const NETWORK_AXES = ["country", "city", "process", "source", "status", "region"
 export function MatchPage() {
   const [searchParams] = useSearchParams();
   const okhId = searchParams.get("okh_id") ?? undefined;
-  const autoRun = searchParams.get("autorun") === "1";
+  const okwId = searchParams.get("okw_id") ?? undefined;
 
   // A `network` marker (from the network surface's "Match against these" action)
   // carries the active filters into the match as a network_filter.
@@ -20,8 +20,14 @@ export function MatchPage() {
     networkFilter.include_mom = searchParams.get("source") !== "local";
   }
 
-  // Remount when switching designs/scope so match session state and the autorun
-  // latch reset cleanly.
-  const key = `${okhId ?? "__none__"}:${networkFilter ? searchParams.toString() : ""}`;
-  return <MatchView key={key} okhId={okhId} autoRun={autoRun} networkFilter={networkFilter} />;
+  // Remount when switching design/facility/scope so selection state resets cleanly.
+  const key = `${okhId ?? "__none__"}:${okwId ?? ""}:${networkFilter ? searchParams.toString() : ""}`;
+  return (
+    <MatchView
+      key={key}
+      okhId={okhId}
+      okwId={okwId}
+      networkFilter={networkFilter}
+    />
+  );
 }

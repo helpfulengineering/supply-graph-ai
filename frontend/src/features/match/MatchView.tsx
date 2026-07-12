@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { fetchOkhList } from "../../api/ohm/okh";
-import { searchOkw } from "../../api/ohm/okw";
+import { fetchAllOkhList } from "../../api/ohm/okh";
+import { fetchNetworkSpaces } from "../../api/ohm/network";
 import { runMatch } from "../../api/ohm/match";
 import { ApiError } from "../../api/ohm/client";
 import { toMatchView } from "./matchViewModel";
 import { buildMatchRequest, SYSTEM_MODES, type SystemMode } from "./matchRequest";
-import { FacilityFilter } from "./FacilityFilter";
+import { DesignPicker } from "./DesignPicker";
+import { FacilityFilter, type FacilityOption } from "./FacilityFilter";
 import { MatchResultCard } from "./MatchResultCard";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
@@ -36,113 +37,149 @@ function describeNetworkFilter(filter: Record<string, string | boolean>): string
   return parts.length ? `${scope} — ${parts.join(" · ")}` : scope;
 }
 
+function spaceToOption(s: {
+  id: string;
+  name: string;
+  city: string | null;
+  region: string | null;
+  country: string | null;
+  source: "local" | "mom";
+}): FacilityOption {
+  return {
+    id: s.id,
+    name: s.name,
+    city: s.city,
+    region: s.region,
+    country: s.country,
+    source: s.source,
+  };
+}
+
+/** Default network scope for Match page selections (local ∪ MoM). */
+const MATCH_NETWORK_SCOPE: Record<string, string | boolean> = {
+  include_mom: true,
+};
+
 export function MatchView({
   okhId,
-  autoRun,
+  okwId,
   networkFilter,
 }: {
   okhId?: string;
-  autoRun?: boolean;
+  /** Prefill facility selection (from a facility detail hand-off). */
+  okwId?: string;
   networkFilter?: Record<string, string | boolean>;
 }) {
   const networkMode = !!networkFilter;
   const designs = useQuery({
     queryKey: ["okh-list"],
-    queryFn: () => fetchOkhList({ page: 1, page_size: 100 }),
+    queryFn: () => fetchAllOkhList(),
     staleTime: 60_000,
   });
   const facilitiesQuery = useQuery({
-    queryKey: ["okw-search", "match-filter"],
-    queryFn: () => searchOkw({ page: 1, page_size: 100 }),
-    staleTime: 60_000,
-    // The local facility subset filter is superseded in network mode.
+    queryKey: ["network", "match-filter"],
+    queryFn: () => fetchNetworkSpaces({}),
+    staleTime: 300_000,
     enabled: !networkMode,
   });
   const [selected, setSelected] = useState(okhId ?? "");
   const [mode, setMode] = useState<SystemMode>("standard");
-  const [facilityIds, setFacilityIds] = useState<string[]>([]);
+  const [facilityIds, setFacilityIds] = useState<string[]>(() =>
+    okwId ? [okwId] : [],
+  );
   const mutation = useMutation({
     mutationFn: ({ id, m, ids }: { id: string; m: SystemMode; ids: string[] }) =>
-      runMatch(buildMatchRequest(id, m, undefined, ids, networkFilter)),
+      runMatch(
+        buildMatchRequest(
+          id,
+          m,
+          undefined,
+          ids,
+          networkMode ? networkFilter : MATCH_NETWORK_SCOPE,
+        ),
+      ),
   });
   const view = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
     [mutation.data],
   );
 
-  useEffect(() => {
-    if (autoRun && okhId) mutation.mutate({ id: okhId, m: "standard", ids: [] });
-    // Run once on mount; MatchPage remounts (via key) when the design changes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const renderable = (designs.data?.items ?? []).filter((d) => d.title?.trim());
   const modeInfo = SYSTEM_MODES.find((s) => s.mode === mode);
+  const canRun =
+    !!selected &&
+    !mutation.isPending &&
+    (networkMode || facilityIds.length > 0);
+
+  const facilityOptions = useMemo(
+    () => (facilitiesQuery.data?.spaces ?? []).map(spaceToOption),
+    [facilitiesQuery.data],
+  );
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Match a Design</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Find manufacturing facilities that can produce a design.
+          Choose a design and the facilities to compare, then run a match.
         </p>
       </div>
 
       <div className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <label className="max-w-md flex-1 text-sm">
-            <span className="mb-1 block text-muted-foreground">Design</span>
-            <select
-              value={selected}
-              onChange={(e) => setSelected(e.target.value)}
-              aria-label="Design to match"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        <DesignPicker
+          designs={designs.data?.items ?? []}
+          selectedId={selected}
+          onSelect={setSelected}
+          isLoading={designs.isLoading}
+          isError={designs.isError}
+        />
+
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex-1">
+            <span className="mb-1 block text-sm text-muted-foreground">System mode</span>
+            <div
+              role="radiogroup"
+              aria-label="System mode"
+              className="inline-flex overflow-hidden rounded-md border border-input"
             >
-              <option value="">Select a design…</option>
-              {renderable.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.title}
-                </option>
+              {SYSTEM_MODES.map((s) => (
+                <button
+                  key={s.mode}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === s.mode}
+                  onClick={() => setMode(s.mode)}
+                  className={cn(
+                    "px-3 py-1.5 text-sm transition-colors",
+                    mode === s.mode
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-background text-foreground hover:bg-accent",
+                  )}
+                >
+                  {s.label}
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+            {modeInfo && (
+              <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">{modeInfo.description}</p>
+            )}
+          </div>
           <Button
-            disabled={!selected || mutation.isPending}
+            disabled={!canRun}
             onClick={() => mutation.mutate({ id: selected, m: mode, ids: facilityIds })}
           >
             {mutation.isPending ? "Matching…" : "⚡ Run Match"}
           </Button>
         </div>
-
-        <div>
-          <span className="mb-1 block text-sm text-muted-foreground">System mode</span>
-          <div
-            role="radiogroup"
-            aria-label="System mode"
-            className="inline-flex overflow-hidden rounded-md border border-input"
-          >
-            {SYSTEM_MODES.map((s) => (
-              <button
-                key={s.mode}
-                type="button"
-                role="radio"
-                aria-checked={mode === s.mode}
-                onClick={() => setMode(s.mode)}
-                className={cn(
-                  "px-3 py-1.5 text-sm transition-colors",
-                  mode === s.mode
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-background text-foreground hover:bg-accent",
-                )}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-          {modeInfo && (
-            <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">{modeInfo.description}</p>
-          )}
-        </div>
+        {!networkMode && selected && facilityIds.length === 0 && (
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            Select at least one facility below before running a match.
+          </p>
+        )}
+        {!selected && (
+          <p className="text-xs text-amber-700 dark:text-amber-400">
+            Search and select a design above before running a match.
+          </p>
+        )}
 
         {networkMode ? (
           <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-sm dark:border-indigo-800 dark:bg-indigo-950/30">
@@ -155,10 +192,7 @@ export function MatchView({
           </div>
         ) : (
           <FacilityFilter
-            facilities={(facilitiesQuery.data?.results ?? []).map((f) => ({
-              id: f.id,
-              name: f.name,
-            }))}
+            facilities={facilityOptions}
             selectedIds={facilityIds}
             onChange={setFacilityIds}
             isLoading={facilitiesQuery.isLoading}
@@ -184,7 +218,11 @@ export function MatchView({
                 ? mutation.error.message
                 : "Match failed."
           }
-          onRetry={() => selected && mutation.mutate({ id: selected, m: mode, ids: facilityIds })}
+          onRetry={() =>
+            selected &&
+            canRun &&
+            mutation.mutate({ id: selected, m: mode, ids: facilityIds })
+          }
         />
       )}
 

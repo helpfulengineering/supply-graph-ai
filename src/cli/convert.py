@@ -4,7 +4,8 @@ Convert commands for OHM CLI.
 Provides bi-directional conversion between OKH manifests and external
 document formats.  Currently supports conversion to/from the MSF
 (Maker Space Foundation) 3D-printed product technical specification
-datasheet (.docx).
+datasheet (.docx), and one-way conversion from OKH-LOSH v2.4 TOML
+(github.com/iop-alliance/OpenKnowHow) manifests.
 """
 
 import json
@@ -17,6 +18,10 @@ from ..core.models.okh import OKHManifest
 from ..core.services.datasheet_converter import (
     DatasheetConversionError,
     DatasheetConverter,
+)
+from ..core.services.okh_losh_converter import (
+    OkhLoshConversionError,
+    OkhLoshConverter,
 )
 from .base import CLIContext
 from .decorators import standard_cli_command
@@ -32,6 +37,7 @@ def convert_group() -> None:
 
     Supported formats:
       - MSF Datasheet (.docx): 3D-printed product technical specification
+      - OKH-LOSH v2.4 TOML: the iop-alliance/OpenKnowHow TOML spec (import only)
 
     The internal OKH data model is always the canonical source of truth.
 
@@ -44,6 +50,9 @@ def convert_group() -> None:
 
       # Convert with custom template
       ohm convert to-datasheet my-project.okh.json --template custom-template.docx
+
+      # Convert an OKH-LOSH v2.4 TOML manifest to OHM's OKH JSON
+      ohm convert from-okh-losh my-project.okh.toml -o my-project.okh.json
     """
     pass
 
@@ -152,6 +161,120 @@ async def to_datasheet(
             )
 
     except DatasheetConversionError as exc:
+        cli_ctx.log(f"Conversion error: {exc}", "error")
+        raise click.ClickException(str(exc))
+    except Exception as exc:
+        cli_ctx.log(f"Unexpected error: {exc}", "error")
+        raise click.ClickException(str(exc))
+
+
+@convert_group.command("from-okh-losh")
+@click.argument("toml_file", type=click.Path(exists=True))
+@click.option(
+    "-o",
+    "--output",
+    "output_path",
+    type=click.Path(),
+    help="Output file path. Defaults to <toml_name>.okh.json",
+)
+@click.option(
+    "--format",
+    "file_format",
+    type=click.Choice(["json", "yaml"]),
+    default="json",
+    help="Output file format (default: json)",
+)
+@standard_cli_command(
+    help_text="""
+    Convert an OKH-LOSH v2.4 TOML manifest to an OKH manifest.
+
+    Parses a manifest authored in the OKH-LOSH v2.4 TOML format
+    (github.com/iop-alliance/OpenKnowHow) and produces a canonical OKH
+    manifest in JSON or YAML format.
+
+    Fields with no direct equivalent in OHM's model (the full [[image]]
+    array, top-level mass, top-level release) are preserved under the
+    manifest's metadata dict rather than dropped.
+
+    The resulting manifest can be used directly with all other OHM
+    commands (validate, fix, upload, package, match, etc.).
+    """,
+    epilog="""
+    Examples:
+      # Basic conversion
+      ohm convert from-okh-losh my-project.okh.toml
+
+      # Output as YAML
+      ohm convert from-okh-losh my-project.okh.toml --format yaml
+
+      # Specify output path
+      ohm convert from-okh-losh my-project.okh.toml -o my-project.okh.json
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def from_okh_losh(
+    ctx,
+    toml_file: str,
+    output_path: Optional[str],
+    file_format: str,
+    verbose: bool,
+    output_format: str,
+    **kwargs,
+):
+    """Convert an OKH-LOSH v2.4 TOML manifest to an OKH manifest."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.start_command_tracking("convert-from-okh-losh")
+    cli_ctx.verbose = verbose
+    cli_ctx.config.verbose = verbose
+
+    try:
+        cli_ctx.log("Reading OKH-LOSH TOML manifest...", "info")
+
+        converter = OkhLoshConverter()
+        manifest = converter.okh_losh_to_okh(toml_file)
+
+        cli_ctx.log(f"Parsed manifest: {manifest.title}", "info")
+
+        if not output_path:
+            toml_path = Path(toml_file)
+            stem = toml_path.stem.replace(".okh", "")
+            ext = "yaml" if file_format == "yaml" else "json"
+            output_path = str(toml_path.parent / f"{stem}.okh.{ext}")
+
+        manifest_dict = manifest.to_dict()
+
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+        if file_format == "yaml":
+            import yaml
+
+            with open(output_path, "w") as f:
+                yaml.dump(manifest_dict, f, default_flow_style=False, sort_keys=False)
+        else:
+            with open(output_path, "w") as f:
+                json.dump(manifest_dict, f, indent=2, default=str)
+
+        cli_ctx.log(f"OKH manifest written to: {output_path}", "success")
+
+        if output_format == "json":
+            click.echo(
+                json.dumps(
+                    {
+                        "status": "success",
+                        "output_path": output_path,
+                        "manifest_title": manifest.title,
+                        "format": file_format,
+                    },
+                    indent=2,
+                )
+            )
+
+    except OkhLoshConversionError as exc:
         cli_ctx.log(f"Conversion error: {exc}", "error")
         raise click.ClickException(str(exc))
     except Exception as exc:

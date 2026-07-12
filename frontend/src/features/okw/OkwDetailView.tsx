@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { fetchOkwDetail, validateOkw, type ValidationResult } from "../../api/ohm/okw";
 import { LoadingState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
@@ -62,6 +62,7 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
 }
 
 export function OkwDetailView({ id }: { id: string }) {
+  const navigate = useNavigate();
   const [validateState, setValidateState] = useState<"idle" | "running" | "done" | "error">("idle");
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [validateError, setValidateError] = useState<string | null>(null);
@@ -124,9 +125,14 @@ export function OkwDetailView({ id }: { id: string }) {
             )}
           </div>
         </div>
-        <Button variant="outline" onClick={handleValidate} disabled={validateState === "running"}>
-          {validateState === "running" ? "Validating…" : "Validate"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={() => navigate(`/match?okw_id=${encodeURIComponent(id)}`)}>
+            Find matching designs →
+          </Button>
+          <Button variant="outline" onClick={handleValidate} disabled={validateState === "running"}>
+            {validateState === "running" ? "Validating…" : "Validate"}
+          </Button>
+        </div>
       </div>
 
       {validateState === "error" && (
