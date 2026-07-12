@@ -54,13 +54,10 @@ def test_minimal_fields_and_renames(tmp_path):
 
 
 def test_tsdc_and_standard_compliance_wrapped_as_lists(tmp_path):
-    content = (
-        MINIMAL
-        + """
+    content = MINIMAL + """
 tsdc = "ASM"
 standard-compliance = "DIN EN 1335"
 """
-    )
     path = _write(tmp_path, content)
     manifest = OkhLoshConverter().okh_losh_to_okh(path)
 
@@ -69,13 +66,10 @@ standard-compliance = "DIN EN 1335"
 
 
 def test_manufacturing_instructions_string_and_list_become_document_refs(tmp_path):
-    content = (
-        MINIMAL
-        + """
+    content = MINIMAL + """
 manufacturing-instructions = "https://example.com/manual.pdf"
 user-manual = ["https://example.com/a.pdf", "https://example.com/b.pdf"]
 """
-    )
     path = _write(tmp_path, content)
     manifest = OkhLoshConverter().okh_losh_to_okh(path)
 
@@ -89,14 +83,11 @@ user-manual = ["https://example.com/a.pdf", "https://example.com/b.pdf"]
 
 
 def test_software_installation_guide_kebab_case_renamed(tmp_path):
-    content = (
-        MINIMAL
-        + """
+    content = MINIMAL + """
 [[software]]
 release = "https://example.com/release/1.0"
 installation-guide = "https://example.com/install.md"
 """
-    )
     path = _write(tmp_path, content)
     manifest = OkhLoshConverter().okh_losh_to_okh(path)
 
@@ -106,15 +97,12 @@ installation-guide = "https://example.com/install.md"
 
 
 def test_outer_dimensions_preserved_as_is(tmp_path):
-    content = (
-        MINIMAL
-        + """
+    content = MINIMAL + """
 [outer-dimensions]
 width = 400
 depth = 350.8
 height = 150
 """
-    )
     path = _write(tmp_path, content)
     manifest = OkhLoshConverter().okh_losh_to_okh(path)
 
@@ -126,9 +114,7 @@ height = 150
 
 
 def test_image_array_picks_primary_and_preserves_full_list_in_metadata(tmp_path):
-    content = (
-        MINIMAL
-        + """
+    content = MINIMAL + """
 [[image]]
 location = "imgs/logo.jpg"
 slots = ["logo"]
@@ -140,7 +126,6 @@ slots = ["photo-thing-main"]
 [[image]]
 location = "imgs/other.jpg"
 """
-    )
     path = _write(tmp_path, content)
     manifest = OkhLoshConverter().okh_losh_to_okh(path)
 
@@ -163,13 +148,10 @@ def test_image_as_bare_string_handled(tmp_path):
 
 
 def test_mass_and_release_go_to_metadata(tmp_path):
-    content = (
-        MINIMAL
-        + """
+    content = MINIMAL + """
 mass = 50330.0
 release = "https://example.com/releases/1.0.0"
 """
-    )
     path = _write(tmp_path, content)
     manifest = OkhLoshConverter().okh_losh_to_okh(path)
 

@@ -94,7 +94,8 @@ dev = [
     "pytest-timeout>=2.3.1",
     "httpx>=0.24.0",
     # Pin to match .pre-commit-config.yaml so `make format` and the black hook agree.
-    "black==24.10.0",
+    # 26.3.1+ required for CVE-2026-32274 (arbitrary cache path writes).
+    "black==26.3.1",
 ]
 docs = [
     "mkdocs",
