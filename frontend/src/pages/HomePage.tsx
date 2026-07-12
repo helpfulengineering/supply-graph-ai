@@ -32,8 +32,9 @@ function LegendDot({ source }: { source: "local" | "mom" }) {
 }
 
 export function HomePage() {
-  const map = useQuery({ queryKey: ["network", "baseline"], queryFn: () => fetchNetworkSpaces(), staleTime: 300_000 });
-  const domains = useQuery({ queryKey: ["domains"], queryFn: fetchDomains, staleTime: 300_000 });
+  const map = useQuery({ queryKey: ["network", "baseline"], queryFn: () => fetchNetworkSpaces() });
+  const domains = useQuery({ queryKey: ["domains"], queryFn: fetchDomains });
+  // Metrics are more volatile than the catalog data; keep a short stale window.
   const metrics = useQuery({ queryKey: ["metrics"], queryFn: fetchMetrics, staleTime: 60_000 });
 
   const online = !domains.isError && !metrics.isError;

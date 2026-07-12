@@ -116,7 +116,6 @@ export function OkhDetailView({ id }: Props) {
   const { data: okh, isLoading, isError, error, refetch } = useQuery<OkhManifest>({
     queryKey: ["okh-detail", id],
     queryFn: () => fetchOkhDetail(id),
-    staleTime: 120_000,
   });
 
   const handleValidate = async () => {

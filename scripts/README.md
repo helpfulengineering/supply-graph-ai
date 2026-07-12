@@ -70,6 +70,8 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | Script | What it does | Run |
 | --- | --- | --- |
 | `matching_batch` | Batch matching eval: run 'ohm match requirements' against every generated OKH manifest. | `uv run python scripts/matching_batch.py [options]` |
+| `okh_generation_azure_regen_batches` ✎ | Batch re-generate OKHs in the Azure production container from each manifest's repo URL, skipping existing work and appending a JSONL process log. | `uv run python scripts/okh_generation_azure_regen_batches.py [--dry-run] [--force] [--batch-size N]` |
+| `okh_generation_azure_regen_lib` | Pure helpers (batching, key classification, JSONL log parsing) for okh_generation_azure_regen_batches; imported, not run directly. | `imported by scripts/okh_generation_azure_regen_batches.py` |
 | `okh_generation_azure_regen_replace` ✎ | Re-generate every OKH in Azure blob from its repo URL and overwrite the same blob key. | `uv run python scripts/okh_generation_azure_regen_replace.py [--dry-run] [--force] [options]` |
 | `okh_generation_baseline_report` ✎ | Produce the OKH-generation baseline report used as the eval comparison point. | `uv run python scripts/okh_generation_baseline_report.py [options]` |
 | `okh_generation_batch` ✎ | Batch LLM OKH generation over the test repository set — core of the generation eval harness. | `uv run python scripts/okh_generation_batch.py [options]` |

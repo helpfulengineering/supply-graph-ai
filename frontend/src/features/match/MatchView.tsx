@@ -1,19 +1,30 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchAllOkhList } from "../../api/ohm/okh";
 import { fetchNetworkSpaces } from "../../api/ohm/network";
 import { runMatch } from "../../api/ohm/match";
 import { ApiError } from "../../api/ohm/client";
-import { toMatchView } from "./matchViewModel";
-import { buildMatchRequest, SYSTEM_MODES, type SystemMode } from "./matchRequest";
+import { solutionSelectionKey, toMatchView } from "./matchViewModel";
+import {
+  buildMatchRequest,
+  SYSTEM_MODES,
+  type SystemMode,
+} from "./matchRequest";
 import { DesignPicker } from "./DesignPicker";
 import { FacilityFilter, type FacilityOption } from "./FacilityFilter";
 import { MatchResultCard } from "./MatchResultCard";
-import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
+import { toRfqSolutions } from "./rfqHandoff";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+} from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { humanizeProcessId } from "../network/deriveFilterOptions";
+import { formatOkhDisplayTitle } from "../okh/formatOkhDisplayTitle";
 import { cn } from "@/lib/utils";
+import type { RfqNavigationState } from "../../types/rfq";
 
 const _AXIS_LABELS: Record<string, string> = {
   country: "country",
@@ -26,14 +37,20 @@ const _AXIS_LABELS: Record<string, string> = {
 };
 
 /** Readable summary of an active network filter for the match banner. */
-function describeNetworkFilter(filter: Record<string, string | boolean>): string {
+function describeNetworkFilter(
+  filter: Record<string, string | boolean>,
+): string {
   const parts = Object.entries(filter)
     .filter(([key, value]) => key in _AXIS_LABELS && value)
     .map(([key, value]) => {
-      const shown = key === "process" ? humanizeProcessId(String(value)) : String(value);
+      const shown =
+        key === "process" ? humanizeProcessId(String(value)) : String(value);
       return `${_AXIS_LABELS[key]}: ${shown}`;
     });
-  const scope = filter.include_mom === false ? "OHM facilities only" : "local ∪ Maps of Making";
+  const scope =
+    filter.include_mom === false
+      ? "OHM facilities only"
+      : "local ∪ Maps of Making";
   return parts.length ? `${scope} — ${parts.join(" · ")}` : scope;
 }
 
@@ -70,16 +87,17 @@ export function MatchView({
   okwId?: string;
   networkFilter?: Record<string, string | boolean>;
 }) {
+  const navigate = useNavigate();
   const networkMode = !!networkFilter;
   const designs = useQuery({
     queryKey: ["okh-list"],
     queryFn: () => fetchAllOkhList(),
-    staleTime: 60_000,
   });
+  // Shares the ["network","baseline"] cache populated by the Home and Network
+  // pages so the large unfiltered facilities payload is fetched only once.
   const facilitiesQuery = useQuery({
-    queryKey: ["network", "match-filter"],
+    queryKey: ["network", "baseline"],
     queryFn: () => fetchNetworkSpaces({}),
-    staleTime: 300_000,
     enabled: !networkMode,
   });
   const [selected, setSelected] = useState(okhId ?? "");
@@ -87,8 +105,19 @@ export function MatchView({
   const [facilityIds, setFacilityIds] = useState<string[]>(() =>
     okwId ? [okwId] : [],
   );
+  const [selectedSolutionKeys, setSelectedSolutionKeys] = useState<string[]>(
+    [],
+  );
   const mutation = useMutation({
-    mutationFn: ({ id, m, ids }: { id: string; m: SystemMode; ids: string[] }) =>
+    mutationFn: ({
+      id,
+      m,
+      ids,
+    }: {
+      id: string;
+      m: SystemMode;
+      ids: string[];
+    }) =>
       runMatch(
         buildMatchRequest(
           id,
@@ -98,11 +127,25 @@ export function MatchView({
           networkMode ? networkFilter : MATCH_NETWORK_SCOPE,
         ),
       ),
+    onSuccess: () => setSelectedSolutionKeys([]),
   });
   const view = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
     [mutation.data],
   );
+
+  const selectedDesign = useMemo(
+    () => (designs.data?.items ?? []).find((d) => d.id === selected) ?? null,
+    [designs.data, selected],
+  );
+
+  const websiteByFacilityId = useMemo(() => {
+    const map: Record<string, string | null | undefined> = {};
+    for (const s of facilitiesQuery.data?.spaces ?? []) {
+      map[s.id] = s.url;
+    }
+    return map;
+  }, [facilitiesQuery.data]);
 
   const modeInfo = SYSTEM_MODES.find((s) => s.mode === mode);
   const canRun =
@@ -135,7 +178,9 @@ export function MatchView({
 
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1">
-            <span className="mb-1 block text-sm text-muted-foreground">System mode</span>
+            <span className="mb-1 block text-sm text-muted-foreground">
+              System mode
+            </span>
             <div
               role="radiogroup"
               aria-label="System mode"
@@ -160,12 +205,16 @@ export function MatchView({
               ))}
             </div>
             {modeInfo && (
-              <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">{modeInfo.description}</p>
+              <p className="mt-1.5 max-w-xl text-xs text-muted-foreground">
+                {modeInfo.description}
+              </p>
             )}
           </div>
           <Button
             disabled={!canRun}
-            onClick={() => mutation.mutate({ id: selected, m: mode, ids: facilityIds })}
+            onClick={() =>
+              mutation.mutate({ id: selected, m: mode, ids: facilityIds })
+            }
           >
             {mutation.isPending ? "Matching…" : "⚡ Run Match"}
           </Button>
@@ -201,7 +250,9 @@ export function MatchView({
         )}
       </div>
 
-      {mutation.isPending && <LoadingState message="Matching against facilities…" />}
+      {mutation.isPending && (
+        <LoadingState message="Matching against facilities…" />
+      )}
       {mutation.isError && (
         <ErrorState
           description={
@@ -226,7 +277,8 @@ export function MatchView({
         />
       )}
 
-      {view && !mutation.isPending &&
+      {view &&
+        !mutation.isPending &&
         (view.solutions.length === 0 ? (
           <EmptyState
             icon="🔍"
@@ -242,28 +294,92 @@ export function MatchView({
             )}
             {view.coverageGaps.length > 0 && (
               <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-sm dark:border-yellow-800 dark:bg-yellow-950/30">
-                <p className="font-medium text-yellow-800 dark:text-yellow-300">Coverage gaps</p>
+                <p className="font-medium text-yellow-800 dark:text-yellow-300">
+                  Coverage gaps
+                </p>
                 <p className="mt-1 text-yellow-700 dark:text-yellow-400">
                   Unmatched: {view.coverageGaps.join(", ")}
                 </p>
               </div>
             )}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                {view.totalSolutions} solution{view.totalSolutions !== 1 ? "s" : ""}
+                {view.totalSolutions} solution
+                {view.totalSolutions !== 1 ? "s" : ""}
+                {selectedSolutionKeys.length > 0
+                  ? ` · ${selectedSolutionKeys.length} selected`
+                  : ""}
               </p>
-              {view.solutionId && (
-                <Link
-                  to={`/visualization/${view.solutionId}`}
-                  className="text-sm font-medium text-indigo-600 hover:underline dark:text-indigo-400"
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={view.solutions.length === 0}
+                  onClick={() =>
+                    setSelectedSolutionKeys(
+                      view.solutions.map((s, i) => solutionSelectionKey(s, i)),
+                    )
+                  }
                 >
-                  View supply tree →
-                </Link>
-              )}
+                  Select all
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={selectedSolutionKeys.length === 0}
+                  onClick={() => setSelectedSolutionKeys([])}
+                >
+                  Clear selection
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={
+                    selectedSolutionKeys.length === 0 || !selectedDesign
+                  }
+                  onClick={() => {
+                    const selectedSolutions = view.solutions.filter((s, i) =>
+                      selectedSolutionKeys.includes(solutionSelectionKey(s, i)),
+                    );
+                    const state: RfqNavigationState = {
+                      okhId: selectedDesign!.id,
+                      okhTitle: formatOkhDisplayTitle(selectedDesign!.title),
+                      okhFunction: selectedDesign!.function ?? undefined,
+                      okhVersion: selectedDesign!.version ?? undefined,
+                      solutions: toRfqSolutions(
+                        selectedSolutions,
+                        websiteByFacilityId,
+                      ),
+                    };
+                    navigate("/rfq", { state });
+                  }}
+                >
+                  Contact selected facilities →
+                </Button>
+              </div>
             </div>
-            {view.solutions.map((s, i) => (
-              <MatchResultCard key={s.facilityId ?? i} solution={s} />
-            ))}
+            <p className="text-xs text-muted-foreground">
+              Select one or more facilities to generate outreach RFQs and
+              arrange production. Each card also links to that solution’s supply
+              tree when available.
+            </p>
+            {view.solutions.map((s, i) => {
+              const key = solutionSelectionKey(s, i);
+              return (
+                <MatchResultCard
+                  key={key}
+                  solution={s}
+                  selectionKey={key}
+                  selected={selectedSolutionKeys.includes(key)}
+                  onToggle={() =>
+                    setSelectedSolutionKeys((prev) =>
+                      prev.includes(key)
+                        ? prev.filter((k) => k !== key)
+                        : [...prev, key],
+                    )
+                  }
+                />
+              );
+            })}
           </div>
         ))}
     </div>

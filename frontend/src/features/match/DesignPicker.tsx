@@ -178,19 +178,24 @@ export function DesignPicker({
             </button>
           )}
 
-          <ul
-            role="listbox"
-            aria-label="Design search results"
-            className="max-h-56 space-y-1 overflow-y-auto rounded-md border border-input p-1"
-          >
-            {shown.map((d) => {
-              const active = d.id === selectedId;
-              const category =
-                deriveCategories(d).find((c) => c !== UNCATEGORIZED) ?? null;
-              const license = normalizeHardwareLicense(d.license?.hardware);
-              return (
-                <li key={d.id}>
+          {shown.length === 0 ? (
+            <p className="rounded-md border border-input px-3 py-2 text-sm text-muted-foreground">
+              No designs match the current search/filters.
+            </p>
+          ) : (
+            <div
+              role="listbox"
+              aria-label="Design search results"
+              className="max-h-56 space-y-1 overflow-y-auto rounded-md border border-input p-1"
+            >
+              {shown.map((d) => {
+                const active = d.id === selectedId;
+                const category =
+                  deriveCategories(d).find((c) => c !== UNCATEGORIZED) ?? null;
+                const license = normalizeHardwareLicense(d.license?.hardware);
+                return (
                   <button
+                    key={d.id}
                     type="button"
                     role="option"
                     aria-selected={active}
@@ -214,15 +219,10 @@ export function DesignPicker({
                         .join(" · ")}
                     </span>
                   </button>
-                </li>
-              );
-            })}
-            {shown.length === 0 && (
-              <li className="px-3 py-2 text-sm text-muted-foreground">
-                No designs match the current search/filters.
-              </li>
-            )}
-          </ul>
+                );
+              })}
+            </div>
+          )}
           <p className="text-xs text-muted-foreground">
             Showing {shown.length}
             {matched.length > RESULT_LIMIT ? ` of ${matched.length}` : ""} design

@@ -11,19 +11,22 @@ test("shows OKW facility detail (mocked)", async ({ page }, testInfo) => {
   await expect(page.getByText("Laser Cutter")).toBeVisible();
 });
 
-test("lists the designs the facility can make and links to them (mocked)", async ({
+test("hands off to the match page with the facility preselected (mocked)", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
   await page.goto("/facilities/okw-1");
   await expect(
-    page.getByRole("heading", { name: /designs this facility can make/i }),
+    page.getByRole("heading", { name: /matching designs/i }),
   ).toBeVisible();
-  // Reverse-match result links into the design detail.
-  const link = page.getByRole("link", { name: /open ventilator/i });
-  await expect(link).toBeVisible();
-  await link.click();
-  await expect(page).toHaveURL(/\/okh\/okh-0001/);
+  // The facility hands off to Match a Design with itself preselected; the user
+  // picks a design and confirms filters there before anything runs. (The page
+  // exposes this hand-off in both the header and the section below, so target
+  // the first match.)
+  const cta = page.getByRole("button", { name: /find matching designs/i }).first();
+  await expect(cta).toBeVisible();
+  await cta.click();
+  await expect(page).toHaveURL(/\/match\?okw_id=okw-1/);
 });
 
 test("validate surfaces a validation result (mocked)", async ({ page }, testInfo) => {

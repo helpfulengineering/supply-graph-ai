@@ -58,14 +58,12 @@ export function NetworkView() {
   const baseline = useQuery({
     queryKey: ["network", "baseline"],
     queryFn: () => fetchNetworkSpaces({}),
-    staleTime: 300_000,
   });
   // Server-side filtered display — only fetched when a filter is active.
   const filtered = useQuery({
     queryKey: ["network", filters],
     queryFn: () => fetchNetworkSpaces(filters),
     enabled: hasFilters,
-    staleTime: 60_000,
   });
 
   const active = hasFilters ? filtered : baseline;

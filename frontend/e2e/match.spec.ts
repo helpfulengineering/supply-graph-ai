@@ -27,7 +27,12 @@ test("running a match shows ranked results, summary, and coverage gaps (mocked)"
   await expect(page.getByText(/High · 95%/)).toBeVisible();
   await expect(page.getByText(/2 candidate solutions found/)).toBeVisible();
   await expect(page.getByText(/CNC Machining/)).toBeVisible();
+  // Each solution links to its own supply tree.
   await expect(page.getByRole("link", { name: /view supply tree/i }).first()).toBeVisible();
+  await page.getByRole("checkbox", { name: /select fablab drome/i }).check();
+  await page.getByRole("checkbox", { name: /select community makerspace/i }).check();
+  await expect(page.getByText(/2 selected/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: /contact selected facilities/i })).toBeEnabled();
 });
 
 test("System Mode selector controls the match request (mocked)", async ({ page }, testInfo) => {

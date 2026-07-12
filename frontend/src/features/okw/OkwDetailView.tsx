@@ -70,7 +70,6 @@ export function OkwDetailView({ id }: { id: string }) {
   const { data: f, isLoading, isError, error, refetch } = useQuery<OkwFacility>({
     queryKey: ["okw-detail", id],
     queryFn: () => fetchOkwDetail(id),
-    staleTime: 120_000,
   });
 
   const handleValidate = async () => {

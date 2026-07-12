@@ -12,7 +12,6 @@ export function PackageListView() {
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["package-list"],
     queryFn: () => fetchPackageList(1, 50),
-    staleTime: 30_000,
   });
 
   const packages = data?.items ?? [];

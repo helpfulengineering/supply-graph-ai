@@ -76,7 +76,6 @@ export function useOkhCatalog() {
   const query = useQuery({
     queryKey: ["okh-list"],
     queryFn: () => fetchAllOkhList(),
-    staleTime: 60_000,
   });
 
   const filterText = params.get("q") ?? "";

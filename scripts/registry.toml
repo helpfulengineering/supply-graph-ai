@@ -195,6 +195,20 @@ run = "uv run python scripts/okh_generation_azure_regen_replace.py [--dry-run] [
 mutates = true
 used_by = ["tests/data/okh_generation/README.md"]
 
+[scripts.okh_generation_azure_regen_batches]
+category = "eval"
+summary = "Batch re-generate OKHs in the Azure production container from each manifest's repo URL, skipping existing work and appending a JSONL process log."
+run = "uv run python scripts/okh_generation_azure_regen_batches.py [--dry-run] [--force] [--batch-size N]"
+mutates = true
+used_by = ["tests/data/okh_generation/README.md"]
+
+[scripts.okh_generation_azure_regen_lib]
+category = "eval"
+summary = "Pure helpers (batching, key classification, JSONL log parsing) for okh_generation_azure_regen_batches; imported, not run directly."
+run = "imported by scripts/okh_generation_azure_regen_batches.py"
+mutates = false
+used_by = ["scripts/okh_generation_azure_regen_batches.py"]
+
 [scripts.okh_generation_baseline_report]
 category = "eval"
 summary = "Produce the OKH-generation baseline report used as the eval comparison point."
