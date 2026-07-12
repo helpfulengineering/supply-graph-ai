@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-12
+
 ### Added
 
-- **OKH-LOSH v2.4 TOML import:** `OkhLoshConverter` service (`src/core/services/okh_losh_converter.py`) converts OKH-LOSH v2.4 TOML manifests (github.com/iop-alliance/OpenKnowHow) to OHM's canonical OKH manifest, with kebab→snake field mapping and unmapped fields (full `[[image]]` array, top-level `mass`/`release`) preserved under `metadata.*`; `ohm convert from-okh-losh`; `POST /v1/api/convert/from-okh-losh`; docs at `docs/conversion/okh-losh-toml.md`; bulk-import driver at `scripts/import_okh_losh_batch.py`.
+- **OKH Materials quality pipeline:** stronger Materials extraction and post-processing (`materials_filter`, confidence scoring, optional LLM triage, review helpers) so generated manifests drop prose/table noise and near-duplicate line items more reliably.
+- **Materials quality harness + Azure regen tooling:** baseline metrics, fixture set, and batch canary hardening (progress heartbeats, per-repo timeouts, incremental reports); `okh_generation_materials_regen_compare.py` for before/after scoring; `okh_generation_azure_regen_batches.py` for resumable production-container re-generation with BOM sidecars and a JSONL process log.
+- **OKH-LOSH v2.4 TOML import:** `OkhLoshConverter` converts OKH-LOSH v2.4 TOML manifests (github.com/iop-alliance/OpenKnowHow) to OHM's canonical OKH manifest, with kebab→snake field mapping and unmapped fields preserved under `metadata.*`; `ohm convert from-okh-losh`; `POST /v1/api/convert/from-okh-losh`; docs at `docs/conversion/okh-losh-toml.md`; bulk-import driver at `scripts/import_okh_losh_batch.py`.
+- **Designs catalog browse UX:** catalog/list view toggle, alphabetical/category sort, group-by (category / process / license / none), friendlier display titles, richer cards (category, processes, author, version, license), and consolidated license facets (e.g. CERN-OHL / AGPL variants collapsed).
+- **Match workflow UX:** searchable `DesignPicker` with filters; facility filters expanded with city / state-region / country; network (incl. Maps of Making) facilities available as match candidates; multi-select match solutions with per-solution supply-tree links and RFQ handoff; facility detail hands off to Match with the facility preselected.
+- **Frontend query cache:** React Query persists low-volatility catalog/network data to `localStorage` (1-hour TTL), shares the `["network","baseline"]` key across Home / Network / Match, and exposes a NavBar **Refresh data** control.
+
+### Changed
+
+- **spaCy model:** NLP matcher / loader defaults to the medium (`md`) model instead of small (`sm`) for better matching quality.
+- **Version:** Application release `0.9.0`. Published Docker tags will include `0.9.0`, floating `0.9`, and `latest`.
+
+### Fixed
+
+- **Test isolation from live Azure:** root and integration conftests force `STORAGE_PROVIDER=local` before app import (winning the race against import-time `load_dotenv()`), clear service singletons in the integration client fixture, and extend the outbound-network guard to the integration lane so `.env` azure_blob settings can no longer hang `make ready`.
+- **Match a11y + e2e:** `DesignPicker` listbox markup satisfies ARIA required-children/parent rules; facility-detail e2e updated for the Match handoff CTA.
 
 ## [0.8.11] - 2026-07-10
 
@@ -77,6 +94,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.9.0]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.11...v0.9.0
 [0.8.11]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.9...v0.8.10
 [0.8.9]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.8...v0.8.9
