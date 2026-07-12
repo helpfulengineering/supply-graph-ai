@@ -20,7 +20,6 @@ export function VisualizationView({ solutionId }: { solutionId: string }) {
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["visualization", solutionId],
     queryFn: () => fetchVisualization(solutionId),
-    staleTime: 120_000,
   });
 
   if (isLoading) return <LoadingState message="Loading supply tree…" />;

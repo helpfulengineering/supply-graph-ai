@@ -36,7 +36,7 @@ export function RfqView({ navState }: Props) {
         <EmptyState
           icon="📄"
           heading="No facilities selected"
-          body="Return to the match results page, select one or more facilities, then click Generate RFQ."
+          body="Return to the match results page, select one or more facilities, then click Contact selected facilities."
           action={
             <button
               onClick={() => navigate("/match")}
@@ -57,7 +57,6 @@ export function RfqView({ navState }: Props) {
   const { data: fullManifest } = useQuery({
     queryKey: ["okh-detail-rfq", okhId],
     queryFn: () => fetchOkhDetail(okhId),
-    staleTime: 5 * 60 * 1000,
   });
 
   const handleGenerate = () => {

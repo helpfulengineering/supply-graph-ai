@@ -1,5 +1,7 @@
 import { NavLink } from "react-router-dom";
+import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { useTheme } from "../../context/ThemeContext";
+import { refreshLowVolatilityData } from "../../queryClient";
 
 const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
@@ -14,6 +16,8 @@ const navItems = [
 
 export function NavBar() {
   const { isDark, toggle } = useTheme();
+  const queryClient = useQueryClient();
+  const isFetching = useIsFetching() > 0;
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -44,7 +48,29 @@ export function NavBar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-slate-500 dark:text-slate-400">Reference Frontend v0.1</span>
+          <button
+            onClick={() => refreshLowVolatilityData(queryClient)}
+            disabled={isFetching}
+            aria-label="Refresh data"
+            title="Refresh designs and facilities from the latest data"
+            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <path d="M21 3v6h-6" />
+            </svg>
+          </button>
+
           <button
             onClick={toggle}
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

@@ -14,7 +14,6 @@ export function OkhFilePreviewPage() {
     queryKey: ["okh-detail", id],
     queryFn: () => fetchOkhDetail(id!),
     enabled: Boolean(id),
-    staleTime: 120_000,
   });
 
   const file = useMemo(() => {

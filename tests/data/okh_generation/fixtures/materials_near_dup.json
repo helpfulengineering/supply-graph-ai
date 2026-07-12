@@ -1,0 +1,12 @@
+{
+  "title": "Near Dup Fixture",
+  "version": "1.0.0",
+  "function": "Test fixture for material near-duplicates",
+  "description": "Synthetic",
+  "materials": [
+    {"material_id": "mat-cable", "name": "Cable"},
+    {"material_id": "mat-cables", "name": "cables"},
+    {"material_id": "mat-acrylic", "name": "Acrylic"},
+    {"material_id": "mat-acrylic-2", "name": "acrylic"}
+  ]
+}

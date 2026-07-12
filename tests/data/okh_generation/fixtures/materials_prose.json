@@ -1,0 +1,21 @@
+{
+  "title": "Prose Fixture",
+  "version": "1.0.0",
+  "function": "Test fixture for prose-like materials",
+  "description": "Synthetic",
+  "materials": [
+    {
+      "material_id": "bad-1",
+      "name": "Make sure you have an Arduino or equivalent microprocessor"
+    },
+    {
+      "material_id": "bad-2",
+      "name": "|1|DC Brushless motor|[HobbyKing](https://hobbyking.com/example)|15.22"
+    },
+    {
+      "material_id": "bad-3",
+      "name": "* You could use all kind of motors"
+    },
+    {"material_id": "ok-pla", "name": "PLA"}
+  ]
+}

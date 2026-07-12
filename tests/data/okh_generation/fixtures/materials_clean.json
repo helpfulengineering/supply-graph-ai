@@ -1,0 +1,11 @@
+{
+  "title": "Clean Fixture",
+  "version": "1.0.0",
+  "function": "Test fixture with clean materials",
+  "description": "Synthetic",
+  "materials": [
+    {"material_id": "PLA", "name": "PLA"},
+    {"material_id": "PETG", "name": "PETG"},
+    {"material_id": "ABS", "name": "ABS"}
+  ]
+}

@@ -12,11 +12,19 @@ import tempfile
 
 import pytest
 
-# Set storage env vars before any app module is imported.
-# setdefault lets callers override from the shell (e.g. a real dev server run).
+# Force local storage for the in-process app.
+#
+# `setdefault` is NOT enough here: importing any app module runs
+# `src.config.schema`'s import-time `load_dotenv()`, which populates `os.environ`
+# from the project `.env` (e.g. `STORAGE_PROVIDER=azure_blob` pointed at a live
+# container). In a full-suite run that happens *before* this conftest is imported
+# (an earlier test package pulls in the app), so a plain `setdefault` is a silent
+# no-op and the integration tests end up hitting live storage — slow enough to
+# trip the pytest timeout and hang `make ready`. Hard-assign so these in-process
+# tests are always hermetic regardless of collection/import order.
 _STORAGE_DIR = tempfile.mkdtemp(prefix="ohm-integ-")
-os.environ.setdefault("STORAGE_PROVIDER", "local")
-os.environ.setdefault("LOCAL_STORAGE_PATH", _STORAGE_DIR)
+os.environ["STORAGE_PROVIDER"] = "local"
+os.environ["LOCAL_STORAGE_PATH"] = _STORAGE_DIR
 # Ensure federation doesn't try to create Docker-only paths.
 os.environ.setdefault("OHM_FEDERATION_ENABLED", "false")
 
@@ -31,11 +39,16 @@ def client():
     """
     from src.core.services.base import BaseService
     from fastapi.testclient import TestClient
-    from src.core.main import app
 
-    # Clear any singleton services initialised by earlier unit tests so they
-    # pick up the local-storage config set above.
+    # Defensively re-assert local storage in case an earlier test mutated the
+    # environment, then drop any singleton services initialised by earlier tests
+    # so they rebuild against the local-storage config (get_settings() is
+    # uncached and reads os.environ live).
+    os.environ["STORAGE_PROVIDER"] = "local"
+    os.environ["LOCAL_STORAGE_PATH"] = _STORAGE_DIR
     BaseService._instances.clear()
+
+    from src.core.main import app
 
     with TestClient(
         app, base_url="http://testserver/v1", raise_server_exceptions=False

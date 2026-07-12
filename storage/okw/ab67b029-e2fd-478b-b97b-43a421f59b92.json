@@ -1,0 +1,186 @@
+{
+  "id": "ab67b029-e2fd-478b-b97b-43a421f59b92",
+  "name": "Additive Manufacturing Center",
+  "location": {
+    "address": {
+      "number": "7250",
+      "street": "Sergio Spurs",
+      "city": "Boston",
+      "region": "IA",
+      "country": "US",
+      "postcode": "61226"
+    },
+    "gps_coordinates": "42.3588336, -71.0578303",
+    "coordinates": {
+      "lat": 42.3588336,
+      "lon": -71.0578303
+    },
+    "city": "Boston",
+    "country": "US"
+  },
+  "facility_status": "Planned",
+  "owner": {
+    "name": "Herrera, Wang and Martinez",
+    "contact_person": "Aaron Hodges",
+    "bio": "Established in 1998, we specialize in Extended zero-defect leverage",
+    "website": "https://jones.org",
+    "languages": [
+      "fr"
+    ],
+    "mailing_list": "harrisonlori@lists.mcbride.com",
+    "contact": {
+      "landline": "+1-774-997-2738"
+    },
+    "social_media": {
+      "instagram": "@lisa74",
+      "other_urls": [
+        "https://fowler-clayton.com",
+        "https://salas-norris.com"
+      ]
+    }
+  },
+  "contact": {
+    "name": "Benton-Wood",
+    "bio": "Established in 2008, we specialize in Reactive object-oriented capacity",
+    "mailing_list": "kevincraig@lists.daniels.info",
+    "contact": {
+      "mobile": "+1-730-400-5684",
+      "email": "info@sanchez-sanchez.biz"
+    },
+    "social_media": {
+      "instagram": "@michaelgreen",
+      "other_urls": [
+        "https://henderson.org",
+        "https://jordan-davidson.info"
+      ]
+    }
+  },
+  "description": "Advanced additive manufacturing with post-processing and assembly",
+  "access_type": "Restricted with public hours",
+  "wheelchair_accessibility": "Not accessible",
+  "equipment": [
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/3D_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Fused_filament_fabrication",
+      "make": "Prusa",
+      "model": "S5",
+      "serial_number": "SN211464",
+      "condition": "Fair",
+      "quantity": 5,
+      "power_rating": 6231,
+      "maintenance_schedule": "Every 1 months",
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Premium"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/TPU",
+          "brand": "Industrial"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/SLA_printer",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/SLA_printer",
+      "make": "Brand A",
+      "model": "Model 889",
+      "condition": "Excellent"
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Post-processing_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Post-processing",
+      "make": "Bel Air",
+      "model": "Powershot C",
+      "serial_number": "SN685049",
+      "condition": "Fair",
+      "notes": "Equipment notes: Sea us case remain market ask save.",
+      "quantity": 2,
+      "throughput": "17 parts/hour",
+      "maintenance_schedule": "Every 9 months",
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PLA",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/PETG",
+          "manufacturer": "Brand B",
+          "brand": "Standard"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/ABS",
+          "manufacturer": "Generic"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Nylon",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Resin",
+          "brand": "Standard"
+        }
+      ]
+    },
+    {
+      "equipment_type": "https://en.wikipedia.org/wiki/Assembly_station",
+      "manufacturing_process": "https://en.wikipedia.org/wiki/Assembly_line",
+      "make": "Festo",
+      "model": "Semi-Auto Line",
+      "condition": "Fair",
+      "notes": "Equipment notes: Red scientist all sort.",
+      "quantity": 3,
+      "materials_worked": [
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Fasteners"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Adhesives",
+          "brand": "Industrial"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Cables",
+          "manufacturer": "Brand B",
+          "brand": "Professional"
+        },
+        {
+          "material_type": "https://en.wikipedia.org/wiki/Connectors",
+          "brand": "Industrial"
+        }
+      ]
+    }
+  ],
+  "manufacturing_processes": [
+    "https://en.wikipedia.org/wiki/3D_printer",
+    "https://en.wikipedia.org/wiki/SLA_printer",
+    "https://en.wikipedia.org/wiki/Post-processing_station",
+    "https://en.wikipedia.org/wiki/Assembly_station"
+  ],
+  "typical_batch_size": "0 -- 50 units",
+  "floor_size": 2282,
+  "storage_capacity": "295 cubic meters",
+  "typical_materials": [],
+  "certifications": [
+    "ISO 14001",
+    "OHSAS 18001",
+    "AS9100"
+  ],
+  "uninterrupted_power_supply": true,
+  "road_access": true,
+  "circular_economy": {
+    "applies_principles": true,
+    "description": "Circular economy practices: Network technology foot author experience six.",
+    "by_products": [
+      "apply",
+      "capital"
+    ]
+  }
+}

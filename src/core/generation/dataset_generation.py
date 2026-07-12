@@ -86,12 +86,22 @@ async def generate_manifest_for_repository(
             )
             use_clone = False
 
+        project_data = None
         if use_clone:
             _log("Cloning and extracting via LocalGitExtractor", "info")
             persist = Path(save_clone) if save_clone else None
             generator = router.route_to_local_git_extractor()
-            project_data = await generator.extract_project(url, persist_path=persist)
-        else:
+            try:
+                project_data = await generator.extract_project(
+                    url, persist_path=persist
+                )
+            except (ConnectionError, OSError, TimeoutError) as exc:
+                _log(
+                    f"Clone/extract failed ({exc}); falling back to platform API",
+                    "warning",
+                )
+
+        if project_data is None:
             _log("Fetching project data via platform API", "info")
             token = (
                 github_token if github_token is not None else os.getenv("GITHUB_TOKEN")

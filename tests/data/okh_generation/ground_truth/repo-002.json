@@ -1,0 +1,10 @@
+{
+  "title": "OpenFlexure Microscope",
+  "version": "5.20.0",
+  "function": "Open-source laboratory microscope with 3D-printed flexure stage",
+  "license": {
+    "hardware": "CERN-OHL-W-2.0",
+    "documentation": "CC-BY-4.0",
+    "software": "GPL-3.0-or-later"
+  }
+}

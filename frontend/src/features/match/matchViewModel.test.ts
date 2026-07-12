@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { toMatchView } from "./matchViewModel";
+import { solutionSelectionKey, toMatchView } from "./matchViewModel";
+import { toRfqSolutions } from "./rfqHandoff";
 
 const raw = {
   data: {
@@ -28,13 +29,34 @@ describe("toMatchView", () => {
     expect(view.totalSolutions).toBe(3);
   });
 
-  it("surfaces the persisted solution id for hand-off", () => {
-    expect(toMatchView(raw).solutionId).toBe("sol-123");
+  it("surfaces per-solution tree ids and the persisted solution id", () => {
+    const view = toMatchView(raw);
+    expect(view.solutions.map((s) => s.treeId)).toEqual(["t-a", null, "t-b"]);
+    expect(view.solutionId).toBe("sol-123");
     expect(toMatchView({ data: { solutions: [] } }).solutionId).toBeNull();
   });
 
   it("handles an empty/no-match response", () => {
     expect(toMatchView({}).solutions).toEqual([]);
     expect(toMatchView({ data: { solutions: [] } }).totalSolutions).toBe(0);
+  });
+});
+
+describe("solutionSelectionKey", () => {
+  it("prefers facility id then tree id", () => {
+    const view = toMatchView(raw);
+    expect(solutionSelectionKey(view.solutions[0], 0)).toBe("a");
+    expect(solutionSelectionKey(view.solutions[2], 2)).toBe("b");
+  });
+});
+
+describe("toRfqSolutions", () => {
+  it("maps ranked solutions into RFQ navigation payloads", () => {
+    const view = toMatchView(raw);
+    const rfq = toRfqSolutions([view.solutions[0]], { a: "https://example.org" });
+    expect(rfq).toHaveLength(1);
+    expect(rfq[0].facility_id).toBe("a");
+    expect(rfq[0].tree.id).toBe("t-a");
+    expect(rfq[0].facility.contact?.website).toBe("https://example.org");
   });
 });

@@ -331,20 +331,19 @@ class BOMCollector:
         """
         sources = []
 
-        # Initialize spaCy if not already done
+        # Initialize spaCy if not already done (prefer en_core_web_md via shared loader)
         if self._nlp is None:
-            try:
-                import spacy
+            from ..nlp.spacy_loader import load_spacy_english
 
-                self._nlp = spacy.load("en_core_web_sm")
-                # Increase max length for large files
-                self._nlp.max_length = 2000000  # 2MB limit
-            except OSError:
-                # Fallback if spaCy model not available
-                print(
-                    "Warning: spaCy model not available, falling back to regex patterns"
+            self._nlp = load_spacy_english()
+            if self._nlp is None:
+                logger.warning(
+                    "spaCy model not available for BOM NLP extraction; "
+                    "falling back to regex patterns"
                 )
                 return sources
+            # Increase max length for large files
+            self._nlp.max_length = 2000000  # 2MB limit
 
         # Analyze all text files for BOM content
         for file_info in project_data.files:

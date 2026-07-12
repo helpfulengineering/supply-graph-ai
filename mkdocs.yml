@@ -90,7 +90,6 @@ nav:
     - Developer Guide: development/developer-guide.md
     - Container Guide: development/container-guide.md
     - Roadmap: development/roadmap.md
-    - Conference demo readiness: development/conference-demo-readiness.md
   - Data Models:
     - Overview: models/index.md
     - Bill Of Materials: models/bom.md
@@ -104,8 +103,7 @@ nav:
   - Conversion:
     - Overview: conversion/index.md
     - MSF Datasheet: conversion/msf-datasheet.md
-  - Metrics:
-    - Matching Accuracy Baseline: metrics/matching-accuracy-baseline.md
+    - OKH-LOSH TOML: conversion/okh-losh-toml.md
   - Domains:
     - Overview: domains/index.md
     - Manufacturing: domains/manufacturing.md

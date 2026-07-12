@@ -299,7 +299,7 @@ class NLPMatcher(BaseGenerationLayer):
             result = LayerResult(GenerationLayer.NLP)
             result.add_error(
                 "spaCy model not available — NLP layer skipped. "
-                "Install with: python -m spacy download en_core_web_sm"
+                "Install en_core_web_md via `uv sync` (preferred; includes word vectors)."
             )
             return result
 
@@ -335,7 +335,7 @@ class NLPMatcher(BaseGenerationLayer):
             f"Analyzed {len(project_data.documentation)} documentation files"
         )
         result.add_log(f"README analyzed: {bool(readme_content)}")
-        result.add_log("NLP model: en_core_web_sm")
+        result.add_log("NLP model: via load_spacy_english (prefer en_core_web_md)")
 
         return result
 

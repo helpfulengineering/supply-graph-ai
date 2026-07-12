@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import socket
 import sys
 import threading
@@ -9,6 +10,16 @@ import traceback
 from pathlib import Path
 
 import pytest
+
+# Force hermetic local storage for the entire test session, BEFORE any app module
+# (and its import-time `load_dotenv()`) is imported by test collection. The
+# project `.env` sets `STORAGE_PROVIDER=azure_blob` pointed at a live container;
+# `load_dotenv()` uses override=False, so winning the race here keeps the whole
+# suite off live Azure. Without this, integration/contract tests hit live storage
+# — slow enough to trip the pytest timeout and hang `make ready`. Individual
+# tests that exercise other providers still override via monkeypatch (env vars
+# take precedence and `get_settings()` is uncached).
+os.environ["STORAGE_PROVIDER"] = "local"
 
 _TESTS_ROOT = Path(__file__).resolve().parent
 
@@ -64,10 +75,21 @@ def pytest_collection_modifyitems(
 def _block_external_network(
     request: pytest.Request, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Block outbound network for contract tests unless explicitly opted out."""
+    """Block outbound network for contract + integration tests unless opted out.
+
+    Integration tests run the app in-process and must stay hermetic (local
+    storage, no live Azure). Guarding them here turns an accidental live-storage
+    call into a fast, actionable failure instead of a multi-minute hang that
+    trips the pytest timeout. Loopback (localhost) stays allowed, so the
+    RUN_LIVE_API_TESTS lane against a local dev server is unaffected. Mark a test
+    with @pytest.mark.allow_network to opt out.
+    """
     if request.node.get_closest_marker("allow_network"):
         return
-    if not request.node.get_closest_marker("contract"):
+    if not (
+        request.node.get_closest_marker("contract")
+        or request.node.get_closest_marker("integration")
+    ):
         return
 
     real_connect = socket.socket.connect

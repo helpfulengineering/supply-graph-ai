@@ -14,6 +14,7 @@ Benefits:
 - Eliminates network timeouts and API failures
 """
 
+import asyncio
 import logging
 import os
 import re
@@ -132,32 +133,33 @@ class LocalGitExtractor(ProjectExtractor):
             logger.info(f"Cloning repository: {url}")
             logger.info(f"Target directory: {clone_dir}")
 
-            # Clone repository with timeout
-            result = subprocess.run(
-                [
-                    "git",
-                    "clone",
-                    "--depth",
-                    "1",
-                    "--single-branch",
-                    url,
-                    str(clone_dir),
-                ],
-                capture_output=True,
-                text=True,
-                timeout=120,  # 2 minute timeout
-            )
+            # Shallow clone; timeout from OHM_GIT_CLONE_TIMEOUT (seconds, default 300).
+            clone_timeout = int(os.getenv("OHM_GIT_CLONE_TIMEOUT", "300"))
+            try:
+                result = subprocess.run(
+                    [
+                        "git",
+                        "clone",
+                        "--depth",
+                        "1",
+                        "--single-branch",
+                        url,
+                        str(clone_dir),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=clone_timeout,
+                )
+            except subprocess.TimeoutExpired:
+                logger.warning(f"Git clone timed out after {clone_timeout}s for {url}")
+                return None
 
             if result.returncode == 0:
                 logger.info(f"Successfully cloned repository to {clone_dir}")
                 return clone_dir
-            else:
-                logger.warning(f"Git clone failed: {result.stderr}")
-                return None
-
-        except subprocess.TimeoutExpired:
-            logger.warning(f"Git clone timed out after 2 minutes for {url}")
+            logger.warning(f"Git clone failed: {result.stderr}")
             return None
+
         except Exception as e:
             logger.warning(f"Git clone error: {e}")
             return None
@@ -610,8 +612,8 @@ class LocalGitExtractor(ProjectExtractor):
             # Extract repo info
             owner, repo = self._extract_repo_info(url)
 
-            # Clone repository
-            repo_path = self._clone_repository(url)
+            # Clone repository (thread so the event loop can heartbeat / time out)
+            repo_path = await asyncio.to_thread(self._clone_repository, url)
             if not repo_path:
                 raise ConnectionError(f"Failed to clone repository: {url}")
 

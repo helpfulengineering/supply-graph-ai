@@ -18,7 +18,7 @@
 
 ### Development Plans
 * [Developer Guide](development/developer-guide.md)
-* [Conference demo readiness](development/conference-demo-readiness.md) — documentation sync and Python quality tracker
+* [Roadmap](development/roadmap.md)
 
 ### Testing
 * [Test Harness Standards](testing/harness-standards.md)
@@ -53,6 +53,7 @@
 ### Format Conversion
 * [Conversion](conversion/index.md)
     * [MSF Datasheet](conversion/msf-datasheet.md)
+    * [OKH-LOSH TOML](conversion/okh-losh-toml.md)
 
 ### CLI Documentation
 * [CLI Documentation](CLI/index.md)

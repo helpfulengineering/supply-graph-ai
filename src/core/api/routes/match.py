@@ -2338,6 +2338,35 @@ async def _get_filtered_facilities(
             }
             okw_service = await OKWService.get_instance()
             facilities = await okw_service.get_network_match_facilities(**kwargs)
+            # Optional id subset (Match page checklist) — apply after the network
+            # pool is built so MoM + local spaces can both be selected by id.
+            okw_id_subset = {str(i) for i in (request.okw_ids or []) if i is not None}
+            if okw_id_subset:
+
+                def _facility_id(facility: Any) -> Optional[str]:
+                    if hasattr(facility, "id") and facility.id is not None:
+                        return str(facility.id)
+                    if hasattr(facility, "to_dict"):
+                        return (
+                            str(facility.to_dict().get("id"))
+                            if facility.to_dict().get("id") is not None
+                            else None
+                        )
+                    if isinstance(facility, dict) and facility.get("id") is not None:
+                        return str(facility.get("id"))
+                    return None
+
+                before = len(facilities)
+                facilities = [f for f in facilities if _facility_id(f) in okw_id_subset]
+                logger.info(
+                    "Network-match candidate pool filtered by okw_ids",
+                    extra={
+                        "request_id": request_id,
+                        "before": before,
+                        "after": len(facilities),
+                        "okw_ids": sorted(okw_id_subset),
+                    },
+                )
             logger.info(
                 "Network-match candidate pool built",
                 extra={"request_id": request_id, "facility_count": len(facilities)},

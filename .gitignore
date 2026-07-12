@@ -192,8 +192,16 @@ synthetic_data/
 # credentials
 service-account.json
 
-# Test repo clones (populated during 1.3.1 generation testing; deleted manually when done)
+# Test repo clones / batch reports (populated during generation testing)
 tests/data/okh_generation/clones/
+tests/data/okh_generation/clones-regen/
+tests/data/okh_generation/clones-azure-regen/
+tests/data/okh_generation/last_batch_report.json
+tests/data/okh_generation/last_baseline_report.json
+tests/data/okh_generation/last_layer_compare.json
+tests/data/okh_generation/materials_regen_tracker.json
+tests/data/okh_generation/azure_regen_replace_tracker.json
+tests/data/okh_generation/azure_okh_inventory.json
 .llm_chunk_cache/*
 
 

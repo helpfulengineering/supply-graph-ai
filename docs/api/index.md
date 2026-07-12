@@ -1,6 +1,6 @@
 # API Documentation
 
-The Open Hardware Manager (OHM) provides a REST API built on FastAPI with standardized request/response patterns, structured error handling, and LLM integration hooks. **Endpoint inventory:** use the interactive docs at **`/v1/docs`** and **`/v1/openapi.json`** on your running server (see [Conference demo readiness](../development/conference-demo-readiness.md#api-machine-truth-refresh-before-demo) for how to regenerate counts). Narrative pages here describe concepts and patterns; they are not a substitute for OpenAPI.
+The Open Hardware Manager (OHM) provides a REST API built on FastAPI with standardized request/response patterns, structured error handling, and LLM integration hooks. **Endpoint inventory:** use the interactive docs at **`/v1/docs`** and **`/v1/openapi.json`** on your running server. To dump a sorted route list locally: `uv run python scripts/dump_api_routes.py`. Narrative pages here describe concepts and patterns; they are not a substitute for OpenAPI.
 
 ## API Architecture Overview
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **OKH-LOSH v2.4 TOML import:** `OkhLoshConverter` service (`src/core/services/okh_losh_converter.py`) converts OKH-LOSH v2.4 TOML manifests (github.com/iop-alliance/OpenKnowHow) to OHM's canonical OKH manifest, with kebab→snake field mapping and unmapped fields (full `[[image]]` array, top-level `mass`/`release`) preserved under `metadata.*`; `ohm convert from-okh-losh`; `POST /v1/api/convert/from-okh-losh`; docs at `docs/conversion/okh-losh-toml.md`; bulk-import driver at `scripts/import_okh_losh_batch.py`.
+
 ## [0.8.11] - 2026-07-10
 
 ### Added

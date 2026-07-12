@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { queryClient, persistOptions } from "./queryClient";
 import { Layout } from "./components/layout/Layout";
 import { HomePage } from "./pages/HomePage";
 import { OkhPage } from "./pages/OkhPage";
@@ -12,21 +13,12 @@ import { PackagePage } from "./pages/PackagePage";
 import { ThemeContext } from "./context/ThemeContext";
 import { useDarkMode } from "./hooks/useDarkMode";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      retry: 1,
-    },
-  },
-});
-
 export function App() {
   const theme = useDarkMode();
 
   return (
     <ThemeContext.Provider value={theme}>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
         <BrowserRouter>
           <Routes>
             <Route element={<Layout />}>
@@ -46,7 +38,7 @@ export function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </ThemeContext.Provider>
   );
 }

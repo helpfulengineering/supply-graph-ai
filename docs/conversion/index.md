@@ -7,6 +7,7 @@ OHM supports bi-directional conversion between the internal OKH (OpenKnowHow) da
 | Format | Direction | Description |
 |--------|-----------|-------------|
 | **MSF Datasheet** (.docx) | OKH ↔ docx | 3D-printed product technical specification datasheet |
+| **OKH-LOSH v2.4** (.toml) | TOML → OKH | iop-alliance/OpenKnowHow TOML spec (import only) |
 
 ## Architecture
 
@@ -25,9 +26,9 @@ All conversions pass through the `OKHManifest` dataclass, ensuring data consiste
 
 The conversion utility is available through three interfaces:
 
-- **CLI**: `ohm convert to-datasheet` / `ohm convert from-datasheet`
-- **API**: `POST /v1/api/convert/to-datasheet` / `POST /v1/api/convert/from-datasheet`
-- **Python**: `DatasheetConverter` class in `src.core.services.datasheet_converter`
+- **CLI**: `ohm convert to-datasheet` / `ohm convert from-datasheet` / `ohm convert from-okh-losh`
+- **API**: `POST /v1/api/convert/to-datasheet` / `POST /v1/api/convert/from-datasheet` / `POST /v1/api/convert/from-okh-losh`
+- **Python**: `DatasheetConverter` class in `src.core.services.datasheet_converter`, `OkhLoshConverter` class in `src.core.services.okh_losh_converter`
 
 ## Quick Start
 
@@ -75,3 +76,4 @@ print(manifest.title)
 ## Pages
 
 - [MSF Datasheet Format](msf-datasheet.md) — Detailed format description and field mapping
+- [OKH-LOSH TOML Format](okh-losh-toml.md) — Detailed format description and field mapping

@@ -1,0 +1,10 @@
+{
+  "title": "JPL Open Source Rover Project",
+  "version": "1.0.0",
+  "function": "Open-source rover platform for robotics education and research",
+  "license": {
+    "hardware": "Apache-2.0",
+    "documentation": "Apache-2.0",
+    "software": "Apache-2.0"
+  }
+}

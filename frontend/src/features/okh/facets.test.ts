@@ -73,15 +73,32 @@ describe("faceted filtering", () => {
 });
 
 describe("deriveFacetGroups", () => {
-  it("counts options and sorts by count desc", () => {
+  it("counts options; process by count desc, license alphabetical", () => {
     const groups = deriveFacetGroups(items, {});
     const process = groups.find((g) => g.key === "process")!;
     expect(process.options[0]).toEqual({ value: "3D Printing", count: 2 });
     const license = groups.find((g) => g.key === "license")!;
     expect(license.options).toEqual([
-      { value: "MIT", count: 2 },
       { value: "GPL-2.0", count: 1 },
+      { value: "MIT", count: 2 },
     ]);
+  });
+
+  it("collapses near-identical hardware licenses into one facet option", () => {
+    const corpus = [
+      item("p", ["3D Printing"], "CERN-OHL-P-2.0", []),
+      item("s", ["3D Printing"], "CERN-OHL-S-2.0", []),
+      item("a1", ["Assembly"], "AGPL-3.0-only", []),
+      item("a2", ["Assembly"], "AGPL-3.0-or-later", []),
+    ];
+    const groups = deriveFacetGroups(corpus, {});
+    const license = groups.find((g) => g.key === "license")!;
+    expect(license.options).toEqual([
+      { value: "AGPL-3.0", count: 2 },
+      { value: "CERN-OHL-2.0", count: 2 },
+    ]);
+    const filtered = filterItems(corpus, { license: ["CERN-OHL-2.0"] });
+    expect(filtered.map((i) => i.id).sort()).toEqual(["p", "s"]);
   });
 
   it("computes drill-down counts against other groups' selections", () => {

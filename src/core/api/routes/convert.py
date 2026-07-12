@@ -15,12 +15,16 @@ from fastapi.responses import StreamingResponse
 
 from ...models.okh import OKHManifest
 from ...services.datasheet_converter import DatasheetConversionError, DatasheetConverter
+from ...services.okh_losh_converter import OkhLoshConversionError, OkhLoshConverter
 from ...utils.logging import get_logger
 from ..constants.client_errors import ERROR_NO_FILE_PROVIDED
 from ..constants.openapi import RESPONSES_400_422_500
 from ..error_handlers import create_error_response
 from ..models.convert.request import ConvertToDatasheetRequest
-from ..models.convert.response import ConvertFromDatasheetResponse
+from ..models.convert.response import (
+    ConvertFromDatasheetResponse,
+    ConvertFromOkhLoshResponse,
+)
 
 logger = get_logger(__name__)
 
@@ -144,6 +148,115 @@ async def convert_to_datasheet(
         )
         logger.error(
             f"Error converting to datasheet: {exc}",
+            extra={"request_id": request_id, "error": str(exc)},
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
+@router.post(
+    "/from-okh-losh",
+    response_model=ConvertFromOkhLoshResponse,
+    summary="Convert OKH-LOSH v2.4 TOML to OKH Manifest",
+    description="""
+    Convert an OKH-LOSH v2.4 TOML manifest (github.com/iop-alliance/OpenKnowHow)
+    to a canonical OKH manifest.
+
+    Upload the .toml file and receive the OKH manifest as JSON in the
+    response body. Fields with no direct equivalent in OHM's model (the
+    full `[[image]]` array, top-level mass, top-level release) are
+    preserved under the manifest's `metadata` dict rather than dropped.
+
+    **Workflow:**
+    1. Upload the OKH-LOSH `.toml` file.
+    2. Receive the parsed OKH manifest as JSON.
+    """,
+)
+async def convert_from_okh_losh(
+    http_request: Request,
+    toml_file: UploadFile = File(
+        ..., description="OKH-LOSH v2.4 TOML manifest to convert"
+    ),
+) -> ConvertFromOkhLoshResponse:
+    """Convert an OKH-LOSH v2.4 TOML manifest to an OKH manifest."""
+    request_id = getattr(http_request.state, "request_id", None)
+
+    try:
+        if not toml_file.filename:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ERROR_NO_FILE_PROVIDED,
+            )
+
+        if not toml_file.filename.lower().endswith(".toml"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only .toml files are supported. Please upload an OKH-LOSH manifest.",
+            )
+
+        content = await toml_file.read()
+
+        with tempfile.NamedTemporaryFile(suffix=".toml", delete=False) as tmp:
+            tmp.write(content)
+            tmp_path = tmp.name
+
+        try:
+            converter = OkhLoshConverter()
+            manifest = converter.okh_losh_to_okh(tmp_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+
+        manifest_dict = manifest.to_dict()
+
+        fields_populated = sum(
+            1
+            for v in manifest_dict.values()
+            if v is not None and v != "" and v != [] and v != {}
+        )
+
+        logger.info(
+            "OKH-LOSH TOML converted to OKH manifest",
+            extra={
+                "request_id": request_id,
+                "manifest_title": manifest.title,
+                "fields_populated": fields_populated,
+            },
+        )
+
+        return ConvertFromOkhLoshResponse(
+            success=True,
+            message="OKH-LOSH TOML converted to OKH manifest successfully",
+            manifest=manifest_dict,
+            manifest_title=manifest.title,
+            fields_populated=fields_populated,
+        )
+
+    except HTTPException:
+        raise
+    except OkhLoshConversionError as exc:
+        error_response = create_error_response(
+            error=exc,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            request_id=request_id,
+            suggestion="Ensure the file is a valid OKH-LOSH v2.4 TOML manifest",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=error_response.model_dump(mode="json"),
+        )
+    except Exception as exc:
+        error_response = create_error_response(
+            error=exc,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=request_id,
+            suggestion="Please try again or contact support",
+        )
+        logger.error(
+            f"Error converting from OKH-LOSH TOML: {exc}",
             extra={"request_id": request_id, "error": str(exc)},
             exc_info=True,
         )

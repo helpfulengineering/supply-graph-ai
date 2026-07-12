@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Print sorted HTTP method + path lines for the versioned FastAPI app (api_v1).
 
-Used for conference demos and doc audits; same logic as the inline snippet in
-docs/development/conference-demo-readiness.md.
+Useful for doc audits and comparing OpenAPI inventory to narrative docs.
 
 Usage:
     uv run python scripts/dump_api_routes.py

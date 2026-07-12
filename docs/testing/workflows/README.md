@@ -14,7 +14,7 @@ This directory contains **7 canonical test workflows** that cover the complete O
 
     Workflow **documents** are the behavioural spec. The **`tests/e2e/`** tree shown under [Target test structure](#target-test-structure) is the **intended** layout (Issue 1.1.3); it is **not** present on the default branch as of this date.
 
-    This repository still runs a **smaller** automated suite under `tests/unit/`, `tests/api/`, `tests/cli/`, `tests/integration/`, `tests/performance/`, and `tests/services/`. The [workflow index](#workflow-index) “Mapped tests” column lists what actually exists today; [Conference demo readiness — Track A](../../development/conference-demo-readiness.md#track-a-workflows) is the canonical backlog.
+    This repository still runs a **smaller** automated suite under `tests/unit/`, `tests/api/`, `tests/cli/`, `tests/integration/`, `tests/performance/`, and `tests/services/`. The [workflow index](#workflow-index) “Mapped tests” column lists what actually exists today.
 
     **Conference doc sync:** Entrypoints named in the WF steps were spot-checked against `src/` (`MatchingService.find_matches_with_manifest`, `OKHManifest.extract_requirements` → `ProcessRequirement`, `/v1/api/supply-tree/*`, `StorageService` solution APIs, `DatasheetConverter`, validators). For live routes: `uv run python scripts/dump_api_routes.py` (and `uv run python scripts/generate_openapi_routes_md.py` for the MkDocs table).
 
@@ -245,7 +245,7 @@ Every workflow document follows this structure:
 
 ## Progress Log
 
-- **2026-04-30**: Documentation pass — README index, running-workflows, related issues, and dataset notes updated so they **do not** imply `tests/e2e/` or per-WF pass counts exist on the default branch; cross-link to [Conference demo readiness — Track A](../../development/conference-demo-readiness.md#track-a-workflows).
+- **2026-04-30**: Documentation pass — README index, running-workflows, related issues, and dataset notes updated so they **do not** imply `tests/e2e/` or per-WF pass counts exist on the default branch.
 - **2026-02-12**: WF-1 through WF-7 workflow documents created (Issue 1.1.1 complete)
 - **2026-02-12**: WF-1 E2E tests implemented (`test_wf01_single_level_matching.py`, 69 tests)
 - **2026-02-12**: Fixed namespace mismatch bug in `_can_satisfy_requirements` (URI normalization)

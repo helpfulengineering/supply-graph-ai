@@ -1,20 +1,5 @@
 {
   "schema_version": "1.0.0",
-  "generated_at": "2026-04-03T01:49:19.031653+00:00",
-  "repositories_file": "tests/data/okh_generation/repositories.json",
-  "summary": {
-    "total_repo_entries": 26,
-    "layer": "3L",
-    "counts_by_status": {
-      "skipped_no_generated_manifest": 2,
-      "skipped_no_ground_truth": 24
-    },
-    "compared_count": 0,
-    "avg_blocking_accuracy_compared": null,
-    "avg_blocking_presence_completeness_compared": null
-  },
-  "by_documentation_quality": {},
-  "by_domain": {},
   "repos": [
     {
       "id": "repo-001",
@@ -25,8 +10,7 @@
       "domain": "robotics",
       "project_structure": "monorepo",
       "ground_truth_path": "tests/data/okh_generation/ground_truth/repo-001.json",
-      "status": "skipped_no_generated_manifest",
-      "expected_generated_path": "tests/data/okh_generation/clones/repo-001-3L.json"
+      "core_for_regression": true
     },
     {
       "id": "repo-002",
@@ -37,8 +21,7 @@
       "domain": "optical-instruments",
       "project_structure": "standard",
       "ground_truth_path": "tests/data/okh_generation/ground_truth/repo-002.json",
-      "status": "skipped_no_generated_manifest",
-      "expected_generated_path": "tests/data/okh_generation/clones/repo-002-3L.json"
+      "core_for_regression": true
     },
     {
       "id": "repo-003",
@@ -49,7 +32,7 @@
       "domain": "robotics",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-004",
@@ -60,7 +43,7 @@
       "domain": "biotech",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-005",
@@ -71,7 +54,7 @@
       "domain": "electronics",
       "project_structure": "monorepo",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-006",
@@ -82,7 +65,7 @@
       "domain": "electronics",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-007",
@@ -93,7 +76,7 @@
       "domain": "firmware",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-008",
@@ -104,7 +87,7 @@
       "domain": "electronics",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-009",
@@ -115,7 +98,7 @@
       "domain": "mechanical",
       "project_structure": "monorepo",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-010",
@@ -126,7 +109,7 @@
       "domain": "electronics",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-011",
@@ -137,7 +120,7 @@
       "domain": "electronics",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "repo-012",
@@ -148,7 +131,7 @@
       "domain": "mechanical",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": true
     },
     {
       "id": "bha-centrifuge",
@@ -159,7 +142,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": true
     },
     {
       "id": "bha-bioreactor",
@@ -170,7 +153,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-gelbox",
@@ -181,7 +164,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-incubator",
@@ -192,7 +175,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-microscope",
@@ -203,7 +186,7 @@
       "domain": "optical-instruments",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-peristaltic-pump",
@@ -214,7 +197,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-photobioreactor",
@@ -225,7 +208,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-stirrer",
@@ -236,7 +219,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": true
     },
     {
       "id": "bha-spectrophotometer",
@@ -247,7 +230,7 @@
       "domain": "optical-instruments",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-syringe-pump",
@@ -258,7 +241,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-thermocycler",
@@ -269,7 +252,7 @@
       "domain": "biotech",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": true
     },
     {
       "id": "bha-webcam-microscope",
@@ -280,7 +263,7 @@
       "domain": "optical-instruments",
       "project_structure": "minimal",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "bha-biohackboard",
@@ -291,7 +274,7 @@
       "domain": "electronics",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": false
     },
     {
       "id": "air-quality-sensor-nrf52840-v2-ed3",
@@ -302,7 +285,7 @@
       "domain": "electronics",
       "project_structure": "standard",
       "ground_truth_path": null,
-      "status": "skipped_no_ground_truth"
+      "core_for_regression": true
     }
   ]
 }

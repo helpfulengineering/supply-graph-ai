@@ -72,6 +72,56 @@ export async function fetchOkhList(
   };
 }
 
+const CATALOG_PAGE_SIZE = 100;
+/** Safety cap so a buggy has_next never loops forever. */
+const CATALOG_MAX_PAGES = 50;
+
+/**
+ * Fetch every OKH list page and merge into one result (deduped by id).
+ * Used by catalog/match UIs that need the full set for client-side facets.
+ */
+export async function fetchAllOkhList(
+  params: Omit<FetchOkhListParams, "page" | "page_size"> = {},
+): Promise<OkhListResult> {
+  const byId = new Map<string, OkhManifest>();
+  let page = 1;
+  let lastPagination = EMPTY_PAGINATION;
+
+  while (page <= CATALOG_MAX_PAGES) {
+    const result = await fetchOkhList({
+      ...params,
+      page,
+      page_size: CATALOG_PAGE_SIZE,
+    });
+    lastPagination = result.pagination;
+    for (const item of result.items) {
+      if (item?.id != null && !byId.has(item.id)) {
+        byId.set(item.id, item);
+      }
+    }
+    const total = result.pagination.total_items ?? 0;
+    const hasNext = result.pagination.has_next === true;
+    if (!hasNext || byId.size >= total || result.items.length === 0) {
+      break;
+    }
+    page += 1;
+  }
+
+  const items = Array.from(byId.values());
+  return {
+    items,
+    pagination: {
+      ...lastPagination,
+      page: 1,
+      page_size: items.length,
+      total_items: lastPagination.total_items || items.length,
+      total_pages: 1,
+      has_next: false,
+      has_previous: false,
+    },
+  };
+}
+
 /** Fetch a single OKH manifest by id (fields returned at the top level). */
 export async function fetchOkhDetail(id: string): Promise<OkhManifest> {
   const { data, error, response } = await apiClient.GET("/api/okh/{id}", {
