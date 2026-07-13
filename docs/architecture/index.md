@@ -1,9 +1,5 @@
 # Open Hardware Manager Architecture
 
-!!! note "Code vs narrative (spot-check 2026-04)"
-
-    Older drafts used a fictional `ome.*` Python package (legacy **Open Matching Engine** name). The product is **Open Hardware Manager (OHM)**; use `src.core.*` imports (see [.repo-map.md](../../.repo-map.md) or `python scripts/generate_repo_map.py`). The snippets below are intentionally non-runnable illustrations of layering.
-
 ## Core Components
 
 The OHM is designed as a set of independent components that can be used individually or composed into complete processing pipelines. Each component has its own well-defined interfaces, storage requirements, and processing capabilities.
