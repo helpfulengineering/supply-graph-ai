@@ -138,6 +138,30 @@ def canonical_json_bytes(data: dict[str, Any]) -> bytes:
     return json.dumps(data, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
+def sign_payload(private_key: Ed25519PrivateKey, payload: dict[str, Any]) -> str:
+    """Sign a canonical JSON payload, returning a hex signature.
+
+    Generic over persons/spaces/nodes — reused for capability grants and identity
+    links, not just node-level signing.
+    """
+    return private_key.sign(canonical_json_bytes(payload)).hex()
+
+
+def verify_payload(did: str, payload: dict[str, Any], signature_hex: str) -> bool:
+    """Verify a hex signature over a canonical payload against ``did``'s pubkey.
+
+    Fully offline: resolves the Ed25519 public key from the ``did:key`` and checks
+    the signature. Returns False on any error (bad DID, bad hex, mismatch).
+    """
+    try:
+        did_to_public_key(did).verify(
+            bytes.fromhex(signature_hex), canonical_json_bytes(payload)
+        )
+        return True
+    except Exception:
+        return False
+
+
 def generate_identity(display_name: str) -> NodeIdentity:
     """Create a new node identity."""
     private_key = Ed25519PrivateKey.generate()

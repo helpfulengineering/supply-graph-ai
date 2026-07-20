@@ -5,10 +5,12 @@ This service handles API key creation, validation, permission checking,
 and integrates with storage for persistence.
 """
 
+import json
 import logging
 import secrets
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
 from uuid import UUID, uuid4
 
 import bcrypt
@@ -16,12 +18,28 @@ from fastapi import HTTPException, status
 
 from src.config import settings
 from src.config.auth_constants import AUTH_MODE_ENV, AUTH_MODE_HYBRID, AUTH_MODE_STORAGE
+from src.config.security_policy import get_security_policy
 
+from ..federation.identity import (
+    NodeIdentity,
+    generate_identity,
+    sign_payload,
+    verify_payload,
+)
 from ..models.account import ROOT_ACCOUNT_ID, Account, AccountCreate
 from ..models.auth import APIKey, APIKeyCreate, APIKeyResponse, AuthenticatedUser
+from ..models.capability import (
+    KNOWN_SCOPE_KINDS,
+    CapabilityGrant,
+    Scope,
+    is_known_verb,
+)
+from ..models.identity import Identity, IdentityKind, IdentityLink
 from ..services.storage_service import StorageService
 from ..storage.account_storage import AccountStorage
 from ..storage.auth_storage import AuthStorage
+from ..storage.grant_store import GrantStore
+from ..storage.identity_key_store import IdentityKeyStore
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +55,9 @@ class AuthenticationService:
         """Initialize authentication service."""
         self._auth_storage: Optional[AuthStorage] = None
         self._account_storage: Optional[AccountStorage] = None
+        self._identity_store: Optional[IdentityKeyStore] = None
+        self._grant_store: Optional[GrantStore] = None
+        self._node_signing: Optional[NodeIdentity] = None
         self._initialized = False
 
     @classmethod
@@ -56,6 +77,10 @@ class AuthenticationService:
             storage_service = await StorageService.get_instance()
             self._auth_storage = AuthStorage(storage_service)
             self._account_storage = AccountStorage(storage_service)
+            self._grant_store = GrantStore(storage_service)
+            self._identity_store = IdentityKeyStore(
+                Path(settings.OHM_FEDERATION_DATA_DIR)
+            )
             self._initialized = True
             logger.info("Authentication service initialized")
         except Exception as e:
@@ -401,3 +426,206 @@ class AuthenticationService:
         await self._account_storage.save_account(account)
         logger.info(f"Disabled account {account_id}")
         return account
+
+    # ------------------------------------------------------------------
+    # Self-sovereign identity (Slice 2)
+    # ------------------------------------------------------------------
+
+    def _node_signing_identity(self) -> Optional[NodeIdentity]:
+        """Load this node's federation signing identity (trust root), if present.
+
+        Read-only: never creates a node identity as a side effect of authz.
+        """
+        if self._node_signing is not None:
+            return self._node_signing
+        path = Path(settings.OHM_FEDERATION_DATA_DIR).expanduser() / "identity.json"
+        if path.is_file():
+            self._node_signing = NodeIdentity.from_identity_file(
+                json.loads(path.read_text(encoding="utf-8"))
+            )
+        return self._node_signing
+
+    def _signing_key_for(self, did: str) -> Optional[NodeIdentity]:
+        """Return a held signing key for ``did`` (node identity or local identity)."""
+        node = self._node_signing_identity()
+        if node and node.did == did:
+            return node
+        if self._identity_store:
+            return self._identity_store.load_signing_key(did)
+        return None
+
+    async def create_identity(
+        self,
+        account_id: UUID,
+        kind: IdentityKind = IdentityKind.PERSON,
+        display_name: str = "",
+    ) -> Identity:
+        """Mint a new Ed25519 identity and bind it to ``account_id`` (custodial)."""
+        if not self._identity_store:
+            raise RuntimeError("Identity store not available")
+        signing_key = generate_identity(display_name or str(account_id))
+        identity = Identity(
+            did=signing_key.did,
+            kind=kind,
+            display_name=display_name or str(account_id),
+            account_id=str(account_id),
+            custodial=True,
+        )
+        self._identity_store.save(signing_key, identity)
+        logger.info(f"Minted identity {identity.did} for account {account_id}")
+        return identity
+
+    def get_identity(self, did: str) -> Optional[Identity]:
+        """Return the public identity record for ``did``, if held locally."""
+        if not self._identity_store:
+            return None
+        return self._identity_store.load_identity(did)
+
+    async def rotate_identity(self, did: str) -> Identity:
+        """Rotate ``did`` to a fresh keypair, linking old -> new (signed by old)."""
+        if not self._identity_store:
+            raise RuntimeError("Identity store not available")
+        old_key = self._identity_store.load_signing_key(did)
+        old_identity = self._identity_store.load_identity(did)
+        if not old_key or not old_identity:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Identity not found"
+            )
+
+        new_key = generate_identity(old_identity.display_name)
+        link = IdentityLink(
+            from_did=did,
+            to_did=new_key.did,
+            reason="rotation",
+            signed_by=did,
+            signature="",
+        )
+        link.signature = sign_payload(old_key.private_key, link.signing_payload())
+
+        new_identity = Identity(
+            did=new_key.did,
+            kind=old_identity.kind,
+            display_name=old_identity.display_name,
+            account_id=old_identity.account_id,
+            custodial=old_identity.custodial,
+            links_in=[*old_identity.links_in, link],
+        )
+        self._identity_store.save(new_key, new_identity)
+        logger.info(f"Rotated identity {did} -> {new_key.did}")
+        return new_identity
+
+    # ------------------------------------------------------------------
+    # Capability grants (Slice 2)
+    # ------------------------------------------------------------------
+
+    async def issue_grant(
+        self,
+        issuer_did: str,
+        subject_did: str,
+        permissions: List[str],
+        scope: Scope,
+        ttl_days: Optional[int] = None,
+        coarse_floor: Optional[List[str]] = None,
+    ) -> CapabilityGrant:
+        """Issue and sign a capability grant.
+
+        Slice 2 trust root: the issuer must be a key this node holds (the node
+        identity, or a locally-held identity issuing to itself — the edge
+        bootstrap / self-asserted case).
+        """
+        if not self._grant_store:
+            raise RuntimeError("Grant store not available")
+        signing_key = self._signing_key_for(issuer_did)
+        if not signing_key:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No signing key held for issuer; cannot issue grant",
+            )
+
+        ttl = ttl_days if ttl_days is not None else get_security_policy().grant_ttl_days
+        now = datetime.utcnow()
+        grant = CapabilityGrant(
+            issuer_did=issuer_did,
+            subject_did=subject_did,
+            permissions=permissions,
+            coarse_floor=coarse_floor or ["read"],
+            scope=scope,
+            issued_at=now,
+            expires_at=now + timedelta(days=ttl),
+        )
+        grant.signature = sign_payload(signing_key.private_key, grant.signing_payload())
+        await self._grant_store.save_grant(grant)
+        logger.info(f"Issued grant {grant.grant_id} to {subject_did} on {scope.key()}")
+        return grant
+
+    async def list_grants(self, subject_did: str) -> List[CapabilityGrant]:
+        """List all grants whose subject is ``subject_did``."""
+        if not self._grant_store:
+            return []
+        return await self._grant_store.list_for_subject(subject_did)
+
+    async def revoke_grant(self, grant_id: UUID) -> None:
+        """Revoke (delete) a grant by id."""
+        if not self._grant_store:
+            raise RuntimeError("Grant store not available")
+        await self._grant_store.delete_grant(grant_id)
+        logger.info(f"Revoked grant {grant_id}")
+
+    def _is_issuer_trusted(self, grant: CapabilityGrant) -> bool:
+        """Slice 2 trust root: local node identity, or a self-asserted issuer.
+
+        Self-asserted grants (issuer == subject, e.g. isolated edge bootstrap) are
+        honored *locally* but carry no global weight until a peer endorses them.
+        """
+        node = self._node_signing_identity()
+        if node and grant.issuer_did == node.did:
+            return True
+        return grant.issuer_did == grant.subject_did
+
+    def verify_grant(self, grant: CapabilityGrant) -> bool:
+        """Offline validity: signature + time window + known scope kind.
+
+        Does *not* consult the trust root or the requested scope — those are
+        applied in :meth:`resolve_capabilities`.
+        """
+        if not verify_payload(
+            grant.issuer_did, grant.signing_payload(), grant.signature
+        ):
+            return False
+        now = datetime.utcnow()
+        if grant.not_before and now < grant.not_before:
+            return False
+        if now >= grant.expires_at:
+            return False
+        if grant.scope.kind not in KNOWN_SCOPE_KINDS:
+            return False  # fail closed on unknown scope kind
+        return True
+
+    def _grant_effective_permissions(self, grant: CapabilityGrant) -> Set[str]:
+        """Effective permissions a valid, trusted grant confers.
+
+        Known verbs from ``permissions`` unioned with the coarse floor (the floor
+        is honored even when the node does not understand the richer verbs).
+        """
+        known = {p for p in grant.permissions if is_known_verb(p)}
+        return known | set(grant.coarse_floor)
+
+    async def resolve_capabilities(self, subject_did: str, scope: Scope) -> Set[str]:
+        """Effective permissions for ``subject_did`` on ``scope`` (fully offline).
+
+        Implements the 6-step verification: for each of the subject's grants that
+        matches the requested scope, honor it only if it verifies (signature/time/
+        known-kind) and its issuer is trusted; union the effective permissions.
+        """
+        if not self._grant_store:
+            return set()
+        effective: Set[str] = set()
+        for grant in await self._grant_store.list_for_subject(subject_did):
+            if grant.scope.key() != scope.key():
+                continue
+            if not self.verify_grant(grant):
+                continue
+            if not self._is_issuer_trusted(grant):
+                continue  # untrusted issuer -> contributes nothing
+            effective |= self._grant_effective_permissions(grant)
+        return effective
