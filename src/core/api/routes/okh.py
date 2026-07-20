@@ -45,6 +45,8 @@ from ..decorators import (
     paginated_response,
     track_performance,
 )
+from ..dependencies import created_by, require_write
+from ...models.auth import AuthenticatedUser
 from ..error_handlers import create_error_response
 from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
@@ -229,9 +231,10 @@ async def export_collection_endpoint(
 async def create_okh_manifest(
     data: Dict[str, Any] = Body(...),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     try:
-        manifest = await okh_service.create(data)
+        manifest = await okh_service.create(data, created_by=created_by(user))
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     return OKHResponse.model_validate(
@@ -251,6 +254,7 @@ async def create_okh_manifest(
 async def delete_okh_manifest_alias(
     id: UUID = Path(...),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Alias for DELETE /{id} — used by integration test cleanup."""
     existing = await okh_service.get(id)
@@ -523,6 +527,7 @@ async def update_okh(
     request: OKHUpdateRequest,
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Update an OKH manifest
@@ -565,6 +570,7 @@ async def update_okh(
 async def delete_okh(
     id: UUID = Path(..., title="The ID of the OKH manifest"),
     okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """
     Delete an OKH manifest
@@ -750,6 +756,7 @@ async def create_okh_manifest(
     request: OKHValidateRequest,
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Create and store an OKH manifest from a JSON dict."""
     request_id = (
@@ -767,7 +774,9 @@ async def create_okh_manifest(
                 detail=f"OKH validation failed: {str(e)}",
             )
 
-        result = await okh_service.create(okh_manifest.to_dict())
+        result = await okh_service.create(
+            okh_manifest.to_dict(), created_by=created_by(user)
+        )
         result_dict = result.to_dict()
         okh_response = OKHResponse(**result_dict)
 

@@ -305,11 +305,15 @@ class OKWService(BaseService["OKWService"]):
 
         self.logger.info("OKW service initialized successfully")
 
-    async def create(self, facility_data: Dict[str, Any]) -> ManufacturingFacility:
+    async def create(
+        self, facility_data: Dict[str, Any], created_by: Optional[str] = None
+    ) -> ManufacturingFacility:
         """Persist a facility JSON at ``okw/{facility_id}.json`` when storage is configured.
 
         Args:
             facility_data: Raw dict or an existing ``ManufacturingFacility`` instance.
+            created_by: Optional account id to attribute the record to; persisted
+                alongside the facility JSON (see federated-identity Slice 1).
 
         Returns:
             The created ``ManufacturingFacility``.
@@ -331,8 +335,13 @@ class OKWService(BaseService["OKWService"]):
             if self.storage and self.storage.manager:
                 filename = f"okw/{str(facility.id)}.json"
 
+                payload = facility.to_dict()
+                if created_by:
+                    # Namespaced to avoid colliding with the OKW schema's own
+                    # ``created_by`` (an Agent). This is OHM-internal attribution.
+                    payload["ohm_created_by"] = created_by
                 facility_json = json.dumps(
-                    facility.to_dict(), indent=2, ensure_ascii=False, default=str
+                    payload, indent=2, ensure_ascii=False, default=str
                 )
                 await self.storage.manager.put_object(
                     filename, facility_json.encode("utf-8")

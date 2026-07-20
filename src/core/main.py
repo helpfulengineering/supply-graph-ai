@@ -20,6 +20,7 @@ from src.core.api.error_handlers import (
 from src.core.api.middleware import setup_api_middleware
 from src.core.api.routes.convert import router as convert_router
 from src.core.api.routes.federation import router as federation_router
+from src.core.api.routes.identity import router as identity_router
 from src.core.api.routes.llm import router as llm_router
 from src.core.api.routes.match import router as match_router
 from src.core.api.routes.asset import router as asset_router
@@ -389,6 +390,7 @@ api_v1.include_router(rfq_router, tags=["rfq"])  # Already has /api/rfq prefix
 api_v1.include_router(
     federation_router, tags=["federation"]
 )  # Already has /api/federation prefix
+api_v1.include_router(identity_router, prefix="/api/identity", tags=["identity"])
 
 # Mount the versioned API
 app.mount("/v1", api_v1)

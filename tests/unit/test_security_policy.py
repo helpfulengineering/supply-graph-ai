@@ -43,3 +43,21 @@ def test_parse_security_mode_normalizes_and_validates():
     assert parse_security_mode(SecurityMode.CRISIS) is SecurityMode.CRISIS
     with pytest.raises(ValueError):
         parse_security_mode("nonsense")
+
+
+@pytest.mark.parametrize(
+    "environment,expected",
+    [
+        ("production", True),
+        ("development", False),
+        ("test", False),
+    ],
+)
+def test_peacetime_write_enforcement_follows_environment(
+    monkeypatch, environment, expected
+):
+    # get_security_policy resolves require_auth_for_writes from settings.ENVIRONMENT
+    # at call time, so patching the module attribute is sufficient.
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", environment)
+    policy = get_security_policy("peacetime")
+    assert policy.require_auth_for_writes is expected

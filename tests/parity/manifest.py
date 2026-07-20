@@ -198,8 +198,18 @@ AREAS: tuple[Area, ...] = (
         "partial",
         note="CLI-only diagnostics/admin group. No API surface by design.",
     ),
+    # --- Identity: AuthenticationService exposed via the unified surface ---
+    Area(
+        "identity",
+        "auth",
+        "identity",
+        "identity",
+        "aligned",
+        note="AuthenticationService (service stem 'auth') exposed via the unified "
+        "'identity' API tag + CLI group — API keys + accounts. See "
+        "notes/federated-identity-spec.md Slice 1.",
+    ),
     # --- Internal services: no API and no CLI by design -------------------
-    Area("auth", "auth", None, None, "internal", note="Auth/session internals."),
     Area("cache", "cache", None, None, "internal", note="Caching internals."),
     Area(
         "rate_limit",

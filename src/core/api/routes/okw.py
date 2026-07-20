@@ -17,10 +17,12 @@ from fastapi import (
     status,
 )
 
+from ...models.auth import AuthenticatedUser
 from ...models.okw import ManufacturingFacility
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
+from ..dependencies import created_by, require_write
 from ..constants.client_errors import (
     ERROR_NO_FILE_PROVIDED,
     ERROR_UNSUPPORTED_YAML_JSON_FILE,
@@ -694,6 +696,7 @@ async def update_okw(
     request: OKWUpdateRequest,
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Update an OKW facility"""
     try:
@@ -769,6 +772,7 @@ async def update_okw(
 async def delete_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Delete an OKW facility"""
     try:
@@ -1052,6 +1056,7 @@ async def create_okw_facility(
     request: OKWValidateRequest,
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Create and store an OKW facility from a JSON dict."""
     request_id = (
@@ -1067,7 +1072,7 @@ async def create_okw_facility(
                 detail=f"OKW validation failed: {str(e)}",
             )
 
-        result = await okw_service.create(facility)
+        result = await okw_service.create(facility, created_by=created_by(user))
         result_dict = result.to_dict() if hasattr(result, "to_dict") else result
         okw_response = OKWResponse(**result_dict)
 

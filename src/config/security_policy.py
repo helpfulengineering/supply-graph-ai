@@ -13,7 +13,7 @@ See ``docs/architecture/security-modes.md`` and ``notes/federated-identity-adr.m
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 
 
@@ -34,6 +34,7 @@ class SecurityPolicy:
     """
 
     mode: SecurityMode
+    require_auth_for_writes: bool  # enforce authentication on dataset-mutating requests
     custodial_keys_allowed: bool
     grant_ttl_days: int
     recovery: str  # "reissuance" (peacetime); future: "social" | "none"
@@ -45,6 +46,8 @@ class SecurityPolicy:
 
 _PEACETIME = SecurityPolicy(
     mode=SecurityMode.PEACETIME,
+    # Placeholder; get_security_policy() resolves this per-environment (see below).
+    require_auth_for_writes=True,
     custodial_keys_allowed=True,
     grant_ttl_days=90,
     recovery="reissuance",
@@ -69,6 +72,17 @@ def parse_security_mode(value: str | SecurityMode | None) -> SecurityMode:
         ) from exc
 
 
+def _peacetime_requires_auth_for_writes() -> bool:
+    """Peacetime posture: enforce write auth in production, relax in dev/test.
+
+    This preserves existing unauthenticated dev/test flows while closing the write
+    hole for real deployments. Override by running with ``ENVIRONMENT=production``.
+    """
+    from .settings import ENVIRONMENT
+
+    return ENVIRONMENT == "production"
+
+
 def get_security_policy(mode: str | SecurityMode | None = None) -> SecurityPolicy:
     """Return the policy for ``mode`` (defaults to the configured ``OHM_SECURITY_MODE``)."""
     if mode is None:
@@ -77,7 +91,10 @@ def get_security_policy(mode: str | SecurityMode | None = None) -> SecurityPolic
         mode = OHM_SECURITY_MODE
     resolved = parse_security_mode(mode)
     if resolved is SecurityMode.PEACETIME:
-        return _PEACETIME
+        return replace(
+            _PEACETIME,
+            require_auth_for_writes=_peacetime_requires_auth_for_writes(),
+        )
     raise NotImplementedError(
         f"SecurityMode {resolved.value!r} is reserved; only 'peacetime' is implemented."
     )

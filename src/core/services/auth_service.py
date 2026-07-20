@@ -17,8 +17,10 @@ from fastapi import HTTPException, status
 from src.config import settings
 from src.config.auth_constants import AUTH_MODE_ENV, AUTH_MODE_HYBRID, AUTH_MODE_STORAGE
 
+from ..models.account import ROOT_ACCOUNT_ID, Account, AccountCreate
 from ..models.auth import APIKey, APIKeyCreate, APIKeyResponse, AuthenticatedUser
 from ..services.storage_service import StorageService
+from ..storage.account_storage import AccountStorage
 from ..storage.auth_storage import AuthStorage
 
 logger = logging.getLogger(__name__)
@@ -34,6 +36,7 @@ class AuthenticationService:
     def __init__(self):
         """Initialize authentication service."""
         self._auth_storage: Optional[AuthStorage] = None
+        self._account_storage: Optional[AccountStorage] = None
         self._initialized = False
 
     @classmethod
@@ -52,6 +55,7 @@ class AuthenticationService:
         try:
             storage_service = await StorageService.get_instance()
             self._auth_storage = AuthStorage(storage_service)
+            self._account_storage = AccountStorage(storage_service)
             self._initialized = True
             logger.info("Authentication service initialized")
         except Exception as e:
@@ -169,6 +173,7 @@ class AuthenticationService:
                                 key_id=key.key_id,
                                 name=key.name,
                                 permissions=key.permissions,
+                                account_id=self._account_id_from_key(key),
                             )
                 except HTTPException:
                     raise
@@ -182,6 +187,14 @@ class AuthenticationService:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
         )
+
+    @staticmethod
+    def _account_id_from_key(key: APIKey) -> UUID:
+        """Resolve the owning account for a stored key (``created_by`` holds it)."""
+        try:
+            return UUID(str(key.created_by))
+        except (ValueError, TypeError):
+            return ROOT_ACCOUNT_ID
 
     async def check_permission(
         self, user: AuthenticatedUser, required_permissions: List[str]
@@ -244,6 +257,9 @@ class AuthenticationService:
         )
         key_hash = self._hash_token(token)
 
+        # Bind the key to an owning account (defaults to the root account).
+        account_id = key_data.account_id or ROOT_ACCOUNT_ID
+
         # Create API key
         api_key = APIKey(
             key_id=uuid4(),
@@ -254,7 +270,7 @@ class AuthenticationService:
             created_at=datetime.utcnow(),
             expires_at=key_data.expires_at,
             revoked=False,
-            created_by="system",
+            created_by=str(account_id),
         )
 
         # Save to storage
@@ -352,6 +368,36 @@ class AuthenticationService:
                     ),  # Dummy UUID for env keys
                     name="Environment Key",
                     permissions=["read", "write", "admin"],  # Env keys have full access
+                    account_id=ROOT_ACCOUNT_ID,  # attribute env keys to the root account
                 )
 
         return None
+
+    async def create_account(self, data: AccountCreate) -> Account:
+        """Create and persist a new account (person or space)."""
+        if not self._account_storage:
+            raise RuntimeError("Storage not available for account creation")
+        account = Account(display_name=data.display_name, kind=data.kind)
+        await self._account_storage.save_account(account)
+        logger.info(f"Created account {account.id} ({account.kind.value})")
+        return account
+
+    async def list_accounts(self) -> List[Account]:
+        """List all accounts (empty when storage is unavailable)."""
+        if not self._account_storage:
+            return []
+        return await self._account_storage.list_accounts()
+
+    async def disable_account(self, account_id: UUID) -> Account:
+        """Disable an account so it can no longer be used for new grants/keys."""
+        if not self._account_storage:
+            raise RuntimeError("Storage not available for account management")
+        account = await self._account_storage.load_account(account_id)
+        if not account:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Account not found"
+            )
+        account.disabled = True
+        await self._account_storage.save_account(account)
+        logger.info(f"Disabled account {account_id}")
+        return account

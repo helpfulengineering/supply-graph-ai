@@ -50,16 +50,16 @@ export API_KEYS="key1,key2,key3"
 
 ### Storage-based Keys
 
-Storage-based keys can be created through:
+Storage-based keys are managed through the unified **identity** surface.
 
-1. **CLI Command** (when implemented):
+1. **CLI Command:**
    ```bash
-   ohm auth create-key --name "My API Key" --permissions read,write
+   ohm identity keys create --name "My API Key" --permission read --permission write
    ```
 
-2. **API Endpoint** (when implemented):
+2. **API Endpoint:**
    ```bash
-   POST /v1/api/auth/keys
+   POST /v1/api/identity/keys
    {
      "name": "My API Key",
      "description": "Key for my application",
@@ -68,7 +68,42 @@ Storage-based keys can be created through:
    }
    ```
 
+   List keys with `GET /v1/api/identity/keys` (tokens are never returned) and
+   revoke with `DELETE /v1/api/identity/keys/{key_id}`.
+
 **Important:** The API key token is only returned once during creation. Store it securely.
+
+## Accounts
+
+An **account** is the custodial unit of identity — a person or a space (e.g. a
+university FabLab) — that owns API keys and is who a write is attributed to. Every
+API key belongs to an account (`created_by`); env-configured keys map to the
+built-in **root account**.
+
+```bash
+ohm identity accounts create --name "MIT FabLab" --kind space
+ohm identity accounts list
+ohm identity accounts disable <account_id>
+```
+
+The matching endpoints are `POST /v1/api/identity/accounts`,
+`GET /v1/api/identity/accounts`, and
+`POST /v1/api/identity/accounts/{account_id}/disable`. Use
+`GET /v1/api/identity/whoami` to see the account and permissions behind a key.
+
+Account and key management require the `admin` permission when the security policy
+enforces write auth (see below). Set `OHM_API_KEY` for the CLI to send an admin key.
+
+## Write Enforcement
+
+Whether authentication is required for dataset-mutating requests (OKH/OKW
+create/update/delete) is governed by the `require_auth_for_writes` knob of the
+active [security policy](../architecture/security-modes.md). Under the default
+**peacetime** posture this is **on in production and off in development/test**, so
+existing local/CI flows keep working while real deployments close the write hole.
+When enforced, an unauthenticated write returns `401` and a key lacking `write`
+returns `403`; when not enforced, writes are still attributed to the presenting
+key's account if one is supplied.
 
 ## Permissions
 

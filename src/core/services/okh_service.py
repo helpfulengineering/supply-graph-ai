@@ -87,11 +87,15 @@ class OKHService(BaseService["OKHService"]):
 
         self.logger.info("OKH service initialized successfully")
 
-    async def create(self, manifest_data: Dict[str, Any]) -> OKHManifest:
+    async def create(
+        self, manifest_data: Dict[str, Any], created_by: Optional[str] = None
+    ) -> OKHManifest:
         """Persist a new manifest under ``okh/`` when storage is available.
 
         Args:
             manifest_data: Raw dict or pass-through if already an ``OKHManifest``.
+            created_by: Optional account id to attribute the record to; persisted
+                alongside the manifest JSON (see federated-identity Slice 1).
 
         Returns:
             The created ``OKHManifest`` instance (with generated id if applicable).
@@ -115,8 +119,13 @@ class OKHService(BaseService["OKHService"]):
                 safe_title = safe_title.replace(" ", "-").lower()
                 filename = f"okh/{safe_title}-{str(manifest.id)[:8]}-okh.json"
 
+                payload = manifest.to_dict()
+                if created_by:
+                    # Namespaced (``ohm_*``) so OHM-internal attribution never
+                    # collides with an OKH/OKW schema field of the same name.
+                    payload["ohm_created_by"] = created_by
                 manifest_json = json.dumps(
-                    manifest.to_dict(), indent=2, ensure_ascii=False, default=str
+                    payload, indent=2, ensure_ascii=False, default=str
                 )
                 await self.storage.manager.put_object(
                     filename, manifest_json.encode("utf-8")
