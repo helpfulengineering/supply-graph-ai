@@ -5,7 +5,6 @@ import pytest
 from src.core.federation.identity import generate_identity
 from src.core.models.provenance import (
     OHM_CREATED_BY_KEY,
-    OHM_PROVENANCE_KEY,
     Credit,
     RecordProvenance,
     apply_ohm_metadata,
@@ -47,13 +46,9 @@ def test_tampered_provenance_fails_verification():
     assert not verify_provenance(prov)
 
 
-def test_apply_ohm_metadata_stamps_created_by_and_provenance():
-    prov = RecordProvenance(published_by="did:key:zPub")
-    payload = apply_ohm_metadata(
-        {"title": "Widget"}, source=None, created_by="acct-1", provenance=prov
-    )
+def test_apply_ohm_metadata_stamps_created_by():
+    payload = apply_ohm_metadata({"title": "Widget"}, source=None, created_by="acct-1")
     assert payload[OHM_CREATED_BY_KEY] == "acct-1"
-    assert payload[OHM_PROVENANCE_KEY]["published_by"] == "did:key:zPub"
 
 
 def test_apply_ohm_metadata_carries_ohm_keys_through_round_trip():
@@ -62,12 +57,10 @@ def test_apply_ohm_metadata_carries_ohm_keys_through_round_trip():
     incoming = {
         "title": "Widget",
         OHM_CREATED_BY_KEY: "acct-orig",
-        OHM_PROVENANCE_KEY: {"published_by": "did:key:zPub", "authored_by": []},
         "ohm_future_field": {"x": 1},
     }
     rebuilt = apply_ohm_metadata({"title": "Widget"}, source=incoming)
     assert rebuilt[OHM_CREATED_BY_KEY] == "acct-orig"
-    assert rebuilt[OHM_PROVENANCE_KEY]["published_by"] == "did:key:zPub"
     assert rebuilt["ohm_future_field"] == {"x": 1}  # forward-compatible passthrough
 
 

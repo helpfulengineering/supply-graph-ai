@@ -352,6 +352,46 @@ async def get(
 
 
 @okw_group.command()
+@click.argument("facility_id", type=str)
+@standard_cli_command(
+    help_text="Show the authorship/publication provenance recorded for a facility.",
+    epilog="""
+    Examples:
+      ohm okw provenance 123e4567-e89b-12d3-a456-426614174000
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def provenance(
+    ctx,
+    facility_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Show provenance for an OKW facility."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-provenance")
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/okw/{facility_id}/provenance"
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Provenance lookup failed: {str(e)}", "error")
+        raise
+
+
+@okw_group.command()
 @click.option("--limit", default=10, help="Maximum number of facilities to list")
 @click.option("--offset", default=0, help="Number of facilities to skip")
 @click.option("--facility-type", help="Filter by facility type")

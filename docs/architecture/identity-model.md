@@ -2,8 +2,8 @@
 
 OHM's authorization is **offline-first and federation-ready**. It rests on three
 concepts with three different lifetimes. This page documents the pieces that ship
-today (self-sovereign identities and capability grants); provenance, space claim,
-and attestations arrive in later slices.
+today (self-sovereign identities, capability grants, and record provenance); space
+claim and full attestations arrive in later slices.
 
 | Layer | What it is | Lifetime | Bound to |
 |---|---|---|---|
@@ -72,6 +72,37 @@ every matching grant that passes all of:
    issuer (`issuer == subject`, the isolated-edge bootstrap case, honored locally
    but carrying no global weight until a peer endorses it).
 6. Effective permissions = known verbs from `permissions` ∪ `coarse_floor`.
+
+## Record provenance
+
+Where identities and grants answer *"who may write?"*, **provenance** answers
+*"who made this record?"* — the authorship/publication facts attached to an OKH
+manifest or OKW facility.
+
+- **`Credit`** attributes one contributor by either a `subject_did` *or* a
+  claimable `external_id` (e.g. `orcid:0000-…`, `name:Jane Doe`) — exactly one of
+  the two. An unclaimed external credit can be bound to a real DID later.
+- A record's provenance carries `authored_by[]`, `published_by` (a DID), and
+  `on_behalf_of` (a space DID), and may be **signed** by the author/space key for
+  offline authorship verification (`sign_provenance` / `verify_provenance` reuse
+  the same `did:key` crypto).
+- Provenance lives in its **own store** keyed by record id, deliberately *outside*
+  the manifest, so it never enters the design **content hash** — the same design
+  published by two people still deduplicates.
+
+On create, the API stamps provenance from the authenticated subject; `--author`
+and `--on-behalf-of` override the defaults. Read it back per record:
+
+```bash
+# create attributes to the caller by default; override with flags
+curl -X POST "$OHM/api/okh/create?on_behalf_of=did:key:z<space>" -d @manifest.json
+
+ohm okh provenance <manifest_id>
+ohm okw provenance <facility_id>
+```
+
+Federation propagation (provenance riding the signed catalog record to peers) is
+the next slice; today provenance is captured and read **locally**.
 
 ## Relationship to API keys
 

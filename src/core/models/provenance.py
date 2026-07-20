@@ -2,10 +2,10 @@
 
 Who authored / published a record, and on whose behalf. Provenance is *content
 trust* (about the record), distinct from the *transport trust* of the relaying
-node. It rides the stored manifest under the OHM-namespaced ``ohm_provenance``
-key so it survives federation verbatim (the manifest dict is content-hashed and
-node-signed), and may additionally be signed by the author/space key for offline
-authorship verification. See ``notes/federated-identity-adr.md`` §4.3 / §4.3.1.
+node. It is persisted in its own :class:`ProvenanceStore` keyed by record id —
+deliberately *outside* the manifest so it never enters the design content hash —
+and may be signed by the author/space key for offline authorship verification.
+See ``notes/federated-identity-adr.md`` §4.3 / §4.3.1.
 """
 
 from typing import List, Optional
@@ -13,13 +13,10 @@ from typing import List, Optional
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from pydantic import BaseModel, Field, model_validator
 
-from ..federation.identity import sign_payload, verify_payload
-
 # Manifests stash OHM-internal metadata under ``ohm_*`` keys so it never collides
 # with OKH/OKW schema fields. ``to_dict()`` on those models is a whitelist, so these
 # keys must be carried through create explicitly (see apply_ohm_metadata).
 OHM_METADATA_PREFIX = "ohm_"
-OHM_PROVENANCE_KEY = "ohm_provenance"
 OHM_CREATED_BY_KEY = "ohm_created_by"
 
 
@@ -73,6 +70,11 @@ def sign_provenance(
     provenance: RecordProvenance, private_key: Ed25519PrivateKey, signer_did: str
 ) -> RecordProvenance:
     """Sign a provenance claim with the author/space key (in place)."""
+    # Imported lazily: federation/__init__ pulls in the service layer, which
+    # imports the OKH/OKW services that import this module — a top-level import
+    # here would form a cycle.
+    from ..federation.identity import sign_payload
+
     provenance.signed_by = signer_did
     provenance.signature = sign_payload(private_key, provenance.signing_payload())
     return provenance
@@ -80,6 +82,8 @@ def sign_provenance(
 
 def verify_provenance(provenance: RecordProvenance) -> bool:
     """True iff the provenance is signed and the signature verifies offline."""
+    from ..federation.identity import verify_payload
+
     if not provenance.signed_by or not provenance.signature:
         return False
     return verify_payload(
@@ -91,15 +95,17 @@ def apply_ohm_metadata(
     payload: dict,
     source: Optional[object] = None,
     created_by: Optional[str] = None,
-    provenance: Optional[RecordProvenance] = None,
 ) -> dict:
     """Attach OHM-namespaced metadata to a serialized manifest ``payload``.
 
     Because model ``to_dict()`` is a whitelist, any ``ohm_*`` keys already present
     on a dict ``source`` (e.g. a manifest received over federation) are carried
-    through verbatim first — this is what lets attribution/provenance survive an
-    ingest round-trip. Explicit ``created_by`` / ``provenance`` arguments then take
-    precedence over anything carried over.
+    through verbatim first — this is what lets account attribution survive an
+    ingest round-trip. An explicit ``created_by`` then takes precedence.
+
+    Note: record *provenance* (authorship/publication) lives in its own store
+    (:class:`ProvenanceStore`), not in the manifest, so it stays out of the design
+    content hash.
     """
     if isinstance(source, dict):
         for key, value in source.items():
@@ -107,6 +113,4 @@ def apply_ohm_metadata(
                 payload[key] = value
     if created_by:
         payload[OHM_CREATED_BY_KEY] = created_by
-    if provenance is not None:
-        payload[OHM_PROVENANCE_KEY] = provenance.model_dump(mode="json")
     return payload

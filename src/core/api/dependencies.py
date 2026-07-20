@@ -131,3 +131,37 @@ require_admin = require_permission("admin")
 def created_by(user: Optional[AuthenticatedUser]) -> Optional[str]:
     """Attribution helper: the owning account id for a resolved user, else ``None``."""
     return str(user.account_id) if user else None
+
+
+async def resolve_provenance(
+    user: Optional[AuthenticatedUser],
+    author: Optional[str] = None,
+    on_behalf_of: Optional[str] = None,
+):
+    """Build record provenance for a write, signed by the node if a key is held.
+
+    Defaults authorship + publication to the authenticated subject's DID; an
+    explicit ``author`` (a ``did:...`` or a claimable external id like
+    ``orcid:...``) overrides. Returns ``None`` when there is nothing to attribute
+    (anonymous, DID-less write), so existing flows produce no provenance.
+    """
+    from ..models.provenance import Credit, RecordProvenance
+
+    subject = user.subject_did if user else None
+    credits = []
+    if author:
+        if author.startswith("did:"):
+            credits.append(Credit(subject_did=author, role="author"))
+        else:
+            credits.append(Credit(external_id=author, role="author"))
+    elif subject:
+        credits.append(Credit(subject_did=subject, role="author"))
+
+    if not credits and not subject and not on_behalf_of:
+        return None
+
+    provenance = RecordProvenance(
+        authored_by=credits, published_by=subject, on_behalf_of=on_behalf_of
+    )
+    auth_service = await AuthenticationService.get_instance()
+    return auth_service.sign_provenance_if_possible(provenance)

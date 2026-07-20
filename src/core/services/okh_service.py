@@ -16,6 +16,7 @@ from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
 from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..storage.provenance_store import ProvenanceStore
 from ..storage.smart_discovery import (
     FileInfo,
     SmartFileDiscovery,
@@ -125,11 +126,11 @@ class OKHService(BaseService["OKHService"]):
                 safe_title = safe_title.replace(" ", "-").lower()
                 filename = f"okh/{safe_title}-{str(manifest.id)[:8]}-okh.json"
 
-                # OHM-namespaced metadata is carried through explicitly because
-                # to_dict() is a whitelist that drops ohm_* keys — this is what
-                # lets attribution/provenance survive a federation ingest round-trip.
+                # OHM-namespaced metadata (account attribution) is carried through
+                # explicitly because to_dict() is a whitelist that drops ohm_* keys —
+                # this is what lets ohm_created_by survive a federation ingest.
                 payload = apply_ohm_metadata(
-                    manifest.to_dict(), manifest_data, created_by, provenance
+                    manifest.to_dict(), manifest_data, created_by
                 )
                 manifest_json = json.dumps(
                     payload, indent=2, ensure_ascii=False, default=str
@@ -139,7 +140,22 @@ class OKHService(BaseService["OKHService"]):
                 )
                 self.logger.info(f"Saved OKH manifest to {filename}")
 
+                # Provenance lives in its own plane (out of the content hash).
+                if provenance is not None:
+                    await self._provenance_store().save(str(manifest.id), provenance)
+
             return manifest
+
+    def _provenance_store(self) -> ProvenanceStore:
+        """Lazily build the provenance store over the configured storage."""
+        return ProvenanceStore(self.storage)
+
+    async def get_provenance(self, manifest_id: UUID) -> Optional[RecordProvenance]:
+        """Return the stored provenance for a manifest, or None."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return None
+        return await self._provenance_store().load(str(manifest_id))
 
     async def get(self, manifest_id: UUID) -> Optional[OKHManifest]:
         """Scan discovered ``okh/`` objects and return the first manifest whose id matches.

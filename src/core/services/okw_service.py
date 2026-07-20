@@ -7,6 +7,7 @@ from uuid import UUID
 from ..domains.cooking.models import KitchenCapability
 from ..models.okw import FacilityStatus, Location, ManufacturingFacility
 from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..storage.provenance_store import ProvenanceStore
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..taxonomy import taxonomy
 from ..utils.logging import get_logger
@@ -341,11 +342,11 @@ class OKWService(BaseService["OKWService"]):
             if self.storage and self.storage.manager:
                 filename = f"okw/{str(facility.id)}.json"
 
-                # OHM-namespaced metadata is carried through explicitly because
-                # to_dict() is a whitelist that drops ohm_* keys — this is what
-                # lets attribution/provenance survive a federation ingest round-trip.
+                # OHM-namespaced metadata (account attribution) is carried through
+                # explicitly because to_dict() is a whitelist that drops ohm_* keys —
+                # this is what lets ohm_created_by survive a federation ingest.
                 payload = apply_ohm_metadata(
-                    facility.to_dict(), facility_data, created_by, provenance
+                    facility.to_dict(), facility_data, created_by
                 )
                 facility_json = json.dumps(
                     payload, indent=2, ensure_ascii=False, default=str
@@ -355,7 +356,22 @@ class OKWService(BaseService["OKWService"]):
                 )
                 self.logger.info(f"Saved OKW facility to {filename}")
 
+                # Provenance lives in its own plane (out of the content hash).
+                if provenance is not None:
+                    await self._provenance_store().save(str(facility.id), provenance)
+
             return facility
+
+    def _provenance_store(self) -> ProvenanceStore:
+        """Lazily build the provenance store over the configured storage."""
+        return ProvenanceStore(self.storage)
+
+    async def get_provenance(self, facility_id: UUID) -> Optional[RecordProvenance]:
+        """Return the stored provenance for a facility, or None."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return None
+        return await self._provenance_store().load(str(facility_id))
 
     async def get(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
         """Discover ``okw/`` files and return the most recently modified row matching ``facility_id``.

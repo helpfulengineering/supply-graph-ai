@@ -35,6 +35,7 @@ from ..models.capability import (
     is_known_verb,
 )
 from ..models.identity import Identity, IdentityKind, IdentityLink
+from ..models.provenance import RecordProvenance, sign_provenance
 from ..services.storage_service import StorageService
 from ..storage.account_storage import AccountStorage
 from ..storage.auth_storage import AuthStorage
@@ -461,6 +462,27 @@ class AuthenticationService:
                 json.loads(path.read_text(encoding="utf-8"))
             )
         return self._node_signing
+
+    def sign_provenance_if_possible(
+        self, provenance: RecordProvenance
+    ) -> RecordProvenance:
+        """Sign a provenance claim if this node holds the relevant author/space key.
+
+        Best-effort content trust: the signer is the publisher, then the space,
+        then the first authoring DID. If no key is held (e.g. a non-DID author or
+        a remote subject), the provenance is returned unsigned — an unverified but
+        still-federated claim.
+        """
+        signer = provenance.published_by or provenance.on_behalf_of
+        if not signer:
+            signer = next(
+                (c.subject_did for c in provenance.authored_by if c.subject_did), None
+            )
+        if signer:
+            key = self._signing_key_for(signer)
+            if key:
+                sign_provenance(provenance, key.private_key, signer)
+        return provenance
 
     def local_node_scope(self) -> Optional[Scope]:
         """The node-scoped :class:`Scope` writes are authorized against, if any.

@@ -45,8 +45,9 @@ from ..decorators import (
     paginated_response,
     track_performance,
 )
-from ..dependencies import created_by, require_write
+from ..dependencies import created_by, require_write, resolve_provenance
 from ...models.auth import AuthenticatedUser
+from ...models.provenance import RecordProvenance
 from ..error_handlers import create_error_response
 from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
@@ -230,11 +231,20 @@ async def export_collection_endpoint(
 )
 async def create_okh_manifest(
     data: Dict[str, Any] = Body(...),
+    author: Optional[str] = Query(
+        None, description="Author DID or claimable external id (defaults to caller)"
+    ),
+    on_behalf_of: Optional[str] = Query(
+        None, description="Space DID this manifest is published on behalf of"
+    ),
     okh_service: OKHService = Depends(get_okh_service),
     user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     try:
-        manifest = await okh_service.create(data, created_by=created_by(user))
+        provenance = await resolve_provenance(user, author, on_behalf_of)
+        manifest = await okh_service.create(
+            data, created_by=created_by(user), provenance=provenance
+        )
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     return OKHResponse.model_validate(
@@ -244,6 +254,25 @@ async def create_okh_manifest(
             "message": "OKH manifest created successfully",
         }
     )
+
+
+@router.get(
+    "/{id}/provenance",
+    response_model=RecordProvenance,
+    summary="Get OKH manifest provenance",
+    description="Return the authorship/publication provenance recorded for a manifest.",
+)
+async def get_okh_provenance(
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    provenance = await okh_service.get_provenance(id)
+    if provenance is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No provenance recorded for this manifest",
+        )
+    return provenance
 
 
 @router.delete(
