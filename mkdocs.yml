@@ -58,6 +58,7 @@ nav:
     - Storage: architecture/storage.md
     - Generation: architecture/generation.md
     - Services: architecture/services.md
+    - Security Modes: architecture/security-modes.md
     - Process Taxonomy: architecture/process-taxonomy-adr.md
     - Diagrams: 
       - System Diagram: architecture/system-diagram.md

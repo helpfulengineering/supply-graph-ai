@@ -44,6 +44,7 @@ from .settings import (
     LOG_LEVEL,
     STORAGE_CONFIG,
 )
+from .security_policy import SecurityMode, SecurityPolicy, get_security_policy
 from .storage_config import StorageConfigError, get_default_storage_config
 from .validation import validate_configuration
 
@@ -87,6 +88,10 @@ __all__ = [
     # Storage configuration
     "get_default_storage_config",
     "StorageConfigError",
+    # Security posture
+    "SecurityMode",
+    "SecurityPolicy",
+    "get_security_policy",
     # Validation
     "validate_configuration",
 ]
