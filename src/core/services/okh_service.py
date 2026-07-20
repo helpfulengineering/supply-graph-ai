@@ -15,6 +15,7 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
+from ..models.provenance import RecordProvenance, apply_ohm_metadata
 from ..storage.smart_discovery import (
     FileInfo,
     SmartFileDiscovery,
@@ -88,7 +89,10 @@ class OKHService(BaseService["OKHService"]):
         self.logger.info("OKH service initialized successfully")
 
     async def create(
-        self, manifest_data: Dict[str, Any], created_by: Optional[str] = None
+        self,
+        manifest_data: Dict[str, Any],
+        created_by: Optional[str] = None,
+        provenance: Optional[RecordProvenance] = None,
     ) -> OKHManifest:
         """Persist a new manifest under ``okh/`` when storage is available.
 
@@ -96,6 +100,8 @@ class OKHService(BaseService["OKHService"]):
             manifest_data: Raw dict or pass-through if already an ``OKHManifest``.
             created_by: Optional account id to attribute the record to; persisted
                 alongside the manifest JSON (see federated-identity Slice 1).
+            provenance: Optional record-level authorship/publication provenance
+                (federated-identity Slice 3), stamped under ``ohm_provenance``.
 
         Returns:
             The created ``OKHManifest`` instance (with generated id if applicable).
@@ -119,11 +125,12 @@ class OKHService(BaseService["OKHService"]):
                 safe_title = safe_title.replace(" ", "-").lower()
                 filename = f"okh/{safe_title}-{str(manifest.id)[:8]}-okh.json"
 
-                payload = manifest.to_dict()
-                if created_by:
-                    # Namespaced (``ohm_*``) so OHM-internal attribution never
-                    # collides with an OKH/OKW schema field of the same name.
-                    payload["ohm_created_by"] = created_by
+                # OHM-namespaced metadata is carried through explicitly because
+                # to_dict() is a whitelist that drops ohm_* keys — this is what
+                # lets attribution/provenance survive a federation ingest round-trip.
+                payload = apply_ohm_metadata(
+                    manifest.to_dict(), manifest_data, created_by, provenance
+                )
                 manifest_json = json.dumps(
                     payload, indent=2, ensure_ascii=False, default=str
                 )

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from ..domains.cooking.models import KitchenCapability
 from ..models.okw import FacilityStatus, Location, ManufacturingFacility
+from ..models.provenance import RecordProvenance, apply_ohm_metadata
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..taxonomy import taxonomy
 from ..utils.logging import get_logger
@@ -306,7 +307,10 @@ class OKWService(BaseService["OKWService"]):
         self.logger.info("OKW service initialized successfully")
 
     async def create(
-        self, facility_data: Dict[str, Any], created_by: Optional[str] = None
+        self,
+        facility_data: Dict[str, Any],
+        created_by: Optional[str] = None,
+        provenance: Optional[RecordProvenance] = None,
     ) -> ManufacturingFacility:
         """Persist a facility JSON at ``okw/{facility_id}.json`` when storage is configured.
 
@@ -314,6 +318,8 @@ class OKWService(BaseService["OKWService"]):
             facility_data: Raw dict or an existing ``ManufacturingFacility`` instance.
             created_by: Optional account id to attribute the record to; persisted
                 alongside the facility JSON (see federated-identity Slice 1).
+            provenance: Optional record-level authorship/publication provenance
+                (federated-identity Slice 3), stamped under ``ohm_provenance``.
 
         Returns:
             The created ``ManufacturingFacility``.
@@ -335,11 +341,12 @@ class OKWService(BaseService["OKWService"]):
             if self.storage and self.storage.manager:
                 filename = f"okw/{str(facility.id)}.json"
 
-                payload = facility.to_dict()
-                if created_by:
-                    # Namespaced to avoid colliding with the OKW schema's own
-                    # ``created_by`` (an Agent). This is OHM-internal attribution.
-                    payload["ohm_created_by"] = created_by
+                # OHM-namespaced metadata is carried through explicitly because
+                # to_dict() is a whitelist that drops ohm_* keys — this is what
+                # lets attribution/provenance survive a federation ingest round-trip.
+                payload = apply_ohm_metadata(
+                    facility.to_dict(), facility_data, created_by, provenance
+                )
                 facility_json = json.dumps(
                     payload, indent=2, ensure_ascii=False, default=str
                 )
