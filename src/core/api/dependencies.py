@@ -111,7 +111,10 @@ def require_permission(permission: str):
 
         user = await get_current_user(auth_header)
         auth_service = await AuthenticationService.get_instance()
-        if not await auth_service.check_permission(user, [permission]):
+        # Consult capability grants on the local node scope so a DID-backed user
+        # can be authorized by a signed grant, not only by flat key permissions.
+        scope = auth_service.local_node_scope()
+        if not await auth_service.check_permission(user, [permission], scope=scope):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"This operation requires the '{permission}' permission",

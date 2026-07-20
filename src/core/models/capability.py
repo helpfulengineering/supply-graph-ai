@@ -64,7 +64,6 @@ class CapabilityGrant(BaseModel):
     issued_at: datetime = Field(default_factory=datetime.utcnow)
     not_before: Optional[datetime] = None
     expires_at: datetime
-    delegated_from: Optional[UUID] = None  # single-hop for now; chains in Slice 5
     signature: str = ""  # hex; issuer signs signing_payload()
 
     @field_validator("coarse_floor")
@@ -94,7 +93,19 @@ class CapabilityGrant(BaseModel):
             "issued_at": self.issued_at.isoformat(),
             "not_before": self.not_before.isoformat() if self.not_before else None,
             "expires_at": self.expires_at.isoformat(),
-            "delegated_from": (
-                str(self.delegated_from) if self.delegated_from else None
-            ),
         }
+
+
+class GrantIssue(BaseModel):
+    """Request payload for issuing a capability grant.
+
+    ``issuer_did`` defaults to the local node identity when omitted; the node must
+    hold the issuer's signing key.
+    """
+
+    subject_did: str
+    permissions: List[str]
+    scope: Scope
+    issuer_did: Optional[str] = None
+    ttl_days: Optional[int] = None
+    coarse_floor: Optional[List[str]] = None

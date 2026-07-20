@@ -14,7 +14,23 @@ def test_identity_group_exposes_subcommands():
     runner = CliRunner()
     result = runner.invoke(identity_group, ["--help"])
     assert result.exit_code == 0
-    for cmd in ("whoami", "keys", "accounts"):
+    for cmd in ("whoami", "keys", "accounts", "identities", "grants"):
+        assert cmd in result.output
+
+
+def test_identities_subgroup_commands():
+    runner = CliRunner()
+    result = runner.invoke(identity_group, ["identities", "--help"])
+    assert result.exit_code == 0
+    for cmd in ("create", "show", "rotate"):
+        assert cmd in result.output
+
+
+def test_grants_subgroup_commands():
+    runner = CliRunner()
+    result = runner.invoke(identity_group, ["grants", "--help"])
+    assert result.exit_code == 0
+    for cmd in ("issue", "list", "revoke"):
         assert cmd in result.output
 
 

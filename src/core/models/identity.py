@@ -9,6 +9,7 @@ space, or node. Rotation and custodial handoff are recorded as signed
 from datetime import datetime
 from enum import Enum
 from typing import List, Literal, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -54,3 +55,11 @@ class Identity(BaseModel):
     # Prior DIDs this identity supersedes/absorbs (walked for reputation).
     links_in: List[IdentityLink] = Field(default_factory=list)
     custodial: bool = False
+
+
+class IdentityMint(BaseModel):
+    """Request payload for minting an identity bound to an account."""
+
+    account_id: UUID
+    kind: IdentityKind = IdentityKind.PERSON
+    display_name: str = ""

@@ -94,6 +94,25 @@ The matching endpoints are `POST /v1/api/identity/accounts`,
 Account and key management require the `admin` permission when the security policy
 enforces write auth (see below). Set `OHM_API_KEY` for the CLI to send an admin key.
 
+## Identities and capability grants
+
+Beyond API keys, OHM supports **self-sovereign identities** (Ed25519 `did:key`)
+and **capability grants** — signed, offline-verifiable permissions. A key's flat
+permissions act as an implicit grant, so this layer is additive: grants can only
+*add* capability to a DID-backed account, never remove it. Mint identities and
+issue grants through the same identity surface:
+
+```bash
+ohm identity identities create --account-id <uuid> --name "Ada"
+ohm identity grants issue --subject-did did:key:z... --permission write \
+    --scope-kind node --scope-target did:key:z<node>
+```
+
+Endpoints live under `POST/GET /v1/api/identity/identities…` and
+`POST/GET/DELETE /v1/api/identity/grants`. See the
+[Identity Model](../architecture/identity-model.md) for the full trust and
+resolution rules.
+
 ## Write Enforcement
 
 Whether authentication is required for dataset-mutating requests (OKH/OKW

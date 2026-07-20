@@ -88,3 +88,79 @@ async def test_create_account(monkeypatch):
         assert resp.json()["display_name"] == "MIT FabLab"
     finally:
         api_v1.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_mint_identity(monkeypatch):
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.models.identity import Identity, IdentityKind
+
+    account_id = uuid4()
+    identity = Identity(
+        did="did:key:zMinted",
+        kind=IdentityKind.PERSON,
+        display_name="Ada",
+        account_id=str(account_id),
+    )
+    svc = MagicMock()
+    svc.create_identity = AsyncMock(return_value=identity)
+
+    app, api_v1 = _get_app()
+    api_v1.dependency_overrides[get_auth_service] = lambda: svc
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post(
+                "/v1/api/identity/identities",
+                json={"account_id": str(account_id), "display_name": "Ada"},
+            )
+        assert resp.status_code == 201, resp.text
+        assert resp.json()["did"] == "did:key:zMinted"
+    finally:
+        api_v1.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_issue_grant(monkeypatch):
+    monkeypatch.setattr("src.config.settings.ENVIRONMENT", "development")
+    from datetime import timedelta
+
+    from src.core.api.routes.identity import get_auth_service
+    from src.core.models.capability import CapabilityGrant, Scope
+
+    grant = CapabilityGrant(
+        issuer_did="did:key:zNode",
+        subject_did="did:key:zSubject",
+        permissions=["write"],
+        coarse_floor=["read"],
+        scope=Scope(kind="node", target="did:key:zNode"),
+        expires_at=datetime.utcnow() + timedelta(days=90),
+    )
+    svc = MagicMock()
+    svc.issue_grant = AsyncMock(return_value=grant)
+
+    app, api_v1 = _get_app()
+    api_v1.dependency_overrides[get_auth_service] = lambda: svc
+    try:
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post(
+                "/v1/api/identity/grants",
+                json={
+                    "issuer_did": "did:key:zNode",
+                    "subject_did": "did:key:zSubject",
+                    "permissions": ["write"],
+                    "scope": {"kind": "node", "target": "did:key:zNode"},
+                },
+            )
+        assert resp.status_code == 201, resp.text
+        assert resp.json()["subject_did"] == "did:key:zSubject"
+    finally:
+        api_v1.dependency_overrides.clear()

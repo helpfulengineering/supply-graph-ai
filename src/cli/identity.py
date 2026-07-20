@@ -322,3 +322,254 @@ async def accounts_disable(
         click.echo(format_llm_output(result, cli_ctx))
         return
     cli_ctx.log(f"Disabled account {account_id}", "success")
+
+
+@identity_group.group(name="identities")
+def identities_group() -> None:
+    """Mint, show, and rotate self-sovereign identities (did:key)."""
+    pass
+
+
+@identities_group.command(name="create")
+@standard_cli_command(help_text="Mint an identity for an account.", async_cmd=True)
+@click.option("--account-id", required=True, help="Owning account id")
+@click.option(
+    "--kind", type=click.Choice(["person", "space"]), default="person", help="Kind"
+)
+@click.option("--name", "display_name", default="", help="Display name")
+@click.pass_context
+async def identities_create(
+    ctx: click.Context,
+    account_id: str,
+    kind: str,
+    display_name: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Mint an Ed25519 did:key bound to an account."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    payload = {"account_id": account_id, "kind": kind, "display_name": display_name}
+    try:
+        result = await _request(cli_ctx, "POST", "/identities", json=payload)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Minted identity {result.get('did')}", "success")
+
+
+@identities_group.command(name="show")
+@standard_cli_command(help_text="Show an identity by DID.", async_cmd=True)
+@click.argument("did")
+@click.pass_context
+async def identities_show(
+    ctx: click.Context,
+    did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Show a held identity record."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", f"/identities/{did}")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"DID: {result.get('did')}", "info")
+    cli_ctx.log(
+        f"Kind: {result.get('kind')}  Account: {result.get('account_id')}", "info"
+    )
+    cli_ctx.log(f"Links: {len(result.get('links_in', []))}", "success")
+
+
+@identities_group.command(name="rotate")
+@standard_cli_command(help_text="Rotate an identity's key.", async_cmd=True)
+@click.argument("did")
+@click.pass_context
+async def identities_rotate(
+    ctx: click.Context,
+    did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Rotate to a fresh keypair, linking old -> new."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "POST", f"/identities/{did}/rotate")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Rotated {did} -> {result.get('did')}", "success")
+
+
+@identity_group.group(name="grants")
+def grants_group() -> None:
+    """Issue, list, and revoke capability grants."""
+    pass
+
+
+@grants_group.command(name="issue")
+@standard_cli_command(help_text="Issue a capability grant.", async_cmd=True)
+@click.option("--subject-did", required=True, help="DID the grant is for")
+@click.option(
+    "--permission",
+    "permissions",
+    multiple=True,
+    default=("read",),
+    help="Permission to grant (repeatable)",
+)
+@click.option("--scope-kind", default="node", help="Scope kind: node|space|pool|record")
+@click.option("--scope-target", required=True, help="Scope target (DID / pool / hash)")
+@click.option("--issuer-did", default=None, help="Issuer DID (defaults to node)")
+@click.option("--ttl-days", type=int, default=None, help="Lifetime in days")
+@click.option(
+    "--floor",
+    "coarse_floor",
+    multiple=True,
+    help="Coarse floor permission (repeatable): read|write|admin|domain:x",
+)
+@click.pass_context
+async def grants_issue(
+    ctx: click.Context,
+    subject_did: str,
+    permissions: tuple,
+    scope_kind: str,
+    scope_target: str,
+    issuer_did: Optional[str],
+    ttl_days: Optional[int],
+    coarse_floor: tuple,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Issue a signed capability grant."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    payload: dict = {
+        "subject_did": subject_did,
+        "permissions": list(permissions),
+        "scope": {"kind": scope_kind, "target": scope_target},
+    }
+    if issuer_did:
+        payload["issuer_did"] = issuer_did
+    if ttl_days is not None:
+        payload["ttl_days"] = ttl_days
+    if coarse_floor:
+        payload["coarse_floor"] = list(coarse_floor)
+    try:
+        result = await _request(cli_ctx, "POST", "/grants", json=payload)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Issued grant {result.get('grant_id')}", "success")
+    cli_ctx.log(f"  expires: {result.get('expires_at')}", "info")
+
+
+@grants_group.command(name="list")
+@standard_cli_command(help_text="List grants for a subject DID.", async_cmd=True)
+@click.option("--subject-did", required=True, help="Subject DID to list grants for")
+@click.pass_context
+async def grants_list(
+    ctx: click.Context,
+    subject_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List capability grants held for a subject."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", f"/grants?subject_did={subject_did}")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Grants ({len(result)})", "success")
+    for grant in result:
+        scope = grant.get("scope", {})
+        perms = ", ".join(grant.get("permissions", []))
+        click.echo(
+            f"  {grant.get('grant_id')}  {scope.get('kind')}:{scope.get('target')}"
+            f"  [{perms}]  exp {grant.get('expires_at')}"
+        )
+
+
+@grants_group.command(name="revoke")
+@standard_cli_command(help_text="Revoke a grant by id.", async_cmd=True)
+@click.argument("grant_id")
+@click.pass_context
+async def grants_revoke(
+    ctx: click.Context,
+    grant_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Revoke a capability grant."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "DELETE", f"/grants/{grant_id}")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Revoked grant {grant_id}", "success")

@@ -194,11 +194,13 @@ class AuthenticationService:
                             self._cache[key.key_id] = (key, datetime.utcnow())
 
                             logger.info(f"Successfully authenticated key: {key.key_id}")
+                            account_id = self._account_id_from_key(key)
                             return AuthenticatedUser(
                                 key_id=key.key_id,
                                 name=key.name,
                                 permissions=key.permissions,
-                                account_id=self._account_id_from_key(key),
+                                account_id=account_id,
+                                subject_did=self._subject_did_for(account_id),
                             )
                 except HTTPException:
                     raise
@@ -221,8 +223,17 @@ class AuthenticationService:
         except (ValueError, TypeError):
             return ROOT_ACCOUNT_ID
 
+    def _subject_did_for(self, account_id: UUID) -> Optional[str]:
+        """The primary DID bound to ``account_id``, if this node holds one."""
+        if self._identity_store:
+            return self._identity_store.find_primary_did(str(account_id))
+        return None
+
     async def check_permission(
-        self, user: AuthenticatedUser, required_permissions: List[str]
+        self,
+        user: AuthenticatedUser,
+        required_permissions: List[str],
+        scope: Optional[Scope] = None,
     ) -> bool:
         """
         Check if user has required permissions.
@@ -230,6 +241,10 @@ class AuthenticationService:
         Args:
             user: Authenticated user
             required_permissions: List of required permissions
+            scope: When provided and the user has a subject DID, capability grants
+                resolved for that DID on ``scope`` are unioned with the key's own
+                (implicit-grant) permissions. Omitting ``scope`` preserves the
+                legacy flat-key behavior exactly.
 
         Returns:
             True if user has all required permissions
@@ -238,6 +253,8 @@ class AuthenticationService:
             return True
 
         user_permissions = set(user.permissions)
+        if scope is not None and user.subject_did:
+            user_permissions |= await self.resolve_capabilities(user.subject_did, scope)
 
         # Admin has all permissions
         if "admin" in user_permissions:
@@ -444,6 +461,16 @@ class AuthenticationService:
                 json.loads(path.read_text(encoding="utf-8"))
             )
         return self._node_signing
+
+    def local_node_scope(self) -> Optional[Scope]:
+        """The node-scoped :class:`Scope` writes are authorized against, if any.
+
+        ``None`` when this node has no federation identity yet — in which case
+        grant-based authorization is simply unavailable and only flat-key
+        permissions apply.
+        """
+        node = self._node_signing_identity()
+        return Scope(kind="node", target=node.did) if node else None
 
     def _signing_key_for(self, did: str) -> Optional[NodeIdentity]:
         """Return a held signing key for ``did`` (node identity or local identity)."""

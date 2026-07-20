@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 
 from src.core.federation.identity import generate_identity, sign_payload
+from src.core.models.auth import AuthenticatedUser
 from src.core.models.capability import CapabilityGrant, Scope
 from src.core.models.identity import IdentityKind
 from src.core.services.auth_service import AuthenticationService
@@ -112,6 +113,27 @@ async def test_expired_grant_is_ignored(service):
 
 
 @pytest.mark.asyncio
+async def test_not_yet_active_grant_is_ignored(service):
+    subject = await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
+    future = CapabilityGrant(
+        issuer_did=service._node_signing.did,
+        subject_did=subject.did,
+        permissions=["write"],
+        coarse_floor=["read"],
+        scope=_node_scope(service),
+        not_before=datetime.utcnow() + timedelta(days=1),
+        expires_at=datetime.utcnow() + timedelta(days=90),
+    )
+    future.signature = sign_payload(
+        service._node_signing.private_key, future.signing_payload()
+    )
+    await service._grant_store.save_grant(future)
+    assert (
+        await service.resolve_capabilities(subject.did, _node_scope(service)) == set()
+    )
+
+
+@pytest.mark.asyncio
 async def test_untrusted_issuer_contributes_nothing(service):
     subject = await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
     stranger = generate_identity("stranger")
@@ -175,6 +197,37 @@ async def test_revoke_grant_removes_capability(service):
     assert (
         await service.resolve_capabilities(subject.did, _node_scope(service)) == set()
     )
+
+
+@pytest.mark.asyncio
+async def test_check_permission_grant_confers_write(service):
+    # A key that carries only "read" is elevated to "write" by a signed grant on
+    # the node scope — the backward-compatible authz wiring.
+    subject = await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
+    await service.issue_grant(
+        issuer_did=service._node_signing.did,
+        subject_did=subject.did,
+        permissions=["write"],
+        scope=_node_scope(service),
+    )
+    user = AuthenticatedUser(
+        key_id=uuid4(),
+        name="ada-key",
+        permissions=["read"],
+        subject_did=subject.did,
+    )
+    assert await service.check_permission(user, ["write"], scope=_node_scope(service))
+    # Without a scope, only flat key permissions count (legacy behavior preserved).
+    assert not await service.check_permission(user, ["write"])
+
+
+@pytest.mark.asyncio
+async def test_check_permission_legacy_flat_key_unaffected(service):
+    # No subject DID, no grants: a flat key with "write" still works, scope or not.
+    user = AuthenticatedUser(key_id=uuid4(), name="legacy", permissions=["write"])
+    assert await service.check_permission(user, ["write"], scope=_node_scope(service))
+    assert await service.check_permission(user, ["write"])
+    assert not await service.check_permission(user, ["admin"])
 
 
 @pytest.mark.asyncio

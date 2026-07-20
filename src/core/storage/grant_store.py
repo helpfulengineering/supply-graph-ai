@@ -70,9 +70,10 @@ class GrantStore:
         prefix = f"{self._prefix}/"
         try:
             async for obj in self.storage_service.manager.list_objects(prefix=prefix):
-                data = obj.get("data") or await self.storage_service.manager.get_object(
-                    obj["key"]
-                )
+                if "data" in obj:
+                    data = obj["data"]
+                else:
+                    data = await self.storage_service.manager.get_object(obj["key"])
                 try:
                     grant = self._deserialize(json.loads(data.decode("utf-8")))
                     index.setdefault(grant.subject_did, []).append(grant)
@@ -113,8 +114,5 @@ class GrantStore:
                 else None
             ),
             expires_at=datetime.fromisoformat(data["expires_at"]),
-            delegated_from=(
-                UUID(data["delegated_from"]) if data.get("delegated_from") else None
-            ),
             signature=data.get("signature", ""),
         )
