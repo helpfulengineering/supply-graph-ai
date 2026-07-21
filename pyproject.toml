@@ -137,7 +137,11 @@ override-dependencies = [
     "tornado>=6.5.7",
     "urllib3>=2.7.0",
     "idna>=3.15",
-    "gitpython>=3.1.50",
+    # Security pins (pip-audit / OSV) — bump when CI security gate fails.
+    "gitpython>=3.1.51",
+    "pillow>=12.3.0",
+    "pyasn1>=0.6.4",
+    "setuptools>=83.0.0",
 ]
 
 [tool.black]

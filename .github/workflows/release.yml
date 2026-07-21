@@ -87,7 +87,9 @@ jobs:
             --maxfail=1
 
       - name: Dependency vulnerability scan
-        run: uv run pip-audit
+        # Match CI: skip the local editable package (not on PyPI). spaCy model
+        # en-core-web-md is also non-PyPI and is reported as skipped (informational).
+        run: uv run pip-audit --skip-editable
 
   docker-smoke:
     name: Docker build and smoke test
