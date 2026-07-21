@@ -160,3 +160,80 @@ export async function validateOkh(
   }
   return data as ValidationResult;
 }
+
+export type RecordProvenance = components["schemas"]["RecordProvenance"];
+export type VisibilityLevel = components["schemas"]["VisibilityLevel"];
+export type VisibilityResponse = components["schemas"]["VisibilityResponse"];
+
+export interface CreateProvenanceOpts {
+  author?: string;
+  onBehalfOf?: string;
+}
+
+/** Create and store an OKH manifest from JSON (requires write). */
+export async function createOkh(
+  content: Record<string, unknown>,
+  opts: CreateProvenanceOpts = {},
+): Promise<{ id: string }> {
+  const { data, error, response } = await apiClient.POST("/api/okh/create", {
+    params: {
+      query: { author: opts.author, on_behalf_of: opts.onBehalfOf },
+    },
+    body: { content },
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to create design (HTTP ${response.status})`),
+    );
+  }
+  const id = data.okh?.id;
+  if (!id) {
+    throw new ApiError(response.status, "Create succeeded but response had no id");
+  }
+  return { id: String(id) };
+}
+
+export async function getOkhProvenance(id: string): Promise<RecordProvenance | null> {
+  const { data, error, response } = await apiClient.GET("/api/okh/{id}/provenance", {
+    params: { path: { id } },
+  });
+  if (response.status === 404) return null;
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load provenance (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}
+
+export async function getOkhVisibility(id: string): Promise<VisibilityResponse> {
+  const { data, error, response } = await apiClient.GET("/api/okh/{id}/visibility", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load visibility (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}
+
+export async function setOkhVisibility(
+  id: string,
+  visibility: VisibilityLevel,
+): Promise<VisibilityResponse> {
+  const { data, error, response } = await apiClient.PUT("/api/okh/{id}/visibility", {
+    params: { path: { id } },
+    body: { visibility },
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to set visibility (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}

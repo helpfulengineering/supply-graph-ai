@@ -1,6 +1,6 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..base import BaseAPIRequest, LLMRequestMixin
 
@@ -66,6 +66,48 @@ class PackagePullRequest(BaseModel):
                 "package_name": "example/test-package",
                 "version": "1.0.0",
                 "output_dir": "/path/to/output",
+            }
+        }
+    )
+
+
+class PackageZipItem(BaseModel):
+    """One package identity for a batch zip download."""
+
+    org: str = Field(..., min_length=1, description="Organization slug")
+    project: str = Field(..., min_length=1, description="Project slug")
+    version: str = Field(..., min_length=1, description="Package version")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {"org": "community", "project": "widget", "version": "1.0.0"}
+        }
+    )
+
+
+class PackageDownloadZipRequest(BaseModel):
+    """Request body for POST /api/package/download-zip."""
+
+    items: List[PackageZipItem] = Field(
+        ...,
+        min_length=1,
+        description="Packages to include as .tar.gz entries in the zip",
+    )
+
+    @field_validator("items")
+    @classmethod
+    def _require_items(cls, items: List[PackageZipItem]) -> List[PackageZipItem]:
+        if not items:
+            raise ValueError("items must not be empty")
+        return items
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "items": [
+                    {"org": "community", "project": "widget", "version": "1.0.0"},
+                    {"org": "acme", "project": "bracket", "version": "2.1.0"},
+                ]
             }
         }
     )

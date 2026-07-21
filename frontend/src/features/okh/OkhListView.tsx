@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useOkhCatalog } from "./useOkhList";
 import { OkhCard } from "./OkhCard";
 import { OkhListRow } from "./OkhListRow";
@@ -6,6 +7,7 @@ import { FacetPanel } from "./FacetPanel";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Pagination } from "../../components/ui/Pagination";
+import { useAuth } from "../../context/AuthContext";
 import type { CatalogGroupBy, CatalogSort, CatalogView } from "./catalogBrowse";
 import type { OkhManifest } from "../../types/okh";
 
@@ -136,14 +138,28 @@ export function OkhListView() {
   );
 
   const hasItems = pageGroups.some((g) => g.items.length > 0);
+  const { hasWrite } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Open Hardware Designs</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Browse designs by category and capability, then run facility matching.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Open Hardware Designs</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Browse designs by category and capability, then run facility matching.
+          </p>
+        </div>
+        <Button
+          title={
+            hasWrite
+              ? undefined
+              : "Connect a write-capable API key first (opens Session)"
+          }
+          onClick={() => navigate(hasWrite ? "/okh/new" : "/settings/session")}
+        >
+          New design
+        </Button>
       </div>
 
       <div className="flex gap-8">

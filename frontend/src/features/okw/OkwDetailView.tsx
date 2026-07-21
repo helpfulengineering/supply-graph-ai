@@ -8,6 +8,8 @@ import { Badge } from "../../components/ui/Badge";
 import type { OkwFacility } from "../../types/okw";
 import { humanizeProcess } from "./processDisplay";
 import { FacilityDesigns } from "./FacilityDesigns";
+import { AuthorshipPanel } from "../okh/AuthorshipPanel";
+import { VisibilityControl } from "../okh/VisibilityControl";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -138,6 +140,11 @@ export function OkwDetailView({ id }: { id: string }) {
         <ErrorState description={validateError ?? "Validation failed."} onRetry={handleValidate} />
       )}
       {validateState === "done" && result && <ValidationPanel result={result} />}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AuthorshipPanel kind="okw" id={id} />
+        <VisibilityControl kind="okw" id={id} />
+      </div>
 
       {f.description && (
         <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">

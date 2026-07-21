@@ -257,6 +257,300 @@ export const vizBundleFixture = {
   },
 };
 
+export const whoamiAdminFixture = {
+  key_id: "00000000-0000-0000-0000-0000000000aa",
+  name: "Admin key",
+  permissions: ["read", "write", "admin"],
+  account_id: "00000000-0000-0000-0000-000000000001",
+  subject_did: null,
+};
+
+export const securityPolicyFixture = {
+  mode: "peacetime",
+  require_auth_for_writes: false,
+  custodial_keys_allowed: true,
+  grant_ttl_days: 90,
+  recovery: "reissuance",
+  trust_bootstrap: "tofu_registry",
+  mdns_advertise: true,
+  metadata_logging: "full",
+  registry_attestations: "trust_on_follow",
+  anonymous_submission_allowed: true,
+};
+
+export const apiKeysFixture = [
+  {
+    key_id: "00000000-0000-0000-0000-0000000000aa",
+    name: "Admin key",
+    description: null,
+    permissions: ["read", "write", "admin"],
+    created_at: "2026-01-01T00:00:00Z",
+    last_used_at: null,
+    expires_at: null,
+    revoked: false,
+    token: null,
+  },
+];
+
+export const accountsFixture = [
+  {
+    id: "00000000-0000-0000-0000-000000000001",
+    display_name: "Local admin",
+    kind: "person",
+    created_at: "2026-01-01T00:00:00Z",
+    disabled: false,
+  },
+];
+
+export const identityFixture = {
+  did: "did:key:z6MktestPerson0000000000000000000000001",
+  kind: "person",
+  display_name: "Local admin",
+  created_at: "2026-01-01T00:00:00Z",
+  account_id: "00000000-0000-0000-0000-000000000001",
+  links_in: [],
+  custodial: true,
+};
+
+export const spaceIdentityFixture = {
+  did: "did:key:z6MktestSpace00000000000000000000000001",
+  kind: "space",
+  display_name: "Test Space",
+  created_at: "2026-01-01T00:00:00Z",
+  account_id: "00000000-0000-0000-0000-000000000001",
+  links_in: [],
+  custodial: true,
+};
+
+export const grantsFixture = [
+  {
+    grant_id: "00000000-0000-0000-0000-0000000000g1",
+    issuer_did: "did:key:z6MktestNode000000000000000000000000001",
+    subject_did: identityFixture.did,
+    permissions: ["write"],
+    coarse_floor: [],
+    scope: { kind: "space", target: spaceIdentityFixture.did, v: 1 },
+    issued_at: "2026-01-01T00:00:00Z",
+    not_before: null,
+    expires_at: "2026-04-01T00:00:00Z",
+  },
+];
+
+export const spaceClaimsFixture = [
+  {
+    space_did: spaceIdentityFixture.did,
+    admin_did: identityFixture.did,
+    claimed_at: "2026-01-01T00:00:00Z",
+    claim_method: "tofu",
+    signature: "ab",
+  },
+];
+
+export const attestationsFixture = [
+  {
+    attestation_id: "00000000-0000-0000-0000-0000000000a1",
+    type: "certified",
+    issuer_did: "did:key:z6MktestNode000000000000000000000000001",
+    subject_did: identityFixture.did,
+    content_hash: "sha256:bundlehash0000000000000000000000000001",
+    claim: { version: "1.0.0" },
+    created_at: "2026-01-01T00:00:00Z",
+    expires_at: null,
+    signature: "cd",
+  },
+  {
+    attestation_id: "00000000-0000-0000-0000-0000000000a2",
+    type: "domain_bound",
+    issuer_did: "did:key:z6MktestNode000000000000000000000000001",
+    subject_did: identityFixture.did,
+    content_hash: null,
+    claim: { domain: "example.org" },
+    created_at: "2026-01-02T00:00:00Z",
+    expires_at: null,
+    signature: "ef",
+  },
+  {
+    attestation_id: "00000000-0000-0000-0000-0000000000a3",
+    type: "vouch",
+    issuer_did: spaceIdentityFixture.did,
+    subject_did: identityFixture.did,
+    content_hash: null,
+    claim: {},
+    created_at: "2026-01-03T00:00:00Z",
+    expires_at: null,
+    signature: "gh",
+  },
+];
+
+export const pinRecordFixture = {
+  pinned_at: "2026-01-01T00:00:00Z",
+  pinned_by: "tester",
+  manifest_content_hash: "manifest-hash-leaf",
+  file_hashes: {},
+  note: null,
+};
+
+export const domainBindStartFixture = {
+  binding: {
+    binding_id: "00000000-0000-0000-0000-0000000000b1",
+    subject_did: identityFixture.did,
+    kind: "domain",
+    external_id: "domain:example.org",
+    evidence: { domain: "example.org" },
+    challenge: "test-challenge-token",
+    verified: false,
+    verified_at: null,
+    created_at: "2026-01-01T00:00:00Z",
+    signature: "sig",
+  },
+  well_known_url: "https://example.org/.well-known/ohm-did.json",
+  well_known_document: {
+    did: identityFixture.did,
+    challenge: "test-challenge-token",
+    method: "ohm-domain-bind-v1",
+  },
+};
+
+export const bindingsFixture = [
+  {
+    binding_id: "00000000-0000-0000-0000-0000000000b2",
+    subject_did: identityFixture.did,
+    kind: "oauth",
+    external_id: "oauth:github:octocat",
+    evidence: {},
+    challenge: null,
+    verified: true,
+    verified_at: "2026-01-01T00:00:00Z",
+    created_at: "2026-01-01T00:00:00Z",
+    signature: "sig2",
+  },
+];
+
+export const directoryFixture = [
+  {
+    did: identityFixture.did,
+    display_name: "Local admin",
+    base_url: "https://ohm.example.org",
+    domain: "example.org",
+    verified_bindings: ["domain:example.org"],
+    updated_at: "2026-01-01T00:00:00Z",
+  },
+];
+
+export const federationStatusFixture = {
+  did: "did:key:z6MktestNode000000000000000000000000001",
+  display_name: "Test Node",
+  role: "full",
+  catalog_record_count: 2,
+  merkle_root: "abc123",
+  peer_count: 1,
+  followed_peer_count: 1,
+  sync_interval_sec: 300,
+  mdns_enabled: true,
+  background_sync_running: false,
+  manual_peers: [],
+  metrics: {
+    total_records_pulled: 0,
+    total_records_skipped: 0,
+    total_sync_runs: 0,
+    total_digest_requests_inbound: 0,
+    total_digest_requests_outbound: 0,
+    total_rate_limit_rejections: 0,
+    last_sync_at: null,
+    last_background_sync_at: null,
+    per_peer_pulled: {},
+  },
+};
+
+export const federationPeersFixture = {
+  peers: [
+    {
+      did: "did:key:z6MktestPeer000000000000000000000000001",
+      base_url: "http://peer-b:8001",
+      display_name: "Peer B",
+      source: "manual",
+      followed: true,
+      last_seen_at: "2026-01-01T00:00:00Z",
+      last_sync_at: null,
+      records_synced: 0,
+    },
+  ],
+  total: 1,
+};
+
+export const federationSyncFixture = {
+  results: [
+    {
+      peer_did: "did:key:z6MktestPeer000000000000000000000000001",
+      base_url: "http://peer-b:8001",
+      pulled: 1,
+      skipped: 0,
+      errors: [],
+    },
+  ],
+  total_pulled: 1,
+};
+
+export const provenanceFixture = {
+  authored_by: [{ external_id: "name:Test Author", role: null }],
+  published_by: null,
+  on_behalf_of: null,
+  signed_by: null,
+  signature: "",
+};
+
+export const visibilityFixture = {
+  id: "00000000-0000-0000-0000-000000000001",
+  visibility: "private",
+};
+
+export const packageListFixture = {
+  status: "success",
+  message: "ok",
+  timestamp: "2026-01-01T00:00:00Z",
+  request_id: "test",
+  pagination: {
+    page: 1,
+    page_size: 50,
+    total_items: 2,
+    total_pages: 1,
+    has_next: false,
+    has_previous: false,
+  },
+  items: [
+    {
+      package_name: "demo/widget",
+      version: "1.0.0",
+      okh_manifest_id: "okh-0001",
+      build_timestamp: "2026-01-01T00:00:00Z",
+      total_files: 3,
+      total_size_bytes: 1024,
+      build_options: {},
+      package_path: "/tmp/packages/demo/widget/1.0.0",
+    },
+    {
+      package_name: "demo/widget",
+      version: "1.1.0",
+      okh_manifest_id: "okh-0001",
+      build_timestamp: "2026-02-01T00:00:00Z",
+      total_files: 4,
+      total_size_bytes: 2048,
+      build_options: {},
+      package_path: "/tmp/packages/demo/widget/1.1.0",
+    },
+  ],
+};
+
+export const packageMetadataFixture = {
+  status: "success",
+  message: "ok",
+  timestamp: "2026-01-01T00:00:00Z",
+  request_id: "test",
+  data: {
+    metadata: packageListFixture.items[0],
+  },
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
@@ -265,11 +559,28 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okh": okhListFixture,
   "/v1/api/okh/okh-0001": okhDetailFixture,
   "/v1/api/okh/validate": validationResultFixture,
+  "/v1/api/okh/okh-0001/provenance": provenanceFixture,
+  "/v1/api/okh/okh-0001/visibility": visibilityFixture,
   "/v1/api/okw/search": okwSearchFixture,
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/okw/okw-1/provenance": provenanceFixture,
+  "/v1/api/okw/okw-1/visibility": { ...visibilityFixture, id: "okw-1" },
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
+  "/v1/api/identity/whoami": whoamiAdminFixture,
+  "/v1/api/identity/security-policy": securityPolicyFixture,
+  "/v1/api/identity/keys": apiKeysFixture,
+  "/v1/api/identity/accounts": accountsFixture,
+  "/v1/api/identity/spaces": spaceClaimsFixture,
+  "/v1/api/identity/grants": grantsFixture,
+  "/v1/api/identity/attestations": attestationsFixture,
+  "/v1/api/identity/bindings": bindingsFixture,
+  "/v1/api/identity/directory": directoryFixture,
+  "/v1/api/federation/status": federationStatusFixture,
+  "/v1/api/federation/peers": federationPeersFixture,
+  "/v1/api/package/list": packageListFixture,
+  "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };

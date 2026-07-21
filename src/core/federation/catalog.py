@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING, Any
 
+from ..models.visibility import is_shareable
 from .identity import NodeIdentity, canonical_json_bytes
 from .merkle import merkle_root
 from .models import CatalogRecord, SignedManifestRecord, utc_now
@@ -62,14 +63,31 @@ async def build_catalog_index(
     *,
     page_size: int = 10_000,
 ) -> CatalogIndex:
-    """List OKH manifests from storage and build signed catalog entries."""
-    manifests, total = await okh_service.list(page=1, page_size=page_size)
+    """List OKH manifests from storage and build signed catalog entries.
+
+    Only records with shareable visibility (``followers`` / ``public``) are
+    included — ``private`` (the create default) never leaves the node.
+    """
+    manifests, _total = await okh_service.list(page=1, page_size=page_size)
     records: list[CatalogRecord] = []
     signed_by_hash: dict[str, SignedManifestRecord] = {}
 
     for manifest in manifests:
+        visibility = await okh_service.get_visibility(manifest.id)
+        if not is_shareable(visibility):
+            continue
+
         manifest_dict = manifest.to_dict()
         content_hash = manifest_content_hash(manifest_dict)
+        # Provenance rides the catalog record (its own plane), so it is signed by
+        # the node in transit but stays out of the design content hash.
+        provenance = await okh_service.get_provenance(manifest.id)
+        # Attestations ride the catalog record the same way provenance does —
+        # out of the design content hash, inside the node-signed payload.
+        from ..services.auth_service import AuthenticationService
+
+        auth = await AuthenticationService.get_instance()
+        attestations = await auth.list_attestations_for_catalog(content_hash)
         record = CatalogRecord(
             manifest_id=manifest.id,
             content_hash=content_hash,
@@ -77,6 +95,8 @@ async def build_catalog_index(
             version=manifest.version,
             updated_at=_manifest_updated_at(manifest_dict),
             publisher_did=identity.did,
+            provenance=provenance,
+            attestations=attestations or None,
             signature="",
         )
         signed_record = _sign_catalog_record(identity, record)
@@ -94,5 +114,5 @@ async def build_catalog_index(
         records=records,
         signed_by_hash=signed_by_hash,
         merkle_root=root,
-        record_count=total,
+        record_count=len(records),
     )

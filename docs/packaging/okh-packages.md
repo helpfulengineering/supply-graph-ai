@@ -129,11 +129,34 @@ response = httpx.post("http://localhost:8001/v1/api/package/build/a736334a-efd3-
 
 ```bash
 # List all built packages
-ohm package list-packages
+ohm package list
 
 # List with verbose output
-ohm package list-packages --verbose
+ohm package list --verbose
 ```
+
+### Downloading Packages
+
+Single package (``.tar.gz``):
+
+```bash
+curl -OJ "http://localhost:8001/v1/api/package/org/project/1.0.0/download"
+```
+
+Batch download (zip of tarballs):
+
+```bash
+# CLI
+ohm package download-zip org/project@1.0.0 other/pkg@2.0.0 -o packages.zip
+
+# API
+curl -OJ -X POST "http://localhost:8001/v1/api/package/download-zip" \
+  -H "Content-Type: application/json" \
+  -d '{"items":[{"org":"org","project":"project","version":"1.0.0"}]}'
+```
+
+The zip contains one `{org}-{project}-{version}.tar.gz` entry per selected package
+(same archive format as the single download). Missing packages yield HTTP 404.
 
 ### Verifying Packages
 

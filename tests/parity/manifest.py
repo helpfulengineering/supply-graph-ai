@@ -128,7 +128,9 @@ AREAS: tuple[Area, ...] = (
         "federation",
         "federation",
         "exposed",
-        note="No federation_service module; logic lives under src/core/federation/.",
+        note="No federation_service module; logic lives under src/core/federation/. "
+        "Settings → Federation (F6) calls /api/federation.",
+        fe_api_prefixes=("/api/federation",),
     ),
     Area(
         "llm",
@@ -198,8 +200,23 @@ AREAS: tuple[Area, ...] = (
         "partial",
         note="CLI-only diagnostics/admin group. No API surface by design.",
     ),
+    # --- Identity: AuthenticationService exposed via the unified surface ---
+    Area(
+        "identity",
+        "auth",
+        "identity",
+        "identity",
+        "aligned",
+        note="AuthenticationService (service stem 'auth') exposed via the unified "
+        "'identity' API tag + CLI group — API keys, accounts, identities (did:key), "
+        "capability grants, space claims, edge bootstrap, attestations, domain/OAuth "
+        "bindings, trust-on-follow directory, and security-policy status. See "
+        "notes/federated-identity-spec.md Slices 1-8. Frontend Track F: Settings "
+        "(admin) under /settings; F3–F6 panels landed.",
+        fe_routes=("/settings",),
+        fe_api_prefixes=("/api/identity",),
+    ),
     # --- Internal services: no API and no CLI by design -------------------
-    Area("auth", "auth", None, None, "internal", note="Auth/session internals."),
     Area("cache", "cache", None, None, "internal", note="Caching internals."),
     Area(
         "rate_limit",

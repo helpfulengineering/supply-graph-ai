@@ -40,7 +40,9 @@ The API follows these standardized design patterns:
 
 ### Authentication
 
-For production deployments, [authentication](auth.md) can be enabled to secure API access.
+For production deployments, see the operator guide
+[Authentication & IAM](../auth/index.md) and the API reference
+[authentication](auth.md).
 
 ## Current API Status
 

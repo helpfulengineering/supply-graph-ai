@@ -11,7 +11,8 @@ const ROUTES = [
   "/facilities",
   "/facilities/okw-1",
   "/match",
-  "/visualization/sol-1",
+  "/packages",
+  "/packages/demo/widget/1.0.0",
 ];
 
 for (const route of ROUTES) {

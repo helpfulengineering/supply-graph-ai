@@ -79,6 +79,32 @@ All routes are under `/v1/api/federation/` when federation is enabled.
 - Sync only **ingests** manifests from **followed** DIDs
 - All records must pass signature verification and OKH validation
 
+## Sharing / visibility
+
+What leaves your node is an **opt-in** local policy (federated-identity Slice 4).
+New OKH/OKW creates default to `private` and never appear in `GET /catalog`.
+Promote a record to share it with peers that sync from you:
+
+| Visibility | In `/catalog`? |
+|---|---|
+| `private` | No (default on create) |
+| `followers` | Yes |
+| `public` | Yes |
+
+```bash
+ohm okh visibility set <manifest_id> public
+ohm okh visibility show <manifest_id>
+```
+
+Visibility is **local** (not carried on the catalog record). A peer that ingests a
+design decides independently whether to re-share it. See
+[Identity Model — Record visibility](../architecture/identity-model.md).
+
+**Provenance** and **attestations** *do* ride the node-signed catalog record (out of
+the design content hash). On ingest, signed provenance/attestations are verified
+and re-stamped into the peer's own stores. See
+[Identity Model](../architecture/identity-model.md).
+
 ## CLI
 
 ```bash

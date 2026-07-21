@@ -42,7 +42,14 @@
 ### API Documentation
 * [API Documentation](api/index.md)
     * [Routes & Endpoints](api/routes.md)
-    * [Authentication](api/auth.md)
+    * [Authentication](api/auth.md) (API reference)
+
+### Authentication & IAM
+* [Overview](auth/index.md)
+    * [Getting Started](auth/getting-started.md) — bootstrap `API_KEYS`, Azure, Connect
+    * [Accounts & API Keys](auth/accounts-and-keys.md)
+    * [Identities & Grants](auth/identities-and-grants.md)
+    * [Frontend Settings](auth/frontend.md)
 
 ### Project Scaffolding
 * [Scaffolding Guide](scaffolding/index.md)

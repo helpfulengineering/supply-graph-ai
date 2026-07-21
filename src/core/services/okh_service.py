@@ -15,6 +15,14 @@ from ..generation.platforms.github import GitHubExtractor
 from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
+from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..models.visibility import (
+    DEFAULT_VISIBILITY,
+    LEGACY_VISIBILITY,
+    VisibilityLevel,
+)
+from ..storage.provenance_store import ProvenanceStore
+from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import (
     FileInfo,
     SmartFileDiscovery,
@@ -87,11 +95,23 @@ class OKHService(BaseService["OKHService"]):
 
         self.logger.info("OKH service initialized successfully")
 
-    async def create(self, manifest_data: Dict[str, Any]) -> OKHManifest:
+    async def create(
+        self,
+        manifest_data: Dict[str, Any],
+        created_by: Optional[str] = None,
+        provenance: Optional[RecordProvenance] = None,
+    ) -> OKHManifest:
         """Persist a new manifest under ``okh/`` when storage is available.
 
         Args:
             manifest_data: Raw dict or pass-through if already an ``OKHManifest``.
+            created_by: Optional account id to attribute the record to; persisted
+                alongside the manifest JSON (see federated-identity Slice 1).
+            provenance: Optional record-level authorship/publication provenance
+                (federated-identity Slice 3).
+
+        New records stamp ``private`` visibility (Slice 4); promote with
+        :meth:`set_visibility` to share via the federation catalog.
 
         Returns:
             The created ``OKHManifest`` instance (with generated id if applicable).
@@ -115,15 +135,68 @@ class OKHService(BaseService["OKHService"]):
                 safe_title = safe_title.replace(" ", "-").lower()
                 filename = f"okh/{safe_title}-{str(manifest.id)[:8]}-okh.json"
 
+                # OHM-namespaced metadata (account attribution) is carried through
+                # explicitly because to_dict() is a whitelist that drops ohm_* keys —
+                # this is what lets ohm_created_by survive a federation ingest.
+                payload = apply_ohm_metadata(
+                    manifest.to_dict(), manifest_data, created_by
+                )
                 manifest_json = json.dumps(
-                    manifest.to_dict(), indent=2, ensure_ascii=False, default=str
+                    payload, indent=2, ensure_ascii=False, default=str
                 )
                 await self.storage.manager.put_object(
                     filename, manifest_json.encode("utf-8")
                 )
                 self.logger.info(f"Saved OKH manifest to {filename}")
 
+                # Provenance + visibility live in their own planes (out of the
+                # content hash). Visibility defaults to private — opt-in to share.
+                if provenance is not None:
+                    await self._provenance_store().save(str(manifest.id), provenance)
+                await self._visibility_store().save(
+                    str(manifest.id), DEFAULT_VISIBILITY
+                )
+
             return manifest
+
+    def _provenance_store(self) -> ProvenanceStore:
+        """Lazily build the provenance store over the configured storage."""
+        return ProvenanceStore(self.storage)
+
+    def _visibility_store(self) -> VisibilityStore:
+        """Lazily build the visibility store over the configured storage."""
+        return VisibilityStore(self.storage)
+
+    async def get_provenance(self, manifest_id: UUID) -> Optional[RecordProvenance]:
+        """Return the stored provenance for a manifest, or None."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return None
+        return await self._provenance_store().load(str(manifest_id))
+
+    async def get_visibility(self, manifest_id: UUID) -> VisibilityLevel:
+        """Return visibility for a manifest.
+
+        Missing (pre-Slice-4) records resolve to ``followers`` so they keep
+        appearing in the catalog; new creates stamp ``private`` explicitly.
+        """
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return LEGACY_VISIBILITY
+        loaded = await self._visibility_store().load(str(manifest_id))
+        return loaded if loaded is not None else LEGACY_VISIBILITY
+
+    async def set_visibility(
+        self, manifest_id: UUID, level: VisibilityLevel
+    ) -> VisibilityLevel:
+        """Set share policy for a manifest. Record must already exist."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(manifest_id) is None:
+            raise LookupError(f"OKH manifest {manifest_id} not found")
+        await self._visibility_store().save(str(manifest_id), level)
+        return level
 
     async def get(self, manifest_id: UUID) -> Optional[OKHManifest]:
         """Scan discovered ``okh/`` objects and return the first manifest whose id matches.

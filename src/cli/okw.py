@@ -352,6 +352,197 @@ async def get(
 
 
 @okw_group.command()
+@click.argument("facility_id", type=str)
+@standard_cli_command(
+    help_text="Show the authorship/publication provenance recorded for a facility.",
+    epilog="""
+    Examples:
+      ohm okw provenance 123e4567-e89b-12d3-a456-426614174000
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def provenance(
+    ctx,
+    facility_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Show provenance for an OKW facility."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-provenance")
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/okw/{facility_id}/provenance"
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Provenance lookup failed: {str(e)}", "error")
+        raise
+
+
+@okw_group.command("create")
+@click.argument("facility_file", type=click.Path(exists=True))
+@click.option(
+    "--author",
+    default=None,
+    help="Author DID or claimable external id (e.g. orcid:…); defaults to caller",
+)
+@click.option(
+    "--on-behalf-of",
+    "on_behalf_of",
+    default=None,
+    help="Space DID this facility is published on behalf of",
+)
+@standard_cli_command(
+    help_text="Create and store an OKW facility from a JSON/YAML file.",
+    epilog="""
+    Examples:
+      ohm okw create my-lab.okw.json
+      ohm okw create my-lab.okw.json --author did:key:z… --on-behalf-of did:key:z…
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def create(
+    ctx,
+    facility_file: str,
+    author: Optional[str],
+    on_behalf_of: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Create an OKW facility from a file, with optional provenance capture."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-create")
+    try:
+        facility_data = await _read_facility_file(facility_file)
+        params = {}
+        if author:
+            params["author"] = author
+        if on_behalf_of:
+            params["on_behalf_of"] = on_behalf_of
+        response = await cli_ctx.api_client.request(
+            "POST",
+            "/api/okw/create",
+            json_data={"content": facility_data},
+            params=params or None,
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Create failed: {str(e)}", "error")
+        raise
+
+
+@okw_group.group(name="visibility")
+def visibility_group():
+    """Get or set how far a facility may leave this node."""
+    pass
+
+
+@visibility_group.command("show")
+@click.argument("facility_id", type=str)
+@standard_cli_command(
+    help_text="Show the share visibility of an OKW facility.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def visibility_show(
+    ctx,
+    facility_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Show visibility for an OKW facility."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-visibility-show")
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/okw/{facility_id}/visibility"
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Visibility lookup failed: {str(e)}", "error")
+        raise
+
+
+@visibility_group.command("set")
+@click.argument("facility_id", type=str)
+@click.argument(
+    "level", type=click.Choice(["private", "followers", "public"], case_sensitive=False)
+)
+@standard_cli_command(
+    help_text="Set share visibility: private (local only), followers, or public.",
+    epilog="""
+    Examples:
+      ohm okw visibility set 123e4567-… public
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def visibility_set(
+    ctx,
+    facility_id: str,
+    level: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Set visibility for an OKW facility."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-visibility-set")
+    try:
+        response = await cli_ctx.api_client.request(
+            "PUT",
+            f"/api/okw/{facility_id}/visibility",
+            json_data={"visibility": level.lower()},
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Visibility update failed: {str(e)}", "error")
+        raise
+
+
+@okw_group.command()
 @click.option("--limit", default=10, help="Maximum number of facilities to list")
 @click.option("--offset", default=0, help="Number of facilities to skip")
 @click.option("--facility-type", help="Filter by facility type")

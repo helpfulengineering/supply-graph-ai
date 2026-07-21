@@ -8,7 +8,20 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from ..federation.catalog import manifest_content_hash
+from ..federation.merkle import merkle_root
 from ..models.package import calculate_file_checksum
+
+
+def bundle_hash(pin_record: dict) -> str:
+    """Canonical release identity: merkle over manifest hash + sorted file checksums.
+
+    Returns ``sha256:<hex>``. Used by ``certified`` attestations (Slice 6 / R3).
+    """
+    leaves: List[str] = [pin_record["manifest_content_hash"]]
+    file_hashes = pin_record.get("file_hashes") or {}
+    for path in sorted(file_hashes):
+        leaves.append(file_hashes[path])
+    return f"sha256:{merkle_root(leaves)}"
 
 
 def _pin_record_path(package_path: Path) -> Path:

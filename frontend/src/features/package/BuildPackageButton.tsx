@@ -1,11 +1,19 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { OkhManifest } from "../../types/okh";
+import {
+  buildPackageFromManifest,
+  packageDetailPath,
+} from "../../api/package";
 import {
   buildLocalOkhPackage,
   type LocalPackageInput,
   type LocalPackageResult,
   type LocalPackageStatus,
 } from "./buildLocalOkhPackage";
+import { useAuth } from "../../context/AuthContext";
+import { Button } from "../../components/ui/button";
 
 interface Props {
   okh: LocalPackageInput["okh"];
@@ -13,70 +21,99 @@ interface Props {
 }
 
 export function BuildPackageButton({ okh, className }: Props) {
-  const [status, setStatus] = useState<LocalPackageStatus>("idle");
-  const [result, setResult] = useState<LocalPackageResult | null>(null);
+  const { reportAuthFailure } = useAuth();
+  const queryClient = useQueryClient();
+  const [localStatus, setLocalStatus] = useState<LocalPackageStatus>("idle");
+  const [localResult, setLocalResult] = useState<LocalPackageResult | null>(null);
+  const [serverLink, setServerLink] = useState<string | null>(null);
 
-  const handleBuild = async () => {
-    if (!okh?.id) {
-      setStatus("error");
-      setResult({
-        status: "error",
-        packageName: "okh-package",
-        written: 0,
-        failed: [],
-        message: "Missing design id — cannot build package.",
-      });
-      return;
-    }
+  const serverBuild = useMutation({
+    mutationFn: () => buildPackageFromManifest(okh.id),
+    onSuccess: (meta) => {
+      void queryClient.invalidateQueries({ queryKey: ["package-list"] });
+      if (meta.package_name && meta.version) {
+        setServerLink(packageDetailPath(meta.package_name, meta.version));
+      }
+    },
+    onError: reportAuthFailure,
+  });
 
-    setStatus("building");
-    setResult(null);
+  const handleLocal = async () => {
+    if (!okh?.id) return;
+    setLocalStatus("building");
+    setLocalResult(null);
     try {
       const outcome = await buildLocalOkhPackage({ okh });
-      setResult(outcome);
-      setStatus(outcome.status);
+      setLocalResult(outcome);
+      setLocalStatus(outcome.status);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
-      setResult({
+      setLocalResult({
         status: "error",
         packageName: okh.title || "okh-package",
         written: 0,
         failed: [],
         message: `Unexpected package build failure: ${message}`,
       });
-      setStatus("error");
+      setLocalStatus("error");
     }
   };
 
   return (
     <div className={className}>
-      <button
-        type="button"
-        onClick={() => void handleBuild()}
-        disabled={status === "building"}
-        title="Save this design and its files to a folder on your computer"
-        className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-      >
-        {status === "building" ? "Building…" : "📦 Build Package"}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          disabled={serverBuild.isPending || !okh?.id}
+          title="Build package on the OHM server into package storage"
+          onClick={() => {
+            setServerLink(null);
+            serverBuild.mutate();
+          }}
+        >
+          {serverBuild.isPending ? "Building on server…" : "📦 Build on server"}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={localStatus === "building"}
+          title="Save this design and its files to a folder on your computer"
+          onClick={() => void handleLocal()}
+        >
+          {localStatus === "building" ? "Saving…" : "Save folder locally…"}
+        </Button>
+      </div>
 
-      {result && status !== "cancelled" && status !== "idle" && (
+      {serverBuild.isSuccess && (
+        <p className="mt-1.5 max-w-sm text-xs text-emerald-700 dark:text-emerald-400" role="status">
+          Built {serverBuild.data.package_name}@{serverBuild.data.version}.{" "}
+          {serverLink && (
+            <Link to={serverLink} className="font-semibold underline">
+              Open package
+            </Link>
+          )}
+        </p>
+      )}
+      {serverBuild.isError && (
+        <p className="mt-1.5 max-w-sm text-xs text-red-600" role="alert">
+          {serverBuild.error instanceof Error
+            ? serverBuild.error.message
+            : "Server build failed."}
+        </p>
+      )}
+
+      {localResult && localStatus !== "cancelled" && localStatus !== "idle" && (
         <p
           className={`mt-1.5 max-w-sm text-xs ${
-            status === "error"
-              ? "text-red-600 dark:text-red-400"
-              : status === "partial"
-                ? "text-amber-700 dark:text-amber-400"
-                : "text-emerald-700 dark:text-emerald-400"
+            localStatus === "error"
+              ? "text-red-600"
+              : localStatus === "partial"
+                ? "text-amber-700"
+                : "text-emerald-700"
           }`}
           role="status"
         >
-          {result.message}
-          {result.failed.length > 0 && result.failed.length <= 5 && (
-            <span className="mt-1 block font-mono text-[10px] opacity-80">
-              {result.failed.map((f) => f.path).join(", ")}
-            </span>
-          )}
+          {localResult.message}
         </p>
       )}
     </div>

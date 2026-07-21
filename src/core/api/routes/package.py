@@ -2,9 +2,10 @@ import os
 import shutil
 import tarfile
 import tempfile
+import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import unquote
 from uuid import UUID
 
@@ -36,6 +37,7 @@ from ..models.base import PaginatedResponse, PaginationParams, ValidationResult
 # Import consolidated package models
 from ..models.package.request import (
     PackageBuildRequest,
+    PackageDownloadZipRequest,
     PackagePullRequest,
     PackagePushRequest,
 )
@@ -57,6 +59,60 @@ def _decode_path_segment(value: str) -> str:
 def _package_name_from_path(org: str, project: str) -> str:
     """Build ``org/project`` package name from URL path segments."""
     return f"{_decode_path_segment(org)}/{_decode_path_segment(project)}"
+
+
+def _unlink_path(path: str) -> None:
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+def _tarball_names(package_name: str, version: str) -> Tuple[str, str]:
+    """Return ``(tarball_filename, tar_arcname)`` for a package."""
+    slug = package_name.replace("/", "-")
+    return f"{slug}-{version}.tar.gz", f"{slug}-{version}"
+
+
+async def _materialize_package_tarball(
+    package_service: PackageService,
+    package_name: str,
+    version: str,
+) -> Tuple[str, str]:
+    """Build a temp ``.tar.gz`` for one package (local or remote).
+
+    Returns ``(temp_path, tarball_filename)``. Caller must delete ``temp_path``.
+    Raises ``HTTPException(404)`` when the package cannot be resolved.
+    """
+    tarball_name, arcname = _tarball_names(package_name, version)
+    metadata = await package_service.get_package_metadata(package_name, version)
+
+    if metadata:
+        package_path = Path(metadata.package_path)
+        if package_path.exists():
+            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
+            temp_tar.close()
+            with tarfile.open(temp_tar.name, "w:gz") as tar:
+                tar.add(package_path, arcname=arcname)
+            return temp_tar.name, tarball_name
+        metadata = None
+
+    remote_storage = await get_remote_storage()
+    tmp_root = Path(tempfile.mkdtemp(prefix="ohm-pkg-pull-"))
+    try:
+        metadata = await remote_storage.pull_package(package_name, version, tmp_root)
+        package_path = Path(metadata.package_path)
+        temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
+        temp_tar.close()
+        with tarfile.open(temp_tar.name, "w:gz") as tar:
+            tar.add(package_path, arcname=arcname)
+        return temp_tar.name, tarball_name
+    except HTTPException:
+        raise
+    except Exception as pull_exc:
+        raise HTTPException(status_code=404, detail="Package not found") from pull_exc
+    finally:
+        shutil.rmtree(tmp_root, ignore_errors=True)
 
 
 # Create router with standardized patterns
@@ -294,11 +350,12 @@ async def build_package_from_storage(
             manifest_id, options
         )
 
+        # response_model is Dict — return a plain dict, not a SuccessResponse model
         return create_success_response(
             message="Package built successfully",
             data={"metadata": metadata.to_dict()},
             request_id=None,
-        )
+        ).model_dump(mode="json")
 
     except ValueError as e:
         # Use standardized error handler
@@ -423,6 +480,84 @@ async def list_packages(
         )
 
 
+@router.post(
+    "/download-zip",
+    summary="Download multiple packages as a zip",
+    description=(
+        "Bundle selected packages into one ``application/zip`` archive. "
+        "Each entry is the same ``.tar.gz`` produced by the single-package download."
+    ),
+    responses={
+        200: {
+            "content": {"application/zip": {}},
+            "description": "Zip archive of package tarballs",
+        },
+        404: {"description": "One or more packages not found"},
+    },
+)
+async def download_packages_zip(
+    body: PackageDownloadZipRequest,
+    package_service: PackageService = Depends(get_package_service),
+) -> Any:
+    """Zip multiple package tarballs for batch download (F2b.0)."""
+    temp_paths: List[str] = []
+    zip_path: Optional[str] = None
+    try:
+        zip_file = tempfile.NamedTemporaryFile(suffix=".zip", delete=False)
+        zip_file.close()
+        zip_path = zip_file.name
+
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            seen: set[str] = set()
+            for item in body.items:
+                package_name = f"{item.org}/{item.project}"
+                version = item.version
+                key = f"{package_name}@{version}"
+                if key in seen:
+                    continue
+                seen.add(key)
+                tar_path, tar_name = await _materialize_package_tarball(
+                    package_service, package_name, version
+                )
+                temp_paths.append(tar_path)
+                zf.write(tar_path, arcname=tar_name)
+
+        def _cleanup() -> None:
+            for p in temp_paths:
+                _unlink_path(p)
+            if zip_path:
+                _unlink_path(zip_path)
+
+        return FileResponse(
+            path=zip_path,
+            filename="ohm-packages.zip",
+            media_type="application/zip",
+            background=BackgroundTask(_cleanup),
+        )
+    except HTTPException:
+        for p in temp_paths:
+            _unlink_path(p)
+        if zip_path:
+            _unlink_path(zip_path)
+        raise
+    except Exception as e:
+        for p in temp_paths:
+            _unlink_path(p)
+        if zip_path:
+            _unlink_path(zip_path)
+        error_response = create_error_response(
+            error=e,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            request_id=None,
+            suggestion="Please try again or contact support if the issue persists",
+        )
+        logger.error(f"Error creating package zip: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=error_response.model_dump(mode="json"),
+        )
+
+
 @router.get("/{org}/{project}/{version}/download")
 async def download_package(
     org: str,
@@ -443,14 +578,7 @@ async def download_package(
     """
     package_name = _package_name_from_path(org, project)
     version = _decode_path_segment(version)
-    tarball_name = f"{package_name.replace('/', '-')}-{version}.tar.gz"
-    arcname = f"{package_name.replace('/', '-')}-{version}"
-
-    def _unlink(path: str) -> None:
-        try:
-            os.unlink(path)
-        except OSError:
-            pass
+    tarball_name = _tarball_names(package_name, version)[0]
 
     try:
         logger.info(
@@ -461,90 +589,14 @@ async def download_package(
                 "tarball_name": tarball_name,
             },
         )
-
-        metadata = await package_service.get_package_metadata(package_name, version)
-
-        if metadata:
-            package_path = Path(metadata.package_path)
-            if not package_path.exists():
-                logger.warning(
-                    "Local package metadata found but path missing",
-                    extra={
-                        "package_name": package_name,
-                        "version": version,
-                        "package_path": str(package_path),
-                    },
-                )
-                metadata = None
-            else:
-                logger.info(
-                    "Building tarball from local package",
-                    extra={
-                        "package_name": package_name,
-                        "version": version,
-                        "package_path": str(package_path),
-                    },
-                )
-                temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
-                temp_tar.close()
-                with tarfile.open(temp_tar.name, "w:gz") as tar:
-                    tar.add(package_path, arcname=arcname)
-
-                return FileResponse(
-                    path=temp_tar.name,
-                    filename=tarball_name,
-                    media_type="application/gzip",
-                    background=BackgroundTask(_unlink, temp_tar.name),
-                )
-
-        # Fallback: package exists only in remote blob storage (e.g. batch push).
-        logger.info(
-            "Local package not found; pulling from remote storage",
-            extra={"package_name": package_name, "version": version},
+        tar_path, tarball_name = await _materialize_package_tarball(
+            package_service, package_name, version
         )
-        remote_storage = await get_remote_storage()
-        tmp_root = Path(tempfile.mkdtemp(prefix="ohm-pkg-pull-"))
-        try:
-            metadata = await remote_storage.pull_package(
-                package_name, version, tmp_root
-            )
-            package_path = Path(metadata.package_path)
-            logger.info(
-                "Remote package pulled for download",
-                extra={
-                    "package_name": package_name,
-                    "version": version,
-                    "package_path": str(package_path),
-                    "total_files": metadata.total_files,
-                },
-            )
-            temp_tar = tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False)
-            temp_tar.close()
-            with tarfile.open(temp_tar.name, "w:gz") as tar:
-                tar.add(package_path, arcname=arcname)
-            tar_path = temp_tar.name
-        except Exception as pull_exc:
-            shutil.rmtree(tmp_root, ignore_errors=True)
-            logger.error(
-                "Package download failed (local and remote)",
-                extra={
-                    "package_name": package_name,
-                    "version": version,
-                    "error": str(pull_exc),
-                    "error_type": type(pull_exc).__name__,
-                },
-                exc_info=True,
-            )
-            raise HTTPException(
-                status_code=404, detail="Package not found"
-            ) from pull_exc
-        shutil.rmtree(tmp_root, ignore_errors=True)
-
         return FileResponse(
             path=tar_path,
             filename=tarball_name,
             media_type="application/gzip",
-            background=BackgroundTask(_unlink, tar_path),
+            background=BackgroundTask(_unlink_path, tar_path),
         )
 
     except HTTPException:

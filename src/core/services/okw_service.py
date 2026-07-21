@@ -6,6 +6,14 @@ from uuid import UUID
 
 from ..domains.cooking.models import KitchenCapability
 from ..models.okw import FacilityStatus, Location, ManufacturingFacility
+from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..models.visibility import (
+    DEFAULT_VISIBILITY,
+    LEGACY_VISIBILITY,
+    VisibilityLevel,
+)
+from ..storage.provenance_store import ProvenanceStore
+from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..taxonomy import taxonomy
 from ..utils.logging import get_logger
@@ -305,11 +313,23 @@ class OKWService(BaseService["OKWService"]):
 
         self.logger.info("OKW service initialized successfully")
 
-    async def create(self, facility_data: Dict[str, Any]) -> ManufacturingFacility:
+    async def create(
+        self,
+        facility_data: Dict[str, Any],
+        created_by: Optional[str] = None,
+        provenance: Optional[RecordProvenance] = None,
+    ) -> ManufacturingFacility:
         """Persist a facility JSON at ``okw/{facility_id}.json`` when storage is configured.
 
         Args:
             facility_data: Raw dict or an existing ``ManufacturingFacility`` instance.
+            created_by: Optional account id to attribute the record to; persisted
+                alongside the facility JSON (see federated-identity Slice 1).
+            provenance: Optional record-level authorship/publication provenance
+                (federated-identity Slice 3).
+
+        New records stamp ``private`` visibility (Slice 4); promote with
+        :meth:`set_visibility` to share via the federation catalog.
 
         Returns:
             The created ``ManufacturingFacility``.
@@ -331,15 +351,68 @@ class OKWService(BaseService["OKWService"]):
             if self.storage and self.storage.manager:
                 filename = f"okw/{str(facility.id)}.json"
 
+                # OHM-namespaced metadata (account attribution) is carried through
+                # explicitly because to_dict() is a whitelist that drops ohm_* keys —
+                # this is what lets ohm_created_by survive a federation ingest.
+                payload = apply_ohm_metadata(
+                    facility.to_dict(), facility_data, created_by
+                )
                 facility_json = json.dumps(
-                    facility.to_dict(), indent=2, ensure_ascii=False, default=str
+                    payload, indent=2, ensure_ascii=False, default=str
                 )
                 await self.storage.manager.put_object(
                     filename, facility_json.encode("utf-8")
                 )
                 self.logger.info(f"Saved OKW facility to {filename}")
 
+                # Provenance + visibility live in their own planes (out of the
+                # content hash). Visibility defaults to private — opt-in to share.
+                if provenance is not None:
+                    await self._provenance_store().save(str(facility.id), provenance)
+                await self._visibility_store().save(
+                    str(facility.id), DEFAULT_VISIBILITY
+                )
+
             return facility
+
+    def _provenance_store(self) -> ProvenanceStore:
+        """Lazily build the provenance store over the configured storage."""
+        return ProvenanceStore(self.storage)
+
+    def _visibility_store(self) -> VisibilityStore:
+        """Lazily build the visibility store over the configured storage."""
+        return VisibilityStore(self.storage)
+
+    async def get_provenance(self, facility_id: UUID) -> Optional[RecordProvenance]:
+        """Return the stored provenance for a facility, or None."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return None
+        return await self._provenance_store().load(str(facility_id))
+
+    async def get_visibility(self, facility_id: UUID) -> VisibilityLevel:
+        """Return visibility for a facility.
+
+        Missing (pre-Slice-4) records resolve to ``followers`` so they keep
+        their prior shareable posture; new creates stamp ``private`` explicitly.
+        """
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return LEGACY_VISIBILITY
+        loaded = await self._visibility_store().load(str(facility_id))
+        return loaded if loaded is not None else LEGACY_VISIBILITY
+
+    async def set_visibility(
+        self, facility_id: UUID, level: VisibilityLevel
+    ) -> VisibilityLevel:
+        """Set share policy for a facility. Record must already exist."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(facility_id) is None:
+            raise LookupError(f"OKW facility {facility_id} not found")
+        await self._visibility_store().save(str(facility_id), level)
+        return level
 
     async def get(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
         """Discover ``okw/`` files and return the most recently modified row matching ``facility_id``.

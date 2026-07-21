@@ -14,6 +14,7 @@ from .asset import asset_group
 from .base import CLIConfig, CLIContext
 from .convert import convert_group
 from .federation import federation_group
+from .identity import identity_group
 from .match import match_group
 from .okh import okh_group
 from .okw import okw_group
@@ -131,6 +132,7 @@ cli.add_command(convert_group, name="convert")
 cli.add_command(taxonomy_group, name="taxonomy")
 cli.add_command(file_types_group, name="file-types")
 cli.add_command(federation_group, name="federation")
+cli.add_command(identity_group, name="identity")
 
 
 @cli.command()

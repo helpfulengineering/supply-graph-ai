@@ -11,6 +11,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from .account import ROOT_ACCOUNT_ID
+
 
 class APIKey(BaseModel):
     """API Key model for storage"""
@@ -34,6 +36,7 @@ class APIKeyCreate(BaseModel):
     description: Optional[str] = None
     permissions: List[str] = Field(default_factory=lambda: ["read"])
     expires_at: Optional[datetime] = None
+    account_id: Optional[UUID] = None  # owning account; defaults to the root account
 
 
 class APIKeyResponse(BaseModel):
@@ -51,8 +54,14 @@ class APIKeyResponse(BaseModel):
 
 
 class AuthenticatedUser(BaseModel):
-    """Model representing authenticated user/API key"""
+    """Model representing the identity behind an authenticated request.
+
+    Backed today by an API key; ``account_id`` is who writes are attributed to,
+    and ``subject_did`` is a placeholder for the self-sovereign DID added in Slice 2.
+    """
 
     key_id: UUID
     name: str
     permissions: List[str]
+    account_id: UUID = ROOT_ACCOUNT_ID
+    subject_did: Optional[str] = None

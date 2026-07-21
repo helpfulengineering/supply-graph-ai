@@ -2,8 +2,11 @@
  * Base HTTP client for the OHM API.
  *
  * All requests go through /v1/api (proxied to OHM_API_BASE_URL in dev; point
- * to the real origin in production). No auth in this phase.
+ * to the real origin in production). Attaches Bearer token from sessionStorage
+ * when present (Track F / F0).
  */
+
+import { authHeader } from "../features/auth/tokenStorage";
 
 const API_PREFIX = "/v1/api";
 
@@ -31,7 +34,17 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function get<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
+function jsonHeaders(): HeadersInit {
+  return {
+    Accept: "application/json",
+    ...authHeader(),
+  };
+}
+
+export async function get<T>(
+  path: string,
+  params?: Record<string, string | number | boolean | undefined>,
+): Promise<T> {
   const url = new URL(`${API_PREFIX}${path}`, window.location.origin);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
@@ -39,7 +52,7 @@ export async function get<T>(path: string, params?: Record<string, string | numb
     }
   }
   const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
+    headers: jsonHeaders(),
   });
   return handleResponse<T>(res);
 }
@@ -48,7 +61,7 @@ export async function post<T>(path: string, body: unknown): Promise<T> {
   const url = `${API_PREFIX}${path}`;
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    headers: { "Content-Type": "application/json", ...jsonHeaders() },
     body: JSON.stringify(body),
   });
   return handleResponse<T>(res);

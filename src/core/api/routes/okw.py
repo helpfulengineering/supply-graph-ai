@@ -17,10 +17,14 @@ from fastapi import (
     status,
 )
 
+from ...models.auth import AuthenticatedUser
 from ...models.okw import ManufacturingFacility
+from ...models.provenance import RecordProvenance
+from ...models.visibility import VisibilityBody, VisibilityResponse
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
+from ..dependencies import created_by, require_write, resolve_provenance
 from ..constants.client_errors import (
     ERROR_NO_FILE_PROVIDED,
     ERROR_UNSUPPORTED_YAML_JSON_FILE,
@@ -694,6 +698,7 @@ async def update_okw(
     request: OKWUpdateRequest,
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Update an OKW facility"""
     try:
@@ -769,6 +774,7 @@ async def update_okw(
 async def delete_okw(
     id: UUID = Path(..., title="The ID of the OKW facility"),
     okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Delete an OKW facility"""
     try:
@@ -1050,8 +1056,15 @@ async def extract_capabilities(
 )
 async def create_okw_facility(
     request: OKWValidateRequest,
+    author: Optional[str] = Query(
+        None, description="Author DID or claimable external id (defaults to caller)"
+    ),
+    on_behalf_of: Optional[str] = Query(
+        None, description="Space DID this facility is published on behalf of"
+    ),
     okw_service: OKWService = Depends(get_okw_service),
     http_request: Request = None,
+    user: Optional[AuthenticatedUser] = Depends(require_write),
 ) -> Any:
     """Create and store an OKW facility from a JSON dict."""
     request_id = (
@@ -1067,7 +1080,10 @@ async def create_okw_facility(
                 detail=f"OKW validation failed: {str(e)}",
             )
 
-        result = await okw_service.create(facility)
+        provenance = await resolve_provenance(user, author, on_behalf_of)
+        result = await okw_service.create(
+            facility, created_by=created_by(user), provenance=provenance
+        )
         result_dict = result.to_dict() if hasattr(result, "to_dict") else result
         okw_response = OKWResponse(**result_dict)
 
@@ -1088,6 +1104,65 @@ async def create_okw_facility(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error creating OKW facility: {str(e)}",
         )
+
+
+@router.get(
+    "/{id}/provenance",
+    response_model=RecordProvenance,
+    summary="Get OKW facility provenance",
+    description="Return the authorship/publication provenance recorded for a facility.",
+)
+async def get_okw_provenance(
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    provenance = await okw_service.get_provenance(id)
+    if provenance is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No provenance recorded for this facility",
+        )
+    return provenance
+
+
+@router.get(
+    "/{id}/visibility",
+    response_model=VisibilityResponse,
+    summary="Get OKW facility visibility",
+)
+async def get_okw_visibility(
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    if await okw_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    level = await okw_service.get_visibility(id)
+    return VisibilityResponse(id=id, visibility=level)
+
+
+@router.put(
+    "/{id}/visibility",
+    response_model=VisibilityResponse,
+    summary="Set OKW facility visibility",
+    description="Set share policy: private (local only), followers, or public.",
+)
+async def set_okw_visibility(
+    body: VisibilityBody,
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    try:
+        level = await okw_service.set_visibility(id, body.visibility)
+    except LookupError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    return VisibilityResponse(id=id, visibility=level)
 
 
 @router.post(

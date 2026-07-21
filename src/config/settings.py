@@ -151,6 +151,11 @@ AUTH_CACHE_TTL = int(
 )  # 5 minutes in seconds
 AUTH_KEY_LENGTH = int(_get_secret_or_env("AUTH_KEY_LENGTH", "32"))  # bytes
 
+# Security Mode: identity/trust/authz posture (distinct axis from SystemMode matching
+# rigor). "peacetime" implemented; "crisis"/"shielded" reserved. Resolved into a
+# SecurityPolicy via src/config/security_policy.py. See docs/architecture/security-modes.md.
+OHM_SECURITY_MODE = _get_secret_or_env("OHM_SECURITY_MODE", "peacetime")
+
 # Storage Configuration
 try:
     STORAGE_CONFIG = get_default_storage_config()

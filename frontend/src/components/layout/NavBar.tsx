@@ -1,23 +1,26 @@
 import { NavLink } from "react-router-dom";
 import { useQueryClient, useIsFetching } from "@tanstack/react-query";
 import { useTheme } from "../../context/ThemeContext";
+import { useAuth } from "../../context/AuthContext";
 import { refreshLowVolatilityData } from "../../queryClient";
 
 const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
   { to: "/facilities", label: "Facilities", icon: "🏭" },
+  { to: "/packages", label: "Packages", icon: "📦" },
   { to: "/match", label: "Match", icon: "⚡" },
   // Saved solutions are per-search, user-specific, and go stale fast — a supply
   // tree is reached directly from its match (and can be downloaded), so there is
   // no browse list. Revisit as user-scoped history once auth lands.
-  // RFQ and Packages are deferred to v1.1 — pages kept dormant (routes still
-  // resolve by URL), just not surfaced in the v1 nav.
+  // RFQ stays dormant in v1 nav.
 ] as const;
 
 export function NavBar() {
   const { isDark, toggle } = useTheme();
+  const { isAdmin, token } = useAuth();
   const queryClient = useQueryClient();
   const isFetching = useIsFetching() > 0;
+  const settingsLabel = isAdmin ? "Settings" : token ? "Session" : "Connect";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
@@ -45,6 +48,20 @@ export function NavBar() {
               {label}
             </NavLink>
           ))}
+          <NavLink
+            to="/settings/session"
+            className={({ isActive }) =>
+              [
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                  : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
+              ].join(" ")
+            }
+          >
+            <span aria-hidden="true">⚙</span>
+            {settingsLabel}
+          </NavLink>
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
