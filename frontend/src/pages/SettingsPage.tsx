@@ -7,6 +7,7 @@ import { SpacesPanel } from "../features/settings/SpacesPanel";
 import { ReputationPanel } from "../features/settings/ReputationPanel";
 import { BindingsPanel } from "../features/settings/BindingsPanel";
 import { DirectoryPanel } from "../features/settings/DirectoryPanel";
+import { FederationPanel } from "../features/settings/FederationPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 
 const tabs = [
@@ -17,6 +18,7 @@ const tabs = [
   { to: "/settings/spaces", label: "Spaces" },
   { to: "/settings/bindings", label: "Bindings" },
   { to: "/settings/directory", label: "Directory" },
+  { to: "/settings/federation", label: "Federation" },
   { to: "/settings/reputation", label: "Reputation" },
 ] as const;
 
@@ -27,6 +29,7 @@ function panelFor(pathname: string) {
   if (pathname.includes("/spaces")) return <SpacesPanel />;
   if (pathname.includes("/bindings")) return <BindingsPanel />;
   if (pathname.includes("/directory")) return <DirectoryPanel />;
+  if (pathname.includes("/federation")) return <FederationPanel />;
   if (pathname.includes("/reputation")) return <ReputationPanel />;
   return <SessionPanel />;
 }
@@ -39,8 +42,8 @@ export function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage session, keys, identities, grants, spaces, bindings, and directory for this OHM
-          instance.
+          Manage session, keys, identities, grants, spaces, bindings, directory, and federation for
+          this OHM instance.
         </p>
       </div>
 

@@ -437,6 +437,60 @@ export const directoryFixture = [
   },
 ];
 
+export const federationStatusFixture = {
+  did: "did:key:z6MktestNode000000000000000000000000001",
+  display_name: "Test Node",
+  role: "full",
+  catalog_record_count: 2,
+  merkle_root: "abc123",
+  peer_count: 1,
+  followed_peer_count: 1,
+  sync_interval_sec: 300,
+  mdns_enabled: true,
+  background_sync_running: false,
+  manual_peers: [],
+  metrics: {
+    total_records_pulled: 0,
+    total_records_skipped: 0,
+    total_sync_runs: 0,
+    total_digest_requests_inbound: 0,
+    total_digest_requests_outbound: 0,
+    total_rate_limit_rejections: 0,
+    last_sync_at: null,
+    last_background_sync_at: null,
+    per_peer_pulled: {},
+  },
+};
+
+export const federationPeersFixture = {
+  peers: [
+    {
+      did: "did:key:z6MktestPeer000000000000000000000000001",
+      base_url: "http://peer-b:8001",
+      display_name: "Peer B",
+      source: "manual",
+      followed: true,
+      last_seen_at: "2026-01-01T00:00:00Z",
+      last_sync_at: null,
+      records_synced: 0,
+    },
+  ],
+  total: 1,
+};
+
+export const federationSyncFixture = {
+  results: [
+    {
+      peer_did: "did:key:z6MktestPeer000000000000000000000000001",
+      base_url: "http://peer-b:8001",
+      pulled: 1,
+      skipped: 0,
+      errors: [],
+    },
+  ],
+  total_pulled: 1,
+};
+
 export const provenanceFixture = {
   authored_by: [{ external_id: "name:Test Author", role: null }],
   published_by: null,
@@ -525,6 +579,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/attestations": attestationsFixture,
   "/v1/api/identity/bindings": bindingsFixture,
   "/v1/api/identity/directory": directoryFixture,
+  "/v1/api/federation/status": federationStatusFixture,
+  "/v1/api/federation/peers": federationPeersFixture,
   "/v1/api/package/list": packageListFixture,
   "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };

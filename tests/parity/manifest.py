@@ -128,7 +128,9 @@ AREAS: tuple[Area, ...] = (
         "federation",
         "federation",
         "exposed",
-        note="No federation_service module; logic lives under src/core/federation/.",
+        note="No federation_service module; logic lives under src/core/federation/. "
+        "Settings → Federation (F6) calls /api/federation.",
+        fe_api_prefixes=("/api/federation",),
     ),
     Area(
         "llm",
@@ -210,7 +212,7 @@ AREAS: tuple[Area, ...] = (
         "capability grants, space claims, edge bootstrap, attestations, domain/OAuth "
         "bindings, trust-on-follow directory, and security-policy status. See "
         "notes/federated-identity-spec.md Slices 1-8. Frontend Track F: Settings "
-        "(admin) under /settings; F3–F5 panels landed; Federation in F6.",
+        "(admin) under /settings; F3–F6 panels landed.",
         fe_routes=("/settings",),
         fe_api_prefixes=("/api/identity",),
     ),

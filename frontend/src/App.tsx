@@ -60,6 +60,7 @@ export function App() {
                 <Route path="settings/reputation" element={<AdminSettings />} />
                 <Route path="settings/bindings" element={<AdminSettings />} />
                 <Route path="settings/directory" element={<AdminSettings />} />
+                <Route path="settings/federation" element={<AdminSettings />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>

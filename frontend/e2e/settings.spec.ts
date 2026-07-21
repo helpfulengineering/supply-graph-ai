@@ -66,4 +66,11 @@ test("settings identities / grants / spaces tabs (F3)", async ({ page }, testInf
   await expect(page.getByRole("heading", { name: "Directory", exact: true })).toBeVisible();
   await expect(page.getByText("https://ohm.example.org")).toBeVisible();
   await expectNoA11yViolations(page);
+
+  await page.getByRole("link", { name: "Federation" }).click();
+  await expect(page.getByRole("heading", { name: "Node status" })).toBeVisible();
+  await expect(page.getByText("Peer B")).toBeVisible();
+  await page.getByRole("button", { name: "Sync", exact: true }).click();
+  await expect(page.getByText(/Sync finished/)).toBeVisible();
+  await expectNoA11yViolations(page);
 });

@@ -24,6 +24,9 @@ import {
   bindingsFixture,
   domainBindStartFixture,
   directoryFixture,
+  federationStatusFixture,
+  federationPeersFixture,
+  federationSyncFixture,
   provenanceFixture,
   visibilityFixture,
   packageListFixture,
@@ -142,6 +145,34 @@ export const handlers = [
   http.get("*/v1/api/identity/directory", () => HttpResponse.json(directoryFixture)),
   http.post("*/v1/api/identity/directory", () =>
     HttpResponse.json(directoryFixture[0], { status: 201 }),
+  ),
+  http.get("*/v1/api/federation/status", () =>
+    HttpResponse.json(federationStatusFixture),
+  ),
+  http.get("*/v1/api/federation/peers", () =>
+    HttpResponse.json(federationPeersFixture),
+  ),
+  http.post("*/v1/api/federation/peers/discover", () =>
+    HttpResponse.json({
+      updated: federationPeersFixture.peers,
+      peers: federationPeersFixture.peers,
+      total: federationPeersFixture.total,
+    }),
+  ),
+  http.post("*/v1/api/federation/peers/:did/follow", () =>
+    HttpResponse.json({
+      did: federationPeersFixture.peers[0]!.did,
+      followed: true,
+    }),
+  ),
+  http.delete("*/v1/api/federation/peers/:did/follow", () =>
+    HttpResponse.json({
+      did: federationPeersFixture.peers[0]!.did,
+      followed: false,
+    }),
+  ),
+  http.post("*/v1/api/federation/sync/run", () =>
+    HttpResponse.json(federationSyncFixture),
   ),
   http.post("*/v1/api/package/:org/:project/:version/pin", () =>
     HttpResponse.json({

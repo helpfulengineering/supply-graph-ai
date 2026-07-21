@@ -4,6 +4,8 @@ import {
   bindingsFixture,
   directoryFixture,
   domainBindStartFixture,
+  federationPeersFixture,
+  federationSyncFixture,
   fixturesByPath,
   pinRecordFixture,
 } from "../src/test/fixtures";
@@ -56,6 +58,32 @@ export const test = base.extend({
         }
         if (method === "POST" && pathname.endsWith("/api/identity/directory")) {
           await route.fulfill({ json: directoryFixture[0], status: 201 });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/federation/sync/run")) {
+          await route.fulfill({ json: federationSyncFixture });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/federation/peers/discover")) {
+          await route.fulfill({
+            json: {
+              updated: federationPeersFixture.peers,
+              peers: federationPeersFixture.peers,
+              total: federationPeersFixture.total,
+            },
+          });
+          return;
+        }
+        if (method === "POST" && /\/api\/federation\/peers\/.+\/follow$/.test(pathname)) {
+          await route.fulfill({
+            json: { did: federationPeersFixture.peers[0]!.did, followed: true },
+          });
+          return;
+        }
+        if (method === "DELETE" && /\/api\/federation\/peers\/.+\/follow$/.test(pathname)) {
+          await route.fulfill({
+            json: { did: federationPeersFixture.peers[0]!.did, followed: false },
+          });
           return;
         }
         if (pathname.startsWith("/v1/api/identity/reputation/")) {
