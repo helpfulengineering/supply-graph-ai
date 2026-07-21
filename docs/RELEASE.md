@@ -60,7 +60,7 @@ Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true
 
 Pushing a tag **starts** the Release workflow and publishes Docker images, but GitHub does **not** list a release until the `github-release` job runs (or you create one manually). That is why Docker Hub can show `0.8.0` while **Releases** is empty.
 
-`workflow_dispatch` with `dry_run: false` republishes Docker images only; it does **not** create a GitHub Release (no tag push).
+`workflow_dispatch` with `dry_run: false` runs the full publish path: Docker images, GitHub Release (`v` + pyproject version), and Azure deploys (subject to the `production` environment approval rules). `dry_run: true` (default) stops after validate/test/smoke.
 
 ### Retroactive release for an existing tag
 
@@ -77,8 +77,8 @@ Workflow file: `.github/workflows/release.yml`
 
 | Trigger | Behavior |
 |---------|----------|
-| Push tag `v*.*.*` | Validate → test → docker-smoke (amd64) → **publish** multi-arch to Docker Hub |
-| `workflow_dispatch` | Same pipeline; `dry_run: true` (default) skips push |
+| Push tag `v*.*.*` | Validate → test → docker-smoke → publish (API + frontend) → GitHub Release → Azure deploys |
+| `workflow_dispatch` | Same pipeline; `dry_run: true` (default) skips publish/release/deploy |
 
 ### Required secrets
 
@@ -136,7 +136,7 @@ docker buildx imagetools inspect touchthesun/openhardwaremanager:0.8
 docker pull touchthesun/openhardwaremanager:0.8   # uses host architecture
 ```
 
-To rebuild an already-published tag (e.g. add arm64 to `0.8.0`), re-run **Release** with `workflow_dispatch` and `dry_run: false` on `main` at the release commit, or push a new patch tag (`v0.8.1`).
+To rebuild an already-published tag (e.g. add arm64 to `0.8.0`), re-run **Release** with `workflow_dispatch` and `dry_run: false` on `main` at the release commit (publishes images, creates/updates the GitHub Release, and deploys), or push a new patch tag (`v0.8.1`).
 
 ## Rollback
 
