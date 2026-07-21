@@ -14,8 +14,23 @@ def test_identity_group_exposes_subcommands():
     runner = CliRunner()
     result = runner.invoke(identity_group, ["--help"])
     assert result.exit_code == 0
-    for cmd in ("whoami", "keys", "accounts", "identities", "grants"):
+    for cmd in ("whoami", "keys", "accounts", "identities", "grants", "spaces"):
         assert cmd in result.output
+
+
+def test_spaces_subgroup_commands():
+    runner = CliRunner()
+    result = runner.invoke(identity_group, ["spaces", "--help"])
+    assert result.exit_code == 0
+    for cmd in ("claim", "show", "list"):
+        assert cmd in result.output
+
+
+def test_grants_bootstrap_edge_command():
+    runner = CliRunner()
+    result = runner.invoke(identity_group, ["grants", "--help"])
+    assert result.exit_code == 0
+    assert "bootstrap-edge" in result.output
 
 
 def test_identities_subgroup_commands():

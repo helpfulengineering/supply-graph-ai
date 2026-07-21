@@ -206,9 +206,9 @@ AREAS: tuple[Area, ...] = (
         "identity",
         "aligned",
         note="AuthenticationService (service stem 'auth') exposed via the unified "
-        "'identity' API tag + CLI group — API keys, accounts, self-sovereign "
-        "identities (did:key), and capability grants. See "
-        "notes/federated-identity-spec.md Slices 1-2.",
+        "'identity' API tag + CLI group — API keys, accounts, identities (did:key), "
+        "capability grants, space claims, and edge bootstrap. See "
+        "notes/federated-identity-spec.md Slices 1-5.",
     ),
     # --- Internal services: no API and no CLI by design -------------------
     Area("cache", "cache", None, None, "internal", note="Caching internals."),

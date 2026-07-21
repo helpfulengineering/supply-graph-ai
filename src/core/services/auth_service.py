@@ -36,11 +36,13 @@ from ..models.capability import (
 )
 from ..models.identity import Identity, IdentityKind, IdentityLink
 from ..models.provenance import RecordProvenance, sign_provenance
+from ..models.space import SpaceClaim
 from ..services.storage_service import StorageService
 from ..storage.account_storage import AccountStorage
 from ..storage.auth_storage import AuthStorage
 from ..storage.grant_store import GrantStore
 from ..storage.identity_key_store import IdentityKeyStore
+from ..storage.space_claim_store import SpaceClaimStore
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +60,7 @@ class AuthenticationService:
         self._account_storage: Optional[AccountStorage] = None
         self._identity_store: Optional[IdentityKeyStore] = None
         self._grant_store: Optional[GrantStore] = None
+        self._space_claim_store: Optional[SpaceClaimStore] = None
         self._node_signing: Optional[NodeIdentity] = None
         self._initialized = False
 
@@ -79,6 +82,7 @@ class AuthenticationService:
             self._auth_storage = AuthStorage(storage_service)
             self._account_storage = AccountStorage(storage_service)
             self._grant_store = GrantStore(storage_service)
+            self._space_claim_store = SpaceClaimStore(storage_service)
             self._identity_store = IdentityKeyStore(
                 Path(settings.OHM_FEDERATION_DATA_DIR)
             )
@@ -620,16 +624,45 @@ class AuthenticationService:
         await self._grant_store.delete_grant(grant_id)
         logger.info(f"Revoked grant {grant_id}")
 
-    def _is_issuer_trusted(self, grant: CapabilityGrant) -> bool:
-        """Slice 2 trust root: local node identity, or a self-asserted issuer.
+    def _is_followed_peer(self, did: str) -> bool:
+        """True if ``did`` is on this node's federation follow allowlist."""
+        try:
+            from ..federation.store import FederationStore
 
-        Self-asserted grants (issuer == subject, e.g. isolated edge bootstrap) are
-        honored *locally* but carry no global weight until a peer endorses them.
+            if not getattr(settings, "OHM_FEDERATION_ENABLED", False):
+                return False
+            return FederationStore(Path(settings.OHM_FEDERATION_DATA_DIR)).is_followed(
+                did
+            )
+        except Exception:
+            return False
+
+    async def _is_issuer_trusted(self, grant: CapabilityGrant) -> bool:
+        """Trust roots (Slices 2 + 5): local node, self-asserted, space admin, peer.
+
+        - Local node identity — always trusted.
+        - Self-asserted (issuer == subject) — edge bootstrap; honored locally only.
+        - Claimed space admin — trusted for grants whose scope is that space.
+        - Followed peer DID — trusted as a local issuer for its cluster.
         """
         node = self._node_signing_identity()
         if node and grant.issuer_did == node.did:
             return True
-        return grant.issuer_did == grant.subject_did
+        if grant.issuer_did == grant.subject_did:
+            return True
+        if self._is_followed_peer(grant.issuer_did):
+            return True
+        if grant.scope.kind == "space":
+            claim = await self.get_space_claim(grant.scope.target)
+            if (
+                claim
+                and claim.admin_did == grant.issuer_did
+                and verify_payload(
+                    claim.space_did, claim.signing_payload(), claim.signature
+                )
+            ):
+                return True
+        return False
 
     def verify_grant(self, grant: CapabilityGrant) -> bool:
         """Offline validity: signature + time window + known scope kind.
@@ -674,7 +707,92 @@ class AuthenticationService:
                 continue
             if not self.verify_grant(grant):
                 continue
-            if not self._is_issuer_trusted(grant):
+            if not await self._is_issuer_trusted(grant):
                 continue  # untrusted issuer -> contributes nothing
             effective |= self._grant_effective_permissions(grant)
         return effective
+
+    # ------------------------------------------------------------------
+    # Space claims + edge bootstrap (Slice 5)
+    # ------------------------------------------------------------------
+
+    async def claim_space(self, space_did: str, admin_did: str) -> SpaceClaim:
+        """TOFU-claim ``space_did`` for ``admin_did`` (first claimer wins).
+
+        The space key signs the claim. Requires this node to hold the space
+        signing key and for ``space_did`` to be a SPACE identity. Domain
+        binding is out of scope for peacetime Slice 5.
+        """
+        if not self._space_claim_store or not self._identity_store:
+            raise RuntimeError("Space claim store not available")
+
+        space = self._identity_store.load_identity(space_did)
+        if not space or space.kind is not IdentityKind.SPACE:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="space_did must refer to a locally held SPACE identity",
+            )
+        admin = self._identity_store.load_identity(admin_did)
+        if not admin or admin.kind is not IdentityKind.PERSON:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="admin_did must refer to a locally held PERSON identity",
+            )
+
+        existing = await self._space_claim_store.load(space_did)
+        if existing is not None:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Space already claimed by {existing.admin_did}",
+            )
+
+        space_key = self._identity_store.load_signing_key(space_did)
+        if not space_key:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No signing key held for space; cannot claim",
+            )
+
+        claim = SpaceClaim(space_did=space_did, admin_did=admin_did)
+        claim.signature = sign_payload(space_key.private_key, claim.signing_payload())
+        await self._space_claim_store.save(claim)
+        logger.info(f"Space {space_did} claimed by admin {admin_did}")
+        return claim
+
+    async def get_space_claim(self, space_did: str) -> Optional[SpaceClaim]:
+        """Return the TOFU claim for ``space_did``, if any."""
+        if not self._space_claim_store:
+            return None
+        return await self._space_claim_store.load(space_did)
+
+    async def list_space_claims(self) -> List[SpaceClaim]:
+        """List every space claim held by this node."""
+        if not self._space_claim_store:
+            return []
+        return await self._space_claim_store.list_all()
+
+    async def bootstrap_edge_grant(
+        self,
+        subject_did: str,
+        permissions: Optional[List[str]] = None,
+        ttl_days: Optional[int] = None,
+    ) -> CapabilityGrant:
+        """Self-issue a genesis capability on the local node scope (edge bootstrap).
+
+        The subject signs its own grant (issuer == subject). Honored locally;
+        carries no global weight until a followed peer endorses the subject.
+        """
+        scope = self.local_node_scope()
+        if scope is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No local node identity; cannot bootstrap edge grant",
+            )
+        return await self.issue_grant(
+            issuer_did=subject_did,
+            subject_did=subject_did,
+            permissions=permissions or ["write"],
+            scope=scope,
+            ttl_days=ttl_days,
+            coarse_floor=["read", "write"],
+        )

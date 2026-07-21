@@ -573,3 +573,151 @@ async def grants_revoke(
         click.echo(format_llm_output(result, cli_ctx))
         return
     cli_ctx.log(f"Revoked grant {grant_id}", "success")
+
+
+@grants_group.command(name="bootstrap-edge")
+@standard_cli_command(
+    help_text="Self-issue a genesis grant on the local node (edge bootstrap).",
+    async_cmd=True,
+)
+@click.option("--subject-did", required=True, help="Subject DID (signs its own grant)")
+@click.pass_context
+async def grants_bootstrap_edge(
+    ctx: click.Context,
+    subject_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Isolated-edge bootstrap: subject self-issues write on the local node."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "POST",
+            f"/grants/bootstrap-edge?subject_did={subject_did}",
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Bootstrapped edge grant {result.get('grant_id')}", "success")
+
+
+@identity_group.group(name="spaces")
+def spaces_group() -> None:
+    """Claim and inspect space admin bindings (TOFU)."""
+    pass
+
+
+@spaces_group.command(name="claim")
+@standard_cli_command(
+    help_text="TOFU-claim a SPACE identity for a PERSON admin.", async_cmd=True
+)
+@click.option("--space-did", required=True, help="Space DID to claim")
+@click.option("--admin-did", required=True, help="Person DID who will administer it")
+@click.pass_context
+async def spaces_claim(
+    ctx: click.Context,
+    space_did: str,
+    admin_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Bind a person as admin of a space (first claimer wins)."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "POST",
+            "/spaces/claim",
+            json={"space_did": space_did, "admin_did": admin_did},
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Claimed {space_did} for admin {admin_did}", "success")
+
+
+@spaces_group.command(name="show")
+@standard_cli_command(help_text="Show the claim for a space DID.", async_cmd=True)
+@click.argument("space_did")
+@click.pass_context
+async def spaces_show(
+    ctx: click.Context,
+    space_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Show who administers a space."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", f"/spaces/{space_did}/claim")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(
+        f"Space {result.get('space_did')} admin={result.get('admin_did')}", "info"
+    )
+
+
+@spaces_group.command(name="list")
+@standard_cli_command(help_text="List space claims on this node.", async_cmd=True)
+@click.pass_context
+async def spaces_list(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List all space claims."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", "/spaces")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Space claims ({len(result)})", "success")
+    for claim in result:
+        click.echo(f"  {claim.get('space_did')}  admin={claim.get('admin_did')}")

@@ -2,8 +2,8 @@
 
 OHM's authorization is **offline-first and federation-ready**. It rests on three
 concepts with three different lifetimes. This page documents the pieces that ship
-today (self-sovereign identities, capability grants, and record provenance); space
-claim and full attestations arrive in later slices.
+today (identities, grants, provenance, visibility, and space claims); full
+attestations arrive in a later slice.
 
 | Layer | What it is | Lifetime | Bound to |
 |---|---|---|---|
@@ -138,10 +138,33 @@ request is authorized against a scope, capability grants for that DID are
 **unioned** with the key's own permissions — grants can only *add* capability, so
 existing clients keep working exactly as before. See [Authentication](../api/auth.md).
 
+## Spaces (admin claim)
+
+A **space** is an identity (`kind=space`) that persons administer and publish on
+behalf of. Claiming is **TOFU**: the first admin bind wins; the space key signs
+the claim so it is offline-verifiable. Domain binding (`did:web`) is later work.
+
+```bash
+ohm identity identities create --account-id <uuid> --kind space --name "MIT FabLab"
+ohm identity spaces claim --space-did did:key:z… --admin-did did:key:z…
+ohm identity spaces show did:key:z…
+```
+
+A claimed space admin may issue **space-scoped** grants
+(`scope.kind=space`, `scope.target=<space_did>`); those are honored at resolution.
+
 ## Trust roots today, and where this is going
 
-Single-node peacetime uses the **local node identity** as the trust root, with
-self-asserted edge bootstrap allowed locally. As federation grows, trust roots
-extend to followed peers (peer-as-issuer for its edge cluster) and the identity
-chain becomes the substrate for provenance and reputation. See
-`notes/federated-identity-adr.md` for the full roadmap.
+Grant issuers this node trusts:
+
+1. **Local node identity** — always.
+2. **Self-asserted** (`issuer == subject`) — isolated edge genesis; local only.
+3. **Claimed space admin** — for grants scoped to that space.
+4. **Followed peer DID** — peer-as-issuer for its cluster.
+
+```bash
+# Isolated edge: self-issue write on the local node
+ohm identity grants bootstrap-edge --subject-did did:key:z…
+```
+
+See `notes/federated-identity-adr.md` for the full roadmap.

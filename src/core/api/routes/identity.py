@@ -16,6 +16,7 @@ from ...models.account import Account, AccountCreate
 from ...models.auth import APIKeyCreate, APIKeyResponse, AuthenticatedUser
 from ...models.capability import CapabilityGrant, GrantIssue
 from ...models.identity import Identity, IdentityMint
+from ...models.space import SpaceClaim, SpaceClaimRequest
 from ...services.auth_service import AuthenticationService
 from ..dependencies import get_current_user, require_admin
 from ..models.base import SuccessResponse
@@ -207,3 +208,62 @@ async def revoke_grant(
 ) -> SuccessResponse:
     await svc.revoke_grant(grant_id)
     return SuccessResponse(success=True, message=f"Grant {grant_id} revoked")
+
+
+# --- Space claims + edge bootstrap (Slice 5) ---------------------------------
+
+
+@router.post(
+    "/spaces/claim",
+    response_model=SpaceClaim,
+    status_code=status.HTTP_201_CREATED,
+    summary="Claim a space (TOFU admin bind)",
+)
+async def claim_space(
+    payload: SpaceClaimRequest,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> SpaceClaim:
+    """Bind a PERSON DID as admin of a SPACE DID. First claimer wins."""
+    return await svc.claim_space(payload.space_did, payload.admin_did)
+
+
+@router.get(
+    "/spaces/{space_did}/claim",
+    response_model=SpaceClaim,
+    summary="Show a space claim",
+)
+async def show_space_claim(
+    space_did: str = Path(...),
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> SpaceClaim:
+    claim = await svc.get_space_claim(space_did)
+    if not claim:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Space claim not found"
+        )
+    return claim
+
+
+@router.get("/spaces", response_model=List[SpaceClaim], summary="List space claims")
+async def list_space_claims(
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[SpaceClaim]:
+    return await svc.list_space_claims()
+
+
+@router.post(
+    "/grants/bootstrap-edge",
+    response_model=CapabilityGrant,
+    status_code=status.HTTP_201_CREATED,
+    summary="Self-issue an edge genesis grant",
+)
+async def bootstrap_edge_grant(
+    subject_did: str = Query(..., description="Subject DID (signs its own grant)"),
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> CapabilityGrant:
+    """Isolated-edge bootstrap: subject self-issues write on the local node scope."""
+    return await svc.bootstrap_edge_grant(subject_did)
