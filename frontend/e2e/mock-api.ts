@@ -1,5 +1,12 @@
 import { test as base, expect } from "@playwright/test";
-import { attestationsFixture, fixturesByPath, pinRecordFixture } from "../src/test/fixtures";
+import {
+  attestationsFixture,
+  bindingsFixture,
+  directoryFixture,
+  domainBindStartFixture,
+  fixturesByPath,
+  pinRecordFixture,
+} from "../src/test/fixtures";
 
 /**
  * Playwright test extended so the `mocked` project auto-intercepts OHM API
@@ -27,6 +34,28 @@ export const test = base.extend({
         }
         if (method === "POST" && pathname.endsWith("/api/identity/attestations/certify")) {
           await route.fulfill({ json: attestationsFixture[0], status: 201 });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/identity/bindings/domain/verify")) {
+          await route.fulfill({
+            json: {
+              ...domainBindStartFixture.binding,
+              verified: true,
+              challenge: null,
+            },
+          });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/identity/bindings/domain")) {
+          await route.fulfill({ json: domainBindStartFixture, status: 201 });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/identity/bindings/oauth")) {
+          await route.fulfill({ json: bindingsFixture[0], status: 201 });
+          return;
+        }
+        if (method === "POST" && pathname.endsWith("/api/identity/directory")) {
+          await route.fulfill({ json: directoryFixture[0], status: 201 });
           return;
         }
         if (pathname.startsWith("/v1/api/identity/reputation/")) {

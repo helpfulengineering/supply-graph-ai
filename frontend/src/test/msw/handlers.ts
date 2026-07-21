@@ -21,6 +21,9 @@ import {
   spaceClaimsFixture,
   attestationsFixture,
   pinRecordFixture,
+  bindingsFixture,
+  domainBindStartFixture,
+  directoryFixture,
   provenanceFixture,
   visibilityFixture,
   packageListFixture,
@@ -120,6 +123,25 @@ export const handlers = [
   ),
   http.get("*/v1/api/identity/reputation/:did", () =>
     HttpResponse.json(attestationsFixture),
+  ),
+  http.get("*/v1/api/identity/bindings", () => HttpResponse.json(bindingsFixture)),
+  http.post("*/v1/api/identity/bindings/domain/verify", () =>
+    HttpResponse.json({
+      ...domainBindStartFixture.binding,
+      verified: true,
+      challenge: null,
+      verified_at: "2026-01-02T00:00:00Z",
+    }),
+  ),
+  http.post("*/v1/api/identity/bindings/domain", () =>
+    HttpResponse.json(domainBindStartFixture, { status: 201 }),
+  ),
+  http.post("*/v1/api/identity/bindings/oauth", () =>
+    HttpResponse.json(bindingsFixture[0], { status: 201 }),
+  ),
+  http.get("*/v1/api/identity/directory", () => HttpResponse.json(directoryFixture)),
+  http.post("*/v1/api/identity/directory", () =>
+    HttpResponse.json(directoryFixture[0], { status: 201 }),
   ),
   http.post("*/v1/api/package/:org/:project/:version/pin", () =>
     HttpResponse.json({

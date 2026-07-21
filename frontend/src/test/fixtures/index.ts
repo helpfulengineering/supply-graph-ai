@@ -390,6 +390,53 @@ export const pinRecordFixture = {
   note: null,
 };
 
+export const domainBindStartFixture = {
+  binding: {
+    binding_id: "00000000-0000-0000-0000-0000000000b1",
+    subject_did: identityFixture.did,
+    kind: "domain",
+    external_id: "domain:example.org",
+    evidence: { domain: "example.org" },
+    challenge: "test-challenge-token",
+    verified: false,
+    verified_at: null,
+    created_at: "2026-01-01T00:00:00Z",
+    signature: "sig",
+  },
+  well_known_url: "https://example.org/.well-known/ohm-did.json",
+  well_known_document: {
+    did: identityFixture.did,
+    challenge: "test-challenge-token",
+    method: "ohm-domain-bind-v1",
+  },
+};
+
+export const bindingsFixture = [
+  {
+    binding_id: "00000000-0000-0000-0000-0000000000b2",
+    subject_did: identityFixture.did,
+    kind: "oauth",
+    external_id: "oauth:github:octocat",
+    evidence: {},
+    challenge: null,
+    verified: true,
+    verified_at: "2026-01-01T00:00:00Z",
+    created_at: "2026-01-01T00:00:00Z",
+    signature: "sig2",
+  },
+];
+
+export const directoryFixture = [
+  {
+    did: identityFixture.did,
+    display_name: "Local admin",
+    base_url: "https://ohm.example.org",
+    domain: "example.org",
+    verified_bindings: ["domain:example.org"],
+    updated_at: "2026-01-01T00:00:00Z",
+  },
+];
+
 export const provenanceFixture = {
   authored_by: [{ external_id: "name:Test Author", role: null }],
   published_by: null,
@@ -476,6 +523,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/spaces": spaceClaimsFixture,
   "/v1/api/identity/grants": grantsFixture,
   "/v1/api/identity/attestations": attestationsFixture,
+  "/v1/api/identity/bindings": bindingsFixture,
+  "/v1/api/identity/directory": directoryFixture,
   "/v1/api/package/list": packageListFixture,
   "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };

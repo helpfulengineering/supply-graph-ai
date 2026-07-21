@@ -49,4 +49,21 @@ test("settings identities / grants / spaces tabs (F3)", async ({ page }, testInf
   await expect(page.getByText("domain_bound")).toBeVisible();
   await expect(page.getByText("vouch")).toBeVisible();
   await expectNoA11yViolations(page);
+
+  await page.getByRole("link", { name: "Bindings" }).click();
+  await expect(page.getByRole("heading", { name: "Domain bind" })).toBeVisible();
+  await expect(page.getByText("oauth:github:octocat")).toBeVisible();
+  await page.getByLabel("Subject DID").first().fill(
+    "did:key:z6MktestPerson0000000000000000000000001",
+  );
+  await page.getByRole("textbox", { name: "Domain" }).fill("example.org");
+  await page.getByRole("button", { name: "Start" }).click();
+  await expect(page.getByText("https://example.org/.well-known/ohm-did.json")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy JSON" })).toBeVisible();
+  await expectNoA11yViolations(page);
+
+  await page.getByRole("link", { name: "Directory" }).click();
+  await expect(page.getByRole("heading", { name: "Directory", exact: true })).toBeVisible();
+  await expect(page.getByText("https://ohm.example.org")).toBeVisible();
+  await expectNoA11yViolations(page);
 });

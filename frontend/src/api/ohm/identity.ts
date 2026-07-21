@@ -309,3 +309,86 @@ export async function listReputation(subjectDid: string): Promise<Attestation[]>
     `/api/identity/reputation/${encodeURIComponent(subjectDid)}`,
   );
 }
+
+/** Identity binding (domain / oauth) — not yet in committed OpenAPI. */
+export interface IdentityBinding {
+  binding_id: string;
+  subject_did: string;
+  kind: string;
+  external_id: string;
+  evidence?: Record<string, unknown>;
+  challenge?: string | null;
+  verified: boolean;
+  verified_at?: string | null;
+  created_at?: string;
+  signature?: string;
+}
+
+export interface DomainBindStartResponse {
+  binding: IdentityBinding;
+  well_known_url: string;
+  well_known_document: Record<string, unknown>;
+}
+
+export interface DirectoryEntry {
+  did: string;
+  display_name?: string;
+  base_url?: string | null;
+  domain?: string | null;
+  verified_bindings?: string[];
+  updated_at?: string;
+}
+
+export async function startDomainBinding(
+  subjectDid: string,
+  domain: string,
+): Promise<DomainBindStartResponse> {
+  return identityFetch<DomainBindStartResponse>("/api/identity/bindings/domain", {
+    method: "POST",
+    body: JSON.stringify({ subject_did: subjectDid, domain }),
+  });
+}
+
+export async function verifyDomainBinding(
+  subjectDid: string,
+  domain: string,
+): Promise<IdentityBinding> {
+  return identityFetch<IdentityBinding>("/api/identity/bindings/domain/verify", {
+    method: "POST",
+    body: JSON.stringify({ subject_did: subjectDid, domain }),
+  });
+}
+
+export async function bindOAuth(body: {
+  subject_did: string;
+  provider: string;
+  external_subject: string;
+}): Promise<IdentityBinding> {
+  return identityFetch<IdentityBinding>("/api/identity/bindings/oauth", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function listBindings(subjectDid?: string): Promise<IdentityBinding[]> {
+  const q = subjectDid
+    ? `?${new URLSearchParams({ subject_did: subjectDid })}`
+    : "";
+  return identityFetch<IdentityBinding[]>(`/api/identity/bindings${q}`);
+}
+
+export async function listDirectory(): Promise<DirectoryEntry[]> {
+  return identityFetch<DirectoryEntry[]>("/api/identity/directory");
+}
+
+export async function publishDirectoryEntry(body: {
+  did: string;
+  display_name?: string;
+  base_url?: string | null;
+  domain?: string | null;
+}): Promise<DirectoryEntry> {
+  return identityFetch<DirectoryEntry>("/api/identity/directory", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}

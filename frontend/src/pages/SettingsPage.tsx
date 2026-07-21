@@ -5,6 +5,8 @@ import { IdentitiesPanel } from "../features/settings/IdentitiesPanel";
 import { GrantsPanel } from "../features/settings/GrantsPanel";
 import { SpacesPanel } from "../features/settings/SpacesPanel";
 import { ReputationPanel } from "../features/settings/ReputationPanel";
+import { BindingsPanel } from "../features/settings/BindingsPanel";
+import { DirectoryPanel } from "../features/settings/DirectoryPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 
 const tabs = [
@@ -13,6 +15,8 @@ const tabs = [
   { to: "/settings/identities", label: "Identities" },
   { to: "/settings/grants", label: "Grants" },
   { to: "/settings/spaces", label: "Spaces" },
+  { to: "/settings/bindings", label: "Bindings" },
+  { to: "/settings/directory", label: "Directory" },
   { to: "/settings/reputation", label: "Reputation" },
 ] as const;
 
@@ -21,6 +25,8 @@ function panelFor(pathname: string) {
   if (pathname.includes("/identities")) return <IdentitiesPanel />;
   if (pathname.includes("/grants")) return <GrantsPanel />;
   if (pathname.includes("/spaces")) return <SpacesPanel />;
+  if (pathname.includes("/bindings")) return <BindingsPanel />;
+  if (pathname.includes("/directory")) return <DirectoryPanel />;
   if (pathname.includes("/reputation")) return <ReputationPanel />;
   return <SessionPanel />;
 }
@@ -33,7 +39,7 @@ export function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage API session, keys, identities, grants, spaces, and reputation for this OHM
+          Manage session, keys, identities, grants, spaces, bindings, and directory for this OHM
           instance.
         </p>
       </div>
