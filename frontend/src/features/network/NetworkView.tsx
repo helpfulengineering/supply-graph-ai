@@ -95,9 +95,12 @@ export function NetworkView() {
           </p>
         </div>
         <Button
-          disabled={!hasWrite}
-          title={hasWrite ? undefined : "Requires a write-capable API key"}
-          onClick={() => navigate("/facilities/new")}
+          title={
+            hasWrite
+              ? undefined
+              : "Connect a write-capable API key first (opens Session)"
+          }
+          onClick={() => navigate(hasWrite ? "/facilities/new" : "/settings/session")}
         >
           New facility
         </Button>

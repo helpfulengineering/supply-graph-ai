@@ -9,9 +9,11 @@ import { BindingsPanel } from "../features/settings/BindingsPanel";
 import { DirectoryPanel } from "../features/settings/DirectoryPanel";
 import { FederationPanel } from "../features/settings/FederationPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
+import { useAuth } from "../context/AuthContext";
 
-const tabs = [
-  { to: "/settings/session", label: "Session" },
+const sessionTab = { to: "/settings/session", label: "Session" } as const;
+
+const adminTabs = [
   { to: "/settings/keys", label: "Keys & accounts" },
   { to: "/settings/identities", label: "Identities" },
   { to: "/settings/grants", label: "Grants" },
@@ -36,14 +38,17 @@ function panelFor(pathname: string) {
 
 export function SettingsPage() {
   const { pathname } = useLocation();
+  const { isAdmin } = useAuth();
+  const tabs = isAdmin ? [sessionTab, ...adminTabs] : [sessionTab];
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage session, keys, identities, grants, spaces, bindings, directory, and federation for
-          this OHM instance.
+          {isAdmin
+            ? "Manage session, keys, identities, grants, spaces, bindings, directory, and federation for this OHM instance."
+            : "Paste an API key to authenticate this browser tab. Admin tabs appear after whoami reports admin."}
         </p>
       </div>
 

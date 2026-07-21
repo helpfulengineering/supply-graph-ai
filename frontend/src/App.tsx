@@ -52,7 +52,8 @@ export function App() {
                 <Route path="packages/:org/:project/:version" element={<PackagePage />} />
                 <Route path="packages" element={<PackagePage />} />
                 <Route path="settings" element={<Navigate to="/settings/session" replace />} />
-                <Route path="settings/session" element={<AdminSettings />} />
+                {/* Session is reachable without admin so operators can paste a first API key. */}
+                <Route path="settings/session" element={<SettingsPage />} />
                 <Route path="settings/keys" element={<AdminSettings />} />
                 <Route path="settings/identities" element={<AdminSettings />} />
                 <Route path="settings/grants" element={<AdminSettings />} />

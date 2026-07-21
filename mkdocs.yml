@@ -65,6 +65,12 @@ nav:
       - System Diagram: architecture/system-diagram.md
       - Data Flow: architecture/data-flow-diagram.md
       - Workflow Generation: architecture/workflow-generation.md
+  - Authentication & IAM:
+    - Overview: auth/index.md
+    - Getting Started: auth/getting-started.md
+    - Accounts & API Keys: auth/accounts-and-keys.md
+    - Identities & Grants: auth/identities-and-grants.md
+    - Frontend Settings: auth/frontend.md
   - API:
     - Overview: api/index.md
     - Authentication: api/auth.md

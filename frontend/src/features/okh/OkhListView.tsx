@@ -151,9 +151,12 @@ export function OkhListView() {
           </p>
         </div>
         <Button
-          disabled={!hasWrite}
-          title={hasWrite ? undefined : "Requires a write-capable API key"}
-          onClick={() => navigate("/okh/new")}
+          title={
+            hasWrite
+              ? undefined
+              : "Connect a write-capable API key first (opens Session)"
+          }
+          onClick={() => navigate(hasWrite ? "/okh/new" : "/settings/session")}
         >
           New design
         </Button>

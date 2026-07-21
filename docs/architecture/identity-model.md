@@ -1,5 +1,11 @@
 # Identity Model
 
+!!! tip "Operator how-to"
+    For bootstrap, accounts, keys, and the Settings UI, see
+    **[Authentication & IAM](../auth/index.md)**. This page documents the trust
+    model and the pieces that ship today (identities, grants, provenance,
+    visibility, space claims, and attestations).
+
 OHM's authorization is **offline-first and federation-ready**. It rests on three
 concepts with three different lifetimes. This page documents the pieces that ship
 today (identities, grants, provenance, visibility, space claims, and attestations).

@@ -1,5 +1,11 @@
 # Authentication
 
+!!! tip "Operator guide"
+    For setup and day-to-day use (bootstrap `API_KEYS`, accounts, storage keys,
+    DID minting, Settings UI), start with
+    **[Authentication & IAM](../auth/index.md)**. This page remains the API- and
+    developer-oriented reference.
+
 The OHM API uses Bearer token authentication via the `Authorization` header. This page describes how to authenticate with the API and manage API keys.
 
 ## Header Format

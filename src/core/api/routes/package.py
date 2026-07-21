@@ -350,11 +350,12 @@ async def build_package_from_storage(
             manifest_id, options
         )
 
+        # response_model is Dict — return a plain dict, not a SuccessResponse model
         return create_success_response(
             message="Package built successfully",
             data={"metadata": metadata.to_dict()},
             request_id=None,
-        )
+        ).model_dump(mode="json")
 
     except ValueError as e:
         # Use standardized error handler

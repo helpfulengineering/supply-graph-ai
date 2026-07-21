@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-/** Banner for 401/403 failures — points admins at Settings. */
+/** Banner for 401/403 failures — points at Session to paste a key. */
 export function AuthBanner() {
-  const { authFailure, clearAuthFailure, isAdmin } = useAuth();
+  const { authFailure, clearAuthFailure } = useAuth();
   if (!authFailure) return null;
 
   return (
@@ -13,15 +13,10 @@ export function AuthBanner() {
     >
       <div className="mx-auto flex max-w-7xl items-start justify-between gap-4">
         <p>
-          {authFailure}
-          {isAdmin && (
-            <>
-              {" "}
-              <Link to="/settings/session" className="font-medium underline">
-                Open Settings
-              </Link>
-            </>
-          )}
+          {authFailure}{" "}
+          <Link to="/settings/session" className="font-medium underline">
+            Open Session
+          </Link>
         </p>
         <button
           type="button"
