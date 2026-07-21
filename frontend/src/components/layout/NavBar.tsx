@@ -7,11 +7,12 @@ import { refreshLowVolatilityData } from "../../queryClient";
 const navItems = [
   { to: "/okh", label: "Designs", icon: "🔩" },
   { to: "/facilities", label: "Facilities", icon: "🏭" },
+  { to: "/packages", label: "Packages", icon: "📦" },
   { to: "/match", label: "Match", icon: "⚡" },
   // Saved solutions are per-search, user-specific, and go stale fast — a supply
   // tree is reached directly from its match (and can be downloaded), so there is
   // no browse list. Revisit as user-scoped history once auth lands.
-  // RFQ stays dormant in v1 nav; Packages promoted in F2b.
+  // RFQ stays dormant in v1 nav.
 ] as const;
 
 export function NavBar() {

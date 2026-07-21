@@ -18,6 +18,8 @@ import {
   accountsFixture,
   provenanceFixture,
   visibilityFixture,
+  packageListFixture,
+  packageMetadataFixture,
 } from "../fixtures";
 
 // MSW handlers for vitest (node) unit/component tests. These mirror the
@@ -81,4 +83,8 @@ export const handlers = [
   ),
   http.get("*/v1/api/identity/keys", () => HttpResponse.json(apiKeysFixture)),
   http.get("*/v1/api/identity/accounts", () => HttpResponse.json(accountsFixture)),
+  http.get("*/v1/api/package/list", () => HttpResponse.json(packageListFixture)),
+  http.get("*/v1/api/package/:org/:project/:version", () =>
+    HttpResponse.json(packageMetadataFixture),
+  ),
 ];

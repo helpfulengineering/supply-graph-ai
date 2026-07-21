@@ -49,6 +49,7 @@ export function App() {
                 <Route path="visualization" element={<Navigate to="/" replace />} />
                 <Route path="visualization/:solutionId" element={<VisualizationPage />} />
                 <Route path="rfq" element={<RfqPage />} />
+                <Route path="packages/:org/:project/:version" element={<PackagePage />} />
                 <Route path="packages" element={<PackagePage />} />
                 <Route path="settings" element={<Navigate to="/settings/session" replace />} />
                 <Route path="settings/session" element={<AdminSettings />} />

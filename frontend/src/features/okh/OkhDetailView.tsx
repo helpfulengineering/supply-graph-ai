@@ -11,6 +11,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
 import { OkhFileGroup } from "./OkhFileGroup";
 import { BuildPackageButton } from "../package/BuildPackageButton";
+import { ReleasesStrip } from "../package/ReleasesStrip";
 import { AuthorshipPanel } from "./AuthorshipPanel";
 import { VisibilityControl } from "./VisibilityControl";
 import type { OkhManifest } from "../../types/okh";
@@ -217,6 +218,7 @@ export function OkhDetailView({ id }: Props) {
 
           <AuthorshipPanel kind="okh" id={id} />
           <VisibilityControl kind="okh" id={id} />
+          <ReleasesStrip okhId={id} />
 
           {(okh.license?.hardware || okh.license?.documentation || okh.license?.software) && (
             <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">

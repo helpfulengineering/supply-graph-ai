@@ -315,6 +315,53 @@ export const visibilityFixture = {
   visibility: "private",
 };
 
+export const packageListFixture = {
+  status: "success",
+  message: "ok",
+  timestamp: "2026-01-01T00:00:00Z",
+  request_id: "test",
+  pagination: {
+    page: 1,
+    page_size: 50,
+    total_items: 2,
+    total_pages: 1,
+    has_next: false,
+    has_previous: false,
+  },
+  items: [
+    {
+      package_name: "demo/widget",
+      version: "1.0.0",
+      okh_manifest_id: "okh-0001",
+      build_timestamp: "2026-01-01T00:00:00Z",
+      total_files: 3,
+      total_size_bytes: 1024,
+      build_options: {},
+      package_path: "/tmp/packages/demo/widget/1.0.0",
+    },
+    {
+      package_name: "demo/widget",
+      version: "1.1.0",
+      okh_manifest_id: "okh-0001",
+      build_timestamp: "2026-02-01T00:00:00Z",
+      total_files: 4,
+      total_size_bytes: 2048,
+      build_options: {},
+      package_path: "/tmp/packages/demo/widget/1.1.0",
+    },
+  ],
+};
+
+export const packageMetadataFixture = {
+  status: "success",
+  message: "ok",
+  timestamp: "2026-01-01T00:00:00Z",
+  request_id: "test",
+  data: {
+    metadata: packageListFixture.items[0],
+  },
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
@@ -338,4 +385,6 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/security-policy": securityPolicyFixture,
   "/v1/api/identity/keys": apiKeysFixture,
   "/v1/api/identity/accounts": accountsFixture,
+  "/v1/api/package/list": packageListFixture,
+  "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };
