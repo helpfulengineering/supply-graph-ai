@@ -447,6 +447,157 @@ async def provenance(
         raise
 
 
+@okh_group.command("create")
+@click.argument("manifest_file", type=click.Path(exists=True))
+@click.option(
+    "--author",
+    default=None,
+    help="Author DID or claimable external id (e.g. orcid:…); defaults to caller",
+)
+@click.option(
+    "--on-behalf-of",
+    "on_behalf_of",
+    default=None,
+    help="Space DID this manifest is published on behalf of",
+)
+@standard_cli_command(
+    help_text="Create and store an OKH manifest from a JSON/YAML file.",
+    epilog="""
+    Examples:
+      ohm okh create my-design.okh.json
+      ohm okh create my-design.okh.json --author did:key:z… --on-behalf-of did:key:z…
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def create(
+    ctx,
+    manifest_file: str,
+    author: Optional[str],
+    on_behalf_of: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Create an OKH manifest from a file, with optional provenance capture."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-create")
+    try:
+        manifest_data = await _read_manifest_file(manifest_file)
+        params = {}
+        if author:
+            params["author"] = author
+        if on_behalf_of:
+            params["on_behalf_of"] = on_behalf_of
+        response = await cli_ctx.api_client.request(
+            "POST",
+            "/api/okh/create",
+            json_data={"content": manifest_data},
+            params=params or None,
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Create failed: {str(e)}", "error")
+        raise
+
+
+@okh_group.group(name="visibility")
+def visibility_group():
+    """Get or set how far a manifest may leave this node."""
+    pass
+
+
+@visibility_group.command("show")
+@click.argument("manifest_id", type=str)
+@standard_cli_command(
+    help_text="Show the share visibility of an OKH manifest.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def visibility_show(
+    ctx,
+    manifest_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Show visibility for an OKH manifest."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-visibility-show")
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/okh/{manifest_id}/visibility"
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Visibility lookup failed: {str(e)}", "error")
+        raise
+
+
+@visibility_group.command("set")
+@click.argument("manifest_id", type=str)
+@click.argument(
+    "level", type=click.Choice(["private", "followers", "public"], case_sensitive=False)
+)
+@standard_cli_command(
+    help_text="Set share visibility: private (local only), followers, or public.",
+    epilog="""
+    Examples:
+      ohm okh visibility set 123e4567-… public
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def visibility_set(
+    ctx,
+    manifest_id: str,
+    level: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    """Set visibility for an OKH manifest."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-visibility-set")
+    try:
+        response = await cli_ctx.api_client.request(
+            "PUT",
+            f"/api/okh/{manifest_id}/visibility",
+            json_data={"visibility": level.lower()},
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Visibility update failed: {str(e)}", "error")
+        raise
+
+
 @okh_group.command("download-file")
 @click.argument("manifest_id", type=str)
 @click.argument("file_path", type=str)

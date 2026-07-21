@@ -16,7 +16,13 @@ from ..generation.platforms.gitlab import GitLabExtractor
 from ..generation.url_router import URLRouter
 from ..models.okh import OKHManifest, ProcessRequirement
 from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..models.visibility import (
+    DEFAULT_VISIBILITY,
+    LEGACY_VISIBILITY,
+    VisibilityLevel,
+)
 from ..storage.provenance_store import ProvenanceStore
+from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import (
     FileInfo,
     SmartFileDiscovery,
@@ -102,7 +108,10 @@ class OKHService(BaseService["OKHService"]):
             created_by: Optional account id to attribute the record to; persisted
                 alongside the manifest JSON (see federated-identity Slice 1).
             provenance: Optional record-level authorship/publication provenance
-                (federated-identity Slice 3), stamped under ``ohm_provenance``.
+                (federated-identity Slice 3).
+
+        New records stamp ``private`` visibility (Slice 4); promote with
+        :meth:`set_visibility` to share via the federation catalog.
 
         Returns:
             The created ``OKHManifest`` instance (with generated id if applicable).
@@ -140,9 +149,13 @@ class OKHService(BaseService["OKHService"]):
                 )
                 self.logger.info(f"Saved OKH manifest to {filename}")
 
-                # Provenance lives in its own plane (out of the content hash).
+                # Provenance + visibility live in their own planes (out of the
+                # content hash). Visibility defaults to private — opt-in to share.
                 if provenance is not None:
                     await self._provenance_store().save(str(manifest.id), provenance)
+                await self._visibility_store().save(
+                    str(manifest.id), DEFAULT_VISIBILITY
+                )
 
             return manifest
 
@@ -150,12 +163,40 @@ class OKHService(BaseService["OKHService"]):
         """Lazily build the provenance store over the configured storage."""
         return ProvenanceStore(self.storage)
 
+    def _visibility_store(self) -> VisibilityStore:
+        """Lazily build the visibility store over the configured storage."""
+        return VisibilityStore(self.storage)
+
     async def get_provenance(self, manifest_id: UUID) -> Optional[RecordProvenance]:
         """Return the stored provenance for a manifest, or None."""
         await self.ensure_initialized()
         if not self.storage or not self.storage.manager:
             return None
         return await self._provenance_store().load(str(manifest_id))
+
+    async def get_visibility(self, manifest_id: UUID) -> VisibilityLevel:
+        """Return visibility for a manifest.
+
+        Missing (pre-Slice-4) records resolve to ``followers`` so they keep
+        appearing in the catalog; new creates stamp ``private`` explicitly.
+        """
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return LEGACY_VISIBILITY
+        loaded = await self._visibility_store().load(str(manifest_id))
+        return loaded if loaded is not None else LEGACY_VISIBILITY
+
+    async def set_visibility(
+        self, manifest_id: UUID, level: VisibilityLevel
+    ) -> VisibilityLevel:
+        """Set share policy for a manifest. Record must already exist."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(manifest_id) is None:
+            raise LookupError(f"OKH manifest {manifest_id} not found")
+        await self._visibility_store().save(str(manifest_id), level)
+        return level
 
     async def get(self, manifest_id: UUID) -> Optional[OKHManifest]:
         """Scan discovered ``okh/`` objects and return the first manifest whose id matches.

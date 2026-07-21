@@ -154,9 +154,12 @@ async def test_provenance_survives_catalog_to_ingest_round_trip(tmp_path) -> Non
     manifest.to_dict.return_value = dict(MINIMAL_MANIFEST)
 
     # Node A publishes the design it holds provenance for.
+    from src.core.models.visibility import VisibilityLevel
+
     okh_a = AsyncMock()
     okh_a.list.return_value = ([manifest], 1)
     okh_a.get_provenance.return_value = prov
+    okh_a.get_visibility.return_value = VisibilityLevel.PUBLIC
     index = await build_catalog_index(okh_a, node_a)
     signed = index.get_signed_record(index.records[0].content_hash)
 

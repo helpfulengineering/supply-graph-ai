@@ -48,6 +48,7 @@ from ..decorators import (
 from ..dependencies import created_by, require_write, resolve_provenance
 from ...models.auth import AuthenticatedUser
 from ...models.provenance import RecordProvenance
+from ...models.visibility import VisibilityBody, VisibilityResponse
 from ..error_handlers import create_error_response
 from ..okh_file_urls import api_base_from_request, enrich_manifest_file_urls
 
@@ -273,6 +274,46 @@ async def get_okh_provenance(
             detail="No provenance recorded for this manifest",
         )
     return provenance
+
+
+@router.get(
+    "/{id}/visibility",
+    response_model=VisibilityResponse,
+    summary="Get OKH manifest visibility",
+)
+async def get_okh_visibility(
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    okh_service: OKHService = Depends(get_okh_service),
+) -> Any:
+    if await okh_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    level = await okh_service.get_visibility(id)
+    return VisibilityResponse(id=id, visibility=level)
+
+
+@router.put(
+    "/{id}/visibility",
+    response_model=VisibilityResponse,
+    summary="Set OKH manifest visibility",
+    description="Set share policy: private (local only), followers, or public.",
+)
+async def set_okh_visibility(
+    body: VisibilityBody,
+    id: UUID = Path(..., title="The ID of the OKH manifest"),
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    try:
+        level = await okh_service.set_visibility(id, body.visibility)
+    except LookupError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKH manifest with ID {id} not found",
+        )
+    return VisibilityResponse(id=id, visibility=level)
 
 
 @router.delete(
@@ -783,6 +824,12 @@ async def extract_requirements(
 )
 async def create_okh_manifest(
     request: OKHValidateRequest,
+    author: Optional[str] = Query(
+        None, description="Author DID or claimable external id (defaults to caller)"
+    ),
+    on_behalf_of: Optional[str] = Query(
+        None, description="Space DID this manifest is published on behalf of"
+    ),
     okh_service: OKHService = Depends(get_okh_service),
     http_request: Request = None,
     user: Optional[AuthenticatedUser] = Depends(require_write),
@@ -803,8 +850,11 @@ async def create_okh_manifest(
                 detail=f"OKH validation failed: {str(e)}",
             )
 
+        provenance = await resolve_provenance(user, author, on_behalf_of)
         result = await okh_service.create(
-            okh_manifest.to_dict(), created_by=created_by(user)
+            okh_manifest.to_dict(),
+            created_by=created_by(user),
+            provenance=provenance,
         )
         result_dict = result.to_dict()
         okh_response = OKHResponse(**result_dict)

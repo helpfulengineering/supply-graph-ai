@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import TYPE_CHECKING, Any
 
+from ..models.visibility import is_shareable
 from .identity import NodeIdentity, canonical_json_bytes
 from .merkle import merkle_root
 from .models import CatalogRecord, SignedManifestRecord, utc_now
@@ -62,12 +63,20 @@ async def build_catalog_index(
     *,
     page_size: int = 10_000,
 ) -> CatalogIndex:
-    """List OKH manifests from storage and build signed catalog entries."""
-    manifests, total = await okh_service.list(page=1, page_size=page_size)
+    """List OKH manifests from storage and build signed catalog entries.
+
+    Only records with shareable visibility (``followers`` / ``public``) are
+    included — ``private`` (the create default) never leaves the node.
+    """
+    manifests, _total = await okh_service.list(page=1, page_size=page_size)
     records: list[CatalogRecord] = []
     signed_by_hash: dict[str, SignedManifestRecord] = {}
 
     for manifest in manifests:
+        visibility = await okh_service.get_visibility(manifest.id)
+        if not is_shareable(visibility):
+            continue
+
         manifest_dict = manifest.to_dict()
         content_hash = manifest_content_hash(manifest_dict)
         # Provenance rides the catalog record (its own plane), so it is signed by
@@ -98,5 +107,5 @@ async def build_catalog_index(
         records=records,
         signed_by_hash=signed_by_hash,
         merkle_root=root,
-        record_count=total,
+        record_count=len(records),
     )

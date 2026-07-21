@@ -20,6 +20,7 @@ from fastapi import (
 from ...models.auth import AuthenticatedUser
 from ...models.okw import ManufacturingFacility
 from ...models.provenance import RecordProvenance
+from ...models.visibility import VisibilityBody, VisibilityResponse
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
 from ...utils.logging import get_logger
@@ -1122,6 +1123,46 @@ async def get_okw_provenance(
             detail="No provenance recorded for this facility",
         )
     return provenance
+
+
+@router.get(
+    "/{id}/visibility",
+    response_model=VisibilityResponse,
+    summary="Get OKW facility visibility",
+)
+async def get_okw_visibility(
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    if await okw_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    level = await okw_service.get_visibility(id)
+    return VisibilityResponse(id=id, visibility=level)
+
+
+@router.put(
+    "/{id}/visibility",
+    response_model=VisibilityResponse,
+    summary="Set OKW facility visibility",
+    description="Set share policy: private (local only), followers, or public.",
+)
+async def set_okw_visibility(
+    body: VisibilityBody,
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    try:
+        level = await okw_service.set_visibility(id, body.visibility)
+    except LookupError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    return VisibilityResponse(id=id, visibility=level)
 
 
 @router.post(

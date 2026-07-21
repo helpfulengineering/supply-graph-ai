@@ -14,6 +14,7 @@ from src.core.federation.catalog import (
     manifest_content_hash,
 )
 from src.core.federation.identity import canonical_json_bytes, generate_identity
+from src.core.models.visibility import VisibilityLevel
 
 MINIMAL_MANIFEST = {
     "okhv": "1.0",
@@ -60,6 +61,7 @@ async def test_build_catalog_index_from_manifests() -> None:
     okh_service = AsyncMock()
     okh_service.list.return_value = ([manifest], 1)
     okh_service.get_provenance.return_value = None
+    okh_service.get_visibility.return_value = VisibilityLevel.PUBLIC
 
     index: CatalogIndex = await build_catalog_index(okh_service, identity)
 
@@ -74,6 +76,41 @@ async def test_build_catalog_index_from_manifests() -> None:
         bytes.fromhex(record.signature),
     )
     assert index.get_signed_record(record.content_hash) is not None
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_build_catalog_index_excludes_private_records() -> None:
+    identity = generate_identity("Catalog Filter")
+    private = MagicMock()
+    private.id = UUID("340b030e-e3c6-4869-b947-4a24c52daaf1")
+    private.title = "Secret"
+    private.version = "1.0.0"
+    private.version_date = None
+    private.to_dict.return_value = dict(MINIMAL_MANIFEST)
+
+    public = MagicMock()
+    public.id = UUID("aaaaaaaa-e3c6-4869-b947-4a24c52daaf1")
+    public.title = "Shared"
+    public.version = "1.0.0"
+    public.version_date = None
+    public_manifest = dict(MINIMAL_MANIFEST)
+    public_manifest["id"] = str(public.id)
+    public_manifest["title"] = "Shared"
+    public.to_dict.return_value = public_manifest
+
+    okh_service = AsyncMock()
+    okh_service.list.return_value = ([private, public], 2)
+    okh_service.get_provenance.return_value = None
+
+    async def _visibility(mid):
+        return VisibilityLevel.PRIVATE if mid == private.id else VisibilityLevel.PUBLIC
+
+    okh_service.get_visibility.side_effect = _visibility
+
+    index = await build_catalog_index(okh_service, identity)
+    assert index.record_count == 1
+    assert index.records[0].title == "Shared"
 
 
 @pytest.mark.unit
@@ -99,6 +136,7 @@ async def test_build_catalog_index_attaches_and_signs_provenance() -> None:
     okh_service = AsyncMock()
     okh_service.list.return_value = ([manifest], 1)
     okh_service.get_provenance.return_value = prov
+    okh_service.get_visibility.return_value = VisibilityLevel.FOLLOWERS
 
     index = await build_catalog_index(okh_service, node)
     record = index.records[0]

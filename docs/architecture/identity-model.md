@@ -95,7 +95,8 @@ and `--on-behalf-of` override the defaults. Read it back per record:
 
 ```bash
 # create attributes to the caller by default; override with flags
-curl -X POST "$OHM/api/okh/create?on_behalf_of=did:key:z<space>" -d @manifest.json
+ohm okh create my-design.okh.json --author did:key:z… --on-behalf-of did:key:z…
+ohm okw create my-lab.okw.json --author orcid:0000-0001-…
 
 ohm okh provenance <manifest_id>
 ohm okw provenance <facility_id>
@@ -107,6 +108,27 @@ author's signature when the claim is signed — a *signed-but-invalid* claim is
 rejected, an unsigned claim is relayed as an unverified assertion — then re-stamps
 it into its own provenance plane. So a design authored by user U at node A shows U
 as author after syncing to node B.
+
+## Record visibility (share policy)
+
+Where provenance answers *"who made this?"*, **visibility** answers *"how far may
+it leave this node?"* — local publishing policy, also in its own store (out of the
+content hash). It is **not** federated: a receiving node decides what to re-share.
+
+| Level | In federation catalog? |
+|---|---|
+| `private` | No (create default) |
+| `followers` | Yes (peers that sync from this node) |
+| `public` | Yes (same catalog filter today; reserved for registry listing later) |
+
+Pre-Slice-4 records with no visibility object are treated as `followers` so existing
+catalogs do not empty. New creates stamp `private` — promote explicitly to share:
+
+```bash
+ohm okh visibility set <manifest_id> public
+ohm okh visibility show <manifest_id>
+ohm okw visibility set <facility_id> followers
+```
 
 ## Relationship to API keys
 

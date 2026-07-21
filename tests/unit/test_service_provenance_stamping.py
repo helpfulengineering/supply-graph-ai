@@ -80,6 +80,10 @@ async def test_okh_create_persists_provenance_to_store_not_manifest():
     assert manifest[OHM_CREATED_BY_KEY] == "acct-1"
     assert "ohm_provenance" not in manifest
 
+    # New creates stamp private visibility (Slice 4).
+    vis_key = f"visibility/{MINIMAL_OKH['id']}.json"
+    assert _load(manager, vis_key)["visibility"] == "private"
+
 
 @pytest.mark.asyncio
 async def test_okh_create_without_provenance_writes_no_provenance_object():
@@ -87,6 +91,7 @@ async def test_okh_create_without_provenance_writes_no_provenance_object():
     manager = _stub_service(svc)
     await svc.create(dict(MINIMAL_OKH), created_by="acct-1")
     assert not any(k.startswith("provenance/") for k in manager.written)
+    assert any(k.startswith("visibility/") for k in manager.written)
 
 
 @pytest.mark.asyncio
