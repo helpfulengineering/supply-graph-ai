@@ -101,8 +101,12 @@ ohm okh provenance <manifest_id>
 ohm okw provenance <facility_id>
 ```
 
-Federation propagation (provenance riding the signed catalog record to peers) is
-the next slice; today provenance is captured and read **locally**.
+**Across federation**, provenance rides the **node-signed catalog record** (not
+the manifest, so it never enters the content hash). On ingest a peer verifies the
+author's signature when the claim is signed — a *signed-but-invalid* claim is
+rejected, an unsigned claim is relayed as an unverified assertion — then re-stamps
+it into its own provenance plane. So a design authored by user U at node A shows U
+as author after syncing to node B.
 
 ## Relationship to API keys
 

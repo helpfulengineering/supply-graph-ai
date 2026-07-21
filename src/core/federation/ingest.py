@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..models.provenance import verify_provenance
 from ..utils.logging import get_logger
 from ..validation.model_validator import validate_okh_manifest
 from .catalog import manifest_content_hash
@@ -50,6 +51,13 @@ def verify_signed_record(record: SignedManifestRecord) -> None:
     if computed != record.catalog_record.content_hash:
         raise IngestError("content hash mismatch")
 
+    # A *signed* provenance claim must verify against its author DID (offline,
+    # self-contained). Unsigned provenance is an unverified claim, relayed as-is.
+    provenance = record.catalog_record.provenance
+    if provenance is not None and provenance.signed_by:
+        if not verify_provenance(provenance):
+            raise IngestError("invalid provenance signature")
+
 
 async def verify_and_store(
     record: SignedManifestRecord,
@@ -82,7 +90,11 @@ async def verify_and_store(
         msg = "; ".join(validation.errors[:3]) or "validation failed"
         raise IngestError(f"OKH validation failed: {msg}")
 
-    await okh_service.create(record.manifest)
+    # Re-stamp provenance into this node's own provenance plane (keyed by record
+    # id) so authorship survives the hop — the acceptance criterion for Slice 3.
+    await okh_service.create(
+        record.manifest, provenance=record.catalog_record.provenance
+    )
     logger.info(
         f"Ingested federated manifest {record.catalog_record.manifest_id} "
         f"from {publisher_did}"

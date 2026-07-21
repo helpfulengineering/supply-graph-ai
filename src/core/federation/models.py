@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from ..models.provenance import RecordProvenance
+
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -33,13 +35,16 @@ class CatalogRecord(BaseModel):
     version: str
     updated_at: datetime
     publisher_did: str
+    # Record-level authorship, distinct from publisher_did (the relaying node).
+    # Rides the node-signed payload so it is tamper-evident in transit.
+    provenance: RecordProvenance | None = None
     signature: str = Field(
         description="Hex-encoded Ed25519 signature over canonical record"
     )
 
     def record_payload(self) -> dict[str, Any]:
         """Fields included in the signed payload (excludes signature)."""
-        return {
+        payload: dict[str, Any] = {
             "manifest_id": str(self.manifest_id),
             "content_hash": self.content_hash,
             "title": self.title,
@@ -47,6 +52,11 @@ class CatalogRecord(BaseModel):
             "updated_at": self.updated_at.isoformat(),
             "publisher_did": self.publisher_did,
         }
+        # Only present when a record carries provenance, so existing unsigned-
+        # provenance records keep their exact payload (and signatures stay valid).
+        if self.provenance is not None:
+            payload["provenance"] = self.provenance.model_dump(mode="json")
+        return payload
 
 
 class SyncDigest(BaseModel):

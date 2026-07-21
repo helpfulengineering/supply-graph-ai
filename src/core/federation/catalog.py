@@ -70,6 +70,9 @@ async def build_catalog_index(
     for manifest in manifests:
         manifest_dict = manifest.to_dict()
         content_hash = manifest_content_hash(manifest_dict)
+        # Provenance rides the catalog record (its own plane), so it is signed by
+        # the node in transit but stays out of the design content hash.
+        provenance = await okh_service.get_provenance(manifest.id)
         record = CatalogRecord(
             manifest_id=manifest.id,
             content_hash=content_hash,
@@ -77,6 +80,7 @@ async def build_catalog_index(
             version=manifest.version,
             updated_at=_manifest_updated_at(manifest_dict),
             publisher_did=identity.did,
+            provenance=provenance,
             signature="",
         )
         signed_record = _sign_catalog_record(identity, record)
