@@ -862,8 +862,7 @@ async def create_okh_manifest(
         return OKHUploadResponse(
             success=True,
             message="OKH manifest created and stored successfully",
-            manifest=okh_response,
-            manifest_id=str(okh_manifest.id),
+            okh=okh_response,
         )
     except HTTPException:
         raise

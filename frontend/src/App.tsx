@@ -13,6 +13,8 @@ import { RfqPage } from "./pages/RfqPage";
 import { PackagePage } from "./pages/PackagePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { RequireAdmin } from "./features/auth/RequireAdmin";
+import { CreateOkhPage } from "./features/okh/CreateOkhPage";
+import { CreateOkwPage } from "./features/okw/CreateOkwPage";
 import { ThemeContext } from "./context/ThemeContext";
 import { useDarkMode } from "./hooks/useDarkMode";
 
@@ -36,9 +38,11 @@ export function App() {
               <Route element={<Layout />}>
                 <Route index element={<HomePage />} />
                 <Route path="okh" element={<OkhPage />} />
+                <Route path="okh/new" element={<CreateOkhPage />} />
                 <Route path="okh/:id/files/*" element={<OkhFilePreviewPage />} />
                 <Route path="okh/:id" element={<OkhPage />} />
                 <Route path="facilities" element={<OkwPage />} />
+                <Route path="facilities/new" element={<CreateOkwPage />} />
                 <Route path="facilities/:id" element={<OkwPage />} />
                 <Route path="match" element={<MatchPage />} />
                 {/* Supply trees are reached directly from their match; no browse list. */}

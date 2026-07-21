@@ -10,6 +10,7 @@ import { NetworkSpaceCard } from "./NetworkSpaceCard";
 import { NetworkMap } from "./NetworkMap";
 import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states";
 import { Pagination } from "../../components/ui/Pagination";
+import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 24;
@@ -37,6 +38,7 @@ function ViewToggle({ view, onChange }: { view: "list" | "map"; onChange: (v: "l
 
 export function NetworkView() {
   const navigate = useNavigate();
+  const { hasWrite } = useAuth();
   const [filters, setFilters] = useState<Filters>({});
   const [view, setView] = useState<"list" | "map">("list");
   const [page, setPage] = useState(1);
@@ -85,11 +87,20 @@ export function NetworkView() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Network</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Browse OHM facilities and Maps of Making spaces. Filter by location, process, and more.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Network</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Browse OHM facilities and Maps of Making spaces. Filter by location, process, and more.
+          </p>
+        </div>
+        <Button
+          disabled={!hasWrite}
+          title={hasWrite ? undefined : "Requires a write-capable API key"}
+          onClick={() => navigate("/facilities/new")}
+        >
+          New facility
+        </Button>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">

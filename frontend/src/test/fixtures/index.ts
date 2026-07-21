@@ -302,6 +302,19 @@ export const accountsFixture = [
   },
 ];
 
+export const provenanceFixture = {
+  authored_by: [{ external_id: "name:Test Author", role: null }],
+  published_by: null,
+  on_behalf_of: null,
+  signed_by: null,
+  signature: "",
+};
+
+export const visibilityFixture = {
+  id: "00000000-0000-0000-0000-000000000001",
+  visibility: "private",
+};
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
@@ -310,9 +323,13 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okh": okhListFixture,
   "/v1/api/okh/okh-0001": okhDetailFixture,
   "/v1/api/okh/validate": validationResultFixture,
+  "/v1/api/okh/okh-0001/provenance": provenanceFixture,
+  "/v1/api/okh/okh-0001/visibility": visibilityFixture,
   "/v1/api/okw/search": okwSearchFixture,
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/okw/okw-1/provenance": provenanceFixture,
+  "/v1/api/okw/okw-1/visibility": { ...visibilityFixture, id: "okw-1" },
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,
