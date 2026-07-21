@@ -18,7 +18,10 @@ from fastapi import HTTPException, status
 
 from src.config import settings
 from src.config.auth_constants import AUTH_MODE_ENV, AUTH_MODE_HYBRID, AUTH_MODE_STORAGE
-from src.config.security_policy import get_security_policy
+from src.config.security_policy import (
+    allows_full_metadata_logging,
+    get_security_policy,
+)
 
 from ..federation.identity import (
     NodeIdentity,
@@ -535,9 +538,20 @@ class AuthenticationService:
         kind: IdentityKind = IdentityKind.PERSON,
         display_name: str = "",
     ) -> Identity:
-        """Mint a new Ed25519 identity and bind it to ``account_id`` (custodial)."""
+        """Mint a new Ed25519 identity and bind it to ``account_id`` (custodial).
+
+        Shielded mode disables custodial minting (``custodial_keys_allowed=False``).
+        """
         if not self._identity_store:
             raise RuntimeError("Identity store not available")
+        if not get_security_policy().custodial_keys_allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Custodial identity minting is disabled under the active "
+                    "security mode; bring your own key or switch mode"
+                ),
+            )
         signing_key = generate_identity(display_name or str(account_id))
         identity = Identity(
             did=signing_key.did,
@@ -547,7 +561,10 @@ class AuthenticationService:
             custodial=True,
         )
         self._identity_store.save(signing_key, identity)
-        logger.info(f"Minted identity {identity.did} for account {account_id}")
+        if allows_full_metadata_logging():
+            logger.info(f"Minted identity {identity.did} for account {account_id}")
+        else:
+            logger.debug("Minted custodial identity")
         return identity
 
     def get_identity(self, did: str) -> Optional[Identity]:
@@ -1172,10 +1189,23 @@ class AuthenticationService:
         return entry
 
     async def list_directory(self) -> List[DirectoryEntry]:
-        """List the local trust-on-follow directory (peacetime registry)."""
+        """List the local trust-on-follow directory.
+
+        Under ``registry_attestations=ca_pinned`` (shielded), only entries with a
+        verified domain binding are returned — the peacetime directory is
+        otherwise unfiltered.
+        """
         if not self._directory_store:
             return []
-        return await self._directory_store.list_all()
+        entries = await self._directory_store.list_all()
+        if get_security_policy().registry_attestations != "ca_pinned":
+            return entries
+        return [
+            e
+            for e in entries
+            if e.domain
+            or any(b.startswith("domain:") for b in (e.verified_bindings or []))
+        ]
 
     async def _refresh_directory_from_bindings(self, subject_did: str) -> None:
         """Upsert directory entry after a binding verifies."""

@@ -67,6 +67,47 @@ def _handle_auth_error(cli_ctx: CLIContext, exc: httpx.HTTPStatusError) -> bool:
     return False
 
 
+@identity_group.command(name="security-policy")
+@standard_cli_command(help_text="Show the active security mode policy.", async_cmd=True)
+@click.pass_context
+async def security_policy_cmd(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Show OHM_SECURITY_MODE knobs for this deployment."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", "/security-policy")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Security mode: {result.get('mode')}", "success")
+    for key in (
+        "require_auth_for_writes",
+        "custodial_keys_allowed",
+        "grant_ttl_days",
+        "recovery",
+        "trust_bootstrap",
+        "mdns_advertise",
+        "metadata_logging",
+        "registry_attestations",
+        "anonymous_submission_allowed",
+    ):
+        click.echo(f"  {key}: {result.get(key)}")
+
+
 @identity_group.command()
 @standard_cli_command(help_text="Show the current identity.", async_cmd=True)
 @click.pass_context

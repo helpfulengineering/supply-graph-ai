@@ -25,6 +25,7 @@ def test_identity_group_exposes_subcommands():
         "reputation",
         "bindings",
         "directory",
+        "security-policy",
     ):
         assert cmd in result.output
 

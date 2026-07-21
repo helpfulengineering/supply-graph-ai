@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
 from src.config import settings
+from src.config.security_policy import get_security_policy
 
 from ..services.base import BaseService, ServiceConfig
 from ..utils.logging import get_logger
@@ -125,7 +126,7 @@ class FederationService(BaseService["FederationService"]):
         identity, store = self.federation_context()
 
         mdns_peers = []
-        if settings.OHM_FEDERATION_MDNS_ENABLED and self.capabilities.advertise_mdns:
+        if self._mdns_allowed():
             mdns_peers = await asyncio.to_thread(browse_mdns_peers, mdns_timeout)
 
         registry = PeerRegistry(store)
@@ -136,11 +137,17 @@ class FederationService(BaseService["FederationService"]):
             extra_manual_urls=extra_manual_urls,
         )
 
+    def _mdns_allowed(self) -> bool:
+        """mDNS requires env flag, role capability, and SecurityPolicy consent."""
+        return (
+            settings.OHM_FEDERATION_MDNS_ENABLED
+            and self.capabilities.advertise_mdns
+            and get_security_policy().mdns_advertise
+        )
+
     def start_mdns(self, port: int) -> None:
         """Advertise this node on the LAN (best-effort)."""
-        if not settings.OHM_FEDERATION_MDNS_ENABLED:
-            return
-        if not self.capabilities.advertise_mdns:
+        if not self._mdns_allowed():
             return
         if self.identity is None:
             return
@@ -164,7 +171,12 @@ class FederationService(BaseService["FederationService"]):
             self._mdns_advertiser = None
 
     def follow_peer(self, did: str) -> None:
-        """Add a peer DID to the follow allowlist."""
+        """Add a peer DID to the follow allowlist.
+
+        Under shielded ``trust_bootstrap=explicit_only``, mDNS discovery is off
+        so follow is never implied by LAN presence — callers must supply a DID
+        out of band. The follow API call itself is that explicit step.
+        """
         self.require_enabled()
         if self.store is None:
             raise RuntimeError("Federation store not loaded")
@@ -224,7 +236,8 @@ class FederationService(BaseService["FederationService"]):
             "peer_count": len(peers),
             "followed_peer_count": len(followed),
             "sync_interval_sec": settings.OHM_FEDERATION_SYNC_INTERVAL_SEC,
-            "mdns_enabled": settings.OHM_FEDERATION_MDNS_ENABLED,
+            "mdns_enabled": self._mdns_allowed(),
+            "security_mode": get_security_policy().mode.value,
             "background_sync_running": self._sync_task is not None
             and not self._sync_task.done(),
             "manual_peers": settings.OHM_FEDERATION_MANUAL_PEERS,

@@ -120,6 +120,7 @@ create/update/delete) is governed by the `require_auth_for_writes` knob of the
 active [security policy](../architecture/security-modes.md). Under the default
 **peacetime** posture this is **on in production and off in development/test**, so
 existing local/CI flows keep working while real deployments close the write hole.
+**Crisis** and **shielded** always require write auth.
 When enforced, an unauthenticated write returns `401` and a key lacking `write`
 returns `403`; when not enforced, writes are still attributed to the presenting
 key's account if one is supplied.

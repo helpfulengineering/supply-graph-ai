@@ -7,10 +7,12 @@ in dev/test they are open, preserving existing flows. See
 ``notes/federated-identity-spec.md`` Slice 1.
 """
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
+
+from src.config.security_policy import get_security_policy
 
 from ...models.account import Account, AccountCreate
 from ...models.attestation import Attestation, AttestationIssue, CertifyRequest
@@ -44,6 +46,15 @@ async def whoami(
 ) -> AuthenticatedUser:
     """Return the identity (key + account) behind the presented credential."""
     return user
+
+
+@router.get(
+    "/security-policy",
+    summary="Active security mode policy",
+)
+async def show_security_policy() -> Dict[str, Any]:
+    """Return the active ``SecurityPolicy`` knobs (deployment posture, not secret)."""
+    return get_security_policy().to_public_dict()
 
 
 @router.post(

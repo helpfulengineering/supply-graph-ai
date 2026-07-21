@@ -142,6 +142,32 @@ async def test_directory_publish(service):
 
 
 @pytest.mark.asyncio
+async def test_directory_ca_pinned_filters_unbound(service, monkeypatch):
+    from src.config.security_policy import get_security_policy
+
+    person = await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
+    await service.publish_directory_entry(did=person.did, display_name="Ada")
+    monkeypatch.setattr(
+        "src.core.services.auth_service.get_security_policy",
+        lambda: get_security_policy("shielded"),
+    )
+    assert await service.list_directory() == []
+
+
+@pytest.mark.asyncio
+async def test_create_identity_blocked_when_custodial_disallowed(service, monkeypatch):
+    from src.config.security_policy import get_security_policy
+
+    monkeypatch.setattr(
+        "src.core.services.auth_service.get_security_policy",
+        lambda: get_security_policy("shielded"),
+    )
+    with pytest.raises(Exception) as exc:
+        await service.create_identity(uuid4(), IdentityKind.PERSON, "Ada")
+    assert getattr(exc.value, "status_code", None) == 403
+
+
+@pytest.mark.asyncio
 async def test_domain_bind_requires_held_key(service):
     with pytest.raises(Exception) as exc:
         await service.start_domain_binding("did:key:zNotHeld", "example.org")

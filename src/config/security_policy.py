@@ -4,21 +4,21 @@
 This is a distinct axis from ``SystemMode`` (matching/validation rigor): a deployment
 can combine any matching rigor with any security posture.
 
-Only ``PEACETIME`` is implemented; ``CRISIS`` and ``SHIELDED`` are reserved so their
-policies can be slotted in later without changing call sites — every consumer reads
-its posture from :func:`get_security_policy` rather than hard-coding it.
+All three modes are implemented; consumers read posture from
+:func:`get_security_policy` rather than hard-coding it.
 
 See ``docs/architecture/security-modes.md`` and ``notes/federated-identity-adr.md``.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import asdict, dataclass, replace
 from enum import Enum
+from typing import Any, Dict
 
 
 class SecurityMode(str, Enum):
-    """Deployment security posture. Peacetime implemented; others reserved."""
+    """Deployment security posture."""
 
     PEACETIME = "peacetime"
     CRISIS = "crisis"
@@ -29,19 +29,27 @@ class SecurityMode(str, Enum):
 class SecurityPolicy:
     """Identity/trust/authz knobs for a security mode.
 
-    Categorical knobs use documented string values so future modes can extend them
-    without a schema change; unknown values are the reserved modes' concern.
+    Categorical knobs use documented string values so modes can extend them
+    without a schema change.
     """
 
     mode: SecurityMode
     require_auth_for_writes: bool  # enforce authentication on dataset-mutating requests
     custodial_keys_allowed: bool
     grant_ttl_days: int
-    recovery: str  # "reissuance" (peacetime); future: "social" | "none"
-    trust_bootstrap: str  # "tofu_registry"; future: "explicit_only"
+    recovery: str  # "reissuance" | "none" (social k-of-n later)
+    trust_bootstrap: str  # "tofu_registry" | "tofu_friendly" | "explicit_only"
     mdns_advertise: bool
-    metadata_logging: str  # "full"; future: "minimal"
-    registry_attestations: str  # "trust_on_follow"; future: "ca_pinned"
+    metadata_logging: str  # "full" | "minimal"
+    registry_attestations: str  # "trust_on_follow" | "ca_pinned"
+    # Reserved for Slice M.2 moderated push; shielded disables anonymous submit.
+    anonymous_submission_allowed: bool = True
+
+    def to_public_dict(self) -> Dict[str, Any]:
+        """JSON-serializable view of the active policy (for API/CLI status)."""
+        data = asdict(self)
+        data["mode"] = self.mode.value
+        return data
 
 
 _PEACETIME = SecurityPolicy(
@@ -55,7 +63,42 @@ _PEACETIME = SecurityPolicy(
     mdns_advertise=True,
     metadata_logging="full",
     registry_attestations="trust_on_follow",
+    anonymous_submission_allowed=True,
 )
+
+# Availability under degraded connectivity: long grants, TOFU-friendly, mDNS on.
+_CRISIS = SecurityPolicy(
+    mode=SecurityMode.CRISIS,
+    require_auth_for_writes=True,
+    custodial_keys_allowed=True,  # batch onboard
+    grant_ttl_days=180,  # long + offline grace
+    recovery="reissuance",
+    trust_bootstrap="tofu_friendly",
+    mdns_advertise=True,
+    metadata_logging="full",
+    registry_attestations="trust_on_follow",
+    anonymous_submission_allowed=True,
+)
+
+# Confidentiality under surveillance: short TTLs, no mDNS, minimal metadata.
+_SHIELDED = SecurityPolicy(
+    mode=SecurityMode.SHIELDED,
+    require_auth_for_writes=True,
+    custodial_keys_allowed=False,  # discourage node-held person keys
+    grant_ttl_days=7,
+    recovery="none",
+    trust_bootstrap="explicit_only",
+    mdns_advertise=False,
+    metadata_logging="minimal",
+    registry_attestations="ca_pinned",
+    anonymous_submission_allowed=False,
+)
+
+_PRESETS = {
+    SecurityMode.PEACETIME: _PEACETIME,
+    SecurityMode.CRISIS: _CRISIS,
+    SecurityMode.SHIELDED: _SHIELDED,
+}
 
 
 def parse_security_mode(value: str | SecurityMode | None) -> SecurityMode:
@@ -77,6 +120,7 @@ def _peacetime_requires_auth_for_writes() -> bool:
 
     This preserves existing unauthenticated dev/test flows while closing the write
     hole for real deployments. Override by running with ``ENVIRONMENT=production``.
+    Crisis and shielded always enforce writes.
     """
     from .settings import ENVIRONMENT
 
@@ -90,11 +134,16 @@ def get_security_policy(mode: str | SecurityMode | None = None) -> SecurityPolic
 
         mode = OHM_SECURITY_MODE
     resolved = parse_security_mode(mode)
+    policy = _PRESETS[resolved]
     if resolved is SecurityMode.PEACETIME:
         return replace(
-            _PEACETIME,
+            policy,
             require_auth_for_writes=_peacetime_requires_auth_for_writes(),
         )
-    raise NotImplementedError(
-        f"SecurityMode {resolved.value!r} is reserved; only 'peacetime' is implemented."
-    )
+    return policy
+
+
+def allows_full_metadata_logging(policy: SecurityPolicy | None = None) -> bool:
+    """True when identity/trust events may be logged at INFO with full detail."""
+    p = policy if policy is not None else get_security_policy()
+    return p.metadata_logging == "full"
