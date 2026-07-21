@@ -15,6 +15,15 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from ...models.account import Account, AccountCreate
 from ...models.attestation import Attestation, AttestationIssue, CertifyRequest
 from ...models.auth import APIKeyCreate, APIKeyResponse, AuthenticatedUser
+from ...models.binding import (
+    DirectoryEntry,
+    DirectoryPublishRequest,
+    DomainBindRequest,
+    DomainBindStartResponse,
+    DomainVerifyRequest,
+    IdentityBinding,
+    OAuthBindRequest,
+)
 from ...models.capability import CapabilityGrant, GrantIssue
 from ...models.identity import Identity, IdentityMint
 from ...models.space import SpaceClaim, SpaceClaimRequest
@@ -345,3 +354,102 @@ async def list_reputation(
 ) -> List[Attestation]:
     """Known-type, signature-valid attestations about ``subject_did`` (no scoring)."""
     return await svc.list_reputation(subject_did)
+
+
+# --- Bindings + directory (Slice 7) ------------------------------------------
+
+
+@router.post(
+    "/bindings/domain",
+    response_model=DomainBindStartResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Start a domain binding",
+)
+async def start_domain_binding(
+    payload: DomainBindRequest,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> DomainBindStartResponse:
+    """Issue a challenge and the ``.well-known/ohm-did.json`` document to host."""
+    result = await svc.start_domain_binding(payload.subject_did, payload.domain)
+    return DomainBindStartResponse(**result)
+
+
+@router.post(
+    "/bindings/domain/verify",
+    response_model=IdentityBinding,
+    summary="Verify a domain binding via .well-known",
+)
+async def verify_domain_binding(
+    payload: DomainVerifyRequest,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> IdentityBinding:
+    """Fetch ``https://{domain}/.well-known/ohm-did.json`` and finalize the bind."""
+    return await svc.verify_domain_binding(payload.subject_did, payload.domain)
+
+
+@router.post(
+    "/bindings/oauth",
+    response_model=IdentityBinding,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record an OAuth/OIDC binding",
+)
+async def bind_oauth(
+    payload: OAuthBindRequest,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> IdentityBinding:
+    """Store an external IdP subject binding (redirect dance is out of band)."""
+    return await svc.bind_oauth(
+        subject_did=payload.subject_did,
+        provider=payload.provider,
+        external_subject=payload.external_subject,
+        evidence=payload.evidence,
+        verified=payload.verified,
+    )
+
+
+@router.get(
+    "/bindings",
+    response_model=List[IdentityBinding],
+    summary="List identity bindings",
+)
+async def list_bindings(
+    subject_did: Optional[str] = Query(None, description="Filter by subject DID"),
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[IdentityBinding]:
+    return await svc.list_bindings(subject_did=subject_did)
+
+
+@router.post(
+    "/directory",
+    response_model=DirectoryEntry,
+    status_code=status.HTTP_201_CREATED,
+    summary="Publish a trust-on-follow directory entry",
+)
+async def publish_directory_entry(
+    payload: DirectoryPublishRequest,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> DirectoryEntry:
+    return await svc.publish_directory_entry(
+        did=payload.did,
+        display_name=payload.display_name,
+        base_url=payload.base_url,
+        domain=payload.domain,
+    )
+
+
+@router.get(
+    "/directory",
+    response_model=List[DirectoryEntry],
+    summary="List the trust-on-follow directory",
+)
+async def list_directory(
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[DirectoryEntry]:
+    """Peacetime registry posture: a local directory of known DIDs to follow."""
+    return await svc.list_directory()

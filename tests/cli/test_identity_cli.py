@@ -23,6 +23,8 @@ def test_identity_group_exposes_subcommands():
         "spaces",
         "attestations",
         "reputation",
+        "bindings",
+        "directory",
     ):
         assert cmd in result.output
 
@@ -40,6 +42,22 @@ def test_attestations_subgroup_commands():
     result = runner.invoke(identity_group, ["attestations", "--help"])
     assert result.exit_code == 0
     for cmd in ("issue", "certify", "list"):
+        assert cmd in result.output
+
+
+def test_bindings_subgroup_commands():
+    runner = CliRunner()
+    result = runner.invoke(identity_group, ["bindings", "--help"])
+    assert result.exit_code == 0
+    for cmd in ("domain-start", "domain-verify", "oauth", "list"):
+        assert cmd in result.output
+
+
+def test_directory_subgroup_commands():
+    runner = CliRunner()
+    result = runner.invoke(identity_group, ["directory", "--help"])
+    assert result.exit_code == 0
+    for cmd in ("publish", "list"):
         assert cmd in result.output
 
 

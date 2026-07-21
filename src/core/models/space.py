@@ -3,7 +3,8 @@
 A space is an :class:`~src.core.models.identity.Identity` with
 ``kind=SPACE``. A :class:`SpaceClaim` is the TOFU binding of a person DID as
 that space's admin — signed by the *space* key so the claim is offline-verifiable.
-Domain binding (``did:web`` / ``.well-known``) is reserved for a later slice.
+Domain binding (``.well-known/ohm-did.json``) is Slice 7 — see
+:mod:`src.core.models.binding`.
 """
 
 from datetime import datetime

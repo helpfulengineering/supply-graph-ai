@@ -10,7 +10,7 @@ import logging
 import secrets
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 from uuid import UUID, uuid4
 
 import bcrypt
@@ -41,11 +41,21 @@ from ..models.attestation import (
     Attestation,
     verify_attestation,
 )
+from ..models.binding import (
+    DirectoryEntry,
+    IdentityBinding,
+    domain_external_id,
+    oauth_external_id,
+    well_known_document,
+    well_known_url,
+)
 from ..models.space import SpaceClaim
+from ..services.domain_bind import WellKnownFetcher, fetch_and_validate_domain
 from ..services.storage_service import StorageService
 from ..storage.account_storage import AccountStorage
 from ..storage.attestation_store import AttestationStore
 from ..storage.auth_storage import AuthStorage
+from ..storage.binding_store import BindingStore, DirectoryStore
 from ..storage.grant_store import GrantStore
 from ..storage.identity_key_store import IdentityKeyStore
 from ..storage.space_claim_store import SpaceClaimStore
@@ -68,6 +78,8 @@ class AuthenticationService:
         self._grant_store: Optional[GrantStore] = None
         self._space_claim_store: Optional[SpaceClaimStore] = None
         self._attestation_store: Optional[AttestationStore] = None
+        self._binding_store: Optional[BindingStore] = None
+        self._directory_store: Optional[DirectoryStore] = None
         self._node_signing: Optional[NodeIdentity] = None
         self._initialized = False
 
@@ -91,6 +103,8 @@ class AuthenticationService:
             self._grant_store = GrantStore(storage_service)
             self._space_claim_store = SpaceClaimStore(storage_service)
             self._attestation_store = AttestationStore(storage_service)
+            self._binding_store = BindingStore(storage_service)
+            self._directory_store = DirectoryStore(storage_service)
             self._identity_store = IdentityKeyStore(
                 Path(settings.OHM_FEDERATION_DATA_DIR)
             )
@@ -928,3 +942,249 @@ class AuthenticationService:
                 continue
             out.append(a)
         return out
+
+    # ------------------------------------------------------------------
+    # Bindings + trust-on-follow directory (Slice 7)
+    # ------------------------------------------------------------------
+
+    async def start_domain_binding(
+        self, subject_did: str, domain: str
+    ) -> Dict[str, Any]:
+        """Begin a domain bind: issue challenge + well-known document to host.
+
+        Requires a held signing key for ``subject_did``. Does not hit the network.
+        """
+        if not self._binding_store:
+            raise RuntimeError("Binding store not available")
+        signing_key = self._signing_key_for(subject_did)
+        if not signing_key:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No signing key held for subject; cannot start domain bind",
+            )
+
+        external_id = domain_external_id(domain)
+        existing = await self._binding_store.find_by_external_id(external_id)
+        if existing and existing.verified:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Domain already bound to {existing.subject_did}",
+            )
+
+        challenge = secrets.token_urlsafe(24)
+        host = external_id.removeprefix("domain:")
+        binding = IdentityBinding(
+            subject_did=subject_did,
+            kind="domain",
+            external_id=external_id,
+            challenge=challenge,
+            evidence={"domain": host, "well_known_url": well_known_url(host)},
+            verified=False,
+        )
+        # Sign the pending (unverified) claim so the challenge issuer is accountable.
+        binding.signature = sign_payload(
+            signing_key.private_key, binding.signing_payload()
+        )
+        await self._binding_store.save(binding)
+        doc = well_known_document(subject_did, challenge)
+        return {
+            "binding": binding,
+            "well_known_url": well_known_url(host),
+            "well_known_document": doc,
+        }
+
+    async def verify_domain_binding(
+        self,
+        subject_did: str,
+        domain: str,
+        *,
+        fetcher: Optional[WellKnownFetcher] = None,
+    ) -> IdentityBinding:
+        """Fetch ``.well-known/ohm-did.json`` and mark the binding verified.
+
+        On success, issues a ``domain_bound`` attestation and refreshes the
+        trust-on-follow directory entry. ``fetcher`` is injectable for tests.
+        """
+        if not self._binding_store:
+            raise RuntimeError("Binding store not available")
+
+        external_id = domain_external_id(domain)
+        binding = await self._binding_store.find_by_external_id(external_id)
+        if not binding or binding.subject_did != subject_did:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No pending domain binding for this subject/domain",
+            )
+        if binding.verified:
+            return binding
+        if not binding.challenge:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Binding has no challenge; restart domain bind",
+            )
+
+        try:
+            await fetch_and_validate_domain(
+                domain,
+                expected_did=subject_did,
+                expected_challenge=binding.challenge,
+                fetcher=fetcher,
+            )
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(exc),
+            ) from exc
+
+        signing_key = self._signing_key_for(subject_did)
+        if not signing_key:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No signing key held for subject; cannot finalize domain bind",
+            )
+
+        now = datetime.utcnow()
+        binding.verified = True
+        binding.verified_at = now
+        binding.challenge = None  # single-use
+        binding.signature = sign_payload(
+            signing_key.private_key, binding.signing_payload()
+        )
+        await self._binding_store.save(binding)
+
+        # Durable reputation fact (Slice 6 substrate).
+        await self.issue_attestation(
+            type="domain_bound",
+            subject_did=subject_did,
+            issuer_did=subject_did,
+            claim={
+                "external_id": external_id,
+                "domain": external_id.removeprefix("domain:"),
+            },
+        )
+        await self._refresh_directory_from_bindings(subject_did)
+        logger.info(f"Domain binding verified: {external_id} -> {subject_did}")
+        return binding
+
+    async def bind_oauth(
+        self,
+        subject_did: str,
+        provider: str,
+        external_subject: str,
+        evidence: Optional[Dict] = None,
+        verified: bool = True,
+    ) -> IdentityBinding:
+        """Record an OAuth/OIDC external-subject binding.
+
+        The IdP redirect dance is out of band (frontend); this persists the
+        resulting binding once claims are accepted. Requires a held subject key.
+        """
+        if not self._binding_store:
+            raise RuntimeError("Binding store not available")
+        signing_key = self._signing_key_for(subject_did)
+        if not signing_key:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No signing key held for subject; cannot bind OAuth identity",
+            )
+
+        external_id = oauth_external_id(provider, external_subject)
+        existing = await self._binding_store.find_by_external_id(external_id)
+        if existing and existing.verified and existing.subject_did != subject_did:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"OAuth identity already bound to {existing.subject_did}",
+            )
+
+        now = datetime.utcnow() if verified else None
+        binding = IdentityBinding(
+            binding_id=existing.binding_id if existing else uuid4(),
+            subject_did=subject_did,
+            kind="oauth",
+            external_id=external_id,
+            evidence={
+                "provider": provider.strip().lower(),
+                "external_subject": external_subject.strip(),
+                **(evidence or {}),
+            },
+            verified=verified,
+            verified_at=now,
+        )
+        binding.signature = sign_payload(
+            signing_key.private_key, binding.signing_payload()
+        )
+        await self._binding_store.save(binding)
+
+        if verified:
+            await self.issue_attestation(
+                type="oauth_bound",
+                subject_did=subject_did,
+                issuer_did=subject_did,
+                claim={
+                    "external_id": external_id,
+                    "provider": provider.strip().lower(),
+                },
+            )
+            await self._refresh_directory_from_bindings(subject_did)
+        logger.info(f"OAuth binding recorded: {external_id} -> {subject_did}")
+        return binding
+
+    async def list_bindings(
+        self, subject_did: Optional[str] = None
+    ) -> List[IdentityBinding]:
+        """List bindings, optionally filtered by subject."""
+        if not self._binding_store:
+            return []
+        if subject_did:
+            return await self._binding_store.list_for_subject(subject_did)
+        return await self._binding_store.list_all()
+
+    async def publish_directory_entry(
+        self,
+        did: str,
+        display_name: str = "",
+        base_url: Optional[str] = None,
+        domain: Optional[str] = None,
+    ) -> DirectoryEntry:
+        """Publish/refresh a trust-on-follow directory entry for ``did``."""
+        if not self._directory_store:
+            raise RuntimeError("Directory store not available")
+        verified = [
+            b.external_id
+            for b in await self.list_bindings(subject_did=did)
+            if b.verified
+        ]
+        if domain is None:
+            for ext in verified:
+                if ext.startswith("domain:"):
+                    domain = ext.removeprefix("domain:")
+                    break
+        identity = self.get_identity(did)
+        entry = DirectoryEntry(
+            did=did,
+            display_name=display_name or (identity.display_name if identity else ""),
+            base_url=base_url,
+            domain=domain,
+            verified_bindings=verified,
+            updated_at=datetime.utcnow(),
+        )
+        await self._directory_store.save(entry)
+        return entry
+
+    async def list_directory(self) -> List[DirectoryEntry]:
+        """List the local trust-on-follow directory (peacetime registry)."""
+        if not self._directory_store:
+            return []
+        return await self._directory_store.list_all()
+
+    async def _refresh_directory_from_bindings(self, subject_did: str) -> None:
+        """Upsert directory entry after a binding verifies."""
+        if not self._directory_store:
+            return
+        existing = await self._directory_store.load(subject_did)
+        await self.publish_directory_entry(
+            did=subject_did,
+            display_name=existing.display_name if existing else "",
+            base_url=existing.base_url if existing else None,
+            domain=existing.domain if existing else None,
+        )

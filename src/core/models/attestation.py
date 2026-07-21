@@ -24,6 +24,8 @@ KNOWN_ATTESTATION_TYPES = frozenset(
         "space_member",
         "listed",
         "curated",
+        "domain_bound",
+        "oauth_bound",
     }
 )
 

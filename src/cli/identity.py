@@ -915,3 +915,268 @@ async def reputation(
             f"  {att.get('type')}  by={att.get('issuer_did')}  "
             f"hash={att.get('content_hash')}"
         )
+
+
+@identity_group.group(name="bindings")
+def bindings_group() -> None:
+    """Optional domain / OAuth bindings (online convenience layer)."""
+    pass
+
+
+@bindings_group.command(name="domain-start")
+@standard_cli_command(
+    help_text="Start a domain binding; print the .well-known document to host.",
+    async_cmd=True,
+)
+@click.option("--subject-did", required=True, help="DID to bind")
+@click.option("--domain", required=True, help="Domain host (e.g. example.org)")
+@click.pass_context
+async def bindings_domain_start(
+    ctx: click.Context,
+    subject_did: str,
+    domain: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Issue a domain-bind challenge and well-known document."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "POST",
+            "/bindings/domain",
+            json={"subject_did": subject_did, "domain": domain},
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Host this at {result.get('well_known_url')}", "success")
+    click.echo(format_llm_output(result.get("well_known_document"), cli_ctx))
+
+
+@bindings_group.command(name="domain-verify")
+@standard_cli_command(
+    help_text="Verify a domain binding by fetching .well-known/ohm-did.json.",
+    async_cmd=True,
+)
+@click.option("--subject-did", required=True, help="DID that started the bind")
+@click.option("--domain", required=True, help="Domain host")
+@click.pass_context
+async def bindings_domain_verify(
+    ctx: click.Context,
+    subject_did: str,
+    domain: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Fetch and validate the well-known document, then mark verified."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "POST",
+            "/bindings/domain/verify",
+            json={"subject_did": subject_did, "domain": domain},
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(
+        f"Verified {result.get('external_id')} for {result.get('subject_did')}",
+        "success",
+    )
+
+
+@bindings_group.command(name="oauth")
+@standard_cli_command(
+    help_text="Record an OAuth/OIDC binding (after IdP verification).",
+    async_cmd=True,
+)
+@click.option("--subject-did", required=True, help="DID to bind")
+@click.option("--provider", required=True, help="IdP name (github, google, orcid, …)")
+@click.option("--external-subject", required=True, help="IdP subject / username")
+@click.pass_context
+async def bindings_oauth(
+    ctx: click.Context,
+    subject_did: str,
+    provider: str,
+    external_subject: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Persist an external IdP subject binding."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(
+            cli_ctx,
+            "POST",
+            "/bindings/oauth",
+            json={
+                "subject_did": subject_did,
+                "provider": provider,
+                "external_subject": external_subject,
+            },
+        )
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(
+        f"Bound {result.get('external_id')} to {result.get('subject_did')}",
+        "success",
+    )
+
+
+@bindings_group.command(name="list")
+@standard_cli_command(help_text="List identity bindings.", async_cmd=True)
+@click.option("--subject-did", default=None, help="Filter by subject DID")
+@click.pass_context
+async def bindings_list(
+    ctx: click.Context,
+    subject_did: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List domain/OAuth bindings."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    path = "/bindings" + (f"?subject_did={subject_did}" if subject_did else "")
+    try:
+        result = await _request(cli_ctx, "GET", path)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Bindings ({len(result)})", "success")
+    for b in result:
+        flag = "verified" if b.get("verified") else "pending"
+        click.echo(
+            f"  {b.get('kind')}  {b.get('external_id')}  "
+            f"subject={b.get('subject_did')}  [{flag}]"
+        )
+
+
+@identity_group.group(name="directory")
+def directory_group() -> None:
+    """Trust-on-follow directory (peacetime registry posture)."""
+    pass
+
+
+@directory_group.command(name="publish")
+@standard_cli_command(
+    help_text="Publish or refresh a directory entry for a DID.", async_cmd=True
+)
+@click.option("--did", required=True, help="DID to publish")
+@click.option("--name", "display_name", default="", help="Display name")
+@click.option("--base-url", default=None, help="Federation base URL")
+@click.option("--domain", default=None, help="Bound domain (optional)")
+@click.pass_context
+async def directory_publish(
+    ctx: click.Context,
+    did: str,
+    display_name: str,
+    base_url: Optional[str],
+    domain: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Publish a trust-on-follow directory entry."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    body: dict = {"did": did, "display_name": display_name}
+    if base_url:
+        body["base_url"] = base_url
+    if domain:
+        body["domain"] = domain
+    try:
+        result = await _request(cli_ctx, "POST", "/directory", json=body)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Published directory entry for {did}", "success")
+
+
+@directory_group.command(name="list")
+@standard_cli_command(help_text="List the trust-on-follow directory.", async_cmd=True)
+@click.pass_context
+async def directory_list(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List known DIDs in the local directory."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", "/directory")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Directory ({len(result)})", "success")
+    for entry in result:
+        click.echo(
+            f"  {entry.get('did')}  name={entry.get('display_name')}  "
+            f"domain={entry.get('domain')}  "
+            f"bindings={len(entry.get('verified_bindings') or [])}"
+        )

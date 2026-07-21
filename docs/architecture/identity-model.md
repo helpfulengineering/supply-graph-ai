@@ -141,7 +141,8 @@ existing clients keep working exactly as before. See [Authentication](../api/aut
 
 A **space** is an identity (`kind=space`) that persons administer and publish on
 behalf of. Claiming is **TOFU**: the first admin bind wins; the space key signs
-the claim so it is offline-verifiable. Domain binding (`did:web`) is later work.
+the claim so it is offline-verifiable. Optional domain binding is available (see
+below) and is additive — informal spaces without a domain still work.
 
 ```bash
 ohm identity identities create --account-id <uuid> --kind space --name "MIT FabLab"
@@ -180,6 +181,43 @@ ohm identity reputation did:key:zFirm
 
 `reputation` returns known-type, signature-valid attestations about a subject —
 no numeric scoring yet.
+
+## Optional bindings (domain / OAuth)
+
+Bindings are an **online convenience layer** on top of `did:key`. They are never
+required for offline authz. A verified binding is durable evidence (and issues a
+`domain_bound` / `oauth_bound` attestation).
+
+**Domain** — prove control of a host by publishing
+`https://{domain}/.well-known/ohm-did.json` with the DID + a one-time challenge:
+
+```bash
+ohm identity bindings domain-start --subject-did did:key:z… --domain example.org
+# host the printed JSON at /.well-known/ohm-did.json, then:
+ohm identity bindings domain-verify --subject-did did:key:z… --domain example.org
+```
+
+**OAuth / OIDC** — the IdP redirect dance lives in the frontend; once claims are
+accepted, record the binding:
+
+```bash
+ohm identity bindings oauth --subject-did did:key:z… \
+    --provider github --external-subject ada-lovelace
+ohm identity bindings list --subject-did did:key:z…
+```
+
+## Trust-on-follow directory
+
+Peacetime registry posture is a **local directory** of known DIDs (with optional
+verified bindings and base URLs) that operators use when deciding who to follow —
+not a central CA. Verified domain/OAuth binds refresh the subject's directory row
+automatically.
+
+```bash
+ohm identity directory publish --did did:key:z… --name "MIT FabLab" \
+    --base-url http://fablab.example:8001
+ohm identity directory list
+```
 
 ## Trust roots today, and where this is going
 
