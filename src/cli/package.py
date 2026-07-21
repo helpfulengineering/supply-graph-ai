@@ -1652,3 +1652,78 @@ async def verify_signature(ctx, package_name, version_parts, verbose):
             "error",
         )
         raise click.Exit(1)
+
+
+@package_group.command("download-zip")
+@click.argument("packages", nargs=-1, required=True)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(dir_okay=False),
+    default="ohm-packages.zip",
+    show_default=True,
+    help="Output zip path",
+)
+@standard_cli_command(
+    help_text="""
+    Download multiple packages into one zip archive.
+
+    Each PACKAGE argument is ``org/project@version``. The zip contains the same
+    ``.tar.gz`` files returned by the single-package download endpoint.
+    """,
+    epilog="""
+    Examples:
+      ohm package download-zip community/widget@1.0.0 acme/bracket@2.1.0
+      ohm package download-zip community/widget@1.0.0 -o packages.zip
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=False,
+)
+@click.pass_context
+async def download_zip(
+    ctx,
+    packages: tuple[str, ...],
+    output: str,
+    verbose: bool,
+    output_format: str,
+):
+    """Download selected packages as ohm-packages.zip."""
+    import httpx
+
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("package-download-zip")
+
+    items = []
+    for raw in packages:
+        if "@" not in raw or "/" not in raw.split("@", 1)[0]:
+            raise click.ClickException(
+                f"Invalid package spec '{raw}' (expected org/project@version)"
+            )
+        name, version = raw.rsplit("@", 1)
+        org, project = name.split("/", 1)
+        items.append({"org": org, "project": project, "version": version})
+
+    out_path = Path(output)
+    base_url = cli_ctx.api_client.base_url
+    cli_ctx.log(
+        f"POST /api/package/download-zip ({len(items)} packages) → {out_path}", "info"
+    )
+
+    async with httpx.AsyncClient(
+        base_url=base_url,
+        timeout=cli_ctx.api_client.config.timeout,
+        follow_redirects=True,
+    ) as client:
+        response = await client.post("/api/package/download-zip", json={"items": items})
+        if response.status_code >= 400:
+            detail = response.text
+            try:
+                detail = response.json().get("detail", detail)
+            except Exception:
+                pass
+            raise click.ClickException(f"API Error ({response.status_code}): {detail}")
+        out_path.write_bytes(response.content)
+
+    click.echo(f"Wrote {out_path} ({out_path.stat().st_size} bytes)")
