@@ -210,7 +210,7 @@ AREAS: tuple[Area, ...] = (
         "capability grants, space claims, edge bootstrap, attestations, domain/OAuth "
         "bindings, trust-on-follow directory, and security-policy status. See "
         "notes/federated-identity-spec.md Slices 1-8. Frontend Track F: Settings "
-        "(admin) under /settings; Identities/Grants/Spaces in F3; more in F4–F6.",
+        "(admin) under /settings; Identities/Grants/Spaces in F3; Reputation in F4; more in F5–F6.",
         fe_routes=("/settings",),
         fe_api_prefixes=("/api/identity",),
     ),

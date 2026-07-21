@@ -40,4 +40,13 @@ test("settings identities / grants / spaces tabs (F3)", async ({ page }, testInf
   await expect(page.getByRole("heading", { name: "Claim space" })).toBeVisible();
   await expect(page.getByText(/did:key:z6MktestSpace/)).toBeVisible();
   await expectNoA11yViolations(page);
+
+  await page.getByRole("link", { name: "Reputation" }).click();
+  await expect(page.getByRole("heading", { name: "Reputation lookup" })).toBeVisible();
+  await page.getByLabel("Subject DID").fill("did:key:z6MktestPerson0000000000000000000000001");
+  await page.getByRole("button", { name: "Look up" }).click();
+  await expect(page.getByText("certified")).toBeVisible();
+  await expect(page.getByText("domain_bound")).toBeVisible();
+  await expect(page.getByText("vouch")).toBeVisible();
+  await expectNoA11yViolations(page);
 });

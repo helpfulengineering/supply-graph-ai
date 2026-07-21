@@ -55,15 +55,63 @@ export async function fetchPackageMetadata(
   return meta;
 }
 
+/** Pin record written by POST …/pin (subset used for certification). */
+export type PinRecord = {
+  pinned_at?: string;
+  pinned_by?: string;
+  manifest_content_hash: string;
+  file_hashes: Record<string, string>;
+  note?: string | null;
+};
+
+async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Match ``src.core.federation.merkle.merkle_root`` (sorted pairwise SHA-256). */
+async function merkleRoot(leafHashes: string[]): Promise<string> {
+  if (leafHashes.length === 0) return sha256Hex("");
+  let level = [...leafHashes].sort();
+  if (level.length === 1) return level[0]!;
+  while (level.length > 1) {
+    const next: string[] = [];
+    for (let i = 0; i < level.length; i += 2) {
+      if (i + 1 < level.length) {
+        next.push(await sha256Hex(level[i]! + level[i + 1]!));
+      } else {
+        next.push(level[i]!);
+      }
+    }
+    level = next;
+  }
+  return level[0]!;
+}
+
+/** R3 release identity: ``sha256:<merkle>`` over manifest hash + file checksums. */
+export async function bundleHashFromPin(pin: PinRecord): Promise<string> {
+  const leaves = [pin.manifest_content_hash];
+  for (const path of Object.keys(pin.file_hashes).sort()) {
+    leaves.push(pin.file_hashes[path]!);
+  }
+  return `sha256:${await merkleRoot(leaves)}`;
+}
+
 export async function pinPackage(
   org: string,
   project: string,
   version: string,
-): Promise<void> {
-  await post(
+): Promise<{ pin_record: PinRecord; bundle_hash: string }> {
+  const res = await post<{ data?: { pin_record?: PinRecord } }>(
     `/package/${encodeURIComponent(org)}/${encodeURIComponent(project)}/${encodeURIComponent(version)}/pin`,
     {},
   );
+  const pin_record = res.data?.pin_record;
+  if (!pin_record?.manifest_content_hash) {
+    throw new Error("Pin response missing pin_record");
+  }
+  const bundle_hash = await bundleHashFromPin(pin_record);
+  return { pin_record, bundle_hash };
 }
 
 export async function verifyPackagePin(

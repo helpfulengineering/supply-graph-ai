@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
   downloadPackageFile,
   fetchPackageMetadata,
   pinPackage,
+  type PinRecord,
   splitPackageName,
   verifyPackagePin,
 } from "../../api/package";
@@ -11,6 +13,8 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { Button } from "../../components/ui/button";
 import { useAuth } from "../../context/AuthContext";
+import { AttestationsPanel } from "../identity/AttestationsPanel";
+import { CertifyPackagePanel } from "./CertifyPackagePanel";
 
 interface Props {
   org: string;
@@ -22,6 +26,10 @@ export function PackageDetailView({ org, project, version }: Props) {
   const { reportAuthFailure } = useAuth();
   const queryClient = useQueryClient();
   const packageName = `${org}/${project}`;
+  const [pinResult, setPinResult] = useState<{
+    pin_record: PinRecord;
+    bundle_hash: string;
+  } | null>(null);
 
   const meta = useQuery({
     queryKey: ["package", org, project, version],
@@ -31,8 +39,10 @@ export function PackageDetailView({ org, project, version }: Props) {
   const pin = useMutation({
     mutationFn: () => pinPackage(org, project, version),
     onError: reportAuthFailure,
-    onSuccess: () =>
-      void queryClient.invalidateQueries({ queryKey: ["package", org, project, version] }),
+    onSuccess: (result) => {
+      setPinResult(result);
+      void queryClient.invalidateQueries({ queryKey: ["package", org, project, version] });
+    },
   });
 
   const verify = useMutation({
@@ -124,9 +134,9 @@ export function PackageDetailView({ org, project, version }: Props) {
         )}
       </dl>
 
-      {pin.isSuccess && (
+      {pin.isSuccess && pinResult && (
         <p className="text-sm text-emerald-700 dark:text-emerald-400" role="status">
-          Package pinned.
+          Package pinned. Bundle {pinResult.bundle_hash}
         </p>
       )}
       {verify.isSuccess && (
@@ -146,6 +156,9 @@ export function PackageDetailView({ org, project, version }: Props) {
             : "Action failed."}
         </p>
       )}
+
+      <CertifyPackagePanel version={version} pin={pinResult} />
+      <AttestationsPanel contentHash={pinResult?.bundle_hash} />
     </div>
   );
 }

@@ -19,6 +19,8 @@ import {
   identityFixture,
   grantsFixture,
   spaceClaimsFixture,
+  attestationsFixture,
+  pinRecordFixture,
   provenanceFixture,
   visibilityFixture,
   packageListFixture,
@@ -109,6 +111,22 @@ export const handlers = [
   http.get("*/v1/api/identity/spaces", () => HttpResponse.json(spaceClaimsFixture)),
   http.post("*/v1/api/identity/spaces/claim", () =>
     HttpResponse.json(spaceClaimsFixture[0], { status: 201 }),
+  ),
+  http.get("*/v1/api/identity/attestations", () =>
+    HttpResponse.json(attestationsFixture),
+  ),
+  http.post("*/v1/api/identity/attestations/certify", () =>
+    HttpResponse.json(attestationsFixture[0], { status: 201 }),
+  ),
+  http.get("*/v1/api/identity/reputation/:did", () =>
+    HttpResponse.json(attestationsFixture),
+  ),
+  http.post("*/v1/api/package/:org/:project/:version/pin", () =>
+    HttpResponse.json({
+      status: "success",
+      message: "pinned",
+      data: { pin_record: pinRecordFixture },
+    }),
   ),
   http.get("*/v1/api/package/list", () => HttpResponse.json(packageListFixture)),
   http.get("*/v1/api/package/:org/:project/:version", () =>

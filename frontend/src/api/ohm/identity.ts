@@ -261,3 +261,51 @@ export async function claimSpace(spaceDid: string, adminDid: string): Promise<Sp
     body: JSON.stringify({ space_did: spaceDid, admin_did: adminDid }),
   });
 }
+
+/** Durable attestation (not yet in committed OpenAPI). */
+export interface Attestation {
+  attestation_id: string;
+  type: string;
+  issuer_did: string;
+  subject_did: string;
+  content_hash?: string | null;
+  claim?: Record<string, unknown>;
+  created_at?: string;
+  expires_at?: string | null;
+  signature?: string;
+}
+
+export interface CertifyRequest {
+  subject_did: string;
+  bundle_hash: string;
+  version: string;
+  issuer_did?: string | null;
+  manifest_content_hash?: string | null;
+  claim?: Record<string, unknown>;
+}
+
+export async function listAttestations(opts: {
+  subject_did?: string;
+  content_hash?: string;
+}): Promise<Attestation[]> {
+  const q = new URLSearchParams();
+  if (opts.subject_did) q.set("subject_did", opts.subject_did);
+  if (opts.content_hash) q.set("content_hash", opts.content_hash);
+  const qs = q.toString();
+  return identityFetch<Attestation[]>(
+    `/api/identity/attestations${qs ? `?${qs}` : ""}`,
+  );
+}
+
+export async function certifyRelease(body: CertifyRequest): Promise<Attestation> {
+  return identityFetch<Attestation>("/api/identity/attestations/certify", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function listReputation(subjectDid: string): Promise<Attestation[]> {
+  return identityFetch<Attestation[]>(
+    `/api/identity/reputation/${encodeURIComponent(subjectDid)}`,
+  );
+}

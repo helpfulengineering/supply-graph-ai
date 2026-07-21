@@ -346,6 +346,50 @@ export const spaceClaimsFixture = [
   },
 ];
 
+export const attestationsFixture = [
+  {
+    attestation_id: "00000000-0000-0000-0000-0000000000a1",
+    type: "certified",
+    issuer_did: "did:key:z6MktestNode000000000000000000000000001",
+    subject_did: identityFixture.did,
+    content_hash: "sha256:bundlehash0000000000000000000000000001",
+    claim: { version: "1.0.0" },
+    created_at: "2026-01-01T00:00:00Z",
+    expires_at: null,
+    signature: "cd",
+  },
+  {
+    attestation_id: "00000000-0000-0000-0000-0000000000a2",
+    type: "domain_bound",
+    issuer_did: "did:key:z6MktestNode000000000000000000000000001",
+    subject_did: identityFixture.did,
+    content_hash: null,
+    claim: { domain: "example.org" },
+    created_at: "2026-01-02T00:00:00Z",
+    expires_at: null,
+    signature: "ef",
+  },
+  {
+    attestation_id: "00000000-0000-0000-0000-0000000000a3",
+    type: "vouch",
+    issuer_did: spaceIdentityFixture.did,
+    subject_did: identityFixture.did,
+    content_hash: null,
+    claim: {},
+    created_at: "2026-01-03T00:00:00Z",
+    expires_at: null,
+    signature: "gh",
+  },
+];
+
+export const pinRecordFixture = {
+  pinned_at: "2026-01-01T00:00:00Z",
+  pinned_by: "tester",
+  manifest_content_hash: "manifest-hash-leaf",
+  file_hashes: {},
+  note: null,
+};
+
 export const provenanceFixture = {
   authored_by: [{ external_id: "name:Test Author", role: null }],
   published_by: null,
@@ -431,6 +475,7 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/accounts": accountsFixture,
   "/v1/api/identity/spaces": spaceClaimsFixture,
   "/v1/api/identity/grants": grantsFixture,
+  "/v1/api/identity/attestations": attestationsFixture,
   "/v1/api/package/list": packageListFixture,
   "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };
