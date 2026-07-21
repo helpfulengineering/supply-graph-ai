@@ -5,6 +5,7 @@ import { Badge } from "../components/ui/Badge";
 import { LoadingState, ErrorState } from "../components/ui/states";
 import { NetworkMap } from "../features/network/NetworkMap";
 import { GettingStarted } from "../features/dashboard/GettingStarted";
+import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { buildNetworkSummary, SOURCE_STYLES } from "../features/network/networkSummary";
 
 function StatCard({ label, value }: { label: string; value: string }) {
@@ -121,6 +122,12 @@ export function HomePage() {
                     <span className="text-xs text-muted-foreground">loading…</span>
                   )}
                 </div>
+              </div>
+              <div>
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                  Security
+                </p>
+                <SecurityPolicyBadge />
               </div>
             </div>
           </section>

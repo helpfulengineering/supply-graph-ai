@@ -257,6 +257,51 @@ export const vizBundleFixture = {
   },
 };
 
+export const whoamiAdminFixture = {
+  key_id: "00000000-0000-0000-0000-0000000000aa",
+  name: "Admin key",
+  permissions: ["read", "write", "admin"],
+  account_id: "00000000-0000-0000-0000-000000000001",
+  subject_did: null,
+};
+
+export const securityPolicyFixture = {
+  mode: "peacetime",
+  require_auth_for_writes: false,
+  custodial_keys_allowed: true,
+  grant_ttl_days: 90,
+  recovery: "reissuance",
+  trust_bootstrap: "tofu_registry",
+  mdns_advertise: true,
+  metadata_logging: "full",
+  registry_attestations: "trust_on_follow",
+  anonymous_submission_allowed: true,
+};
+
+export const apiKeysFixture = [
+  {
+    key_id: "00000000-0000-0000-0000-0000000000aa",
+    name: "Admin key",
+    description: null,
+    permissions: ["read", "write", "admin"],
+    created_at: "2026-01-01T00:00:00Z",
+    last_used_at: null,
+    expires_at: null,
+    revoked: false,
+    token: null,
+  },
+];
+
+export const accountsFixture = [
+  {
+    id: "00000000-0000-0000-0000-000000000001",
+    display_name: "Local admin",
+    kind: "person",
+    created_at: "2026-01-01T00:00:00Z",
+    disabled: false,
+  },
+];
+
 /** Path-keyed lookup used by the Playwright interceptor (see e2e/mock-api.ts). */
 export const fixturesByPath: Record<string, unknown> = {
   "/health": healthFixture,
@@ -272,4 +317,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,
   "/v1/api/supply-tree/solution/sol-1/visualization": vizBundleFixture,
+  "/v1/api/identity/whoami": whoamiAdminFixture,
+  "/v1/api/identity/security-policy": securityPolicyFixture,
+  "/v1/api/identity/keys": apiKeysFixture,
+  "/v1/api/identity/accounts": accountsFixture,
 };

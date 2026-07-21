@@ -343,6 +343,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okh/{id}/provenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get OKH manifest provenance
+         * @description Return the authorship/publication provenance recorded for a manifest.
+         */
+        get: operations["get_okh_provenance_api_okh__id__provenance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okh/{id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get OKH manifest visibility */
+        get: operations["get_okh_visibility_api_okh__id__visibility_get"];
+        /**
+         * Set OKH manifest visibility
+         * @description Set share policy: private (local only), followers, or public.
+         */
+        put: operations["set_okh_visibility_api_okh__id__visibility_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okh/manifests/{id}": {
         parameters: {
             query?: never;
@@ -358,6 +399,26 @@ export interface paths {
          * @description Alias for DELETE /{id} — used by integration test cleanup.
          */
         delete: operations["delete_okh_manifest_alias_api_okh_manifests__id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okh/{id}/files/{file_path}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download or view an OKH manifest file
+         * @description Stream a design/manufacturing/instruction file via OHM storage or source repo.
+         */
+        get: operations["get_okh_file_api_okh__id__files__file_path__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1029,6 +1090,47 @@ export interface paths {
          *         validates it, and stores it. Returns the stored facility id and metadata.
          */
         post: operations["create_okw_facility_api_okw_create_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/{id}/provenance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get OKW facility provenance
+         * @description Return the authorship/publication provenance recorded for a facility.
+         */
+        get: operations["get_okw_provenance_api_okw__id__provenance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/{id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get OKW facility visibility */
+        get: operations["get_okw_visibility_api_okw__id__visibility_get"];
+        /**
+         * Set OKW facility visibility
+         * @description Set share policy: private (local only), followers, or public.
+         */
+        put: operations["set_okw_visibility_api_okw__id__visibility_put"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2516,6 +2618,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/convert/from-okh-losh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Convert OKH-LOSH v2.4 TOML to OKH Manifest
+         * @description Convert an OKH-LOSH v2.4 TOML manifest (github.com/iop-alliance/OpenKnowHow)
+         *         to a canonical OKH manifest.
+         *
+         *         Upload the .toml file and receive the OKH manifest as JSON in the
+         *         response body. Fields with no direct equivalent in OHM's model (the
+         *         full `[[image]]` array, top-level mass, top-level release) are
+         *         preserved under the manifest's `metadata` dict rather than dropped.
+         *
+         *         **Workflow:**
+         *         1. Upload the OKH-LOSH `.toml` file.
+         *         2. Receive the parsed OKH manifest as JSON.
+         */
+        post: operations["convert_from_okh_losh_api_convert_from_okh_losh_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/convert/from-datasheet": {
         parameters: {
             query?: never;
@@ -2596,6 +2728,43 @@ export interface paths {
          * @description Validate the current taxonomy YAML file without applying changes.
          */
         get: operations["validate_taxonomy_api_taxonomy_validate_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/file-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get file type taxonomy
+         * @description Returns all file types in the current taxonomy.
+         */
+        get: operations["get_file_types_api_file_types_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/file-types/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Validate file type taxonomy YAML */
+        get: operations["validate_file_types_api_file_types_validate_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2798,16 +2967,297 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/identity/whoami": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current identity
+         * @description Return the identity (key + account) behind the presented credential.
+         */
+        get: operations["whoami_api_identity_whoami_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List API keys
+         * @description List API keys. Tokens are never returned here.
+         */
+        get: operations["list_keys_api_identity_keys_get"];
+        put?: never;
+        /**
+         * Create an API key
+         * @description Mint an API key. The plaintext token is returned only in this response.
+         */
+        post: operations["create_key_api_identity_keys_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/keys/{key_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke an API key */
+        delete: operations["revoke_key_api_identity_keys__key_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List accounts */
+        get: operations["list_accounts_api_identity_accounts_get"];
+        put?: never;
+        /** Create an account */
+        post: operations["create_account_api_identity_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/accounts/{account_id}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Disable an account */
+        post: operations["disable_account_api_identity_accounts__account_id__disable_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/identities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mint an identity
+         * @description Mint an Ed25519 ``did:key`` bound (custodially) to an account.
+         */
+        post: operations["mint_identity_api_identity_identities_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/identities/{did}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Show an identity */
+        get: operations["show_identity_api_identity_identities__did__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/identities/{did}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate an identity's key
+         * @description Rotate to a fresh keypair, linking old -> new (signed by the old key).
+         */
+        post: operations["rotate_identity_api_identity_identities__did__rotate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List grants */
+        get: operations["list_grants_api_identity_grants_get"];
+        put?: never;
+        /**
+         * Issue a capability grant
+         * @description Issue a signed grant. ``issuer_did`` defaults to the local node identity.
+         */
+        post: operations["issue_grant_api_identity_grants_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/grants/{grant_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke a grant */
+        delete: operations["revoke_grant_api_identity_grants__grant_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * APIKeyCreate
+         * @description Request model for creating API key
+         */
+        APIKeyCreate: {
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Permissions */
+            permissions?: string[];
+            /** Expires At */
+            expires_at?: string | null;
+            /** Account Id */
+            account_id?: string | null;
+        };
+        /**
+         * APIKeyResponse
+         * @description Response model for API key (without hash)
+         */
+        APIKeyResponse: {
+            /**
+             * Key Id
+             * Format: uuid
+             */
+            key_id: string;
+            /** Name */
+            name: string;
+            /** Description */
+            description?: string | null;
+            /** Permissions */
+            permissions: string[];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Last Used At */
+            last_used_at?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Revoked
+             * @default false
+             */
+            revoked: boolean;
+            /** Token */
+            token?: string | null;
+        };
         /**
          * APIStatus
          * @description Standard API status values.
          * @enum {string}
          */
         APIStatus: "success" | "error" | "warning" | "info";
+        /**
+         * Account
+         * @description A custodial identity that owns API keys and authors records.
+         */
+        Account: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id?: string;
+            /** Display Name */
+            display_name: string;
+            /** @default person */
+            kind: components["schemas"]["AccountKind"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Disabled
+             * @default false
+             */
+            disabled: boolean;
+        };
+        /**
+         * AccountCreate
+         * @description Request payload for creating an account.
+         */
+        AccountCreate: {
+            /** Display Name */
+            display_name: string;
+            /** @default person */
+            kind: components["schemas"]["AccountKind"];
+        };
+        /**
+         * AccountKind
+         * @description Whether an account represents a human or an organizational space.
+         * @enum {string}
+         */
+        AccountKind: "person" | "space";
         /** AssetCreateRequest */
         AssetCreateRequest: {
             /**
@@ -2917,6 +3367,32 @@ export interface components {
              */
             triage_notes?: string | null;
         };
+        /**
+         * AuthenticatedUser
+         * @description Model representing the identity behind an authenticated request.
+         *
+         *     Backed today by an API key; ``account_id`` is who writes are attributed to,
+         *     and ``subject_did`` is a placeholder for the self-sovereign DID added in Slice 2.
+         */
+        AuthenticatedUser: {
+            /**
+             * Key Id
+             * Format: uuid
+             */
+            key_id: string;
+            /** Name */
+            name: string;
+            /** Permissions */
+            permissions: string[];
+            /**
+             * Account Id
+             * Format: uuid
+             * @default 00000000-0000-0000-0000-000000000001
+             */
+            account_id: string;
+            /** Subject Did */
+            subject_did?: string | null;
+        };
         /** Body_convert_from_datasheet_api_convert_from_datasheet_post */
         Body_convert_from_datasheet_api_convert_from_datasheet_post: {
             /**
@@ -2924,6 +3400,14 @@ export interface components {
              * @description MSF datasheet (.docx) to convert
              */
             datasheet_file: string;
+        };
+        /** Body_convert_from_okh_losh_api_convert_from_okh_losh_post */
+        Body_convert_from_okh_losh_api_convert_from_okh_losh_post: {
+            /**
+             * Toml File
+             * @description OKH-LOSH v2.4 TOML manifest to convert
+             */
+            toml_file: string;
         };
         /** Body_detect_domain_from_input_api_match_detect_domain_post */
         Body_detect_domain_from_input_api_match_detect_domain_post: {
@@ -3116,6 +3600,43 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * CapabilityGrant
+         * @description A signed, offline-verifiable authorization.
+         */
+        CapabilityGrant: {
+            /**
+             * Grant Id
+             * Format: uuid
+             */
+            grant_id?: string;
+            /** Issuer Did */
+            issuer_did: string;
+            /** Subject Did */
+            subject_did: string;
+            /** Permissions */
+            permissions?: string[];
+            /** Coarse Floor */
+            coarse_floor?: string[];
+            scope: components["schemas"]["Scope"];
+            /**
+             * Issued At
+             * Format: date-time
+             */
+            issued_at?: string;
+            /** Not Before */
+            not_before?: string | null;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+        };
         /** CatalogListResponse */
         CatalogListResponse: {
             /** Records */
@@ -3158,6 +3679,7 @@ export interface components {
             updated_at: string;
             /** Publisher Did */
             publisher_did: string;
+            provenance?: components["schemas"]["RecordProvenance"] | null;
             /**
              * Signature
              * @description Hex-encoded Ed25519 signature over canonical record
@@ -3520,6 +4042,82 @@ export interface components {
             warnings?: string[];
         };
         /**
+         * ConvertFromOkhLoshResponse
+         * @description Response model for OKH-LOSH v2.4 TOML → OKH conversion.
+         *
+         *     Returns the full OKH manifest data parsed from the uploaded
+         *     OKH-LOSH TOML file.
+         * @example {
+         *       "fields_populated": 18,
+         *       "manifest": {
+         *         "function": "Oxygen Concentrator based on the Pressure Swing Absorption cycle",
+         *         "license": {
+         *           "hardware": "CC-BY-4.0"
+         *         },
+         *         "title": "M19O2",
+         *         "version": "3.0.0"
+         *       },
+         *       "manifest_title": "M19O2",
+         *       "message": "OKH-LOSH TOML converted to OKH manifest successfully",
+         *       "success": true
+         *     }
+         */
+        ConvertFromOkhLoshResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            /**
+             * Data
+             * @description Response data payload
+             */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Manifest
+             * @description The parsed OKH manifest as a JSON object
+             */
+            manifest: {
+                [key: string]: unknown;
+            };
+            /**
+             * Manifest Title
+             * @description Title extracted from the OKH-LOSH manifest
+             */
+            manifest_title: string;
+            /**
+             * Fields Populated
+             * @description Number of OKH fields populated from the manifest
+             * @default 0
+             */
+            fields_populated: number;
+        };
+        /**
          * ConvertToDatasheetRequest
          * @description Request model for converting an OKH manifest to an MSF datasheet.
          *
@@ -3671,6 +4269,22 @@ export interface components {
             } | (string | {
                 [key: string]: unknown;
             })[] | null;
+        };
+        /**
+         * Credit
+         * @description Attribution to one contributor — a DID *or* a claimable external id.
+         *
+         *     Exactly one of ``subject_did`` / ``external_id`` is set. An unclaimed
+         *     ``external_id`` (e.g. ``orcid:0000-...``, ``name:Jane Doe``) can be claimed
+         *     later by a real DID via an identity link (ADR §4.3.1).
+         */
+        Credit: {
+            /** Subject Did */
+            subject_did?: string | null;
+            /** External Id */
+            external_id?: string | null;
+            /** Role */
+            role?: string | null;
         };
         /**
          * ErrorCode
@@ -3903,6 +4517,26 @@ export interface components {
             /** Followed */
             followed: boolean;
         };
+        /**
+         * GrantIssue
+         * @description Request payload for issuing a capability grant.
+         *
+         *     ``issuer_did`` defaults to the local node identity when omitted; the node must
+         *     hold the issuer's signing key.
+         */
+        GrantIssue: {
+            /** Subject Did */
+            subject_did: string;
+            /** Permissions */
+            permissions: string[];
+            scope: components["schemas"]["Scope"];
+            /** Issuer Did */
+            issuer_did?: string | null;
+            /** Ttl Days */
+            ttl_days?: number | null;
+            /** Coarse Floor */
+            coarse_floor?: string[] | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -3925,6 +4559,79 @@ export interface components {
             catalog_record_count: number;
             /** Merkle Root */
             merkle_root?: string | null;
+        };
+        /**
+         * Identity
+         * @description The public record for a DID (private key lives in the node-local store).
+         */
+        Identity: {
+            /** Did */
+            did: string;
+            kind: components["schemas"]["IdentityKind"];
+            /** Display Name */
+            display_name: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Account Id */
+            account_id?: string | null;
+            /** Links In */
+            links_in?: components["schemas"]["IdentityLink"][];
+            /**
+             * Custodial
+             * @default false
+             */
+            custodial: boolean;
+        };
+        /**
+         * IdentityKind
+         * @description What an identity represents.
+         * @enum {string}
+         */
+        IdentityKind: "person" | "space" | "node";
+        /**
+         * IdentityLink
+         * @description A signed statement linking one DID to another (rotation / handoff).
+         */
+        IdentityLink: {
+            /** From Did */
+            from_did: string;
+            /** To Did */
+            to_did: string;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "rotation" | "custodial_handoff" | "reissue";
+            /** Signed By */
+            signed_by: string;
+            /** Signature */
+            signature: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+        };
+        /**
+         * IdentityMint
+         * @description Request payload for minting an identity bound to an account.
+         */
+        IdentityMint: {
+            /**
+             * Account Id
+             * Format: uuid
+             */
+            account_id: string;
+            /** @default person */
+            kind: components["schemas"]["IdentityKind"];
+            /**
+             * Display Name
+             * @default
+             */
+            display_name: string;
         };
         /**
          * LLMHealthResponse
@@ -6015,6 +6722,25 @@ export interface components {
             };
         };
         /**
+         * RecordProvenance
+         * @description Authorship/publication facts attached to an OKH/OKW record.
+         */
+        RecordProvenance: {
+            /** Authored By */
+            authored_by?: components["schemas"]["Credit"][];
+            /** Published By */
+            published_by?: string | null;
+            /** On Behalf Of */
+            on_behalf_of?: string | null;
+            /** Signed By */
+            signed_by?: string | null;
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+        };
+        /**
          * RuleCompareRequest
          * @description Request for comparing rules file with current rules
          * @example {
@@ -6796,6 +7522,21 @@ export interface components {
             okh_version: string;
         };
         /**
+         * Scope
+         * @description The target a grant applies to. Versioned for forward compatibility.
+         */
+        Scope: {
+            /** Kind */
+            kind: string;
+            /** Target */
+            target: string;
+            /**
+             * V
+             * @default 1
+             */
+            v: number;
+        };
+        /**
          * SignedManifestRecordResponse
          * @description API wrapper for GET /records/{content_hash}.
          */
@@ -7502,6 +8243,36 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /**
+         * VisibilityBody
+         * @description Request body for PUT …/visibility.
+         */
+        VisibilityBody: {
+            /** @description private | followers | public */
+            visibility: components["schemas"]["VisibilityLevel"];
+        };
+        /**
+         * VisibilityLevel
+         * @description How far a record may leave this node.
+         *
+         *     ``followers`` and ``public`` are both catalog-shareable today (federation
+         *     sync is already follow-gated). ``public`` is reserved for broader registry
+         *     listing later without another migration.
+         * @enum {string}
+         */
+        VisibilityLevel: "private" | "followers" | "public";
+        /**
+         * VisibilityResponse
+         * @description Visibility for one record.
+         */
+        VisibilityResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            visibility: components["schemas"]["VisibilityLevel"];
+        };
     };
     responses: never;
     parameters: never;
@@ -8135,7 +8906,12 @@ export interface operations {
     };
     create_okh_manifest_api_okh_manifests__post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Author DID or claimable external id (defaults to caller) */
+                author?: string | null;
+                /** @description Space DID this manifest is published on behalf of */
+                on_behalf_of?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -8187,6 +8963,160 @@ export interface operations {
             };
         };
     };
+    get_okh_provenance_api_okh__id__provenance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordProvenance"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okh_visibility_api_okh__id__visibility_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okh_visibility_api_okh__id__visibility_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VisibilityBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     delete_okh_manifest_alias_api_okh_manifests__id__delete: {
         parameters: {
             query?: never;
@@ -8206,6 +9136,55 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"];
                 };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okh_file_api_okh__id__files__file_path__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                file_path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Bad Request */
             400: {
@@ -8560,7 +9539,12 @@ export interface operations {
     };
     create_okh_manifest_api_okh_create_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Author DID or claimable external id (defaults to caller) */
+                author?: string | null;
+                /** @description Space DID this manifest is published on behalf of */
+                on_behalf_of?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -9724,7 +10708,12 @@ export interface operations {
     };
     create_okw_facility_api_okw_create_post: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Author DID or claimable external id (defaults to caller) */
+                author?: string | null;
+                /** @description Space DID this facility is published on behalf of */
+                on_behalf_of?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -9742,6 +10731,160 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OKWUploadResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okw_provenance_api_okw__id__provenance_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordProvenance"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okw_visibility_api_okw__id__visibility_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okw_visibility_api_okw__id__visibility_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VisibilityBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VisibilityResponse"];
                 };
             };
             /** @description Bad Request */
@@ -13214,6 +14357,51 @@ export interface operations {
             };
         };
     };
+    convert_from_okh_losh_api_convert_from_okh_losh_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_convert_from_okh_losh_api_convert_from_okh_losh_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConvertFromOkhLoshResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     convert_from_datasheet_api_convert_from_datasheet_post: {
         parameters: {
             query?: never;
@@ -13328,6 +14516,74 @@ export interface operations {
         };
     };
     validate_taxonomy_api_taxonomy_validate_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_file_types_api_file_types_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    validate_file_types_api_file_types_validate_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -13671,6 +14927,385 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FollowResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    whoami_api_identity_whoami_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthenticatedUser"];
+                };
+            };
+        };
+    };
+    list_keys_api_identity_keys_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIKeyResponse"][];
+                };
+            };
+        };
+    };
+    create_key_api_identity_keys_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["APIKeyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["APIKeyResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_key_api_identity_keys__key_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_accounts_api_identity_accounts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"][];
+                };
+            };
+        };
+    };
+    create_account_api_identity_accounts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    disable_account_api_identity_accounts__account_id__disable_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Account"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    mint_identity_api_identity_identities_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentityMint"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Identity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    show_identity_api_identity_identities__did__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                did: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Identity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rotate_identity_api_identity_identities__did__rotate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                did: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Identity"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_grants_api_identity_grants_get: {
+        parameters: {
+            query: {
+                /** @description Subject DID to list grants for */
+                subject_did: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityGrant"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_grant_api_identity_grants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GrantIssue"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityGrant"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_grant_api_identity_grants__grant_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grant_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
                 };
             };
             /** @description Validation Error */

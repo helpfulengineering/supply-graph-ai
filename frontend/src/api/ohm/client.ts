@@ -12,6 +12,7 @@
  */
 import createClient from "openapi-fetch";
 import type { paths } from "../generated/schema";
+import { authHeader } from "../../features/auth/tokenStorage";
 
 // Absolute base so requests work identically in the browser (real origin +
 // dev-proxy) and in the node/jsdom test env, where undici's fetch rejects
@@ -31,7 +32,17 @@ export const apiClient = createClient<paths>({
   // Defer to the *current* global fetch on each call rather than the reference
   // captured at module load, so test-time interceptors (MSW) that replace
   // globalThis.fetch after import are honored. No-op difference in the browser.
-  fetch: (input) => globalThis.fetch(input),
+  fetch: (request) => globalThis.fetch(request),
+});
+
+apiClient.use({
+  async onRequest({ request }) {
+    const auth = authHeader();
+    if (auth.Authorization && !request.headers.has("Authorization")) {
+      request.headers.set("Authorization", auth.Authorization);
+    }
+    return request;
+  },
 });
 
 /** Thrown by domain wrappers when a request fails; carries the HTTP status. */

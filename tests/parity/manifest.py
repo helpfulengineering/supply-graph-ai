@@ -209,7 +209,10 @@ AREAS: tuple[Area, ...] = (
         "'identity' API tag + CLI group — API keys, accounts, identities (did:key), "
         "capability grants, space claims, edge bootstrap, attestations, domain/OAuth "
         "bindings, trust-on-follow directory, and security-policy status. See "
-        "notes/federated-identity-spec.md Slices 1-8.",
+        "notes/federated-identity-spec.md Slices 1-8. Frontend Track F: Settings "
+        "(admin) under /settings; more panels land in F3–F6.",
+        fe_routes=("/settings",),
+        fe_api_prefixes=("/api/identity",),
     ),
     # --- Internal services: no API and no CLI by design -------------------
     Area("cache", "cache", None, None, "internal", note="Caching internals."),

@@ -12,6 +12,10 @@ import {
   okwDetailFixture,
   okwSearchFixture,
   validationResultFixture,
+  whoamiAdminFixture,
+  securityPolicyFixture,
+  apiKeysFixture,
+  accountsFixture,
 } from "../fixtures";
 
 // MSW handlers for vitest (node) unit/component tests. These mirror the
@@ -32,4 +36,10 @@ export const handlers = [
   http.get("*/v1/api/supply-tree/solution/:id/visualization", () =>
     HttpResponse.json(vizBundleFixture),
   ),
+  http.get("*/v1/api/identity/whoami", () => HttpResponse.json(whoamiAdminFixture)),
+  http.get("*/v1/api/identity/security-policy", () =>
+    HttpResponse.json(securityPolicyFixture),
+  ),
+  http.get("*/v1/api/identity/keys", () => HttpResponse.json(apiKeysFixture)),
+  http.get("*/v1/api/identity/accounts", () => HttpResponse.json(accountsFixture)),
 ];
