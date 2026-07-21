@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-21
+
+### Added
+
+- **Federated identity (backend slices 0–8):** accounts and API keys with write enforcement; offline capability grants (`did:key`); custodial identity mint/rotate; record provenance store + federation propagation; per-record visibility; space claims and edge bootstrap; certification attestations (R3 bundle hash); domain/OAuth bindings and trust-on-follow directory; peacetime / crisis / shielded security-mode presets. CLI and API under `ohm identity` / `/v1/api/identity/*`.
+- **Frontend Track F (F0–F6):** session auth (Bearer key in `sessionStorage`); admin Settings (Session, Keys & accounts, Identities, Grants, Spaces, Bindings, Directory, Federation, Reputation); Packages as first-class nav (list/search, server build, zip download); OKH/OKW create with provenance and visibility controls; attestations/certify on package detail.
+- **Package batch zip:** `POST /api/package/download-zip` and CLI `ohm package download-zip` for multi-package download.
+- **Authentication & IAM docs:** new MkDocs section (`docs/auth/`) covering bootstrap `API_KEYS`, accounts vs keys, DID minting, and the Settings UI; cross-links from API auth and identity-model docs.
+
+### Changed
+
+- **Version:** Application release `0.10.0`. Published Docker tags will include `0.10.0`, floating `0.10`, and `latest`.
+- **Settings IA:** Session/Connect is reachable without admin so operators can paste the first env key; admin tabs appear after `whoami` reports `admin`.
+
+### Fixed
+
+- **Session chicken-and-egg:** Settings was admin-gated, which hid the only UI path to paste a bootstrap API key; Connect/Session is now always available.
+- **Package build 500:** successful `POST /api/package/build/{manifest_id}` returned a `SuccessResponse` model where FastAPI expected a dict; response is now serialized correctly (201 with metadata).
+
 ## [0.9.0] - 2026-07-12
 
 ### Added
@@ -94,6 +113,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.10.0]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.11...v0.9.0
 [0.8.11]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.10...v0.8.11
 [0.8.10]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.9...v0.8.10
