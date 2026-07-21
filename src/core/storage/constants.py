@@ -11,6 +11,7 @@ IDENTITY_GRANTS_PREFIX = "identity/grants"
 PROVENANCE_PREFIX = "provenance"
 VISIBILITY_PREFIX = "visibility"
 SPACE_CLAIMS_PREFIX = "identity/space-claims"
+ATTESTATIONS_PREFIX = "identity/attestations"
 
 STORAGE_OBJECT_TYPE_SUPPLY_TREE = "supply_tree"
 STORAGE_OBJECT_TYPE_SUPPLY_TREE_SOLUTION = "supply_tree_solution"
@@ -21,6 +22,7 @@ STORAGE_OBJECT_TYPE_CAPABILITY_GRANT = "capability_grant"
 STORAGE_OBJECT_TYPE_PROVENANCE = "record_provenance"
 STORAGE_OBJECT_TYPE_VISIBILITY = "record_visibility"
 STORAGE_OBJECT_TYPE_SPACE_CLAIM = "space_claim"
+STORAGE_OBJECT_TYPE_ATTESTATION = "attestation"
 
 DEFAULT_SOLUTION_TTL_DAYS = 30
 

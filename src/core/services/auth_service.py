@@ -36,9 +36,15 @@ from ..models.capability import (
 )
 from ..models.identity import Identity, IdentityKind, IdentityLink
 from ..models.provenance import RecordProvenance, sign_provenance
+from ..models.attestation import (
+    KNOWN_ATTESTATION_TYPES,
+    Attestation,
+    verify_attestation,
+)
 from ..models.space import SpaceClaim
 from ..services.storage_service import StorageService
 from ..storage.account_storage import AccountStorage
+from ..storage.attestation_store import AttestationStore
 from ..storage.auth_storage import AuthStorage
 from ..storage.grant_store import GrantStore
 from ..storage.identity_key_store import IdentityKeyStore
@@ -61,6 +67,7 @@ class AuthenticationService:
         self._identity_store: Optional[IdentityKeyStore] = None
         self._grant_store: Optional[GrantStore] = None
         self._space_claim_store: Optional[SpaceClaimStore] = None
+        self._attestation_store: Optional[AttestationStore] = None
         self._node_signing: Optional[NodeIdentity] = None
         self._initialized = False
 
@@ -83,6 +90,7 @@ class AuthenticationService:
             self._account_storage = AccountStorage(storage_service)
             self._grant_store = GrantStore(storage_service)
             self._space_claim_store = SpaceClaimStore(storage_service)
+            self._attestation_store = AttestationStore(storage_service)
             self._identity_store = IdentityKeyStore(
                 Path(settings.OHM_FEDERATION_DATA_DIR)
             )
@@ -796,3 +804,127 @@ class AuthenticationService:
             ttl_days=ttl_days,
             coarse_floor=["read", "write"],
         )
+
+    # ------------------------------------------------------------------
+    # Attestations (Slice 6)
+    # ------------------------------------------------------------------
+
+    async def issue_attestation(
+        self,
+        type: str,
+        subject_did: str,
+        issuer_did: Optional[str] = None,
+        content_hash: Optional[str] = None,
+        claim: Optional[Dict] = None,
+        expires_at: Optional[datetime] = None,
+    ) -> Attestation:
+        """Issue and sign a durable attestation. Issuer must be a held key."""
+        if not self._attestation_store:
+            raise RuntimeError("Attestation store not available")
+
+        if not issuer_did:
+            node = self._node_signing_identity()
+            if not node:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No local node identity to issue from; specify issuer_did",
+                )
+            issuer_did = node.did
+
+        signing_key = self._signing_key_for(issuer_did)
+        if not signing_key:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No signing key held for issuer; cannot issue attestation",
+            )
+
+        attestation = Attestation(
+            type=type,
+            issuer_did=issuer_did,
+            subject_did=subject_did,
+            content_hash=content_hash,
+            claim=claim or {},
+            expires_at=expires_at,
+        )
+        attestation.signature = sign_payload(
+            signing_key.private_key, attestation.signing_payload()
+        )
+        await self._attestation_store.save(attestation)
+        logger.info(
+            f"Issued {type} attestation {attestation.attestation_id} "
+            f"about {subject_did}"
+        )
+        return attestation
+
+    async def certify(
+        self,
+        subject_did: str,
+        bundle_hash: str,
+        version: str,
+        issuer_did: Optional[str] = None,
+        claim: Optional[Dict] = None,
+        manifest_content_hash: Optional[str] = None,
+    ) -> Attestation:
+        """Issue a ``certified`` attestation binding firm DID → bundle → version.
+
+        ``bundle_hash`` is the R3 release identity (see ``packaging.pin.bundle_hash``).
+        When ``manifest_content_hash`` is provided it is stored in the claim so the
+        attestation can ride the matching federation catalog record.
+        """
+        payload = dict(claim or {})
+        payload["version"] = version
+        if manifest_content_hash:
+            payload["manifest_content_hash"] = manifest_content_hash
+        return await self.issue_attestation(
+            type="certified",
+            subject_did=subject_did,
+            issuer_did=issuer_did,
+            content_hash=bundle_hash,
+            claim=payload,
+        )
+
+    async def save_attestation(self, attestation: Attestation) -> None:
+        """Persist a (typically federated) attestation without re-signing."""
+        if not self._attestation_store:
+            raise RuntimeError("Attestation store not available")
+        await self._attestation_store.save(attestation)
+
+    async def list_attestations(
+        self,
+        subject_did: Optional[str] = None,
+        content_hash: Optional[str] = None,
+    ) -> List[Attestation]:
+        """List attestations filtered by subject and/or content hash."""
+        if not self._attestation_store:
+            return []
+        if subject_did:
+            atts = await self._attestation_store.list_for_subject(subject_did)
+            if content_hash:
+                return [a for a in atts if a.content_hash == content_hash]
+            return atts
+        if content_hash:
+            return await self._attestation_store.list_for_content(content_hash)
+        return await self._attestation_store.list_all()
+
+    async def list_attestations_for_catalog(
+        self, manifest_content_hash: str
+    ) -> List[Attestation]:
+        """Attestations that should ride a catalog record for this design hash."""
+        if not self._attestation_store:
+            return []
+        return await self._attestation_store.list_for_catalog(manifest_content_hash)
+
+    async def list_reputation(self, subject_did: str) -> List[Attestation]:
+        """Known-type, signature-valid attestations about ``subject_did``.
+
+        No numeric scoring yet — reputation is the filtered attestation set over
+        the identity chain. Unknown types are stored/relayed but omitted here.
+        """
+        out: List[Attestation] = []
+        for a in await self.list_attestations(subject_did=subject_did):
+            if a.type not in KNOWN_ATTESTATION_TYPES:
+                continue
+            if not verify_attestation(a):
+                continue
+            out.append(a)
+        return out

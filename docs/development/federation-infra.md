@@ -100,6 +100,11 @@ Visibility is **local** (not carried on the catalog record). A peer that ingests
 design decides independently whether to re-share it. See
 [Identity Model — Record visibility](../architecture/identity-model.md).
 
+**Provenance** and **attestations** *do* ride the node-signed catalog record (out of
+the design content hash). On ingest, signed provenance/attestations are verified
+and re-stamped into the peer's own stores. See
+[Identity Model](../architecture/identity-model.md).
+
 ## CLI
 
 ```bash

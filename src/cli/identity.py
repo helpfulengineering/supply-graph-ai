@@ -721,3 +721,197 @@ async def spaces_list(
     cli_ctx.log(f"Space claims ({len(result)})", "success")
     for claim in result:
         click.echo(f"  {claim.get('space_did')}  admin={claim.get('admin_did')}")
+
+
+@identity_group.group(name="attestations")
+def attestations_group() -> None:
+    """Issue and inspect durable attestations (certification / reputation)."""
+    pass
+
+
+@attestations_group.command(name="issue")
+@standard_cli_command(help_text="Issue a signed attestation.", async_cmd=True)
+@click.option("--type", "att_type", required=True, help="Attestation type")
+@click.option("--subject-did", required=True, help="Subject DID the claim is about")
+@click.option("--issuer-did", default=None, help="Issuer DID (default: local node)")
+@click.option("--content-hash", default=None, help="Optional content / bundle hash")
+@click.pass_context
+async def attestations_issue(
+    ctx: click.Context,
+    att_type: str,
+    subject_did: str,
+    issuer_did: Optional[str],
+    content_hash: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Issue a durable signed attestation."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    body: dict = {"type": att_type, "subject_did": subject_did}
+    if issuer_did:
+        body["issuer_did"] = issuer_did
+    if content_hash:
+        body["content_hash"] = content_hash
+    try:
+        result = await _request(cli_ctx, "POST", "/attestations", json=body)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(
+        f"Issued {result.get('type')} attestation {result.get('attestation_id')}",
+        "success",
+    )
+
+
+@attestations_group.command(name="certify")
+@standard_cli_command(
+    help_text="Certify a release (firm DID → bundle hash → version).", async_cmd=True
+)
+@click.option(
+    "--subject-did", required=True, help="Firm / space DID standing behind it"
+)
+@click.option("--bundle-hash", required=True, help="R3 bundle hash (sha256:...)")
+@click.option("--version", required=True, help="Release version string")
+@click.option("--issuer-did", default=None, help="Issuer DID (default: local node)")
+@click.option(
+    "--manifest-content-hash",
+    default=None,
+    help="Design content hash (so the attestation rides federation catalog)",
+)
+@click.pass_context
+async def attestations_certify(
+    ctx: click.Context,
+    subject_did: str,
+    bundle_hash: str,
+    version: str,
+    issuer_did: Optional[str],
+    manifest_content_hash: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Issue a certified attestation over a pin-record bundle hash."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    body: dict = {
+        "subject_did": subject_did,
+        "bundle_hash": bundle_hash,
+        "version": version,
+    }
+    if issuer_did:
+        body["issuer_did"] = issuer_did
+    if manifest_content_hash:
+        body["manifest_content_hash"] = manifest_content_hash
+    try:
+        result = await _request(cli_ctx, "POST", "/attestations/certify", json=body)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(
+        f"Certified {bundle_hash} as {version} for {subject_did} "
+        f"({result.get('attestation_id')})",
+        "success",
+    )
+
+
+@attestations_group.command(name="list")
+@standard_cli_command(help_text="List attestations.", async_cmd=True)
+@click.option("--subject-did", default=None, help="Filter by subject DID")
+@click.option("--content-hash", default=None, help="Filter by content / bundle hash")
+@click.pass_context
+async def attestations_list(
+    ctx: click.Context,
+    subject_did: Optional[str],
+    content_hash: Optional[str],
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List attestations, optionally filtered."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    params = []
+    if subject_did:
+        params.append(f"subject_did={subject_did}")
+    if content_hash:
+        params.append(f"content_hash={content_hash}")
+    path = "/attestations" + (f"?{'&'.join(params)}" if params else "")
+    try:
+        result = await _request(cli_ctx, "GET", path)
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Attestations ({len(result)})", "success")
+    for att in result:
+        click.echo(
+            f"  {att.get('type')}  subject={att.get('subject_did')}  "
+            f"hash={att.get('content_hash')}"
+        )
+
+
+@identity_group.command(name="reputation")
+@standard_cli_command(
+    help_text="Show known-type attestations about a subject (reputation).",
+    async_cmd=True,
+)
+@click.argument("subject_did")
+@click.pass_context
+async def reputation(
+    ctx: click.Context,
+    subject_did: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """List signature-valid known-type attestations about a subject."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _request(cli_ctx, "GET", f"/reputation/{subject_did}")
+    except httpx.HTTPStatusError as e:
+        if _handle_auth_error(cli_ctx, e):
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    cli_ctx.log(f"Reputation for {subject_did} ({len(result)})", "success")
+    for att in result:
+        click.echo(
+            f"  {att.get('type')}  by={att.get('issuer_did')}  "
+            f"hash={att.get('content_hash')}"
+        )

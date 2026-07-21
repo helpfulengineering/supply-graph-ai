@@ -8,6 +8,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from ..models.attestation import Attestation
 from ..models.provenance import RecordProvenance
 
 
@@ -38,6 +39,8 @@ class CatalogRecord(BaseModel):
     # Record-level authorship, distinct from publisher_did (the relaying node).
     # Rides the node-signed payload so it is tamper-evident in transit.
     provenance: RecordProvenance | None = None
+    # Durable attestations about this design / its releases (Slice 6).
+    attestations: list[Attestation] | None = None
     signature: str = Field(
         description="Hex-encoded Ed25519 signature over canonical record"
     )
@@ -56,6 +59,10 @@ class CatalogRecord(BaseModel):
         # provenance records keep their exact payload (and signatures stay valid).
         if self.provenance is not None:
             payload["provenance"] = self.provenance.model_dump(mode="json")
+        if self.attestations:
+            payload["attestations"] = [
+                a.model_dump(mode="json") for a in self.attestations
+            ]
         return payload
 
 

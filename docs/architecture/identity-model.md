@@ -2,14 +2,13 @@
 
 OHM's authorization is **offline-first and federation-ready**. It rests on three
 concepts with three different lifetimes. This page documents the pieces that ship
-today (identities, grants, provenance, visibility, and space claims); full
-attestations arrive in a later slice.
+today (identities, grants, provenance, visibility, space claims, and attestations).
 
 | Layer | What it is | Lifetime | Bound to |
 |---|---|---|---|
 | **Identity** | An Ed25519 `did:key` | Permanent (rotatable, never expires) | a person, space, or node |
 | **Capability grant** | A signed, forward-looking *permission* | Short-lived, renewable | a subject identity + scope |
-| **Attestation** | A signed, backward-looking *fact* | Durable | a subject identity *(future slice)* |
+| **Attestation** | A signed, backward-looking *fact* | Durable | a subject identity (+ optional content hash) |
 
 Everything is verifiable **offline**: a grant is checked by verifying an Ed25519
 signature against the issuer's DID — no network, no central authority.
@@ -152,6 +151,35 @@ ohm identity spaces show did:key:z…
 
 A claimed space admin may issue **space-scoped** grants
 (`scope.kind=space`, `scope.target=<space_did>`); those are honored at resolution.
+
+## Attestations (certification / reputation)
+
+An **attestation** is a signed, durable fact: *"issuer_did asserts `<type>` about
+subject_did (optionally over content_hash)."* Unlike grants, attestations do not
+expire by default and do not confer permission — they are reputation inputs.
+
+- **`type`** is an open string with well-known constants (`authored`, `published`,
+  `certified`, `vouch`, `space_member`, …). Unknown types are stored and federated
+  but ignored by reputation helpers until understood.
+- **R3 certification** binds firm DID → **bundle hash** → version. The bundle hash
+  is a Merkle root over `{manifest_content_hash + sorted per-file checksums}` from
+  a package pin record (`packaging.pin.bundle_hash`).
+- Attestations live in their **own store** (out of the design content hash) and
+  **ride the node-signed catalog record**. On ingest, peers verify each attestation
+  signature (fail closed) and re-stamp into the local plane.
+
+```bash
+ohm identity attestations certify \
+    --subject-did did:key:zFirm \
+    --bundle-hash sha256:… \
+    --version 1.2.0 \
+    --manifest-content-hash sha256:…
+ohm identity attestations list --subject-did did:key:zFirm
+ohm identity reputation did:key:zFirm
+```
+
+`reputation` returns known-type, signature-valid attestations about a subject —
+no numeric scoring yet.
 
 ## Trust roots today, and where this is going
 

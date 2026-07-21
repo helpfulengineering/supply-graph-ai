@@ -7,12 +7,13 @@ in dev/test they are open, preserving existing flows. See
 ``notes/federated-identity-spec.md`` Slice 1.
 """
 
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 
 from ...models.account import Account, AccountCreate
+from ...models.attestation import Attestation, AttestationIssue, CertifyRequest
 from ...models.auth import APIKeyCreate, APIKeyResponse, AuthenticatedUser
 from ...models.capability import CapabilityGrant, GrantIssue
 from ...models.identity import Identity, IdentityMint
@@ -267,3 +268,80 @@ async def bootstrap_edge_grant(
 ) -> CapabilityGrant:
     """Isolated-edge bootstrap: subject self-issues write on the local node scope."""
     return await svc.bootstrap_edge_grant(subject_did)
+
+
+# --- Attestations (Slice 6) --------------------------------------------------
+
+
+@router.post(
+    "/attestations",
+    response_model=Attestation,
+    status_code=status.HTTP_201_CREATED,
+    summary="Issue an attestation",
+)
+async def issue_attestation(
+    payload: AttestationIssue,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> Attestation:
+    """Issue a signed durable attestation. ``issuer_did`` defaults to the node."""
+    return await svc.issue_attestation(
+        type=payload.type,
+        subject_did=payload.subject_did,
+        issuer_did=payload.issuer_did,
+        content_hash=payload.content_hash,
+        claim=payload.claim,
+        expires_at=payload.expires_at,
+    )
+
+
+@router.post(
+    "/attestations/certify",
+    response_model=Attestation,
+    status_code=status.HTTP_201_CREATED,
+    summary="Certify a release (bundle hash)",
+)
+async def certify(
+    payload: CertifyRequest,
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> Attestation:
+    """Bind firm DID → bundle hash → version as a ``certified`` attestation."""
+    return await svc.certify(
+        subject_did=payload.subject_did,
+        bundle_hash=payload.bundle_hash,
+        version=payload.version,
+        issuer_did=payload.issuer_did,
+        claim=payload.claim,
+        manifest_content_hash=payload.manifest_content_hash,
+    )
+
+
+@router.get(
+    "/attestations",
+    response_model=List[Attestation],
+    summary="List attestations",
+)
+async def list_attestations(
+    subject_did: Optional[str] = Query(None, description="Filter by subject DID"),
+    content_hash: Optional[str] = Query(None, description="Filter by content hash"),
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[Attestation]:
+    return await svc.list_attestations(
+        subject_did=subject_did, content_hash=content_hash
+    )
+
+
+@router.get(
+    "/reputation/{subject_did}",
+    response_model=List[Attestation],
+    summary="Reputation attestations for a subject",
+)
+async def list_reputation(
+    subject_did: str = Path(...),
+    _admin: object = Depends(require_admin),
+    svc: AuthenticationService = Depends(get_auth_service),
+) -> List[Attestation]:
+    """Known-type, signature-valid attestations about ``subject_did`` (no scoring)."""
+    return await svc.list_reputation(subject_did)

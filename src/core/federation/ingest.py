@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from ..models.attestation import verify_attestation
 from ..models.provenance import verify_provenance
 from ..utils.logging import get_logger
 from ..validation.model_validator import validate_okh_manifest
@@ -58,6 +59,12 @@ def verify_signed_record(record: SignedManifestRecord) -> None:
         if not verify_provenance(provenance):
             raise IngestError("invalid provenance signature")
 
+    # Signed attestations must verify against their issuer DID; unsigned are
+    # rejected (attestations are durable reputation inputs — fail closed).
+    for attestation in record.catalog_record.attestations or []:
+        if not attestation.signature or not verify_attestation(attestation):
+            raise IngestError("invalid attestation signature")
+
 
 async def verify_and_store(
     record: SignedManifestRecord,
@@ -95,6 +102,15 @@ async def verify_and_store(
     await okh_service.create(
         record.manifest, provenance=record.catalog_record.provenance
     )
+
+    # Re-stamp verified attestations into the local attestation plane.
+    if record.catalog_record.attestations:
+        from ..services.auth_service import AuthenticationService
+
+        auth = await AuthenticationService.get_instance()
+        for attestation in record.catalog_record.attestations:
+            await auth.save_attestation(attestation)
+
     logger.info(
         f"Ingested federated manifest {record.catalog_record.manifest_id} "
         f"from {publisher_did}"

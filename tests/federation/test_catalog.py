@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID
 
 import pytest
@@ -15,6 +14,18 @@ from src.core.federation.catalog import (
 )
 from src.core.federation.identity import canonical_json_bytes, generate_identity
 from src.core.models.visibility import VisibilityLevel
+
+
+def _patch_auth_attestations(return_value=None):
+    """Stub AuthenticationService so catalog build does not need real storage."""
+    auth = AsyncMock()
+    auth.list_attestations_for_catalog = AsyncMock(return_value=return_value or [])
+    return patch(
+        "src.core.services.auth_service.AuthenticationService.get_instance",
+        new_callable=AsyncMock,
+        return_value=auth,
+    )
+
 
 MINIMAL_MANIFEST = {
     "okhv": "1.0",
@@ -63,7 +74,8 @@ async def test_build_catalog_index_from_manifests() -> None:
     okh_service.get_provenance.return_value = None
     okh_service.get_visibility.return_value = VisibilityLevel.PUBLIC
 
-    index: CatalogIndex = await build_catalog_index(okh_service, identity)
+    with _patch_auth_attestations():
+        index: CatalogIndex = await build_catalog_index(okh_service, identity)
 
     assert index.record_count == 1
     assert index.merkle_root
@@ -108,7 +120,8 @@ async def test_build_catalog_index_excludes_private_records() -> None:
 
     okh_service.get_visibility.side_effect = _visibility
 
-    index = await build_catalog_index(okh_service, identity)
+    with _patch_auth_attestations():
+        index = await build_catalog_index(okh_service, identity)
     assert index.record_count == 1
     assert index.records[0].title == "Shared"
 
@@ -138,12 +151,55 @@ async def test_build_catalog_index_attaches_and_signs_provenance() -> None:
     okh_service.get_provenance.return_value = prov
     okh_service.get_visibility.return_value = VisibilityLevel.FOLLOWERS
 
-    index = await build_catalog_index(okh_service, node)
+    with _patch_auth_attestations():
+        index = await build_catalog_index(okh_service, node)
     record = index.records[0]
 
     # Provenance is attached and the node signature covers it (tamper-evident).
     assert record.provenance is not None
     assert record.provenance.published_by == author.did
+    assert node.verify_bytes(
+        canonical_json_bytes(record.record_payload()),
+        bytes.fromhex(record.signature),
+    )
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_build_catalog_index_attaches_attestations() -> None:
+    from src.core.models.attestation import Attestation
+    from src.core.federation.identity import sign_payload
+
+    node = generate_identity("Node A")
+    issuer = generate_identity("Certifier")
+    manifest = MagicMock()
+    manifest.id = UUID("340b030e-e3c6-4869-b947-4a24c52daaf1")
+    manifest.title = "Test Design"
+    manifest.version = "1.0.0"
+    manifest.version_date = None
+    manifest.to_dict.return_value = dict(MINIMAL_MANIFEST)
+
+    content_hash = manifest_content_hash(MINIMAL_MANIFEST)
+    att = Attestation(
+        type="certified",
+        issuer_did=issuer.did,
+        subject_did=issuer.did,
+        content_hash="sha256:bundle",
+        claim={"version": "1.0.0", "manifest_content_hash": content_hash},
+    )
+    att.signature = sign_payload(issuer.private_key, att.signing_payload())
+
+    okh_service = AsyncMock()
+    okh_service.list.return_value = ([manifest], 1)
+    okh_service.get_provenance.return_value = None
+    okh_service.get_visibility.return_value = VisibilityLevel.PUBLIC
+
+    with _patch_auth_attestations(return_value=[att]):
+        index = await build_catalog_index(okh_service, node)
+    record = index.records[0]
+    assert record.attestations is not None
+    assert len(record.attestations) == 1
+    assert record.attestations[0].type == "certified"
     assert node.verify_bytes(
         canonical_json_bytes(record.record_payload()),
         bytes.fromhex(record.signature),
