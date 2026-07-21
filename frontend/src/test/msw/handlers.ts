@@ -16,6 +16,9 @@ import {
   securityPolicyFixture,
   apiKeysFixture,
   accountsFixture,
+  identityFixture,
+  grantsFixture,
+  spaceClaimsFixture,
   provenanceFixture,
   visibilityFixture,
   packageListFixture,
@@ -83,6 +86,30 @@ export const handlers = [
   ),
   http.get("*/v1/api/identity/keys", () => HttpResponse.json(apiKeysFixture)),
   http.get("*/v1/api/identity/accounts", () => HttpResponse.json(accountsFixture)),
+  http.post("*/v1/api/identity/identities", () =>
+    HttpResponse.json(identityFixture, { status: 201 }),
+  ),
+  http.get("*/v1/api/identity/identities/:did", () => HttpResponse.json(identityFixture)),
+  http.post("*/v1/api/identity/identities/:did/rotate", () =>
+    HttpResponse.json({
+      ...identityFixture,
+      did: "did:key:z6MktestPersonRotated0000000000000001",
+    }),
+  ),
+  http.get("*/v1/api/identity/grants", () => HttpResponse.json(grantsFixture)),
+  http.post("*/v1/api/identity/grants", () =>
+    HttpResponse.json(grantsFixture[0], { status: 201 }),
+  ),
+  http.delete("*/v1/api/identity/grants/:grant_id", () =>
+    HttpResponse.json({ success: true, message: "revoked" }),
+  ),
+  http.post("*/v1/api/identity/grants/bootstrap-edge", () =>
+    HttpResponse.json(grantsFixture[0], { status: 201 }),
+  ),
+  http.get("*/v1/api/identity/spaces", () => HttpResponse.json(spaceClaimsFixture)),
+  http.post("*/v1/api/identity/spaces/claim", () =>
+    HttpResponse.json(spaceClaimsFixture[0], { status: 201 }),
+  ),
   http.get("*/v1/api/package/list", () => HttpResponse.json(packageListFixture)),
   http.get("*/v1/api/package/:org/:project/:version", () =>
     HttpResponse.json(packageMetadataFixture),

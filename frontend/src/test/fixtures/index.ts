@@ -302,6 +302,50 @@ export const accountsFixture = [
   },
 ];
 
+export const identityFixture = {
+  did: "did:key:z6MktestPerson0000000000000000000000001",
+  kind: "person",
+  display_name: "Local admin",
+  created_at: "2026-01-01T00:00:00Z",
+  account_id: "00000000-0000-0000-0000-000000000001",
+  links_in: [],
+  custodial: true,
+};
+
+export const spaceIdentityFixture = {
+  did: "did:key:z6MktestSpace00000000000000000000000001",
+  kind: "space",
+  display_name: "Test Space",
+  created_at: "2026-01-01T00:00:00Z",
+  account_id: "00000000-0000-0000-0000-000000000001",
+  links_in: [],
+  custodial: true,
+};
+
+export const grantsFixture = [
+  {
+    grant_id: "00000000-0000-0000-0000-0000000000g1",
+    issuer_did: "did:key:z6MktestNode000000000000000000000000001",
+    subject_did: identityFixture.did,
+    permissions: ["write"],
+    coarse_floor: [],
+    scope: { kind: "space", target: spaceIdentityFixture.did, v: 1 },
+    issued_at: "2026-01-01T00:00:00Z",
+    not_before: null,
+    expires_at: "2026-04-01T00:00:00Z",
+  },
+];
+
+export const spaceClaimsFixture = [
+  {
+    space_did: spaceIdentityFixture.did,
+    admin_did: identityFixture.did,
+    claimed_at: "2026-01-01T00:00:00Z",
+    claim_method: "tofu",
+    signature: "ab",
+  },
+];
+
 export const provenanceFixture = {
   authored_by: [{ external_id: "name:Test Author", role: null }],
   published_by: null,
@@ -385,6 +429,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/identity/security-policy": securityPolicyFixture,
   "/v1/api/identity/keys": apiKeysFixture,
   "/v1/api/identity/accounts": accountsFixture,
+  "/v1/api/identity/spaces": spaceClaimsFixture,
+  "/v1/api/identity/grants": grantsFixture,
   "/v1/api/package/list": packageListFixture,
   "/v1/api/package/demo/widget/1.0.0": packageMetadataFixture,
 };

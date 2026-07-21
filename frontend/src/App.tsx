@@ -54,6 +54,9 @@ export function App() {
                 <Route path="settings" element={<Navigate to="/settings/session" replace />} />
                 <Route path="settings/session" element={<AdminSettings />} />
                 <Route path="settings/keys" element={<AdminSettings />} />
+                <Route path="settings/identities" element={<AdminSettings />} />
+                <Route path="settings/grants" element={<AdminSettings />} />
+                <Route path="settings/spaces" element={<AdminSettings />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
