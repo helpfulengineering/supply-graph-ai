@@ -1,0 +1,19 @@
+# Ephemeral multi-region federation validation stack.
+# Copy to federation-ephemeral.tfvars (gitignored locally if you add secrets later).
+
+name_prefix       = "ohmfed"
+image             = "touchthesun/openhardwaremanager:0.10.1"
+peer_a_location   = "westus3"
+peer_b_location   = "eastus"
+# Third region so relay does not compete with peer_b for ACA env capacity in eastus.
+relay_location    = "westus2"
+enable_edge       = true
+enable_relay      = true
+enable_frontend   = false
+min_replicas      = 1
+# Consumption ACA only allows fixed pairs (e.g. 0.5+1Gi, 1.0+2Gi, 2.0+4Gi) — not 1+4Gi.
+cpu               = "0.5"
+memory            = "1Gi"
+
+# Cost: set min_replicas = 0 while paused, then destroy with scripts/down.sh when done.
+# Idle Container Apps + storage still incur small charges until destroy completes.

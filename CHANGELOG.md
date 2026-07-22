@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-07-21
+
+### Fixed
+
+- **OKH create/upload 500:** `POST /api/okh/create` and `/upload` persisted the
+  manifest then failed building `OKHResponse` (missing SuccessResponse
+  `message`/`status`). Responses now use the same construction as GET-by-id
+  (201 with `success` + `okh`). Contract test:
+  `tests/api/test_okh_create_response.py`.
+
 ## [0.10.0] - 2026-07-21
 
 ### Added
@@ -113,6 +123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MoM integration documentation and test coverage:** `docs/runbooks/mom-integration-e2e-validation.md` — CLI/API demo runbook verified against the live MoM SPARQL endpoint, plus unit tests for `mom_bridge.py`, taxonomy `wikidata_qid` lookups, and `OKW_SOURCE` routing (none existed since the integration shipped in `#181`).
 
+[0.10.1]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.11...v0.9.0
 [0.8.11]: https://github.com/helpfulengineering/supply-graph-ai/compare/v0.8.10...v0.8.11

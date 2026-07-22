@@ -38,9 +38,9 @@ run_pytest "main-branch parity subset" \
 if [[ "${SKIP_E2E:-}" != "1" ]] && command -v docker >/dev/null 2>&1; then
   if curl -sf http://localhost:8001/health >/dev/null 2>&1 \
      && curl -sf http://localhost:8002/health >/dev/null 2>&1; then
-    log "Two-node stack detected — running federation_e2e.sh"
-    ./scripts/federation_e2e.sh
-    log "PASS: federation E2E"
+    log "Two-node stack detected — running federation_matrix.sh"
+    ./scripts/federation_matrix.sh
+    log "PASS: federation matrix"
   else
     log "Skipping E2E (start with: docker compose -f docker-compose.federation.yml up -d)"
   fi

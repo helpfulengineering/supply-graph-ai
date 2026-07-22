@@ -9,6 +9,15 @@ __pycache__/
 # mac desktop files
 .DS_Store
 
+# Terraform (ephemeral Azure federation lab)
+deploy/terraform/azure/.terraform/
+deploy/terraform/azure/.terraform.lock.hcl
+deploy/terraform/azure/*.tfstate
+deploy/terraform/azure/*.tfstate.*
+deploy/terraform/azure/crash.log
+deploy/terraform/azure/environments/*.tfvars
+!deploy/terraform/azure/environments/*.tfvars.example
+
 # Distribution / packaging
 .Python
 build/
