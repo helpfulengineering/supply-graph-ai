@@ -20,6 +20,7 @@ from fastapi import (
 from ...models.auth import AuthenticatedUser
 from ...models.okw import ManufacturingFacility
 from ...models.provenance import RecordProvenance
+from ...models.disclosure import DisclosureBody, DisclosureResponse
 from ...models.visibility import VisibilityBody, VisibilityResponse
 from ...services.okw_service import OKWService
 from ...services.storage_service import StorageService
@@ -1163,6 +1164,57 @@ async def set_okw_visibility(
             detail=f"OKW facility with ID {id} not found",
         )
     return VisibilityResponse(id=id, visibility=level)
+
+
+@router.get(
+    "/{id}/disclosure",
+    response_model=DisclosureResponse,
+    summary="Get OKW disclosure profiles",
+)
+async def get_okw_disclosure(
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+) -> Any:
+    if await okw_service.get(id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    profile = await okw_service.get_disclosure(id)
+    return DisclosureResponse(id=id, disclosure=profile)
+
+
+@router.put(
+    "/{id}/disclosure",
+    response_model=DisclosureResponse,
+    summary="Set OKW disclosure profiles",
+    description="Field-group redaction for followers and public federation audiences.",
+)
+async def set_okw_disclosure(
+    body: DisclosureBody,
+    id: UUID = Path(..., title="The ID of the OKW facility"),
+    okw_service: OKWService = Depends(get_okw_service),
+    user: Optional[AuthenticatedUser] = Depends(require_write),
+) -> Any:
+    current = await okw_service.get_disclosure(id)
+    updated = current.model_copy(
+        update={
+            k: v
+            for k, v in {
+                "followers": body.followers,
+                "public": body.public,
+            }.items()
+            if v is not None
+        }
+    )
+    try:
+        profile = await okw_service.set_disclosure(id, updated)
+    except LookupError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"OKW facility with ID {id} not found",
+        )
+    return DisclosureResponse(id=id, disclosure=profile)
 
 
 @router.post(

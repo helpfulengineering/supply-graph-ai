@@ -1,4 +1,6 @@
 import { apiClient, ApiError, errorMessage } from "./client";
+import { get } from "../client";
+import { authHeader } from "../../features/auth/tokenStorage";
 import type { OkwFacility } from "../../types/okw";
 import type { components } from "../generated/schema";
 
@@ -165,4 +167,49 @@ export async function setOkwVisibility(
     );
   }
   return data;
+}
+
+export type DisclosureGroup =
+  | "identity"
+  | "location"
+  | "equipment"
+  | "operations"
+  | "supply";
+
+export interface AudienceDisclosure {
+  groups: DisclosureGroup[];
+}
+
+export interface DisclosureProfile {
+  followers: AudienceDisclosure;
+  public: AudienceDisclosure;
+}
+
+export interface DisclosureResponse {
+  id: string;
+  disclosure: DisclosureProfile;
+}
+
+/** Disclosure API is not yet in the generated OpenAPI client — use raw client. */
+export async function getOkwDisclosure(id: string): Promise<DisclosureResponse> {
+  return get<DisclosureResponse>(`/okw/${id}/disclosure`);
+}
+
+export async function setOkwDisclosure(
+  id: string,
+  body: Partial<DisclosureProfile>,
+): Promise<DisclosureResponse> {
+  const res = await fetch(`/v1/api/okw/${id}/disclosure`, {
+    method: "PUT",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...authHeader(),
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new ApiError(res.status, `Failed to set disclosure (HTTP ${res.status})`);
+  }
+  return res.json() as Promise<DisclosureResponse>;
 }

@@ -17,13 +17,11 @@ from src.core.models.visibility import VisibilityLevel
 
 
 def _patch_auth_attestations(return_value=None):
-    """Stub AuthenticationService so catalog build does not need real storage."""
-    auth = AsyncMock()
-    auth.list_attestations_for_catalog = AsyncMock(return_value=return_value or [])
+    """Stub attestations helper so catalog build does not need auth storage."""
     return patch(
-        "src.core.services.auth_service.AuthenticationService.get_instance",
+        "src.core.federation.catalog._catalog_attestations",
         new_callable=AsyncMock,
-        return_value=auth,
+        return_value=return_value or [],
     )
 
 

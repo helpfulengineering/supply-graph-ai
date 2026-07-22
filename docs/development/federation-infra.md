@@ -163,6 +163,40 @@ Ingest policy (**first-write-wins**):
 `OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN` caps **digest** exchange, not
 `GET /records/{hash}`. Global HTTP middleware also skips `/v1/api/federation/*`.
 
+### Package artifacts (separate channel)
+
+When a shareable OKH has a local package, the catalog record includes a
+`package` pointer (`bundle_hash`, `byte_size`, `filename`). Peers do **not**
+pull zip bytes during catalog sync.
+
+```bash
+# On-demand fetch (serving peer must follow the requester DID)
+ohm federation package-fetch \
+  --peer http://ohm-peer-a:8001 \
+  --bundle-hash sha256:… \
+  --manifest-id <okh-uuid>
+```
+
+`POST /v1/api/federation/packages/fetch` tries peer blob download first, then
+rebuilds from OKH URLs if fetch fails. Blob GET requires header
+`X-OHM-Peer-DID` of a followed peer.
+
+### OKW catalog (separate Merkle root)
+
+OKW facilities use a **separate** federation catalog from OKH. Shareable
+facilities export a **redacted projection** based on disclosure profiles
+(`followers` / `public` field groups). Default is fail-closed (**identity only**).
+
+```bash
+ohm okw disclosure show <facility_id>
+ohm okw disclosure set <facility_id> followers identity location
+ohm okw visibility set <facility_id> followers
+ohm federation okw-sync
+```
+
+Endpoints: `GET /v1/api/federation/okw/catalog`, `…/okw/records/{hash}`,
+`POST …/okw/sync/digest`, `POST …/okw/sync/run`.
+
 ## CLI
 
 ```bash
@@ -170,6 +204,8 @@ ohm federation status
 ohm federation peers --discover
 ohm federation follow did:key:...
 ohm federation sync --peer http://ohm-peer-a:8001
+ohm federation okw-sync
+ohm federation package-fetch --peer http://ohm-peer-a:8001 --bundle-hash sha256:…
 ```
 
 ## Single-node development

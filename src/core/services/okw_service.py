@@ -7,11 +7,19 @@ from uuid import UUID
 from ..domains.cooking.models import KitchenCapability
 from ..models.okw import FacilityStatus, Location, ManufacturingFacility
 from ..models.provenance import RecordProvenance, apply_ohm_metadata
+from ..models.disclosure import (
+    DisclosureAudience,
+    DisclosureProfile,
+    default_disclosure_profile,
+    groups_for_audience,
+    project_facility,
+)
 from ..models.visibility import (
     DEFAULT_VISIBILITY,
     LEGACY_VISIBILITY,
     VisibilityLevel,
 )
+from ..storage.disclosure_store import DisclosureStore
 from ..storage.provenance_store import ProvenanceStore
 from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import SmartFileDiscovery
@@ -383,6 +391,9 @@ class OKWService(BaseService["OKWService"]):
         """Lazily build the visibility store over the configured storage."""
         return VisibilityStore(self.storage)
 
+    def _disclosure_store(self) -> DisclosureStore:
+        return DisclosureStore(self.storage)
+
     async def get_provenance(self, facility_id: UUID) -> Optional[RecordProvenance]:
         """Return the stored provenance for a facility, or None."""
         await self.ensure_initialized()
@@ -413,6 +424,38 @@ class OKWService(BaseService["OKWService"]):
             raise LookupError(f"OKW facility {facility_id} not found")
         await self._visibility_store().save(str(facility_id), level)
         return level
+
+    async def get_disclosure(self, facility_id: UUID) -> DisclosureProfile:
+        """Return disclosure profile (fail-closed defaults if unset)."""
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            return default_disclosure_profile()
+        return await self._disclosure_store().load_or_default(str(facility_id))
+
+    async def set_disclosure(
+        self, facility_id: UUID, profile: DisclosureProfile
+    ) -> DisclosureProfile:
+        await self.ensure_initialized()
+        if not self.storage or not self.storage.manager:
+            raise RuntimeError("Storage service not available")
+        if await self.get(facility_id) is None:
+            raise LookupError(f"OKW facility {facility_id} not found")
+        await self._disclosure_store().save(str(facility_id), profile)
+        return profile
+
+    async def project_for_visibility(self, facility: ManufacturingFacility) -> dict:
+        """Redacted facility dict for the facility's current visibility level."""
+        visibility = await self.get_visibility(facility.id)
+        if visibility == VisibilityLevel.PRIVATE:
+            return {}
+        audience = (
+            DisclosureAudience.PUBLIC
+            if visibility == VisibilityLevel.PUBLIC
+            else DisclosureAudience.FOLLOWERS
+        )
+        profile = await self.get_disclosure(facility.id)
+        groups = groups_for_audience(profile, audience)
+        return project_facility(facility.to_dict(), groups=groups)
 
     async def get(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
         """Discover ``okw/`` files and return the most recently modified row matching ``facility_id``.

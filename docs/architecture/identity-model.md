@@ -133,7 +133,14 @@ catalogs do not empty. New creates stamp `private` — promote explicitly to sha
 ohm okh visibility set <manifest_id> public
 ohm okh visibility show <manifest_id>
 ohm okw visibility set <facility_id> followers
+ohm okw disclosure show <facility_id>
+ohm okw disclosure set <facility_id> followers identity location
 ```
+
+OKW federation additionally applies **disclosure profiles** (field groups:
+`identity`, `location`, `equipment`, `operations`, `supply`) per audience
+(`followers` / `public`). Defaults are fail-closed (identity only). See
+[federation-infra — OKW catalog](../development/federation-infra.md).
 
 ## Relationship to API keys
 

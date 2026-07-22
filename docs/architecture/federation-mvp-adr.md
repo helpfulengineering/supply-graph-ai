@@ -30,8 +30,25 @@ Implement **Tier 2 (LAN) peer federation** in `src/core/federation/`:
 ### Deferred (explicit non-goals for MVP)
 
 - LoRa / Meshtastic, IPFS Kubo, libp2p DHT, ActivityPub, CouchDB replication
-- Relay mailbox, registry directory, package artifact sync
+- Relay mailbox, registry directory
 - Web-of-trust scoring, malware sandboxing, global bootstrap DNS
+
+### Package artifacts (post-MVP channel)
+
+OKH catalog records may carry an optional **package pointer** (`bundle_hash`,
+size, filename) outside the design content hash. Bytes move on a separate
+**HTTP CAS** channel (`GET /federation/packages/blobs/{bundle_hash}`), follow-gated
+via `X-OHM-Peer-DID`, on-demand only (not during `sync/run`). Fetch-first with
+rebuild-from-OKH-URLs fallback. World-readable packages, eager/pin-driven pull,
+and Relay-as-archive are later.
+
+### OKW catalog (separate Merkle root)
+
+OKW facilities sync via a **separate** catalog from OKH. Coarse visibility
+(`private` / `followers` / `public`) gates export; **disclosure profiles** redact
+field groups (`identity`, `location`, `equipment`, `operations`, `supply`) per
+audience. Default is fail-closed (identity only). Content hash and signatures
+cover the redacted projection. Ingest stamps private locally.
 
 ### Post-MVP (approved direction)
 

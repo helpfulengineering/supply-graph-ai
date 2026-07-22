@@ -19,6 +19,8 @@ RUN_ROLE_CASES=1 EDGE_URL=http://localhost:8003 RELAY_URL=http://localhost:8004 
 | Follow + sync (OKH store on B) | PASS |
 | Bidirectional B→A + round-trip | PASS |
 | Sync idempotency (re-sync pulled=0) | PASS |
+| OKW disclosure + catalog sync | *(matrix cases added)* |
+| Package CAS pointer + on-demand fetch | *(matrix cases added; may SKIP without package assets)* |
 | Auto-follow via `peer_url` | PASS |
 | Unfollow | PASS |
 | Provenance hop | PASS |

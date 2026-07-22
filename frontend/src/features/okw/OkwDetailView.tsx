@@ -10,6 +10,7 @@ import { humanizeProcess } from "./processDisplay";
 import { FacilityDesigns } from "./FacilityDesigns";
 import { AuthorshipPanel } from "../okh/AuthorshipPanel";
 import { VisibilityControl } from "../okh/VisibilityControl";
+import { DisclosureControl } from "./DisclosureControl";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -145,6 +146,7 @@ export function OkwDetailView({ id }: { id: string }) {
         <AuthorshipPanel kind="okw" id={id} />
         <VisibilityControl kind="okw" id={id} />
       </div>
+      <DisclosureControl id={id} />
 
       {f.description && (
         <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">

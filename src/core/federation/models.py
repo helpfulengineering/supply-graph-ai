@@ -27,6 +27,17 @@ class NodeInfo(BaseModel):
     merkle_root: str | None = None
 
 
+class PackagePointer(BaseModel):
+    """Content-addressed package artifact advertised on a catalog record.
+
+    Out of the OKH design content hash; included in the node-signed payload.
+    """
+
+    bundle_hash: str
+    byte_size: int
+    filename: str | None = None
+
+
 class CatalogRecord(BaseModel):
     """Signed index entry for one OKH manifest."""
 
@@ -41,6 +52,8 @@ class CatalogRecord(BaseModel):
     provenance: RecordProvenance | None = None
     # Durable attestations about this design / its releases (Slice 6).
     attestations: list[Attestation] | None = None
+    # Optional package artifact pointer (separate transport channel).
+    package: PackagePointer | None = None
     signature: str = Field(
         description="Hex-encoded Ed25519 signature over canonical record"
     )
@@ -63,6 +76,8 @@ class CatalogRecord(BaseModel):
             payload["attestations"] = [
                 a.model_dump(mode="json") for a in self.attestations
             ]
+        if self.package is not None:
+            payload["package"] = self.package.model_dump(mode="json")
         return payload
 
 

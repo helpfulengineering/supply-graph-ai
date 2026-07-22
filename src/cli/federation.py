@@ -260,3 +260,101 @@ async def sync(
         click.echo(f"  {name}: pulled={pulled}")
         for err in errors:
             click.echo(f"    error: {err}")
+
+
+@federation_group.command("okw-sync")
+@standard_cli_command(
+    help_text="Sync OKW catalog (redacted facilities) from followed peers.",
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.pass_context
+async def okw_sync(
+    ctx: click.Context,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Pull missing OKW catalog records from followed peers."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+    try:
+        result = await _post_json(cli_ctx, "/okw/sync/run")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            cli_ctx.log("Federation is not enabled on the server", "error")
+            return
+        raise
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+    total = result.get("total_pulled", 0)
+    cli_ctx.log(f"OKW sync complete: {total} record(s) pulled", "success")
+
+
+@federation_group.command("package-fetch")
+@standard_cli_command(
+    help_text="On-demand fetch of a package artifact from a peer (CAS channel).",
+    async_cmd=True,
+    handle_errors=True,
+)
+@click.option("--peer", "peer_url", required=True, help="Peer base URL")
+@click.option("--bundle-hash", required=True, help="Package bundle_hash (sha256:…)")
+@click.option("--manifest-id", default=None, help="OKH id for rebuild fallback")
+@click.option(
+    "--no-rebuild",
+    is_flag=True,
+    help="Do not rebuild from OKH URLs if fetch fails",
+)
+@click.pass_context
+async def package_fetch(
+    ctx: click.Context,
+    peer_url: str,
+    bundle_hash: str,
+    manifest_id: Optional[str],
+    no_rebuild: bool,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+) -> None:
+    """Pull package bytes from a followed peer; rebuild from OKH if needed."""
+    cli_ctx: CLIContext = ctx.obj
+    cli_ctx.verbose = verbose
+
+    body = {
+        "peer_url": peer_url,
+        "bundle_hash": bundle_hash,
+        "allow_rebuild": not no_rebuild,
+    }
+    if manifest_id:
+        body["manifest_id"] = manifest_id
+
+    try:
+        result = await _post_json(cli_ctx, "/packages/fetch", json=body)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            cli_ctx.log("Federation is not enabled on the server", "error")
+            return
+        raise
+
+    if output_format == "json":
+        click.echo(format_llm_output(result, cli_ctx))
+        return
+
+    action = result.get("action", "?")
+    path = result.get("path") or ""
+    detail = result.get("detail") or ""
+    if action in ("fetched", "rebuilt", "local"):
+        cli_ctx.log(f"Package {action}: {path}", "success")
+        if detail:
+            cli_ctx.log(detail, "info")
+    else:
+        cli_ctx.log(f"Package fetch failed: {detail}", "error")

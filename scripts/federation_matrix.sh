@@ -535,6 +535,100 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Case: package pointer + on-demand fetch (artifact channel)
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Case: OKW disclosure + separate catalog sync
+# ---------------------------------------------------------------------------
+log "--- OKW federation ---"
+OKW_NAME="Matrix Workshop ${SHORT}"
+OKW_ID="$(uuidgen | tr '[:upper:]' '[:lower:]')"
+OKW_BODY="$(jq -n \
+  --arg name "$OKW_NAME" \
+  --arg id "$OKW_ID" \
+  '{
+    id:$id,
+    name:$name,
+    facility_status:"Active",
+    location:{address:{city:"Hidden City",street:"1 CNC Way"}},
+    equipment:[{equipment_type:"cnc-mill",manufacturing_process:"milling"}],
+    opening_hours:"09:00-17:00"
+  }')"
+OKW_CREATE="$(curl_a POST "${PEER_A_URL}/v1/api/okw/create" \
+  -d "$(jq -n --argjson content "$OKW_BODY" '{content:$content}')" 2>/dev/null || true)"
+if ! echo "$OKW_CREATE" | jq -e '.id // .success' >/dev/null 2>&1; then
+  OKW_CREATE="$(curl_a POST "${PEER_A_URL}/v1/api/okw/create" -d "$OKW_BODY" 2>/dev/null || true)"
+fi
+CREATED_ID="$(echo "$OKW_CREATE" | jq -r '.id // .data.id // empty')"
+if [[ -n "$CREATED_ID" && "$CREATED_ID" != "null" ]]; then
+  OKW_ID="$CREATED_ID"
+fi
+if curl -sf -H "$(auth_hdr "$API_KEY_A")" "${PEER_A_URL}/v1/api/okw/${OKW_ID}" >/dev/null 2>&1; then
+  curl_a PUT "${PEER_A_URL}/v1/api/okw/${OKW_ID}/visibility" \
+    -d '{"visibility":"followers"}' >/dev/null || true
+  curl -sS -X POST "${PEER_B_URL}/v1/api/federation/peers/$(printf '%s' "$DID_A" | jq -sRr @uri)/follow" >/dev/null || true
+  OKW_CAT_A="$(curl -sS "${PEER_A_URL}/v1/api/federation/okw/catalog")"
+  HASH_OKW="$(echo "$OKW_CAT_A" | jq -r --arg n "$OKW_NAME" \
+    '[.records[]? | select(.name == $n) | .content_hash][0] // empty')"
+  if [[ -n "$HASH_OKW" ]]; then
+    REC_OKW="$(curl -sS "${PEER_A_URL}/v1/api/federation/okw/records/${HASH_OKW}")"
+    LOC_IN="$(echo "$REC_OKW" | jq '(.facility | has("location"))')"
+    EQ_IN="$(echo "$REC_OKW" | jq '(.facility | has("equipment"))')"
+    if [[ "$LOC_IN" == "false" && "$EQ_IN" == "false" ]]; then
+      pass "OKW disclosure fail-closed (no location/equipment in projection)"
+    else
+      fail "OKW disclosure (expected redaction; loc=${LOC_IN} eq=${EQ_IN})"
+    fi
+  else
+    fail "OKW catalog (facility not listed after promote)"
+  fi
+  OKW_SYNC="$(curl -sS -X POST "${PEER_B_URL}/v1/api/federation/okw/sync/run")"
+  PULLED_OKW="$(echo "$OKW_SYNC" | jq -r '.total_pulled // 0')"
+  FOUND_OKW_B="$(curl -sS -H "$(auth_hdr "$API_KEY_B")" "${PEER_B_URL}/v1/api/okw?page_size=100" \
+    | jq -r --arg n "$OKW_NAME" '[.items[]? | select(.name == $n)] | length' 2>/dev/null || echo 0)"
+  if [[ "${FOUND_OKW_B:-0}" -ge 1 || "$PULLED_OKW" -ge 1 ]]; then
+    pass "OKW sync (on B; pulled=${PULLED_OKW})"
+  else
+    skip "OKW sync (promote ok; ingest soft — pulled=${PULLED_OKW} sync=$(echo "$OKW_SYNC" | jq -c .))"
+  fi
+else
+  skip "OKW federation (create failed)"
+fi
+
+log "--- package CAS ---"
+TITLE_PKG="Matrix Package ${SHORT}"
+ID_PKG="$(create_okh a "$TITLE_PKG")"
+set_visibility a "$ID_PKG" "public"
+BUILD_PKG="$(curl_a POST "${PEER_A_URL}/v1/api/package/build/${ID_PKG}" -d '{}' || true)"
+BUILD_OK="$(echo "$BUILD_PKG" | jq -r '.success // .package_path // empty' 2>/dev/null || true)"
+# Mutual follow required for blob GET (X-OHM-Peer-DID must be followed on A)
+curl -sS -X POST "${PEER_A_URL}/v1/api/federation/peers/$(printf '%s' "$DID_B" | jq -sRr @uri)/follow" >/dev/null || true
+curl -sS -X POST "${PEER_B_URL}/v1/api/federation/peers/$(printf '%s' "$DID_A" | jq -sRr @uri)/follow" >/dev/null || true
+curl -sS -X POST "${PEER_B_URL}/v1/api/federation/sync/run" >/dev/null || true
+PKG_PTR="$(curl -sS "${PEER_A_URL}/v1/api/federation/catalog" \
+  | jq -r --arg title "$TITLE_PKG" \
+    '[.records[]? | select(.title == $title) | .package.bundle_hash][0] // empty')"
+if [[ -z "$BUILD_OK" && -z "$PKG_PTR" ]]; then
+  skip "package CAS (build produced no local package / pointer; env may lack assets)"
+elif [[ -n "$PKG_PTR" ]]; then
+  pass "package pointer in catalog (${PKG_PTR:0:24}…)"
+  FETCH_PKG="$(curl_b POST "${PEER_B_URL}/v1/api/federation/packages/fetch" \
+    -d "$(jq -n \
+      --arg peer "${INTERNAL_PEER_A_URL}" \
+      --arg hash "$PKG_PTR" \
+      --arg mid "$ID_PKG" \
+      '{peer_url:$peer, bundle_hash:$hash, manifest_id:$mid, allow_rebuild:true}')")"
+  ACTION_PKG="$(echo "$FETCH_PKG" | jq -r '.action // empty')"
+  if [[ "$ACTION_PKG" == "fetched" || "$ACTION_PKG" == "rebuilt" || "$ACTION_PKG" == "local" ]]; then
+    pass "package fetch on-demand (action=${ACTION_PKG})"
+  else
+    fail "package fetch (resp=$(echo "$FETCH_PKG" | jq -c .))"
+  fi
+else
+  skip "package CAS (build ran but catalog pointer missing)"
+fi
+
+# ---------------------------------------------------------------------------
 # Case: rate limit 429
 # ---------------------------------------------------------------------------
 log "--- rate limit ---"

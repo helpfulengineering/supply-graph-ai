@@ -542,6 +542,103 @@ async def visibility_set(
         raise
 
 
+@okw_group.group(name="disclosure")
+def disclosure_group():
+    """Get or set OKW field-group disclosure for federation audiences."""
+    pass
+
+
+@disclosure_group.command("show")
+@click.argument("facility_id", type=str)
+@standard_cli_command(
+    help_text="Show disclosure profiles (followers / public field groups).",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def disclosure_show(
+    ctx,
+    facility_id: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-disclosure-show")
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/okw/{facility_id}/disclosure"
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Disclosure lookup failed: {str(e)}", "error")
+        raise
+
+
+@disclosure_group.command("set")
+@click.argument("facility_id", type=str)
+@click.argument(
+    "audience",
+    type=click.Choice(["followers", "public"], case_sensitive=False),
+)
+@click.argument("groups", nargs=-1, required=True)
+@standard_cli_command(
+    help_text="Set disclosure groups for an audience (identity always included).",
+    epilog="""
+    Examples:
+      ohm okw disclosure set <id> followers identity location
+      ohm okw disclosure set <id> public identity
+    """,
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def disclosure_set(
+    ctx,
+    facility_id: str,
+    audience: str,
+    groups: tuple,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-disclosure-set")
+    allowed = {"identity", "location", "equipment", "operations", "supply"}
+    normalized = [g.lower() for g in groups]
+    bad = [g for g in normalized if g not in allowed]
+    if bad:
+        cli_ctx.log(f"Unknown groups: {bad}; allowed={sorted(allowed)}", "error")
+        return
+    body = {audience.lower(): {"groups": normalized}}
+    try:
+        response = await cli_ctx.api_client.request(
+            "PUT",
+            f"/api/okw/{facility_id}/disclosure",
+            json_data=body,
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Disclosure update failed: {str(e)}", "error")
+        raise
+
+
 @okw_group.command()
 @click.option("--limit", default=10, help="Maximum number of facilities to list")
 @click.option("--offset", default=0, help="Number of facilities to skip")

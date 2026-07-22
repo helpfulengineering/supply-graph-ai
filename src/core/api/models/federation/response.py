@@ -91,6 +91,22 @@ class FollowResponse(BaseModel):
     followed: bool
 
 
+class PackageFetchRequest(BaseModel):
+    peer_url: str
+    bundle_hash: str
+    manifest_id: str | None = None
+    allow_rebuild: bool = True
+
+
+class PackageFetchResponse(BaseModel):
+    action: str
+    bundle_hash: str | None = None
+    path: str | None = None
+    detail: str | None = None
+    message: str = ""
+    status: str = "success"
+
+
 class SignedManifestRecordResponse(BaseModel):
     """API wrapper for GET /records/{content_hash}."""
 
