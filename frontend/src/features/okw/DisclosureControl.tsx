@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getOkwDisclosure,
+  getOkwVisibility,
+  previewOkwDisclosure,
   setOkwDisclosure,
+  type DisclosureAudience,
   type DisclosureGroup,
   type DisclosureProfile,
+  type VisibilityLevel,
 } from "../../api/ohm/okw";
 import { useAuth } from "../../context/AuthContext";
 
@@ -15,20 +19,28 @@ const GROUPS: { id: DisclosureGroup; label: string; hint: string }[] = [
   { id: "supply", label: "Supply", hint: "Materials and products" },
 ];
 
+function activeAudience(visibility: VisibilityLevel | undefined): DisclosureAudience | null {
+  if (visibility === "followers") return "followers";
+  if (visibility === "public") return "public";
+  return null;
+}
+
 function AudienceEditor({
   label,
   audience,
   profile,
   disabled,
+  active,
   onChange,
 }: {
   label: string;
-  audience: "followers" | "public";
+  audience: DisclosureAudience;
   profile: DisclosureProfile;
   disabled: boolean;
+  active: boolean;
   onChange: (next: DisclosureProfile) => void;
 }) {
-  const selected = new Set(profile[audience].groups);
+  const selected = new Set(profile[audience]?.groups ?? ["identity"]);
   const toggle = (g: DisclosureGroup) => {
     if (g === "identity") return;
     const next = new Set(selected);
@@ -42,9 +54,17 @@ function AudienceEditor({
   };
 
   return (
-    <div className="space-y-2">
+    <div
+      className={`space-y-2 ${active ? "" : "opacity-60"}`}
+      data-active-audience={active ? "true" : "false"}
+    >
       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
+        {active && (
+          <span className="ml-2 font-normal normal-case text-indigo-600 dark:text-indigo-400">
+            (active for export)
+          </span>
+        )}
       </p>
       <ul className="space-y-1.5">
         {GROUPS.map((g) => (
@@ -68,17 +88,71 @@ function AudienceEditor({
   );
 }
 
-function Preview({ profile }: { profile: DisclosureProfile }) {
-  const fmt = (groups: DisclosureGroup[]) =>
-    groups.length ? groups.join(", ") : "identity";
+function PeerPreview({
+  id,
+  audience,
+  visibility,
+}: {
+  id: string;
+  audience: DisclosureAudience | null;
+  visibility: VisibilityLevel | undefined;
+}) {
+  const previewAudience = audience ?? "followers";
+  const query = useQuery({
+    queryKey: ["okw", "disclosure-preview", id, previewAudience],
+    queryFn: () => previewOkwDisclosure(id, previewAudience),
+  });
+
+  if (visibility === "private") {
+    return (
+      <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+        <p className="font-semibold text-slate-700 dark:text-slate-200">Peers will see</p>
+        <p className="mt-1" role="status">
+          Nothing is exported while visibility is private. Promote to followers or public to
+          share a redacted projection.
+        </p>
+        {query.data && (
+          <div className="mt-2">
+            <p className="text-slate-500">If promoted to followers, peers would see fields:</p>
+            <pre className="mt-1 max-h-40 overflow-auto rounded bg-white p-2 text-[11px] dark:bg-slate-900">
+              {JSON.stringify(query.data.facility, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (query.isLoading) {
+    return <p className="text-xs text-muted-foreground">Loading peer preview…</p>;
+  }
+  if (query.isError || !query.data) {
+    return (
+      <p className="text-xs text-red-600 dark:text-red-400">
+        {query.error instanceof Error ? query.error.message : "Failed to load preview."}
+      </p>
+    );
+  }
+
+  const keys = Object.keys(query.data.facility);
   return (
     <div className="rounded-md bg-slate-50 p-3 text-xs text-slate-600 dark:bg-slate-950 dark:text-slate-300">
       <p className="font-semibold text-slate-700 dark:text-slate-200">Peers will see</p>
-      <p className="mt-1">Followers: {fmt(profile.followers.groups)}</p>
-      <p>Public: {fmt(profile.public.groups)}</p>
-      <p className="mt-2 text-slate-500">
-        Default is identity only until you opt in to location, equipment, or other groups.
+      <p className="mt-1">
+        Visibility <span className="font-medium">{visibility}</span> exports the{" "}
+        <span className="font-medium">{previewAudience}</span> profile
+        {query.data.exported ? "" : " (not currently exported)"}.
       </p>
+      <p className="mt-1 text-slate-500">
+        Groups: {query.data.groups.join(", ") || "identity"} · Fields:{" "}
+        {keys.length ? keys.join(", ") : "(none)"}
+      </p>
+      <pre
+        className="mt-2 max-h-48 overflow-auto rounded bg-white p-2 text-[11px] dark:bg-slate-900"
+        data-testid="disclosure-preview-json"
+      >
+        {JSON.stringify(query.data.facility, null, 2)}
+      </pre>
     </div>
   );
 }
@@ -87,6 +161,13 @@ export function DisclosureControl({ id }: { id: string }) {
   const { hasWrite, reportAuthFailure } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ["okw", "disclosure", id];
+
+  const visibilityQuery = useQuery({
+    queryKey: ["okw", "visibility", id],
+    queryFn: () => getOkwVisibility(id),
+  });
+  const visibility = visibilityQuery.data?.visibility;
+  const active = activeAudience(visibility);
 
   const query = useQuery({
     queryKey,
@@ -97,6 +178,9 @@ export function DisclosureControl({ id }: { id: string }) {
     mutationFn: (profile: DisclosureProfile) => setOkwDisclosure(id, profile),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKey, data);
+      void queryClient.invalidateQueries({
+        queryKey: ["okw", "disclosure-preview", id],
+      });
     },
     onError: reportAuthFailure,
   });
@@ -110,10 +194,14 @@ export function DisclosureControl({ id }: { id: string }) {
     >
       <h2
         id="okw-disclosure-heading"
-        className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+        className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
       >
         Sharing / disclosure
       </h2>
+      <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
+        Visibility (above) chooses whether and to whom this facility is exported. Disclosure
+        chooses how much of each field group each audience receives. Default is identity only.
+      </p>
 
       {query.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
       {query.isError && (
@@ -130,6 +218,7 @@ export function DisclosureControl({ id }: { id: string }) {
               audience="followers"
               profile={profile}
               disabled={!hasWrite || mutation.isPending}
+              active={active === "followers"}
               onChange={(next) => mutation.mutate(next)}
             />
             <AudienceEditor
@@ -137,10 +226,11 @@ export function DisclosureControl({ id }: { id: string }) {
               audience="public"
               profile={profile}
               disabled={!hasWrite || mutation.isPending}
+              active={active === "public"}
               onChange={(next) => mutation.mutate(next)}
             />
           </div>
-          <Preview profile={profile} />
+          <PeerPreview id={id} audience={active} visibility={visibility} />
         </div>
       )}
 

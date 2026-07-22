@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from src.core.models.disclosure import (
     DisclosureAudience,
     DisclosureGroup,
@@ -55,3 +57,41 @@ def test_groups_for_audience_always_includes_identity() -> None:
     groups = groups_for_audience(profile, DisclosureAudience.FOLLOWERS)
     assert DisclosureGroup.IDENTITY in groups
     assert DisclosureGroup.LOCATION in groups
+
+
+@pytest.mark.asyncio
+async def test_preview_disclosure_exported_flag() -> None:
+    from unittest.mock import AsyncMock, MagicMock
+    from uuid import uuid4
+
+    from src.core.models.visibility import VisibilityLevel
+    from src.core.services.okw_service import OKWService
+
+    facility_id = uuid4()
+    facility = MagicMock()
+    facility.id = facility_id
+    facility.to_dict.return_value = FACILITY
+
+    svc = OKWService.__new__(OKWService)
+    svc.ensure_initialized = AsyncMock()
+    svc.get = AsyncMock(return_value=facility)
+    svc.get_visibility = AsyncMock(return_value=VisibilityLevel.PRIVATE)
+    svc.get_disclosure = AsyncMock(return_value=default_disclosure_profile())
+
+    preview = await svc.preview_disclosure(facility_id, DisclosureAudience.FOLLOWERS)
+    assert preview["exported"] is False
+    assert "location" not in preview["facility"]
+    assert preview["facility"]["name"] == "Fab Lab"
+
+    svc.get_visibility = AsyncMock(return_value=VisibilityLevel.FOLLOWERS)
+    svc.get_disclosure = AsyncMock(
+        return_value=DisclosureProfile(
+            followers=AudienceDisclosure(
+                groups=[DisclosureGroup.IDENTITY, DisclosureGroup.LOCATION]
+            ),
+            public=AudienceDisclosure(groups=[DisclosureGroup.IDENTITY]),
+        )
+    )
+    preview2 = await svc.preview_disclosure(facility_id, DisclosureAudience.FOLLOWERS)
+    assert preview2["exported"] is True
+    assert "location" in preview2["facility"]

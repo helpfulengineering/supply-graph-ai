@@ -457,6 +457,41 @@ class OKWService(BaseService["OKWService"]):
         groups = groups_for_audience(profile, audience)
         return project_facility(facility.to_dict(), groups=groups)
 
+    async def preview_disclosure(
+        self,
+        facility_id: UUID,
+        audience: DisclosureAudience,
+    ) -> dict[str, Any]:
+        """Project facility for ``audience`` and report whether it would export.
+
+        Always returns the redacted dict for the requested audience's groups.
+        ``exported`` is true only when current visibility would publish that
+        audience (private → never; followers/public → matching audience only).
+        """
+        await self.ensure_initialized()
+        facility = await self.get(facility_id)
+        if facility is None:
+            raise LookupError(f"OKW facility {facility_id} not found")
+        visibility = await self.get_visibility(facility_id)
+        profile = await self.get_disclosure(facility_id)
+        groups = groups_for_audience(profile, audience)
+        projected = project_facility(facility.to_dict(), groups=groups)
+        active = (
+            visibility == VisibilityLevel.FOLLOWERS
+            and audience == DisclosureAudience.FOLLOWERS
+        ) or (
+            visibility == VisibilityLevel.PUBLIC
+            and audience == DisclosureAudience.PUBLIC
+        )
+        return {
+            "id": facility_id,
+            "audience": audience,
+            "visibility": visibility.value,
+            "exported": active,
+            "groups": sorted(groups, key=lambda g: g.value),
+            "facility": projected,
+        }
+
     async def get(self, facility_id: UUID) -> Optional[ManufacturingFacility]:
         """Discover ``okw/`` files and return the most recently modified row matching ``facility_id``.
 

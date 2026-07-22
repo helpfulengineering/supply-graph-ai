@@ -190,11 +190,17 @@ facilities export a **redacted projection** based on disclosure profiles
 ```bash
 ohm okw disclosure show <facility_id>
 ohm okw disclosure set <facility_id> followers identity location
+ohm okw disclosure preview <facility_id> followers   # redacted JSON + exported flag
 ohm okw visibility set <facility_id> followers
 ohm federation okw-sync
 ```
 
-Endpoints: `GET /v1/api/federation/okw/catalog`, `…/okw/records/{hash}`,
+`GET /v1/api/okw/{id}/disclosure/preview?audience=followers|public` returns the
+same redacted facility dict the OKW catalog would sign for that audience, plus
+`exported` (false while visibility is `private` or does not match the audience).
+The facility detail UI uses this preview so operators see what peers will get.
+
+Federation endpoints: `GET /v1/api/federation/okw/catalog`, `…/okw/records/{hash}`,
 `POST …/okw/sync/digest`, `POST …/okw/sync/run`.
 
 ## CLI

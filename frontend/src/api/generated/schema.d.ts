@@ -1137,6 +1137,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/okw/{id}/disclosure/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Preview redacted OKW projection for an audience
+         * @description Returns the facility fields peers would see for the given audience. exported is false when visibility is private or does not match the audience.
+         */
+        get: operations["preview_okw_disclosure_api_okw__id__disclosure_preview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okw/{id}/disclosure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get OKW disclosure profiles */
+        get: operations["get_okw_disclosure_api_okw__id__disclosure_get"];
+        /**
+         * Set OKW disclosure profiles
+         * @description Field-group redaction for followers and public federation audiences.
+         */
+        put: operations["set_okw_disclosure_api_okw__id__disclosure_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/okw/upload": {
         parameters: {
             query?: never;
@@ -2153,6 +2194,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/package/download-zip": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Download multiple packages as a zip
+         * @description Bundle selected packages into one ``application/zip`` archive. Each entry is the same ``.tar.gz`` produced by the single-package download.
+         */
+        post: operations["download_packages_zip_api_package_download_zip_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/package/{org}/{project}/{version}/download": {
         parameters: {
             query?: never;
@@ -2967,6 +3028,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/federation/packages/blobs/{bundle_hash}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download a package artifact by bundle hash (followed peers only)
+         * @description Serve package bytes on the artifact channel. Requires a followed peer DID.
+         */
+        get: operations["get_package_blob_api_federation_packages_blobs__bundle_hash__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/federation/packages/fetch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** On-demand fetch of a package from a peer (rebuild fallback) */
+        post: operations["fetch_package_api_federation_packages_fetch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/federation/okw/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List signed OKW catalog records (redacted projections) */
+        get: operations["list_okw_catalog_api_federation_okw_catalog_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/federation/okw/records/{content_hash}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fetch a signed OKW facility projection by content hash */
+        get: operations["get_okw_record_api_federation_okw_records__content_hash__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/federation/okw/sync/digest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** OKW anti-entropy digest exchange */
+        post: operations["okw_sync_digest_api_federation_okw_sync_digest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/federation/okw/sync/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync OKW catalog records from followed peers */
+        post: operations["run_okw_sync_api_federation_okw_sync_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/identity/whoami": {
         parameters: {
             query?: never;
@@ -2979,6 +3145,26 @@ export interface paths {
          * @description Return the identity (key + account) behind the presented credential.
          */
         get: operations["whoami_api_identity_whoami_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/security-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Active security mode policy
+         * @description Return the active ``SecurityPolicy`` knobs (deployment posture, not secret).
+         */
+        get: operations["show_security_policy_api_identity_security_policy_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3153,6 +3339,239 @@ export interface paths {
         post?: never;
         /** Revoke a grant */
         delete: operations["revoke_grant_api_identity_grants__grant_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/spaces/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Claim a space (TOFU admin bind)
+         * @description Bind a PERSON DID as admin of a SPACE DID. First claimer wins.
+         */
+        post: operations["claim_space_api_identity_spaces_claim_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/spaces/{space_did}/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Show a space claim */
+        get: operations["show_space_claim_api_identity_spaces__space_did__claim_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List space claims */
+        get: operations["list_space_claims_api_identity_spaces_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/grants/bootstrap-edge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Self-issue an edge genesis grant
+         * @description Isolated-edge bootstrap: subject self-issues write on the local node scope.
+         */
+        post: operations["bootstrap_edge_grant_api_identity_grants_bootstrap_edge_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/attestations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List attestations */
+        get: operations["list_attestations_api_identity_attestations_get"];
+        put?: never;
+        /**
+         * Issue an attestation
+         * @description Issue a signed durable attestation. ``issuer_did`` defaults to the node.
+         */
+        post: operations["issue_attestation_api_identity_attestations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/attestations/certify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Certify a release (bundle hash)
+         * @description Bind firm DID → bundle hash → version as a ``certified`` attestation.
+         */
+        post: operations["certify_api_identity_attestations_certify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/reputation/{subject_did}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reputation attestations for a subject
+         * @description Known-type, signature-valid attestations about ``subject_did`` (no scoring).
+         */
+        get: operations["list_reputation_api_identity_reputation__subject_did__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/bindings/domain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a domain binding
+         * @description Issue a challenge and the ``.well-known/ohm-did.json`` document to host.
+         */
+        post: operations["start_domain_binding_api_identity_bindings_domain_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/bindings/domain/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify a domain binding via .well-known
+         * @description Fetch ``https://{domain}/.well-known/ohm-did.json`` and finalize the bind.
+         */
+        post: operations["verify_domain_binding_api_identity_bindings_domain_verify_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/bindings/oauth": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record an OAuth/OIDC binding
+         * @description Store an external IdP subject binding (redirect dance is out of band).
+         */
+        post: operations["bind_oauth_api_identity_bindings_oauth_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/bindings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List identity bindings */
+        get: operations["list_bindings_api_identity_bindings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/identity/directory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the trust-on-follow directory
+         * @description Peacetime registry posture: a local directory of known DIDs to follow.
+         */
+        get: operations["list_directory_api_identity_directory_get"];
+        put?: never;
+        /** Publish a trust-on-follow directory entry */
+        post: operations["publish_directory_entry_api_identity_directory_post"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3366,6 +3785,69 @@ export interface components {
              * @description Free-text notes from most recent triage
              */
             triage_notes?: string | null;
+        };
+        /**
+         * Attestation
+         * @description A signed, durable fact about a subject.
+         */
+        Attestation: {
+            /**
+             * Attestation Id
+             * Format: uuid
+             */
+            attestation_id?: string;
+            /** Type */
+            type: string;
+            /** Issuer Did */
+            issuer_did: string;
+            /** Subject Did */
+            subject_did: string;
+            /** Content Hash */
+            content_hash?: string | null;
+            /** Claim */
+            claim?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+        };
+        /**
+         * AttestationIssue
+         * @description Request payload for issuing an attestation.
+         */
+        AttestationIssue: {
+            /** Type */
+            type: string;
+            /** Subject Did */
+            subject_did: string;
+            /** Issuer Did */
+            issuer_did?: string | null;
+            /** Content Hash */
+            content_hash?: string | null;
+            /** Claim */
+            claim?: {
+                [key: string]: unknown;
+            };
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /**
+         * AudienceDisclosure
+         * @description Which field groups are included for one audience.
+         */
+        AudienceDisclosure: {
+            /** Groups */
+            groups?: components["schemas"]["DisclosureGroup"][];
         };
         /**
          * AuthenticatedUser
@@ -3680,11 +4162,34 @@ export interface components {
             /** Publisher Did */
             publisher_did: string;
             provenance?: components["schemas"]["RecordProvenance"] | null;
+            /** Attestations */
+            attestations?: components["schemas"]["Attestation"][] | null;
+            package?: components["schemas"]["PackagePointer"] | null;
             /**
              * Signature
              * @description Hex-encoded Ed25519 signature over canonical record
              */
             signature: string;
+        };
+        /**
+         * CertifyRequest
+         * @description Request payload for a ``certified`` attestation over a bundle hash.
+         */
+        CertifyRequest: {
+            /** Subject Did */
+            subject_did: string;
+            /** Bundle Hash */
+            bundle_hash: string;
+            /** Version */
+            version: string;
+            /** Issuer Did */
+            issuer_did?: string | null;
+            /** Manifest Content Hash */
+            manifest_content_hash?: string | null;
+            /** Claim */
+            claim?: {
+                [key: string]: unknown;
+            };
         };
         /** ChecklistItemResponse */
         ChecklistItemResponse: {
@@ -4287,6 +4792,140 @@ export interface components {
             role?: string | null;
         };
         /**
+         * DirectoryEntry
+         * @description Trust-on-follow directory row (peacetime registry posture).
+         */
+        DirectoryEntry: {
+            /** Did */
+            did: string;
+            /**
+             * Display Name
+             * @default
+             */
+            display_name: string;
+            /** Base Url */
+            base_url?: string | null;
+            /** Domain */
+            domain?: string | null;
+            /** Verified Bindings */
+            verified_bindings?: string[];
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+        };
+        /**
+         * DirectoryPublishRequest
+         * @description Publish or refresh this node's directory entry.
+         */
+        DirectoryPublishRequest: {
+            /** Did */
+            did: string;
+            /**
+             * Display Name
+             * @default
+             */
+            display_name: string;
+            /** Base Url */
+            base_url?: string | null;
+            /** Domain */
+            domain?: string | null;
+        };
+        /**
+         * DisclosureAudience
+         * @enum {string}
+         */
+        DisclosureAudience: "followers" | "public";
+        /**
+         * DisclosureBody
+         * @description PUT body for disclosure profiles.
+         */
+        DisclosureBody: {
+            followers?: components["schemas"]["AudienceDisclosure"] | null;
+            public?: components["schemas"]["AudienceDisclosure"] | null;
+        };
+        /**
+         * DisclosureGroup
+         * @enum {string}
+         */
+        DisclosureGroup: "identity" | "location" | "equipment" | "operations" | "supply";
+        /**
+         * DisclosurePreviewResponse
+         * @description Redacted facility projection for one federation audience.
+         */
+        DisclosurePreviewResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            audience: components["schemas"]["DisclosureAudience"];
+            /** Visibility */
+            visibility: string;
+            /**
+             * Exported
+             * @description True when current visibility would export this audience's projection
+             */
+            exported: boolean;
+            /** Groups */
+            groups: components["schemas"]["DisclosureGroup"][];
+            /** Facility */
+            facility: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * DisclosureProfile
+         * @description Per-facility disclosure config for followers and public audiences.
+         */
+        DisclosureProfile: {
+            followers?: components["schemas"]["AudienceDisclosure"];
+            public?: components["schemas"]["AudienceDisclosure"];
+        };
+        /** DisclosureResponse */
+        DisclosureResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            disclosure: components["schemas"]["DisclosureProfile"];
+        };
+        /**
+         * DomainBindRequest
+         * @description Start a domain (``.well-known``) binding for a DID.
+         */
+        DomainBindRequest: {
+            /** Subject Did */
+            subject_did: string;
+            /** Domain */
+            domain: string;
+        };
+        /**
+         * DomainBindStartResponse
+         * @description Pending domain bind plus the document the operator must host.
+         */
+        DomainBindStartResponse: {
+            binding: components["schemas"]["IdentityBinding"];
+            /** Well Known Url */
+            well_known_url: string;
+            /** Well Known Document */
+            well_known_document: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * DomainVerifyRequest
+         * @description Complete a pending domain binding by fetching ``.well-known``.
+         */
+        DomainVerifyRequest: {
+            /** Subject Did */
+            subject_did: string;
+            /** Domain */
+            domain: string;
+        };
+        /**
          * ErrorCode
          * @description Standard error codes for API responses.
          * @enum {string}
@@ -4461,6 +5100,11 @@ export interface components {
             followed_peer_count: number;
             /** Sync Interval Sec */
             sync_interval_sec: number;
+            /**
+             * Rate Limit Per Min
+             * @default 60
+             */
+            rate_limit_per_min: number;
             /** Mdns Enabled */
             mdns_enabled: boolean;
             /** Background Sync Running */
@@ -4468,6 +5112,8 @@ export interface components {
             /** Manual Peers */
             manual_peers?: string[];
             metrics: components["schemas"]["FederationSyncMetricsResponse"];
+            /** Security Mode */
+            security_mode?: string | null;
         };
         /** FederationSyncMetricsResponse */
         FederationSyncMetricsResponse: {
@@ -4584,6 +5230,46 @@ export interface components {
              * @default false
              */
             custodial: boolean;
+        };
+        /**
+         * IdentityBinding
+         * @description Signed claim that ``subject_did`` controls an external identifier.
+         */
+        IdentityBinding: {
+            /**
+             * Binding Id
+             * Format: uuid
+             */
+            binding_id?: string;
+            /** Subject Did */
+            subject_did: string;
+            /** Kind */
+            kind: string;
+            /** External Id */
+            external_id: string;
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            };
+            /** Challenge */
+            challenge?: string | null;
+            /**
+             * Verified
+             * @default false
+             */
+            verified: boolean;
+            /** Verified At */
+            verified_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
         };
         /**
          * IdentityKind
@@ -5114,6 +5800,30 @@ export interface components {
             network_filter?: {
                 [key: string]: unknown;
             } | null;
+        };
+        /**
+         * OAuthBindRequest
+         * @description Record an OAuth/OIDC external-subject binding (post-IdP verification).
+         *
+         *     The OAuth redirect dance lives in the frontend/IdP; this API stores the
+         *     resulting binding once claims are verified out-of-band.
+         */
+        OAuthBindRequest: {
+            /** Subject Did */
+            subject_did: string;
+            /** Provider */
+            provider: string;
+            /** External Subject */
+            external_subject: string;
+            /** Evidence */
+            evidence?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Verified
+             * @default true
+             */
+            verified: boolean;
         };
         /**
          * OKHExportResponse
@@ -6231,6 +6941,66 @@ export interface components {
             } | null;
         };
         /**
+         * PackageDownloadZipRequest
+         * @description Request body for POST /api/package/download-zip.
+         * @example {
+         *       "items": [
+         *         {
+         *           "org": "community",
+         *           "project": "widget",
+         *           "version": "1.0.0"
+         *         },
+         *         {
+         *           "org": "acme",
+         *           "project": "bracket",
+         *           "version": "2.1.0"
+         *         }
+         *       ]
+         *     }
+         */
+        PackageDownloadZipRequest: {
+            /**
+             * Items
+             * @description Packages to include as .tar.gz entries in the zip
+             */
+            items: components["schemas"]["PackageZipItem"][];
+        };
+        /** PackageFetchRequest */
+        PackageFetchRequest: {
+            /** Peer Url */
+            peer_url: string;
+            /** Bundle Hash */
+            bundle_hash: string;
+            /** Manifest Id */
+            manifest_id?: string | null;
+            /**
+             * Allow Rebuild
+             * @default true
+             */
+            allow_rebuild: boolean;
+        };
+        /** PackageFetchResponse */
+        PackageFetchResponse: {
+            /** Action */
+            action: string;
+            /** Bundle Hash */
+            bundle_hash?: string | null;
+            /** Path */
+            path?: string | null;
+            /** Detail */
+            detail?: string | null;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /**
+             * Status
+             * @default success
+             */
+            status: string;
+        };
+        /**
          * PackageMetadataResponse
          * @description Response model for package metadata
          */
@@ -6251,6 +7021,20 @@ export interface components {
             metadata?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * PackagePointer
+         * @description Content-addressed package artifact advertised on a catalog record.
+         *
+         *     Out of the OKH design content hash; included in the node-signed payload.
+         */
+        PackagePointer: {
+            /** Bundle Hash */
+            bundle_hash: string;
+            /** Byte Size */
+            byte_size: number;
+            /** Filename */
+            filename?: string | null;
         };
         /**
          * PackagePullRequest
@@ -6425,6 +7209,32 @@ export interface components {
             processing_time: number;
             /** Validation Results */
             validation_results?: components["schemas"]["ValidationResult"][] | null;
+        };
+        /**
+         * PackageZipItem
+         * @description One package identity for a batch zip download.
+         * @example {
+         *       "org": "community",
+         *       "project": "widget",
+         *       "version": "1.0.0"
+         *     }
+         */
+        PackageZipItem: {
+            /**
+             * Org
+             * @description Organization slug
+             */
+            org: string;
+            /**
+             * Project
+             * @description Project slug
+             */
+            project: string;
+            /**
+             * Version
+             * @description Package version
+             */
+            version: string;
         };
         /**
          * PaginatedResponse
@@ -7769,6 +8579,42 @@ export interface components {
              * @default
              */
             message: string;
+        };
+        /**
+         * SpaceClaim
+         * @description Signed statement: ``admin_did`` administers ``space_did``.
+         */
+        SpaceClaim: {
+            /** Space Did */
+            space_did: string;
+            /** Admin Did */
+            admin_did: string;
+            /**
+             * Claimed At
+             * Format: date-time
+             */
+            claimed_at?: string;
+            /**
+             * Claim Method
+             * @default tofu
+             * @constant
+             */
+            claim_method: "tofu";
+            /**
+             * Signature
+             * @default
+             */
+            signature: string;
+        };
+        /**
+         * SpaceClaimRequest
+         * @description Request payload for claiming a space (TOFU admin bind).
+         */
+        SpaceClaimRequest: {
+            /** Space Did */
+            space_did: string;
+            /** Admin Did */
+            admin_did: string;
         };
         /**
          * SuccessResponse
@@ -10917,6 +11763,163 @@ export interface operations {
             };
         };
     };
+    preview_okw_disclosure_api_okw__id__disclosure_preview_get: {
+        parameters: {
+            query?: {
+                /** @description Federation audience to preview */
+                audience?: components["schemas"]["DisclosureAudience"];
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisclosurePreviewResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_okw_disclosure_api_okw__id__disclosure_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisclosureResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    set_okw_disclosure_api_okw__id__disclosure_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisclosureBody"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisclosureResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     upload_okw_file_api_okw_upload_post: {
         parameters: {
             query?: never;
@@ -13088,6 +14091,66 @@ export interface operations {
             };
         };
     };
+    download_packages_zip_api_package_download_zip_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageDownloadZipRequest"];
+            };
+        };
+        responses: {
+            /** @description Zip archive of package tarballs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/zip": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description One or more packages not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     download_package_api_package__org___project___version__download_get: {
         parameters: {
             query?: never;
@@ -14940,6 +16003,193 @@ export interface operations {
             };
         };
     };
+    get_package_blob_api_federation_packages_blobs__bundle_hash__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-OHM-Peer-DID"?: string | null;
+            };
+            path: {
+                bundle_hash: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                    "application/octet-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    fetch_package_api_federation_packages_fetch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageFetchRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageFetchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_okw_catalog_api_federation_okw_catalog_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_okw_record_api_federation_okw_records__content_hash__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                content_hash: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    okw_sync_digest_api_federation_okw_sync_digest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncDigest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncDigestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_okw_sync_api_federation_okw_sync_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRunResponse"];
+                };
+            };
+        };
+    };
     whoami_api_identity_whoami_get: {
         parameters: {
             query?: never;
@@ -14956,6 +16206,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthenticatedUser"];
+                };
+            };
+        };
+    };
+    show_security_policy_api_identity_security_policy_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
@@ -15306,6 +16578,437 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    claim_space_api_identity_spaces_claim_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpaceClaimRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpaceClaim"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    show_space_claim_api_identity_spaces__space_did__claim_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                space_did: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpaceClaim"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_space_claims_api_identity_spaces_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpaceClaim"][];
+                };
+            };
+        };
+    };
+    bootstrap_edge_grant_api_identity_grants_bootstrap_edge_post: {
+        parameters: {
+            query: {
+                /** @description Subject DID (signs its own grant) */
+                subject_did: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CapabilityGrant"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_attestations_api_identity_attestations_get: {
+        parameters: {
+            query?: {
+                /** @description Filter by subject DID */
+                subject_did?: string | null;
+                /** @description Filter by content hash */
+                content_hash?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attestation"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    issue_attestation_api_identity_attestations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttestationIssue"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attestation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    certify_api_identity_attestations_certify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CertifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attestation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reputation_api_identity_reputation__subject_did__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_did: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attestation"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_domain_binding_api_identity_bindings_domain_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainBindRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DomainBindStartResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_domain_binding_api_identity_bindings_domain_verify_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DomainVerifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityBinding"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bind_oauth_api_identity_bindings_oauth_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OAuthBindRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityBinding"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_bindings_api_identity_bindings_get: {
+        parameters: {
+            query?: {
+                /** @description Filter by subject DID */
+                subject_did?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IdentityBinding"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_directory_api_identity_directory_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryEntry"][];
+                };
+            };
+        };
+    };
+    publish_directory_entry_api_identity_directory_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DirectoryPublishRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DirectoryEntry"];
                 };
             };
             /** @description Validation Error */

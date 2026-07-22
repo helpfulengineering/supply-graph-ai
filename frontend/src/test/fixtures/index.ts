@@ -504,6 +504,27 @@ export const visibilityFixture = {
   visibility: "private",
 };
 
+export const disclosureFixture = {
+  id: "okw-1",
+  disclosure: {
+    followers: { groups: ["identity"] },
+    public: { groups: ["identity"] },
+  },
+};
+
+export const disclosurePreviewFixture = {
+  id: "okw-1",
+  audience: "followers",
+  visibility: "private",
+  exported: false,
+  groups: ["identity"],
+  facility: {
+    id: "okw-1",
+    name: "Test Fab Lab",
+    facility_status: "Active",
+  },
+};
+
 export const packageListFixture = {
   status: "success",
   message: "ok",
@@ -566,6 +587,8 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/validate": validationResultFixture,
   "/v1/api/okw/okw-1/provenance": provenanceFixture,
   "/v1/api/okw/okw-1/visibility": { ...visibilityFixture, id: "okw-1" },
+  "/v1/api/okw/okw-1/disclosure": disclosureFixture,
+  "/v1/api/okw/okw-1/disclosure/preview": disclosurePreviewFixture,
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,

@@ -1,6 +1,4 @@
 import { apiClient, ApiError, errorMessage } from "./client";
-import { get } from "../client";
-import { authHeader } from "../../features/auth/tokenStorage";
 import type { OkwFacility } from "../../types/okw";
 import type { components } from "../generated/schema";
 
@@ -169,47 +167,57 @@ export async function setOkwVisibility(
   return data;
 }
 
-export type DisclosureGroup =
-  | "identity"
-  | "location"
-  | "equipment"
-  | "operations"
-  | "supply";
+export type DisclosureGroup = components["schemas"]["DisclosureGroup"];
+export type DisclosureAudience = components["schemas"]["DisclosureAudience"];
+export type AudienceDisclosure = components["schemas"]["AudienceDisclosure"];
+export type DisclosureProfile = components["schemas"]["DisclosureProfile"];
+export type DisclosureResponse = components["schemas"]["DisclosureResponse"];
+export type DisclosurePreviewResponse =
+  components["schemas"]["DisclosurePreviewResponse"];
 
-export interface AudienceDisclosure {
-  groups: DisclosureGroup[];
-}
-
-export interface DisclosureProfile {
-  followers: AudienceDisclosure;
-  public: AudienceDisclosure;
-}
-
-export interface DisclosureResponse {
-  id: string;
-  disclosure: DisclosureProfile;
-}
-
-/** Disclosure API is not yet in the generated OpenAPI client — use raw client. */
 export async function getOkwDisclosure(id: string): Promise<DisclosureResponse> {
-  return get<DisclosureResponse>(`/okw/${id}/disclosure`);
+  const { data, error, response } = await apiClient.GET("/api/okw/{id}/disclosure", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load disclosure (HTTP ${response.status})`),
+    );
+  }
+  return data;
 }
 
 export async function setOkwDisclosure(
   id: string,
   body: Partial<DisclosureProfile>,
 ): Promise<DisclosureResponse> {
-  const res = await fetch(`/v1/api/okw/${id}/disclosure`, {
-    method: "PUT",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      ...authHeader(),
-    },
-    body: JSON.stringify(body),
+  const { data, error, response } = await apiClient.PUT("/api/okw/{id}/disclosure", {
+    params: { path: { id } },
+    body,
   });
-  if (!res.ok) {
-    throw new ApiError(res.status, `Failed to set disclosure (HTTP ${res.status})`);
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to set disclosure (HTTP ${response.status})`),
+    );
   }
-  return res.json() as Promise<DisclosureResponse>;
+  return data;
+}
+
+export async function previewOkwDisclosure(
+  id: string,
+  audience: DisclosureAudience = "followers",
+): Promise<DisclosurePreviewResponse> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okw/{id}/disclosure/preview",
+    { params: { path: { id }, query: { audience } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to preview disclosure (HTTP ${response.status})`),
+    );
+  }
+  return data;
 }

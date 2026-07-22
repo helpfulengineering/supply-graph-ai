@@ -579,6 +579,24 @@ if curl -sf -H "$(auth_hdr "$API_KEY_A")" "${PEER_A_URL}/v1/api/okw/${OKW_ID}" >
     else
       fail "OKW disclosure (expected redaction; loc=${LOC_IN} eq=${EQ_IN})"
     fi
+    # Opt-in location group → catalog projection must include location
+    curl_a PUT "${PEER_A_URL}/v1/api/okw/${OKW_ID}/disclosure" \
+      -d '{"followers":{"groups":["identity","location"]}}' >/dev/null || true
+    OKW_CAT_LOC="$(curl -sS "${PEER_A_URL}/v1/api/federation/okw/catalog")"
+    HASH_OKW_LOC="$(echo "$OKW_CAT_LOC" | jq -r --arg n "$OKW_NAME" \
+      '[.records[]? | select(.name == $n) | .content_hash][0] // empty')"
+    if [[ -n "$HASH_OKW_LOC" ]]; then
+      REC_LOC="$(curl -sS "${PEER_A_URL}/v1/api/federation/okw/records/${HASH_OKW_LOC}")"
+      LOC_NOW="$(echo "$REC_LOC" | jq '(.facility | has("location"))')"
+      EQ_STILL="$(echo "$REC_LOC" | jq '(.facility | has("equipment"))')"
+      if [[ "$LOC_NOW" == "true" && "$EQ_STILL" == "false" ]]; then
+        pass "OKW disclosure opt-in location (location present; equipment still redacted)"
+      else
+        fail "OKW disclosure opt-in (loc=${LOC_NOW} eq=${EQ_STILL})"
+      fi
+    else
+      fail "OKW catalog after disclosure PUT (facility missing)"
+    fi
   else
     fail "OKW catalog (facility not listed after promote)"
   fi

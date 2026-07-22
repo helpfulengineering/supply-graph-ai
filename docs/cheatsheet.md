@@ -10,7 +10,7 @@ A quick reference guide for new users to understand the major capabilities of th
 | **Generation** | Generate OKH manifests from external project sources (GitHub, GitLab, etc.) using a 4-layer progressive enhancement system | `POST /v1/api/okh/generate-from-url` | `ohm okh generate-from-url` | [Generation Architecture](architecture/generation.md) |
 | **Scaffolding** | Generate OKH-compliant project scaffolds with documentation stubs, MkDocs integration, and manifest templates | `POST /v1/api/okh/scaffold` | `ohm okh scaffold` | [Scaffolding Guide](scaffolding/index.md) |
 | **OKH Management** | Read, update, delete, validate, fix, upload, and extract requirements from OKH (OpenKnowHow) manifests | `GET /v1/api/okh/{id}`<br>`PUT /v1/api/okh/{id}`<br>`DELETE /v1/api/okh/{id}`<br>`POST /v1/api/okh/validate`<br>`POST /v1/api/okh/extract`<br>`POST /v1/api/okh/upload`<br>`GET /v1/api/okh/` | `ohm okh get`<br>`ohm okh list-manifests`<br>`ohm okh delete`<br>`ohm okh validate`<br>`ohm okh fix`<br>`ohm okh upload`<br>`ohm okh extract` | [OKH Model](models/okh-docs.md), [OKH API Routes](api/routes.md#okh-routes) |
-| **OKW Management** | Read, update, delete, validate, fix, upload, search, and extract capabilities from OKW (OpenKnowWhere) facilities | `GET /v1/api/okw/{id}`<br>`PUT /v1/api/okw/{id}`<br>`DELETE /v1/api/okw/{id}`<br>`GET /v1/api/okw/search`<br>`POST /v1/api/okw/validate`<br>`POST /v1/api/okw/extract`<br>`POST /v1/api/okw/upload` | `ohm okw get`<br>`ohm okw list-files`<br>`ohm okw delete`<br>`ohm okw search`<br>`ohm okw validate`<br>`ohm okw fix`<br>`ohm okw upload`<br>`ohm okw extract` | [OKW Model](models/okw-docs.md), [OKW API Routes](api/routes.md#okw-routes) |
+| **OKW Management** | Read, update, delete, validate, fix, upload, search, and extract capabilities from OKW (OpenKnowWhere) facilities; set federation visibility and field-group disclosure | `GET /v1/api/okw/{id}`<br>`PUT /v1/api/okw/{id}`<br>`GET/PUT /v1/api/okw/{id}/visibility`<br>`GET/PUT /v1/api/okw/{id}/disclosure`<br>`GET /v1/api/okw/{id}/disclosure/preview`<br>`GET /v1/api/okw/search`<br>`POST /v1/api/okw/validate`<br>`POST /v1/api/okw/upload` | `ohm okw get`<br>`ohm okw visibility show\|set`<br>`ohm okw disclosure show\|set\|preview`<br>`ohm okw search`<br>`ohm okw validate`<br>`ohm okw upload` | [OKW Model](models/okw-docs.md), [Federation infra — OKW](development/federation-infra.md), [Identity model — visibility](architecture/identity-model.md) |
 | **Package Management** | Build, verify, list, delete, push, pull, and batch-download OKH packages with remote storage integration | `POST /v1/api/package/build`<br>`GET /v1/api/package/list`<br>`GET /v1/api/package/{org}/{project}/{version}/download`<br>`POST /v1/api/package/download-zip`<br>`GET /v1/api/package/{name}/{version}/verify`<br>`DELETE /v1/api/package/{name}/{version}`<br>`POST /v1/api/package/push`<br>`POST /v1/api/package/pull` | `ohm package build`<br>`ohm package list`<br>`ohm package download-zip`<br>`ohm package verify`<br>`ohm package delete`<br>`ohm package push`<br>`ohm package pull` | [Package Management](packaging/okh-packages.md) |
 | **LLM Operations** | LLM-powered content generation, OKH manifest generation, and enhanced analysis with multiple provider support | `GET /v1/api/llm/health`<br>`GET /v1/api/llm/providers` | `ohm llm generate`<br>`ohm llm generate-okh`<br>`ohm llm providers info` | [LLM Integration](llm/index.md) |
 | **Validation** | Domain-aware validation with quality levels (hobby, professional, medical) and strict mode support for OKH, OKW, and supply trees | `POST /v1/api/okh/validate`<br>`POST /v1/api/okw/validate`<br>`POST /v1/api/match/validate` | `ohm okh validate`<br>`ohm okw validate`<br>`ohm match validate` | [Validation Model](models/validation.md), [API Validation](api/routes.md#validation-and-normalization) |
@@ -54,6 +54,17 @@ A quick reference guide for new users to understand the major capabilities of th
 - **API**: `GET /v1/api/okw/search?location=United States&capabilities=CNC`
 - **CLI**: `ohm okw search --location "United States" --capabilities CNC`
 - **Docs**: [OKW Model](models/okw-docs.md), [OKW API Routes](api/routes.md#okw-routes)
+
+#### Share a facility with federation peers (visibility + disclosure)
+- **UI**: Facility detail → Visibility + Sharing / disclosure (preview shows the redacted JSON peers receive)
+- **API**: `PUT /v1/api/okw/{id}/visibility` then `PUT /v1/api/okw/{id}/disclosure`; check `GET …/disclosure/preview?audience=followers`
+- **CLI**:
+  ```bash
+  ohm okw visibility set <facility_id> followers
+  ohm okw disclosure set <facility_id> followers identity location
+  ohm okw disclosure preview <facility_id> followers
+  ```
+- **Docs**: [Federation infra — OKW catalog](development/federation-infra.md), [Identity model — visibility](architecture/identity-model.md)
 
 #### Use LLM for enhanced processing
 - **API**: Add `use_llm: true` to request body (where supported)

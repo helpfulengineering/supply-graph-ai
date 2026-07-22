@@ -29,6 +29,8 @@ import {
   federationSyncFixture,
   provenanceFixture,
   visibilityFixture,
+  disclosureFixture,
+  disclosurePreviewFixture,
   packageListFixture,
   packageMetadataFixture,
 } from "../fixtures";
@@ -70,6 +72,23 @@ export const handlers = [
   http.put("*/v1/api/okw/:id/visibility", async ({ request }) => {
     const body = (await request.json()) as { visibility?: string };
     return HttpResponse.json({ id: "okw-1", visibility: body.visibility ?? "private" });
+  }),
+  http.get("*/v1/api/okw/:id/disclosure/preview", () =>
+    HttpResponse.json(disclosurePreviewFixture),
+  ),
+  http.get("*/v1/api/okw/:id/disclosure", () => HttpResponse.json(disclosureFixture)),
+  http.put("*/v1/api/okw/:id/disclosure", async ({ request }) => {
+    const body = (await request.json()) as {
+      followers?: { groups?: string[] };
+      public?: { groups?: string[] };
+    };
+    return HttpResponse.json({
+      id: "okw-1",
+      disclosure: {
+        followers: body.followers ?? disclosureFixture.disclosure.followers,
+        public: body.public ?? disclosureFixture.disclosure.public,
+      },
+    });
   }),
   http.get("*/v1/api/okw/:id", () => HttpResponse.json(okwDetailFixture)),
   http.post("*/v1/api/okw/validate", () => HttpResponse.json(validationResultFixture)),

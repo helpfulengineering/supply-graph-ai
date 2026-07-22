@@ -31,6 +31,11 @@ export function VisibilityControl({
       kind === "okh" ? setOkhVisibility(id, visibility) : setOkwVisibility(id, visibility),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKey, data);
+      if (kind === "okw") {
+        void queryClient.invalidateQueries({
+          queryKey: ["okw", "disclosure-preview", id],
+        });
+      }
     },
     onError: reportAuthFailure,
   });
@@ -75,6 +80,12 @@ export function VisibilityControl({
             ))}
           </select>
         </label>
+      )}
+      {kind === "okw" && (
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          private keeps the facility local; followers/public export a redacted projection
+          controlled by disclosure below.
+        </p>
       )}
 
       {!hasWrite && (

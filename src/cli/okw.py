@@ -639,6 +639,50 @@ async def disclosure_set(
         raise
 
 
+@disclosure_group.command("preview")
+@click.argument("facility_id", type=str)
+@click.argument(
+    "audience",
+    type=click.Choice(["followers", "public"], case_sensitive=False),
+    default="followers",
+    required=False,
+)
+@standard_cli_command(
+    help_text="Preview the redacted facility peers would see for an audience.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=True,
+)
+@click.pass_context
+async def disclosure_preview(
+    ctx,
+    facility_id: str,
+    audience: str,
+    verbose: bool,
+    output_format: str,
+    use_llm: bool,
+    llm_provider: str,
+    llm_model: Optional[str],
+    quality_level: str,
+    strict_mode: bool,
+):
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okw-disclosure-preview")
+    try:
+        response = await cli_ctx.api_client.request(
+            "GET",
+            f"/api/okw/{facility_id}/disclosure/preview",
+            params={"audience": audience.lower()},
+        )
+        click.echo(json.dumps(response, indent=2, default=str))
+        cli_ctx.end_command_tracking()
+    except Exception as e:
+        cli_ctx.log(f"Disclosure preview failed: {str(e)}", "error")
+        raise
+
+
 @okw_group.command()
 @click.option("--limit", default=10, help="Maximum number of facilities to list")
 @click.option("--offset", default=0, help="Number of facilities to skip")

@@ -94,6 +94,19 @@ class DisclosureResponse(BaseModel):
     disclosure: DisclosureProfile
 
 
+class DisclosurePreviewResponse(BaseModel):
+    """Redacted facility projection for one federation audience."""
+
+    id: UUID
+    audience: DisclosureAudience
+    visibility: str
+    exported: bool = Field(
+        description="True when current visibility would export this audience's projection"
+    )
+    groups: list[DisclosureGroup]
+    facility: dict[str, Any]
+
+
 def default_disclosure_profile() -> DisclosureProfile:
     return DisclosureProfile(
         followers=AudienceDisclosure(groups=[DisclosureGroup.IDENTITY]),
