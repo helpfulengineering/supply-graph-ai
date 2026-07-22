@@ -28,7 +28,7 @@ class IngestError(Exception):
 class IngestResult:
     action: str  # "stored" | "skipped"
     content_hash: str | None = None
-    reason: str | None = None
+    reason: str | None = None  # already_present | id_conflict
 
 
 def verify_signed_record(record: SignedManifestRecord) -> None:
@@ -90,6 +90,18 @@ async def verify_and_store(
             action="skipped",
             content_hash=content_hash,
             reason="already_present",
+        )
+
+    # Catalog hashes omit private OKH (ingest default). First-write-wins by id:
+    # same content → already_present; divergent → id_conflict (keep local).
+    existing = await okh_service.get(record.catalog_record.manifest_id)
+    if existing is not None:
+        existing_hash = manifest_content_hash(existing.to_dict())
+        reason = "already_present" if existing_hash == content_hash else "id_conflict"
+        return IngestResult(
+            action="skipped",
+            content_hash=content_hash,
+            reason=reason,
         )
 
     validation = validate_okh_manifest(record.manifest)

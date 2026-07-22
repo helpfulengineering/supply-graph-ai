@@ -236,6 +236,7 @@ class FederationService(BaseService["FederationService"]):
             "peer_count": len(peers),
             "followed_peer_count": len(followed),
             "sync_interval_sec": settings.OHM_FEDERATION_SYNC_INTERVAL_SEC,
+            "rate_limit_per_min": settings.OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN,
             "mdns_enabled": self._mdns_allowed(),
             "security_mode": get_security_policy().mode.value,
             "background_sync_running": self._sync_task is not None

@@ -40,6 +40,7 @@ async def test_federation_status_endpoint(monkeypatch) -> None:
             "peer_count": 0,
             "followed_peer_count": 0,
             "sync_interval_sec": 60,
+            "rate_limit_per_min": 60,
             "mdns_enabled": False,
             "background_sync_running": True,
             "manual_peers": [],

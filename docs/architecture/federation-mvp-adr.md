@@ -24,6 +24,7 @@ Implement **Tier 2 (LAN) peer federation** in `src/core/federation/`:
 | Sync | Anti-entropy via Merkle root + HTTP (`/v1/api/federation/*`) |
 | Discovery | mDNS `_ohm._tcp` (best-effort) + `OHM_FEDERATION_MANUAL_PEERS` |
 | Trust | Explicit `follow` allowlist; verify signatures on ingest |
+| Conflict | First-write-wins: skip `already_present` (same hash/id) or `id_conflict` (same id, divergent content); no LWW/CRDT yet |
 | Default | `OHM_FEDERATION_ENABLED=false` — centralized OHM unchanged |
 
 ### Deferred (explicit non-goals for MVP)

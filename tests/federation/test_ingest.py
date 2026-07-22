@@ -84,6 +84,7 @@ async def test_verify_and_store_persists_followed_record(tmp_path) -> None:
     store.set_followed(signed.catalog_record.publisher_did, True)
     okh_service = AsyncMock()
     okh_service.create = AsyncMock(return_value=MagicMock())
+    okh_service.get = AsyncMock(return_value=None)
 
     with patch(
         "src.core.federation.ingest.validate_okh_manifest",
@@ -175,6 +176,7 @@ async def test_provenance_survives_catalog_to_ingest_round_trip(tmp_path) -> Non
     store.set_followed(node_a.did, True)
     okh_b = AsyncMock()
     okh_b.create = AsyncMock(return_value=MagicMock())
+    okh_b.get = AsyncMock(return_value=None)
     with patch(
         "src.core.federation.ingest.validate_okh_manifest",
         return_value=MagicMock(valid=True, errors=[]),
@@ -243,6 +245,7 @@ async def test_attestations_survive_ingest(tmp_path) -> None:
     store.set_followed(publisher.did, True)
     okh_service = AsyncMock()
     okh_service.create = AsyncMock(return_value=MagicMock())
+    okh_service.get = AsyncMock(return_value=None)
     auth = AsyncMock()
     auth.save_attestation = AsyncMock()
 
@@ -276,6 +279,7 @@ async def test_verify_and_store_skips_existing_hash(tmp_path) -> None:
     store = FederationStore(tmp_path)
     store.set_followed(signed.catalog_record.publisher_did, True)
     okh_service = AsyncMock()
+    okh_service.get = AsyncMock(return_value=None)
 
     result = await verify_and_store(
         signed,
@@ -286,4 +290,57 @@ async def test_verify_and_store_skips_existing_hash(tmp_path) -> None:
     )
 
     assert result.action == "skipped"
+    assert result.reason == "already_present"
+    okh_service.create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_verify_and_store_skips_when_id_already_local(tmp_path) -> None:
+    """Private local copy (not in catalog hashes) must still be idempotent."""
+    signed = _signed_record()
+    store = FederationStore(tmp_path)
+    store.set_followed(signed.catalog_record.publisher_did, True)
+    existing = MagicMock()
+    existing.to_dict.return_value = dict(MINIMAL_MANIFEST)
+    okh_service = AsyncMock()
+    okh_service.get = AsyncMock(return_value=existing)
+
+    result = await verify_and_store(
+        signed,
+        publisher_did=signed.catalog_record.publisher_did,
+        store=store,
+        okh_service=okh_service,
+        local_content_hashes=set(),
+    )
+
+    assert result.action == "skipped"
+    assert result.reason == "already_present"
+    okh_service.create.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_verify_and_store_skips_id_conflict_first_wins(tmp_path) -> None:
+    """Same manifest id, divergent content → keep local (first-write-wins)."""
+    signed = _signed_record()
+    store = FederationStore(tmp_path)
+    store.set_followed(signed.catalog_record.publisher_did, True)
+    divergent = dict(MINIMAL_MANIFEST)
+    divergent["title"] = "Divergent Local Title"
+    existing = MagicMock()
+    existing.to_dict.return_value = divergent
+    okh_service = AsyncMock()
+    okh_service.get = AsyncMock(return_value=existing)
+
+    result = await verify_and_store(
+        signed,
+        publisher_did=signed.catalog_record.publisher_did,
+        store=store,
+        okh_service=okh_service,
+        local_content_hashes=set(),
+    )
+
+    assert result.action == "skipped"
+    assert result.reason == "id_conflict"
     okh_service.create.assert_not_called()

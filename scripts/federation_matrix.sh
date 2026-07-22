@@ -490,6 +490,51 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# Case: bidirectional sync + conflict/idempotency
+# ---------------------------------------------------------------------------
+log "--- bidirectional sync ---"
+# Mutual follow: B already follows A from earlier; A must follow B.
+curl -sS -X POST "${PEER_A_URL}/v1/api/federation/peers/discover" >/dev/null || true
+curl -sS -X POST "${PEER_B_URL}/v1/api/federation/peers/discover" >/dev/null || true
+curl -sS -X POST "${PEER_A_URL}/v1/api/federation/peers/$(printf '%s' "$DID_B" | jq -sRr @uri)/follow" >/dev/null
+curl -sS -X POST "${PEER_B_URL}/v1/api/federation/peers/$(printf '%s' "$DID_A" | jq -sRr @uri)/follow" >/dev/null || true
+
+TITLE_BA="Matrix B-to-A ${SHORT}"
+ID_BA="$(create_okh b "$TITLE_BA")"
+set_visibility b "$ID_BA" "public"
+SYNC_BA="$(curl -sS -X POST "${PEER_A_URL}/v1/api/federation/sync/run")"
+FOUND_BA="$(okh_has_title "$PEER_A_URL" "$TITLE_BA" "$API_KEY_A")"
+PULLED_BA="$(echo "$SYNC_BA" | jq -r '.total_pulled // 0')"
+if [[ "$FOUND_BA" -ge 1 ]]; then
+  pass "bidirectional B→A (title on A OKH; pulled=${PULLED_BA})"
+else
+  fail "bidirectional B→A (missing on A; sync=$(echo "$SYNC_BA" | jq -c .))"
+fi
+
+TITLE_AB="Matrix A-to-B ${SHORT}"
+ID_AB="$(create_okh a "$TITLE_AB")"
+set_visibility a "$ID_AB" "public"
+SYNC_AB="$(curl -sS -X POST "${PEER_B_URL}/v1/api/federation/sync/run")"
+FOUND_AB="$(okh_has_title "$PEER_B_URL" "$TITLE_AB" "$API_KEY_B")"
+# Cross-ingest only: local creates already exist on the origin peer.
+if [[ "$FOUND_BA" -ge 1 && "$FOUND_AB" -ge 1 ]]; then
+  pass "bidirectional round-trip (A has B's title; B has A's)"
+else
+  fail "bidirectional round-trip (A ba=${FOUND_BA}; B ab=${FOUND_AB}; sync=$(echo "$SYNC_AB" | jq -c .))"
+fi
+
+log "--- sync idempotency / conflict ---"
+SYNC_IDEM="$(curl -sS -X POST "${PEER_B_URL}/v1/api/federation/sync/run")"
+PULLED_IDEM="$(echo "$SYNC_IDEM" | jq -r '.total_pulled // 0')"
+SKIPPED_IDEM="$(echo "$SYNC_IDEM" | jq '[.results[]?.skipped // 0] | add // 0')"
+FOUND_AB2="$(okh_has_title "$PEER_B_URL" "$TITLE_AB" "$API_KEY_B")"
+if [[ "$PULLED_IDEM" -eq 0 && "$FOUND_AB2" -eq 1 ]]; then
+  pass "sync idempotency (re-sync pulled=0; single local copy; skipped=${SKIPPED_IDEM})"
+else
+  fail "sync idempotency (pulled=${PULLED_IDEM} copies=${FOUND_AB2}; sync=$(echo "$SYNC_IDEM" | jq -c .))"
+fi
+
+# ---------------------------------------------------------------------------
 # Case: rate limit 429
 # ---------------------------------------------------------------------------
 log "--- rate limit ---"
@@ -497,13 +542,17 @@ if [[ "${SKIP_RATE_LIMIT:-}" == "1" ]]; then
   skip "rate limit (SKIP_RATE_LIMIT=1)"
 else
   STATUS_A="$(curl -sS "${PEER_A_URL}/v1/api/federation/status")"
-  LIMIT="$(echo "$STATUS_A" | jq -r '.metrics.rate_limit_per_min // empty')"
-  # Burst digest posts
+  LIMIT="$(echo "$STATUS_A" | jq -r '.rate_limit_per_min // empty')"
+  if ! [[ "$LIMIT" =~ ^[0-9]+$ ]]; then
+    LIMIT="${OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN:-60}"
+  fi
+  # Burst past the configured federation digest limit.
+  BURST=$((LIMIT + 25))
   HIT_429=0
   DIGEST_BODY="$(jq -n \
     --arg did "$DID_B" \
     '{merkle_root:"0", record_count:0, publisher_did:$did, leaf_hashes:[]}')"
-  for i in $(seq 1 80); do
+  for i in $(seq 1 "$BURST"); do
     code="$(http_code POST "${PEER_A_URL}/v1/api/federation/sync/digest" "" -d "$DIGEST_BODY")"
     if [[ "$code" == "429" ]]; then
       HIT_429=1
@@ -511,10 +560,9 @@ else
     fi
   done
   if [[ "$HIT_429" -eq 1 ]]; then
-    pass "rate limit (got 429)"
+    pass "rate limit (got 429 after ≤${BURST} digests; limit=${LIMIT})"
   else
-    # Soft fail if limit is high and unused — warn
-    skip "rate limit (no 429 in 80 requests; limit may be high or disabled)"
+    skip "rate limit (no 429 in ${BURST} requests; limit=${LIMIT} may be high or disabled)"
   fi
 fi
 

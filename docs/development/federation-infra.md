@@ -147,6 +147,22 @@ the design content hash). On ingest, signed provenance/attestations are verified
 and re-stamped into the peer's own stores. See
 [Identity Model](../architecture/identity-model.md).
 
+### Bidirectional sync and conflicts
+
+Sync is **pull-based**: mutual follow + each side runs sync (or background sync).
+
+Ingest policy (**first-write-wins**):
+
+| Situation | Result |
+|---|---|
+| Same content hash already local | `skipped` / `already_present` |
+| Same manifest id, identical content (incl. private ingest) | `skipped` / `already_present` |
+| Same manifest id, divergent content | `skipped` / `id_conflict` (local kept) |
+| New id + new hash | `stored` |
+
+`OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN` caps **digest** exchange, not
+`GET /records/{hash}`. Global HTTP middleware also skips `/v1/api/federation/*`.
+
 ## CLI
 
 ```bash

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from src.config import settings
 from src.core.api.models.federation.response import (
@@ -63,7 +63,7 @@ def _enforce_peer_rate_limit(
     info = limiter.check(peer_identifier)
     if info.allowed:
         return
-    service.metrics.record_rate_limit_rejection()
+    service.federation_metrics.record_rate_limit_rejection()
     raise HTTPException(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
         detail=f"Federation rate limit exceeded for {peer_identifier}",
@@ -142,11 +142,8 @@ async def list_catalog(
 )
 async def get_record(
     content_hash: str,
-    request: Request,
     service: FederationService = Depends(require_federation_api),
 ) -> SignedManifestRecordResponse:
-    client_id = request.client.host if request.client else "unknown"
-    _enforce_peer_rate_limit(service, client_id)
     if not content_hash.startswith("sha256:"):
         content_hash = f"sha256:{content_hash}"
     index = await service.build_catalog_index()

@@ -17,6 +17,8 @@ RUN_ROLE_CASES=1 EDGE_URL=http://localhost:8003 RELAY_URL=http://localhost:8004 
 | Unfollowed reject | PASS |
 | Visibility promote | PASS |
 | Follow + sync (OKH store on B) | PASS |
+| Bidirectional B→A + round-trip | PASS |
+| Sync idempotency (re-sync pulled=0) | PASS |
 | Auto-follow via `peer_url` | PASS |
 | Unfollow | PASS |
 | Provenance hop | PASS |
