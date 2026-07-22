@@ -9,8 +9,7 @@ import type { OkwFacility } from "../../types/okw";
 import { humanizeProcess } from "./processDisplay";
 import { FacilityDesigns } from "./FacilityDesigns";
 import { AuthorshipPanel } from "../okh/AuthorshipPanel";
-import { VisibilityControl } from "../okh/VisibilityControl";
-import { DisclosureControl } from "./DisclosureControl";
+import { SharingPanel } from "./SharingPanel";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -142,11 +141,10 @@ export function OkwDetailView({ id }: { id: string }) {
       )}
       {validateState === "done" && result && <ValidationPanel result={result} />}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="max-w-xl">
         <AuthorshipPanel kind="okw" id={id} />
-        <VisibilityControl kind="okw" id={id} />
       </div>
-      <DisclosureControl id={id} />
+      <SharingPanel id={id} />
 
       {f.description && (
         <section className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">

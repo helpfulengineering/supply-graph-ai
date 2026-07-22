@@ -56,7 +56,7 @@ A quick reference guide for new users to understand the major capabilities of th
 - **Docs**: [OKW Model](models/okw-docs.md), [OKW API Routes](api/routes.md#okw-routes)
 
 #### Share a facility with federation peers (visibility + disclosure)
-- **UI**: Facility detail → Visibility + Sharing / disclosure (preview shows the redacted JSON peers receive)
+- **UI**: Facility detail → Sharing panel (visibility + disclosure + peer JSON preview)
 - **API**: `PUT /v1/api/okw/{id}/visibility` then `PUT /v1/api/okw/{id}/disclosure`; check `GET …/disclosure/preview?audience=followers`
 - **CLI**:
   ```bash

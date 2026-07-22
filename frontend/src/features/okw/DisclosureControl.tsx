@@ -157,7 +157,14 @@ function PeerPreview({
   );
 }
 
-export function DisclosureControl({ id }: { id: string }) {
+export function DisclosureControl({
+  id,
+  variant = "card",
+}: {
+  id: string;
+  /** `plain` for embedding inside a parent Sharing panel. */
+  variant?: "card" | "plain";
+}) {
   const { hasWrite, reportAuthFailure } = useAuth();
   const queryClient = useQueryClient();
   const queryKey = ["okw", "disclosure", id];
@@ -187,20 +194,17 @@ export function DisclosureControl({ id }: { id: string }) {
 
   const profile = query.data?.disclosure;
 
-  return (
-    <section
-      aria-labelledby="okw-disclosure-heading"
-      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
-    >
+  const body = (
+    <>
       <h2
         id="okw-disclosure-heading"
         className="mb-1 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
       >
-        Sharing / disclosure
+        How much they see
       </h2>
       <p className="mb-3 text-xs text-slate-500 dark:text-slate-400">
-        Visibility (above) chooses whether and to whom this facility is exported. Disclosure
-        chooses how much of each field group each audience receives. Default is identity only.
+        Field groups included in the federated projection per audience. Identity is always on;
+        default is identity only until you opt in.
       </p>
 
       {query.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
@@ -244,6 +248,23 @@ export function DisclosureControl({ id }: { id: string }) {
           {mutation.error instanceof Error ? mutation.error.message : "Update failed."}
         </p>
       )}
+    </>
+  );
+
+  if (variant === "plain") {
+    return (
+      <div aria-labelledby="okw-disclosure-heading" className="space-y-1">
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <section
+      aria-labelledby="okw-disclosure-heading"
+      className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
+    >
+      {body}
     </section>
   );
 }

@@ -34,7 +34,7 @@ describe("DisclosureControl", () => {
   it("loads defaults and shows private export message", async () => {
     renderControl();
     expect(
-      await screen.findByRole("heading", { name: /Sharing \/ disclosure/i }),
+      await screen.findByRole("heading", { name: /How much they see/i }),
     ).toBeInTheDocument();
     expect(
       await screen.findByText(/Nothing is exported while visibility is private/i),
