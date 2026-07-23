@@ -169,6 +169,10 @@ ohm identity spaces show did:key:z…
 A claimed space admin may issue **space-scoped** grants
 (`scope.kind=space`, `scope.target=<space_did>`); those are honored at resolution.
 
+Facility **write admin** on this node is not the same as exclusive network
+ownership of a makerspace. A deferred verification ladder is sketched in
+[Facility claim ladder (stub)](facility-claim-ladder-adr.md).
+
 ## Attestations (certification / reputation)
 
 An **attestation** is a signed, durable fact: *"issuer_did asserts `<type>` about

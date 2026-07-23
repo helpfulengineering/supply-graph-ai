@@ -60,6 +60,7 @@ nav:
     - Services: architecture/services.md
     - Security Modes: architecture/security-modes.md
     - Identity Model: architecture/identity-model.md
+    - Facility claim ladder (stub): architecture/facility-claim-ladder-adr.md
     - Process Taxonomy: architecture/process-taxonomy-adr.md
     - Diagrams: 
       - System Diagram: architecture/system-diagram.md
@@ -68,6 +69,7 @@ nav:
   - Authentication & IAM:
     - Overview: auth/index.md
     - Getting Started: auth/getting-started.md
+    - Get a write key: auth/get-a-write-key.md
     - Accounts & API Keys: auth/accounts-and-keys.md
     - Identities & Grants: auth/identities-and-grants.md
     - Frontend Settings: auth/frontend.md

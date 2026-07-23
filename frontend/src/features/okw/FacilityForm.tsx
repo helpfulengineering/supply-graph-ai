@@ -186,7 +186,16 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
             <li>Return here and save the facility.</li>
           </ol>
           <p className="mt-2 text-xs opacity-90">
-            Details: <code className="text-xs">docs/auth/frontend.md</code>
+            Details:{" "}
+            <a
+              href="https://docs.openhardwaremanager.org/auth/get-a-write-key/"
+              className="underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Get a write key
+            </a>{" "}
+            (local: <code className="text-xs">docs/auth/get-a-write-key.md</code>).
           </p>
         </div>
       )}
