@@ -48,4 +48,18 @@ describe("buildMatchRequest", () => {
     expect(req.networkFilter).toEqual({ country: "FR", include_mom: true });
     expect(req.okwIds).toEqual(["a"]);
   });
+
+  it("passes MoM space IRIs through as okwIds (network space ids)", () => {
+    const momIri = "https://maps.ofmaking.org/space/example-lab";
+    const localId = "b2222222-2222-4222-8222-222222222222";
+    const req = buildMatchRequest(
+      "okh-1",
+      "standard",
+      undefined,
+      [momIri, localId],
+      { include_mom: true },
+    );
+    expect(req.okwIds).toEqual([momIri, localId]);
+    expect(req.networkFilter).toEqual({ include_mom: true });
+  });
 });

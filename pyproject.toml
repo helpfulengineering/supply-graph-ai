@@ -129,6 +129,7 @@ markers = [
     "llm: tests requiring LLM API access",
     "benchmark: performance benchmark tests",
     "okh_dataset: OKH generation dataset / clone manifest regression (tests/data/okh_generation)",
+    "mom_live: live Maps of Making SPARQL smoke (requires MOM_LIVE=1)",
 ]
 
 [tool.uv]

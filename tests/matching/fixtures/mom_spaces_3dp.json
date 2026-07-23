@@ -1,0 +1,35 @@
+[
+  {
+    "space": "https://maps.ofmaking.org/space/harness-3dp-lab",
+    "name": "Harness MoM 3DP Lab",
+    "lat": 52.37,
+    "lon": 4.89,
+    "city": "Amsterdam",
+    "country": "NL",
+    "status": "confirmed",
+    "url": "https://example.org/harness-3dp",
+    "processes": ["3d_printing"]
+  },
+  {
+    "space": "https://maps.ofmaking.org/space/harness-laser-only",
+    "name": "Harness MoM Laser Only",
+    "lat": 48.85,
+    "lon": 2.35,
+    "city": "Paris",
+    "country": "FR",
+    "status": "confirmed",
+    "url": null,
+    "processes": ["laser_cutting"]
+  },
+  {
+    "space": "https://maps.ofmaking.org/space/harness-empty",
+    "name": "Harness MoM No Processes",
+    "lat": 40.71,
+    "lon": -74.0,
+    "city": "New York",
+    "country": "US",
+    "status": "confirmed",
+    "url": null,
+    "processes": []
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "okhv": "0.1.0",
+  "id": "c3333333-3333-4333-8333-333333333333",
+  "title": "Harness multi-process design",
+  "version": "1.0.0",
+  "license": {"hardware": "CERN-OHL-S-2.0"},
+  "licensor": "OHM Match Harness",
+  "documentation_language": "en",
+  "function": "Negative-case design requiring 3DP plus assembly",
+  "manufacturing_processes": ["3DP", "Assembly"]
+}

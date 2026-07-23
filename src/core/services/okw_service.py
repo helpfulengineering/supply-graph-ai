@@ -2,7 +2,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-from uuid import UUID
+from uuid import UUID, uuid5, NAMESPACE_URL
 
 from ..domains.cooking.models import KitchenCapability
 from ..models.okw import FacilityStatus, Location, ManufacturingFacility
@@ -105,8 +105,15 @@ def _mom_stub_facility(s: Dict[str, Any]) -> ManufacturingFacility:
     MoM spaces have no equipment detail, so matching against them is process-level
     (their canonical processes vs the design's requirements) — i.e. "spaces that
     claim these processes, worth contacting".
+
+    Browse/network space id remains the MoM IRI (``s["space"]``). The stub's
+    ``id`` is a stable UUID5 of that IRI so match results are deterministic while
+    checklist ``okw_ids`` filter against the network space id (see
+    ``get_network_match_facilities``).
     """
+    mom_iri = str(s["space"])
     return ManufacturingFacility(
+        id=uuid5(NAMESPACE_URL, mom_iri),
         name=s["name"],
         location=Location(gps_coordinates=f"{s['lat']}, {s['lon']}"),
         facility_status=FacilityStatus.ACTIVE,
@@ -815,6 +822,7 @@ class OKWService(BaseService["OKWService"]):
         status: Optional[str] = None,
         region: Optional[str] = None,
         access_type: Optional[str] = None,
+        okw_ids: Optional[List[str]] = None,
     ) -> List[ManufacturingFacility]:
         """Return the filtered network as matchable facilities (local full objects
         ∪ MoM process stubs), for matching a design against the same filtered set
@@ -822,6 +830,9 @@ class OKWService(BaseService["OKWService"]):
 
         ``require_coords`` defaults True (browse parity); the match resolver passes
         False so coordinate-less facilities remain matchable candidates.
+
+        ``okw_ids`` filters by **network space id** (local facility UUID string or
+        MoM IRI), not by the MoM stub's internal UUID5.
         """
         candidates, _, _ = await self._load_network_candidates(
             include_mom=include_mom,
@@ -838,6 +849,9 @@ class OKWService(BaseService["OKWService"]):
             region=region,
             access_type=access_type,
         )
+        if okw_ids:
+            id_subset = {str(i) for i in okw_ids if i is not None}
+            filtered = [sp for sp in filtered if str(sp.get("id")) in id_subset]
         return [sp["_facility"] for sp in filtered]
 
     async def list_kitchens(self) -> List[KitchenCapability]:
