@@ -63,7 +63,9 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 | Script | What it does | Run |
 | --- | --- | --- |
 | `federation_e2e` | End-to-end federation smoke test: seed a manifest on peer A, sync to peer B, assert arrival. | `./scripts/federation_e2e.sh` |
+| `federation_matrix` | Multi-feature federation validation matrix against two peers (Compose or Azure URLs). | `./scripts/federation_matrix.sh` |
 | `federation_regression` | Pre-merge federation regression checks; runs federation_e2e.sh when a two-node stack is up. | `./scripts/federation_regression.sh` |
+| `federation_seed_azure` ✎ | Seed divergent OKH catalogs on Peer A and Peer B after an Azure terraform bring-up. | `PEER_A_URL=… PEER_B_URL=… API_KEY_A=… API_KEY_B=… ./scripts/federation_seed_azure.sh` |
 
 ## LLM & matching evaluation
 

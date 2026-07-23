@@ -55,10 +55,10 @@ function AudienceEditor({
 
   return (
     <div
-      className={`space-y-2 ${active ? "" : "opacity-60"}`}
+      className={active ? "space-y-2" : "space-y-2 border-l-2 border-slate-200 pl-3 dark:border-slate-700"}
       data-active-audience={active ? "true" : "false"}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
         {label}
         {active && (
           <span className="ml-2 font-normal normal-case text-indigo-600 dark:text-indigo-400">

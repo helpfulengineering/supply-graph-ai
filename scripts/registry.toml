@@ -167,6 +167,20 @@ summary = "Pre-merge federation regression checks; runs federation_e2e.sh when a
 run = "./scripts/federation_regression.sh"
 mutates = false
 
+[scripts.federation_matrix]
+category = "federation"
+summary = "Multi-feature federation validation matrix against two peers (Compose or Azure URLs)."
+run = "./scripts/federation_matrix.sh"
+mutates = false
+used_by = ["docs/development/federation-infra.md"]
+
+[scripts.federation_seed_azure]
+category = "federation"
+summary = "Seed divergent OKH catalogs on Peer A and Peer B after an Azure terraform bring-up."
+run = "PEER_A_URL=… PEER_B_URL=… API_KEY_A=… API_KEY_B=… ./scripts/federation_seed_azure.sh"
+mutates = true
+used_by = ["docs/development/federation-infra.md"]
+
 [scripts.matching_batch]
 category = "eval"
 summary = "Batch matching eval: run 'ohm match requirements' against every generated OKH manifest."

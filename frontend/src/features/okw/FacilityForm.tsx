@@ -41,7 +41,10 @@ export function FacilityForm({ mode, facilityId, initialFacility }: Props) {
     queryFn: fetchProcessTaxonomy,
     staleTime: 60_000,
   });
-  const taxonomy: TaxonomyProcess[] = taxonomyQuery.data ?? [];
+  const taxonomy = useMemo(
+    () => taxonomyQuery.data ?? ([] as TaxonomyProcess[]),
+    [taxonomyQuery.data],
+  );
 
   const [state, setState] = useState<FacilityFormState>(() =>
     initialFacility ? facilityToForm(initialFacility, []) : emptyFacilityForm(),

@@ -66,7 +66,10 @@ test("shows the empty state (mocked)", async ({ page }, testInfo) => {
   );
   await page.goto("/facilities");
   await expect(page.getByText("No spaces yet")).toBeVisible();
-  await expect(page.getByRole("button", { name: /New facility|Connect API key/i })).toBeVisible();
+  // Header and empty-state both expose the same soft-gate CTA.
+  await expect(
+    page.getByRole("button", { name: /New facility|Connect API key/i }).first(),
+  ).toBeVisible();
 });
 
 test("hands the active filter off to the match flow", async ({ page }) => {
