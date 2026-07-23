@@ -33,6 +33,7 @@ import {
   disclosurePreviewFixture,
   packageListFixture,
   packageMetadataFixture,
+  taxonomyFixture,
 } from "../fixtures";
 
 // MSW handlers for vitest (node) unit/component tests. These mirror the
@@ -102,6 +103,18 @@ export const handlers = [
       { status: 201 },
     ),
   ),
+  http.put("*/v1/api/okw/:id", async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      ...okwDetailFixture,
+      id: String(params.id),
+      ...body,
+    });
+  }),
+  http.delete("*/v1/api/okw/:id", () =>
+    HttpResponse.json({ success: true, message: "deleted" }),
+  ),
+  http.get("*/v1/api/taxonomy", () => HttpResponse.json(taxonomyFixture)),
   http.post("*/v1/api/match/facility", () => HttpResponse.json(facilityDesignsFixture)),
   http.post("*/v1/api/match", () => HttpResponse.json(matchResponseFixture)),
   http.get("*/v1/api/supply-tree/solution/:id/visualization", () =>

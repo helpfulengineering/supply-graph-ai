@@ -55,6 +55,8 @@ export function NetworkView() {
 
   const activeCount = Object.values(filters).filter(Boolean).length;
   const hasFilters = activeCount > 0;
+  const createHref = hasWrite ? "/facilities/new" : "/settings/session";
+  const createLabel = hasWrite ? "New facility" : "Connect API key";
 
   // Baseline (unfiltered) powers the filter options + the no-filter display.
   const baseline = useQuery({
@@ -100,9 +102,9 @@ export function NetworkView() {
               ? undefined
               : "Connect a write-capable API key first (opens Session)"
           }
-          onClick={() => navigate(hasWrite ? "/facilities/new" : "/settings/session")}
+          onClick={() => navigate(createHref)}
         >
-          New facility
+          {createLabel}
         </Button>
       </div>
 
@@ -139,8 +141,25 @@ export function NetworkView() {
           {!active.isLoading && !active.isError && spaces.length === 0 && (
             <EmptyState
               icon="🔍"
-              title="No spaces match"
-              description={hasFilters ? "Try loosening the filters." : "No spaces are available yet."}
+              title={hasFilters ? "No spaces match" : "No spaces yet"}
+              description={
+                hasFilters
+                  ? "Try loosening the filters."
+                  : hasWrite
+                    ? "Create your first local facility to get started."
+                    : "Connect a write-capable API key, then create a facility."
+              }
+              action={
+                hasFilters ? (
+                  <Button variant="outline" size="sm" onClick={() => applyFilters({})}>
+                    Clear filters
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={() => navigate(createHref)}>
+                    {createLabel}
+                  </Button>
+                )
+              }
             />
           )}
 

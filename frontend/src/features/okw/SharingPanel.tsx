@@ -8,6 +8,7 @@ import { DisclosureControl } from "./DisclosureControl";
 export function SharingPanel({ id }: { id: string }) {
   return (
     <section
+      id="sharing"
       aria-labelledby="okw-sharing-heading"
       className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900"
     >

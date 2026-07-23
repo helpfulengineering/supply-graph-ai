@@ -147,6 +147,39 @@ export const okwDetailFixture = {
   certifications: ["ISO 9001:2015", "OHSAS 18001"],
 };
 
+/** Process taxonomy (SuccessResponse envelope from GET /api/taxonomy). */
+export const taxonomyFixture = {
+  success: true,
+  message: "Taxonomy retrieved successfully",
+  data: {
+    total: 3,
+    source: "test",
+    processes: [
+      {
+        canonical_id: "3d_printing",
+        display_name: "3D Printing",
+        parent: null,
+        children: ["3d_printing_fdm"],
+        aliases: [],
+      },
+      {
+        canonical_id: "3d_printing_fdm",
+        display_name: "FDM 3D Printing",
+        parent: "3d_printing",
+        children: [],
+        aliases: [],
+      },
+      {
+        canonical_id: "laser_cutting",
+        display_name: "Laser Cutting",
+        parent: null,
+        children: [],
+        aliases: [],
+      },
+    ],
+  },
+};
+
 /** Unified network surface (flat envelope, not nested in data). */
 export const networkSpacesFixture = {
   success: true,
@@ -585,6 +618,7 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/search": okwSearchFixture,
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/taxonomy": taxonomyFixture,
   "/v1/api/okw/okw-1/provenance": provenanceFixture,
   "/v1/api/okw/okw-1/visibility": { ...visibilityFixture, id: "okw-1" },
   "/v1/api/okw/okw-1/disclosure": disclosureFixture,

@@ -1,7 +1,14 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Link, useNavigate } from "react-router-dom";
-import { fetchOkwDetail, validateOkw, type ValidationResult } from "../../api/ohm/okw";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  deleteOkw,
+  fetchOkwDetail,
+  getOkwVisibility,
+  validateOkw,
+  type ValidationResult,
+} from "../../api/ohm/okw";
+import { useAuth } from "../../context/AuthContext";
 import { LoadingState, ErrorState } from "../../components/ui/states";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/Badge";
@@ -10,6 +17,7 @@ import { humanizeProcess } from "./processDisplay";
 import { FacilityDesigns } from "./FacilityDesigns";
 import { AuthorshipPanel } from "../okh/AuthorshipPanel";
 import { SharingPanel } from "./SharingPanel";
+import { deleteConfirmMessage } from "./deleteConfirmMessage";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -63,16 +71,65 @@ function ValidationPanel({ result }: { result: ValidationResult }) {
   );
 }
 
+function PostCreateBanner({
+  onDismiss,
+  editHref,
+}: {
+  onDismiss: () => void;
+  editHref: string;
+}) {
+  return (
+    <div
+      role="status"
+      className="rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950 dark:border-indigo-900 dark:bg-indigo-950 dark:text-indigo-100"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="font-medium">Facility created</p>
+          <p className="text-xs opacity-90">
+            Add equipment or hours when you are ready, or share with peers from Sharing below.
+            Visibility stays private until you change it.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+            <Link to={editHref} className="font-medium underline">
+              Edit facility
+            </Link>
+            <a href="#sharing" className="font-medium underline">
+              Sharing
+            </a>
+          </div>
+        </div>
+        <Button type="button" variant="ghost" size="sm" onClick={onDismiss}>
+          Dismiss
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export function OkwDetailView({ id }: { id: string }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { hasWrite, reportAuthFailure } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showCreatedBanner = searchParams.get("created") === "1";
+
   const [validateState, setValidateState] = useState<"idle" | "running" | "done" | "error">("idle");
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [validateError, setValidateError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const { data: f, isLoading, isError, error, refetch } = useQuery<OkwFacility>({
     queryKey: ["okw-detail", id],
     queryFn: () => fetchOkwDetail(id),
   });
+
+  const dismissCreatedBanner = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("created");
+    setSearchParams(next, { replace: true });
+  };
 
   const handleValidate = async () => {
     if (!f) return;
@@ -84,6 +141,33 @@ export function OkwDetailView({ id }: { id: string }) {
     } catch (e) {
       setValidateError(e instanceof Error ? e.message : "Validation failed.");
       setValidateState("error");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!hasWrite || !f) return;
+    setDeleteError(null);
+
+    let visibility: string | undefined;
+    try {
+      visibility = (await getOkwVisibility(id)).visibility;
+    } catch {
+      // Still allow delete if visibility lookup fails.
+    }
+
+    const ok = window.confirm(deleteConfirmMessage(f.name || "this facility", visibility));
+    if (!ok) return;
+
+    setDeleting(true);
+    try {
+      await deleteOkw(id);
+      await queryClient.invalidateQueries({ queryKey: ["network"] });
+      navigate("/facilities");
+    } catch (err) {
+      reportAuthFailure(err);
+      setDeleteError(err instanceof Error ? err.message : "Delete failed.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -100,6 +184,7 @@ export function OkwDetailView({ id }: { id: string }) {
   const location = locationLabel(f);
   const equipment = f.equipment ?? [];
   const certifications = f.certifications ?? [];
+  const editHref = `/facilities/${id}/edit`;
 
   return (
     <div className="space-y-8">
@@ -110,6 +195,10 @@ export function OkwDetailView({ id }: { id: string }) {
         <span aria-hidden="true">›</span>
         <span className="truncate text-slate-700 dark:text-slate-200">{f.name || "Facility"}</span>
       </nav>
+
+      {showCreatedBanner && (
+        <PostCreateBanner onDismiss={dismissCreatedBanner} editHref={editHref} />
+      )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
@@ -130,11 +219,32 @@ export function OkwDetailView({ id }: { id: string }) {
           <Button onClick={() => navigate(`/match?okw_id=${encodeURIComponent(id)}`)}>
             Find matching designs →
           </Button>
-          <Button variant="outline" onClick={handleValidate} disabled={validateState === "running"}>
+          <Button variant="outline" onClick={() => navigate(editHref)}>
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => void handleValidate()}
+            disabled={validateState === "running"}
+          >
             {validateState === "running" ? "Validating…" : "Validate"}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => void handleDelete()}
+            disabled={!hasWrite || deleting}
+            title={hasWrite ? undefined : "Connect a write-capable API key to delete"}
+          >
+            {deleting ? "Deleting…" : "Delete"}
           </Button>
         </div>
       </div>
+
+      {deleteError && (
+        <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+          {deleteError}
+        </p>
+      )}
 
       {validateState === "error" && (
         <ErrorState description={validateError ?? "Validation failed."} onRetry={handleValidate} />

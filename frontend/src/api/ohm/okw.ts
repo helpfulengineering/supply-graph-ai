@@ -221,3 +221,34 @@ export async function previewOkwDisclosure(
   }
   return data;
 }
+
+/** Update an OKW facility (requires write). */
+export async function updateOkw(
+  id: string,
+  body: components["schemas"]["OKWUpdateRequest"],
+): Promise<OkwFacility> {
+  const { data, error, response } = await apiClient.PUT("/api/okw/{id}", {
+    params: { path: { id } },
+    body,
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to update facility (HTTP ${response.status})`),
+    );
+  }
+  return data as unknown as OkwFacility;
+}
+
+/** Delete an OKW facility (requires write). */
+export async function deleteOkw(id: string): Promise<void> {
+  const { error, response } = await apiClient.DELETE("/api/okw/{id}", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to delete facility (HTTP ${response.status})`),
+    );
+  }
+}

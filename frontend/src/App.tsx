@@ -15,6 +15,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { RequireAdmin } from "./features/auth/RequireAdmin";
 import { CreateOkhPage } from "./features/okh/CreateOkhPage";
 import { CreateOkwPage } from "./features/okw/CreateOkwPage";
+import { EditOkwPage } from "./features/okw/EditOkwPage";
 import { ThemeContext } from "./context/ThemeContext";
 import { useDarkMode } from "./hooks/useDarkMode";
 
@@ -43,6 +44,7 @@ export function App() {
                 <Route path="okh/:id" element={<OkhPage />} />
                 <Route path="facilities" element={<OkwPage />} />
                 <Route path="facilities/new" element={<CreateOkwPage />} />
+                <Route path="facilities/:id/edit" element={<EditOkwPage />} />
                 <Route path="facilities/:id" element={<OkwPage />} />
                 <Route path="match" element={<MatchPage />} />
                 {/* Supply trees are reached directly from their match; no browse list. */}
