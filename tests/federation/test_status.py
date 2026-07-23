@@ -40,9 +40,11 @@ async def test_federation_status_endpoint(monkeypatch) -> None:
             "peer_count": 0,
             "followed_peer_count": 0,
             "sync_interval_sec": 60,
+            "rate_limit_per_min": 60,
             "mdns_enabled": False,
             "background_sync_running": True,
             "manual_peers": [],
+            "seed_peer_url": "https://openhardwaremanager.org",
             "metrics": FederationSyncMetrics(),
         }
     )
@@ -61,4 +63,5 @@ async def test_federation_status_endpoint(monkeypatch) -> None:
             assert body["did"] == identity.did
             assert body["catalog_record_count"] == 1
             assert body["background_sync_running"] is True
+            assert body["seed_peer_url"] == "https://openhardwaremanager.org"
             assert "metrics" in body

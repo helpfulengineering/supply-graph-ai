@@ -40,6 +40,11 @@ The footer shows a read-only **security policy** badge (mode, grant TTL, mDNS).
 
 ## Common workflows
 
+### Get a write key (create / edit facilities)
+
+See [Get a write key](get-a-write-key.md) for the three-step path (bootstrap →
+Session → named write key).
+
 ### First login on a new node
 
 1. Ensure the API has `API_KEYS` set ([Getting Started](getting-started.md)).

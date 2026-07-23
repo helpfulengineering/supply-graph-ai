@@ -112,7 +112,9 @@ AREAS: tuple[Area, ...] = (
         "taxonomy",
         "taxonomy",
         "exposed",
-        note="No taxonomy_service module; logic lives under src/core/taxonomy/.",
+        note="No taxonomy_service module; logic lives under src/core/taxonomy/. "
+        "FacilityForm ProcessTaxonomyPicker calls /api/taxonomy.",
+        fe_api_prefixes=("/api/taxonomy",),
     ),
     Area(
         "file-types",

@@ -263,6 +263,11 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
         """Apply rate limiting to requests."""
+        # Federation has its own per-peer digest limiter; do not share the
+        # generic IP budget (one sync may fetch many /records).
+        if request.url.path.startswith("/v1/api/federation/"):
+            return await call_next(request)
+
         client_ip = request.client.host if request.client else "unknown"
         current_time = time.time()
 

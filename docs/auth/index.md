@@ -31,6 +31,7 @@ subject; they never remove the key’s floor.
 | Page | Audience |
 |---|---|
 | [Getting Started](getting-started.md) | First deploy: env keys, Azure, Connect |
+| [Get a write key](get-a-write-key.md) | Short path to create/edit facilities |
 | [Accounts & API Keys](accounts-and-keys.md) | Creating accounts, storage keys, permissions |
 | [Identities & Grants](identities-and-grants.md) | Minting DIDs, rotation, capability grants |
 | [Frontend Settings](frontend.md) | Browser UI walkthrough |
@@ -39,4 +40,5 @@ subject; they never remove the key’s floor.
 
 - [Identity Model](../architecture/identity-model.md) — trust, grants, provenance, visibility, attestations
 - [Security Modes](../architecture/security-modes.md) — peacetime / crisis / shielded policy knobs
+- [Facility claim ladder (stub)](../architecture/facility-claim-ladder-adr.md) — deferred verification vs local write admin
 - [API Authentication](../api/auth.md) — header format, endpoint dependencies, developer reference

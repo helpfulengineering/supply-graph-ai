@@ -31,10 +31,13 @@ class FederationStatusResponse(BaseModel):
     peer_count: int
     followed_peer_count: int
     sync_interval_sec: int
+    rate_limit_per_min: int = 60
     mdns_enabled: bool
     background_sync_running: bool
     manual_peers: list[str] = Field(default_factory=list)
     metrics: FederationSyncMetricsResponse
+    security_mode: str | None = None
+    seed_peer_url: str | None = None
 
 
 class IdentifyResponse(BaseModel):
@@ -87,6 +90,22 @@ class SyncRunResponse(BaseModel):
 class FollowResponse(BaseModel):
     did: str
     followed: bool
+
+
+class PackageFetchRequest(BaseModel):
+    peer_url: str
+    bundle_hash: str
+    manifest_id: str | None = None
+    allow_rebuild: bool = True
+
+
+class PackageFetchResponse(BaseModel):
+    action: str
+    bundle_hash: str | None = None
+    path: str | None = None
+    detail: str | None = None
+    message: str = ""
+    status: str = "success"
 
 
 class SignedManifestRecordResponse(BaseModel):

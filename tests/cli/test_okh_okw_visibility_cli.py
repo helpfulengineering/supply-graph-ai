@@ -35,12 +35,13 @@ def test_okh_visibility_subgroup():
     assert "set" in result.output
 
 
-def test_okw_exposes_create_and_visibility():
+def test_okw_exposes_create_visibility_and_disclosure():
     runner = CliRunner()
     result = runner.invoke(okw_group, ["--help"])
     assert result.exit_code == 0
     assert "create" in result.output
     assert "visibility" in result.output
+    assert "disclosure" in result.output
 
 
 def test_okw_create_has_author_flags():
@@ -49,3 +50,12 @@ def test_okw_create_has_author_flags():
     assert result.exit_code == 0
     assert "--author" in result.output
     assert "--on-behalf-of" in result.output
+
+
+def test_okw_disclosure_subgroup():
+    runner = CliRunner()
+    result = runner.invoke(okw_group, ["disclosure", "--help"])
+    assert result.exit_code == 0
+    assert "show" in result.output
+    assert "set" in result.output
+    assert "preview" in result.output

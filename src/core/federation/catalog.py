@@ -57,6 +57,14 @@ def _sign_catalog_record(
     return record.model_copy(update={"signature": signature})
 
 
+async def _catalog_attestations(content_hash: str) -> list[Any]:
+    """Load attestations for a catalog leaf (isolated for tests)."""
+    from ..services.auth_service import AuthenticationService
+
+    auth = await AuthenticationService.get_instance()
+    return await auth.list_attestations_for_catalog(content_hash) or []
+
+
 async def build_catalog_index(
     okh_service: OKHService,
     identity: NodeIdentity,
@@ -84,10 +92,12 @@ async def build_catalog_index(
         provenance = await okh_service.get_provenance(manifest.id)
         # Attestations ride the catalog record the same way provenance does —
         # out of the design content hash, inside the node-signed payload.
-        from ..services.auth_service import AuthenticationService
+        attestations = await _catalog_attestations(content_hash)
+        # Package pointer rides the catalog (out of design content hash) when a
+        # local package exists — bytes move on a separate CAS channel.
+        from .package_pointer import resolve_package_pointer
 
-        auth = await AuthenticationService.get_instance()
-        attestations = await auth.list_attestations_for_catalog(content_hash)
+        package_ptr = resolve_package_pointer(manifest.id)
         record = CatalogRecord(
             manifest_id=manifest.id,
             content_hash=content_hash,
@@ -97,6 +107,7 @@ async def build_catalog_index(
             publisher_did=identity.did,
             provenance=provenance,
             attestations=attestations or None,
+            package=package_ptr,
             signature="",
         )
         signed_record = _sign_catalog_record(identity, record)

@@ -4,6 +4,7 @@ import {
   followFederationPeer,
   listFederationPeers,
   runFederationSync,
+  seedFromPeerUrl,
 } from "./federation";
 import {
   federationPeersFixture,
@@ -16,6 +17,7 @@ describe("federation F6 wrappers", () => {
     const status = await fetchFederationStatus();
     expect(status.did).toBe(federationStatusFixture.did);
     expect(status.followed_peer_count).toBe(1);
+    expect(status.seed_peer_url).toBe("https://openhardwaremanager.org");
 
     const peers = await listFederationPeers();
     expect(peers).toHaveLength(federationPeersFixture.peers.length);
@@ -28,5 +30,11 @@ describe("federation F6 wrappers", () => {
 
     const sync = await runFederationSync("http://peer-b:8001");
     expect(sync.total_pulled).toBe(federationSyncFixture.total_pulled);
+  });
+
+  it("seedFromPeerUrl runs OKH then OKW sync", async () => {
+    const result = await seedFromPeerUrl("https://openhardwaremanager.org");
+    expect(result.okhPulled).toBe(federationSyncFixture.total_pulled);
+    expect(result.okwPulled).toBe(federationSyncFixture.total_pulled);
   });
 });

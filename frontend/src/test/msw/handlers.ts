@@ -29,8 +29,11 @@ import {
   federationSyncFixture,
   provenanceFixture,
   visibilityFixture,
+  disclosureFixture,
+  disclosurePreviewFixture,
   packageListFixture,
   packageMetadataFixture,
+  taxonomyFixture,
 } from "../fixtures";
 
 // MSW handlers for vitest (node) unit/component tests. These mirror the
@@ -71,6 +74,23 @@ export const handlers = [
     const body = (await request.json()) as { visibility?: string };
     return HttpResponse.json({ id: "okw-1", visibility: body.visibility ?? "private" });
   }),
+  http.get("*/v1/api/okw/:id/disclosure/preview", () =>
+    HttpResponse.json(disclosurePreviewFixture),
+  ),
+  http.get("*/v1/api/okw/:id/disclosure", () => HttpResponse.json(disclosureFixture)),
+  http.put("*/v1/api/okw/:id/disclosure", async ({ request }) => {
+    const body = (await request.json()) as {
+      followers?: { groups?: string[] };
+      public?: { groups?: string[] };
+    };
+    return HttpResponse.json({
+      id: "okw-1",
+      disclosure: {
+        followers: body.followers ?? disclosureFixture.disclosure.followers,
+        public: body.public ?? disclosureFixture.disclosure.public,
+      },
+    });
+  }),
   http.get("*/v1/api/okw/:id", () => HttpResponse.json(okwDetailFixture)),
   http.post("*/v1/api/okw/validate", () => HttpResponse.json(validationResultFixture)),
   http.post("*/v1/api/okw/create", () =>
@@ -83,6 +103,18 @@ export const handlers = [
       { status: 201 },
     ),
   ),
+  http.put("*/v1/api/okw/:id", async ({ params, request }) => {
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      ...okwDetailFixture,
+      id: String(params.id),
+      ...body,
+    });
+  }),
+  http.delete("*/v1/api/okw/:id", () =>
+    HttpResponse.json({ success: true, message: "deleted" }),
+  ),
+  http.get("*/v1/api/taxonomy", () => HttpResponse.json(taxonomyFixture)),
   http.post("*/v1/api/match/facility", () => HttpResponse.json(facilityDesignsFixture)),
   http.post("*/v1/api/match", () => HttpResponse.json(matchResponseFixture)),
   http.get("*/v1/api/supply-tree/solution/:id/visualization", () =>
@@ -172,6 +204,9 @@ export const handlers = [
     }),
   ),
   http.post("*/v1/api/federation/sync/run", () =>
+    HttpResponse.json(federationSyncFixture),
+  ),
+  http.post("*/v1/api/federation/okw/sync/run", () =>
     HttpResponse.json(federationSyncFixture),
   ),
   http.post("*/v1/api/package/:org/:project/:version/pin", () =>

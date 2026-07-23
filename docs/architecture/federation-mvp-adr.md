@@ -24,13 +24,31 @@ Implement **Tier 2 (LAN) peer federation** in `src/core/federation/`:
 | Sync | Anti-entropy via Merkle root + HTTP (`/v1/api/federation/*`) |
 | Discovery | mDNS `_ohm._tcp` (best-effort) + `OHM_FEDERATION_MANUAL_PEERS` |
 | Trust | Explicit `follow` allowlist; verify signatures on ingest |
+| Conflict | First-write-wins: skip `already_present` (same hash/id) or `id_conflict` (same id, divergent content); no LWW/CRDT yet |
 | Default | `OHM_FEDERATION_ENABLED=false` — centralized OHM unchanged |
 
 ### Deferred (explicit non-goals for MVP)
 
 - LoRa / Meshtastic, IPFS Kubo, libp2p DHT, ActivityPub, CouchDB replication
-- Relay mailbox, registry directory, package artifact sync
+- Relay mailbox, registry directory
 - Web-of-trust scoring, malware sandboxing, global bootstrap DNS
+
+### Package artifacts (post-MVP channel)
+
+OKH catalog records may carry an optional **package pointer** (`bundle_hash`,
+size, filename) outside the design content hash. Bytes move on a separate
+**HTTP CAS** channel (`GET /federation/packages/blobs/{bundle_hash}`), follow-gated
+via `X-OHM-Peer-DID`, on-demand only (not during `sync/run`). Fetch-first with
+rebuild-from-OKH-URLs fallback. World-readable packages, eager/pin-driven pull,
+and Relay-as-archive are later.
+
+### OKW catalog (separate Merkle root)
+
+OKW facilities sync via a **separate** catalog from OKH. Coarse visibility
+(`private` / `followers` / `public`) gates export; **disclosure profiles** redact
+field groups (`identity`, `location`, `equipment`, `operations`, `supply`) per
+audience. Default is fail-closed (identity only). Content hash and signatures
+cover the redacted projection. Ingest stamps private locally.
 
 ### Post-MVP (approved direction)
 

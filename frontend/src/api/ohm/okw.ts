@@ -166,3 +166,89 @@ export async function setOkwVisibility(
   }
   return data;
 }
+
+export type DisclosureGroup = components["schemas"]["DisclosureGroup"];
+export type DisclosureAudience = components["schemas"]["DisclosureAudience"];
+export type AudienceDisclosure = components["schemas"]["AudienceDisclosure"];
+export type DisclosureProfile = components["schemas"]["DisclosureProfile"];
+export type DisclosureResponse = components["schemas"]["DisclosureResponse"];
+export type DisclosurePreviewResponse =
+  components["schemas"]["DisclosurePreviewResponse"];
+
+export async function getOkwDisclosure(id: string): Promise<DisclosureResponse> {
+  const { data, error, response } = await apiClient.GET("/api/okw/{id}/disclosure", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load disclosure (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}
+
+export async function setOkwDisclosure(
+  id: string,
+  body: Partial<DisclosureProfile>,
+): Promise<DisclosureResponse> {
+  const { data, error, response } = await apiClient.PUT("/api/okw/{id}/disclosure", {
+    params: { path: { id } },
+    body,
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to set disclosure (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}
+
+export async function previewOkwDisclosure(
+  id: string,
+  audience: DisclosureAudience = "followers",
+): Promise<DisclosurePreviewResponse> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okw/{id}/disclosure/preview",
+    { params: { path: { id }, query: { audience } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to preview disclosure (HTTP ${response.status})`),
+    );
+  }
+  return data;
+}
+
+/** Update an OKW facility (requires write). */
+export async function updateOkw(
+  id: string,
+  body: components["schemas"]["OKWUpdateRequest"],
+): Promise<OkwFacility> {
+  const { data, error, response } = await apiClient.PUT("/api/okw/{id}", {
+    params: { path: { id } },
+    body,
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to update facility (HTTP ${response.status})`),
+    );
+  }
+  return data as unknown as OkwFacility;
+}
+
+/** Delete an OKW facility (requires write). */
+export async function deleteOkw(id: string): Promise<void> {
+  const { error, response } = await apiClient.DELETE("/api/okw/{id}", {
+    params: { path: { id } },
+  });
+  if (error || !response.ok) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to delete facility (HTTP ${response.status})`),
+    );
+  }
+}

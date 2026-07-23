@@ -109,6 +109,41 @@ class FederationService(BaseService["FederationService"]):
         okh_service = await OKHService.get_instance()
         return await build_catalog_index(okh_service, identity)
 
+    async def build_okw_catalog_index(self):
+        """Build a signed OKW catalog snapshot (separate Merkle root)."""
+        await self.ensure_federation_ready()
+        identity, _store = self.federation_context()
+        from ..services.okw_service import OKWService
+        from .okw_catalog import build_okw_catalog_index
+
+        okw_service = await OKWService.get_instance()
+        return await build_okw_catalog_index(okw_service, identity)
+
+    async def handle_okw_sync_digest(self, digest: SyncDigest) -> SyncDigestResponse:
+        await self.ensure_federation_ready()
+        if not self.capabilities.can_accept_inbound_sync:
+            raise RuntimeError("This node role does not accept inbound sync")
+        index = await self.build_okw_catalog_index()
+        local_hashes = {r.content_hash for r in index.records}
+        return respond_to_sync_digest(
+            digest,
+            local_merkle_root=index.merkle_root,
+            local_leaf_hashes=local_hashes,
+        )
+
+    async def sync_okw_all_followed(self) -> list:
+        from .okw_sync import sync_okw_with_peer
+
+        await self.ensure_federation_ready()
+        store = self.store
+        if store is None:
+            return []
+        results = []
+        for peer in self.list_peers():
+            if peer.followed or store.is_followed(peer.did):
+                results.append(await sync_okw_with_peer(self, peer))
+        return results
+
     def list_peers(self) -> list[PeerState]:
         """Return known peers from local store."""
         if self.store is None:
@@ -236,11 +271,13 @@ class FederationService(BaseService["FederationService"]):
             "peer_count": len(peers),
             "followed_peer_count": len(followed),
             "sync_interval_sec": settings.OHM_FEDERATION_SYNC_INTERVAL_SEC,
+            "rate_limit_per_min": settings.OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN,
             "mdns_enabled": self._mdns_allowed(),
             "security_mode": get_security_policy().mode.value,
             "background_sync_running": self._sync_task is not None
             and not self._sync_task.done(),
             "manual_peers": settings.OHM_FEDERATION_MANUAL_PEERS,
+            "seed_peer_url": settings.OHM_FEDERATION_SEED_PEER_URL or None,
             "metrics": metrics,
         }
 

@@ -2,29 +2,48 @@
 #
 # Usage:
 #   docker compose -f docker-compose.federation.yml up --build -d
-#   ./scripts/federation_e2e.sh
+#   ./scripts/federation_matrix.sh
+#
+# Optional role stubs (edge + relay expected-negative probes):
+#   docker compose -f docker-compose.federation.yml --profile roles up --build -d
+#   RUN_ROLE_CASES=1 EDGE_URL=http://localhost:8003 RELAY_URL=http://localhost:8004 \
+#     ./scripts/federation_matrix.sh
 #
 # Peer A: http://localhost:8001
 # Peer B: http://localhost:8002
+# Edge:   http://localhost:8003  (profile: roles)
+# Relay:  http://localhost:8004  (profile: roles)
+
+x-ohm-common: &ohm-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .env
+  networks:
+    - ohm-federation
+  restart: unless-stopped
 
 services:
   ohm-peer-a:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *ohm-common
     container_name: ohm-peer-a
     ports:
       - "8001:8001"
-    env_file:
-      - .env
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001
       - PORT=8001
-      - DEBUG=${DEBUG:-False}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
-      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
+      - DEBUG=False
+      - LOG_LEVEL=INFO
+      # Force local storage — do not inherit STORAGE_PROVIDER from host .env
+      - STORAGE_PROVIDER=local
+      - LOCAL_STORAGE_PATH=/app/storage
+      - AZURE_STORAGE_ACCOUNT=
+      - AZURE_STORAGE_KEY=
+      - AZURE_STORAGE_CONTAINER=
+      # Known keys for matrix script (override .env so tests are reproducible)
+      - API_KEYS=fed-test-key-a
       - OHM_FEDERATION_ENABLED=true
       - OHM_FEDERATION_NODE_NAME=OHM Peer A
       - OHM_FEDERATION_NODE_ROLE=peer
@@ -32,13 +51,14 @@ services:
       - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-b:8001
       - OHM_FEDERATION_MDNS_ENABLED=false
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=30
+      - OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN=20
+      - LLM_ENABLED=false
+      - MATCHING_EAGER_INIT=false
+      - ENVIRONMENT=test
     volumes:
       - ohm-storage-a:/app/storage
       - ohm-logs-a:/app/logs
       - ./test-data:/app/test-data:ro
-    networks:
-      - ohm-federation
-    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 15s
@@ -47,22 +67,22 @@ services:
       start_period: 45s
 
   ohm-peer-b:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    <<: *ohm-common
     container_name: ohm-peer-b
     ports:
       - "8002:8001"
-    env_file:
-      - .env
     environment:
       - API_HOST=0.0.0.0
       - API_PORT=8001
       - PORT=8001
-      - DEBUG=${DEBUG:-False}
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
-      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
+      - DEBUG=False
+      - LOG_LEVEL=INFO
+      - STORAGE_PROVIDER=local
+      - LOCAL_STORAGE_PATH=/app/storage
+      - AZURE_STORAGE_ACCOUNT=
+      - AZURE_STORAGE_KEY=
+      - AZURE_STORAGE_CONTAINER=
+      - API_KEYS=fed-test-key-b
       - OHM_FEDERATION_ENABLED=true
       - OHM_FEDERATION_NODE_NAME=OHM Peer B
       - OHM_FEDERATION_NODE_ROLE=peer
@@ -70,6 +90,10 @@ services:
       - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001
       - OHM_FEDERATION_MDNS_ENABLED=false
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=30
+      - OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN=20
+      - LLM_ENABLED=false
+      - MATCHING_EAGER_INIT=false
+      - ENVIRONMENT=test
     volumes:
       - ohm-storage-b:/app/storage
       - ohm-logs-b:/app/logs
@@ -77,9 +101,83 @@ services:
     depends_on:
       ohm-peer-a:
         condition: service_healthy
-    networks:
-      - ohm-federation
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+
+  # --- Role stubs (profile: roles) — capability flags only; no relay protocol yet ---
+  ohm-edge:
+    <<: *ohm-common
+    profiles: ["roles"]
+    container_name: ohm-edge
+    ports:
+      - "8003:8001"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+      - PORT=8001
+      - API_KEYS=fed-test-key-edge
+      - STORAGE_PROVIDER=local
+      - LOCAL_STORAGE_PATH=/app/storage
+      - AZURE_STORAGE_ACCOUNT=
+      - AZURE_STORAGE_KEY=
+      - AZURE_STORAGE_CONTAINER=
+      - LLM_ENABLED=false
+      - MATCHING_EAGER_INIT=false
+      - ENVIRONMENT=test
+      - OHM_FEDERATION_ENABLED=true
+      - OHM_FEDERATION_NODE_NAME=OHM Edge
+      - OHM_FEDERATION_NODE_ROLE=edge
+      - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001
+      - OHM_FEDERATION_MDNS_ENABLED=false
+    volumes:
+      - ohm-storage-edge:/app/storage
+      - ohm-logs-edge:/app/logs
+    depends_on:
+      ohm-peer-a:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+
+  ohm-relay:
+    <<: *ohm-common
+    profiles: ["roles"]
+    container_name: ohm-relay
+    ports:
+      - "8004:8001"
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8001
+      - PORT=8001
+      - API_KEYS=fed-test-key-relay
+      - STORAGE_PROVIDER=local
+      - LOCAL_STORAGE_PATH=/app/storage
+      - AZURE_STORAGE_ACCOUNT=
+      - AZURE_STORAGE_KEY=
+      - AZURE_STORAGE_CONTAINER=
+      - LLM_ENABLED=false
+      - MATCHING_EAGER_INIT=false
+      - ENVIRONMENT=test
+      - OHM_FEDERATION_ENABLED=true
+      - OHM_FEDERATION_NODE_NAME=OHM Relay
+      - OHM_FEDERATION_NODE_ROLE=relay
+      - OHM_FEDERATION_DATA_DIR=/app/storage/federation
+      - OHM_FEDERATION_MANUAL_PEERS=http://ohm-peer-a:8001,http://ohm-peer-b:8001
+      - OHM_FEDERATION_MDNS_ENABLED=false
+    volumes:
+      - ohm-storage-relay:/app/storage
+      - ohm-logs-relay:/app/logs
+    depends_on:
+      ohm-peer-a:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 15s
@@ -96,7 +194,15 @@ volumes:
     driver: local
   ohm-storage-b:
     driver: local
+  ohm-storage-edge:
+    driver: local
+  ohm-storage-relay:
+    driver: local
   ohm-logs-a:
     driver: local
   ohm-logs-b:
+    driver: local
+  ohm-logs-edge:
+    driver: local
+  ohm-logs-relay:
     driver: local

@@ -147,6 +147,39 @@ export const okwDetailFixture = {
   certifications: ["ISO 9001:2015", "OHSAS 18001"],
 };
 
+/** Process taxonomy (SuccessResponse envelope from GET /api/taxonomy). */
+export const taxonomyFixture = {
+  success: true,
+  message: "Taxonomy retrieved successfully",
+  data: {
+    total: 3,
+    source: "test",
+    processes: [
+      {
+        canonical_id: "3d_printing",
+        display_name: "3D Printing",
+        parent: null,
+        children: ["3d_printing_fdm"],
+        aliases: [],
+      },
+      {
+        canonical_id: "3d_printing_fdm",
+        display_name: "FDM 3D Printing",
+        parent: "3d_printing",
+        children: [],
+        aliases: [],
+      },
+      {
+        canonical_id: "laser_cutting",
+        display_name: "Laser Cutting",
+        parent: null,
+        children: [],
+        aliases: [],
+      },
+    ],
+  },
+};
+
 /** Unified network surface (flat envelope, not nested in data). */
 export const networkSpacesFixture = {
   success: true,
@@ -449,6 +482,7 @@ export const federationStatusFixture = {
   mdns_enabled: true,
   background_sync_running: false,
   manual_peers: [],
+  seed_peer_url: "https://openhardwaremanager.org",
   metrics: {
     total_records_pulled: 0,
     total_records_skipped: 0,
@@ -502,6 +536,27 @@ export const provenanceFixture = {
 export const visibilityFixture = {
   id: "00000000-0000-0000-0000-000000000001",
   visibility: "private",
+};
+
+export const disclosureFixture = {
+  id: "okw-1",
+  disclosure: {
+    followers: { groups: ["identity"] },
+    public: { groups: ["identity"] },
+  },
+};
+
+export const disclosurePreviewFixture = {
+  id: "okw-1",
+  audience: "followers",
+  visibility: "private",
+  exported: false,
+  groups: ["identity"],
+  facility: {
+    id: "okw-1",
+    name: "Test Fab Lab",
+    facility_status: "Active",
+  },
 };
 
 export const packageListFixture = {
@@ -564,8 +619,11 @@ export const fixturesByPath: Record<string, unknown> = {
   "/v1/api/okw/search": okwSearchFixture,
   "/v1/api/okw/okw-1": okwDetailFixture,
   "/v1/api/okw/validate": validationResultFixture,
+  "/v1/api/taxonomy": taxonomyFixture,
   "/v1/api/okw/okw-1/provenance": provenanceFixture,
   "/v1/api/okw/okw-1/visibility": { ...visibilityFixture, id: "okw-1" },
+  "/v1/api/okw/okw-1/disclosure": disclosureFixture,
+  "/v1/api/okw/okw-1/disclosure/preview": disclosurePreviewFixture,
   "/v1/api/match": matchResponseFixture,
   "/v1/api/match/facility": facilityDesignsFixture,
   "/v1/api/okw/spaces": networkSpacesFixture,

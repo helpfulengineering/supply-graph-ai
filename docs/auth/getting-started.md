@@ -97,14 +97,16 @@ ohm identity security-policy
 
 ## What to do next
 
-1. [Create an account](accounts-and-keys.md) under **Keys & accounts**.
-2. Create a named **storage key** for daily use (optional but recommended).
-3. [Mint a DID](identities-and-grants.md) if you need self-sovereign identity /
+1. Need to create facilities? Follow [Get a write key](get-a-write-key.md).
+2. [Create an account](accounts-and-keys.md) under **Keys & accounts**.
+3. Create a named **storage key** for daily use (optional but recommended).
+4. [Mint a DID](identities-and-grants.md) if you need self-sovereign identity /
    grants / signed provenance.
-4. Walk the [Frontend Settings](frontend.md) tabs as needed.
+5. Walk the [Frontend Settings](frontend.md) tabs as needed.
 
 ## See also
 
+- [Get a write key](get-a-write-key.md)
 - [Accounts & API Keys](accounts-and-keys.md)
 - [API Authentication](../api/auth.md)
 - [Security Modes](../architecture/security-modes.md)

@@ -133,7 +133,17 @@ catalogs do not empty. New creates stamp `private` — promote explicitly to sha
 ohm okh visibility set <manifest_id> public
 ohm okh visibility show <manifest_id>
 ohm okw visibility set <facility_id> followers
+ohm okw disclosure show <facility_id>
+ohm okw disclosure set <facility_id> followers identity location
+ohm okw disclosure preview <facility_id> followers
 ```
+
+OKW federation additionally applies **disclosure profiles** (field groups:
+`identity`, `location`, `equipment`, `operations`, `supply`) per audience
+(`followers` / `public`). Defaults are fail-closed (identity only). Preview the
+projection with `GET /api/okw/{id}/disclosure/preview` (or the CLI above) before
+promoting visibility — `exported` is false while the facility remains `private`.
+See [federation-infra — OKW catalog](../development/federation-infra.md).
 
 ## Relationship to API keys
 
@@ -158,6 +168,10 @@ ohm identity spaces show did:key:z…
 
 A claimed space admin may issue **space-scoped** grants
 (`scope.kind=space`, `scope.target=<space_did>`); those are honored at resolution.
+
+Facility **write admin** on this node is not the same as exclusive network
+ownership of a makerspace. A deferred verification ladder is sketched in
+[Facility claim ladder (stub)](facility-claim-ladder-adr.md).
 
 ## Attestations (certification / reputation)
 

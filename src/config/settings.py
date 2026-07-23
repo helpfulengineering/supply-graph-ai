@@ -300,6 +300,10 @@ OHM_FEDERATION_MDNS_ENABLED = _get_secret_or_env(
 OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN = int(
     _get_secret_or_env("OHM_FEDERATION_SYNC_RATE_LIMIT_PER_MIN", "60")
 )
+# Optional public seed peer (e.g. https://openhardwaremanager.org). Empty = no seed CTA.
+OHM_FEDERATION_SEED_PEER_URL = (
+    _get_secret_or_env("OHM_FEDERATION_SEED_PEER_URL", "") or ""
+).strip()
 
 # Do not log MATCHING_* here: this module imports before main.setup_logging(), so
 # INFO lines would be dropped by the default root logger (WARNING). Log from lifespan.

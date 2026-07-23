@@ -88,6 +88,29 @@ from ..models.scaffold.request import ScaffoldRequest
 # Set up logging
 logger = get_logger(__name__)
 
+
+def _okh_success_response(
+    manifest_dict: Dict[str, Any],
+    *,
+    message: str,
+    request_id: Optional[str] = None,
+) -> OKHResponse:
+    """Build OKHResponse with SuccessResponse fields (message/status).
+
+    Manifest ``to_dict()`` alone is not a valid OKHResponse — omitting these
+    fields caused HTTP 500 after successful create/upload on 0.10.0.
+    """
+    return OKHResponse.model_validate(
+        {
+            **manifest_dict,
+            "status": APIStatus.SUCCESS,
+            "message": message,
+            "request_id": request_id,
+            "timestamp": datetime.now(),
+        }
+    )
+
+
 # Create router with standardized patterns
 router = APIRouter(
     tags=["okh"],
@@ -857,7 +880,11 @@ async def create_okh_manifest(
             provenance=provenance,
         )
         result_dict = result.to_dict()
-        okh_response = OKHResponse(**result_dict)
+        okh_response = _okh_success_response(
+            result_dict,
+            message="OKH manifest created and stored successfully",
+            request_id=request_id,
+        )
 
         return OKHUploadResponse(
             success=True,
@@ -953,7 +980,10 @@ async def upload_okh_file(
 
         # Convert result to OKHResponse format
         result_dict = result.to_dict()
-        okh_response = OKHResponse(**result_dict)
+        okh_response = _okh_success_response(
+            result_dict,
+            message=f"OKH file '{okh_file.filename}' uploaded and stored successfully",
+        )
 
         return OKHUploadResponse(
             success=True,
@@ -1037,7 +1067,11 @@ async def get_okh_from_storage(
             },
         )
 
-        return OKHResponse(**manifest_dict)
+        return _okh_success_response(
+            manifest_dict,
+            message="OKH manifest retrieved from storage successfully",
+            request_id=request_id,
+        )
 
     except HTTPException:
         raise
