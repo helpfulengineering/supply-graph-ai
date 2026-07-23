@@ -1,0 +1,20 @@
+{
+  "id": "b2222222-2222-4222-8222-222222222222",
+  "name": "Harness Additive Lab",
+  "location": {
+    "gps_coordinates": "42.36, -71.06",
+    "city": "Boston",
+    "country": "US"
+  },
+  "facility_status": "Active",
+  "access_type": "Public",
+  "manufacturing_processes": ["3d_printing", "3DP"],
+  "equipment": [
+    {
+      "equipment_type": "3D Printer",
+      "manufacturing_process": "3d_printing",
+      "make": "Harness",
+      "model": "Test"
+    }
+  ]
+}

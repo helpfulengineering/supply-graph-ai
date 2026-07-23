@@ -33,7 +33,7 @@ These workflows serve as the **single source of truth** for what "correct behavi
 
 | ID | Name | Category | Markers | Key services | Spec vs code | Mapped tests (this branch) |
 |----|------|----------|---------|--------------|--------------|----------------------------|
-| [WF-1](wf01-single-level-matching.md) | Single-Level Matching | Foundation | `@pytest.mark.e2e` | `MatchingService` | Reviewed 2026-04-30 | Partial: `tests/unit/test_match_coverage.py` (coverage helper; not full WF-1 pipeline) |
+| [WF-1](wf01-single-level-matching.md) | Single-Level Matching | Foundation | `@pytest.mark.e2e` | `MatchingService` | Reviewed 2026-04-30 | Partial: `tests/unit/test_match_coverage.py`; golden network path: `tests/matching/` ([harness](../matching-harness.md)) |
 | [WF-2](wf02-nested-bom-matching.md) | Nested BOM Matching | Advanced | `@pytest.mark.e2e`, `@pytest.mark.slow` | `MatchingService`, `BOMResolutionService` | Reviewed 2026-04-30 | None dedicated |
 | [WF-3](wf03-okh-generation-from-url.md) | OKH Generation from URL | Advanced | `@pytest.mark.e2e`, `@pytest.mark.llm` | `OKHService`, generation stack | Reviewed 2026-04-30 | None dedicated |
 | [WF-4](wf04-quality-tiered-validation.md) | Quality-Tiered Validation | Foundation | `@pytest.mark.e2e` | `ValidationContext`, domain validators | Reviewed 2026-04-30 | None dedicated |

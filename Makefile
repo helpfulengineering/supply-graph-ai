@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness harness-probes
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -17,6 +17,12 @@ harness:
 # Enable probe modules in harness.config.json and point URLs at staging first.
 harness-probes:
 	uv run python -m harness.runner --probes --write-proposals
+
+# Matching correctness (golden 3DP + MoM IRI id-alignment). Also covered by
+# `make test` / `make ready`. Set MOM_LIVE=1 to include live SPARQL smoke.
+# See docs/testing/matching-harness.md.
+match-harness:
+	uv run pytest tests/matching -q
 
 # One-step frontend contributor setup: JS deps + Playwright browsers + verify.
 # Installs Chromium and the headless shell (both required by @playwright/test).

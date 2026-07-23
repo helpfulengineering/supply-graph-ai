@@ -207,7 +207,11 @@ These items should be addressed by **Issue 1.1.2** (test dataset creation):
 
 ## Pytest Mapping
 
-- **Target file**: `tests/e2e/test_wf01_single_level_matching.py`
+Automated correctness for the UI-relevant network path (local ∪ MoM, including
+MoM IRI `okw_ids`) lives in **`tests/matching/`** — see
+[Matching correctness harness](../matching-harness.md) and `make match-harness`.
+
+- **Target file** (legacy WF-1 e2e layout): `tests/e2e/test_wf01_single_level_matching.py`
 - **Fixtures**: `matching_service`, `okh_manifest`, `okw_facilities`
 - **Markers**: `@pytest.mark.e2e`
 - **Parameterize**: `design_file` (5 design types)

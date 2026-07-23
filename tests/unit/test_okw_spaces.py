@@ -373,3 +373,45 @@ async def test_get_network_match_facilities_returns_facilities(monkeypatch):
     # source=local drops MoM from the candidate pool.
     local_only = await svc.get_network_match_facilities(source="local")
     assert [f.name for f in local_only] == ["Local A"]
+
+
+@pytest.mark.asyncio
+async def test_get_network_match_facilities_filters_by_space_id(monkeypatch):
+    """okw_ids matches network space id (MoM IRI), not the stub UUID5."""
+    from uuid import NAMESPACE_URL, uuid4, uuid5
+
+    from src.core.services.okw_service import OKWService
+    import src.core.services.mom_bridge as mom
+
+    svc = OKWService()
+    svc.list = AsyncMock(
+        return_value=([_facility(uuid4(), "Local A", "40.0, -70.0", [])], 1)
+    )
+    mom_iri = "urn:mom:space-z"
+
+    async def fake_get(force_refresh=False):
+        return (
+            [
+                {
+                    "space": mom_iri,
+                    "name": "MoM Z",
+                    "lat": 1.0,
+                    "lon": 2.0,
+                    "city": "Rome",
+                    "country": "IT",
+                    "status": "confirmed",
+                    "url": None,
+                    "processes": ["laser_cutting"],
+                }
+            ],
+            True,
+        )
+
+    monkeypatch.setattr(mom.mom_spaces_cache, "get", fake_get)
+
+    facilities = await svc.get_network_match_facilities(
+        include_mom=True, okw_ids=[mom_iri]
+    )
+    assert len(facilities) == 1
+    assert facilities[0].name == "MoM Z"
+    assert facilities[0].id == uuid5(NAMESPACE_URL, mom_iri)

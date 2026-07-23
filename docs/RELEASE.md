@@ -45,11 +45,12 @@ Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true
 2. Run `uv lock` and `uv sync --extra dev`.
 3. Confirm `uv run ohm version` and local `/health` report the new version.
 4. Update `CHANGELOG.md`.
-5. Merge to `main` and wait for CI to pass (quality, test, contract-stability, security, docker-build-test).
-6. Create git tag `vX.Y.Z` on the release commit.
-7. Push the tag — the **Release** workflow validates the tag, runs tests, builds from `uv.lock`, and pushes a **multi-arch** manifest (`linux/amd64`, `linux/arm64`) to Docker Hub.
-8. Push the git tag — the **Release** workflow creates the [GitHub Release](https://github.com/helpfulengineering/supply-graph-ai/releases) automatically after Docker publish (notes from `CHANGELOG.md` via `scripts/extract_changelog_section.py`).
-9. Smoke-test the pulled image (see below).
+5. Run `make match-harness` (offline golden matching). Optionally `MOM_LIVE=1 make match-harness` for live MoM SPARQL smoke — see [matching harness](testing/matching-harness.md).
+6. Merge to `main` and wait for CI to pass (quality, test, contract-stability, security, docker-build-test).
+7. Create git tag `vX.Y.Z` on the release commit.
+8. Push the tag — the **Release** workflow validates the tag, runs tests, builds from `uv.lock`, and pushes a **multi-arch** manifest (`linux/amd64`, `linux/arm64`) to Docker Hub.
+9. Push the git tag — the **Release** workflow creates the [GitHub Release](https://github.com/helpfulengineering/supply-graph-ai/releases) automatically after Docker publish (notes from `CHANGELOG.md` via `scripts/extract_changelog_section.py`).
+10. Smoke-test the pulled image (see below).
 
 ## Git tags vs GitHub Releases
 
