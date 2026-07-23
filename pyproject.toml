@@ -185,6 +185,7 @@ skips = [
   "B105",  # false positives on enum names and dev-only default constant names
   "B608",  # false positives on large LLM prompt f-strings (not SQL)
   "B104",  # intentional 0.0.0.0 API bind / CLI localhost rewrite
+  "B101",  # assert used for type-narrowing after _ensure_index() in identity stores
 ]
 
 [dependency-groups]

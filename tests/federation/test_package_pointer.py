@@ -77,3 +77,23 @@ def test_resolve_package_pointer_absent(monkeypatch: pytest.MonkeyPatch) -> None
 def test_manifest_hash_unchanged_by_package_pointer_fields() -> None:
     """Package pointer must not alter design content hash."""
     assert manifest_content_hash(MINIMAL) == manifest_content_hash(dict(MINIMAL))
+
+
+@pytest.mark.unit
+def test_try_extract_rejects_zip_slip(tmp_path: Path) -> None:
+    """Zip members that escape dest must fail closed (no extract)."""
+    import io
+    import zipfile
+
+    from src.core.federation.package_pointer import _try_extract
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("../evil.txt", "pwned")
+    archive = tmp_path / "slip.zip"
+    archive.write_bytes(buf.getvalue())
+    dest = tmp_path / "out"
+    dest.mkdir()
+    assert _try_extract(archive, dest) is False
+    assert not (tmp_path / "evil.txt").exists()
+    assert list(dest.iterdir()) == []

@@ -134,17 +134,38 @@ def package_dir_to_archive_bytes(package_dir: Path) -> tuple[bytes, str]:
     return buf.getvalue(), f"{package_dir.name}.tar.gz"
 
 
+def _is_within_dest(dest: Path, target: Path) -> bool:
+    """Return True if ``target`` resolves under ``dest`` (zip-slip guard)."""
+    try:
+        return target.resolve().is_relative_to(dest.resolve())
+    except (OSError, ValueError):
+        return False
+
+
+def _safe_extract_zip(archive_path: Path, dest: Path) -> None:
+    with zipfile.ZipFile(archive_path) as zf:
+        for info in zf.infolist():
+            target = dest / info.filename
+            if not _is_within_dest(dest, target):
+                raise ValueError(f"unsafe zip member path: {info.filename!r}")
+            zf.extract(info, dest)
+
+
+def _safe_extract_tar(archive_path: Path, dest: Path) -> None:
+    with tarfile.open(archive_path) as tf:
+        # filter="data" blocks path traversal and special files (PEP 706).
+        tf.extractall(dest, filter="data")
+
+
 def _try_extract(archive_path: Path, dest: Path) -> bool:
     try:
         if zipfile.is_zipfile(archive_path):
-            with zipfile.ZipFile(archive_path) as zf:
-                zf.extractall(dest)
+            _safe_extract_zip(archive_path, dest)
             return True
         if tarfile.is_tarfile(archive_path):
-            with tarfile.open(archive_path) as tf:
-                tf.extractall(dest)
+            _safe_extract_tar(archive_path, dest)
             return True
-    except (OSError, tarfile.TarError, zipfile.BadZipFile) as e:
+    except (OSError, ValueError, tarfile.TarError, zipfile.BadZipFile) as e:
         logger.debug(f"extract failed: {e}")
     return False
 
