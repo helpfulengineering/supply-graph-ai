@@ -81,7 +81,14 @@ async def verify_and_store_okw(
             reason=reason,
         )
 
-    # create() stamps private visibility by default
-    await okw_service.create(record.facility)
+    # create() stamps private visibility by default; provenance marks the peer so
+    # the UI can show a "synced — edits stay local" banner.
+    from ..models.provenance import Credit, RecordProvenance
+
+    provenance = RecordProvenance(
+        authored_by=[Credit(subject_did=publisher_did, role="synced_from")],
+        published_by=publisher_did,
+    )
+    await okw_service.create(record.facility, provenance=provenance)
     logger.info(f"Ingested federated OKW {facility_id} from {publisher_did}")
     return OkwIngestResult(action="stored", content_hash=content_hash)

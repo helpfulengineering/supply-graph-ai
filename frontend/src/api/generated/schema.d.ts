@@ -5114,6 +5114,8 @@ export interface components {
             metrics: components["schemas"]["FederationSyncMetricsResponse"];
             /** Security Mode */
             security_mode?: string | null;
+            /** Seed Peer Url */
+            seed_peer_url?: string | null;
         };
         /** FederationSyncMetricsResponse */
         FederationSyncMetricsResponse: {

@@ -206,6 +206,9 @@ export const handlers = [
   http.post("*/v1/api/federation/sync/run", () =>
     HttpResponse.json(federationSyncFixture),
   ),
+  http.post("*/v1/api/federation/okw/sync/run", () =>
+    HttpResponse.json(federationSyncFixture),
+  ),
   http.post("*/v1/api/package/:org/:project/:version/pin", () =>
     HttpResponse.json({
       status: "success",

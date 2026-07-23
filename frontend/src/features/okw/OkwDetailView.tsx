@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   deleteOkw,
   fetchOkwDetail,
+  getOkwProvenance,
   getOkwVisibility,
   validateOkw,
   type ValidationResult,
@@ -18,6 +19,10 @@ import { FacilityDesigns } from "./FacilityDesigns";
 import { AuthorshipPanel } from "../okh/AuthorshipPanel";
 import { SharingPanel } from "./SharingPanel";
 import { deleteConfirmMessage } from "./deleteConfirmMessage";
+import {
+  isSyncedFacilityProvenance,
+  SyncedFacilityBanner,
+} from "./SyncedFacilityBanner";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
@@ -124,6 +129,11 @@ export function OkwDetailView({ id }: { id: string }) {
     queryKey: ["okw-detail", id],
     queryFn: () => fetchOkwDetail(id),
   });
+  const provenance = useQuery({
+    queryKey: ["okw", "provenance", id],
+    queryFn: () => getOkwProvenance(id),
+    retry: false,
+  });
 
   const dismissCreatedBanner = () => {
     const next = new URLSearchParams(searchParams);
@@ -198,6 +208,9 @@ export function OkwDetailView({ id }: { id: string }) {
 
       {showCreatedBanner && (
         <PostCreateBanner onDismiss={dismissCreatedBanner} editHref={editHref} />
+      )}
+      {isSyncedFacilityProvenance(provenance.data) && (
+        <SyncedFacilityBanner publishedBy={provenance.data?.published_by} />
       )}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

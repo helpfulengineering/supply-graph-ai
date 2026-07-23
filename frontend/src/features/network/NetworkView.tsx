@@ -12,6 +12,7 @@ import { LoadingState, EmptyState, ErrorState } from "../../components/ui/states
 import { Pagination } from "../../components/ui/Pagination";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "@/lib/utils";
+import { SeedPeerCta } from "./SeedPeerCta";
 
 const PAGE_SIZE = 24;
 
@@ -107,6 +108,8 @@ export function NetworkView() {
           {createLabel}
         </Button>
       </div>
+
+      <SeedPeerCta />
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
         <aside>

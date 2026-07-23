@@ -482,6 +482,7 @@ export const federationStatusFixture = {
   mdns_enabled: true,
   background_sync_running: false,
   manual_peers: [],
+  seed_peer_url: "https://openhardwaremanager.org",
   metrics: {
     total_records_pulled: 0,
     total_records_skipped: 0,

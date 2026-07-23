@@ -37,6 +37,7 @@ class FederationStatusResponse(BaseModel):
     manual_peers: list[str] = Field(default_factory=list)
     metrics: FederationSyncMetricsResponse
     security_mode: str | None = None
+    seed_peer_url: str | None = None
 
 
 class IdentifyResponse(BaseModel):

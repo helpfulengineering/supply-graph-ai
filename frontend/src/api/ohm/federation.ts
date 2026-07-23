@@ -88,3 +88,31 @@ export async function runFederationSync(peerUrl?: string): Promise<SyncRunRespon
   }
   return data;
 }
+
+/** Sync OKW catalog records from followed peers (after follow / seed). */
+export async function runOkwFederationSync(): Promise<SyncRunResponse> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/federation/okw/sync/run",
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, "Failed to sync OKW from peers"),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+/** Follow seed peer URL (identify + follow + OKH sync) then pull OKW facilities. */
+export async function seedFromPeerUrl(seedPeerUrl: string): Promise<{
+  okhPulled: number;
+  okwPulled: number;
+}> {
+  const okh = await runFederationSync(seedPeerUrl);
+  const okw = await runOkwFederationSync();
+  return {
+    okhPulled: okh.total_pulled ?? 0,
+    okwPulled: okw.total_pulled ?? 0,
+  };
+}

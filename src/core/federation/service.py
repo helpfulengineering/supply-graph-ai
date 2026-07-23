@@ -277,6 +277,7 @@ class FederationService(BaseService["FederationService"]):
             "background_sync_running": self._sync_task is not None
             and not self._sync_task.done(),
             "manual_peers": settings.OHM_FEDERATION_MANUAL_PEERS,
+            "seed_peer_url": settings.OHM_FEDERATION_SEED_PEER_URL or None,
             "metrics": metrics,
         }
 
