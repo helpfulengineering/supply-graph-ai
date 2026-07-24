@@ -663,6 +663,28 @@ The LLM layer is designed to support:
 ### Purpose
 The Generation Engine orchestrates all generation layers and manages the progressive enhancement process to create high-quality OKH manifests from project data.
 
+### Supporting services (`src/core/generation/services/`)
+
+These are **pipeline helpers**, not `BaseService` domain facades (those live
+under `src/core/services/`). They are shared by generation layers and, where
+useful, by OKH storage backfill:
+
+| Service | Role |
+|---------|------|
+| `FileCategorizationService` | Heuristic + optional LLM file → OKH documentation buckets |
+| `RepositoryMappingService` | Large-repo routing / destination paths |
+| `ProcessInferenceService` | File extension + title/keyword → `manufacturing_processes` |
+
+**Process inference** fills empty `manufacturing_processes` during generation
+(heuristic layer, plus an engine post-normalize safety net) and via
+`ohm okh infer-processes` / `OKHService.backfill_manufacturing_processes`.
+It resolves display names through the [canonical process taxonomy](process-taxonomy-adr.md)
+using **exact** alias/TSDC lookup for tokens (avoids substring false positives
+such as `face` ⊂ `surface_finish`). Extension → process mappings are defined
+in the service; taxonomy remains the SSOT for process IDs.
+
+See also: [matching harness — backfill](../testing/matching-harness.md#backfilling-empty-manufacturing_processes).
+
 ### Implementation Details
 
 ```python

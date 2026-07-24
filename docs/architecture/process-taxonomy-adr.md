@@ -119,16 +119,22 @@ Key aspects:
 - All 6 consumer sites needed refactoring (completed)
 - The alias table must be maintained as new processes are discovered
 - Substring matching in `normalize()` could cause false positives for
-  very short inputs (mitigated by 3-character minimum)
+  very short inputs (mitigated by 3-character minimum). Free-text
+  **process inference** (`ProcessInferenceService`) therefore uses
+  exact alias/TSDC lookup only when scanning titles/keywords.
 - YAML file must remain in sync with any new built-in definitions
 
 ## Files
 
 - **Taxonomy module**: `src/core/taxonomy/__init__.py`, `src/core/taxonomy/process_taxonomy.py`
 - **YAML definitions**: `src/config/taxonomy/processes.yaml`
+- **Process inference (generation helper)**: `src/core/generation/services/process_inference_service.py`
+  — extension/title → display names via this taxonomy; see
+  [Generation architecture](generation.md#supporting-services-srccoregenerationservices)
 - **Tests**: `tests/core/taxonomy/test_process_taxonomy.py` (164 tests),
-  `tests/core/taxonomy/test_yaml_loading.py` (33 tests)
-- **CLI**: `src/cli/taxonomy.py`
+  `tests/core/taxonomy/test_yaml_loading.py` (33 tests),
+  `tests/unit/test_process_inference_service.py`
+- **CLI**: `src/cli/taxonomy.py`; backfill via `ohm okh infer-processes`
 - **API**: `src/core/api/routes/taxonomy.py`
 - **Refactored consumers**: `matching_service.py`, `okh_validator.py`,
   `okw_validator.py`, `engine.py`, `heuristic.py`, `base.py`,

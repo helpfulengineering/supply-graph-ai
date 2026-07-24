@@ -271,6 +271,9 @@ class GenerationEngine:
 
             # Normalize fields before quality assessment (manufacturing_processes, etc.)
             generated_fields = self._normalize_generated_fields(generated_fields)
+            generated_fields = self._fill_processes_from_file_types(
+                project_data, generated_fields, confidence_scores
+            )
 
             # Validate and filter out obviously bad field values
             generated_fields = self._validate_field_values(generated_fields)
@@ -501,27 +504,34 @@ class GenerationEngine:
 
             # Apply layers based on configuration
             if self.config.progressive_enhancement:
-                generated_fields, confidence_scores, missing_fields = (
-                    await self._progressive_enhancement_async(
-                        project_data,
-                        generated_fields,
-                        confidence_scores,
-                        missing_fields,
-                    )
+                (
+                    generated_fields,
+                    confidence_scores,
+                    missing_fields,
+                ) = await self._progressive_enhancement_async(
+                    project_data,
+                    generated_fields,
+                    confidence_scores,
+                    missing_fields,
                 )
             else:
-                generated_fields, confidence_scores, missing_fields = (
-                    await self._apply_all_layers_async(
-                        project_data,
-                        generated_fields,
-                        confidence_scores,
-                        missing_fields,
-                    )
+                (
+                    generated_fields,
+                    confidence_scores,
+                    missing_fields,
+                ) = await self._apply_all_layers_async(
+                    project_data,
+                    generated_fields,
+                    confidence_scores,
+                    missing_fields,
                 )
 
             # Match sync generate_manifest: normalize and validate before BOM/post-steps.
             # Without this, async/batch runs kept bogus heuristic fragments (e.g. intended_use).
             generated_fields = self._normalize_generated_fields(generated_fields)
+            generated_fields = self._fill_processes_from_file_types(
+                project_data, generated_fields, confidence_scores
+            )
             generated_fields = self._validate_field_values(generated_fields)
             for key in list(confidence_scores.keys()):
                 if key not in generated_fields:
@@ -1072,6 +1082,61 @@ class GenerationEngine:
                 )
 
         return normalized
+
+    def _fill_processes_from_file_types(
+        self,
+        project_data: ProjectData,
+        generated_fields: Dict[str, FieldGeneration],
+        confidence_scores: Dict[str, float],
+    ) -> Dict[str, FieldGeneration]:
+        """
+        Seed manufacturing_processes from file types / title when missing or empty.
+
+        Runs after layer merge/normalize so inference still applies when
+        an upstream layer omitted or cleared the field (e.g. chunked LLM reduce).
+        """
+        existing = generated_fields.get("manufacturing_processes")
+        if existing is not None:
+            value = existing.value
+            if isinstance(value, list) and len(value) > 0:
+                return generated_fields
+
+        from .services.process_inference_service import ProcessInferenceService
+
+        paths = [f.path for f in (project_data.files or []) if f.path]
+        title = ""
+        keywords: List[str] = []
+        title_fg = generated_fields.get("title")
+        if title_fg and isinstance(title_fg.value, str):
+            title = title_fg.value
+        elif project_data.metadata:
+            title = str(
+                project_data.metadata.get("name")
+                or project_data.metadata.get("title")
+                or ""
+            )
+        kw_fg = generated_fields.get("keywords")
+        if kw_fg and isinstance(kw_fg.value, list):
+            keywords = [str(k) for k in kw_fg.value if k]
+
+        inferred = ProcessInferenceService().infer(
+            paths=paths, text=title, keywords=keywords
+        )
+        if not inferred.processes:
+            return generated_fields
+
+        generated_fields = generated_fields.copy()
+        generated_fields["manufacturing_processes"] = FieldGeneration(
+            value=list(inferred.processes),
+            confidence=inferred.confidence,
+            source_layer=GenerationLayer.HEURISTIC,
+            generation_method="file_type_process_inference",
+            raw_source=(
+                f"Inferred from file types/title ({len(inferred.evidence)} process id(s))"
+            ),
+        )
+        confidence_scores["manufacturing_processes"] = inferred.confidence
+        return generated_fields
 
     def _validate_field_values(
         self, generated_fields: Dict[str, FieldGeneration]
@@ -2249,7 +2314,6 @@ Review all components and return the JSON response."""
                 and file_info.file_type == "markdown"
                 and not any(cat in file_info.path for cat in parts_directories)
             ):
-
                 part_name = (
                     file_info.path.split("/")[-1]
                     .replace(".md", "")

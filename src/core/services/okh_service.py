@@ -864,6 +864,86 @@ class OKHService(BaseService["OKHService"]):
         else:
             return {"error": f"Unknown LLM request type: {request_type}"}
 
+    async def backfill_manufacturing_processes(
+        self,
+        *,
+        manifest_ids: Optional[List[UUID]] = None,
+        only_if_empty: bool = True,
+        dry_run: bool = True,
+        limit: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Infer manufacturing_processes from file types / title on stored OKHs.
+
+        By default only fills empty process lists and does not write (dry_run=True).
+        Pass dry_run=False to persist updates via :meth:`update`.
+        """
+        from ..generation.services.process_inference_service import (
+            ProcessInferenceService,
+        )
+
+        await self.ensure_initialized()
+        service = ProcessInferenceService()
+
+        targets: List[OKHManifest] = []
+        if manifest_ids:
+            for mid in manifest_ids:
+                manifest = await self.get(mid)
+                if manifest is None:
+                    continue
+                targets.append(manifest)
+        else:
+            page_size = limit or 500
+            manifests, _total = await self.list(page=1, page_size=page_size)
+            targets = manifests[:limit] if limit is not None else list(manifests)
+
+        scanned = 0
+        updated: List[Dict[str, Any]] = []
+        skipped_nonempty = 0
+        no_inference = 0
+        missing = 0
+
+        if manifest_ids:
+            found_ids = {m.id for m in targets}
+            missing = len([mid for mid in manifest_ids if mid not in found_ids])
+
+        for manifest in targets:
+            scanned += 1
+            before = list(manifest.manufacturing_processes or [])
+            if only_if_empty and before:
+                skipped_nonempty += 1
+                continue
+
+            result = service.apply_to_manifest(manifest, only_if_empty=only_if_empty)
+            if not result.applied or not result.processes:
+                if not result.applied:
+                    no_inference += 1
+                continue
+
+            after = list(manifest.manufacturing_processes or [])
+            entry = {
+                "id": str(manifest.id),
+                "title": manifest.title,
+                "before": before,
+                "after": after,
+                "inferred": result.processes,
+                "evidence": result.evidence,
+            }
+            if not dry_run:
+                await self.update(manifest.id, manifest.to_dict())
+            updated.append(entry)
+
+        return {
+            "dry_run": dry_run,
+            "only_if_empty": only_if_empty,
+            "scanned": scanned,
+            "missing": missing,
+            "skipped_nonempty": skipped_nonempty,
+            "no_inference": no_inference,
+            "updated_count": len(updated),
+            "updated": updated,
+        }
+
     async def cleanup(self) -> None:
         """Cleanup OKH resources and best-effort close dependency helpers."""
         await super().cleanup()

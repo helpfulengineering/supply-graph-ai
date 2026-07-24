@@ -1,4 +1,5 @@
 import type { NetworkSpace } from "../../api/ohm/network";
+import { countryMatchKey, displayCountryName } from "../match/geoDisplay";
 
 /** "laser_cutting" -> "Laser Cutting" (canonical OHM process id → label). */
 export function humanizeProcessId(id: string): string {
@@ -23,6 +24,19 @@ function distinct(values: (string | null | undefined)[]): string[] {
   );
 }
 
+/** Dedupe country codes vs full names; return sorted full display names. */
+function distinctCountries(values: (string | null | undefined)[]): string[] {
+  const byKey = new Map<string, string>();
+  for (const raw of values) {
+    if (!raw?.trim()) continue;
+    const label = displayCountryName(raw.trim());
+    const key = countryMatchKey(raw);
+    if (!key) continue;
+    if (!byKey.has(key)) byKey.set(key, label);
+  }
+  return [...byKey.values()].sort((a, b) => a.localeCompare(b));
+}
+
 /**
  * Derive the filter dropdown options from a set of spaces (pure). Computed from
  * the unfiltered baseline so the options stay comprehensive and stable as the
@@ -31,7 +45,7 @@ function distinct(values: (string | null | undefined)[]): string[] {
 export function deriveFilterOptions(spaces: NetworkSpace[]): FilterOptions {
   const processIds = distinct(spaces.flatMap((s) => s.processes ?? []));
   return {
-    countries: distinct(spaces.map((s) => s.country)),
+    countries: distinctCountries(spaces.map((s) => s.country)),
     regions: distinct(spaces.map((s) => s.region)),
     statuses: distinct(spaces.map((s) => s.status)),
     accessTypes: distinct(spaces.map((s) => s.access_type)),

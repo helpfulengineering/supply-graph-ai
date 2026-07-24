@@ -3255,3 +3255,87 @@ async def set_compatible_manifests_cmd(
     if output:
         Path(output).write_text(json.dumps(data, indent=2))
         cli_ctx.log(f"Updated manifest written to {output}", "info")
+
+
+@okh_group.command("infer-processes")
+@click.argument("manifest_id", required=False, default=None)
+@click.option(
+    "--all",
+    "all_manifests",
+    is_flag=True,
+    default=False,
+    help="Scan stored OKHs (use with --limit)",
+)
+@click.option(
+    "--limit", default=100, show_default=True, help="Max manifests when --all"
+)
+@click.option(
+    "--apply",
+    is_flag=True,
+    default=False,
+    help="Persist updates (default is dry-run)",
+)
+@click.option(
+    "--merge",
+    is_flag=True,
+    default=False,
+    help="Merge into existing processes (default: only fill when empty)",
+)
+@click.option("--output", "-o", default=None, help="Write JSON report to a file")
+@async_command
+@click.pass_context
+async def infer_processes_cmd(
+    ctx, manifest_id, all_manifests, limit, apply, merge, output
+):
+    """Infer manufacturing_processes from design/manufacturing file types.
+
+    Uses the modular ProcessInferenceService (file extensions + title/keywords
+    → taxonomy processes).
+    Default is dry-run; pass --apply to write storage.
+
+    \b
+    Examples:
+      ohm okh infer-processes <manifest-id>
+      ohm okh infer-processes --all --limit 50
+      ohm okh infer-processes --all --apply
+    """
+    cli_ctx = ctx.obj
+
+    if not manifest_id and not all_manifests:
+        raise click.UsageError("Provide MANIFEST_ID or --all")
+    if manifest_id and all_manifests:
+        raise click.UsageError("Use either MANIFEST_ID or --all, not both")
+
+    ids = None
+    if manifest_id:
+        try:
+            ids = [UUID(manifest_id)]
+        except ValueError as exc:
+            raise click.ClickException(f"Invalid manifest id: {manifest_id}") from exc
+
+    okh_service = await OKHService.get_instance()
+    report = await okh_service.backfill_manufacturing_processes(
+        manifest_ids=ids,
+        only_if_empty=not merge,
+        dry_run=not apply,
+        limit=None if ids else limit,
+    )
+
+    mode = "DRY-RUN" if report["dry_run"] else "APPLIED"
+    cli_ctx.log(
+        f"[{mode}] scanned={report['scanned']} "
+        f"updated={report['updated_count']} "
+        f"skipped_nonempty={report['skipped_nonempty']} "
+        f"no_inference={report['no_inference']} "
+        f"missing={report['missing']}",
+        "success" if report["updated_count"] or report["dry_run"] else "info",
+    )
+    for entry in report.get("updated") or []:
+        cli_ctx.log(
+            f"  {entry['id']}: {entry['before']} → {entry['after']}",
+            "info",
+        )
+
+    if output:
+        Path(output).write_text(json.dumps(report, indent=2))
+        cli_ctx.log(f"Report written to {output}", "info")

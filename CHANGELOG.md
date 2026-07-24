@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-07-23
+
+### Added
+
+- **Process inference service:** modular file-type + title/keyword →
+  `manufacturing_processes` (`ProcessInferenceService`), wired into OKH
+  generation and `ohm okh infer-processes` backfill (dry-run / `--apply`).
+- **Remote file type resolution:** extensionless downloads (e.g. Thingiverse)
+  resolve via redirect/Content-Disposition so the UI shows STL Mesh etc.
+  instead of Unknown.
+
+### Changed
+
+- **Facility country display:** network spaces and UI normalize ISO codes to
+  full names (`FR` → `France`); filters treat code and name as equivalent.
+
+### Fixed
+
+- Sparse Match UI when stored OKHs had empty `manufacturing_processes` despite
+  design files / `3DP-…` titles — backfill path and generation safety net.
+
 ## [0.10.1] - 2026-07-21
 
 ### Fixed
