@@ -24,6 +24,7 @@ from ..storage.provenance_store import ProvenanceStore
 from ..storage.visibility_store import VisibilityStore
 from ..storage.smart_discovery import SmartFileDiscovery
 from ..taxonomy import taxonomy
+from ..utils.country_names import countries_match, display_country_name
 from ..utils.logging import get_logger
 from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
@@ -81,6 +82,7 @@ def _local_facility_to_space(
     loc = f.location
     addr = getattr(loc, "address", None)
     owner = getattr(f, "owner", None)
+    raw_country = getattr(addr, "country", None) or getattr(loc, "country", None)
     return {
         "id": str(f.id),
         "name": f.name,
@@ -88,7 +90,7 @@ def _local_facility_to_space(
         "lon": coords.longitude if coords else None,
         "city": getattr(addr, "city", None) or getattr(loc, "city", None),
         "region": getattr(addr, "region", None) or getattr(loc, "region", None),
-        "country": getattr(addr, "country", None) or getattr(loc, "country", None),
+        "country": display_country_name(raw_country) or raw_country,
         "source": "local",
         "status": _normalize_status(
             f.facility_status.value if getattr(f, "facility_status", None) else None
@@ -130,7 +132,7 @@ def _mom_space_to_space(s: Dict[str, Any]) -> Dict[str, Any]:
         "lon": s["lon"],
         "city": s.get("city"),
         "region": None,  # MoM has no sub-national region
-        "country": s.get("country"),
+        "country": display_country_name(s.get("country")) or s.get("country"),
         "source": "mom",
         "status": _normalize_status(s.get("status")),
         "processes": s.get("processes", []),
@@ -166,7 +168,7 @@ def filter_network_spaces(
     for sp in spaces:
         if source and sp.get("source") != source:
             continue
-        if country and _ci(sp.get("country")) != _ci(country):
+        if country and not countries_match(sp.get("country"), country):
             continue
         if city and (not sp.get("city") or _ci(city) not in _ci(sp["city"])):
             continue

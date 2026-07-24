@@ -7,6 +7,7 @@ import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import type { NetworkSpace } from "../../api/ohm/network";
 import { SOURCE_STYLES } from "./networkSummary";
+import { displayCountryName } from "../match/geoDisplay";
 
 // Vector div-icons (a colored dot) avoid Leaflet's broken default-marker asset
 // paths under Vite, are colorable by source, and are still real L.Markers so
@@ -60,7 +61,11 @@ export function NetworkMap({ spaces }: { spaces: NetworkSpace[] }) {
               {s.city && (
                 <>
                   <br />
-                  <span>{[s.city, s.country].filter(Boolean).join(", ")}</span>
+                  <span>
+                    {[s.city, s.country ? displayCountryName(s.country) : null]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
                 </>
               )}
             </Popup>

@@ -23,12 +23,17 @@ import {
   isSyncedFacilityProvenance,
   SyncedFacilityBanner,
 } from "./SyncedFacilityBanner";
+import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 
 function locationLabel(f: OkwFacility): string | null {
   const a = f.location?.address;
-  const parts = [a?.city ?? f.location?.city, a?.region, a?.country ?? f.location?.country].filter(
-    Boolean,
-  );
+  const country = a?.country ?? f.location?.country;
+  const region = a?.region;
+  const parts = [
+    a?.city ?? f.location?.city,
+    region ? displayRegionName(region) : null,
+    country ? displayCountryName(country) : null,
+  ].filter(Boolean);
   return parts.length ? parts.join(", ") : null;
 }
 

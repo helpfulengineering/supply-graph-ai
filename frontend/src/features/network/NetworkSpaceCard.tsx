@@ -4,12 +4,19 @@ import { Badge } from "../../components/ui/Badge";
 import type { NetworkSpace } from "../../api/ohm/network";
 import { humanizeProcessId } from "./deriveFilterOptions";
 import { SOURCE_STYLES } from "./networkSummary";
+import { displayCountryName, displayRegionName } from "../match/geoDisplay";
 
 const CARD_CLASS =
   "group flex h-full flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 no-underline shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900";
 
 export function NetworkSpaceCard({ space }: { space: NetworkSpace }) {
-  const location = [space.city, space.region, space.country].filter(Boolean).join(", ");
+  const location = [
+    space.city,
+    space.region ? displayRegionName(space.region) : null,
+    space.country ? displayCountryName(space.country) : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   const processes = (space.processes ?? []).map(humanizeProcessId);
 
   const body = (

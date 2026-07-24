@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from ...models.okh import DocumentationType
-from ...taxonomy import taxonomy
 from ..bom_candidate_discovery import path_matches_dedicated_bom_file
 from ..models import AnalysisDepth, GenerationLayer, LayerConfig, ProjectData
 from ..utils.file_categorization import (
@@ -257,6 +256,9 @@ class HeuristicMatcher(BaseGenerationLayer):
 
             # Extract version and documentation language
             await self._extract_metadata_fields(project_data, result)
+
+            # File-type → process inference when processes still empty
+            await self._infer_processes_from_file_types(project_data, result)
 
             result.add_log(
                 f"Heuristic layer processed {len(project_data.files)} files and {len(project_data.documentation)} documents"
@@ -944,41 +946,70 @@ class HeuristicMatcher(BaseGenerationLayer):
         return materials
 
     def _extract_processes_from_text(self, text: str) -> List[str]:
-        """Extract manufacturing processes from text using the canonical taxonomy."""
-        processes = []
-        text_lower = text.lower()
+        """Extract manufacturing processes from text via ProcessInferenceService."""
+        from ..services.process_inference_service import ProcessInferenceService
 
-        # Keywords to search for in text, mapped to taxonomy input
-        search_keywords = [
-            "3d print",
-            "3d printing",
-            "laser cut",
-            "laser cutting",
-            "cnc",
-            "machining",
-            "solder",
-            "soldering",
-            "assemble",
-            "assembly",
-            "welding",
-            "weld",
-            "drilling",
-            "bending",
-            "grinding",
-            "casting",
-            "forging",
-            "injection mold",
-        ]
+        return ProcessInferenceService().infer_from_text(text).processes
 
-        for keyword in search_keywords:
-            if keyword in text_lower:
-                canonical_id = taxonomy.normalize(keyword)
-                if canonical_id is not None:
-                    display_name = taxonomy.get_display_name(canonical_id)
-                    if display_name not in processes:
-                        processes.append(display_name)
+    async def _infer_processes_from_file_types(
+        self, project_data: ProjectData, result: LayerResult
+    ) -> None:
+        """Seed manufacturing_processes from file types / title when still empty."""
+        if result.has_field("manufacturing_processes"):
+            return
 
-        return processes
+        from ..services.process_inference_service import ProcessInferenceService
+
+        paths: List[str] = [f.path for f in project_data.files if f.path]
+        # Include paths already categorized into manufacturing/design file fields
+        for field_name in ("manufacturing_files", "design_files"):
+            if not result.has_field(field_name):
+                continue
+            field_gen = result.get_field(field_name)
+            if field_gen is None:
+                continue
+            value = field_gen.value
+            if not isinstance(value, list):
+                continue
+            for entry in value:
+                if isinstance(entry, dict):
+                    if entry.get("path"):
+                        paths.append(str(entry["path"]))
+                    if entry.get("title"):
+                        paths.append(str(entry["title"]))
+                elif isinstance(entry, str):
+                    paths.append(entry)
+
+        title = ""
+        keywords: List[str] = []
+        title_field = result.get_field("title") if result.has_field("title") else None
+        if title_field and isinstance(title_field.value, str):
+            title = title_field.value
+        elif project_data.metadata:
+            title = str(
+                project_data.metadata.get("name")
+                or project_data.metadata.get("title")
+                or ""
+            )
+        kw_field = (
+            result.get_field("keywords") if result.has_field("keywords") else None
+        )
+        if kw_field and isinstance(kw_field.value, list):
+            keywords = [str(k) for k in kw_field.value if k]
+
+        inferred = ProcessInferenceService().infer(
+            paths=paths, text=title, keywords=keywords
+        )
+        if not inferred.processes:
+            return
+
+        result.add_field(
+            "manufacturing_processes",
+            inferred.processes,
+            inferred.confidence,
+            "file_type_process_inference",
+            f"Inferred from file types/title ({len(inferred.evidence)} process id(s))",
+        )
 
     async def _extract_metadata_fields(
         self, project_data: ProjectData, result: LayerResult

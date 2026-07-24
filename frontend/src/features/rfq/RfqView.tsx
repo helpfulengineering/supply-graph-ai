@@ -8,6 +8,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ErrorMessage } from "../../components/ui/ErrorMessage";
 import { EmptyState } from "../../components/ui/EmptyState";
 import type { RfqNavigationState, RFQDocument } from "../../types/rfq";
+import { displayCountryName } from "../match/geoDisplay";
 
 interface Props {
   navState: RfqNavigationState | null;
@@ -166,7 +167,9 @@ export function RfqView({ navState }: Props) {
                     {s.facility.location?.city && s.facility.location?.country
                       ? ", "
                       : ""}
-                    {s.facility.location?.country ?? ""}
+                    {s.facility.location?.country
+                      ? displayCountryName(s.facility.location.country)
+                      : ""}
                   </span>
                   <span className="ml-auto text-xs font-medium text-slate-500 dark:text-slate-400">
                     {Math.round(s.confidence * 100)}% match

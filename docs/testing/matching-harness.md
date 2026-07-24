@@ -73,8 +73,41 @@ network match with `facility_count > 0`, and prints full taxonomy coverage.
 
 Recommended before cutting a release that touches matching or MoM.
 
+## Opt-in remote deployed API
+
+Probe a running OHM (e.g. Azure Container Apps) without local MoM SPARQL:
+
+```bash
+OHM_API_BASE=https://openhardwaremanager.EXAMPLE.azurecontainerapps.io \
+  uv run pytest tests/matching/test_remote_api.py -s
+```
+
+This checks: MoM browse pool is healthy, harness `okh_manifest` still matches,
+and reports how many **stored** OKHs have empty `manufacturing_processes`
+(UI `okh_id` path → zero solutions when empty).
+
+## Backfilling empty manufacturing_processes
+
+Stored OKHs often have manufacturing files (`.stl`, `.3mf`, `.gcode`, Gerbers)
+but an empty `manufacturing_processes` list — Match then finds nothing. The
+modular `ProcessInferenceService` maps file extensions **and** title/keyword
+tokens (e.g. `3DP-…`, `laser-cut-…`) → taxonomy processes and is used in
+generation (heuristic + engine safety net) and for backfill:
+
+```bash
+# Dry-run (default): report what would change
+ohm okh infer-processes --all --limit 100
+
+# One manifest
+ohm okh infer-processes <manifest-id>
+
+# Persist updates
+ohm okh infer-processes --all --apply
+```
+
 ## Related
 
 - [WF-1: Single-level matching](workflows/wf01-single-level-matching.md)
 - [`scripts/matching_batch.py`](../../scripts/matching_batch.py) — storage-only batch eval (separate from this harness)
 - Probe `probe_match` — availability/503, not correctness
+- `src/core/generation/services/process_inference_service.py` — file-type → process inference

@@ -222,6 +222,9 @@ def test_cross_source_filters_hard_exclude():
         s["id"] for s in filter_network_spaces(_spaces(), process="laser_cutting")
     ] == ["a"]
     assert [s["id"] for s in filter_network_spaces(_spaces(), country="kr")] == ["b"]
+    assert [
+        s["id"] for s in filter_network_spaces(_spaces(), country="South Korea")
+    ] == ["b"]
     assert [s["id"] for s in filter_network_spaces(_spaces(), city="seo")] == ["b"]
     assert [s["id"] for s in filter_network_spaces(_spaces(), source="mom")] == ["b"]
 

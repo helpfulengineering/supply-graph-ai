@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from uuid import UUID
 
 from src.core.taxonomy.file_type_taxonomy import file_type_taxonomy
-from src.core.utils.file_path_display import enrich_path_fields
+from src.core.utils.file_path_display import enrich_path_fields, file_directory
+from src.core.utils.remote_file_hint import probe_remote_filename
 
 OKH_FILE_FIELDS = (
     "design_files",
@@ -31,6 +32,21 @@ def api_base_from_request(request) -> str:
     return f"{scheme}://{host}/v1/api"
 
 
+def _host_display_label(path: str) -> str | None:
+    host = (urlparse(path).hostname or "").lower()
+    if not host:
+        return None
+    if host.endswith("thingiverse.com"):
+        return "Thingiverse"
+    if host.endswith("instructables.com"):
+        return "Instructables"
+    if host.endswith("github.com") or host.endswith("githubusercontent.com"):
+        return "GitHub"
+    if "gitlab" in host:
+        return "GitLab"
+    return "External link"
+
+
 def enrich_file_ref(
     item: dict[str, Any], api_base: str, okh_id: UUID
 ) -> dict[str, Any]:
@@ -42,15 +58,33 @@ def enrich_file_ref(
     elif path:
         next_item["url"] = build_okh_file_proxy_url(api_base, okh_id, path)
 
-    if path:
-        path_fields = enrich_path_fields(path)
-        next_item.update(path_fields)
-        classification = file_type_taxonomy.classify(path)
-        next_item["file_type"] = classification.file_type
-        next_item["file_type_display"] = classification.display_name
-        next_item["render_tier"] = classification.render_tier
-        next_item["mime_type"] = classification.mime_type
-        next_item["okh_role"] = classification.okh_role
+    if not path:
+        return next_item
+
+    next_item.update(enrich_path_fields(path))
+    classification = file_type_taxonomy.classify(path)
+
+    if classification.file_type == "unknown" and path.startswith(
+        ("http://", "https://")
+    ):
+        remote_name = probe_remote_filename(path)
+        if remote_name:
+            classification = file_type_taxonomy.classify(remote_name)
+            next_item["display_path"] = remote_name
+            next_item["directory"] = file_directory(remote_name)
+
+    next_item["file_type"] = classification.file_type
+    next_item["file_type_display"] = classification.display_name
+    next_item["render_tier"] = classification.render_tier
+    next_item["mime_type"] = classification.mime_type
+    next_item["okh_role"] = classification.okh_role
+
+    if classification.file_type == "unknown" and path.startswith(
+        ("http://", "https://")
+    ):
+        host_label = _host_display_label(path)
+        if host_label:
+            next_item["file_type_display"] = host_label
 
     return next_item
 

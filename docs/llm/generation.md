@@ -230,7 +230,11 @@ The LLM layer can generate all OKH manifest fields:
 ### Optional Fields
 - **description**: Detailed description (confidence: 0.8-1.0)
 - **keywords**: Relevant tags (confidence: 0.8-0.9)
-- **manufacturing_processes**: Manufacturing methods (confidence: 0.7-0.9)
+- **manufacturing_processes**: Manufacturing methods (confidence: 0.7-0.9).
+  When layers leave this empty, file-type inference
+  (`ProcessInferenceService`) seeds processes from extensions such as
+  `.stl`/`.3mf`/`.gcode` → 3D Printing and Gerbers → PCB Fabrication.
+  Backfill stored OKHs with `ohm okh infer-processes`.
 - **materials**: Material specifications (confidence: 0.7-0.8)
 - **manufacturing_specs**: Detailed specifications (confidence: 0.6-0.8)
 - **parts**: Component specifications (confidence: 0.6-0.8)
