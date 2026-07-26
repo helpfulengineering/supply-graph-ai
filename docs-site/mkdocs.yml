@@ -12,6 +12,17 @@ site_name: "Open Hardware Manager"
 site_description: >-
   Find out who can build an open hardware design — and get the paperwork to
   go ask them.
+
+# Served as a subdirectory of the app's own origin rather than a separate host:
+# one domain, no DNS record, no CORS, and the app links to it internally.
+site_url: https://www.openhardwaremanager.org/docs/
+
+# Built straight into the frontend image's build context. That context is
+# `frontend/`, so the site has to land inside it to be COPY-able — building
+# elsewhere and copying afterwards would be a step everyone has to remember.
+# `make docs-site` puts it here; the frontend Dockerfile picks it up.
+site_dir: ../frontend/docs-dist
+
 # Built from the STAGED tree, never from the authored one. Run
 # `make docs-site` (scripts/build_docs_site.py) first — it copies
 # docs-site/docs/ here and injects status badges from tests/parity/manifest.py.

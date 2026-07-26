@@ -27,6 +27,22 @@ server {
         try_files $uri =404;
     }
 
+    # Documentation site (mkdocs, built into the image at /docs).
+    #
+    # Declared BEFORE the SPA catch-all and terminating in 404 rather than
+    # falling through to /index.html: a missing docs page must look missing. It
+    # previously fell through, so every /docs/* URL returned the SPA shell with
+    # HTTP 200 — indistinguishable from a real page to a browser or a monitor,
+    # which is exactly how the site being undeployed went unnoticed.
+    location /docs/ {
+        try_files $uri $uri/ $uri/index.html =404;
+    }
+
+    # Bare /docs -> /docs/ so the relative links inside the site resolve.
+    location = /docs {
+        return 301 /docs/;
+    }
+
     # SPA: serve the file if it exists, else hand off to client-side routing.
     location / {
         try_files $uri $uri/ /index.html;

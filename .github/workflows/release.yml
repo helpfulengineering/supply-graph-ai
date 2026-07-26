@@ -341,6 +341,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # The documentation site is served from /docs by this image's nginx, so it
+      # is baked in here. mkdocs writes into frontend/docs-dist (its site_dir),
+      # which the Dockerfile COPYs — so it MUST be built before the image, or the
+      # image ships an empty docs section.
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Build documentation site
+        run: make docs-site
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
@@ -433,6 +443,32 @@ jobs:
           # The /v1 reverse-proxy reaches the backend API (same-origin).
           curl -sf --max-time 20 "https://$host/v1/openapi.json" >/dev/null
           echo "frontend proxy -> backend /v1 OK"
+
+      # The documentation site shipped undeployed once without anyone noticing,
+      # because /docs fell through to the SPA catch-all and returned HTTP 200 —
+      # a blank app shell is indistinguishable from a real page to a monitor.
+      # So assert CONTENT, not status: a known heading from a known page, plus a
+      # real 404 on a missing path to prove the catch-all is not swallowing it.
+      - name: Verify documentation site is served
+        run: |
+          host=openhardwaremanager-frontend.blackdune-e38fce01.westus3.azurecontainerapps.io
+
+          # A page that must exist, identified by its own content.
+          body=$(curl -sfL --max-time 20 "https://$host/docs/about/what-is-ohm/")
+          echo "$body" | grep -q "What is OHM" \
+            || { echo "::error::/docs served a page without its expected content — is docs-dist empty, or is the SPA catch-all swallowing /docs?"; exit 1; }
+
+          # The generated status page proves the build ran, not just that files exist.
+          curl -sfL --max-time 20 "https://$host/docs/reference/whats-built/" \
+            | grep -q "what isn't" \
+            || { echo "::error::generated what's-built page missing from the deployed docs"; exit 1; }
+
+          # A missing docs page must 404, not fall through to the SPA.
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "https://$host/docs/definitely-not-a-page/")
+          test "$code" = "404" \
+            || { echo "::error::missing docs page returned $code, expected 404 — the SPA catch-all is masking absent pages"; exit 1; }
+
+          echo "docs site OK (content verified, 404s correctly)"
 
   # Git tags alone do not appear under GitHub → Releases. This job creates the
   # Release page entry (notes, source archives) after Docker publish succeeds.

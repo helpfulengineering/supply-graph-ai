@@ -48,6 +48,20 @@ export function NavBar() {
               {label}
             </NavLink>
           ))}
+
+          {/*
+            A plain anchor, not a NavLink: /docs is a static mkdocs site served
+            by nginx from the same origin, not a React route. Client-side
+            routing would try to resolve it in the SPA and fail.
+          */}
+          <a
+            href="/docs/"
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+          >
+            <span aria-hidden="true">📖</span>
+            Docs
+          </a>
+
           <NavLink
             to="/settings/session"
             className={({ isActive }) =>
