@@ -20,6 +20,12 @@ FROM nginx:1.27-alpine AS runtime
 COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Documentation site, served at /docs. Built by `make docs-site` (mkdocs writes
+# straight into this context via site_dir), so it must be built BEFORE the image.
+# CI does that in the publish-frontend job; a stale or empty docs-dist ships an
+# empty docs section, which the post-deploy smoke check is there to catch.
+COPY docs-dist /usr/share/nginx/html/docs
+
 # Host-specific config — injected at deploy time from the centralized config
 # surface (config/environments/<env>.toml [frontend]); NOT baked into the image.
 # API_UPSTREAM_URL has no default on purpose: an unset value fails nginx startup
