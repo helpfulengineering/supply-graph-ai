@@ -3208,7 +3208,7 @@ wheels = [
 
 [[package]]
 name = "supply-graph-ai"
-version = "0.10.2"
+version = "0.10.3"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },

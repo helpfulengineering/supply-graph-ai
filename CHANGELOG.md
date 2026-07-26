@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.3] - 2026-07-26
+
+### Added
+
+- **Public documentation site (`docs-site/`):** a human-facing site for
+  openhardwaremanager.org, separate from the developer corpus in `docs/`.
+  Fourteen pages — narrative (`about/`), task guides (`guides/`), and reference
+  including a "what's built" page generated from the codebase.
+- **Docs status gate:** `tests/parity/test_docs_status.py` (R1–R9) as `make ready`
+  step 7/10, plus `make docs-site` and `make docs-status`. Coupling is structural
+  by directory, so a guide cannot claim a capability the frontend does not expose;
+  `SiteDoc.requires_fe_call` checks that at capability granularity.
+- **Generate a design from a repository URL (web UI):** point OHM at a public
+  GitHub or GitLab repository, review the extraction through a guided tiered
+  editor (required fields save-gated, matching drivers next, long tail collapsed),
+  and download as **YAML or JSON** — or hand the reviewed manifest straight to
+  matching without saving it. Wires up `POST /api/okh/generate-from-url`, which
+  previously had no frontend caller.
+- **Optional manual Azure deploy:** the release workflow takes a `deploy` input
+  (default false), so a manual run can publish an image without shipping it, or
+  deploy without waiting for a version tag.
+
+### Changed
+
+- **`LayerConfig.use_nlp` now governs all spaCy usage in generation**, not just
+  the NLP layer. BOM collection reached for spaCy independently, so disabling NLP
+  did not disable NLP. Note it is no longer a performance lever — with the misuse
+  below fixed, the regex fallback costs about the same.
+- **MkDocs pinned `<2`** with `mkdocs-material>=9.7,<10`; both were unpinned, so a
+  routine sync could have pulled MkDocs 2.0 (no plugin system, TOML config, no
+  stated licence). Removed the unused `mkdocs-mermaid2-plugin`.
+
+### Fixed
+
+- **Generation is ~7× faster.** Two misuses of spaCy in BOM collection: a
+  full-document parse whose result was never read, and the full neural pipeline
+  run 2,117 times to perform a word-membership test that needed only tokens.
+  Measured on `RespiraWorks/Ventilator`: **120.5s → 17.0s wall, 112.4s → 16.3s
+  CPU**, with byte-identical output. Repositories that previously exceeded the
+  proxy timeout and failed now complete.
+- **`git` installed in the runtime image**, so the generation clone path
+  (`clone=true`) works. It failed instantly in production every time, silently
+  forcing all generation onto the slower per-file API path.
+- **The port check in `scripts/validate_docs.py` was dead code** — its regex only
+  matched a form `src/config/settings.py` had not used for some time, so it
+  silently validated nothing. Now live, and covering both documentation corpora.
+- **Frontend unit test expectation** for `deriveFilterOptions`, which still
+  expected ISO country codes after 0.10.2 changed them to display names.
+
+### Security
+
+- **`gitpython>=3.1.55`** (resolves to 3.1.57) for GHSA-fjr4-x663-mwxc,
+  GHSA-6p8h-3wgx-97gf, GHSA-r9mr-m37c-5fr3, and GHSA-94p4-4cq8-9g67.
+
 ## [0.10.2] - 2026-07-23
 
 ### Added
