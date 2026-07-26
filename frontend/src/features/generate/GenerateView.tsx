@@ -16,14 +16,27 @@ import { useRef, useState } from "react";
 import { ApiError } from "../../api/ohm/client";
 import { generateOkhFromUrl, type OkhQualityReport } from "../../api/ohm/okh";
 import { toQualityBanner } from "./qualityBanner";
+import { downloadManifest } from "./serialize";
 import { missingRequired } from "./manifestTiers";
 import { TieredEditor } from "./TieredEditor";
 import { checkRepoUrl } from "./urlValidation";
 
 type Manifest = Record<string, unknown>;
 
-/** How long to wait before giving up. Azure ingress caps sync requests near 4m. */
-const TIMEOUT_MS = 90_000;
+/**
+ * How long to wait before giving up.
+ *
+ * The hard ceiling is the SPA's own nginx reverse proxy, which sets
+ * `proxy_read_timeout 120s` (frontend/deploy/nginx.conf.template) — past that
+ * the browser gets an nginx 504 HTML page rather than anything we can explain.
+ * So abort just under it: the user gets our message instead of a raw gateway
+ * error, and we do not give up on a repository the server would have finished.
+ *
+ * Measured: a small repository returns in well under a second; a large one
+ * (e.g. RespiraWorks/Ventilator) exceeds the ceiling entirely and cannot be
+ * generated synchronously at all. That needs async jobs, not a bigger number.
+ */
+const TIMEOUT_MS = 115_000;
 
 /**
  * Turn a failure into something a person can act on. The shared-token quota
@@ -54,28 +67,6 @@ export function generationErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : "Generation failed.";
 }
 
-function downloadJson(manifest: Manifest, filename: string) {
-  const blob = new Blob([JSON.stringify(manifest, null, 2)], {
-    type: "application/json",
-  });
-  const href = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = href;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(href);
-}
-
-function safeFilename(manifest: Manifest): string {
-  const title = typeof manifest.title === "string" ? manifest.title : "design";
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-  return `${slug || "design"}.okh.json`;
-}
 
 export function GenerateView() {
   const [url, setUrl] = useState("");
@@ -221,8 +212,16 @@ export function GenerateView() {
             <button
               type="button"
               disabled={missing.length > 0}
-              onClick={() => downloadJson(manifest, safeFilename(manifest))}
+              onClick={() => downloadManifest(manifest, "yaml")}
               className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+            >
+              Download YAML
+            </button>
+            <button
+              type="button"
+              disabled={missing.length > 0}
+              onClick={() => downloadManifest(manifest, "json")}
+              className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
             >
               Download JSON
             </button>

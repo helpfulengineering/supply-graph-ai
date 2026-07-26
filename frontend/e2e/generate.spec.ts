@@ -83,11 +83,37 @@ test("generates, then guides review of the result (mocked)", async ({
     "3D Printing",
   );
 
-  // Download is gated until the missing required field is filled.
-  const download = page.getByRole("button", { name: "Download JSON" });
-  await expect(download).toBeDisabled();
+  // Both formats are offered, and both are gated until required fields are valid.
+  const yaml = page.getByRole("button", { name: "Download YAML" });
+  const json = page.getByRole("button", { name: "Download JSON" });
+  await expect(yaml).toBeDisabled();
+  await expect(json).toBeDisabled();
   await page.getByLabel("Function").fill("Drives around");
-  await expect(download).toBeEnabled();
+  await expect(yaml).toBeEnabled();
+  await expect(json).toBeEnabled();
+});
+
+test("downloads the reviewed manifest as YAML (mocked)", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts fixture data");
+  await mockGenerate(page, {
+    success: true,
+    message: "ok",
+    manifest: { ...MANIFEST, function: "Drives around" },
+    quality_report: { missing_required_fields: [] },
+  });
+
+  await page.goto("/okh/generate");
+  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByRole("button", { name: "Generate" }).click();
+
+  // Edits made during review must reach the downloaded file.
+  await page.getByLabel("Title").fill("Renamed Rover");
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Download YAML" }).click(),
+  ]);
+  expect(download.suggestedFilename()).toBe("renamed-rover.okh.yaml");
 });
 
 test("explains a rate-limited generation in plain language (mocked)", async ({

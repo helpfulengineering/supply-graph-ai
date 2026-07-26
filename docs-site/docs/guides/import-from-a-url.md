@@ -18,9 +18,21 @@ organisation backfills a back catalogue without redocumenting years of work.
 
 Only the URL is needed. Everything else is decided for you.
 
-Reading a repository can take **up to a minute** — sometimes longer for large
-ones. The progress indicator is deliberately honest: it can't tell you how far
-along it is, so it doesn't pretend. You can cancel at any point.
+Most repositories come back in a few seconds. Large ones take longer, and the
+progress indicator is deliberately honest: it can't tell how far along it is, so
+it doesn't pretend. You can cancel at any point.
+
+!!! warning "Very large repositories can't be imported yet"
+
+    Generation currently happens while you wait, and there's a hard limit of
+    about two minutes. A big, mature project — many directories, deep history,
+    hundreds of files — can exceed it and fail, and no amount of retrying will
+    change that.
+
+    This is a real limitation, not a fluke, and the fix is background processing
+    rather than a longer wait. Until then, the workaround for a large repository
+    is to describe it by hand or convert an existing structured file. See
+    [add a design](add-a-design.md).
 
 ## Then review it — this part is not optional
 
@@ -54,7 +66,11 @@ half-built structured form that might quietly drop a field.
 
 ## Then download it
 
-When the required fields are valid, download the design as a JSON file.
+When the required fields are valid, download the design as **YAML** or **JSON**.
+
+YAML is the better choice if a person will read or edit the file afterwards —
+much of the OKH ecosystem uses it, and it's far easier to scan than JSON. JSON
+is the better choice if software is going to consume it directly.
 
 !!! note "Generated designs aren't saved to the catalogue"
 
