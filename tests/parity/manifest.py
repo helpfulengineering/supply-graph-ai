@@ -309,11 +309,15 @@ DOC_STATUSES: frozenset[str] = frozenset(
 # tests/parity/test_docs_status.py).
 DOC_SURFACES: frozenset[str] = frozenset({"web", "api", "cli", "selfhost"})
 
-# Real user-facing surfaces that are not code layers, so the service/API/CLI
-# parity gate cannot see them. Self-hosting is a Docker image, make targets, and
-# scripts — no service, no route, no CLI group. Valid `area:` values for a
-# guides/ page all the same.
-DOC_ONLY_AREAS: frozenset[str] = frozenset({"selfhost"})
+# User-facing surfaces the service/API/CLI parity gate cannot represent as a
+# single Area — either because there is no code layer, or because the surface
+# spans all of them. Valid `area:` values for a guides/ page all the same.
+#
+#   selfhost — a Docker image, make targets, and scripts. No service, no route,
+#              no CLI group for the parity gate to point at.
+#   api      — the HTTP API as a product surface. Every Area contributes routes
+#              to it, so no single Area represents it.
+DOC_ONLY_AREAS: frozenset[str] = frozenset({"selfhost", "api"})
 
 
 @dataclass(frozen=True)
@@ -328,15 +332,52 @@ class SiteDoc:
 
 SITE_DOCS: tuple[SiteDoc, ...] = (
     # --- Working today ---------------------------------------------------
-    SiteDoc("okw", "Browse the facility network", "deployed"),
+    SiteDoc(
+        "okw",
+        "Browse the facility network",
+        "deployed",
+        path="guides/find-your-space.md",
+    ),
+    SiteDoc(
+        "okw",
+        "List or enrich a facility",
+        "deployed",
+        path="guides/list-or-enrich-your-facility.md",
+    ),
     SiteDoc("okh", "Browse and add designs", "deployed"),
-    SiteDoc("match", "Match a design to facilities", "deployed"),
-    SiteDoc("package", "Build and download design packages", "deployed"),
+    SiteDoc(
+        "match",
+        "Match a design to facilities",
+        "deployed",
+        path="guides/find-who-can-build-it.md",
+    ),
+    SiteDoc(
+        "package",
+        "Build and download design packages",
+        "deployed",
+        path="guides/share-as-a-package.md",
+    ),
     SiteDoc("supply-tree", "Visualize a supply tree", "deployed"),
     SiteDoc("federation", "Follow peers and sync catalogs", "deployed"),
-    SiteDoc("identity", "Accounts, API keys, and record visibility", "deployed"),
+    SiteDoc(
+        "identity",
+        "Accounts, API keys, and record visibility",
+        "deployed",
+        path="guides/who-can-see-your-data.md",
+    ),
     SiteDoc("convert", "Convert OKH-LOSH TOML and MSF datasheets", "deployed"),
-    SiteDoc("selfhost", "Run your own node", "deployed"),
+    SiteDoc(
+        "selfhost",
+        "Run your own node",
+        "deployed",
+        path="guides/run-your-own-node.md",
+    ),
+    SiteDoc(
+        "api",
+        "Use the OHM API from your own software",
+        "deployed",
+        path="guides/use-the-api.md",
+    ),
     # --- Not reachable from the web app yet -------------------------------
     SiteDoc(
         "okh",

@@ -88,6 +88,14 @@ nav:
       - What OHM is not: about/what-ohm-is-not.md
       - Federation and sovereignty: about/federation-and-sovereignty.md
       - Meet people where they are: about/meet-people-where-they-are.md
+  - Guides:
+      - Find your workshop: guides/find-your-space.md
+      - List or enrich your facility: guides/list-or-enrich-your-facility.md
+      - Who can see your data: guides/who-can-see-your-data.md
+      - Find who can build a design: guides/find-who-can-build-it.md
+      - Share a design as a package: guides/share-as-a-package.md
+      - Run your own node: guides/run-your-own-node.md
+      - Use the OHM API: guides/use-the-api.md
   - Reference:
       - Glossary: reference/glossary.md
       - OKH and OKW: reference/okh-and-okw.md
