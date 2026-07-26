@@ -328,6 +328,16 @@ class SiteDoc:
     label: str  # human-readable, as it appears on the "what's built" page
     status: str  # one of DOC_STATUSES
     path: Optional[str] = None  # guides/ page, relative to docs-site/docs/
+    # API path this capability needs the FRONTEND to call, e.g.
+    # "/api/okh/generate-from-url". When set and status is "deployed", R9
+    # asserts the frontend actually calls it.
+    #
+    # Why this exists: R6 checks whether the *area* has any frontend route,
+    # which is too coarse. The `okh` area has routes (browsing designs), so R6
+    # would happily pass a page claiming URL-import is available even though no
+    # frontend code calls that endpoint. Status is per capability; this makes
+    # the evidence per capability too.
+    requires_fe_call: Optional[str] = None
 
 
 SITE_DOCS: tuple[SiteDoc, ...] = (
@@ -337,6 +347,7 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "Browse the facility network",
         "deployed",
         path="guides/find-your-space.md",
+        requires_fe_call="/api/okw/spaces",
     ),
     SiteDoc(
         "okw",
@@ -344,18 +355,25 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "deployed",
         path="guides/list-or-enrich-your-facility.md",
     ),
-    SiteDoc("okh", "Browse and add designs", "deployed"),
+    SiteDoc(
+        "okh",
+        "Browse and add designs",
+        "deployed",
+        requires_fe_call="/api/okh",
+    ),
     SiteDoc(
         "match",
         "Match a design to facilities",
         "deployed",
         path="guides/find-who-can-build-it.md",
+        requires_fe_call="/api/match",
     ),
     SiteDoc(
         "package",
         "Build and download design packages",
         "deployed",
         path="guides/share-as-a-package.md",
+        requires_fe_call="/api/package",
     ),
     SiteDoc("supply-tree", "Visualize a supply tree", "deployed"),
     SiteDoc("federation", "Follow peers and sync catalogs", "deployed"),
@@ -364,6 +382,7 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "Accounts, API keys, and record visibility",
         "deployed",
         path="guides/who-can-see-your-data.md",
+        requires_fe_call="/api/identity",
     ),
     SiteDoc(
         "convert",
@@ -388,6 +407,7 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "okh",
         "Generate a design from a repository URL",
         "roadmap",
+        requires_fe_call="/api/okh/generate-from-url",
     ),
     SiteDoc("okw", "Search facilities by name", "roadmap"),
     SiteDoc("convert", "Bulk-import a design collection", "roadmap"),

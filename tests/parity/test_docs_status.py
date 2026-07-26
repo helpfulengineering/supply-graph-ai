@@ -220,6 +220,52 @@ def test_r6_web_pages_may_not_claim_deployed_without_a_frontend_route():
     )
 
 
+# --- R9: capability-level evidence ---------------------------------------
+
+
+def test_r9_deployed_capabilities_are_actually_called_by_the_frontend():
+    """A capability cannot claim `deployed` if no frontend code calls its endpoint.
+
+    R6 asks whether the *area* has any frontend route, which is too coarse: the
+    `okh` area has routes (browsing designs), so R6 would pass a page claiming
+    repo-URL import is available even though nothing in the frontend calls
+    ``/api/okh/generate-from-url``. Status is declared per capability; this makes
+    the evidence per capability too.
+
+    ``frontend/src/api/generated/`` is excluded deliberately. That directory is
+    generated from the backend's OpenAPI spec, so every endpoint appears there
+    whether or not the UI has ever called it — searching it would make this
+    assertion pass for everything and prove nothing.
+    """
+    src = _REPO_ROOT / "frontend" / "src"
+    if not src.is_dir():
+        pytest.skip("frontend/src not present")
+
+    sources = [
+        p
+        for p in src.rglob("*.ts*")
+        if "api/generated" not in p.relative_to(src).as_posix()
+    ]
+
+    problems: list[str] = []
+    for doc in SITE_DOCS:
+        if doc.status != "deployed" or not doc.requires_fe_call:
+            continue
+        needle = doc.requires_fe_call
+        if not any(
+            needle in p.read_text(encoding="utf-8", errors="ignore") for p in sources
+        ):
+            problems.append(
+                f"{doc.label!r} claims 'deployed' but no frontend source calls "
+                f"{needle!r}"
+            )
+    assert not problems, (
+        "Capabilities claiming deployment the frontend does not reach:\n  "
+        + "\n  ".join(problems)
+        + "\n    -> wire the frontend, or change the status to in_progress/roadmap."
+    )
+
+
 # --- R7/R8: narrative pages decay on a schedule --------------------------
 
 
