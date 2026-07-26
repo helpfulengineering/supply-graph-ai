@@ -365,7 +365,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "deployed",
         path="guides/who-can-see-your-data.md",
     ),
-    SiteDoc("convert", "Convert OKH-LOSH TOML and MSF datasheets", "deployed"),
+    SiteDoc(
+        "convert",
+        "Convert OKH-LOSH TOML and MSF datasheets",
+        "deployed",
+        path="guides/bring-your-collection.md",
+    ),
     SiteDoc(
         "selfhost",
         "Run your own node",
