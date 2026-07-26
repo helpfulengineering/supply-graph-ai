@@ -23,7 +23,10 @@ describe("deriveFilterOptions", () => {
       space({ country: "IT", region: null, status: "active", access_type: null, processes: ["cnc_machining", "laser_cutting"], source: "mom" }),
     ];
     const o = deriveFilterOptions(spaces);
-    expect(o.countries).toEqual(["IT", "US"]);
+    // Country options are display names, not ISO codes: 0.10.2 normalised
+    // codes to full names so the same country cannot appear twice under two
+    // spellings. Filters still treat a code and its name as equivalent.
+    expect(o.countries).toEqual(["Italy", "United States"]);
     expect(o.regions).toEqual(["TX"]);
     expect(o.statuses).toEqual(["active"]);
     expect(o.accessTypes).toEqual(["Public"]);

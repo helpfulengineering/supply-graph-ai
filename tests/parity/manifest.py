@@ -359,6 +359,7 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         "okh",
         "Browse and add designs",
         "deployed",
+        path="guides/add-a-design.md",
         requires_fe_call="/api/okh",
     ),
     SiteDoc(
@@ -406,7 +407,8 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
     SiteDoc(
         "okh",
         "Generate a design from a repository URL",
-        "roadmap",
+        "deployed",
+        path="guides/import-from-a-url.md",
         requires_fe_call="/api/okh/generate-from-url",
     ),
     SiteDoc("okw", "Search facilities by name", "roadmap"),

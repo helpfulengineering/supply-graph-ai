@@ -1,4 +1,4 @@
-import { apiClient, ApiError, errorMessage } from "./client";
+import { apiClient, ApiError, errorMessage, requestIdFromError } from "./client";
 import type { OkhManifest } from "../../types/okh";
 import type { components } from "../generated/schema";
 
@@ -236,4 +236,55 @@ export async function setOkhVisibility(
     );
   }
   return data;
+}
+
+// --- generate-from-URL ----------------------------------------------------
+
+export interface OkhQualityReport {
+  overall_quality?: string | number | null;
+  required_fields_complete?: boolean | null;
+  missing_required_fields?: string[] | null;
+  recommendations?: string[] | null;
+}
+
+export interface GenerateOkhResult {
+  success: boolean;
+  message: string;
+  manifest: Record<string, unknown>;
+  qualityReport: OkhQualityReport | null;
+}
+
+/**
+ * Generate an OKH manifest from a public repository URL.
+ *
+ * Synchronous by design: production has no LLM key, so generation always
+ * degrades to the heuristic layers and returns within the ingress timeout.
+ * Callers pass an AbortSignal — extraction can take up to about a minute and
+ * the user must be able to give up.
+ *
+ * `verbose` is always true (it powers per-field provenance in the review step)
+ * and `skip_review` is always true (the interactive review is a CLI concept;
+ * this UI does its own). Neither is a user-facing option.
+ */
+export async function generateOkhFromUrl(
+  url: string,
+  signal?: AbortSignal,
+): Promise<GenerateOkhResult> {
+  const { data, error, response } = await apiClient.POST("/api/okh/generate-from-url", {
+    body: { url, verbose: true, skip_review: true } as never,
+    signal,
+  });
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Generation failed (HTTP ${response.status})`),
+      requestIdFromError(error, response),
+    );
+  }
+  return {
+    success: Boolean(data.success),
+    message: String(data.message ?? ""),
+    manifest: (data.manifest ?? {}) as Record<string, unknown>,
+    qualityReport: (data.quality_report ?? null) as OkhQualityReport | null,
+  };
 }
