@@ -87,3 +87,21 @@ def test_no_nlp_available_is_handled(collector):
     collector._nlp = None
     assert collector._analyze_bom_likelihood("anything") == 0.0
     assert collector._find_bom_sections_with_nlp("anything", "README.md") == []
+
+
+def test_use_nlp_false_disables_spacy_in_bom_collection():
+    """`use_nlp=False` must mean no spaCy anywhere, not just no NLP layer.
+
+    It previously governed only the engine's NLP layer while BOMCollector
+    reached for spaCy independently — so disabling NLP did not disable NLP.
+    """
+    collector = BOMCollector(use_nlp=False)
+    collector._nlp = _PipelineTripwire()
+
+    # The NLP extraction path must decline before touching spaCy at all.
+    assert collector._extract_with_nlp(object()) == []
+    assert collector._nlp.tokenizer_calls == 0
+
+
+def test_use_nlp_defaults_to_enabled():
+    assert BOMCollector()._use_nlp is True

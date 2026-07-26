@@ -1423,8 +1423,10 @@ class GenerationEngine:
         """
         from .bom_models import BOMBuilder, BOMCollector, BOMProcessor
 
-        # Collect BOM data from multiple sources
-        collector = BOMCollector()
+        # Collect BOM data from multiple sources. `use_nlp` governs spaCy usage
+        # across the whole pipeline, not just the NLP layer — BOM detection
+        # reaches for it too.
+        collector = BOMCollector(use_nlp=self.config.use_nlp)
         sources = collector.collect_bom_data(project_data)
 
         # Process BOM data into components

@@ -51,7 +51,16 @@ class BOMSource:
 class BOMCollector:
     """Collects BOM data from multiple sources in a project using NLP-enhanced detection"""
 
-    def __init__(self):
+    def __init__(self, use_nlp: bool = True):
+        # Whether NLP-assisted BOM detection may run at all.
+        #
+        # This exists because `LayerConfig.use_nlp` used to govern only the NLP
+        # *layer*, while BOM collection reached for spaCy independently — so
+        # disabling NLP did not disable NLP, and anyone profiling or degrading
+        # the pipeline was misled. The flag now means what it says: no spaCy
+        # anywhere in generation. Regex extraction remains the fallback.
+        self._use_nlp = use_nlp
+
         # BOM file path rules live in bom_candidate_discovery (shared with LLM / layers).
 
         # Legacy regex patterns (kept for fallback)
@@ -330,6 +339,10 @@ class BOMCollector:
             List of BOMSource objects with extracted BOM data
         """
         sources = []
+
+        if not self._use_nlp:
+            logger.debug("NLP-assisted BOM detection disabled; using regex fallback")
+            return sources
 
         # Initialize spaCy if not already done (prefer en_core_web_md via shared loader)
         if self._nlp is None:
