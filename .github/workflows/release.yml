@@ -10,6 +10,13 @@ on:
         description: Build and test only; do not push to Docker Hub
         type: boolean
         default: true
+      deploy:
+        description: >-
+          Also deploy to Azure Container Apps. Requires dry_run = false, because
+          a deploy points the container at an image tag that must have been
+          pushed first. Ignored when dry_run is true.
+        type: boolean
+        default: false
 
 concurrency:
   group: release-${{ github.workflow }}-${{ github.ref }}
@@ -191,13 +198,21 @@ jobs:
   # CORS_ORIGINS, and the storage target -- provider/account/container) from
   # config/environments/production.toml. Secrets (storage key, LLM encryption)
   # stay secretRefs configured directly on the container and are untouched.
+  #
+  # Gate: a version tag always deploys. A manual run deploys only when asked
+  # (`deploy = true`) *and* it is publishing (`dry_run = false`) — deploying an
+  # image tag that was never pushed would point the app at nothing. `needs:
+  # publish` enforces the ordering; the condition makes it opt-in, so a manual
+  # run can publish an image without also shipping it.
   deploy-azure:
     name: Deploy to Azure Container Apps
     runs-on: ubuntu-latest
     needs: [validate, publish]
     if: >-
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+      (github.event_name == 'workflow_dispatch' &&
+       inputs.dry_run == false &&
+       inputs.deploy == true)
     environment: production
     permissions:
       id-token: write
@@ -365,13 +380,16 @@ jobs:
   # image + applies API_UPSTREAM_URL / PORT from config/environments/production.toml
   # [frontend] via deploy_azure_frontend.py. --environment is explicit (never
   # inferred). The container app itself is provisioned once out-of-band.
+  # Same gate as deploy-azure: tag push always, manual runs only when asked.
   deploy-frontend-azure:
     name: Deploy frontend to Azure Container Apps
     runs-on: ubuntu-latest
     needs: [validate, publish, publish-frontend]
     if: >-
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
+      (github.event_name == 'workflow_dispatch' &&
+       inputs.dry_run == false &&
+       inputs.deploy == true)
     environment: production
     permissions:
       id-token: write
