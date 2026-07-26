@@ -98,9 +98,13 @@ dev = [
     "black==26.3.1",
 ]
 docs = [
-    "mkdocs",
-    "mkdocs-mermaid2-plugin",
-    "mkdocs-material",
+    # Pinned below 2.0 deliberately. MkDocs 2.0 (https://www.encode.io/mkdocs/)
+    # is a pre-release that drops the plugin system, moves config from YAML to
+    # TOML, and does not currently state a license — so an unpinned `mkdocs`
+    # would silently break both sites on a routine `uv sync`. Revisit when 2.0
+    # is licensed and its hook/theme story is settled.
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.7,<10",
 ]
 
 [tool.setuptools.packages.find]

@@ -1,0 +1,95 @@
+# Open Hardware Manager — public documentation site.
+#
+# This is a SEPARATE site from the root mkdocs.yml:
+#
+#   docs/       (root config)  -> developer / agent corpus. Dense, rationale-heavy.
+#   docs-site/  (this config)  -> human-facing site for openhardwaremanager.org.
+#
+# The two have different audiences and different rules. See
+# notes/docs-v2-spec.md for the full contract.
+
+site_name: "Open Hardware Manager"
+site_description: >-
+  Find out who can build an open hardware design — and get the paperwork to
+  go ask them.
+# Built from the STAGED tree, never from the authored one. Run
+# `make docs-site` (scripts/build_docs_site.py) first — it copies
+# docs-site/docs/ here and injects status badges from tests/parity/manifest.py.
+#
+# Staging rather than a MkDocs hook keeps this generator swappable; see
+# notes/docs-v2-spec.md §5.
+docs_dir: .build
+
+# Coupling between these pages and the code is enforced by
+# tests/parity/test_docs_status.py — pure Python over markdown frontmatter,
+# with no MkDocs dependency. Directory determines the contract:
+#
+#   about/      narrative. Parity-exempt. Requires `reviewed:`.
+#   guides/     feature docs. Requires `area:` + `surface:`. Status injected.
+#   reference/  glossary, standards, generated status page.
+#
+# Never put a `status:` in page frontmatter — it comes from the manifest.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - footnotes
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+
+# Broken internal links fail the build.
+strict: true
+
+# Structural placeholders should not ship in the built site.
+exclude_docs: |
+  .gitkeep
+
+# Nav is declared explicitly rather than scanned, so a new page has to be
+# consciously placed. Entries are added as pages land (M3 -> M7).
+nav:
+  - Home: index.md
+  - About:
+      - What is OHM?: about/what-is-ohm.md
+      - The problem: about/the-problem.md
+      - How it works: about/how-it-works.md
+      - Is OHM for you?: about/is-ohm-for-me.md
+      - What OHM is not: about/what-ohm-is-not.md
+      - Federation and sovereignty: about/federation-and-sovereignty.md
+      - Meet people where they are: about/meet-people-where-they-are.md
+  - Reference:
+      - Glossary: reference/glossary.md
+      - OKH and OKW: reference/okh-and-okw.md
+      - Standards and ecosystem: reference/standards-and-ecosystem.md
+      - What's built: reference/whats-built.md
