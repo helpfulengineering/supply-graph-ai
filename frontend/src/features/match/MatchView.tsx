@@ -7,6 +7,7 @@ import { runMatch } from "../../api/ohm/match";
 import { ApiError } from "../../api/ohm/client";
 import { solutionSelectionKey, toMatchView } from "./matchViewModel";
 import {
+  buildInlineMatchRequest,
   buildMatchRequest,
   SYSTEM_MODES,
   type SystemMode,
@@ -81,11 +82,20 @@ export function MatchView({
   okhId,
   okwId,
   networkFilter,
+  inlineManifest,
+  inlineTitle,
 }: {
   okhId?: string;
   /** Prefill facility selection (from a facility detail hand-off). */
   okwId?: string;
   networkFilter?: Record<string, string | boolean>;
+  /**
+   * A reviewed manifest handed over from generate-from-URL, matched without
+   * being saved to the catalogue. When present the design picker is replaced,
+   * since there is no catalogue entry to pick.
+   */
+  inlineManifest?: Record<string, unknown>;
+  inlineTitle?: string;
 }) {
   const navigate = useNavigate();
   const networkMode = !!networkFilter;
@@ -117,16 +127,14 @@ export function MatchView({
       id: string;
       m: SystemMode;
       ids: string[];
-    }) =>
-      runMatch(
-        buildMatchRequest(
-          id,
-          m,
-          undefined,
-          ids,
-          networkMode ? networkFilter : MATCH_NETWORK_SCOPE,
-        ),
-      ),
+    }) => {
+      const scope = networkMode ? networkFilter : MATCH_NETWORK_SCOPE;
+      return runMatch(
+        inlineManifest
+          ? buildInlineMatchRequest(inlineManifest, m, undefined, ids, scope)
+          : buildMatchRequest(id, m, undefined, ids, scope),
+      );
+    },
     onSuccess: () => setSelectedSolutionKeys([]),
   });
   const view = useMemo(
@@ -148,10 +156,15 @@ export function MatchView({
   }, [facilitiesQuery.data]);
 
   const modeInfo = SYSTEM_MODES.find((s) => s.mode === mode);
+  // A design handed over from generation is scoped to the whole network by
+  // default (local ∪ MoM). The user asked "who can build this", not "who among
+  // these facilities" — making them pick facilities first would be friction
+  // that answers a question they did not ask. They can still narrow below.
+  const requiresFacilityChoice = !networkMode && !inlineManifest;
   const canRun =
-    !!selected &&
+    (!!selected || !!inlineManifest) &&
     !mutation.isPending &&
-    (networkMode || facilityIds.length > 0);
+    (!requiresFacilityChoice || facilityIds.length > 0);
 
   const facilityOptions = useMemo(
     () => (facilitiesQuery.data?.spaces ?? []).map(spaceToOption),
@@ -168,13 +181,26 @@ export function MatchView({
       </div>
 
       <div className="space-y-4">
-        <DesignPicker
-          designs={designs.data?.items ?? []}
-          selectedId={selected}
-          onSelect={setSelected}
-          isLoading={designs.isLoading}
-          isError={designs.isError}
-        />
+        {inlineManifest ? (
+          <div className="rounded-lg border border-input bg-muted/40 p-4">
+            <p className="text-sm font-medium text-foreground">
+              {inlineTitle || "Generated design"}
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Matching a design you generated and reviewed in this session. It has
+              not been saved to the catalogue, and closing this page will discard
+              it — download it first if you want to keep it.
+            </p>
+          </div>
+        ) : (
+          <DesignPicker
+            designs={designs.data?.items ?? []}
+            selectedId={selected}
+            onSelect={setSelected}
+            isLoading={designs.isLoading}
+            isError={designs.isError}
+          />
+        )}
 
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1">
@@ -219,7 +245,7 @@ export function MatchView({
             {mutation.isPending ? "Matching…" : "⚡ Run Match"}
           </Button>
         </div>
-        {!networkMode && selected && facilityIds.length === 0 && (
+        {requiresFacilityChoice && selected && facilityIds.length === 0 && (
           <p className="text-xs text-amber-700 dark:text-amber-400">
             Select at least one facility below before running a match.
           </p>

@@ -51,7 +51,16 @@ class BOMSource:
 class BOMCollector:
     """Collects BOM data from multiple sources in a project using NLP-enhanced detection"""
 
-    def __init__(self):
+    def __init__(self, use_nlp: bool = True):
+        # Whether NLP-assisted BOM detection may run at all.
+        #
+        # This exists because `LayerConfig.use_nlp` used to govern only the NLP
+        # *layer*, while BOM collection reached for spaCy independently — so
+        # disabling NLP did not disable NLP, and anyone profiling or degrading
+        # the pipeline was misled. The flag now means what it says: no spaCy
+        # anywhere in generation. Regex extraction remains the fallback.
+        self._use_nlp = use_nlp
+
         # BOM file path rules live in bom_candidate_discovery (shared with LLM / layers).
 
         # Legacy regex patterns (kept for fallback)
@@ -331,6 +340,10 @@ class BOMCollector:
         """
         sources = []
 
+        if not self._use_nlp:
+            logger.debug("NLP-assisted BOM detection disabled; using regex fallback")
+            return sources
+
         # Initialize spaCy if not already done (prefer en_core_web_md via shared loader)
         if self._nlp is None:
             from ..nlp.spacy_loader import load_spacy_english
@@ -455,8 +468,11 @@ class BOMCollector:
             return []
 
         sections = []
-        doc = self._nlp(content)
 
+        # NOTE: this used to run `self._nlp(content)` over the whole document and
+        # then never read the result. Sectioning is purely textual (see
+        # `_split_into_sections`), so the parse was dead work — and an expensive
+        # kind: 135 full-pipeline parses, ~53s of CPU, on one real repository.
         # Split content into potential sections (by headers or major breaks)
         content_sections = self._split_into_sections(content)
 
@@ -520,7 +536,12 @@ class BOMCollector:
         if not self._nlp:
             return 0.0
 
-        doc = self._nlp(text.lower())
+        # Tokenizer only, deliberately: the sole thing taken from the doc below
+        # is `token.text`, and the tokenizer yields exactly the same tokens as
+        # the full pipeline — the pipeline only *annotates* them. Running the
+        # tagger/parser/NER here meant a neural network was being used for a
+        # word-membership test, 2,117 times on one real repository (~54s CPU).
+        doc = self._nlp.tokenizer(text.lower())
         confidence = 0.0
 
         # Check for BOM-related keywords

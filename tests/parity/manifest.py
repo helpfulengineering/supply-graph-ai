@@ -283,6 +283,159 @@ AREAS: tuple[Area, ...] = (
 )
 
 
+# --- Public documentation status ----------------------------------------
+#
+# The public site (docs-site/) states plainly what works today. That claim must
+# come from ONE place, or it rots the way a hand-maintained roadmap does. This
+# is that place.
+#
+# Why a separate table instead of a `doc_status` field on Area: readiness is
+# per *capability*, not per code area. The `okh` area is deployed (designs list,
+# detail, and create all work in the UI) while importing a design from a repo
+# URL is not wired to the frontend at all — one area, two capabilities, two
+# honest answers. A single field per Area cannot express that.
+#
+# `path` is the guides/ page documenting the capability, or None when the
+# capability is real enough for users to ask about but has no page yet. Rows
+# with path=None still appear on the generated "what's built" page, which is the
+# point: users need to know RFQ exists and isn't reachable yet.
+
+DOC_STATUSES: frozenset[str] = frozenset(
+    {"deployed", "in_progress", "roadmap", "non_goal"}
+)
+
+# Valid `surface:` values for a guides/ page — which thing the page documents.
+# `web` is the only surface the fe_routes check applies to (see R6 in
+# tests/parity/test_docs_status.py).
+DOC_SURFACES: frozenset[str] = frozenset({"web", "api", "cli", "selfhost"})
+
+# User-facing surfaces the service/API/CLI parity gate cannot represent as a
+# single Area — either because there is no code layer, or because the surface
+# spans all of them. Valid `area:` values for a guides/ page all the same.
+#
+#   selfhost — a Docker image, make targets, and scripts. No service, no route,
+#              no CLI group for the parity gate to point at.
+#   api      — the HTTP API as a product surface. Every Area contributes routes
+#              to it, so no single Area represents it.
+DOC_ONLY_AREAS: frozenset[str] = frozenset({"selfhost", "api"})
+
+
+@dataclass(frozen=True)
+class SiteDoc:
+    """One user-facing capability and how honestly we can describe it today."""
+
+    area: str  # an Area.name, or a member of DOC_ONLY_AREAS
+    label: str  # human-readable, as it appears on the "what's built" page
+    status: str  # one of DOC_STATUSES
+    path: Optional[str] = None  # guides/ page, relative to docs-site/docs/
+    # API path this capability needs the FRONTEND to call, e.g.
+    # "/api/okh/generate-from-url". When set and status is "deployed", R9
+    # asserts the frontend actually calls it.
+    #
+    # Why this exists: R6 checks whether the *area* has any frontend route,
+    # which is too coarse. The `okh` area has routes (browsing designs), so R6
+    # would happily pass a page claiming URL-import is available even though no
+    # frontend code calls that endpoint. Status is per capability; this makes
+    # the evidence per capability too.
+    requires_fe_call: Optional[str] = None
+
+
+SITE_DOCS: tuple[SiteDoc, ...] = (
+    # --- Working today ---------------------------------------------------
+    SiteDoc(
+        "okw",
+        "Browse the facility network",
+        "deployed",
+        path="guides/find-your-space.md",
+        requires_fe_call="/api/okw/spaces",
+    ),
+    SiteDoc(
+        "okw",
+        "List or enrich a facility",
+        "deployed",
+        path="guides/list-or-enrich-your-facility.md",
+    ),
+    SiteDoc(
+        "okh",
+        "Browse and add designs",
+        "deployed",
+        path="guides/add-a-design.md",
+        requires_fe_call="/api/okh",
+    ),
+    SiteDoc(
+        "match",
+        "Match a design to facilities",
+        "deployed",
+        path="guides/find-who-can-build-it.md",
+        requires_fe_call="/api/match",
+    ),
+    SiteDoc(
+        "package",
+        "Build and download design packages",
+        "deployed",
+        path="guides/share-as-a-package.md",
+        requires_fe_call="/api/package",
+    ),
+    SiteDoc("supply-tree", "Visualize a supply tree", "deployed"),
+    SiteDoc("federation", "Follow peers and sync catalogs", "deployed"),
+    SiteDoc(
+        "identity",
+        "Accounts, API keys, and record visibility",
+        "deployed",
+        path="guides/who-can-see-your-data.md",
+        requires_fe_call="/api/identity",
+    ),
+    SiteDoc(
+        "convert",
+        "Convert OKH-LOSH TOML and MSF datasheets",
+        "deployed",
+        path="guides/bring-your-collection.md",
+    ),
+    SiteDoc(
+        "selfhost",
+        "Run your own node",
+        "deployed",
+        path="guides/run-your-own-node.md",
+    ),
+    SiteDoc(
+        "api",
+        "Use the OHM API from your own software",
+        "deployed",
+        path="guides/use-the-api.md",
+    ),
+    # --- Not reachable from the web app yet -------------------------------
+    SiteDoc(
+        "okh",
+        "Generate a design from a repository URL",
+        "deployed",
+        path="guides/import-from-a-url.md",
+        requires_fe_call="/api/okh/generate-from-url",
+    ),
+    SiteDoc("okw", "Search facilities by name", "roadmap"),
+    SiteDoc("convert", "Bulk-import a design collection", "roadmap"),
+    SiteDoc("rfq", "Generate requests for quotation", "roadmap"),
+    SiteDoc("okw", "Search facilities by material and thickness", "roadmap"),
+)
+
+
+def doc_areas() -> set[str]:
+    """Area names a guides/ page may legitimately declare."""
+    return {a.name for a in AREAS} | set(DOC_ONLY_AREAS)
+
+
+def site_doc_paths() -> set[str]:
+    """guides/ page paths declared by SITE_DOCS."""
+    return {d.path for d in SITE_DOCS if d.path is not None}
+
+
+def site_doc_for_path(path: str) -> Optional[SiteDoc]:
+    """The SiteDoc row documenting ``path``, or None if undeclared."""
+    for doc in SITE_DOCS:
+        if doc.path == path:
+            return doc
+    return None
+
+
 def expected_services() -> set[str]:
     """Service stems the manifest declares to exist."""
     return {a.service for a in AREAS if a.service is not None}

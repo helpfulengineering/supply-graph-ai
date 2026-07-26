@@ -49,8 +49,15 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH="/app" \
     APP_VERSION="${APP_VERSION}"
 
+# curl: container healthcheck.
+# git:  the generation pipeline's clone path (`clone=true`) shells out to
+#       `git clone --depth 1 --single-branch`. Without it the clone fails
+#       instantly and generation falls back to fetching every file over the GitHub
+#       Contents API — one HTTP round trip per file, which cannot finish a large
+#       repository inside the proxy timeout.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /opt/venv /opt/venv

@@ -150,16 +150,23 @@ export function OkhListView() {
             Browse designs by category and capability, then run facility matching.
           </p>
         </div>
-        <Button
-          title={
-            hasWrite
-              ? undefined
-              : "Connect a write-capable API key first (opens Session)"
-          }
-          onClick={() => navigate(hasWrite ? "/okh/new" : "/settings/session")}
-        >
-          New design
-        </Button>
+        <div className="flex gap-2">
+          {/* Generation needs no write key: it produces a file to download, and
+              deliberately does not save to the catalogue. */}
+          <Button variant="outline" onClick={() => navigate("/okh/generate")}>
+            Generate from URL
+          </Button>
+          <Button
+            title={
+              hasWrite
+                ? undefined
+                : "Connect a write-capable API key first (opens Session)"
+            }
+            onClick={() => navigate(hasWrite ? "/okh/new" : "/settings/session")}
+          >
+            New design
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-8">

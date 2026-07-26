@@ -61,6 +61,22 @@ class DocValidator:
                     }
                 )
 
+    def _doc_files(self) -> List[Path]:
+        """Every markdown file in both documentation corpora.
+
+        `docs/` is the developer/agent corpus; `docs-site/docs/` is the public
+        site. A page on the public site quoting a stale port or auth header is
+        worse than one in the dev docs, not better — so both are checked.
+        Generated trees (docs-site/.build, docs-site/site) are never scanned.
+        """
+        roots = [
+            self.project_root / "docs",
+            self.project_root / "docs-site" / "docs",
+        ]
+        return [
+            f for root in roots if root.is_dir() for f in sorted(root.rglob("*.md"))
+        ]
+
     def check_port_numbers(self):
         """Check port number consistency."""
         # Check code defaults
@@ -68,19 +84,37 @@ class DocValidator:
         if settings_file.exists():
             with open(settings_file, "r") as f:
                 content = f.read()
+                # settings.py resolves API_PORT through PORT / API_PORT env vars
+                # and falls back to a literal default on its own line. Match that
+                # literal first; the older single-line getenv form is kept as a
+                # fallback so this survives a future simplification of settings.py.
+                #
+                # This previously matched ONLY the getenv form, which settings.py
+                # has not used for some time — so the whole port check silently
+                # did nothing.
                 port_match = re.search(
+                    r"^\s*API_PORT\s*=\s*(\d+)", content, re.MULTILINE
+                ) or re.search(
                     r'API_PORT.*=.*int\(os\.getenv\(["\']API_PORT["\'],\s*["\'](\d+)["\']\)',
                     content,
                 )
                 if port_match:
                     default_port = port_match.group(1)
 
-                    # Ports for other services (not API server) - these are OK
-                    other_service_ports = {"11434", "3000", "7071", "8080", "8081"}
+                    # Ports for other services (not API server) - these are OK.
+                    # 8011: the MoM integration runbook deliberately starts a
+                    # second instance (`--port 8011`) alongside the default one.
+                    other_service_ports = {
+                        "11434",
+                        "3000",
+                        "7071",
+                        "8080",
+                        "8081",
+                        "8011",
+                    }
 
                     # Check docs
-                    docs_dir = self.project_root / "docs"
-                    for doc_file in docs_dir.rglob("*.md"):
+                    for doc_file in self._doc_files():
                         # Skip spec files and code-review-report
                         if "spec" in str(doc_file) or "code-review-report" in str(
                             doc_file

@@ -14,6 +14,7 @@ import { PackagePage } from "./pages/PackagePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { RequireAdmin } from "./features/auth/RequireAdmin";
 import { CreateOkhPage } from "./features/okh/CreateOkhPage";
+import { GeneratePage } from "./pages/GeneratePage";
 import { CreateOkwPage } from "./features/okw/CreateOkwPage";
 import { EditOkwPage } from "./features/okw/EditOkwPage";
 import { ThemeContext } from "./context/ThemeContext";
@@ -40,6 +41,7 @@ export function App() {
                 <Route index element={<HomePage />} />
                 <Route path="okh" element={<OkhPage />} />
                 <Route path="okh/new" element={<CreateOkhPage />} />
+                <Route path="okh/generate" element={<GeneratePage />} />
                 <Route path="okh/:id/files/*" element={<OkhFilePreviewPage />} />
                 <Route path="okh/:id" element={<OkhPage />} />
                 <Route path="facilities" element={<OkwPage />} />

@@ -1971,7 +1971,10 @@ class LayerConfig:
     Attributes:
         use_direct: Enable direct field mapping layer
         use_heuristic: Enable heuristic pattern recognition layer
-        use_nlp: Enable natural language processing layer
+        use_nlp: Enable natural language processing. Governs *all* spaCy usage in
+            generation — the NLP layer and the NLP-assisted BOM detection in
+            ``BOMCollector`` — not just the layer. Disabling it falls back to
+            regex-based BOM extraction.
         use_llm: Enable large language model layer. When disabled, OKH ``intended_use``
             is left blank (only the LLM layer may populate it).
         use_bom_normalization: Enable BOM normalization layer

@@ -19,6 +19,7 @@ A ✎ marks a script that **writes** files / storage / remote state; the rest ar
 
 | Script | What it does | Run |
 | --- | --- | --- |
+| `build_docs_site` ✎ | Stage docs-site/docs into docs-site/.build with status badges injected, for any static site generator to build. | `uv run python scripts/build_docs_site.py` |
 | `dump_api_routes` | Print sorted 'METHOD path' lines for the v1 FastAPI app; --count-only for a route count. | `uv run python scripts/dump_api_routes.py [--count-only]` |
 | `generate_env_template` ✎ | Regenerate the schema-owned block of env.template from the config schema; --check gates staleness. | `uv run python scripts/generate_env_template.py [--check]` |
 | `generate_openapi_routes_md` ✎ | Write the MkDocs API route table from the versioned FastAPI (api_v1) OpenAPI schema. | `uv run python scripts/generate_openapi_routes_md.py` |

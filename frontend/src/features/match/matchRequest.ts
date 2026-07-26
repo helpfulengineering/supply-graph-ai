@@ -57,3 +57,22 @@ export function buildMatchRequest(
   }
   return { okhId, ...MODE_PARAMS[mode], maxResults, ...subset };
 }
+
+/**
+ * Same, for a design that is not in the catalogue — a manifest generated from a
+ * repository URL and reviewed in-session. Generation deliberately does not save,
+ * so there is no id to match by.
+ */
+export function buildInlineMatchRequest(
+  manifest: Record<string, unknown>,
+  mode: SystemMode,
+  maxResults?: number,
+  okwIds?: string[],
+  networkFilter?: Record<string, string | boolean>,
+): RunMatchParams {
+  const subset = okwIds && okwIds.length > 0 ? { okwIds } : {};
+  const base = { okhManifest: manifest, ...MODE_PARAMS[mode], maxResults };
+  return networkFilter
+    ? { ...base, networkFilter, ...subset }
+    : { ...base, ...subset };
+}

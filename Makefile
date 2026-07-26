@@ -1,5 +1,5 @@
 # Code style and project map via uv-managed environment.
-.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness
+.PHONY: format format-check lint test check black ruff repo-map env-template env-template-check validate-docs version-check lock-check scripts scripts-check parity ready setup verify-env frontend-setup frontend-ready harness harness-probes match-harness docs-site docs-status
 
 # Web frontend verification harness (the frontend analogue of `ready`).
 # See frontend/harness/README.md. Runs typecheck, lint, unit, build, and the
@@ -80,6 +80,19 @@ env-template-check:
 validate-docs:
 	uv run python scripts/validate_docs.py
 
+# Public docs <-> code gate. Fails when a site page claims a capability the
+# code does not have (see tests/parity/test_docs_status.py). Narrative staleness
+# is reported as a warning here, never as a failure.
+docs-status:
+	uv run pytest tests/parity/test_docs_status.py -q
+
+# Public documentation site (openhardwaremanager.org). Stages docs-site/docs
+# into docs-site/.build with status badges injected, then builds it. Authored
+# markdown lives in docs-site/docs; never edit .build or site.
+docs-site:
+	uv run python scripts/build_docs_site.py
+	uv run --extra docs mkdocs build -f docs-site/mkdocs.yml
+
 # Version drift gate (lockfile pattern): fails if any "current release" claim
 # in the registry (scripts/bump_version.py) drifts from pyproject.toml.
 version-check:
@@ -106,13 +119,14 @@ parity:
 # Definition of done. Green tests are not "ready to merge"; this is.
 # Each step verifies (does not mutate) and fails fast. Run before any MR.
 ready:
-	@echo "==> [1/9] env verify";      $(MAKE) verify-env
-	@echo "==> [2/9] format check";    $(MAKE) format-check
-	@echo "==> [3/9] lint";            $(MAKE) lint
-	@echo "==> [4/9] unit tests";      $(MAKE) test
-	@echo "==> [5/9] service parity";  $(MAKE) parity
-	@echo "==> [6/9] docs ↔ code";     $(MAKE) validate-docs
-	@echo "==> [7/9] version sync";    $(MAKE) version-check
-	@echo "==> [8/9] lockfile sync";   $(MAKE) lock-check
-	@echo "==> [9/9] script registry"; $(MAKE) scripts-check
+	@echo "==> [1/10] env verify";      $(MAKE) verify-env
+	@echo "==> [2/10] format check";    $(MAKE) format-check
+	@echo "==> [3/10] lint";            $(MAKE) lint
+	@echo "==> [4/10] unit tests";      $(MAKE) test
+	@echo "==> [5/10] service parity";  $(MAKE) parity
+	@echo "==> [6/10] docs ↔ code";     $(MAKE) validate-docs
+	@echo "==> [7/10] site docs status";$(MAKE) docs-status
+	@echo "==> [8/10] version sync";    $(MAKE) version-check
+	@echo "==> [9/10] lockfile sync";   $(MAKE) lock-check
+	@echo "==> [10/10] script registry";$(MAKE) scripts-check
 	@echo "==> READY: all gates passed."
