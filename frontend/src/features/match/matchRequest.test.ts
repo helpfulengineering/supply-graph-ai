@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMatchRequest } from "./matchRequest";
+import { buildInlineMatchRequest, buildMatchRequest } from "./matchRequest";
 
 describe("buildMatchRequest", () => {
   it("maps minimal to relaxed params", () => {
@@ -61,5 +61,35 @@ describe("buildMatchRequest", () => {
     );
     expect(req.okwIds).toEqual([momIri, localId]);
     expect(req.networkFilter).toEqual({ include_mom: true });
+  });
+});
+
+describe("buildInlineMatchRequest", () => {
+  const manifest = { title: "Generated", manufacturing_processes: ["3D Printing"] };
+
+  it("sends the manifest instead of an id", () => {
+    const req = buildInlineMatchRequest(manifest, "standard");
+    expect(req.okhManifest).toEqual(manifest);
+    expect(req.okhId).toBeUndefined();
+  });
+
+  it("carries the system mode through, like the id-based builder", () => {
+    const inline = buildInlineMatchRequest(manifest, "strict");
+    const byId = buildMatchRequest("okh-1", "strict");
+    expect(inline.qualityLevel).toBe(byId.qualityLevel);
+    expect(inline.strictMode).toBe(byId.strictMode);
+  });
+
+  it("supports a network filter and a facility subset together", () => {
+    const req = buildInlineMatchRequest(manifest, "standard", 5, ["f1"], {
+      country: "France",
+    });
+    expect(req.networkFilter).toEqual({ country: "France" });
+    expect(req.okwIds).toEqual(["f1"]);
+    expect(req.maxResults).toBe(5);
+  });
+
+  it("omits an empty facility subset", () => {
+    expect(buildInlineMatchRequest(manifest, "standard", undefined, []).okwIds).toBeUndefined();
   });
 });

@@ -1,7 +1,7 @@
 import { test, expect } from "./mock-api";
 
-// Slice A + B: generate an OKH manifest from a repository URL, then review it
-// through the guided tiered editor. The mocked lane owns the behaviour; the
+// Slices A + B + C: generate an OKH manifest from a repository URL, review it
+// through the guided tiered editor, then hand it to matching unsaved. The mocked lane owns the behaviour; the
 // real-api lane would need a live repository read (up to a minute) and a shared
 // token quota, so it only checks the page loads.
 
@@ -129,4 +129,43 @@ test("explains a rate-limited generation in plain language (mocked)", async ({
   const alert = page.getByRole("alert");
   await expect(alert).toContainText(/rate limit/i);
   await expect(alert).not.toContainText("429");
+});
+
+test("hands the reviewed design off to match without saving it (mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts fixture data");
+  await mockGenerate(page, {
+    success: true,
+    message: "ok",
+    manifest: { ...MANIFEST, function: "Drives around" },
+    quality_report: { missing_required_fields: [] },
+  });
+
+  // Capture what the match endpoint actually receives.
+  let matchBody: Record<string, unknown> | null = null;
+  await page.route("**/api/match", async (route) => {
+    matchBody = JSON.parse(route.request().postData() ?? "{}");
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { solutions: [], total_solutions: 0 } }),
+    });
+  });
+
+  await page.goto("/okh/generate");
+  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByRole("button", { name: "Generate" }).click();
+  await page.getByRole("button", { name: "Find who can build this" }).click();
+
+  // Lands on Match, showing the generated design instead of the picker.
+  await expect(page.getByText("Open Source Rover")).toBeVisible();
+  await expect(page.getByText(/not been saved to the catalogue/i)).toBeVisible();
+
+  await page.getByRole("button", { name: /Run Match/i }).click();
+  await expect.poll(() => matchBody).not.toBeNull();
+  // The manifest travels inline; nothing is persisted.
+  expect(matchBody!.okh_manifest).toBeTruthy();
+  expect(matchBody!.okh_id).toBeUndefined();
+  expect(matchBody!.save_solution).toBe(false);
 });

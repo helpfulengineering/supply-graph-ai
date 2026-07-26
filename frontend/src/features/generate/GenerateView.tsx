@@ -1,5 +1,5 @@
 /**
- * Generate an OKH manifest from a repository URL (Slices A + B).
+ * Generate an OKH manifest from a repository URL (Slices A + B + C).
  *
  * Synchronous by design — production has no LLM key, so extraction always
  * degrades to the heuristic layers and finishes inside the ingress timeout.
@@ -9,10 +9,13 @@
  *
  * The result is not saved to the catalogue. Without user auth there is no owner
  * and no provenance, so a save would put unattributed records into a shared
- * catalogue. Download is the terminal action until auth exists.
+ * catalogue. Download, or hand the reviewed manifest straight to matching
+ * (Slice C) — the API accepts an inline `okh_manifest`, so a design can be
+ * matched without existing in the catalogue.
  */
 
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ApiError } from "../../api/ohm/client";
 import { generateOkhFromUrl, type OkhQualityReport } from "../../api/ohm/okh";
 import { toQualityBanner } from "./qualityBanner";
@@ -69,6 +72,7 @@ export function generationErrorMessage(err: unknown): string {
 
 
 export function GenerateView() {
+  const navigate = useNavigate();
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -224,6 +228,22 @@ export function GenerateView() {
               className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
             >
               Download JSON
+            </button>
+            <button
+              type="button"
+              disabled={missing.length > 0}
+              onClick={() =>
+                navigate("/match", {
+                  state: {
+                    okhManifest: manifest,
+                    okhTitle:
+                      typeof manifest.title === "string" ? manifest.title : undefined,
+                  },
+                })
+              }
+              className="rounded-md border border-slate-300 px-5 py-2 text-sm font-semibold disabled:opacity-60 dark:border-slate-600"
+            >
+              Find who can build this
             </button>
             {missing.length > 0 && (
               <p className="text-sm text-amber-700 dark:text-amber-400">

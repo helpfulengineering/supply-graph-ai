@@ -1,7 +1,17 @@
 import { apiBaseUrl, apiClient, ApiError, errorMessage, requestIdFromError } from "./client";
 
 export interface RunMatchParams {
-  okhId: string;
+  /** Catalogue design id. Omit when matching an inline manifest. */
+  okhId?: string;
+  /**
+   * A full OKH manifest to match directly, without it being in the catalogue.
+   *
+   * This is what lets a design generated from a repository URL be matched
+   * immediately: generation deliberately does not save (no accounts means no
+   * owner or provenance), so there is no id to match by. The API accepts
+   * `okh_manifest` as an alternative to `okh_id`.
+   */
+  okhManifest?: Record<string, unknown>;
   maxResults?: number;
   qualityLevel?: string;
   strictMode?: boolean;
@@ -45,12 +55,18 @@ export async function runMatch(params: RunMatchParams): Promise<RawMatchResponse
     // needs (verified against the live endpoint). Cast to satisfy the strict
     // generated body type without enumerating server-defaulted fields.
     body: {
-      okh_id: params.okhId,
+      // Exactly one of these carries the design; the API accepts either.
+      ...(params.okhManifest
+        ? { okh_manifest: params.okhManifest }
+        : { okh_id: params.okhId }),
       max_results: params.maxResults ?? 10,
       include_human_summary: true,
       include_explanation: true,
       // Persist the solution so it has an id the supply-tree explorer can load.
-      save_solution: true,
+      // Not for inline manifests: the design itself is deliberately unsaved, so
+      // a stored solution would reference an OKH id that does not exist. The
+      // trade is that inline matches have no supply-tree deep link.
+      save_solution: !params.okhManifest,
       quality_level: params.qualityLevel,
       strict_mode: params.strictMode,
       // Network match (local ∪ MoM) can combine with an explicit id subset.
