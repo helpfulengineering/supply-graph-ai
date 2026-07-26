@@ -18,21 +18,22 @@ organisation backfills a back catalogue without redocumenting years of work.
 
 Only the URL is needed. Everything else is decided for you.
 
-Most repositories come back in a few seconds. Large ones take longer, and the
+Most repositories come back in a few seconds. Large, mature projects — hundreds
+of files, years of documentation — take longer, usually tens of seconds. The
 progress indicator is deliberately honest: it can't tell how far along it is, so
 it doesn't pretend. You can cancel at any point.
 
-!!! warning "Very large repositories can't be imported yet"
+!!! note "There's still an upper limit"
 
-    Generation currently happens while you wait, and there's a hard limit of
-    about two minutes. A big, mature project — many directories, deep history,
-    hundreds of files — can exceed it and fail, and no amount of retrying will
-    change that.
+    Generation happens while you wait, with a ceiling of about two minutes. That
+    is comfortable for the open hardware projects we've tested, including large
+    ones — but a genuinely enormous repository could still exceed it.
 
-    This is a real limitation, not a fluke, and the fix is background processing
-    rather than a longer wait. Until then, the workaround for a large repository
-    is to describe it by hand or convert an existing structured file. See
-    [add a design](add-a-design.md).
+    If that happens to you, it's a limitation worth telling us about rather than
+    working around: the fix is to move generation into the background, and
+    knowing it bites real projects is what moves that up the list. In the
+    meantime you can describe the design by hand or convert an existing
+    structured file — see [add a design](add-a-design.md).
 
 ## Then review it — this part is not optional
 
