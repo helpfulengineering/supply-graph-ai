@@ -320,3 +320,72 @@ def test_a_string_tsdc_is_tolerated(service: ProcessInferenceService) -> None:
 def test_absent_tsdc_changes_nothing(service: ProcessInferenceService) -> None:
     manifest = _manifest(title="Widget")
     assert service.infer_from_manifest(manifest).processes == []
+
+
+# The backfill must not report success for a partial run.
+#
+# `ohm okh infer-processes --all` defaulted to `--limit 100`, and the service
+# capped an unlimited run at 500 (`page_size = limit or 500`). Against 175
+# designs it printed "scanned=100" with no indication that 75 were untouched.
+
+
+class _FakeService:
+    """Exercises backfill_manufacturing_processes' selection logic only."""
+
+    def __init__(self, count):
+        from src.core.models.okh import License, OKHManifest
+
+        self._manifests = [
+            OKHManifest(
+                title=f"D{i}",
+                version="1.0.0",
+                license=License(hardware="MIT"),
+                licensor="T",
+                documentation_language="en",
+                function="f",
+            )
+            for i in range(count)
+        ]
+
+    async def list(self, page=1, page_size=100):
+        return self._manifests[:page_size], len(self._manifests)
+
+    async def ensure_initialized(self):
+        return None
+
+
+async def _run_backfill(count, limit):
+    from src.core.services.okh_service import OKHService
+
+    fake = _FakeService(count)
+    return await OKHService.backfill_manufacturing_processes(
+        fake, only_if_empty=True, dry_run=True, limit=limit
+    )
+
+
+@pytest.mark.asyncio
+async def test_no_limit_scans_every_manifest() -> None:
+    report = await _run_backfill(175, None)
+    assert report["scanned"] == 175
+    assert report["not_scanned"] == 0
+
+
+@pytest.mark.asyncio
+async def test_no_limit_is_not_silently_capped_at_500() -> None:
+    report = await _run_backfill(620, None)
+    assert report["scanned"] == 620
+
+
+@pytest.mark.asyncio
+async def test_a_limit_reports_what_it_left_behind() -> None:
+    """The footgun: 100 of 175 scanned, previously reported as success."""
+    report = await _run_backfill(175, 100)
+    assert report["scanned"] == 100
+    assert report["not_scanned"] == 75
+
+
+@pytest.mark.asyncio
+async def test_a_limit_larger_than_the_catalogue_leaves_nothing_behind() -> None:
+    report = await _run_backfill(175, 500)
+    assert report["scanned"] == 175
+    assert report["not_scanned"] == 0

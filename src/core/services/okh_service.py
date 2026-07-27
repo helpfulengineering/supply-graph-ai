@@ -1035,6 +1035,7 @@ class OKHService(BaseService["OKHService"]):
         service = ProcessInferenceService()
 
         targets: List[OKHManifest] = []
+        not_scanned = 0
         if manifest_ids:
             for mid in manifest_ids:
                 manifest = await self.get(mid)
@@ -1042,9 +1043,15 @@ class OKHService(BaseService["OKHService"]):
                     continue
                 targets.append(manifest)
         else:
-            page_size = limit or 500
-            manifests, _total = await self.list(page=1, page_size=page_size)
-            targets = manifests[:limit] if limit is not None else list(manifests)
+            # Probe the size before deciding how many to take, so an unlimited
+            # run means all of them. The catalogue is cached, so the extra call
+            # is cheap. `not_scanned` is what makes a capped run say so.
+            _, total = await self.list(page=1, page_size=1)
+            take = total if limit is None else min(limit, total)
+            # page_size floors at 1; the slice is what honours take == 0.
+            manifests, _ = await self.list(page=1, page_size=max(take, 1))
+            targets = list(manifests[:take])
+            not_scanned = total - len(targets)
 
         scanned = 0
         updated: List[Dict[str, Any]] = []
@@ -1086,6 +1093,7 @@ class OKHService(BaseService["OKHService"]):
             "dry_run": dry_run,
             "only_if_empty": only_if_empty,
             "scanned": scanned,
+            "not_scanned": not_scanned,
             "missing": missing,
             "skipped_nonempty": skipped_nonempty,
             "no_inference": no_inference,
