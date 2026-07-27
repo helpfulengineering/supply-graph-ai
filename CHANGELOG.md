@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A configured but unusable Redis now falls back to the memory cache.** Every
+  Redis operation reports a miss on failure, so a broken instance cached
+  *nothing* while reporting `backend: redis` — strictly worse than the memory
+  backend it replaced, which at least caches per replica. Production ran a full
+  deployment in that state: the connection URL still contained the literal
+  `<key>` placeholder, so every request paid full assembly (single-design fetch
+  1.5s against a 0.23s warm path). The backend is now verified with a PING
+  before it is committed to.
+- **Redis provisioning docs no longer hand-substitute the access key.** The
+  commands read and percent-encode it themselves, and the page says how to
+  confirm the cache actually works — `backend: redis` alone is exactly what a
+  completely non-functional cache reports.
+
 ### Changed
 
 - **The catalogue cache is shared across replicas in production**

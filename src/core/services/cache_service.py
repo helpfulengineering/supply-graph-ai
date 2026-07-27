@@ -40,11 +40,22 @@ def create_cache_backend():
                 "to share the cache across replicas."
             )
         else:
-            logger.info(
-                "Initializing Redis cache backend (%s)",
-                CACHE_REDIS_URL.split("@")[-1],
+            host = CACHE_REDIS_URL.split("@")[-1]
+            backend = RedisCacheBackend(CACHE_REDIS_URL)
+            # Verify before committing to it. Redis swallows every operational
+            # failure and reports a miss, so an unusable instance caches nothing
+            # while looking healthy — strictly worse than the memory backend it
+            # replaced, because that at least caches per replica.
+            reachable, error = backend.is_reachable()
+            if reachable:
+                logger.info("Initializing Redis cache backend (%s)", host)
+                return backend
+            logger.error(
+                "Redis at %s is unusable (%s) — falling back to the per-replica "
+                "memory cache. The catalogue will not be shared across replicas.",
+                host,
+                error,
             )
-            return RedisCacheBackend(CACHE_REDIS_URL)
     elif backend_name != "memory":
         logger.warning("Unknown CACHE_BACKEND=%r; falling back to memory", backend_name)
     return MemoryCacheBackend(

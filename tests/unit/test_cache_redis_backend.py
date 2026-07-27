@@ -37,6 +37,10 @@ class FakeRedis:
         if self.fail:
             raise ConnectionError("connection refused")
 
+    def ping(self):
+        self._boom()
+        return True
+
     def get(self, key):
         self._boom()
         return self.store.get(key)
@@ -135,6 +139,28 @@ class TestDegradesInsteadOfFailing:
         assert "pw" not in json.dumps(backend.backend_stats())
 
 
+class TestReachability:
+    """An unusable Redis must not be mistaken for a working one.
+
+    Every operation swallows its failure and reports a miss, so a broken
+    instance caches nothing while looking healthy. Production ran a full
+    deployment that way: the connection URL still contained the literal
+    `<key>` placeholder, so Redis rejected every command, the app served
+    every request uncached, and the only outward sign was an `error` field
+    in the metrics payload.
+    """
+
+    def test_a_working_redis_is_reachable(self):
+        backend, _ = build_backend()
+        assert backend.is_reachable() == (True, None)
+
+    def test_an_unusable_redis_reports_why(self):
+        backend, _ = build_backend(fail=True)
+        ok, error = backend.is_reachable()
+        assert ok is False
+        assert "connection refused" in (error or "")
+
+
 class TestBackendSelection:
     def test_redis_without_a_url_degrades_to_memory(self):
         """CACHE_BACKEND is plain config; CACHE_REDIS_URL is a secretRef.
@@ -165,6 +191,25 @@ class TestBackendSelection:
             backend = cache_service.create_cache_backend()
 
         assert backend.name == "redis"
+
+    def test_an_unusable_redis_falls_back_to_memory(self):
+        """The bug this exists for: a configured but broken Redis.
+
+        Returning it would cache nothing at all — strictly worse than the
+        memory backend it replaced, which at least caches per replica.
+        """
+        from src.core.services import cache_service
+
+        with (
+            patch.object(cache_service, "CACHE_BACKEND", "redis"),
+            patch.object(
+                cache_service, "CACHE_REDIS_URL", "redis://cache.example:6379/0"
+            ),
+            patch("redis.from_url", return_value=FakeRedis(fail=True)),
+        ):
+            backend = cache_service.create_cache_backend()
+
+        assert backend.name == "memory"
 
     def test_an_unknown_backend_falls_back_to_memory(self):
         from src.core.services import cache_service
