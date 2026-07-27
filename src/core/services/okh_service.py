@@ -1,3 +1,4 @@
+import asyncio
 import json
 import traceback
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
@@ -28,6 +29,7 @@ from ..storage.smart_discovery import (
     SmartFileDiscovery,
     minimal_okh_manifest_dict,
 )
+from ..cache.helper import cached
 from ..utils.logging import get_logger
 from ..validation.error_codes import VALIDATION_ERROR_CODE, VALIDATION_WARNING_CODE
 from ..validation.uuid_validator import UUIDValidator
@@ -38,6 +40,22 @@ if TYPE_CHECKING:
     from ..generation.engine import GenerationEngine
 
 logger = get_logger(__name__)
+
+# Blob reads issued at once when assembling the catalogue. Objects were
+# previously read one at a time, so the cost was one network round trip per
+# object in sequence — 287 of them in production, which is most of where the
+# ~7s catalogue load went. Bounded so a large catalogue cannot exhaust the
+# storage client's connection pool.
+CATALOG_FETCH_CONCURRENCY = 16
+
+# The assembled catalogue is cached so paging through it does not repeat the
+# whole scan; pagination is applied after assembly, so every page previously
+# paid the full cost. Writes invalidate the entry, so the TTL only covers
+# changes that bypass this service — a federation ingest, or another replica.
+CATALOG_CACHE_TTL_SECONDS = 120
+CATALOG_CACHE_SERVICE = "okh"
+CATALOG_CACHE_OPERATION = "catalog"
+CATALOG_CACHE_KEY = "all"
 
 
 async def extract_project_data(
@@ -203,6 +221,7 @@ class OKHService(BaseService["OKHService"]):
                     str(manifest.id), DEFAULT_VISIBILITY
                 )
 
+            self._invalidate_catalog_cache()
             return manifest
 
     def _provenance_store(self) -> ProvenanceStore:
@@ -409,60 +428,101 @@ class OKHService(BaseService["OKHService"]):
                 self.logger.warning("Storage service not available or not configured")
                 return [], 0
 
-            # Use smart discovery to find OKH files
-            discovery = SmartFileDiscovery(self.storage.manager)
-            file_infos = await discovery.discover_files("okh")
+            # The catalogue (discover -> fetch -> parse -> dedupe) is expensive
+            # and identical for every page, so it is assembled once and cached.
+            # Raw dicts are cached rather than OKHManifest objects: the Redis
+            # backend serialises with json.dumps(default=str), which would
+            # silently turn objects into strings, and to_dict() is a whitelist
+            # that drops ohm_* keys. Caching what we already feed to from_dict
+            # keeps the cached path identical to the uncached one.
+            raw_manifests = await cached(
+                service=CATALOG_CACHE_SERVICE,
+                operation=CATALOG_CACHE_OPERATION,
+                key=CATALOG_CACHE_KEY,
+                ttl_seconds=CATALOG_CACHE_TTL_SECONDS,
+                loader=self._assemble_okh_catalog,
+            )
 
-            self.logger.info(f"Found {len(file_infos)} OKH files using smart discovery")
+            all_manifests = [OKHManifest.from_dict(d) for d in raw_manifests]
+            total = len(all_manifests)
 
-            # Load and deduplicate manifests by ID (keep most recent)
-            manifest_map: Dict[UUID, Tuple[FileInfo, OKHManifest]] = {}
-            for file_info in file_infos:
+            start_idx = (page - 1) * page_size
+            paginated_manifests = all_manifests[start_idx : start_idx + page_size]
+
+            return paginated_manifests, total
+
+    def _invalidate_catalog_cache(self) -> None:
+        """Drop the cached catalogue after a write.
+
+        Without this a newly created design would not appear in the list until
+        the TTL expired, which is exactly the moment someone goes looking for it.
+        """
+        from ..cache.keys import namespaced_key
+        from .cache_service import get_cache_service
+
+        cache = get_cache_service()
+        cache.delete(
+            namespaced_key(
+                prefix=cache.key_prefix,
+                service=CATALOG_CACHE_SERVICE,
+                operation=CATALOG_CACHE_OPERATION,
+                key=CATALOG_CACHE_KEY,
+            )
+        )
+
+    async def _assemble_okh_catalog(self) -> List[Dict[str, Any]]:
+        """Discover, load and dedupe every OKH manifest under ``okh/``.
+
+        Returns raw manifest dicts, one per id — exactly what :meth:`list`
+        feeds to ``OKHManifest.from_dict``, so the cached and uncached paths
+        build identical objects.
+        """
+        discovery = SmartFileDiscovery(self.storage.manager)
+        file_infos = await discovery.discover_files("okh")
+        self.logger.info(f"Found {len(file_infos)} OKH files using smart discovery")
+
+        semaphore = asyncio.Semaphore(CATALOG_FETCH_CONCURRENCY)
+
+        async def load(file_info: FileInfo):
+            """``(file_info, id, raw_dict)``, or None when the object is unusable."""
+            async with semaphore:
                 try:
                     data = await self.storage.manager.get_object(file_info.key)
-                    content = data.decode("utf-8")
-                    okh_data = json.loads(content)
-
-                    # Validate and fix UUID issues
-                    fixed_okh_data = UUIDValidator.validate_and_fix_okh_data(okh_data)
-                    if not minimal_okh_manifest_dict(fixed_okh_data):
+                    fixed = UUIDValidator.validate_and_fix_okh_data(
+                        json.loads(data.decode("utf-8"))
+                    )
+                    if not minimal_okh_manifest_dict(fixed):
                         self.logger.warning(
                             "Skipping OKH storage key %s: not a minimal OKH manifest "
                             "(e.g. standalone BOM JSON or incomplete file)",
                             file_info.key,
                         )
-                        continue
-                    manifest = OKHManifest.from_dict(fixed_okh_data)
-
-                    # Deduplicate by ID, keeping the most recently modified
-                    if manifest.id not in manifest_map:
-                        manifest_map[manifest.id] = (file_info, manifest)
-                    else:
-                        existing_file_info, _ = manifest_map[manifest.id]
-                        if hasattr(file_info, "last_modified") and hasattr(
-                            existing_file_info, "last_modified"
-                        ):
-                            if (
-                                file_info.last_modified
-                                > existing_file_info.last_modified
-                            ):
-                                manifest_map[manifest.id] = (file_info, manifest)
-                                self.logger.debug(
-                                    f"Replacing duplicate manifest {manifest.id} with more recent version from {file_info.key}"
-                                )
+                        return None
+                    return file_info, OKHManifest.from_dict(fixed).id, fixed
                 except Exception as e:
                     self.logger.error(f"Failed to load OKH file {file_info.key}: {e}")
-                    continue
+                    return None
 
-            # Convert to list and apply pagination
-            all_manifests = [manifest for _, manifest in manifest_map.values()]
-            total = len(all_manifests)
+        loaded = await asyncio.gather(*(load(fi) for fi in file_infos))
 
-            start_idx = (page - 1) * page_size
-            end_idx = start_idx + page_size
-            paginated_manifests = all_manifests[start_idx:end_idx]
+        # Dedupe by id, newest file wins. gather preserves input order, so this
+        # sees the same sequence the previous sequential loop did.
+        winners: Dict[UUID, Tuple[FileInfo, Dict[str, Any]]] = {}
+        for entry in loaded:
+            if entry is None:
+                continue
+            file_info, manifest_id, raw = entry
+            existing = winners.get(manifest_id)
+            if existing is None:
+                winners[manifest_id] = (file_info, raw)
+                continue
+            existing_info, _ = existing
+            new_mtime = getattr(file_info, "last_modified", None)
+            old_mtime = getattr(existing_info, "last_modified", None)
+            if new_mtime and old_mtime and new_mtime > old_mtime:
+                winners[manifest_id] = (file_info, raw)
 
-            return paginated_manifests, total
+        return [raw for _, raw in winners.values()]
 
     async def list_manifests(
         self, limit: int = 100, offset: int = 0
@@ -517,6 +577,7 @@ class OKHService(BaseService["OKHService"]):
             )
             logger.info(f"Updated OKH manifest at {existing_key}")
 
+        self._invalidate_catalog_cache()
         return manifest
 
     async def import_repair_doc(
@@ -628,6 +689,7 @@ class OKHService(BaseService["OKHService"]):
                 return False
 
             result = await self.storage.manager.delete_object(existing_key)
+            self._invalidate_catalog_cache()
             logger.info(f"Deleted OKH manifest at {existing_key}")
             return result
 
