@@ -14,7 +14,7 @@ import asyncio
 import json
 from datetime import datetime, timedelta
 from unittest.mock import patch
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -202,3 +202,87 @@ class TestSemanticsPreserved:
 
         assert total == 1
         assert str(page[0].id) == good
+
+
+@pytest.mark.asyncio
+class TestSingleFetch:
+    """get() and _find_key_for_id answered from the catalogue, not a scan.
+
+    Both previously read objects one at a time until the id matched, so cost
+    grew with the record's position in storage — ~3.3s in production for a 3KB
+    manifest.
+    """
+
+    async def test_get_is_answered_from_the_cached_catalogue(self):
+        ids = [str(uuid4()) for _ in range(30)]
+        objects = {f"okh/{i}.json": manifest_dict(i) for i in ids}
+        service, manager = build_service(objects)
+        keys = [file_info(k) for k in objects]
+
+        await run_list(service, keys)  # warms the catalogue
+        reads_after_list = manager.get_calls
+
+        async def fake_discover(_prefix):
+            return keys
+
+        with (
+            patch("src.core.services.okh_service.SmartFileDiscovery") as Discovery,
+            patch.object(service, "ensure_initialized", return_value=None),
+        ):
+            Discovery.return_value.discover_files = fake_discover
+            # The last id is the worst case for a positional scan.
+            found = await service.get(UUID(ids[-1]))
+
+        assert found is not None
+        assert str(found.id) == ids[-1]
+        assert manager.get_calls == reads_after_list, "get() re-read storage"
+
+    async def test_find_key_is_answered_from_the_cached_catalogue(self):
+        target = str(uuid4())
+        objects = {
+            "okh/other.json": manifest_dict(str(uuid4())),
+            "okh/target.json": manifest_dict(target),
+        }
+        service, manager = build_service(objects)
+        keys = [file_info(k) for k in objects]
+
+        await run_list(service, keys)
+        reads_after_list = manager.get_calls
+
+        with (
+            patch("src.core.services.okh_service.SmartFileDiscovery") as Discovery,
+            patch.object(service, "ensure_initialized", return_value=None),
+        ):
+            Discovery.return_value.discover_files = lambda _p: _aslist(keys)
+            key = await service._find_key_for_id(UUID(target), "okh")
+
+        assert key == "okh/target.json"
+        assert manager.get_calls == reads_after_list
+
+    async def test_get_falls_back_to_scanning_for_uncatalogued_objects(self):
+        """The catalogue skips non-minimal manifests; get() never did."""
+        catalogued = str(uuid4())
+        objects = {"okh/good.json": manifest_dict(catalogued)}
+        service, manager = build_service(objects)
+
+        # A record that exists in storage but is absent from the catalogue.
+        missing = str(uuid4())
+        objects["okh/extra.json"] = manifest_dict(missing)
+        keys = [file_info("okh/good.json"), file_info("okh/extra.json")]
+
+        async def fake_discover(_prefix):
+            return keys
+
+        with (
+            patch("src.core.services.okh_service.SmartFileDiscovery") as Discovery,
+            patch.object(service, "ensure_initialized", return_value=None),
+        ):
+            Discovery.return_value.discover_files = fake_discover
+            found = await service.get(UUID(missing))
+
+        assert found is not None, "fallback scan should still find it"
+        assert str(found.id) == missing
+
+
+async def _aslist(values):
+    return values

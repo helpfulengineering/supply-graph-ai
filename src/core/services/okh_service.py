@@ -281,8 +281,21 @@ class OKHService(BaseService["OKHService"]):
                     self.logger.error("Storage service not available or not configured")
                     return None
 
+                # Fast path: the catalogue is already assembled and cached for
+                # the Designs page, and it is keyed by id. The scan below reads
+                # objects one at a time until it finds a match, so its cost grew
+                # with the manifest's position in storage — ~3.3s in production
+                # for a 3KB record.
+                #
+                # It stays as a fallback because the catalogue skips objects
+                # that are not minimal OKH manifests, and this path never did.
+                # Anything the catalogue omits is still findable.
+                for entry in await self._catalog_entries():
+                    if entry["manifest"].get("id") == str(manifest_id):
+                        return OKHManifest.from_dict(entry["manifest"])
+
                 self.logger.info(
-                    "Storage service is available, searching for OKH files..."
+                    "Not in the cached catalogue; scanning storage for OKH files..."
                 )
 
                 # Use smart discovery to find OKH files
@@ -435,15 +448,9 @@ class OKHService(BaseService["OKHService"]):
             # silently turn objects into strings, and to_dict() is a whitelist
             # that drops ohm_* keys. Caching what we already feed to from_dict
             # keeps the cached path identical to the uncached one.
-            raw_manifests = await cached(
-                service=CATALOG_CACHE_SERVICE,
-                operation=CATALOG_CACHE_OPERATION,
-                key=CATALOG_CACHE_KEY,
-                ttl_seconds=CATALOG_CACHE_TTL_SECONDS,
-                loader=self._assemble_okh_catalog,
-            )
+            entries = await self._catalog_entries()
 
-            all_manifests = [OKHManifest.from_dict(d) for d in raw_manifests]
+            all_manifests = [OKHManifest.from_dict(e["manifest"]) for e in entries]
             total = len(all_manifests)
 
             start_idx = (page - 1) * page_size
@@ -473,9 +480,10 @@ class OKHService(BaseService["OKHService"]):
     async def _assemble_okh_catalog(self) -> List[Dict[str, Any]]:
         """Discover, load and dedupe every OKH manifest under ``okh/``.
 
-        Returns raw manifest dicts, one per id — exactly what :meth:`list`
-        feeds to ``OKHManifest.from_dict``, so the cached and uncached paths
-        build identical objects.
+        Returns ``{"key": storage key, "manifest": raw dict}`` per id. The raw
+        dict is exactly what :meth:`list` feeds to ``OKHManifest.from_dict``, so
+        the cached and uncached paths build identical objects; the key is what
+        lets :meth:`_find_key_for_id` answer from the same cache.
         """
         discovery = SmartFileDiscovery(self.storage.manager)
         file_infos = await discovery.discover_files("okh")
@@ -522,7 +530,25 @@ class OKHService(BaseService["OKHService"]):
             if new_mtime and old_mtime and new_mtime > old_mtime:
                 winners[manifest_id] = (file_info, raw)
 
-        return [raw for _, raw in winners.values()]
+        return [
+            {"key": file_info.key, "manifest": raw}
+            for file_info, raw in winners.values()
+        ]
+
+    async def _catalog_entries(self) -> List[Dict[str, Any]]:
+        """The cached catalogue: one entry per manifest id.
+
+        Shared by list / get / _find_key_for_id so a single assembly serves all
+        three. Each previously scanned storage independently, one object at a
+        time.
+        """
+        return await cached(
+            service=CATALOG_CACHE_SERVICE,
+            operation=CATALOG_CACHE_OPERATION,
+            key=CATALOG_CACHE_KEY,
+            ttl_seconds=CATALOG_CACHE_TTL_SECONDS,
+            loader=self._assemble_okh_catalog,
+        )
 
     async def list_manifests(
         self, limit: int = 100, offset: int = 0
@@ -705,6 +731,14 @@ class OKHService(BaseService["OKHService"]):
         Returns:
             Matching object key or ``None`` when no key can be resolved.
         """
+        # Fast path for OKH, whose catalogue is already cached and carries the
+        # storage key. Falls through to the scan for other file types, and for
+        # objects the catalogue skips.
+        if file_type == "okh":
+            for entry in await self._catalog_entries():
+                if entry["manifest"].get("id") == str(target_id):
+                    return entry["key"]
+
         discovery = SmartFileDiscovery(self.storage.manager)
         file_infos = await discovery.discover_files(file_type)
 
