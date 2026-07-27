@@ -123,11 +123,7 @@ class TestDegradesInsteadOfFailing:
         assert "k" not in fake.store, "poisoned key would miss forever"
 
     def test_the_socket_timeout_is_sub_second(self):
-        """The client is sync and blocks the event loop for its duration.
-
-        redis-py defaults to 5s, which would stall a worker far longer than the
-        ~1.6s assembly this cache exists to avoid.
-        """
+        """Asserts the property, not the constant — see SOCKET_TIMEOUT_SECONDS."""
         with patch("redis.from_url") as from_url:
             RedisCacheBackend("redis://cache.example:6379/0")
         kwargs = from_url.call_args.kwargs

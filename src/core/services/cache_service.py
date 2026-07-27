@@ -30,11 +30,10 @@ def create_cache_backend():
     backend_name = (CACHE_BACKEND or "memory").lower()
     if backend_name == "redis":
         if not CACHE_REDIS_URL:
-            # Degrade rather than raise. The cache is a performance optimisation,
-            # and CACHE_BACKEND (non-secret config) and CACHE_REDIS_URL (a
-            # secretRef) are applied by different mechanisms, so a deploy can
-            # legitimately land one before the other. Serving slowly beats
-            # failing every cached path until the secret catches up.
+            # Degrade rather than raise: CACHE_BACKEND is plain config and
+            # CACHE_REDIS_URL is a secretRef, so a deploy can land one before
+            # the other, and a misconfigured cache should not fail every
+            # request that consults it.
             logger.error(
                 "CACHE_BACKEND=redis but CACHE_REDIS_URL is unset — falling back "
                 "to the per-replica memory cache. Set the CACHE_REDIS_URL secret "

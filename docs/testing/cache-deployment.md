@@ -56,8 +56,9 @@ Until that lands, replicas log the fallback and run the per-replica memory cache
 — the pre-Redis behaviour, not an outage.
 
 The client is synchronous and is called from async handlers, so its socket
-timeout is deliberately sub-second (`RedisCacheBackend`): a blocked lookup stalls
-the event loop, and waiting longer than the assembly would defeat the purpose.
+timeout is deliberately sub-second (`SOCKET_TIMEOUT_SECONDS` in
+`redis_backend.py`): a blocked lookup stalls the event loop, and waiting longer
+than the assembly would defeat the purpose.
 
 Service-level caching: use `src.core.cache.cached()` so domain services share the same backend as `@cache_response`.
 

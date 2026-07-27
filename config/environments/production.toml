@@ -11,14 +11,10 @@ storage_provider = "azure_blob"
 azure_storage_account = "projdatablobstorage"
 azure_storage_container = "production"
 
-# Cache backend. The catalogue of every OKH manifest is assembled once and
-# cached; with the memory backend that cache is PER-REPLICA, so each instance
-# pays a full assembly on its first request and a scale-out re-introduces the
-# slow path. Redis shares one copy across replicas.
-#
-# CACHE_REDIS_URL carries credentials and is a secretRef on the container app —
-# never here. The Redis backend degrades to a miss if it is unreachable, so a
-# missing URL is slow, not broken.
+# Cache backend. The memory backend caches the OKH catalogue PER-REPLICA, so
+# every instance pays a full assembly on its first request; redis shares one
+# copy. Needs the CACHE_REDIS_URL secret to take effect — without it this falls
+# back to memory. See docs/testing/cache-deployment.md.
 cache_backend = "redis"
 
 # Gunicorn (ENVIRONMENT=production). ACA runs 1 vCPU / 2Gi — a single worker
