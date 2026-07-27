@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The catalogue cache is shared across replicas in production**
+  (`cache_backend = "redis"`). Assembling every OKH manifest once is what made
+  the Designs page fast, but the memory backend caches it *per replica*, so each
+  instance pays a full assembly on its first request and scaling out returns
+  whoever lands on a new replica to the slow path — visible in production as a
+  4.19s outlier among otherwise sub-second fetches. Requires a Redis instance and
+  the `CACHE_REDIS_URL` secret; see `docs/testing/cache-deployment.md`.
+
 ### Fixed
 
 - **Every "View supply tree" link on the match page 404'd.** The card linked by
@@ -29,6 +39,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by which an entire network could reach heavy matching unbounded. It is taken
   by every electronics design, since MoM advertises zero facilities for
   soldering, assembly and drilling.
+
+- `CACHE_BACKEND=redis` without `CACHE_REDIS_URL` now logs an error and falls
+  back to the memory cache instead of raising. The two settings are applied by
+  different mechanisms — one is checked-in config, the other a secretRef — so a
+  deploy can legitimately land one before the other, and misconfiguring a
+  performance optimisation should not fail every cached request.
+- The Redis client's socket timeout is now sub-second rather than the library
+  default of 5s. It is a synchronous client called from async handlers, so a
+  blocked lookup stalls the event loop for its full duration — five seconds of
+  that is far worse than the assembly the cache exists to avoid.
 
 ## [0.10.4] - 2026-07-27
 

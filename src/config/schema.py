@@ -160,6 +160,22 @@ class Settings(BaseSettings):
         description="Azure Blob access key.",
         json_schema_extra={"secret": True},  # env/.env / secretRef only, never TOML
     )
+    cache_backend: str = Field(
+        default="memory",
+        description=(
+            "Cache backend: memory | redis. memory is per-replica; "
+            "redis shares one copy across replicas."
+        ),
+    )
+    cache_redis_url: Optional[str] = Field(
+        default=None,
+        description=(
+            "Redis connection URL. Required for cache_backend=redis to take "
+            "effect; without it that setting falls back to memory."
+        ),
+        # Carries credentials — env/.env / secretRef only, never TOML.
+        json_schema_extra={"secret": True},
+    )
     okw_source: Optional[str] = Field(
         default=None,  # unset resolves via okw_source_resolved
         description="OKW facility source: storage | mom. Unset → union (storage ∪ MoM).",
