@@ -1,3 +1,5 @@
+import { normalizeCityName } from "../network/cityNames";
+
 /**
  * Display helpers so geo filter UIs always show full names, even when
  * facility payloads store ISO country codes or US state abbreviations.
@@ -185,5 +187,8 @@ export function regionMatchKey(raw: string | null | undefined): string {
 }
 
 export function cityMatchKey(raw: string | null | undefined): string {
-  return (raw ?? "").trim().toLowerCase();
+  // Normalised, so a facility stored as "1050 Wien" matches the "Wien" option.
+  // The filter dropdown offers normalised names; comparing raw values here
+  // would mean selecting a city silently matched nothing.
+  return (normalizeCityName(raw) ?? (raw ?? "").trim()).toLowerCase();
 }
