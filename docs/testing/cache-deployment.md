@@ -43,17 +43,41 @@ round trip Redis requires; caching model objects would not.
 
 **One-time provisioning** (not done by the deploy pipeline):
 
+Run these as written — the key is read and URL-encoded by the commands
+themselves. Do not hand-substitute it: an earlier version of this page used a
+`<key>` placeholder, it was pasted through unsubstituted, and Redis spent a
+deployment authenticating as the literal string `<key>`. Nothing looked broken,
+because a failing Redis reports cache misses.
+
 ```bash
 az redis create --name ohm-cache --resource-group project_data_rg \
   --location westus3 --sku Basic --vm-size c0
+
+# Read the key and percent-encode it (Azure keys are base64 and can contain
+# "+" and "/", which change a URL's meaning if left raw).
+REDIS_KEY=$(az redis list-keys --name ohm-cache --resource-group project_data_rg \
+  --query primaryKey -o tsv)
+REDIS_KEY_ENC=$(python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1],safe=""))' "$REDIS_KEY")
+
 az containerapp secret set --name openhardwaremanager --resource-group project_data_rg \
-  --secrets cache-redis-url="rediss://:<key>@ohm-cache.redis.cache.windows.net:6380/0"
+  --secrets "cache-redis-url=rediss://:${REDIS_KEY_ENC}@ohm-cache.redis.cache.windows.net:6380/0"
 az containerapp update --name openhardwaremanager --resource-group project_data_rg \
   --set-env-vars CACHE_REDIS_URL=secretref:cache-redis-url
 ```
 
-Until that lands, replicas log the fallback and run the per-replica memory cache
-— the pre-Redis behaviour, not an outage.
+Then confirm it actually took, rather than assuming:
+
+```bash
+curl -s https://www.openhardwaremanager.org/v1/api/utility/metrics \
+  | python3 -c 'import sys,json;print(json.load(sys.stdin)["data"]["cache"])'
+```
+
+Expect `backend: redis` **with no `error` key**, and `hits` climbing on repeat
+requests. `backend: redis` alone means nothing — that is what a completely
+non-functional cache reports too.
+
+Until provisioning lands, replicas log the fallback and run the per-replica
+memory cache — the pre-Redis behaviour, not an outage.
 
 The client is synchronous and is called from async handlers, so its socket
 timeout is deliberately sub-second (`SOCKET_TIMEOUT_SECONDS` in

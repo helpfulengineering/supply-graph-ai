@@ -50,6 +50,23 @@ class RedisCacheBackend:
         )
         self._redis_url_host = redis_url.split("@")[-1].split("/")[0]
 
+    def is_reachable(self) -> tuple[bool, Optional[str]]:
+        """``(ok, error)`` from a single PING.
+
+        Every other operation swallows its failure and reports a miss, which
+        makes an unusable Redis indistinguishable from a cold one: it caches
+        nothing, forever, while looking healthy. Production hit exactly that —
+        a connection URL whose ``<key>`` placeholder was never substituted
+        authenticated as the literal string, and every request paid full
+        assembly with no cache at all. The factory calls this once so a broken
+        Redis degrades to the memory cache instead.
+        """
+        try:
+            self._client.ping()
+            return True, None
+        except Exception as exc:  # noqa: BLE001 — any failure means unusable
+            return False, str(exc)
+
     def get(self, key: str) -> Optional[Any]:
         try:
             raw = self._client.get(key)
