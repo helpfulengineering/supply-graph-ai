@@ -209,7 +209,18 @@ export function DesignPicker({
                     <span className="text-sm font-medium text-foreground break-words">
                       {formatOkhDisplayTitle(d.title)}
                     </span>
-                    <span className="mt-0.5 text-xs text-muted-foreground">
+                    {/*
+                      muted-foreground is tuned for the default surface; on the
+                      selected row's indigo background it falls to 3.84:1,
+                      under the 4.5:1 AA threshold. Darken it when active.
+                    */}
+                    <span
+                      className={
+                        active
+                          ? "mt-0.5 text-xs text-indigo-900 dark:text-indigo-200"
+                          : "mt-0.5 text-xs text-muted-foreground"
+                      }
+                    >
                       {[
                         category,
                         (d.manufacturing_processes ?? []).slice(0, 2).join(", ") || null,
