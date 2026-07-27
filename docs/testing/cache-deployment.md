@@ -4,8 +4,16 @@
 |----------|---------|---------|
 | `CACHE_ENABLED` | `true` | Global cache gate |
 | `CACHE_BACKEND` | `memory` | `memory` (single-node) or `redis` (shared) |
-| `CACHE_REDIS_URL` | — | Required when `CACHE_BACKEND=redis` |
+| `CACHE_REDIS_URL` | — | Connection URL; needed for `CACHE_BACKEND=redis` to take effect |
 | `CACHE_KEY_PREFIX` | `ohm` | Namespace prefix for all keys |
+
+`CACHE_BACKEND=redis` with no `CACHE_REDIS_URL` logs an error and falls back to
+the memory backend rather than raising. The two are applied by different
+mechanisms — `CACHE_BACKEND` is non-secret config in
+`config/environments/<env>.toml`, `CACHE_REDIS_URL` carries credentials and is a
+secretRef — so a deploy can land one before the other. Misconfiguring a
+performance optimisation should cost speed, not availability. Check the startup
+log to confirm which backend a replica actually selected.
 
 **Self-host (single process):** leave defaults — no Redis required.
 
@@ -20,6 +28,36 @@ docker compose up -d ohm-api
 ```
 
 **ACA multi-replica:** point `CACHE_REDIS_URL` at Azure Cache for Redis, Valkey, or any Redis-protocol service. Cloud-agnostic — no Azure SDK in the cache layer.
+
+### Why production runs Redis
+
+`config/environments/production.toml` sets `cache_backend = "redis"`. The OKH
+catalogue — every manifest, assembled once and cached — is what makes the
+Designs page fast (~15s → ~2.4s cold, ~1.1s warm). With the memory backend that
+cache is **per-replica**: each instance pays a full assembly on its first
+request, and scaling out re-introduces the slow path for whoever lands on a new
+replica. Redis shares one copy, so one assembly warms every replica.
+
+The cached value is a list of plain dicts specifically so it survives the JSON
+round trip Redis requires; caching model objects would not.
+
+**One-time provisioning** (not done by the deploy pipeline):
+
+```bash
+az redis create --name ohm-cache --resource-group project_data_rg \
+  --location westus3 --sku Basic --vm-size c0
+az containerapp secret set --name openhardwaremanager --resource-group project_data_rg \
+  --secrets cache-redis-url="rediss://:<key>@ohm-cache.redis.cache.windows.net:6380/0"
+az containerapp update --name openhardwaremanager --resource-group project_data_rg \
+  --set-env-vars CACHE_REDIS_URL=secretref:cache-redis-url
+```
+
+Until that lands, replicas log the fallback and run the per-replica memory cache
+— the pre-Redis behaviour, not an outage.
+
+The client is synchronous and is called from async handlers, so its socket
+timeout is deliberately sub-second (`RedisCacheBackend`): a blocked lookup stalls
+the event loop, and waiting longer than the assembly would defeat the purpose.
 
 Service-level caching: use `src.core.cache.cached()` so domain services share the same backend as `@cache_response`.
 

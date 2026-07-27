@@ -30,13 +30,23 @@ def create_cache_backend():
     backend_name = (CACHE_BACKEND or "memory").lower()
     if backend_name == "redis":
         if not CACHE_REDIS_URL:
-            raise ValueError("CACHE_REDIS_URL is required when CACHE_BACKEND=redis")
-        logger.info(
-            "Initializing Redis cache backend (%s)",
-            CACHE_REDIS_URL.split("@")[-1],
-        )
-        return RedisCacheBackend(CACHE_REDIS_URL)
-    if backend_name != "memory":
+            # Degrade rather than raise. The cache is a performance optimisation,
+            # and CACHE_BACKEND (non-secret config) and CACHE_REDIS_URL (a
+            # secretRef) are applied by different mechanisms, so a deploy can
+            # legitimately land one before the other. Serving slowly beats
+            # failing every cached path until the secret catches up.
+            logger.error(
+                "CACHE_BACKEND=redis but CACHE_REDIS_URL is unset — falling back "
+                "to the per-replica memory cache. Set the CACHE_REDIS_URL secret "
+                "to share the cache across replicas."
+            )
+        else:
+            logger.info(
+                "Initializing Redis cache backend (%s)",
+                CACHE_REDIS_URL.split("@")[-1],
+            )
+            return RedisCacheBackend(CACHE_REDIS_URL)
+    elif backend_name != "memory":
         logger.warning("Unknown CACHE_BACKEND=%r; falling back to memory", backend_name)
     return MemoryCacheBackend(
         max_size=CACHE_MAX_SIZE,

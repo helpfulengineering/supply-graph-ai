@@ -19,11 +19,21 @@ def _deserialize(raw: bytes) -> Any:
 
 
 class RedisCacheBackend:
-    """Distributed cache using the Redis protocol (sync client)."""
+    """Distributed cache using the Redis protocol (sync client).
+
+    The client is synchronous and is called from async request handlers, so
+    every operation blocks the event loop for its duration. That is fine at
+    normal latency (~1ms to a Redis in the same region) but makes the socket
+    timeout a ceiling on how much a sick Redis can hurt: at the library default
+    of 5s a single unreachable instance would stall a worker far longer than
+    the assembly this cache exists to avoid. Hence the sub-second default —
+    a cache lookup that slow has already lost its reason to exist, and every
+    operation below falls through to a miss on failure.
+    """
 
     name = "redis"
 
-    def __init__(self, redis_url: str, *, socket_timeout: float = 5.0):
+    def __init__(self, redis_url: str, *, socket_timeout: float = 0.5):
         try:
             import redis
         except ImportError as exc:  # pragma: no cover - dependency guard
