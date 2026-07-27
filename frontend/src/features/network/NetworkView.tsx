@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchNetworkSpaces, type NetworkFilters as Filters } from "../../api/ohm/network";
 import { Button } from "../../components/ui/button";
 import { deriveFilterOptions } from "./deriveFilterOptions";
+import { filterByName } from "./nameSearch";
 import { buildNetworkSummary } from "./networkSummary";
 import { NetworkFilters } from "./NetworkFilters";
 import { NetworkSpaceCard } from "./NetworkSpaceCard";
@@ -43,6 +44,7 @@ export function NetworkView() {
   const [filters, setFilters] = useState<Filters>({});
   const [view, setView] = useState<"list" | "map">("list");
   const [page, setPage] = useState(1);
+  const [nameQuery, setNameQuery] = useState("");
 
   // Carry the active filter into the match flow: pick a design there, match
   // against exactly this filtered network (local ∪ MoM).
@@ -73,7 +75,13 @@ export function NetworkView() {
 
   const active = hasFilters ? filtered : baseline;
   const data = active.data;
-  const spaces = data?.spaces ?? [];
+  // Name search runs client-side over whatever the server returned, so it
+  // composes with the filters above and costs no round trip — the map already
+  // holds every space in memory to draw them.
+  const spaces = useMemo(
+    () => filterByName(data?.spaces ?? [], nameQuery),
+    [data, nameQuery],
+  );
   const options = useMemo(
     () => deriveFilterOptions(baseline.data?.spaces ?? []),
     [baseline.data],
@@ -112,7 +120,35 @@ export function NetworkView() {
       <SeedPeerCta />
 
       <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
-        <aside>
+        <aside className="space-y-4">
+          {/*
+            First control in the sidebar, above the filters: the site's primary
+            call to action is "find your workshop on the map", and among several
+            thousand spaces typing a name is what a person tries first.
+          */}
+          <div>
+            <label
+              htmlFor="space-name-search"
+              className="mb-1 block text-sm font-medium text-foreground"
+            >
+              Search by name
+            </label>
+            <input
+              id="space-name-search"
+              type="search"
+              value={nameQuery}
+              placeholder="e.g. FabLab Lyon"
+              onChange={(e) => {
+                setNameQuery(e.target.value);
+                setPage(1);
+              }}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Matches name, city, and country.
+            </p>
+          </div>
+
           <NetworkFilters
             filters={filters}
             options={options}

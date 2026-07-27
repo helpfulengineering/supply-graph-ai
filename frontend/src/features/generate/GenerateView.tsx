@@ -35,9 +35,10 @@ type Manifest = Record<string, unknown>;
  * So abort just under it: the user gets our message instead of a raw gateway
  * error, and we do not give up on a repository the server would have finished.
  *
- * Measured: a small repository returns in well under a second; a large one
- * (e.g. RespiraWorks/Ventilator) exceeds the ceiling entirely and cannot be
- * generated synchronously at all. That needs async jobs, not a bigger number.
+ * Measured in production after the generation speedup: a small repository
+ * returns in well under a second, and RespiraWorks/Ventilator — which used to
+ * exceed the ceiling and 504 — completes in about 42s. Something substantially
+ * larger could still exceed it; that needs async jobs, not a bigger number.
  */
 const TIMEOUT_MS = 115_000;
 
@@ -46,9 +47,16 @@ const TIMEOUT_MS = 115_000;
  * case is called out specifically because it is expected to happen in normal
  * use, and "429" tells a non-technical user nothing.
  */
-export function generationErrorMessage(err: unknown): string {
+export function generationErrorMessage(err: unknown, timedOut = false): string {
   if (err instanceof DOMException && err.name === "AbortError") {
-    return "Generation was cancelled.";
+    // A timeout and a user cancellation both surface as AbortError, and
+    // reporting a timeout as "you cancelled this" is both wrong and
+    // undiagnosable — the reader has no idea whether to retry, wait, or give up.
+    return timedOut
+      ? "Reading the repository took longer than two minutes, so it was stopped. " +
+          "Very large repositories can exceed the limit — smaller ones usually " +
+          "finish in seconds."
+      : "Generation was cancelled.";
   }
   if (err instanceof ApiError) {
     switch (err.status) {
@@ -94,14 +102,20 @@ export function GenerateView() {
 
     const controller = new AbortController();
     abortRef.current = controller;
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    // Distinguishes "we gave up" from "the user gave up" — both abort the same
+    // request, but they are different messages to the person reading them.
+    let timedOut = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, TIMEOUT_MS);
 
     try {
       const result = await generateOkhFromUrl(check.normalized!, controller.signal);
       setManifest(result.manifest);
       setReport(result.qualityReport);
     } catch (err) {
-      setError(generationErrorMessage(err));
+      setError(generationErrorMessage(err, timedOut));
     } finally {
       clearTimeout(timer);
       abortRef.current = null;

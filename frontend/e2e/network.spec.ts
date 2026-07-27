@@ -90,3 +90,18 @@ test("shows the error state with retry (mocked)", async ({ page }, testInfo) => 
   await page.goto("/facilities");
   await expect(page.getByRole("button", { name: /retry/i })).toBeVisible();
 });
+
+test("search by name narrows the network (mocked)", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts fixture data");
+  await page.goto("/facilities");
+
+  const search = page.getByLabel("Search by name");
+  await expect(search).toBeVisible();
+
+  // Establish a baseline, then confirm the query actually narrows it.
+  const before = await page.getByRole("heading", { level: 3 }).count();
+  await search.fill("zzz-no-such-workshop");
+  await expect
+    .poll(async () => page.getByRole("heading", { level: 3 }).count())
+    .toBeLessThan(Math.max(before, 1));
+});

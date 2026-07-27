@@ -40,6 +40,52 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
+async def extract_project_data(
+    *,
+    url: str,
+    clone: bool,
+    save_clone: Optional[str],
+    clone_extractor,
+    api_extractor,
+    logger,
+):
+    """Read a repository into ProjectData, preferring a clone.
+
+    Cloning is the default because it replaces one HTTP round trip per file with
+    a single compressed transfer and needs no credential — on a substantial
+    repository that is the difference between ~20s and exceeding the proxy
+    timeout, and it stops one heavy user exhausting a shared token's quota for
+    everyone.
+
+    That default is only safe because failure degrades. A clone can fail for
+    reasons that say nothing about the repository: git missing from the image
+    (exactly how this path was silently broken in production), a clone timeout,
+    or transient network trouble. Those should cost speed, not the request — so
+    a failed clone falls back to the platform API path, which is slower and
+    rate-limited but works.
+
+    Extracted from ``generate_from_url`` so the fallback is testable without
+    standing up the whole generation pipeline.
+    """
+    from pathlib import Path as _P
+
+    if clone:
+        try:
+            persist = _P(save_clone) if save_clone else None
+            return await clone_extractor.extract_project(url, persist_path=persist)
+        except Exception as exc:
+            logger.warning(
+                "Clone extraction failed (%s: %s); falling back to the platform "
+                "API path, which is slower and subject to shared rate limits.",
+                type(exc).__name__,
+                exc,
+            )
+
+    if api_extractor is None:
+        raise ValueError("No API extractor available for this platform")
+    return await api_extractor.extract_project(url)
+
+
 class OKHService(BaseService["OKHService"]):
     """
     Service for managing OKH manifests.
@@ -718,7 +764,7 @@ class OKHService(BaseService["OKHService"]):
         url: str,
         skip_review: bool = False,
         verbose: bool = False,
-        clone: bool = False,
+        clone: bool = True,
         save_clone: Optional[str] = None,
         no_llm: bool = False,
     ) -> Dict[str, Any]:
@@ -729,8 +775,13 @@ class OKHService(BaseService["OKHService"]):
                 already-cloned local directory on the server filesystem.
             skip_review: Skip interactive review step.
             verbose: Include file metadata in the generated manifest.
-            clone: Clone the repository locally before extraction.  Ignored when
-                ``url`` is a local path.
+            clone: Clone the repository locally before extraction (default).  A
+                shallow clone is one compressed transfer needing no credential,
+                where the platform API path costs one HTTP round trip per file
+                against a shared, rate-limited token — on a substantial
+                repository that is the difference between ~20s and exceeding the
+                proxy timeout.  Falls back to the API path automatically if
+                cloning fails.  Ignored when ``url`` is a local path.
             save_clone: Server-side path where the clone should be persisted after
                 generation (only used when ``clone=True`` and ``url`` is a remote URL).
             no_llm: If True, use 3-layer generation only. If False (default), prefer
@@ -768,20 +819,22 @@ class OKHService(BaseService["OKHService"]):
                 if platform is None:
                     raise ValueError(f"Unsupported platform for URL: {url}")
 
-                if clone and router.supports_local_cloning(url):
-                    persist_path = _Path(save_clone) if save_clone else None
-                    extractor = LocalGitExtractor()
-                    project_data = await extractor.extract_project(
-                        url, persist_path=persist_path
-                    )
-                else:
-                    if platform == PlatformType.GITHUB:
-                        generator = GitHubExtractor()
-                    elif platform == PlatformType.GITLAB:
-                        generator = GitLabExtractor()
-                    else:
-                        raise ValueError(f"Unsupported platform: {platform}")
-                    project_data = await generator.extract_project(url)
+                project_data = await extract_project_data(
+                    url=url,
+                    clone=clone and router.supports_local_cloning(url),
+                    save_clone=save_clone,
+                    clone_extractor=LocalGitExtractor(),
+                    api_extractor=(
+                        GitHubExtractor()
+                        if platform == PlatformType.GITHUB
+                        else (
+                            GitLabExtractor()
+                            if platform == PlatformType.GITLAB
+                            else None
+                        )
+                    ),
+                    logger=self.logger,
+                )
 
             # Generate manifest (prefer LLM + chunking unless no_llm; degrade if
             # no API keys — see LayerConfig.for_generate_from_url / is_llm_configured).

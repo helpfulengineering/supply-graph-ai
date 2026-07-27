@@ -40,7 +40,7 @@ function ScalarField({ field, manifest, onChange }: EditorProps & { field: Field
     <label htmlFor={id} className="block">
       <span className="block text-sm font-medium text-foreground">
         {field.label}
-        {empty && <span className="ml-2 text-xs text-amber-600">not extracted</span>}
+        {empty && <span className="ml-2 text-xs text-amber-700 dark:text-amber-400">not extracted</span>}
       </span>
       {field.hint && (
         <span className="mt-0.5 block text-xs text-muted-foreground">{field.hint}</span>
@@ -99,7 +99,7 @@ function ListField({ field, manifest, onChange }: EditorProps & { field: FieldSp
           </li>
         ))}
         {items.length === 0 && (
-          <li className="text-xs text-amber-600">nothing extracted</li>
+          <li className="text-xs text-amber-700 dark:text-amber-400">nothing extracted</li>
         )}
       </ul>
       <div className="mt-1.5 flex gap-2">

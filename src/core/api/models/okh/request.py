@@ -107,10 +107,16 @@ class OKHGenerateRequest(BaseModel):
         description="Include file metadata in manifest (default: False for less verbose output)",
     )
     clone: bool = Field(
-        False,
+        True,
         description=(
-            "Clone the repository locally before extraction (faster, no API rate limits). "
-            "Ignored when `url` is already a local path."
+            "Clone the repository locally before extraction. Default, and "
+            "materially faster: a shallow clone is one compressed transfer "
+            "needing no credential, where the platform API path costs one HTTP "
+            "round trip per file against a shared, rate-limited token. Set false "
+            "to force the API path (it fetches selectively, so it can transfer "
+            "less for repositories dominated by large binaries). A failed clone "
+            "falls back to the API path automatically. Ignored when `url` is "
+            "already a local path."
         ),
     )
     save_clone: Optional[str] = Field(

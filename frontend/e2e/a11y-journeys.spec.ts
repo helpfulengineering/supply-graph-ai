@@ -1,4 +1,4 @@
-import { test } from "./mock-api";
+import { expect, test } from "./mock-api";
 import { expectNoA11yViolations } from "./a11y";
 
 // Accessibility coverage across the v1 journeys (mocked lane — several routes
@@ -8,6 +8,8 @@ const ROUTES = [
   "/",
   "/okh",
   "/okh/okh-0001",
+  "/okh/new",
+  "/okh/generate",
   "/facilities",
   "/facilities/okw-1",
   "/match",
@@ -22,3 +24,86 @@ for (const route of ROUTES) {
     await expectNoA11yViolations(page);
   });
 }
+
+// --- Populated states ------------------------------------------------------
+//
+// Scanning a route in its INITIAL state misses most of the interesting surface:
+// results lists, editors, and anything that renders only after a request. The
+// tiered editor shipped 19 serious contrast violations precisely because it
+// appears only after a successful generation — no route-level scan ever saw it,
+// and adding /okh/generate to the list above would NOT have caught it either,
+// since that route renders just a URL box.
+//
+// These drive each journey to the state a user actually reads, then scan.
+
+const GENERATED_MANIFEST = {
+  title: "Open Source Rover",
+  version: "1.0.0",
+  function: "",
+  documentation_language: "en",
+  licensor: { name: "JPL" },
+  license: { hardware: "Apache-2.0" },
+  manufacturing_processes: ["3D Printing", "Laser Cutting"],
+  materials: [{ name: "PLA" }],
+  stray_field: "kept",
+};
+
+test("no serious a11y violations: generate result + tiered editor", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts fixture data");
+  await page.route("**/api/okh/generate-from-url", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        success: true,
+        message: "ok",
+        manifest: GENERATED_MANIFEST,
+        // A missing required field renders the "not extracted" markers — the
+        // exact elements that carried the contrast failures.
+        quality_report: {
+          missing_required_fields: ["function"],
+          recommendations: ["Add a description"],
+        },
+      }),
+    }),
+  );
+
+  await page.goto("/okh/generate");
+  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByRole("button", { name: "Generate" }).click();
+  await expect(page.getByLabel("Title")).toBeVisible();
+
+  await expectNoA11yViolations(page);
+
+  // The long tail is collapsed by default; expand it, or half the editor is
+  // never scanned.
+  await page.getByText(/Show everything else/).click();
+  await expectNoA11yViolations(page);
+});
+
+test("no serious a11y violations: guided new-design form", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts client behaviour");
+  await page.goto("/okh/new");
+  await expect(page.getByLabel("Title")).toBeVisible();
+  await expectNoA11yViolations(page);
+
+  await page.getByRole("radio", { name: "Paste JSON" }).click();
+  await expect(page.getByLabel("JSON")).toBeVisible();
+  await expectNoA11yViolations(page);
+});
+
+test("no serious a11y violations: match results", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts fixture data");
+  await page.goto("/match");
+  await page.getByLabel("Search designs").fill("Ventilator");
+  await page.getByRole("option", { name: /Open Ventilator/i }).click();
+  await page.getByLabel("Laser Fab Lab").check();
+  await page.getByRole("button", { name: /run match/i }).click();
+  await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
+
+  await expectNoA11yViolations(page);
+});

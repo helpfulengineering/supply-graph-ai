@@ -265,13 +265,20 @@ export interface GenerateOkhResult {
  * `verbose` is always true (it powers per-field provenance in the review step)
  * and `skip_review` is always true (the interactive review is a CLI concept;
  * this UI does its own). Neither is a user-facing option.
+ *
+ * `clone` is always true, and it is the difference between working and not.
+ * The alternative path reads the repository over the GitHub Contents API — one
+ * HTTP round trip per file — which on a substantial repository exhausts the
+ * shared token's quota and exceeds the proxy timeout. Measured in production on
+ * RespiraWorks/Ventilator: API path 504 after 120s, repeatedly; clone path 200
+ * in 21s. A single shallow clone replaces hundreds of round trips.
  */
 export async function generateOkhFromUrl(
   url: string,
   signal?: AbortSignal,
 ): Promise<GenerateOkhResult> {
   const { data, error, response } = await apiClient.POST("/api/okh/generate-from-url", {
-    body: { url, verbose: true, skip_review: true } as never,
+    body: { url, verbose: true, skip_review: true, clone: true } as never,
     signal,
   });
   if (error || !response.ok || !data) {
