@@ -9,6 +9,12 @@ from ...utils.logging import get_logger
 
 logger = get_logger(__name__)
 
+# The client is synchronous but is called from async request handlers, so every
+# operation blocks the event loop for its duration. redis-py defaults to 5s,
+# which would stall a worker far longer than the catalogue assembly this cache
+# exists to avoid. A lookup slower than this has lost its reason to exist.
+SOCKET_TIMEOUT_SECONDS = 0.5
+
 
 def _serialize(value: Any) -> bytes:
     return json.dumps(value, default=str).encode("utf-8")
@@ -19,11 +25,15 @@ def _deserialize(raw: bytes) -> Any:
 
 
 class RedisCacheBackend:
-    """Distributed cache using the Redis protocol (sync client)."""
+    """Distributed cache using the Redis protocol (sync client).
+
+    Every operation falls through to a miss on failure: a broken cache costs
+    speed, not availability.
+    """
 
     name = "redis"
 
-    def __init__(self, redis_url: str, *, socket_timeout: float = 5.0):
+    def __init__(self, redis_url: str):
         try:
             import redis
         except ImportError as exc:  # pragma: no cover - dependency guard
@@ -35,8 +45,8 @@ class RedisCacheBackend:
         self._client = redis.from_url(
             redis_url,
             decode_responses=False,
-            socket_timeout=socket_timeout,
-            socket_connect_timeout=socket_timeout,
+            socket_timeout=SOCKET_TIMEOUT_SECONDS,
+            socket_connect_timeout=SOCKET_TIMEOUT_SECONDS,
         )
         self._redis_url_host = redis_url.split("@")[-1].split("/")[0]
 

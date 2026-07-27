@@ -129,12 +129,17 @@ def test_cached_helper_uses_shared_service():
     asyncio.run(run())
 
 
-def test_create_cache_backend_redis_requires_url():
+def test_create_cache_backend_redis_without_url_degrades_to_memory():
+    """Previously raised. A missing URL must cost speed, not availability.
+
+    CACHE_BACKEND is non-secret config and CACHE_REDIS_URL is a secretRef, so a
+    deploy can apply one before the other; raising here 500s every cached path.
+    See tests/unit/test_cache_redis_backend.py for the rest of the contract.
+    """
     from src.core.services.cache_service import create_cache_backend
 
     with (
         patch("src.core.services.cache_service.CACHE_BACKEND", "redis"),
         patch("src.core.services.cache_service.CACHE_REDIS_URL", None),
     ):
-        with pytest.raises(ValueError, match="CACHE_REDIS_URL"):
-            create_cache_backend()
+        assert create_cache_backend().name == "memory"
