@@ -244,3 +244,79 @@ async def test_heuristic_layer_infers_from_stl() -> None:
     assert result.has_field("manufacturing_processes")
     processes = result.get_field("manufacturing_processes").value
     assert "3D Printing" in processes
+
+
+# TSDC — DIN SPEC 3105 codes the author declared, rather than a guess from a
+# filename or a word in a title.
+#
+# This signal was missing entirely, and it was the largest data-quality problem
+# in the catalogue: 123 of 175 designs had no processes, 100 of them carried a
+# TSDC code the taxonomy already resolves, and a design with no processes
+# returns ZERO matches. Processes were populated only for designs *titled*
+# "3DP-…", so `tsdc=['3DP']` on "3D-Simple-Bias-Tape-Maker" inferred nothing
+# while the identical code on "3DP-Accessible-Pill-Bottle" worked.
+
+
+def test_tsdc_codes_infer_their_processes(service: ProcessInferenceService) -> None:
+    result = service.infer_from_tsdc(["3DP", "LAS"])
+    assert set(result.processes) == {"3D Printing", "Laser Cutting"}
+    assert result.evidence["3d_printing"] == ["tsdc:3DP"]
+
+
+def test_tsdc_is_case_and_whitespace_insensitive(
+    service: ProcessInferenceService,
+) -> None:
+    assert service.infer_from_tsdc([" 3dp "]).processes == ["3D Printing"]
+
+
+def test_unknown_tsdc_codes_are_skipped(service: ProcessInferenceService) -> None:
+    """Real catalogue values that are not codes must not invent a process."""
+    result = service.infer_from_tsdc(["OSH", "MEC/ASM/etc.", ""])
+    assert result.processes == []
+    assert result.confidence == 0.0
+
+
+def test_tsdc_outranks_filename_and_title_confidence(
+    service: ProcessInferenceService,
+) -> None:
+    """A declaration should carry more weight than a guess."""
+    assert (
+        service.infer_from_tsdc(["3DP"]).confidence
+        > service.infer_from_paths(["a.stl"]).confidence
+    )
+
+
+def test_manifest_tsdc_is_used_when_title_and_files_say_nothing(
+    service: ProcessInferenceService,
+) -> None:
+    """The exact shape of the 100 broken designs."""
+    manifest = _manifest(title="4cm-Bias-Tape-Maker", tsdc=["3DP"])
+    result = service.infer_from_manifest(manifest)
+    assert result.processes == ["3D Printing"]
+
+
+def test_tsdc_merges_with_the_other_signals(
+    service: ProcessInferenceService,
+) -> None:
+    manifest = _manifest(title="Laser cut enclosure", tsdc=["ASM"])
+    result = service.infer_from_manifest(manifest)
+    assert set(result.processes) == {"Assembly", "Laser Cutting"}
+
+
+def test_apply_to_manifest_populates_from_tsdc(
+    service: ProcessInferenceService,
+) -> None:
+    manifest = _manifest(title="Air-Cleaner", tsdc=["ASM"])
+    result = service.apply_to_manifest(manifest)
+    assert result.applied is True
+    assert manifest.manufacturing_processes == ["Assembly"]
+
+
+def test_a_string_tsdc_is_tolerated(service: ProcessInferenceService) -> None:
+    manifest = _manifest(title="Widget", tsdc="3DP")
+    assert service.infer_from_manifest(manifest).processes == ["3D Printing"]
+
+
+def test_absent_tsdc_changes_nothing(service: ProcessInferenceService) -> None:
+    manifest = _manifest(title="Widget")
+    assert service.infer_from_manifest(manifest).processes == []

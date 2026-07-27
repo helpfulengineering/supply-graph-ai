@@ -678,6 +678,21 @@ useful, by OKH storage backfill:
 **Process inference** fills empty `manufacturing_processes` during generation
 (heuristic layer, plus an engine post-normalize safety net) and via
 `ohm okh infer-processes` / `OKHService.backfill_manufacturing_processes`.
+
+Three signals, in descending confidence:
+
+| signal | confidence | why |
+|---|---|---|
+| `tsdc` codes (DIN SPEC 3105) | 0.95 | the author declaring the process |
+| design-file extensions | 0.85 | strong but inferred |
+| title / keywords | 0.72 | a guess from prose |
+
+TSDC was added after an audit found **123 of 175 catalogue designs carried no
+processes, 100 of them holding a TSDC code the taxonomy already resolved**.
+Inference read only filenames and titles, so a design *titled* `3DP-…` got
+`3D Printing` while an identical `tsdc: ['3DP']` on a differently-named design
+got nothing — and a design with no processes matches nothing at all.
+
 It resolves display names through the [canonical process taxonomy](process-taxonomy-adr.md)
 using **exact** alias/TSDC lookup for tokens (avoids substring false positives
 such as `face` ⊂ `surface_finish`). Extension → process mappings are defined
