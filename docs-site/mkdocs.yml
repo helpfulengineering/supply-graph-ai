@@ -115,6 +115,7 @@ nav:
       - Bring your collection: guides/bring-your-collection.md
       - Run your own node: guides/run-your-own-node.md
       - Use the OHM API: guides/use-the-api.md
+  - Contact: contact.md
   - Reference:
       - Glossary: reference/glossary.md
       - OKH and OKW: reference/okh-and-okw.md

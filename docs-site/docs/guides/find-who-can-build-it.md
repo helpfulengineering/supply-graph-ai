@@ -32,15 +32,18 @@ of which requirements the workshop satisfied, which it didn't, and why — for
 example that it covers the printing and cutting a design needs but has nothing
 recorded for soldering.
 
-!!! warning "A percentage is not a yes"
+### Near misses, and how much slack to allow
 
-    The results list currently includes **near misses as well as matches**. A
-    workshop can show "Medium · 67%" and still be a facility that cannot build
-    the design — its explanation will begin with `NOT MATCHED` and name what's
-    missing.
+A workshop that satisfies most of a design's requirements but not all of it is
+often still worth contacting — a single missing process is frequently an easy
+gap to fill. So results say plainly what is missing rather than reducing it to a
+score: **"Missing 1 of 4 requirements"**, or **"Meets every requirement"**.
 
-    This is confusing and we're fixing it. Until then: the explanation is
-    authoritative, the badge is a hint.
+A slider controls how much slack to allow, measured in missing requirements
+rather than a percentage — one gap means something quite different in a design
+with two requirements than in one with six. It starts at a single gap, and it
+cannot be relaxed past the point where a result would meet fewer than two of
+your requirements.
 
 ## When nothing matches
 

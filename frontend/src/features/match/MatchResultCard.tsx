@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "../../components/ui/Badge";
 import type { RankedSolution } from "./matchViewModel";
 import { confidencePct, confidenceToken } from "./confidence";
+import { coverageLabel } from "./nearMiss";
 
 export function MatchResultCard({
   solution,
@@ -54,9 +55,21 @@ export function MatchResultCard({
                 </p>
               )}
             </div>
-            <Badge variant={token.variant}>
-              {token.label} · {confidencePct(solution.confidence)}%
-            </Badge>
+            {/*
+              Coverage leads, confidence follows. A bare percentage was the bug:
+              a facility missing a requirement read as "Medium · 67%", which
+              invites "probably fine". What a person can act on is WHICH
+              requirement is unmet, so say that first and keep the score as a
+              secondary signal.
+            */}
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <Badge variant={solution.coverage?.missing ? "yellow" : token.variant}>
+                {coverageLabel(solution.coverage)}
+              </Badge>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                confidence {confidencePct(solution.confidence)}%
+              </span>
+            </div>
           </div>
           {treeHref && (
             <div className="mt-3">

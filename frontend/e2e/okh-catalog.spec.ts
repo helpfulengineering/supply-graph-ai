@@ -24,7 +24,14 @@ test("selecting a facet narrows the results (mocked)", async ({ page }, testInfo
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
   await page.goto("/okh");
   // Only Face Shield is GPL-2.0.
-  await page.getByRole("checkbox", { name: /GPL-2\.0/ }).check();
+  //
+  // click(), not check(): facet state lives in the URL, so the checkbox is
+  // controlled and its DOM value round-trips through the router. check()
+  // asserts the input's own state flipped and samples during the window where
+  // React has reset the value but the URL update has not landed — which failed
+  // intermittently under load, including in CI with a retry. The assertions
+  // below verify the behaviour that actually matters.
+  await page.getByRole("checkbox", { name: /GPL-2\.0/ }).click();
   await expect(page.getByRole("heading", { name: "Face Shield" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Open Ventilator" })).toBeHidden();
   // Facet selection is reflected in the URL (deep-linkable).
@@ -46,7 +53,8 @@ test("category facet is the primary spine and narrows results (mocked)", async (
   // Retry until the check sticks: the facet can still remount as counts recompute,
   // which otherwise drops the click ("did not change its state").
   await expect(async () => {
-    await page.getByRole("checkbox", { name: /Test & Measurement/ }).check();
+    // click(), not check() — see the note above on URL-controlled facets.
+    await page.getByRole("checkbox", { name: /Test & Measurement/ }).click();
     await expect(page).toHaveURL(/category=Test/);
   }).toPass();
   await expect(page.getByRole("heading", { name: "Test Rig" })).toBeVisible();

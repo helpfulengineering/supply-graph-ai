@@ -75,9 +75,16 @@ class ProcessDefinition:
 # ---------------------------------------------------------------------------
 
 PROCESS_DEFINITIONS: List[ProcessDefinition] = [
-    # -----------------------------------------------------------------------
-    # Additive Manufacturing (TSDC: 3DP)
-    # -----------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # GENERATED — do not edit by hand.
+    #
+    # Source of truth: src/config/taxonomy/processes.yaml
+    # Regenerate:      uv run python scripts/generate_process_definitions.py
+    # Verified by:     make ready (taxonomy-check)
+    #
+    # This literal is the fallback used when the YAML is missing or invalid,
+    # so it stays checked in rather than being derived at import time.
+    # ------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="3d_printing",
         display_name="3D Printing",
@@ -85,16 +92,17 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "3dp",
-                "3d printing",
                 "3d print",
+                "3d printing",
                 "3d_printing",
+                "3dp",
                 "additive manufacturing",
                 "am",
-                "printing",
                 "print",
+                "printing",
             }
         ),
+        wikidata_qid="Q229367",
     ),
     ProcessDefinition(
         canonical_id="3d_printing_fdm",
@@ -105,11 +113,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
             {
                 "fdm",
                 "fdm printing",
+                "fff",
                 "fused deposition modeling",
                 "fused deposition modelling",
                 "fused filament fabrication",
                 "fused_filament_fabrication",
-                "fff",
             }
         ),
     ),
@@ -121,8 +129,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         aliases=frozenset(
             {
                 "sla",
-                "sla printing",
                 "sla printer",
+                "sla printing",
                 "stereolithography",
             }
         ),
@@ -134,9 +142,9 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="3d_printing",
         aliases=frozenset(
             {
+                "selective laser sintering",
                 "sls",
                 "sls printing",
-                "selective laser sintering",
             }
         ),
     ),
@@ -147,15 +155,12 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="3d_printing",
         aliases=frozenset(
             {
+                "digital light processing",
                 "dlp",
                 "dlp printing",
-                "digital light processing",
             }
         ),
     ),
-    # -----------------------------------------------------------------------
-    # Subtractive Manufacturing (TSDC: CNC)
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="cnc_machining",
         display_name="CNC Machining",
@@ -167,10 +172,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "cnc machining",
                 "cnc_machining",
                 "computer numerical control",
-                "subtractive manufacturing",
                 "machining",
+                "subtractive manufacturing",
             }
         ),
+        wikidata_qid="Q174689",
     ),
     ProcessDefinition(
         canonical_id="cnc_milling",
@@ -179,13 +185,14 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="cnc_machining",
         aliases=frozenset(
             {
-                "cnc milling",
-                "cnc_milling",
                 "cnc mill",
+                "cnc milling",
                 "cnc_mill",
+                "cnc_milling",
                 "milling",
             }
         ),
+        wikidata_qid="Q179507",
     ),
     ProcessDefinition(
         canonical_id="cnc_turning",
@@ -194,17 +201,15 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="cnc_machining",
         aliases=frozenset(
             {
-                "cnc turning",
-                "cnc_turning",
                 "cnc lathe",
+                "cnc turning",
                 "cnc_lathe",
+                "cnc_turning",
                 "turning",
             }
         ),
+        wikidata_qid="Q1260093",
     ),
-    # -----------------------------------------------------------------------
-    # Laser Processes (TSDC: LAS)
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="laser_cutting",
         display_name="Laser Cutting",
@@ -214,15 +219,29 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
             {
                 "las",
                 "laser",
+                "laser cut",
                 "laser cutting",
                 "laser_cutting",
-                "laser cut",
+            }
+        ),
+        wikidata_qid="Q3062349",
+    ),
+    ProcessDefinition(
+        canonical_id="vinyl_cutting",
+        display_name="Vinyl Cutting",
+        tsdc_code=None,
+        parent=None,
+        aliases=frozenset(
+            {
+                "découpe vinyle",
+                "plotter",
+                "sticker cutting",
+                "vinyl cutter",
+                "vinyl cutting",
+                "vinyl_cutting",
             }
         ),
     ),
-    # -----------------------------------------------------------------------
-    # PCB (TSDC: PCB)
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="pcb_fabrication",
         display_name="PCB Fabrication",
@@ -230,18 +249,16 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
+                "circuit board",
                 "pcb",
                 "pcb fabrication",
                 "pcb_fabrication",
                 "printed circuit board",
                 "printed_circuit_board",
-                "circuit board",
             }
         ),
+        wikidata_qid="Q1047286",
     ),
-    # -----------------------------------------------------------------------
-    # Assembly (TSDC: ASM)
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="assembly",
         display_name="Assembly",
@@ -250,14 +267,14 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         aliases=frozenset(
             {
                 "asm",
+                "assemble",
+                "assembling",
                 "assembly",
                 "assembly line",
                 "assembly_line",
-                "assemble",
-                "assembling",
-                "component assembly",
                 "attach",
                 "attaching",
+                "component assembly",
                 "install",
                 "installing",
                 "mount",
@@ -286,11 +303,12 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         aliases=frozenset(
             {
                 "electronics assembly",
-                "electronics_assembly",
                 "electronics manufacturing",
+                "electronics_assembly",
                 "electronics_manufacturing",
             }
         ),
+        wikidata_qid="Q11650",
     ),
     ProcessDefinition(
         canonical_id="pcb_assembly",
@@ -299,16 +317,13 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="assembly",
         aliases=frozenset(
             {
-                "pcb assembly",
-                "pcb_assembly",
                 "clean room assembly",
                 "clean_room_assembly",
+                "pcb assembly",
+                "pcb_assembly",
             }
         ),
     ),
-    # -----------------------------------------------------------------------
-    # Welding (TSDC: WEL)
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="welding",
         display_name="Welding",
@@ -317,11 +332,12 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         aliases=frozenset(
             {
                 "wel",
-                "welding",
                 "weld",
                 "welder",
+                "welding",
             }
         ),
+        wikidata_qid="Q12544",
     ),
     ProcessDefinition(
         canonical_id="tig_welding",
@@ -330,9 +346,9 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="welding",
         aliases=frozenset(
             {
+                "tig",
                 "tig welding",
                 "tig_welding",
-                "tig",
             }
         ),
     ),
@@ -343,9 +359,9 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="welding",
         aliases=frozenset(
             {
+                "mig",
                 "mig welding",
                 "mig_welding",
-                "mig",
             }
         ),
     ),
@@ -361,9 +377,6 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
             }
         ),
     ),
-    # -----------------------------------------------------------------------
-    # Brazing / Soldering (distinct from welding)
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="brazing",
         display_name="Brazing",
@@ -371,16 +384,13 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "brazing",
                 "braze",
+                "brazing",
                 "silver brazing",
                 "torch brazing",
             }
         ),
     ),
-    # -----------------------------------------------------------------------
-    # Sheet Metal
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="sheet_metal_forming",
         display_name="Sheet Metal Forming",
@@ -391,14 +401,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
                 "sheet",
                 "sheet metal",
                 "sheet metal forming",
-                "sheet_metal_forming",
                 "sheet_metal",
+                "sheet_metal_forming",
             }
         ),
     ),
-    # -----------------------------------------------------------------------
-    # Other Manufacturing Processes
-    # -----------------------------------------------------------------------
     ProcessDefinition(
         canonical_id="injection_molding",
         display_name="Injection Molding",
@@ -407,8 +414,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         aliases=frozenset(
             {
                 "injection molding",
-                "injection_molding",
                 "injection moulding",
+                "injection_molding",
             }
         ),
     ),
@@ -419,10 +426,10 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
+                "water jet",
                 "water jet cutting",
                 "water_jet_cutting",
                 "waterjet",
-                "water jet",
             }
         ),
     ),
@@ -433,8 +440,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "casting",
                 "cast",
+                "casting",
             }
         ),
     ),
@@ -445,8 +452,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "forging",
                 "forge",
+                "forging",
             }
         ),
     ),
@@ -457,8 +464,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "soldering",
                 "solder",
+                "soldering",
             }
         ),
     ),
@@ -469,8 +476,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "drilling",
                 "drill",
+                "drilling",
             }
         ),
     ),
@@ -481,8 +488,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "bending",
                 "bend",
+                "bending",
             }
         ),
     ),
@@ -493,8 +500,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "grinding",
                 "grind",
+                "grinding",
             }
         ),
     ),
@@ -505,8 +512,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "polishing",
                 "polish",
+                "polishing",
             }
         ),
     ),
@@ -517,8 +524,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "sanding",
                 "sand",
+                "sanding",
             }
         ),
     ),
@@ -529,8 +536,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "coating",
                 "coat",
+                "coating",
             }
         ),
     ),
@@ -541,9 +548,9 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "anodizing",
                 "anodising",
                 "anodize",
+                "anodizing",
             }
         ),
     ),
@@ -554,11 +561,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "electroplating",
-                "electroplate",
-                "plating",
                 "chrome plating",
+                "electroplate",
+                "electroplating",
                 "nickel plating",
+                "plating",
                 "zinc plating",
             }
         ),
@@ -570,9 +577,9 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
+                "heat treat",
                 "heat treatment",
                 "heat_treatment",
-                "heat treat",
             }
         ),
     ),
@@ -583,8 +590,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="heat_treatment",
         aliases=frozenset(
             {
-                "annealing",
                 "anneal",
+                "annealing",
             }
         ),
     ),
@@ -595,8 +602,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="heat_treatment",
         aliases=frozenset(
             {
-                "tempering",
                 "temper",
+                "tempering",
             }
         ),
     ),
@@ -607,8 +614,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="heat_treatment",
         aliases=frozenset(
             {
-                "quenching",
                 "quench",
+                "quenching",
             }
         ),
     ),
@@ -619,11 +626,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
+                "cnc plasma",
+                "cnc plasma cutting",
+                "plasma cut",
                 "plasma cutting",
                 "plasma_cutting",
-                "plasma cut",
-                "cnc plasma cutting",
-                "cnc plasma",
             }
         ),
     ),
@@ -634,11 +641,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "surface finishing",
-                "surface_finishing",
                 "surface finish",
-                "surface_finish",
+                "surface finishing",
                 "surface treatment",
+                "surface_finish",
+                "surface_finishing",
                 "surface_treatment",
             }
         ),
@@ -652,8 +659,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
             {
                 "post",
                 "post processing",
-                "post_processing",
                 "post-processing",
+                "post_processing",
                 "postprocessing",
             }
         ),
@@ -665,8 +672,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "deburring",
                 "deburr",
+                "deburring",
             }
         ),
     ),
@@ -677,10 +684,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "painting",
                 "paint",
+                "painting",
             }
         ),
+        wikidata_qid="Q11629",
     ),
     ProcessDefinition(
         canonical_id="cutting",
@@ -689,8 +697,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "cutting",
                 "cut",
+                "cutting",
             }
         ),
     ),
@@ -701,8 +709,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="cutting",
         aliases=frozenset(
             {
-                "sawing",
                 "saw",
+                "sawing",
             }
         ),
     ),
@@ -713,8 +721,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent="cutting",
         aliases=frozenset(
             {
-                "shearing",
                 "shear",
+                "shearing",
             }
         ),
     ),
@@ -725,11 +733,11 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         parent=None,
         aliases=frozenset(
             {
-                "testing",
-                "test equipment",
-                "test_equipment",
                 "quality control",
                 "quality_control",
+                "test equipment",
+                "test_equipment",
+                "testing",
             }
         ),
     ),
@@ -766,8 +774,8 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         aliases=frozenset(
             {
                 "cir",
-                "electronic circuitry",
                 "circuitry",
+                "electronic circuitry",
             }
         ),
     ),

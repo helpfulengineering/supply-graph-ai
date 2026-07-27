@@ -13,6 +13,7 @@ const solution: RankedSolution = {
   rank: 1,
   explanation: "✓ FabLab Drome MATCHED\nAll requirements satisfied.",
   treeId: "tree-1",
+  coverage: null,
 };
 
 describe("MatchResultCard", () => {
