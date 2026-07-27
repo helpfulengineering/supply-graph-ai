@@ -11,6 +11,8 @@ describe("drops values that are not city names", () => {
   });
 
   it.each([
+    // Regression: stripping the leading "134 " first would leave "Avenue du
+    // Général Leclerc", with no digit left for the address check to catch.
     "134 Avenue du Général Leclerc",
     "Apenrader Str. 49",
     "Neckarauer Straße 106-116",
@@ -19,12 +21,6 @@ describe("drops values that are not city names", () => {
     "Room 201 & 203 (2nd Floor) , 60 Avenue Victor Hugo , L-1750 Luxemburg",
   ])("drops the street address %j", (raw) => {
     expect(normalizeCityName(raw)).toBeNull();
-  });
-
-  it("drops an address even when its house number looks like a postal code", () => {
-    // Regression: stripping "134 " first left "Avenue du Général Leclerc",
-    // which no longer had a digit for the address check to catch.
-    expect(normalizeCityName("134 Avenue du Général Leclerc")).toBeNull();
   });
 
   it("drops empty and whitespace input", () => {

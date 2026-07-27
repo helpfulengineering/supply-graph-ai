@@ -124,8 +124,7 @@ export function FacilityFilter({
     ),
     [countryScoped],
   );
-  // Normalised: the raw field holds postal codes, street addresses, and
-  // punctuation artifacts alongside real names. See network/cityNames.
+  // Raw city values include postal codes and addresses — see network/cityNames.
   const cityOptions = useMemo(
     () => normalizedCityOptions(countryScoped.map((f) => f.city)),
     [countryScoped],

@@ -190,5 +190,5 @@ export function cityMatchKey(raw: string | null | undefined): string {
   // Normalised, so a facility stored as "1050 Wien" matches the "Wien" option.
   // The filter dropdown offers normalised names; comparing raw values here
   // would mean selecting a city silently matched nothing.
-  return (normalizeCityName(raw) ?? (raw ?? "").trim()).toLowerCase();
+  return (normalizeCityName(raw) ?? raw ?? "").trim().toLowerCase();
 }

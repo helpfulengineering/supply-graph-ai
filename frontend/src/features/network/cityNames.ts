@@ -20,8 +20,10 @@
  * Dropping a real city hides real facilities, which is worse than showing one
  * odd entry. So this only fixes the unambiguous cases and leaves the rest.
  *
- * Safe to normalise for filtering because the API matches city as a
- * case-insensitive SUBSTRING — sending "Wien" still matches "1050 Wien".
+ * Both filters that consume this agree with it: the API matches city as a
+ * case-insensitive substring, so "Wien" still matches "1050 Wien"; and
+ * `cityMatchKey` normalises before comparing, because it matches exactly and
+ * would otherwise find nothing for a normalised option.
  */
 
 /** Street words that indicate an address ONLY when digits are present too. */
@@ -43,8 +45,7 @@ export function normalizeCityName(raw: string | null | undefined): string | null
 
   // Whole value wrapped in parentheses: "(Incheon)" -> "Incheon".
   // Deliberately not applied to "Halle (Saale)", where the parens are internal.
-  const wrapped = s.match(/^\((.+)\)$/);
-  if (wrapped) s = wrapped[1].trim();
+  s = s.replace(/^\((.+)\)$/, "$1").trim();
 
   // A leading slash is an artifact ("/Stavropol'"); an internal one is a real
   // bilingual name ("Biel/Bienne"), so only the leading case is stripped.
@@ -60,12 +61,7 @@ export function normalizeCityName(raw: string | null | undefined): string | null
 
   // Leading postal code: "1050 Wien", "114 28 Stockholm", "212 18 Malmö".
   // Requires 3+ digits so house numbers ("7 Place …") are not mistaken for one.
-  s = s.replace(/^\d{3,5}(\s+\d{2})?\s+/, "").trim();
-
-  // Re-check: stripping may have left nothing usable.
-  if (!/\p{L}/u.test(s)) return null;
-
-  return s;
+  return s.replace(/^\d{3,5}(\s+\d{2})?\s+/, "").trim();
 }
 
 /**
