@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Every "View supply tree" link on the match page 404'd.** The card linked by
+  *tree* id, but the route it lands on loads
+  `/supply-tree/solution/{id}/visualization`, which only accepts a *solution* id.
+  Confirmed against production: a tree id returns 404 where the solution id
+  returns 200. Cards now link by solution id.
+- **A match saved only the best result's tree**, discarding the other nine, so
+  even a corrected link could not have shown most facilities' trees. The saved
+  solution now carries every returned tree; each becomes a node in the
+  visualization bundle.
+- **An unreachable Maps of Making could produce 504s on unrelated matches.** A
+  failed refresh left the cache empty, so every later request re-attempted the
+  fetch and, serialized on the cache lock, queued behind the one in flight —
+  callers crossed nginx's 120s `proxy_read_timeout`. A failure now suppresses
+  retries for 60s, a caller holding stale data no longer waits for an in-flight
+  refresh, and the fetch ceiling drops from 30s to 15s (production measures ~2s
+  for 3,193 spaces).
+- **The prefilter's no-overlap fallback ignored its candidate cap**, the one path
+  by which an entire network could reach heavy matching unbounded. It is taken
+  by every electronics design, since MoM advertises zero facilities for
+  soldering, assembly and drilling.
+
 ## [0.10.4] - 2026-07-27
 
 ### Added

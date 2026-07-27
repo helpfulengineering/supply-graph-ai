@@ -19,6 +19,15 @@ MOM_SPARQL_ENDPOINT = "https://mapsofmaking.org/sparql/query"
 # query is heavy (thousands of rows), so we avoid re-querying on every map load.
 MOM_CACHE_TTL_SECONDS = 24 * 60 * 60
 
+# How long a failed refresh suppresses further attempts. Without this, an
+# unreachable MoM made every request retry the fetch, serialized on the cache
+# lock, until callers crossed nginx's 120s proxy_read_timeout and saw a 504.
+MOM_FAILURE_COOLDOWN_SECONDS = 60.0
+
+# Ceiling for the all-spaces fetch. Production measures ~2s for 3,193 spaces;
+# 30s was long enough that a few queued callers exceeded the gateway timeout.
+MOM_FETCH_TIMEOUT_SECONDS = 15.0
+
 _SPARQL_TEMPLATE = """
 SELECT DISTINCT ?space ?name ?lat ?lon WHERE {{
   GRAPH ?g {{
@@ -192,7 +201,7 @@ def _cell(binding: dict, key: str) -> "str | None":
 
 async def fetch_all_mom_spaces(
     endpoint: str = MOM_SPARQL_ENDPOINT,
-    timeout: float = 30.0,
+    timeout: float = MOM_FETCH_TIMEOUT_SECONDS,
 ) -> list[dict]:
     """Fetch every MoM space with coordinates, enriched for the network surface.
 
@@ -252,10 +261,16 @@ class MoMSpacesCache:
     :meth:`refresh` or drop the cache via :meth:`invalidate`.
     """
 
-    def __init__(self, ttl_seconds: float = MOM_CACHE_TTL_SECONDS) -> None:
+    def __init__(
+        self,
+        ttl_seconds: float = MOM_CACHE_TTL_SECONDS,
+        failure_cooldown_seconds: float = MOM_FAILURE_COOLDOWN_SECONDS,
+    ) -> None:
         self.ttl_seconds = ttl_seconds
+        self.failure_cooldown_seconds = failure_cooldown_seconds
         self._data: Optional[list[dict]] = None
         self._fetched_at: float = 0.0
+        self._failed_at: float = 0.0
         self._lock = asyncio.Lock()
 
     def is_fresh(self) -> bool:
@@ -264,18 +279,43 @@ class MoMSpacesCache:
             and (time.monotonic() - self._fetched_at) < self.ttl_seconds
         )
 
+    def in_failure_cooldown(self) -> bool:
+        """True while a recent refresh failure should suppress another attempt."""
+        return (
+            self._failed_at > 0.0
+            and (time.monotonic() - self._failed_at) < self.failure_cooldown_seconds
+        )
+
     async def get(self, force_refresh: bool = False) -> tuple[list[dict], bool]:
         """Return ``(spaces, available)``.
 
-        ``available`` is True when MoM data is present (fresh or stale). A single
-        in-flight refresh is serialized so a cold cache doesn't trigger a
-        thundering herd of SPARQL queries.
+        ``available`` is True when MoM data is present (fresh or stale).
+
+        Two guards keep a slow or unreachable MoM from turning into a gateway
+        timeout here. Both exist because a failed refresh leaves the cache
+        empty, so *every* later request used to re-attempt the fetch and, being
+        serialized on the lock, queue behind the one in flight — the fifth
+        caller waited past nginx's 120s proxy_read_timeout and the browser saw
+        a 504 on a request that had nothing to do with MoM being down.
+
+        1. After a failure, no refresh is attempted for ``failure_cooldown_seconds``
+           — one caller pays the timeout, the rest return immediately.
+        2. When data is already held and a refresh is in flight, the stale copy
+           is served rather than waiting for it.
+
+        ``force_refresh`` bypasses both: an explicit refresh is a deliberate act.
         """
-        if force_refresh or not self.is_fresh():
-            async with self._lock:
-                # Re-check under the lock: another coroutine may have refreshed.
-                if force_refresh or not self.is_fresh():
-                    await self._refresh_locked()
+        if not force_refresh and (self.is_fresh() or self.in_failure_cooldown()):
+            return (self._data or [], self._data is not None)
+
+        # Someone else is already refreshing; stale data now beats fresh later.
+        if not force_refresh and self._data is not None and self._lock.locked():
+            return (self._data, True)
+
+        async with self._lock:
+            # Re-check under the lock: another coroutine may have refreshed.
+            if force_refresh or not (self.is_fresh() or self.in_failure_cooldown()):
+                await self._refresh_locked()
         return (self._data or [], self._data is not None)
 
     async def refresh(self) -> bool:
@@ -287,15 +327,23 @@ class MoMSpacesCache:
         try:
             self._data = await fetch_all_mom_spaces()
             self._fetched_at = time.monotonic()
+            self._failed_at = 0.0
             return True
         except Exception as e:  # noqa: BLE001 — degrade gracefully, keep stale data
-            logger.warning("MoM all-spaces refresh failed; keeping stale data: %s", e)
+            self._failed_at = time.monotonic()
+            logger.warning(
+                "MoM all-spaces refresh failed; keeping stale data and "
+                "suppressing retries for %ss: %s",
+                self.failure_cooldown_seconds,
+                e,
+            )
             return False
 
     def invalidate(self) -> None:
         """Drop cached data so the next ``get`` refetches (cache-refresh hook)."""
         self._data = None
         self._fetched_at = 0.0
+        self._failed_at = 0.0
 
 
 # Process-wide cache instance for the map layer.
