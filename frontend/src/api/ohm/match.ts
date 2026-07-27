@@ -30,9 +30,13 @@ export interface RawSolution {
   explanation_human?: string | null;
   /** Structured explanation; carries per-requirement match status. */
   explanation?: {
-    requirement_matches?: { status?: string | null }[] | null;
+    requirement_matches?:
+      | { status?: string | null; requirement_value?: string | null }[]
+      | null;
     missing_capabilities?: unknown[] | null;
     overall_status?: string | null;
+    /** Mean of the per-requirement confidences; see matchViewModel. */
+    overall_confidence?: number | null;
   } | null;
   match_type?: string | null;
   tree?: { id?: string | null } | null;

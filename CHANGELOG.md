@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Match results contradicted themselves.** A fully successful match was
+  presented as a total failure: a `coverage 0/3` headline and a warning-styled
+  "Coverage gaps" banner naming the exact processes the design needs, sitting
+  above ten facilities each reading "Meets every requirement". The summary read
+  `tree.capabilities_used`, a field that is present on every tree and **always
+  empty**, so nothing was ever counted as matched — every match reported zero
+  coverage. It now reads the matcher's own per-requirement verdict, the same
+  evidence the cards show.
+- **Requirement counts were doubled.** A design declaring a process in both
+  `manufacturing_processes` and `manufacturing_specs.process_requirements` — all
+  19 of the 100 designs sampled that have both — had each requirement counted
+  twice, so a three-requirement design reported six and the near-miss slider
+  offered to relax to four. A duplicate counts as matched only if every copy
+  did, so deduping cannot hide a gap.
+- **One confidence figure per result.** Cards showed "confidence 100%" beside
+  text reading "(confidence: 95%)". These are different fields: the former is
+  coverage-derived and reads 1.0 whenever everything matched, the latter is the
+  mean of the per-requirement confidences. The card now shows the figure with
+  per-requirement evidence under it.
+
+### Fixed
+
 - **A configured but unusable Redis now falls back to the memory cache.** Every
   Redis operation reports a miss on failure, so a broken instance cached
   *nothing* while reporting `backend: redis` — strictly worse than the memory

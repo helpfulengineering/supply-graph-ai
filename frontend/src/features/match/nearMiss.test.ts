@@ -94,3 +94,60 @@ describe("coverageLabel", () => {
     expect(coverageLabel(null)).toBe("Coverage unknown");
   });
 });
+
+// The API extracts the same process twice when a design declares it in both
+// `manufacturing_processes` and `manufacturing_specs.process_requirements` —
+// which is every catalogue design that has both. A three-requirement design
+// reported six, and the tolerance slider offered to relax to four.
+describe("requirementStats deduplicates requirements", () => {
+  const dup = (value: string, status: string) => ({
+    requirement_value: value,
+    status,
+  });
+
+  it("counts a process declared in both sources once", () => {
+    const stats = requirementStats({
+      requirement_matches: [
+        dup("3D Printing", "matched"),
+        dup("Laser Cutting", "matched"),
+        dup("Assembly", "matched"),
+        dup("3D Printing", "matched"),
+        dup("Laser Cutting", "matched"),
+        dup("Assembly", "matched"),
+      ],
+    });
+    expect(stats).toEqual({ total: 3, missing: 0 });
+  });
+
+  it("treats a requirement as missing if any copy is unmatched", () => {
+    // Deduping must never hide a gap.
+    const stats = requirementStats({
+      requirement_matches: [
+        dup("Soldering", "matched"),
+        dup("Soldering", "not_matched"),
+      ],
+    });
+    expect(stats).toEqual({ total: 1, missing: 1 });
+  });
+
+  it("is case- and whitespace-insensitive", () => {
+    const stats = requirementStats({
+      requirement_matches: [dup("3D Printing", "matched"), dup(" 3d printing ", "matched")],
+    });
+    expect(stats).toEqual({ total: 1, missing: 0 });
+  });
+
+  it("keeps unlabelled requirements distinct", () => {
+    // Without a value there is nothing to dedupe on; collapsing them would
+    // under-count real requirements.
+    const stats = requirementStats({
+      requirement_matches: [{ status: "matched" }, { status: "not_matched" }],
+    });
+    expect(stats).toEqual({ total: 2, missing: 1 });
+  });
+
+  it("still returns null when the API sent no explanation", () => {
+    expect(requirementStats(null)).toBeNull();
+    expect(requirementStats({ requirement_matches: [] })).toBeNull();
+  });
+});
