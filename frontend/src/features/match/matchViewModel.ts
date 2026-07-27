@@ -8,6 +8,8 @@ import type { RawMatchResponse } from "../../api/ohm/match";
  * coverage gaps, and a total. No React.
  */
 
+import { requirementStats, type RequirementStats } from "./nearMiss";
+
 export interface RankedSolution {
   facilityName: string;
   facilityId: string | null;
@@ -17,6 +19,11 @@ export interface RankedSolution {
   explanation: string | null;
   /** Per-solution supply-tree id when the API returned one on the solution. */
   treeId: string | null;
+  /**
+   * Requirement coverage from the structured explanation. Null when the API
+   * did not supply one — which must not be read as "nothing missing".
+   */
+  coverage: RequirementStats | null;
 }
 
 export interface MatchView {
@@ -39,6 +46,9 @@ export function toMatchView(raw: RawMatchResponse): MatchView {
       rank: s.rank ?? 0,
       explanation: s.explanation_human ?? null,
       treeId: s.tree?.id ?? null,
+      coverage: requirementStats(
+        s.explanation as Parameters<typeof requirementStats>[0],
+      ),
     }))
     .sort((a, b) => b.confidence - a.confidence || a.rank - b.rank);
 

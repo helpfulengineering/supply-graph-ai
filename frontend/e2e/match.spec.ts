@@ -24,7 +24,10 @@ test("running a match shows ranked results, summary, and coverage gaps (mocked)"
   await page.getByRole("button", { name: /run match/i }).click();
 
   await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
-  await expect(page.getByText(/High · 95%/)).toBeVisible();
+  // Confidence is now a secondary signal; coverage leads. The old assertion
+  // ("High · 95%") encoded the presentation that made a facility missing a
+  // requirement read as broadly fine.
+  await expect(page.getByText(/confidence 95%/)).toBeVisible();
   await expect(page.getByText(/2 candidate solutions found/)).toBeVisible();
   await expect(page.getByText(/CNC Machining/)).toBeVisible();
   // Each solution links to its own supply tree.
@@ -127,4 +130,71 @@ test("network mode sends network_filter and shows the banner (mocked)", async ({
 
   await expect(page.getByRole("heading", { name: "FabLab Drome" })).toBeVisible();
   expect(body!.network_filter).toMatchObject({ country: "FR", process: "laser_cutting", include_mom: true });
+});
+
+test("near-misses are filtered by a tolerance the design's size bounds (mocked)", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name === "real-api", "asserts mocked results");
+
+  // Four requirements: one facility meets all, one misses a single process.
+  const req = (status: string) => ({ status });
+  await page.route("**/api/match", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          total_solutions: 2,
+          solutions: [
+            {
+              facility_name: "Complete Works",
+              facility_id: "f1",
+              confidence: 1,
+              rank: 1,
+              explanation: {
+                requirement_matches: [
+                  req("matched"), req("matched"), req("matched"), req("matched"),
+                ],
+              },
+            },
+            {
+              facility_name: "Nearly There",
+              facility_id: "f2",
+              confidence: 0.75,
+              rank: 2,
+              explanation: {
+                requirement_matches: [
+                  req("matched"), req("matched"), req("matched"), req("unmatched"),
+                ],
+              },
+            },
+          ],
+        },
+      }),
+    }),
+  );
+
+  await page.goto("/match");
+  await page.getByLabel("Search designs").fill("Ventilator");
+  await page.getByRole("option", { name: /Open Ventilator/i }).click();
+  await page.getByLabel("Laser Fab Lab").check();
+  await page.getByRole("button", { name: /run match/i }).click();
+
+  // Default tolerance is one gap, so both appear — and the near-miss says what
+  // is missing rather than showing a percentage that reads as "probably fine".
+  await expect(page.getByRole("heading", { name: "Complete Works" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Nearly There" })).toBeVisible();
+  await expect(page.getByText("Missing 1 of 4 requirements")).toBeVisible();
+  await expect(page.getByText("Meets every requirement")).toBeVisible();
+
+  // Tightening to zero hides the near-miss.
+  const slider = page.getByLabel(/Allow facilities missing up to/);
+  await slider.fill("0");
+  await expect(page.getByRole("heading", { name: "Nearly There" })).toBeHidden();
+  await expect(page.getByRole("heading", { name: "Complete Works" })).toBeVisible();
+  await expect(page.getByText(/1 facility is hidden/)).toBeVisible();
+
+  // The ceiling is r-2, so a 4-requirement design can never relax past 2.
+  await expect(slider).toHaveAttribute("max", "2");
 });

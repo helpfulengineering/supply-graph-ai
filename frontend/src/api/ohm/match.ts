@@ -28,6 +28,12 @@ export interface RawSolution {
   score?: number;
   rank?: number;
   explanation_human?: string | null;
+  /** Structured explanation; carries per-requirement match status. */
+  explanation?: {
+    requirement_matches?: { status?: string | null }[] | null;
+    missing_capabilities?: unknown[] | null;
+    overall_status?: string | null;
+  } | null;
   match_type?: string | null;
   tree?: { id?: string | null } | null;
 }

@@ -7,6 +7,11 @@ import { runMatch } from "../../api/ohm/match";
 import { ApiError } from "../../api/ohm/client";
 import { solutionSelectionKey, toMatchView } from "./matchViewModel";
 import {
+  defaultTolerance,
+  toleranceCeiling,
+  withinTolerance,
+} from "./nearMiss";
+import {
   buildInlineMatchRequest,
   buildMatchRequest,
   SYSTEM_MODES,
@@ -137,10 +142,40 @@ export function MatchView({
     },
     onSuccess: () => setSelectedSolutionKeys([]),
   });
-  const view = useMemo(
+  const rawView = useMemo(
     () => (mutation.data ? toMatchView(mutation.data) : null),
     [mutation.data],
   );
+
+  // The design's requirement count comes from the results themselves — every
+  // solution is evaluated against the same requirement set.
+  const requirementCount = useMemo(
+    () =>
+      rawView?.solutions.reduce((max, s) => Math.max(max, s.coverage?.total ?? 0), 0) ??
+      0,
+    [rawView],
+  );
+  const ceiling = toleranceCeiling(requirementCount);
+  const [tolerance, setTolerance] = useState<number | null>(null);
+  const effectiveTolerance = Math.min(
+    tolerance ?? defaultTolerance(requirementCount),
+    ceiling,
+  );
+
+  // Near-misses are filtered out by default rather than shown as if they
+  // matched — the previous behaviour presented a facility that cannot build the
+  // design as "Medium · 67%".
+  const view = useMemo(() => {
+    if (!rawView) return null;
+    return {
+      ...rawView,
+      solutions: rawView.solutions.filter((s) =>
+        withinTolerance(s.coverage, effectiveTolerance),
+      ),
+    };
+  }, [rawView, effectiveTolerance]);
+
+  const hiddenCount = (rawView?.solutions.length ?? 0) - (view?.solutions.length ?? 0);
 
   const selectedDesign = useMemo(
     () => (designs.data?.items ?? []).find((d) => d.id === selected) ?? null,
@@ -328,6 +363,43 @@ export function MatchView({
                 </p>
               </div>
             )}
+            {ceiling > 0 && (
+              <div className="rounded-lg border border-input bg-muted/30 p-4">
+                <label
+                  htmlFor="near-miss-tolerance"
+                  className="block text-sm font-medium text-foreground"
+                >
+                  Allow facilities missing up to{" "}
+                  {effectiveTolerance === 0
+                    ? "nothing"
+                    : `${effectiveTolerance} requirement${effectiveTolerance === 1 ? "" : "s"}`}
+                </label>
+                <input
+                  id="near-miss-tolerance"
+                  type="range"
+                  min={0}
+                  max={ceiling}
+                  step={1}
+                  value={effectiveTolerance}
+                  onChange={(e) => setTolerance(Number(e.target.value))}
+                  className="mt-2 w-full max-w-sm"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {/*
+                    Capped at r-2 so a "match" always means at least two
+                    satisfied requirements. Counting missing requirements rather
+                    than a percentage keeps this comparable across designs: one
+                    gap in a 2-requirement design is not the same as one gap in
+                    a design with six.
+                  */}
+                  This design has {requirementCount} requirements. The most you can
+                  relax to is {ceiling}, so a result always meets at least two.
+                  {hiddenCount > 0 &&
+                    ` ${hiddenCount} facilit${hiddenCount === 1 ? "y is" : "ies are"} hidden at this setting.`}
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
                 {view.totalSolutions} solution
