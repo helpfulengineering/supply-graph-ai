@@ -38,9 +38,8 @@ in OHM without having done anything or agreed to anything with us.
 
 It's worth being precise about how that data works, because it's easy to assume
 the worst. In the case of Maps of Making, each space publishes a small file **on
-its own website**, and the map is assembled by finding those files. The
-information belongs to the space and is hosted by the space. The map — and OHM —
-are readers.
+its own endpoint**, which the map reads. The information belongs to the space
+and is hosted by the space. The map — and OHM — are readers.
 
 So this is not a case of workshops being scraped into someone else's database.
 It's a case of workshops publishing about themselves, and more than one thing

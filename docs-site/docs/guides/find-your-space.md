@@ -53,7 +53,7 @@ You can add your workshop directly. See
 [list or enrich your facility](list-or-enrich-your-facility.md).
 
 Worth knowing first: if your space publishes its details through Maps of Making,
-that information lives **on your own website** and is read from there. Adding a
+that information lives **at your own endpoint** and is read from there. Adding a
 record in OHM is a separate thing from that, not a replacement for it, and it
 doesn't move anything away from you.
 
