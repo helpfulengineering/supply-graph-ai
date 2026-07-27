@@ -1150,9 +1150,13 @@ async def upload(
     help="GitHub personal access token (increases rate limit from 60 to 5,000 requests/hour)",
 )
 @click.option(
-    "--clone",
-    is_flag=True,
-    help="Clone repository locally for extraction (faster, more reliable, eliminates API limits)",
+    "--clone/--no-clone",
+    default=True,
+    help=(
+        "Clone the repository locally for extraction (default). Faster and needs "
+        "no API token; --no-clone forces the platform API path, which fetches "
+        "selectively but is rate-limited."
+    ),
 )
 @click.option(
     "--save-clone",
@@ -1378,9 +1382,21 @@ async def generate_from_url(
                                 f"Clone will be saved to: {persist_path}", "info"
                             )
                         generator = router.route_to_local_git_extractor()
-                        project_data = await generator.extract_project(
-                            url, persist_path=persist_path
-                        )
+                        try:
+                            project_data = await generator.extract_project(
+                                url, persist_path=persist_path
+                            )
+                        except Exception as exc:
+                            # Degrade rather than fail: a clone can fail for
+                            # reasons unrelated to the repository (git absent,
+                            # timeout, transient network). The API path still
+                            # works, just slower and rate-limited.
+                            cli_ctx.log(
+                                f"Clone failed ({type(exc).__name__}: {exc}); "
+                                "falling back to API extraction.",
+                                "warning",
+                            )
+                            use_clone = False
 
                 if not use_clone:
                     if platform == PlatformType.GITHUB:
