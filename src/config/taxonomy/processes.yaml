@@ -156,6 +156,21 @@ processes:
       - "laser_cutting"
       - "laser cut"
 
+  # Maps of Making publishes a `vinyl-cutting` activity that OHM had no process
+  # for, so those spaces' capability was dropped on ingest. Aliases are taken
+  # from MoM's own skos:altLabel values so the bridge resolves on first contact.
+  # No wikidata_qid: MoM's concept carries no owl:sameAs, and alias matching is
+  # sufficient (that is how laser_cutting resolves today).
+  vinyl_cutting:
+    display_name: "Vinyl Cutting"
+    aliases:
+      - "vinyl cutting"
+      - "vinyl_cutting"
+      - "vinyl cutter"
+      - "plotter"
+      - "sticker cutting"
+      - "découpe vinyle"
+
   # ---------------------------------------------------------------------------
   # PCB (TSDC: PCB)
   # ---------------------------------------------------------------------------

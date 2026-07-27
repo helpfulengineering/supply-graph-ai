@@ -71,6 +71,13 @@ run = "uv run python scripts/build_docs_site.py"
 mutates = true
 used_by = ["make docs-site", "notes/docs-v2-spec.md"]
 
+[scripts.generate_process_definitions]
+category = "generate"
+summary = "Generate the PROCESS_DEFINITIONS fallback literal from processes.yaml; --check gates drift between the two."
+run = "uv run python scripts/generate_process_definitions.py [--check]"
+mutates = true
+used_by = ["make ready (taxonomy-check)", "make taxonomy"]
+
 [scripts.generate_scripts_index]
 category = "generate"
 summary = "Generate scripts/README.md from this registry; --check gates staleness and registry completeness."
