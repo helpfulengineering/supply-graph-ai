@@ -117,11 +117,39 @@ function invert(map: Record<string, string>): Record<string, string> {
 const COUNTRY_BY_NAME = invert(COUNTRY_NAMES);
 const STATE_BY_NAME = invert(US_STATE_NAMES);
 
+/**
+ * Resolves every ISO 3166-1 alpha-2 code, not just the curated ones.
+ *
+ * The hand-maintained table below covers ~46 countries; the live network holds
+ * 140 distinct country values, 96 of which are codes. Anything outside the
+ * table used to fall through and render raw, which is why country dropdowns
+ * showed a mix of "France" and "BJ". Intl handles the long tail, and the table
+ * remains for non-standard values (e.g. "USA") and as a fallback.
+ */
+const REGION_DISPLAY: Intl.DisplayNames | null = (() => {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" });
+  } catch {
+    return null;
+  }
+})();
+
 export function displayCountryName(raw: string | null | undefined): string {
   if (!raw?.trim()) return "";
   const s = raw.trim();
   const upper = s.toUpperCase();
-  return COUNTRY_NAMES[upper] ?? s;
+  // Curated overrides win: they handle non-ISO spellings Intl rejects.
+  if (COUNTRY_NAMES[upper]) return COUNTRY_NAMES[upper];
+  if (REGION_DISPLAY && /^[A-Z]{2}$/.test(upper)) {
+    try {
+      const name = REGION_DISPLAY.of(upper);
+      // Intl echoes the input back for codes it does not recognise.
+      if (name && name !== upper) return name;
+    } catch {
+      /* not a valid region subtag — fall through to the raw value */
+    }
+  }
+  return s;
 }
 
 export function displayRegionName(raw: string | null | undefined): string {
@@ -139,7 +167,10 @@ export function countryMatchKey(raw: string | null | undefined): string {
   if (COUNTRY_NAMES[upper]) return COUNTRY_NAMES[upper].toLowerCase();
   const fromName = COUNTRY_BY_NAME[s.toLowerCase()];
   if (fromName) return (COUNTRY_NAMES[fromName] ?? fromName).toLowerCase();
-  return s.toLowerCase();
+  // Same resolution as the display name, so a code and its full name collapse
+  // to one option instead of appearing twice in a filter.
+  const resolved = displayCountryName(s);
+  return resolved.toLowerCase();
 }
 
 /** Canonical key for comparing region/state values. */
