@@ -33,9 +33,9 @@ OHM implements both. See [OKH and OKW](okh-and-okw.md).
 of most facilities visible in OHM.
 
 Its design is worth understanding, because it's unusually good: each space
-publishes a small file **on its own website**, and the map is assembled by finding
-those files. The data belongs to the space, hosted by the space. Maps of Making
-reads it. So does OHM.
+publishes **its own data at its own endpoint**, which the map reads. The data
+belongs to the space and is hosted by the space; Maps of Making reads it, and so
+does OHM.
 
 It's also worth being straight about the limitation, since it shapes what OHM can
 currently do. That vocabulary describes what a space is *about* — digital

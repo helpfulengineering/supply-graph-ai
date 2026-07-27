@@ -130,3 +130,45 @@ describe("FacilityFilter", () => {
     expect(onChange).toHaveBeenLastCalledWith([]);
   });
 });
+
+describe("city options", () => {
+  const messy: FacilityOption[] = [
+    { id: "a", name: "A", city: "1050 Wien", region: null, country: "AT", source: "mom" },
+    { id: "b", name: "B", city: "1070 Wien", region: null, country: "AT", source: "mom" },
+    { id: "c", name: "C", city: "-- .", region: null, country: "AT", source: "mom" },
+    { id: "d", name: "D", city: "Apenrader Str. 49", region: null, country: "DE", source: "mom" },
+    { id: "e", name: "E", city: "Berlin", region: null, country: "DE", source: "mom" },
+  ];
+
+  function cityNames() {
+    const select = screen.getByLabelText("City") as HTMLSelectElement;
+    return [...select.options].map((o) => o.text).filter((t) => t !== "All cities");
+  }
+
+  it("drops artifacts and merges postal-code variants", () => {
+    render(
+      <FacilityFilter facilities={messy} selectedIds={[]} onChange={vi.fn()} />,
+    );
+    const names = cityNames();
+    expect(names).toContain("Wien");
+    expect(names).toContain("Berlin");
+    // One Vienna, not two.
+    expect(names.filter((n) => n === "Wien")).toHaveLength(1);
+    expect(names).not.toContain("-- .");
+    expect(names).not.toContain("Apenrader Str. 49");
+  });
+
+  it("constrains cities to the selected country", async () => {
+    render(
+      <FacilityFilter facilities={messy} selectedIds={[]} onChange={vi.fn()} />,
+    );
+    expect(cityNames()).toContain("Berlin");
+
+    await userEvent.selectOptions(screen.getByLabelText("Country"), "Austria");
+
+    // Cities outside the chosen country are unselectable anyway — the geo
+    // filters are AND-ed — so offering them is noise.
+    expect(cityNames()).toContain("Wien");
+    expect(cityNames()).not.toContain("Berlin");
+  });
+});

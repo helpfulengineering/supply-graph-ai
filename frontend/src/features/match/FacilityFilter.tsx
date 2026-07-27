@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { normalizedCityOptions } from "../network/cityNames";
 import {
   cityMatchKey,
   countryMatchKey,
@@ -106,19 +107,27 @@ export function FacilityFilter({
     ),
     [sourceScoped],
   );
+  // Region and city options are scoped to the chosen country. Offering every
+  // city in the world while a country is selected makes the list unusable and
+  // most of it unselectable — the geo filters are AND-ed, so a city outside the
+  // chosen country matches nothing.
+  const countryScoped = useMemo(() => {
+    if (!geo.country) return sourceScoped;
+    const want = countryMatchKey(geo.country);
+    return sourceScoped.filter((f) => countryMatchKey(f.country) === want);
+  }, [sourceScoped, geo.country]);
+
   const regionOptions = useMemo(
     () => uniqueSorted(
-      sourceScoped.map((f) => f.region),
+      countryScoped.map((f) => f.region),
       displayRegionName,
     ),
-    [sourceScoped],
+    [countryScoped],
   );
+  // Raw city values include postal codes and addresses — see network/cityNames.
   const cityOptions = useMemo(
-    () => uniqueSorted(
-      sourceScoped.map((f) => f.city),
-      (v) => v,
-    ),
-    [sourceScoped],
+    () => normalizedCityOptions(countryScoped.map((f) => f.city)),
+    [countryScoped],
   );
 
   const geoFiltered = useMemo(
@@ -244,9 +253,9 @@ export function FacilityFilter({
                 onChange={(e) => setGeoField("city", e.target.value)}
               >
                 <option value="">All cities</option>
-                {cityOptions.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                {cityOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
                 ))}
               </select>
