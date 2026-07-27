@@ -47,7 +47,11 @@ export function toMatchView(raw: RawMatchResponse): MatchView {
     .map((s) => ({
       facilityName: s.facility_name ?? "Unknown facility",
       facilityId: s.facility_id ?? null,
-      confidence: s.confidence ?? 0,
+      // `confidence` is coverage-derived and reads 1.0 whenever everything
+      // matched; `overall_confidence` is the mean of the per-requirement
+      // figures the card's own text quotes. Showing the former put "confidence
+      // 100%" next to "(confidence: 95%)" on the same card.
+      confidence: s.explanation?.overall_confidence ?? s.confidence ?? 0,
       score: s.score ?? 0,
       rank: s.rank ?? 0,
       explanation: s.explanation_human ?? null,

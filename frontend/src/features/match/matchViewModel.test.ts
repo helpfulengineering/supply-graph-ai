@@ -60,3 +60,34 @@ describe("toRfqSolutions", () => {
     expect(rfq[0].facility.contact?.website).toBe("https://example.org");
   });
 });
+
+// The card showed "confidence 100%" beside text reading "(confidence: 95%)".
+// They are different fields: `confidence` is coverage-derived and reads 1.0
+// whenever every requirement matched, while `overall_confidence` is the mean of
+// the per-requirement confidences the text quotes.
+describe("confidence is a single, evidenced figure", () => {
+  const raw = (solution: Record<string, unknown>) => ({
+    data: { solutions: [solution] },
+  });
+
+  it("prefers the explanation's overall confidence", () => {
+    const view = toMatchView(
+      raw({
+        facility_name: "FabLab",
+        confidence: 1.0,
+        explanation: { overall_confidence: 0.95, requirement_matches: [] },
+      }),
+    );
+    expect(view.solutions[0].confidence).toBe(0.95);
+  });
+
+  it("falls back to the solution confidence when the explanation omits it", () => {
+    const view = toMatchView(raw({ facility_name: "FabLab", confidence: 0.8 }));
+    expect(view.solutions[0].confidence).toBe(0.8);
+  });
+
+  it("defaults to zero rather than undefined", () => {
+    const view = toMatchView(raw({ facility_name: "FabLab" }));
+    expect(view.solutions[0].confidence).toBe(0);
+  });
+});

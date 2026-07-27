@@ -1459,11 +1459,15 @@ def _extract_required_processes_from_manifest(okh_manifest: OKHManifest) -> List
 
 
 def _collect_matched_processes_from_solutions(solutions: List[dict]) -> List[str]:
-    """Collect process-like capability names from single-level solution payloads.
+    """Collect the processes the returned solutions actually satisfy.
 
-    For composite solutions (multiple facilities) all constituent facilities are
-    inspected so that the coverage summary reflects the union of their capabilities,
-    not just the representative tree.
+    Reads each solution's ``explanation.requirement_matches`` — the matcher's own
+    per-requirement verdict, and the same evidence the result cards show. It
+    previously read ``tree.capabilities_used``, which is always empty, so every
+    match reported zero coverage (see tests/unit/test_match_coverage_summary.py).
+
+    Composite solutions still use their facilities' processes: a composite's
+    coverage is the union across its members, not any one facility's verdict.
     """
     values: List[str] = []
     for solution in solutions:
@@ -1476,13 +1480,19 @@ def _collect_matched_processes_from_solutions(solutions: List[dict]) -> List[str
                     proc_text = str(proc).strip()
                     if proc_text:
                         values.append(proc_text)
-        else:
-            tree = solution.get("tree", {}) or {}
-            capabilities = tree.get("capabilities_used", []) or []
-            for cap in capabilities:
-                cap_text = str(cap).strip()
-                if cap_text:
-                    values.append(cap_text)
+            continue
+
+        explanation = solution.get("explanation") or {}
+        for match in explanation.get("requirement_matches") or []:
+            if not match or match.get("status") != "matched":
+                continue
+            # Keep both forms — the capability the facility offers and the value
+            # the design asked for — so _processes_match can resolve whichever
+            # one the taxonomy recognises.
+            for field in ("matched_capability", "requirement_value"):
+                text = str(match.get(field) or "").strip()
+                if text:
+                    values.append(text)
     return values
 
 

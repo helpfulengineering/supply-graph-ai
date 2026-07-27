@@ -29,6 +29,7 @@ export interface RequirementStats {
 
 interface RequirementMatch {
   status?: string | null;
+  requirement_value?: string | null;
 }
 
 interface ExplanationLike {
@@ -38,9 +39,15 @@ interface ExplanationLike {
 }
 
 /**
- * Read requirement counts out of a structured explanation.
+ * Read requirement counts out of a structured explanation, counting each
+ * requirement ONCE.
  *
- * Returns null when the API did not include one — callers must not infer
+ * The API extracts the same process twice when a design declares it in both
+ * `manufacturing_processes` and `manufacturing_specs.process_requirements`, so
+ * a three-requirement design reported six. A duplicate counts as matched only
+ * if every copy did, so deduping cannot hide a gap.
+ *
+ * Returns null when the API sent no explanation — callers must not infer
  * "nothing missing" from missing data, which would resurrect the original bug
  * in a quieter form.
  */
@@ -49,8 +56,18 @@ export function requirementStats(
 ): RequirementStats | null {
   const matches = explanation?.requirement_matches;
   if (!Array.isArray(matches) || matches.length === 0) return null;
-  const missing = matches.filter((m) => m?.status !== "matched").length;
-  return { total: matches.length, missing };
+
+  const satisfied = new Map<string, boolean>();
+  matches.forEach((m, i) => {
+    // Fall back to the index when the value is absent, so an unlabelled
+    // requirement stays its own entry rather than collapsing with others.
+    const key = m?.requirement_value?.trim().toLowerCase() || `#${i}`;
+    const ok = m?.status === "matched";
+    satisfied.set(key, (satisfied.get(key) ?? true) && ok);
+  });
+
+  const missing = [...satisfied.values()].filter((ok) => !ok).length;
+  return { total: satisfied.size, missing };
 }
 
 /** Most missing requirements a user may choose to tolerate, given `r`. */
