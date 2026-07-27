@@ -26,6 +26,15 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # empty docs section, which the post-deploy smoke check is there to catch.
 COPY docs-dist /usr/share/nginx/html/docs
 
+# Build identity, baked in so a deploy can prove which image is actually
+# serving. A version string cannot do this: republishing a release tag yields a
+# new image reporting the same version, so a deploy that silently fails to roll
+# over still passes a version check. Static file rather than a runtime env var —
+# it has to describe the IMAGE, not the container's environment.
+ARG GIT_SHA=unknown
+LABEL org.opencontainers.image.revision="${GIT_SHA}"
+RUN printf '{"build":"%s"}\n' "${GIT_SHA}" > /usr/share/nginx/html/build-info.json
+
 # Host-specific config — injected at deploy time from the centralized config
 # surface (config/environments/<env>.toml [frontend]); NOT baked into the image.
 # API_UPSTREAM_URL has no default on purpose: an unset value fails nginx startup

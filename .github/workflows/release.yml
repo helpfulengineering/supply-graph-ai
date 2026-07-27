@@ -145,6 +145,12 @@ jobs:
     name: Publish multi-arch to Docker Hub
     runs-on: ubuntu-latest
     needs: [validate, test, docker-smoke]
+    # Deploys pin this digest rather than the tag. Republishing a release tag
+    # leaves the tag string unchanged, so Container Apps sees an identical
+    # revision spec, creates no new revision, and keeps serving the old image
+    # while the deploy reports success.
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
@@ -167,6 +173,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push multi-arch manifest
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -178,6 +185,7 @@ jobs:
             ${{ env.IMAGE }}:latest
           build-args: |
             APP_VERSION=${{ needs.validate.outputs.version }}
+            GIT_SHA=${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -241,7 +249,7 @@ jobs:
         # (locally it would be read from a developer's .env — a prod footgun).
         run: |
           uv run python deploy/scripts/deploy_azure.py \
-            --image ${{ env.IMAGE }}:${{ needs.validate.outputs.version }} \
+            --image ${{ env.IMAGE }}@${{ needs.publish.outputs.digest }} \
             --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
             --environment production
 
@@ -249,6 +257,12 @@ jobs:
         env:
           API_HOST: openhardwaremanager.blackdune-e38fce01.westus3.azurecontainerapps.io
           EXPECTED_VERSION: ${{ needs.validate.outputs.version }}
+          # Identity, not just liveness. `version` cannot tell two builds of the
+          # same release apart, so a deploy that fails to roll over passes a
+          # version check while serving old code — which is exactly what happened
+          # on 2026-07-26. The build SHA is baked into the image, so this asserts
+          # the running container IS the image just published.
+          EXPECTED_BUILD: ${{ github.sha }}
         # Lifespan startup (storage + MATCHING_EAGER_INIT up to 120s) can exceed
         # the old 20×5s window; use liveness (no storage fingerprint) and tolerate
         # empty/non-JSON gateway responses during revision rollout.
@@ -263,26 +277,41 @@ jobs:
 
           host = os.environ["API_HOST"]
           expected = os.environ["EXPECTED_VERSION"]
-          url = f"https://{host}/health/liveness"
+          expected_build = os.environ["EXPECTED_BUILD"]
+          # /health carries the build SHA; liveness does not.
+          url = f"https://{host}/health"
           actual = None
+          actual_build = None
 
           for attempt in range(1, 37):
               try:
                   with urllib.request.urlopen(url, timeout=10) as resp:
                       body = json.load(resp)
                   actual = body.get("version")
-                  if actual == expected:
-                      print(f"deployed version={actual} (expected {expected})", flush=True)
+                  actual_build = body.get("build")
+                  if actual == expected and actual_build == expected_build:
+                      print(
+                          f"deployed version={actual} build={actual_build}",
+                          flush=True,
+                      )
                       sys.exit(0)
                   print(
-                      f"attempt {attempt}/36: version={actual!r} (waiting for {expected!r})",
+                      f"attempt {attempt}/36: version={actual!r} build={actual_build!r} "
+                      f"(waiting for {expected!r} / {expected_build[:8]!r})",
                       flush=True,
                   )
               except (urllib.error.URLError, TimeoutError, json.JSONDecodeError, KeyError) as exc:
                   print(f"attempt {attempt}/36: not ready ({type(exc).__name__})", flush=True)
               time.sleep(10)
 
-          print(f"deployed version={actual!r} (expected {expected!r})")
+          print(f"deployed version={actual!r} build={actual_build!r}")
+          print(f"expected version={expected!r} build={expected_build!r}")
+          if actual == expected and actual_build != expected_build:
+              print(
+                  "::error::The app reports the right version but the wrong build — "
+                  "the container app did not roll over to the new image. If the image "
+                  "reference is unchanged, Container Apps creates no new revision.",
+              )
           sys.exit(1)
           PY
 
@@ -334,6 +363,9 @@ jobs:
     name: Publish frontend multi-arch to Docker Hub
     runs-on: ubuntu-latest
     needs: [validate, test, docker-smoke]
+    # See the note on `publish.outputs.digest` — deploys pin the digest.
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
     if: >-
       github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && inputs.dry_run == false)
@@ -366,6 +398,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push multi-arch frontend manifest
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: frontend
@@ -375,6 +408,8 @@ jobs:
             ${{ env.FRONTEND_IMAGE }}:${{ needs.validate.outputs.version }}
             ${{ env.FRONTEND_IMAGE }}:${{ needs.validate.outputs.major_minor }}
             ${{ env.FRONTEND_IMAGE }}:latest
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
@@ -425,7 +460,7 @@ jobs:
       - name: Deploy frontend
         run: |
           uv run python deploy/scripts/deploy_azure_frontend.py \
-            --image ${{ env.FRONTEND_IMAGE }}:${{ needs.validate.outputs.version }} \
+            --image ${{ env.FRONTEND_IMAGE }}@${{ needs['publish-frontend'].outputs.digest }} \
             --subscription-id ${{ secrets.AZURE_SUBSCRIPTION_ID }} \
             --environment production
 
@@ -440,6 +475,25 @@ jobs:
           done
           echo "frontend /healthz -> $code"
           test "$code" = "200"
+
+          # Liveness is not identity: the OLD revision also answers /healthz with
+          # 200, so polling it proves nothing about which image is serving. The
+          # build SHA is baked into the image at build time, so wait for the
+          # container to actually report the build we just published.
+          expected="${{ github.sha }}"
+          build=""
+          for i in $(seq 1 36); do
+            build=$(curl -s --max-time 20 "https://$host/build-info.json" \
+              | python3 -c "import sys,json;print(json.load(sys.stdin).get('build',''))" 2>/dev/null || true)
+            [ "$build" = "$expected" ] && break
+            echo "attempt $i/36: build=${build:-unknown} (waiting for ${expected:0:8})"
+            sleep 10
+          done
+          if [ "$build" != "$expected" ]; then
+            echo "::error::frontend reports build '${build:-unknown}', expected '${expected}' — the container app did not roll over to the new image."
+            exit 1
+          fi
+          echo "frontend build -> ${build:0:8} (matches)"
           # The /v1 reverse-proxy reaches the backend API (same-origin).
           curl -sf --max-time 20 "https://$host/v1/openapi.json" >/dev/null
           echo "frontend proxy -> backend /v1 OK"
