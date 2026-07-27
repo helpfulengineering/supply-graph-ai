@@ -3283,7 +3283,10 @@ async def set_compatible_manifests_cmd(
     help="Scan stored OKHs (use with --limit)",
 )
 @click.option(
-    "--limit", default=100, show_default=True, help="Max manifests when --all"
+    "--limit",
+    type=int,
+    default=None,
+    help="Cap manifests scanned with --all (default: no cap, scan everything)",
 )
 @click.option(
     "--apply",
@@ -3346,6 +3349,12 @@ async def infer_processes_cmd(
         f"missing={report['missing']}",
         "success" if report["updated_count"] or report["dry_run"] else "info",
     )
+    if report.get("not_scanned"):
+        cli_ctx.log(
+            f"{report['not_scanned']} manifest(s) were NOT scanned because of "
+            f"--limit. Re-run without it to cover the whole catalogue.",
+            "warning",
+        )
     for entry in report.get("updated") or []:
         cli_ctx.log(
             f"  {entry['id']}: {entry['before']} → {entry['after']}",

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **`ohm okh infer-processes --all` now scans everything.** It defaulted to
+  `--limit 100` and the service capped an unlimited run at 500, so against 175
+  designs it reported `scanned=100` and looked complete — a partial backfill
+  presented as success. `--limit` is now an opt-in cap, and a capped run says
+  how many manifests it left behind.
+
+### Fixed
+
 - **Process inference now reads TSDC codes**, the DIN SPEC 3105 codes a design's
   own manifest declares. It previously read only design-file extensions and the
   title, so **123 of 175 catalogue designs carried no manufacturing processes at
