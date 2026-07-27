@@ -29,11 +29,10 @@ Narrow it down with:
 Filtering by country and then city is usually the fastest way to find a
 particular place.
 
-!!! note "Searching by name isn't available yet"
-
-    You can't currently type a workshop's name and jump to it — you narrow by
-    place and process instead. This is a known gap and a high priority to fix,
-    because it's obviously the thing most people will try first.
+Or just type the name. **Search by name** sits above the filters and matches on
+name, city, and country — so "lyon" finds a workshop whose own name doesn't
+mention it. It ignores accents, punctuation, and word order, because "fablab
+bordeaux" should find "Fablab Coh@bit IUT Bordeaux".
 
 ## If you find yourself
 
