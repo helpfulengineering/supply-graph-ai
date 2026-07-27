@@ -92,6 +92,9 @@ _TEXT_TOKEN_BLOCKLIST = frozenset(
 
 DEFAULT_FILE_TYPE_CONFIDENCE = 0.85
 DEFAULT_TEXT_CONFIDENCE = 0.72
+# A TSDC code is the author declaring the process under DIN SPEC 3105, not a
+# guess from a filename or a word in a title, so it outranks both.
+DEFAULT_TSDC_CONFIDENCE = 0.95
 
 _TOKEN_SPLIT = re.compile(r"[^a-zA-Z0-9]+")
 
@@ -111,6 +114,27 @@ class ProcessInferenceService:
         self.extension_map = dict(EXTENSION_TO_PROCESS)
         self.confidence = DEFAULT_FILE_TYPE_CONFIDENCE
         self.text_confidence = DEFAULT_TEXT_CONFIDENCE
+        self.tsdc_confidence = DEFAULT_TSDC_CONFIDENCE
+
+    def infer_from_tsdc(self, codes: Iterable[str]) -> ProcessInferenceResult:
+        """Infer from DIN SPEC 3105 TSDC codes (``3DP``, ``ASM``, ``LAS``…).
+
+        ``taxonomy.normalize`` already resolves these, so values that are not
+        codes (``OSH``, ``MEC/ASM/etc.``) return None and are skipped.
+        """
+        seen_ids: Dict[str, List[str]] = {}
+        for raw in codes:
+            if not raw or not isinstance(raw, str):
+                continue
+            code = raw.strip()
+            canonical = taxonomy.normalize(code)
+            if canonical is None:
+                continue
+            evidence = f"tsdc:{code}"
+            bucket = seen_ids.setdefault(canonical, [])
+            if evidence not in bucket:
+                bucket.append(evidence)
+        return self._result_from_ids(seen_ids, self.tsdc_confidence)
 
     def infer_from_paths(self, paths: Iterable[str]) -> ProcessInferenceResult:
         seen_ids: Dict[str, List[str]] = {}
@@ -178,8 +202,10 @@ class ProcessInferenceService:
         paths: Optional[Iterable[str]] = None,
         text: str = "",
         keywords: Optional[Sequence[str]] = None,
+        tsdc: Optional[Iterable[str]] = None,
     ) -> ProcessInferenceResult:
         return self._merge_results(
+            self.infer_from_tsdc(tsdc or ()),
             self.infer_from_paths(paths or ()),
             self.infer_from_text(text, keywords=keywords),
         )
@@ -190,7 +216,12 @@ class ProcessInferenceService:
         keywords = getattr(manifest, "keywords", None) or []
         if isinstance(keywords, str):
             keywords = [keywords]
-        return self.infer(paths=paths, text=str(title), keywords=list(keywords))
+        return self.infer(
+            paths=paths,
+            text=str(title),
+            keywords=list(keywords),
+            tsdc=self._tsdc_from_manifest(manifest),
+        )
 
     def apply_to_manifest(
         self,
@@ -276,6 +307,13 @@ class ProcessInferenceService:
         if key in taxonomy._alias_map:
             return taxonomy._alias_map[key]
         return taxonomy._tsdc_map.get(token.strip().upper())
+
+    @staticmethod
+    def _tsdc_from_manifest(manifest: object) -> List[str]:
+        codes = getattr(manifest, "tsdc", None)
+        if isinstance(codes, str):
+            return [codes]
+        return [c for c in (codes or []) if isinstance(c, str)]
 
     @staticmethod
     def _extension_of(path: str) -> str:

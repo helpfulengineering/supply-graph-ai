@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Process inference now reads TSDC codes**, the DIN SPEC 3105 codes a design's
+  own manifest declares. It previously read only design-file extensions and the
+  title, so **123 of 175 catalogue designs carried no manufacturing processes at
+  all — and a design with no processes returns zero matches.** Inference was
+  riding on a filename convention: designs *titled* `3DP-…` got `3D Printing`,
+  while an identical `tsdc: ['3DP']` on `3D-Simple-Bias-Tape-Maker` got nothing.
+  The taxonomy already resolved these codes; only inference never asked. A
+  dry-run backfill over production fills 100 of the 123 (81%).
+
+### Fixed
+
 - **Match results contradicted themselves.** A fully successful match was
   presented as a total failure: a `coverage 0/3` headline and a warning-styled
   "Coverage gaps" banner naming the exact processes the design needs, sitting

@@ -1022,7 +1022,7 @@ class OKHService(BaseService["OKHService"]):
         limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
-        Infer manufacturing_processes from file types / title on stored OKHs.
+        Infer manufacturing_processes from TSDC codes / file types / title.
 
         By default only fills empty process lists and does not write (dry_run=True).
         Pass dry_run=False to persist updates via :meth:`update`.

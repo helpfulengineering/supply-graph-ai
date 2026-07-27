@@ -3303,10 +3303,10 @@ async def set_compatible_manifests_cmd(
 async def infer_processes_cmd(
     ctx, manifest_id, all_manifests, limit, apply, merge, output
 ):
-    """Infer manufacturing_processes from design/manufacturing file types.
+    """Infer manufacturing_processes for manifests that declare none.
 
-    Uses the modular ProcessInferenceService (file extensions + title/keywords
-    → taxonomy processes).
+    Uses ProcessInferenceService: TSDC codes (DIN SPEC 3105), then design-file
+    extensions, then title/keywords → taxonomy processes.
     Default is dry-run; pass --apply to write storage.
 
     \b
