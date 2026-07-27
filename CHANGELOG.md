@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.4] - 2026-07-27
+
+### Added
+
+- **The documentation site is actually served**, at `/docs` on the app's own
+  origin, with a nav link and a route back to the app from every page. It had
+  been built and gated but never deployed: `/docs` returned HTTP 200 only
+  because the SPA catch-all answers every unknown path, so nothing looked wrong.
+- **Search the network by name.** The site's primary call to action is "find your
+  workshop", and among ~3,200 spaces there was no way to type a name. Matches on
+  name, city, and country, ignoring accents, punctuation, and word order.
+- **Near-miss tolerance on match results.** A slider measured in *missing
+  requirements* rather than a percentage, bounded by the design's size
+  (`max(r-2, 0)`, defaulting to one gap) — one gap means something different in
+  a design with two requirements than in one with six.
+- **Guided form for "New design".** It previously accepted only pasted JSON,
+  which asks the author to already know the OKH format. It now opens the same
+  tiered editor the URL import uses; pasting JSON remains one click away.
+- **Contact page**, at contact@openhardwaremanager.org.
+- **`vinyl_cutting`** process. Maps of Making publishes a `vinyl-cutting`
+  activity OHM had no process for, so those spaces' capability was dropped on
+  ingest.
+- **Taxonomy drift gate.** `PROCESS_DEFINITIONS` is generated from
+  `processes.yaml`, with `--check` as `make ready` step 8/11. The two were
+  hand-synchronised across 49 processes with nothing asserting they agreed.
+- **The frontend gate now runs in CI** — typecheck, lint, unit, build, and the
+  Playwright/a11y suite. It had no CI coverage at all.
+
+### Changed
+
+- **Cloning is the default extraction path** for generate-from-URL, with
+  automatic fallback to the platform API if a clone fails. A public clone needs
+  no credential, so self-hosted instances work out of the box and the hosted
+  instance no longer subsidises every user's extraction through one shared,
+  rate-limited token. Measured on `RespiraWorks/Ventilator`: API path 504 after
+  120s, repeatedly; clone path 200 in ~21s.
+- **Match results lead with coverage, not a score.** "Missing 1 of 4
+  requirements" or "Meets every requirement", with confidence demoted to a
+  secondary line.
+- **Deploys pin image digests** instead of a mutable tag, and assert build
+  identity afterwards — images now carry `GIT_SHA`, reported at `/health` as
+  `build` and served at `/build-info.json`.
+
+### Fixed
+
+- **Deploys were silently doing nothing.** Publishing 0.10.3 overwrote the
+  release tag with a new digest, then the deploy set the same image reference
+  already running — so Container Apps created no revision and the previous image
+  kept serving, while both deploy jobs reported success. Every check tested
+  liveness rather than identity, and the stale image reported the same version.
+- **Full country names everywhere.** Filters mixed "France" with "BJ": name
+  resolution used a hand-maintained table of ~46 countries against a network
+  holding 140 distinct values, 96 of them codes. Now resolved via
+  `Intl.DisplayNames` — verified against all 96 codes in production. A code and
+  its full name also no longer appear as two separate filter options.
+- **Generation timeouts no longer report themselves as user cancellations**,
+  which left no clue whether to retry, wait, or give up.
+- **Accessibility:** 19 serious contrast violations in the tiered editor, and a
+  pre-existing one in the design picker's selected row. The a11y helper also
+  scanned mid-animation, producing intermittent failures against colours that
+  exist in no stylesheet; it now waits for animations to settle.
+
 ## [0.10.3] - 2026-07-26
 
 ### Added
