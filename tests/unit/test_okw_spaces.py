@@ -166,7 +166,11 @@ async def test_cache_keeps_stale_on_failure_and_unavailable_when_never_fetched(
 
     monkeypatch.setattr("src.core.services.mom_bridge.fetch_all_mom_spaces", fake_fetch)
 
-    cache = MoMSpacesCache(ttl_seconds=0)
+    # Cooldown disabled: this test covers stale-keeping and availability, and a
+    # failure now suppresses retries for a minute by default (see
+    # test_mom_cache_resilience.py — it is what stops a down MoM from queueing
+    # callers past the gateway timeout). Recovery here is immediate by design.
+    cache = MoMSpacesCache(ttl_seconds=0, failure_cooldown_seconds=0)
     spaces, avail = await cache.get()  # never succeeded
     assert spaces == [] and avail is False
     state["fail"] = False

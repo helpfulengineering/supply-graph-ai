@@ -534,12 +534,30 @@ async def match_requirements_to_capabilities(
                     from ...models.supply_trees import SupplyTree, SupplyTreeSolution
 
                     best_solution_dict = solutions[0]
-                    tree_dict = best_solution_dict.get("tree", {})
-                    tree = SupplyTree.from_dict(tree_dict)
 
-                    # Create SupplyTreeSolution from single tree
+                    # Persist every returned solution's tree, not just the best.
+                    # The UI offers "View supply tree" on each result card, so a
+                    # solution holding one tree left nine of ten cards pointing at
+                    # a tree that was never stored. Each tree becomes a node in
+                    # the visualization bundle, keyed by its own id.
+                    trees = []
+                    for solution_dict in solutions:
+                        tree_dict = solution_dict.get("tree")
+                        if not tree_dict:
+                            continue
+                        try:
+                            trees.append(SupplyTree.from_dict(tree_dict))
+                        except Exception:  # noqa: BLE001 — one bad tree must not
+                            # cost the whole solution; the rest still resolve.
+                            logger.warning(
+                                "Skipping unparseable tree while saving solution",
+                                extra={"request_id": request_id},
+                            )
+                    if not trees:
+                        raise ValueError("no parseable supply tree to save")
+
                     solution = SupplyTreeSolution(
-                        all_trees=[tree],
+                        all_trees=trees,
                         score=best_solution_dict.get(
                             "score", best_solution_dict.get("confidence", 0.0)
                         ),
@@ -2266,15 +2284,25 @@ def _prefilter_facilities_by_required_processes(
             scored.append((score, facility))
 
     if not scored:
+        # No facility advertises a required process (MoM has zero coverage for
+        # soldering, assembly and drilling today), so fall back to the full pool
+        # rather than returning nothing. The cap still applies: this path used to
+        # return `facilities` unbounded, which was the one route by which a whole
+        # network could reach heavy matching with no ceiling at all.
+        fallback = facilities
+        if max_candidates is not None:
+            fallback = facilities[: max(1, int(max_candidates))]
         logger.info(
             "Requirement-aware prefilter found no overlap; keeping full facility pool",
             extra={
                 "request_id": request_id,
                 "required_process_count": len(normalized_required),
                 "facility_count": len(facilities),
+                "selected_candidates": len(fallback),
+                "max_candidates": max_candidates,
             },
         )
-        return facilities
+        return fallback
 
     scored.sort(key=lambda item: item[0], reverse=True)
     trimmed = [facility for _, facility in scored]

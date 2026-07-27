@@ -466,6 +466,7 @@ export function MatchView({
                 <MatchResultCard
                   key={key}
                   solution={s}
+                  solutionId={view.solutionId}
                   selectionKey={key}
                   selected={selectedSolutionKeys.includes(key)}
                   onToggle={() =>

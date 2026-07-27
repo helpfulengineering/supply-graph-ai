@@ -31,7 +31,13 @@ export interface MatchView {
   coverageGaps: string[];
   summary: string | null;
   totalSolutions: number;
-  /** Persisted top-level solution id (legacy hand-off; prefer per-solution treeId). */
+  /**
+   * Persisted solution id — what the supply-tree explorer loads.
+   *
+   * Null when the match was not saved (inline manifests), in which case no card
+   * offers a tree link. `treeId` identifies a tree WITHIN this solution and is
+   * not addressable on its own.
+   */
   solutionId: string | null;
 }
 

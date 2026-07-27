@@ -9,17 +9,22 @@ export function MatchResultCard({
   selected,
   onToggle,
   selectionKey,
+  solutionId,
 }: {
   solution: RankedSolution;
   selected: boolean;
   onToggle: () => void;
   selectionKey: string;
+  /** Persisted solution id — the only id the visualization endpoint accepts. */
+  solutionId: string | null;
 }) {
   const token = confidenceToken(solution.confidence);
   const firstLine = solution.explanation?.split("\n")[0]?.trim() ?? null;
-  const treeHref = solution.treeId
-    ? `/visualization/${solution.treeId}`
-    : null;
+  // Link by SOLUTION id, not tree id. The route loads
+  // /supply-tree/solution/{id}/visualization, which only accepts a solution id,
+  // so linking by tree id 404'd on every card. The solution now carries every
+  // result's tree, so this page shows the clicked facility among them.
+  const treeHref = solutionId ? `/visualization/${solutionId}` : null;
 
   return (
     <div
