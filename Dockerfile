@@ -39,7 +39,13 @@ RUN uv sync --frozen --no-dev --no-editable
 FROM python:3.12-slim AS runtime
 
 ARG APP_VERSION=0.8.0
+# The commit this image was built from. A version alone cannot identify a build:
+# two images published under the same release tag report the same version, so a
+# deploy that silently fails to roll over looks healthy. /health reports this so
+# a deploy can assert it is running the image it just pushed.
+ARG GIT_SHA=unknown
 LABEL org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${GIT_SHA}" \
       org.opencontainers.image.title="Open Hardware Manager (OHM)" \
       org.opencontainers.image.source="https://github.com/helpfulengineering/supply-graph-ai/supply-graph-ai"
 
@@ -47,7 +53,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
     PYTHONPATH="/app" \
-    APP_VERSION="${APP_VERSION}"
+    APP_VERSION="${APP_VERSION}" \
+    GIT_SHA="${GIT_SHA}"
 
 # curl: container healthcheck.
 # git:  the generation pipeline's clone path (`clone=true`) shells out to

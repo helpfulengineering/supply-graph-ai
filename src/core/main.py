@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -257,6 +258,12 @@ async def health_check():
         "status": "ok",
         "domains": list(DomainRegistry.get_registered_domains()),
         "version": get_version(),
+        # The commit this image was built from, baked in at build time.
+        # `version` cannot identify a build: republishing a release tag produces
+        # a new image reporting the SAME version, so a deploy that fails to roll
+        # over passes a version check while serving the old code. This is what
+        # the deploy gate asserts against.
+        "build": os.getenv("GIT_SHA", "unknown"),
     }
     try:
         storage_service = await StorageService.get_instance()
