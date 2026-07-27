@@ -45,3 +45,19 @@ describe("generationErrorMessage", () => {
     expect(generationErrorMessage("boom")).toBe("Generation failed.");
   });
 });
+
+describe("timeout vs cancellation", () => {
+  const abort = new DOMException("aborted", "AbortError");
+
+  it("says cancelled when the user aborted", () => {
+    expect(generationErrorMessage(abort, false)).toBe("Generation was cancelled.");
+  });
+
+  it("says timed out — not cancelled — when the deadline fired", () => {
+    const msg = generationErrorMessage(abort, true);
+    expect(msg).toContain("longer than two minutes");
+    // Reporting a timeout as the user's own cancellation is misleading and
+    // leaves them with no idea whether to retry.
+    expect(msg).not.toContain("cancelled");
+  });
+});

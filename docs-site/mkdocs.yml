@@ -58,6 +58,9 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+  # Clicking the site title/logo returns to the app rather than to the docs
+  # home — the docs are a section of the product, not a separate destination,
+  # and a reader who wants out should not have to reach for the back button.
   features:
     - navigation.sections
     - navigation.top
@@ -91,6 +94,8 @@ exclude_docs: |
 # consciously placed. Entries are added as pages land (M3 -> M7).
 nav:
   - Home: index.md
+  # External nav entry: an unmissable way back into the app from any page.
+  - ← Back to OHM: https://www.openhardwaremanager.org/
   - About:
       - What is OHM?: about/what-is-ohm.md
       - The problem: about/the-problem.md
@@ -115,3 +120,7 @@ nav:
       - OKH and OKW: reference/okh-and-okw.md
       - Standards and ecosystem: reference/standards-and-ecosystem.md
       - What's built: reference/whats-built.md
+
+extra:
+  # Retargets the header logo/title (see the theme note above).
+  homepage: https://www.openhardwaremanager.org/
