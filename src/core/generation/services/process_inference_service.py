@@ -65,6 +65,9 @@ SHORT_TOKEN_TO_PROCESS: Dict[str, str] = {
     "dlp": "3d_printing",
     "cnc": "cnc_machining",
     "pcb": "pcb_fabrication",
+    # Not an acronym, but the token path skips anything under four characters,
+    # and "sew" is how half the textile designs name themselves ("So-Sew-Easy").
+    "sew": "sewing",
 }
 
 _TEXT_TOKEN_BLOCKLIST = frozenset(
