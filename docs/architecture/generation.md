@@ -693,6 +693,24 @@ Inference read only filenames and titles, so a design *titled* `3DP-…` got
 `3D Printing` while an identical `tsdc: ['3DP']` on a differently-named design
 got nothing — and a design with no processes matches nothing at all.
 
+### Designs whose files cannot be resolved
+
+A generated design is only useful if something about it can be classified. Where
+a design's file references all point at hosts that expose no filename — Google
+Drive `/file/d/<id>/view` pages being the case in practice — no signal is
+recoverable: the extension is absent, the download endpoint yields a `.pdf`
+pattern sheet, and the title names the product rather than the process.
+
+Such designs match nothing and are removed from the catalogue rather than left
+as noise. Seven were removed on this basis (see the `chore/exclude-unresolvable-designs`
+PR for the list and their source URLs — every one was generated from a URL and
+can be regenerated if the host later becomes resolvable).
+
+This is a **curation** decision, not a code path: generation still accepts these
+designs, and nothing prevents another from being created. If they recur at
+volume, the durable fix is a generation-time warning when no file reference
+resolves to a known type.
+
 It resolves display names through the [canonical process taxonomy](process-taxonomy-adr.md)
 using **exact** alias/TSDC lookup for tokens (avoids substring false positives
 such as `face` ⊂ `surface_finish`). Extension → process mappings are defined

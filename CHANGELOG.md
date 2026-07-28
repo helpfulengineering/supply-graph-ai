@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **Seven catalogue designs whose file references were exclusively Google Drive
+  viewer pages.** No file type is recoverable from those URLs, so the designs
+  could never be classified and matched nothing — noise in every result set.
+  Their source URLs are recorded in the removing PR; all were generated from a
+  URL and can be regenerated. Also removed four integration-test fixtures
+  (`licensor: "Test Suite"`) that were live in the production catalogue.
 ### Added
 
 - **`sewing` process** (Wikidata Q652122). The taxonomy had 48 processes and
