@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`sewing` process** (Wikidata Q652122). The taxonomy had 48 processes and
+  none could describe sewn work, so the COVID-response textile PPE in the
+  catalogue — gowns, scrubs, masks — was *unclassifiable*, not merely
+  unclassified. Deliberately top-level rather than a child of `assembly`: the
+  hierarchy is consulted during matching, and a metal-fabrication shop
+  advertising "assembly" cannot sew a surgical gown.
+
 ### Fixed
 
 - **`ohm okh infer-processes --all` now scans everything.** It defaulted to

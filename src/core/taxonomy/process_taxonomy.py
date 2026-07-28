@@ -727,6 +727,25 @@ PROCESS_DEFINITIONS: List[ProcessDefinition] = [
         ),
     ),
     ProcessDefinition(
+        canonical_id="sewing",
+        display_name="Sewing",
+        tsdc_code=None,
+        parent=None,
+        aliases=frozenset(
+            {
+                "cut and sew",
+                "garment construction",
+                "sew",
+                "sewing",
+                "sewn",
+                "stitch",
+                "stitching",
+                "textile",
+            }
+        ),
+        wikidata_qid="Q652122",
+    ),
+    ProcessDefinition(
         canonical_id="testing",
         display_name="Testing",
         tsdc_code=None,

@@ -489,6 +489,32 @@ processes:
       - "shear"
 
   # ---------------------------------------------------------------------------
+  # Textile Processes
+  # ---------------------------------------------------------------------------
+  #
+  # Added for the sewn PPE in the catalogue (gowns, scrubs, masks), which no
+  # process here could describe — they were unclassifiable, not unclassified.
+  #
+  # Top-level on purpose, NOT a child of `assembly`: the hierarchy is consulted
+  # during matching, so a metal-fabrication shop advertising "assembly" would
+  # otherwise be treated as able to sew a surgical gown.
+  #
+  # No tsdc_code: we could not verify one in DIN SPEC 3105, and inventing a
+  # standards code is worse than leaving it unset.
+  sewing:
+    display_name: "Sewing"
+    wikidata_qid: "Q652122"
+    aliases:
+      - "sewing"
+      - "sew"
+      - "sewn"
+      - "stitching"
+      - "stitch"
+      - "textile"
+      - "garment construction"
+      - "cut and sew"
+
+  # ---------------------------------------------------------------------------
   # Quality & Logistics
   # ---------------------------------------------------------------------------
 
