@@ -389,3 +389,39 @@ async def test_a_limit_larger_than_the_catalogue_leaves_nothing_behind() -> None
     report = await _run_backfill(175, 500)
     assert report["scanned"] == 175
     assert report["not_scanned"] == 0
+
+
+# Sewing — added because the taxonomy could not describe 12 catalogue designs
+# (sewn PPE from the COVID response: gowns, scrubs, masks). They were
+# unclassifiable, not merely unclassified.
+
+
+def test_sewing_is_inferred_from_the_title(service: ProcessInferenceService) -> None:
+    manifest = _manifest(title="Hello-Sewing-3D-Window-Mask")
+    assert "Sewing" in service.infer_from_manifest(manifest).processes
+
+
+def test_the_short_token_sew_is_matched(service: ProcessInferenceService) -> None:
+    """Tokens under four characters are skipped unless listed explicitly."""
+    manifest = _manifest(title="So-Sew-Easy-Unisex-Scrubs-Top")
+    assert service.infer_from_manifest(manifest).processes == ["Sewing"]
+
+
+def test_product_names_do_not_imply_sewing(service: ProcessInferenceService) -> None:
+    """The deliberate limit of this change.
+
+    "mask" appears in 27 catalogue titles, 13 of them 3D-printed and 7
+    assembled; "shield" in 19, mostly 3D printing and laser cutting. Mapping a
+    product name to a process would mislabel roughly twenty designs to recover
+    nine, so these stay unclassified until a real signal exists.
+    """
+    for title in ("Duckbill-Mask-with-Filter", "Badger-Shield-V4", "Reusable-Gown"):
+        assert service.infer_from_manifest(_manifest(title=title)).processes == []
+
+
+def test_sewing_is_not_reachable_from_assembly() -> None:
+    """Hierarchy drives matching: an assembly shop cannot sew a surgical gown."""
+    from src.core.taxonomy import taxonomy
+
+    assert taxonomy.normalize("sewing") == "sewing"
+    assert taxonomy.are_related("assembly", "sewing") is False
