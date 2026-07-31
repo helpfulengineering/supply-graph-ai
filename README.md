@@ -1,10 +1,46 @@
 # Open Hardware Manager (OHM)
 
-## Overview
+Open hardware has a licensing story and a publishing story. What it does not have
+is a manufacturing story.
 
-The Open Hardware Manager (OHM) is a flexible, domain-agnostic framework designed to solve complex requirements-to-capabilities matching problems across various domains. The system matches requirements (what needs to be done) with capabilities (what can be done) to create viable solutions.
+A design is released under an open licence. The files are online. Anyone is
+legally free to build it. And then, in practice, almost nobody does — because
+finding someone who *can* build it is a research project every single time.
 
-OHM exposes a FastAPI-based HTTP API that can be run locally via Docker Compose, from a [published Docker image](https://hub.docker.com/r/touchthesun/openhardwaremanager), or deployed serverlessly using the configurations in `deploy/`.
+Inside a closed supply chain, that question is easy: one organisation owns the
+designs, the formats, and the system of record. Open hardware has no owner and
+no shared format. Designs are scattered across repositories, wikis, and PDFs;
+workshops that could build them are scattered too. So the most basic question
+in the field — *who can make this?* — has gone largely unanswered for years.
+
+**OHM is an attempt to answer it.** It holds structured records of open hardware
+designs and of real production facilities, works out which facilities can build
+a given design, and hands you what you need to go ask them. It is not a
+marketplace or a broker — the conversation that follows is between you and the
+workshop.
+
+Most of the work is not the matching. It is **normalisation**: absorbing
+heterogeneous design and facility data into a form that can be reasoned about,
+rather than demanding that the world adopt one format first. Everyday use is
+also what makes mutual aid possible under pressure — in a crisis there is no
+time to build this network from scratch.
+
+The hosted instance at [openhardwaremanager.org](https://www.openhardwaremanager.org)
+is a convenience, not the product. OHM is open-source software you can run
+yourself.
+
+**Read more:** [What is OHM?](docs-site/docs/about/what-is-ohm.md) ·
+[The problem](docs-site/docs/about/the-problem.md) ·
+[Docs site](https://www.openhardwaremanager.org/docs/)
+
+---
+
+## Software
+
+OHM exposes a FastAPI HTTP API that can be run locally via Docker Compose, from a
+[published Docker image](https://hub.docker.com/r/touchthesun/openhardwaremanager),
+or deployed using the configurations in `deploy/`. A reference frontend ships in
+`frontend/`.
 
 **Current release:** `0.10.4` — see [CHANGELOG.md](CHANGELOG.md) and [Release process](docs/RELEASE.md).
 
