@@ -3,7 +3,7 @@
 This guide covers running **federated OHM peers** locally for development and
 validation. For protocol decisions see [federation-mvp-adr.md](../architecture/federation-mvp-adr.md).
 For ephemeral multi-region Azure peers see [`deploy/terraform/azure/README.md`](../../deploy/terraform/azure/README.md)
-and the latest validation log in [`docs/testing/federation-azure-validation.md`](../testing/federation-azure-validation.md).
+and Azure bring-up notes in [`deploy/terraform/azure/README.md`](../../deploy/terraform/azure/README.md).
 
 ## Quick start (Docker Compose)
 

@@ -135,7 +135,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "--write-proposals",
         action="store_true",
         help=(
-            "Write draft fix proposals under docs/proposals/ for probe ERROR "
+            "Write draft fix proposals under harness/proposals/ for probe ERROR "
             "findings (human review before implementation)."
         ),
     )
@@ -164,7 +164,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         findings: list[Finding] = [f for r in result.reports for f in r.findings]
         written = write_probe_proposals(
             findings,
-            repo_root() / "docs" / "proposals",
+            repo_root() / "harness" / "proposals",
         )
         if not args.json:
             if written:
@@ -177,7 +177,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.json:
         payload = result.to_dict()
         if args.write_proposals:
-            payload["proposals_dir"] = str(repo_root() / "docs" / "proposals")
+            payload["proposals_dir"] = str(repo_root() / "harness" / "proposals")
         json.dump(payload, sys.stdout, indent=2)
         sys.stdout.write("\n")
     else:

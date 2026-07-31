@@ -56,4 +56,4 @@ peers (see federation OKW ingest + UI synced banner).
 
 - [Identity Model](identity-model.md)
 - [Federation MVP ADR](federation-mvp-adr.md)
-- [Get a write key](../auth/get-a-write-key.md)
+- Product API guide: [`docs-site/docs/guides/use-the-api.md`](../../docs-site/docs/guides/use-the-api.md)

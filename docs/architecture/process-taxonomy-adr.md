@@ -129,8 +129,8 @@ Key aspects:
 - **Taxonomy module**: `src/core/taxonomy/__init__.py`, `src/core/taxonomy/process_taxonomy.py`
 - **YAML definitions**: `src/config/taxonomy/processes.yaml`
 - **Process inference (generation helper)**: `src/core/generation/services/process_inference_service.py`
-  — extension/title → display names via this taxonomy; see
-  [Generation architecture](generation.md#supporting-services-srccoregenerationservices)
+  — extension/title → display names via this taxonomy (see that module and
+  `src/core/generation/services/`)
 - **Tests**: `tests/core/taxonomy/test_process_taxonomy.py` (164 tests),
   `tests/core/taxonomy/test_yaml_loading.py` (33 tests),
   `tests/unit/test_process_inference_service.py`

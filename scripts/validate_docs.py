@@ -22,10 +22,16 @@ class DocValidator:
 
     def check_auth_header(self):
         """Check authentication header documentation."""
-        auth_doc = self.project_root / "docs" / "api" / "auth.md"
+        # Prefer operator auth docs; fall back to the public API guide.
+        candidates = [
+            self.project_root / "docs" / "auth" / "getting-started.md",
+            self.project_root / "docs" / "auth" / "accounts-and-keys.md",
+            self.project_root / "docs-site" / "docs" / "guides" / "use-the-api.md",
+        ]
+        auth_doc = next((p for p in candidates if p.exists()), None)
         main_code = self.project_root / "src" / "core" / "api" / "dependencies.py"
 
-        if not auth_doc.exists() or not main_code.exists():
+        if auth_doc is None or not main_code.exists():
             return
 
         # Check code

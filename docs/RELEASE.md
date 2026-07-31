@@ -28,7 +28,7 @@ docker run -p 8001:8001 \
 curl -s http://localhost:8001/health
 ```
 
-Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true` and see [federation infrastructure](development/federation-infra.md).
+Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true` and see [federation infrastructure](ops/federation-infra.md).
 
 ## Version mapping
 
@@ -45,7 +45,7 @@ Federation is **off by default**. To enable it, set `OHM_FEDERATION_ENABLED=true
 2. Run `uv lock` and `uv sync --extra dev`.
 3. Confirm `uv run ohm version` and local `/health` report the new version.
 4. Update `CHANGELOG.md`.
-5. Run `make match-harness` (offline golden matching). Optionally `MOM_LIVE=1 make match-harness` for live MoM SPARQL smoke — see [matching harness](testing/matching-harness.md).
+5. Run `make match-harness` (offline golden matching). Optionally `MOM_LIVE=1 make match-harness` for live MoM SPARQL smoke — see `tests/matching/`.
 6. Merge to `main` and wait for CI to pass (quality, test, contract-stability, security, docker-build-test).
 7. Create git tag `vX.Y.Z` on the release commit.
 8. Push the tag — the **Release** workflow validates the tag, runs tests, builds from `uv.lock`, and pushes a **multi-arch** manifest (`linux/amd64`, `linux/arm64`) to Docker Hub.
