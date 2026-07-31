@@ -1,9 +1,6 @@
 # Triage harness (developer overview)
 
-Post-deploy verification loops for OHM. For **how to run, configure, and fix
-findings**, see the operator reference:
-
-**[docs/testing/triage-harness.md](../docs/testing/triage-harness.md)**
+Post-deploy verification loops for OHM.
 
 ## Quick start
 
@@ -33,7 +30,8 @@ uv run python -m harness.runner --json          # machine-readable
 | `probe_cache` | Missing / ineffective read cache | Resolved (#271, Redis on ACA) |
 | `probe_okh_files` | OKH file refs not proxied / broken | In progress (#272, v0.8.10+) |
 
-See **[docs/testing/probe-workflow.md](../docs/testing/probe-workflow.md)** for progress tracker.
+Probe modules live under `harness/modules/probe_*.py`. Track progress in issues /
+PRs rather than a separate docs page.
 
 ## Layout
 
@@ -43,7 +41,7 @@ harness/
   protocol.py / config.py / base.py / runner.py
   probes/{http,okh,proposal,base}.py
   modules/{client_drift,parity,red,synthetic_smoke,probe_*}.py
-docs/proposals/          # auto-generated fix stubs (--write-proposals)
+harness/proposals/       # auto-generated fix stubs (--write-proposals)
 ```
 
 Not a merge gate — see `make ready` and `make frontend-ready`.

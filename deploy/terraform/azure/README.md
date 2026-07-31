@@ -92,7 +92,7 @@ Federation env vars applied by the module:
 ## Validation notes
 
 Local Compose matrix first: see
-[docs/development/federation-infra.md](../../../docs/development/federation-infra.md).
+[docs/ops/federation-infra.md](../../../docs/ops/federation-infra.md).
 
 Expected MVP behaviour on live peers:
 
@@ -101,4 +101,4 @@ Expected MVP behaviour on live peers:
 - Edge role hides `/v1/api/federation/*`
 - Relay role looks like a peer for catalog sync until v0.2 protocol exists
 
-Capture Azure run results in [`docs/testing/federation-azure-validation.md`](../../../docs/testing/federation-azure-validation.md).
+Capture Azure run results in the PR or issue that drove the bring-up (no checked-in validation log).

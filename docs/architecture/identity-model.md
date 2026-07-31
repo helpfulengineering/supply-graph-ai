@@ -1,10 +1,11 @@
 # Identity Model
 
 !!! tip "Operator how-to"
-    For bootstrap, accounts, keys, and the Settings UI, see
-    **[Authentication & IAM](../auth/index.md)**. This page documents the trust
-    model and the pieces that ship today (identities, grants, provenance,
-    visibility, space claims, and attestations).
+    For bootstrap, accounts, keys, and the Settings UI, see the live API at
+    **`/v1/docs`** and the product guide
+    [`docs-site/docs/guides/use-the-api.md`](../../docs-site/docs/guides/use-the-api.md).
+    This page documents the trust model and the pieces that ship today
+    (identities, grants, provenance, visibility, space claims, and attestations).
 
 OHM's authorization is **offline-first and federation-ready**. It rests on three
 concepts with three different lifetimes. This page documents the pieces that ship
@@ -143,7 +144,7 @@ OKW federation additionally applies **disclosure profiles** (field groups:
 (`followers` / `public`). Defaults are fail-closed (identity only). Preview the
 projection with `GET /api/okw/{id}/disclosure/preview` (or the CLI above) before
 promoting visibility — `exported` is false while the facility remains `private`.
-See [federation-infra — OKW catalog](../development/federation-infra.md).
+See [federation-infra — OKW catalog](../ops/federation-infra.md).
 
 ## Relationship to API keys
 
@@ -151,7 +152,8 @@ API keys are unchanged and still work: a key's permission list acts as an
 **implicit grant** for its account. When a key's account has a primary DID and a
 request is authorized against a scope, capability grants for that DID are
 **unioned** with the key's own permissions — grants can only *add* capability, so
-existing clients keep working exactly as before. See [Authentication](../api/auth.md).
+existing clients keep working exactly as before. See
+[`docs-site/docs/guides/use-the-api.md`](../../docs-site/docs/guides/use-the-api.md).
 
 ## Spaces (admin claim)
 

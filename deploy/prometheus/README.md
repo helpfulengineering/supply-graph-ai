@@ -35,5 +35,5 @@ export TARGET_SERVICE_URL=your-service-url.run.app
 
 ## Documentation
 
-For detailed setup instructions, see [docs/development/prometheus-cloud-run-setup.md](../../docs/development/prometheus-cloud-run-setup.md).
-
+This directory is self-contained. Cloud Run / scrape wiring lives in the
+compose and Terraform configs under `deploy/`.

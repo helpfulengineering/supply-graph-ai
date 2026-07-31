@@ -55,7 +55,7 @@ AZURE_STORAGE_KEY=<your-account-key>
 AZURE_STORAGE_CONTAINER=<your-container-name>
 ```
 
-See [Container Guide](docs/development/container-guide.md) for the full list of storage env vars and examples for AWS S3 and GCS.
+See [Container / self-host guide](docs-site/docs/guides/run-your-own-node.md) and `env.template` for storage env vars (Azure, AWS S3, GCS).
 
 > **How configuration resolves.** Non-secret defaults (storage provider / account
 > / container, `OKW_SOURCE`, CORS) are checked in per environment under
@@ -63,12 +63,12 @@ See [Container Guide](docs/development/container-guide.md) for the full list of 
 > you pass as an env var (or in `.env`) overrides them. Secrets — `AZURE_STORAGE_KEY`,
 > `API_KEYS`, `LLM_*` — are never in those files (use `.env` or an Azure `secretRef`).
 > In `production` the app hard-fails on missing/invalid storage config, and `/health`
-> reports the resolved storage target + object counts. See the
-> [Developer Guide](docs/development/developer-guide.md) for details.
+> reports the resolved storage target + object counts. See `env.template` and
+> [run your own node](docs-site/docs/guides/run-your-own-node.md).
 
 The API is at `http://localhost:8001`. Docs: `http://localhost:8001/v1/docs`. Check version: `curl -s http://localhost:8001/health`.
 
-Images support **linux/amd64** and **linux/arm64** (Apple Silicon and x86-64). Federation is **disabled by default**. Enable with `-e OHM_FEDERATION_ENABLED=true` only when you intend to run peer sync (see [federation docs](docs/development/federation-infra.md)).
+Images support **linux/amd64** and **linux/arm64** (Apple Silicon and x86-64). Federation is **disabled by default**. Enable with `-e OHM_FEDERATION_ENABLED=true` only when you intend to run peer sync (see [federation infra](docs/ops/federation-infra.md)).
 
 ### Option B: API server from source (Docker Compose)
 
@@ -269,4 +269,4 @@ ohm system health
 uv run ohm system health
 ```
 
-For container deployment guides, see the [Container Guide](docs/development/container-guide.md) in our documentation.
+For container / self-host guidance, see [run your own node](docs-site/docs/guides/run-your-own-node.md).

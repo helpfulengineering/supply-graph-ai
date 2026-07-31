@@ -20,7 +20,7 @@ harness-probes:
 
 # Matching correctness (golden 3DP + MoM IRI id-alignment). Also covered by
 # `make test` / `make ready`. Set MOM_LIVE=1 to include live SPARQL smoke.
-# See docs/testing/matching-harness.md.
+# See tests/matching/ and harness/README.md.
 match-harness:
 	uv run pytest tests/matching -q
 

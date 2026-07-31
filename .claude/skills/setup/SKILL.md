@@ -615,62 +615,35 @@ Report: "Setup complete. OHM is running at http://localhost:8001." — or list a
 
 When the user asks a question about OHM configuration, features, or usage, find the answer using this index.
 
-**Documentation index** — generated 2026-06-04
+**Two corpora (do not mix):**
+- `docs-site/docs/` — **user-facing** product docs (about, guides, reference)
+- `docs/` — **developer / agent** corpus (rationale, ADRs, ops judgment, adapter contracts)
+
+Live API catalog: `/v1/docs` on a running node. Domain glossary: `CONTEXT.md`.
+Harness / probe ops: `harness/README.md`.
+
+**Developer docs index** — regenerated 2026-07-31
 
 | Section | File | Summary |
 |---------|------|---------|
-| Home / Overview | docs/index.md | Documentation contents and navigation map |
-| Project Overview | docs/overview.md | Core problem space: matching OKH hardware designs with OKW manufacturing facilities |
-| Cheatsheet | docs/cheatsheet.md | Quick reference for all major capabilities, API endpoints, and CLI commands |
-| Architecture Overview | docs/architecture/index.md | Core components: domain management, matching layers, storage, generation |
-| Matching Architecture | docs/architecture/matching.md | How the multi-layer matching system connects requirements to capabilities |
-| Storage Architecture | docs/architecture/storage.md | Storage abstraction layer; local, S3, Azure, GCS provider details |
-| Generation Architecture | docs/architecture/generation.md | 4-layer progressive OKH manifest enhancement system |
-| Services Architecture | docs/architecture/services.md | Service layer design and inter-component communication |
-| Process Taxonomy ADR | docs/architecture/process-taxonomy-adr.md | Architectural decision record for process taxonomy |
-| System Diagram | docs/architecture/system-diagram.md | High-level system architecture diagram |
-| Data Flow Diagram | docs/architecture/data-flow-diagram.md | How data moves through the OHM pipeline |
-| Workflow Generation | docs/architecture/workflow-generation.md | Workflow generation architecture |
-| API Overview | docs/api/index.md | FastAPI-based REST API; use /v1/docs on a running server for live reference |
-| API Authentication | docs/api/auth.md | API key auth, storage-based keys, AUTH_MODE configuration |
-| API Routes & Models | docs/api/routes.md | All REST endpoints for OKH, OKW, matching, supply trees, and LLM operations |
-| LLM Overview | docs/llm/index.md | Multi-provider LLM integration: Anthropic, OpenAI, Azure, Google, local (Ollama) |
-| LLM Configuration | docs/llm/configuration.md | Environment variables and llm_config.json for LLM setup |
-| LLM API Reference | docs/llm/api.md | LLM REST endpoints and request/response schemas |
-| LLM CLI Commands | docs/llm/cli.md | ohm llm subcommands: generate, generate-okh, providers info |
-| LLM Generation Layer | docs/llm/generation.md | How LLM enhances OKH manifest generation |
-| LLM Examples | docs/llm/examples.md | Practical LLM usage examples |
-| LLM Service | docs/llm/llm-service.md | LLM service internals and provider abstraction |
-| LLM Quick Start | docs/llm/llm-quick-start.md | Fastest path to enabling LLM features |
-| CLI Overview | docs/CLI/index.md | Complete CLI reference; two modes: HTTP API and direct service fallback |
-| CLI Quick Start | docs/CLI/quick-start.md | Get up and running with the ohm CLI in 5 minutes |
-| CLI Examples | docs/CLI/examples.md | Practical workflows for common CLI use cases |
-| CLI Architecture | docs/CLI/architecture.md | CLI implementation design and extension points |
-| Matching Overview | docs/matching/index.md | Multi-layer matching system: direct → heuristic → NLP |
-| Direct Matching | docs/matching/direct-matching.md | Exact-match algorithm for requirements ↔ capabilities |
-| Heuristic Matching | docs/matching/heuristic-matching.md | Heuristic scoring and fuzzy matching strategies |
-| NLP Matching | docs/matching/nlp-matching.md | Natural language understanding for semantic matching |
-| Developer Guide | docs/development/developer-guide.md | How to set up a local dev environment and contribute |
-| Container Guide | docs/development/container-guide.md | Docker and docker-compose workflows; all storage env vars |
-| Roadmap | docs/development/roadmap.md | Planned features and development priorities |
-| Data Models Overview | docs/models/index.md | Supply trees, BOM, process requirements, and validation contexts |
-| Bill of Materials | docs/models/bom.md | BOM data model for nested component requirements |
-| Supply Trees | docs/models/supply-tree.md | Central data structure for manufacturing solutions |
-| Process Requirements | docs/models/process.md | Process requirement and capability modeling |
-| Validation Contexts | docs/models/validation.md | Domain-aware validation with quality levels (hobby/professional/medical) |
-| OKH Documentation | docs/models/okh-docs.md | OpenKnowHow manifest format reference |
-| OKW Documentation | docs/models/okw-docs.md | OpenKnowWhere facility format reference |
-| OKW Specification | docs/models/okw-specification.md | Full OKW specification |
-| Format Conversion | docs/conversion/index.md | Bi-directional OKH ↔ external format conversion (MSF Datasheet) |
-| MSF Datasheet | docs/conversion/msf-datasheet.md | Convert between OKH and MSF .docx datasheet format |
-| Domains Overview | docs/domains/index.md | Multi-domain system: manufacturing and cooking; domain detection and health |
-| Manufacturing Domain | docs/domains/manufacturing.md | Manufacturing-specific extractors, matchers, and validators |
-| Cooking Domain | docs/domains/cooking.md | Cooking domain components and use cases |
+| Home | docs/index.md | Developer corpus map |
+| Federation MVP ADR | docs/architecture/federation-mvp-adr.md | Federation decisions and scope |
+| Facility claim ladder ADR | docs/architecture/facility-claim-ladder-adr.md | Attribution / claim / vouch model |
+| Process Taxonomy ADR | docs/architecture/process-taxonomy-adr.md | Process taxonomy decisions |
+| File type taxonomy ADR | docs/architecture/file-type-taxonomy-adr.md | Generation file-type classification |
+| Identity Model | docs/architecture/identity-model.md | DIDs, grants, attestations, visibility |
+| Security Modes | docs/architecture/security-modes.md | peacetime / crisis / shielded posture |
+| Source Platforms | docs/architecture/source-platforms.md | Supported vs roadmap ingest hosts |
+| Federation Infra | docs/ops/federation-infra.md | Multi-node bring-up expectations |
+| Rule Design | docs/ops/rule-design.md | Heuristic matching rule guidelines |
+| Release | docs/RELEASE.md | Cut and publish a release |
+| MSF Datasheet | docs/adapters/msf-datasheet.md | OKH ↔ MSF datasheet mapping contract |
+| OKH-LOSH TOML | docs/adapters/okh-losh-toml.md | OKH-LOSH TOML mapping contract |
 
 **To answer a documentation question:**
-1. Find the most relevant file(s) from the index above
-2. Read that file
-3. Answer from its content, citing the section
+1. Pick the right corpus (user-facing vs developer)
+2. Find the most relevant file from the index above or `docs-site/`
+3. Prefer code/OpenAPI when the question is about current behavior; cite docs for rationale
 
 **To regenerate this index** after documentation changes:
 Run this skill with `--regenerate-docs-index`.

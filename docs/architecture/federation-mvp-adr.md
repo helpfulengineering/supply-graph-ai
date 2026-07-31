@@ -10,7 +10,7 @@ Accepted
 
 ## Context
 
-OHM Phase 5 ([roadmap](../development/roadmap.md)) requires federated OKH design synchronization. Prior art ([notes/federation-prior-art-and-recommendations.md](../../notes/federation-prior-art-and-recommendations.md)) recommends a three-tier stack (physical mesh → LAN → internet). We need a minimal, testable slice before relay/registry, IPFS, or ActivityPub.
+OHM requires federated OKH design synchronization. Prior art ([notes/federation-prior-art-and-recommendations.md](../../notes/federation-prior-art-and-recommendations.md)) recommends a three-tier stack (physical mesh → LAN → internet). We need a minimal, testable slice before relay/registry, IPFS, or ActivityPub.
 
 ## Decision
 
@@ -71,7 +71,7 @@ cover the redacted projection. Ingest stamps private locally.
 
 ## Enabling federation in Docker
 
-See also: [federation-infra.md](../development/federation-infra.md) for the two-node Compose stack and E2E script.
+See also: [federation-infra.md](../ops/federation-infra.md) for the two-node Compose stack and E2E script.
 
 `OHM_FEDERATION_*` variables must be present in the **API server process** (container), not only in the shell used for `curl`.
 
