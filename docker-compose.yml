@@ -131,6 +131,17 @@ services:
       redis:
         condition: service_healthy
     restart: unless-stopped
+    # Image HEALTHCHECK curls the API port; the worker does not serve HTTP.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A src.core.jobs.celery_app.celery_app inspect ping -d celery@$$HOSTNAME | grep -q pong",
+        ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 40s
 
   # Prometheus for metrics collection
   prometheus:
