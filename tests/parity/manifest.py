@@ -141,7 +141,10 @@ AREAS: tuple[Area, ...] = (
         "llm",
         "exposed",
         note="No llm_service module; logic lives under src/core/llm/. CLI group "
-        "is conditionally registered when LLM deps are available.",
+        "is conditionally registered when LLM deps are available. Admin "
+        "credential management is under Settings → LLM providers "
+        "(fe_routes owned by the identity Area).",
+        fe_api_prefixes=("/api/llm",),
     ),
     Area(
         "utility",

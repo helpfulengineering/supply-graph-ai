@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Admin-managed LLM provider credentials.** Encrypted keys can be set,
+  rotated, tested, and deleted via `PUT/GET/DELETE /api/llm/credentials/{provider}`
+  (strict admin auth) and **Settings → LLM providers**. Keys hot-swap into the
+  running `LLMService` without a restart; storage refuses default encryption
+  salts/passwords. Env vars remain a fallback at startup.
+
 ### Removed
 
 - **Seven catalogue designs whose file references were exclusively Google Drive

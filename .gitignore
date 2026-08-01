@@ -229,5 +229,5 @@ frontend/node_modules/
 tests/matching/artifacts/
 
 
-# local storage
-storage/
+# local storage (repo-root volume only — not src/core/storage/)
+/storage/

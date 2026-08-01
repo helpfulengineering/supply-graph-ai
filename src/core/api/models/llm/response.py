@@ -80,6 +80,23 @@ class LLMProvidersResponse(SuccessResponse):
         ..., description="List of available provider names"
     )
 
+
+class LLMCredentialStatus(BaseModel):
+    """Public view of a stored LLM credential — never includes the full key."""
+
+    provider: str = Field(..., description="Provider name")
+    model: Optional[str] = Field(None, description="Configured default model")
+    masked_key: str = Field(..., description="Masked API key suffix")
+    configured: bool = Field(True, description="Whether a credential is stored")
+
+
+class LLMCredentialListResponse(SuccessResponse):
+    """List of stored LLM credentials (masked)."""
+
+    credentials: List[LLMCredentialStatus] = Field(
+        default_factory=list, description="Configured provider credentials"
+    )
+
     model_config = ConfigDict(
         json_schema_extra={
             "example": {

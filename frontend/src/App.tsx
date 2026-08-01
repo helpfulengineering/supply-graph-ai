@@ -59,6 +59,7 @@ export function App() {
                 {/* Session is reachable without admin so operators can paste a first API key. */}
                 <Route path="settings/session" element={<SettingsPage />} />
                 <Route path="settings/keys" element={<AdminSettings />} />
+                <Route path="settings/llm" element={<AdminSettings />} />
                 <Route path="settings/identities" element={<AdminSettings />} />
                 <Route path="settings/grants" element={<AdminSettings />} />
                 <Route path="settings/spaces" element={<AdminSettings />} />

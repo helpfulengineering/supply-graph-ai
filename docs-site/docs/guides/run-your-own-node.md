@@ -61,6 +61,16 @@ Secrets — storage keys, API keys, any language-model credentials — are never
 those files. Pass them at runtime, through `--env-file` or your platform's secret
 mechanism.
 
+### Language-model credentials
+
+You can still set `ANTHROPIC_API_KEY` (or another provider's env var) at process
+start. Admins can also store an encrypted provider key in the web UI under
+**Settings → LLM providers**, which hot-swaps it into the running service without
+a restart. That path requires a real encryption secret —
+`LLM_ENCRYPTION_KEY`, or non-default `LLM_ENCRYPTION_SALT` and
+`LLM_ENCRYPTION_PASSWORD` — and refuses to store keys when only the built-in
+development defaults are present.
+
 In production configuration, the application deliberately **fails to start** on
 missing or invalid storage settings rather than coming up in a state where it
 looks healthy and silently isn't.

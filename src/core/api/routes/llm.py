@@ -1,20 +1,32 @@
 """
 LLM API routes for the Open Hardware Manager.
 
-This module provides API endpoints for LLM service monitoring and discovery.
+This module provides API endpoints for LLM service monitoring, discovery,
+and admin-managed provider credentials.
 """
 
 from datetime import datetime
 from typing import Dict, List
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, status
 
+from src.config.llm_config import CredentialManager, LLMProvider
+
+from ...llm.credentials import apply_stored_credential
 from ...llm.service import LLMService
+from ...models.auth import AuthenticatedUser
+from ...services.storage_service import StorageService
+from ...storage.llm_credential_store import LLMCredentialStore
 from ...utils.logging import get_logger
 from ..constants.openapi import RESPONSES_400_401_500
 from ..decorators import api_endpoint
+from ..dependencies import require_admin_strict
 from ..error_handlers import create_error_response
+from ..models.base import SuccessResponse
+from ..models.llm.request import LLMCredentialUpsert
 from ..models.llm.response import (
+    LLMCredentialListResponse,
+    LLMCredentialStatus,
     LLMHealthResponse,
     LLMProvidersResponse,
     ProviderStatus,
@@ -34,6 +46,22 @@ router = APIRouter(
 async def get_llm_service() -> LLMService:
     """Get LLM service instance."""
     return await LLMService.get_instance()
+
+
+async def get_llm_credential_store() -> LLMCredentialStore:
+    """Credential store backed by the process StorageService + CredentialManager."""
+    storage = await StorageService.get_instance()
+    return LLMCredentialStore(storage, CredentialManager())
+
+
+def _parse_provider(name: str) -> LLMProvider:
+    try:
+        return LLMProvider(name)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unknown LLM provider: {name}",
+        ) from exc
 
 
 @router.get(
@@ -273,3 +301,131 @@ async def get_llm_providers(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=error_response.model_dump(mode="json"),
         )
+
+
+@router.get(
+    "/credentials",
+    response_model=LLMCredentialListResponse,
+    summary="List stored LLM credentials",
+)
+async def list_llm_credentials(
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    store: LLMCredentialStore = Depends(get_llm_credential_store),
+) -> LLMCredentialListResponse:
+    """Return masked status for all stored provider credentials."""
+    statuses = await store.list_status()
+    return LLMCredentialListResponse(
+        status="success",
+        message="Credentials retrieved",
+        timestamp=datetime.now(),
+        credentials=[LLMCredentialStatus(**s) for s in statuses],
+    )
+
+
+@router.put(
+    "/credentials/{provider}",
+    response_model=LLMCredentialStatus,
+    summary="Set or rotate an LLM provider credential",
+)
+async def upsert_llm_credential(
+    payload: LLMCredentialUpsert,
+    provider: str = Path(..., description="Provider name, e.g. anthropic"),
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    store: LLMCredentialStore = Depends(get_llm_credential_store),
+    llm_service: LLMService = Depends(get_llm_service),
+) -> LLMCredentialStatus:
+    """Encrypt and persist a provider API key; optionally hot-swap into the service."""
+    provider_enum = _parse_provider(provider)
+    try:
+        await store.save(provider_enum, payload.api_key, model=payload.model)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        ) from e
+
+    if payload.activate:
+        applied = await apply_stored_credential(
+            llm_service, store, provider_enum, model=payload.model
+        )
+        if not applied:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Credential stored but failed to activate in LLM service",
+            )
+
+    statuses = await store.list_status()
+    for status_row in statuses:
+        if status_row["provider"] == provider_enum.value:
+            return LLMCredentialStatus(**status_row)
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Credential stored but status could not be read back",
+    )
+
+
+@router.delete(
+    "/credentials/{provider}",
+    response_model=SuccessResponse,
+    summary="Delete a stored LLM provider credential",
+)
+async def delete_llm_credential(
+    provider: str = Path(..., description="Provider name, e.g. anthropic"),
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    store: LLMCredentialStore = Depends(get_llm_credential_store),
+    llm_service: LLMService = Depends(get_llm_service),
+) -> SuccessResponse:
+    """Remove a stored credential and disconnect it from the running service."""
+    from ...llm.providers.base import LLMProviderType
+
+    provider_enum = _parse_provider(provider)
+    deleted = await store.delete(provider_enum)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No stored credential for provider {provider}",
+        )
+    try:
+        await llm_service.remove_provider(LLMProviderType(provider_enum.value))
+    except Exception:
+        logger.debug("Provider %s was not active in LLM service", provider)
+    return SuccessResponse(success=True, message=f"Credential for {provider} deleted")
+
+
+@router.post(
+    "/credentials/{provider}/test",
+    response_model=SuccessResponse,
+    summary="Test a stored LLM provider credential",
+)
+async def test_llm_credential(
+    provider: str = Path(..., description="Provider name, e.g. anthropic"),
+    _admin: AuthenticatedUser = Depends(require_admin_strict),
+    store: LLMCredentialStore = Depends(get_llm_credential_store),
+    llm_service: LLMService = Depends(get_llm_service),
+) -> SuccessResponse:
+    """Run health_check against the provider using the stored credential."""
+    from ...llm.providers.base import LLMProviderType
+
+    provider_enum = _parse_provider(provider)
+    if not await store.load(provider_enum):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No stored credential for provider {provider}",
+        )
+
+    provider_type = LLMProviderType(provider_enum.value)
+    await apply_stored_credential(llm_service, store, provider_enum, set_active=False)
+    provider_instance = llm_service._providers.get(provider_type)
+    if provider_instance is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Could not initialize provider for health check",
+        )
+    healthy = await provider_instance.health_check()
+    if not healthy:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Provider {provider} health check failed",
+        )
+    return SuccessResponse(
+        success=True, message=f"Provider {provider} health check passed"
+    )
