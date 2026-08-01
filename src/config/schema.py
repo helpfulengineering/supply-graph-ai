@@ -176,6 +176,23 @@ class Settings(BaseSettings):
         # Carries credentials — env/.env / secretRef only, never TOML.
         json_schema_extra={"secret": True},
     )
+    jobs_enabled: bool = Field(
+        default=False,
+        description=(
+            "Enable Celery-backed async jobs (generate-from-url). "
+            "Requires job_broker_url and a worker process."
+        ),
+    )
+    job_broker_url: Optional[str] = Field(
+        default=None,
+        description="Celery broker URL (e.g. redis://redis:6379/1).",
+        json_schema_extra={"secret": True},
+    )
+    job_result_backend: Optional[str] = Field(
+        default=None,
+        description="Celery result backend URL (e.g. redis://redis:6379/2).",
+        json_schema_extra={"secret": True},
+    )
     okw_source: Optional[str] = Field(
         default=None,  # unset resolves via okw_source_resolved
         description="OKW facility source: storage | mom. Unset → union (storage ∪ MoM).",
