@@ -6,22 +6,14 @@ prove that an ``ohm_created_by`` key round-trips through ``from_dict`` without
 breaking parsing or overwriting schema fields.
 """
 
-import json
-from pathlib import Path
-
 from src.core.models.okh import OKHManifest
 from src.core.models.okw import ManufacturingFacility
-
-_SYNTHETIC = Path(__file__).resolve().parents[2] / "synthetic_data"
-
-
-def _first(glob: str) -> dict:
-    return json.loads(sorted(_SYNTHETIC.glob(glob))[0].read_text(encoding="utf-8"))
+from tests.record_fixtures import okh_manifest_dict, okw_facility_dict
 
 
 def test_okw_attribution_key_does_not_clobber_agent_created_by():
     attribution = "00000000-0000-0000-0000-000000000001"
-    data = _first("*okw*.json")
+    data = okw_facility_dict()
     data["ohm_created_by"] = attribution
 
     facility = ManufacturingFacility.from_dict(data)
@@ -33,7 +25,7 @@ def test_okw_attribution_key_does_not_clobber_agent_created_by():
 
 
 def test_okh_ignores_namespaced_attribution_key():
-    data = _first("*okh*.json")
+    data = okh_manifest_dict()
     data["ohm_created_by"] = "00000000-0000-0000-0000-000000000001"
 
     manifest = OKHManifest.from_dict(data)
