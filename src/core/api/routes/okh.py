@@ -45,7 +45,12 @@ from ..decorators import (
     paginated_response,
     track_performance,
 )
-from ..dependencies import created_by, require_write, resolve_provenance
+from ..dependencies import (
+    created_by,
+    get_optional_user,
+    require_write,
+    resolve_provenance,
+)
 from ...models.auth import AuthenticatedUser
 from ...models.provenance import RecordProvenance
 from ...models.visibility import VisibilityBody, VisibilityResponse
@@ -68,6 +73,7 @@ from ..models.cleanup.response import CleanupResponse
 from ..models.okh.request import (
     OKHExtractRequest,
     OKHFromStorageRequest,
+    OKHGenerateJobsRequest,
     OKHGenerateRequest,
     OKHHarvestRequest,
     OKHUpdateRequest,
@@ -76,6 +82,9 @@ from ..models.okh.request import (
 from ..models.okh.response import (
     OKHExportResponse,
     OKHExtractResponse,
+    OKHGenerateJobRef,
+    OKHGenerateJobsResponse,
+    OKHGenerateJobStatus,
     OKHGenerateResponse,
     OKHHarvestResponse,
     OKHImportRepairDocResponse,
@@ -1098,9 +1107,52 @@ async def get_okh_from_storage(
         )
 
 
+def _enforce_llm_auth_if_required(
+    *,
+    no_llm: bool,
+    user: Optional[AuthenticatedUser],
+) -> None:
+    """When configured, LLM-enabled generation requires a valid API key."""
+    from src.config.schema import get_settings
+
+    if no_llm or not get_settings().generate_from_url_require_auth_for_llm:
+        return
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=(
+                "LLM-enabled generation requires authentication. "
+                "Pass Authorization: Bearer <token>, or set no_llm=true."
+            ),
+        )
+
+
+def _enforce_generate_rate_limit(http_request: Request) -> None:
+    from src.config.schema import get_settings
+    from ...services.rate_limit_service import get_rate_limit_service
+
+    settings = get_settings()
+    identifier = http_request.client.host if http_request.client else "unknown"
+    allowed, info = get_rate_limit_service().check_rate_limit(
+        identifier=f"generate-from-url:{identifier}",
+        requests_per_minute=settings.generate_from_url_rate_limit_per_minute,
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Rate limit exceeded for generate-from-url "
+                f"({info['limit']}/min). Retry after {info['reset_time']}."
+            ),
+        )
+
+
 @router.post("/generate-from-url", response_model=OKHGenerateResponse)
 async def generate_from_url(
-    request: OKHGenerateRequest, okh_service: OKHService = Depends(get_okh_service)
+    request: OKHGenerateRequest,
+    http_request: Request,
+    okh_service: OKHService = Depends(get_okh_service),
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
 ) -> Any:
     """
     Generate OKH manifest from repository URL or local clone path
@@ -1117,7 +1169,7 @@ async def generate_from_url(
       - **Layer 1 (Heuristics)**: Fast rule-based categorization using file extensions,
         directory paths, and filename patterns
       - **Layer 2 (LLM)**: Content-aware categorization with semantic understanding
-        (when LLM is available, falls back to Layer 1 if unavailable)
+      (when LLM is available, falls back to Layer 1 if unavailable)
     - Files are categorized into:
       - `making_instructions`: Step-by-step assembly/build guides for humans
       - `manufacturing_files`: Machine-readable files (.stl, .3mf, .gcode, etc.)
@@ -1129,6 +1181,8 @@ async def generate_from_url(
     - Quality assessment and recommendations
     - Optional interactive review for field validation
     """
+    _enforce_generate_rate_limit(http_request)
+    _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
     try:
         # Call service to generate manifest from URL or local path
         result = await okh_service.generate_from_url(
@@ -1154,6 +1208,74 @@ async def generate_from_url(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred while generating the manifest",
         )
+
+
+@router.post(
+    "/generate-from-url/jobs",
+    response_model=OKHGenerateJobsResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Submit async generate-from-url jobs",
+)
+async def submit_generate_from_url_jobs(
+    request: OKHGenerateJobsRequest,
+    http_request: Request,
+    user: Optional[AuthenticatedUser] = Depends(get_optional_user),
+) -> OKHGenerateJobsResponse:
+    """Enqueue one Celery job per URL. Poll ``GET .../jobs/{job_id}`` for status."""
+    from src.core.jobs import generation_jobs
+
+    _enforce_generate_rate_limit(http_request)
+    _enforce_llm_auth_if_required(no_llm=request.no_llm, user=user)
+
+    if not generation_jobs.jobs_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Async generation jobs are not enabled. Set JOBS_ENABLED=true "
+                "and JOB_BROKER_URL, and run the Celery worker."
+            ),
+        )
+    try:
+        result = generation_jobs.enqueue_generate_jobs(
+            request.urls,
+            skip_review=request.skip_review,
+            verbose=request.verbose,
+            clone=request.clone,
+            save_clone=request.save_clone,
+            no_llm=request.no_llm,
+        )
+    except ValueError as e:
+        detail = str(e)
+        code = (
+            status.HTTP_429_TOO_MANY_REQUESTS
+            if "Too many" in detail
+            else status.HTTP_422_UNPROCESSABLE_ENTITY
+        )
+        raise HTTPException(status_code=code, detail=detail) from e
+
+    return OKHGenerateJobsResponse(
+        batch_id=result["batch_id"],
+        jobs=[OKHGenerateJobRef(**j) for j in result["jobs"]],
+    )
+
+
+@router.get(
+    "/generate-from-url/jobs/{job_id}",
+    response_model=OKHGenerateJobStatus,
+    summary="Get generate-from-url job status",
+)
+async def get_generate_from_url_job(
+    job_id: str = Path(..., description="Celery task id"),
+) -> OKHGenerateJobStatus:
+    """Return job state and, when finished, the manifest + quality report."""
+    from src.core.jobs import generation_jobs
+
+    if not generation_jobs.jobs_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Async generation jobs are not enabled on this node.",
+        )
+    return OKHGenerateJobStatus(**generation_jobs.get_job_status(job_id))
 
 
 @router.post(

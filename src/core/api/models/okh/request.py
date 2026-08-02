@@ -138,6 +138,28 @@ class OKHGenerateRequest(BaseModel):
     )
 
 
+class OKHGenerateJobsRequest(BaseModel):
+    """Submit one or more repository URLs for async OKH generation."""
+
+    urls: List[str] = Field(
+        ...,
+        min_length=1,
+        description="One or more GitHub/GitLab repository URLs (or server-local paths).",
+    )
+    skip_review: bool = Field(
+        True, description="Skip interactive review (always true for jobs)"
+    )
+    verbose: bool = Field(
+        False, description="Include per-field confidence in the manifest"
+    )
+    clone: bool = Field(True, description="Shallow-clone before extraction")
+    save_clone: Optional[str] = Field(None, description="Persist clone on the server")
+    no_llm: bool = Field(
+        False,
+        description="Force heuristic-only generation (no LLM layer)",
+    )
+
+
 class OKHFromStorageRequest(BaseAPIRequest):
     """Request model for retrieving OKH manifest from storage"""
 

@@ -17,8 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Celery worker foundation for async jobs.** `celery[redis]` dependency,
   `src/core/jobs/` Celery app + `generate_from_url` task, Docker entrypoint
   `worker` mode, and `ohm-worker` + always-on Redis in `docker-compose.yml`.
-  Config: `JOBS_ENABLED`, `JOB_BROKER_URL`, `JOB_RESULT_BACKEND`. Job API
-  endpoints land in a follow-up change.
+  Config: `JOBS_ENABLED`, `JOB_BROKER_URL`, `JOB_RESULT_BACKEND`.
+- **Async generate-from-url job API + CLI.** `POST/GET /api/okh/generate-from-url/jobs`
+  accepts one or many URLs (one Celery job each), with per-IP rate limiting,
+  concurrent/queued caps, and optional auth for LLM-enabled runs
+  (`GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM`). CLI: `ohm okh generate-jobs
+  submit|status|wait`.
 
 ### Removed
 

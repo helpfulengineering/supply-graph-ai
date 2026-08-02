@@ -1311,19 +1311,6 @@ async def generate_from_url(
             total=4,
         )
 
-        async def http_generate():
-            """Generate via HTTP API"""
-            cli_ctx.log("Generating via HTTP API...", "info")
-            payload = {
-                "url": url,
-                "skip_review": no_review,
-                "no_llm": no_llm,
-            }
-            response = await cli_ctx.api_client.request(
-                "POST", "/api/okh/generate-from-url", json_data=payload
-            )
-            return response
-
         async def fallback_generate():
             """Generate using direct service calls"""
             from pathlib import Path as _Path
@@ -1615,6 +1602,139 @@ async def generate_from_url(
 
             click.echo(traceback.format_exc())
         raise
+
+
+@okh_group.group(name="generate-jobs")
+def generate_jobs_group():
+    """Submit and poll async generate-from-url jobs (Celery worker)."""
+    pass
+
+
+@generate_jobs_group.command("submit")
+@click.argument("urls", nargs=-1, required=True)
+@click.option("--no-llm", is_flag=True, help="Force heuristic-only generation")
+@click.option(
+    "--no-clone", is_flag=True, help="Use platform API instead of shallow clone"
+)
+@standard_cli_command(
+    help_text="Enqueue one async job per repository URL.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def generate_jobs_submit(
+    ctx,
+    urls: tuple[str, ...],
+    no_llm: bool,
+    no_clone: bool,
+    verbose: bool,
+    output_format: str,
+):
+    """Submit URLs for async OKH generation."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-generate-jobs-submit")
+    payload = {
+        "urls": list(urls),
+        "no_llm": no_llm,
+        "clone": not no_clone,
+        "skip_review": True,
+        "verbose": verbose,
+    }
+    response = await cli_ctx.api_client.request(
+        "POST", "/api/okh/generate-from-url/jobs", json_data=payload
+    )
+    click.echo(json.dumps(response, indent=2, default=str))
+    cli_ctx.end_command_tracking()
+
+
+@generate_jobs_group.command("status")
+@click.argument("job_id", type=str)
+@standard_cli_command(
+    help_text="Show status of one async generate-from-url job.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def generate_jobs_status(
+    ctx,
+    job_id: str,
+    verbose: bool,
+    output_format: str,
+):
+    """Poll job status once."""
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-generate-jobs-status")
+    response = await cli_ctx.api_client.request(
+        "GET", f"/api/okh/generate-from-url/jobs/{job_id}"
+    )
+    click.echo(json.dumps(response, indent=2, default=str))
+    cli_ctx.end_command_tracking()
+
+
+@generate_jobs_group.command("wait")
+@click.argument("job_id", type=str)
+@click.option(
+    "--interval",
+    default=2.0,
+    show_default=True,
+    type=float,
+    help="Seconds between status polls",
+)
+@click.option(
+    "--timeout",
+    default=600.0,
+    show_default=True,
+    type=float,
+    help="Give up after this many seconds",
+)
+@standard_cli_command(
+    help_text="Poll until a generate-from-url job reaches SUCCESS or FAILURE.",
+    async_cmd=True,
+    track_performance=True,
+    handle_errors=True,
+    format_output=True,
+    add_llm_config=False,
+)
+@click.pass_context
+async def generate_jobs_wait(
+    ctx,
+    job_id: str,
+    interval: float,
+    timeout: float,
+    verbose: bool,
+    output_format: str,
+):
+    """Block until the job finishes."""
+    import asyncio as _asyncio
+    import time as _time
+
+    cli_ctx = ctx.obj
+    cli_ctx.start_command_tracking("okh-generate-jobs-wait")
+    deadline = _time.monotonic() + timeout
+    while _time.monotonic() < deadline:
+        response = await cli_ctx.api_client.request(
+            "GET", f"/api/okh/generate-from-url/jobs/{job_id}"
+        )
+        state = response.get("state")
+        click.echo(
+            f"state={state} stage={response.get('stage')} "
+            f"fraction={response.get('fraction')}",
+            err=True,
+        )
+        if state in {"SUCCESS", "FAILURE", "REVOKED"}:
+            click.echo(json.dumps(response, indent=2, default=str))
+            cli_ctx.end_command_tracking()
+            if state != "SUCCESS":
+                raise click.ClickException(f"Job ended in state {state}")
+            return
+        await _asyncio.sleep(interval)
+    raise click.ClickException(f"Timed out after {timeout}s waiting for job {job_id}")
 
 
 @okh_group.command()

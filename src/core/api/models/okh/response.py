@@ -185,6 +185,34 @@ class OKHGenerateResponse(BaseModel):
     quality_report: Optional[Dict[str, Any]] = None
 
 
+class OKHGenerateJobRef(BaseModel):
+    """One job within a submitted batch."""
+
+    job_id: str
+    url: str
+
+
+class OKHGenerateJobsResponse(BaseModel):
+    """Accepted async generation batch."""
+
+    batch_id: str
+    jobs: List[OKHGenerateJobRef]
+
+
+class OKHGenerateJobStatus(BaseModel):
+    """Status of a single generate-from-url job."""
+
+    job_id: str
+    state: str
+    stage: Optional[str] = None
+    fraction: Optional[float] = None
+    message: Optional[str] = None
+    url: Optional[str] = None
+    error: Optional[str] = None
+    manifest: Optional[Dict[str, Any]] = None
+    quality_report: Optional[Dict[str, Any]] = None
+
+
 class OKHExportResponse(BaseModel):
     """Response model for OKH schema export"""
 

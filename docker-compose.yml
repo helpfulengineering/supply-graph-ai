@@ -62,7 +62,7 @@ services:
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
       - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX:-ohm}
       # Async jobs (Celery). Enable with JOBS_ENABLED=true and run ohm-worker.
-      - JOBS_ENABLED=${JOBS_ENABLED:-false}
+      - JOBS_ENABLED=${JOBS_ENABLED:-true}
       - JOB_BROKER_URL=${JOB_BROKER_URL:-redis://redis:6379/1}
       - JOB_RESULT_BACKEND=${JOB_RESULT_BACKEND:-redis://redis:6379/2}
     volumes:
