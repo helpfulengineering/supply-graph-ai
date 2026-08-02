@@ -401,6 +401,12 @@ SITE_DOCS: tuple[SiteDoc, ...] = (
         path="guides/run-your-own-node.md",
     ),
     SiteDoc(
+        "selfhost",
+        "Deploy a node on Azure",
+        "deployed",
+        path="guides/deploy-a-node-on-azure.md",
+    ),
+    SiteDoc(
         "api",
         "Use the OHM API from your own software",
         "deployed",

@@ -107,6 +107,17 @@ Beyond the initial setup this is ordinary web-service operation, not a
 specialism. A team that already runs containerised services will find nothing
 exotic here.
 
+## Deploying a new environment on Azure
+
+For a greenfield Azure Container Apps node — including optional Redis and a
+Celery worker so [import from a URL](import-from-a-url.md) can run as a
+background job with real progress — follow
+[Deploy a node on Azure](deploy-a-node-on-azure.md).
+
+That path provisions a disposable resource group, storage, the API, and (when
+you ask for them) jobs infrastructure and LLM encryption secrets. It is separate
+from the public openhardwaremanager.org deployment.
+
 ## Beyond the basics
 
 Self-hosting also comes with tooling that doesn't live in the web interface —
