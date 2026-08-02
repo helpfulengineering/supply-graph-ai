@@ -8,10 +8,8 @@ wrong field names (``facility=``/``facility_id=``) while the model requires
 
 from __future__ import annotations
 
-import json
 import os
 import sys
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import httpx
@@ -20,6 +18,8 @@ from fastapi import FastAPI
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
+from tests.record_fixtures import okw_facility_dict
+
 
 def _get_app() -> tuple[FastAPI, FastAPI]:
     from src.core.main import api_v1
@@ -27,12 +27,6 @@ def _get_app() -> tuple[FastAPI, FastAPI]:
     app = FastAPI()
     app.mount("/v1", api_v1)
     return app, api_v1
-
-
-def _facility_content() -> dict:
-    data_dir = Path(__file__).resolve().parents[2] / "synthetic_data"
-    facility_file = sorted(data_dir.glob("*okw*.json"))[0]
-    return json.loads(facility_file.read_text(encoding="utf-8"))
 
 
 @pytest.mark.asyncio
@@ -54,7 +48,7 @@ async def test_create_okw_returns_201_with_okw_field():
             transport=transport, base_url="http://testserver"
         ) as client:
             resp = await client.post(
-                "/v1/api/okw/create", json={"content": _facility_content()}
+                "/v1/api/okw/create", json={"content": okw_facility_dict()}
             )
 
         assert resp.status_code == 201, resp.text

@@ -19,21 +19,23 @@ organisation backfills a back catalogue without redocumenting years of work.
 Only the URL is needed. Everything else is decided for you.
 
 Most repositories come back in a few seconds. Large, mature projects — hundreds
-of files, years of documentation — take longer, usually tens of seconds. The
-progress indicator is deliberately honest: it can't tell how far along it is, so
-it doesn't pretend. You can cancel at any point.
+of files, years of documentation — take longer. On nodes with async jobs enabled
+(`JOBS_ENABLED=true` and a Celery worker), the web UI submits background jobs and
+shows real progress, so generation is no longer capped by the two-minute proxy
+timeout. You can paste several URLs separated by commas; each becomes its own job.
 
-!!! note "There's still an upper limit"
+Operators and scripts can use the HTTP job API or the CLI:
 
-    Generation happens while you wait, with a ceiling of about two minutes. That
-    is comfortable for the open hardware projects we've tested, including large
-    ones — but a genuinely enormous repository could still exceed it.
+```bash
+ohm okh generate-jobs submit https://github.com/org/project --no-llm
+ohm okh generate-jobs wait <job_id>
+```
 
-    If that happens to you, it's a limitation worth telling us about rather than
-    working around: the fix is to move generation into the background, and
-    knowing it bites real projects is what moves that up the list. In the
-    meantime you can describe the design by hand or convert an existing
-    structured file — see [add a design](add-a-design.md).
+!!! note "Sync path still exists"
+
+    `POST /api/okh/generate-from-url` still runs generation in the request. Prefer
+    `POST /api/okh/generate-from-url/jobs` for anything that might take more than
+    a minute, or when submitting multiple URLs.
 
 ## Then review it — this part is not optional
 

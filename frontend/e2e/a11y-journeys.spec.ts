@@ -52,13 +52,26 @@ test("no serious a11y violations: generate result + tiered editor", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
-  await page.route("**/api/okh/generate-from-url", (route) =>
+  const jobId = "job-a11y-1";
+  await page.route("**/api/okh/generate-from-url/jobs", (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    return route.fulfill({
+      status: 202,
+      contentType: "application/json",
+      body: JSON.stringify({
+        batch_id: "batch-a11y",
+        jobs: [{ job_id: jobId, url: "https://github.com/nasa-jpl/rover" }],
+      }),
+    });
+  });
+  await page.route(`**/api/okh/generate-from-url/jobs/${jobId}`, (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify({
-        success: true,
-        message: "ok",
+        job_id: jobId,
+        state: "SUCCESS",
+        fraction: 1,
         manifest: GENERATED_MANIFEST,
         // A missing required field renders the "not extracted" markers — the
         // exact elements that carried the contrast failures.
@@ -71,7 +84,7 @@ test("no serious a11y violations: generate result + tiered editor", async ({
   );
 
   await page.goto("/okh/generate");
-  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
   await expect(page.getByLabel("Title")).toBeVisible();
 

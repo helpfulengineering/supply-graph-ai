@@ -64,6 +64,8 @@ dependencies = [
     "bcrypt>=4.0.0",
     # Cache (Redis protocol — optional backend via CACHE_BACKEND=redis)
     "redis>=5.0.0",
+    # Async jobs (generate-from-url worker; broker/result typically Redis)
+    "celery[redis]>=5.4.0",
     # Demo interface
     "streamlit>=1.28.0",
     "pandas>=1.5.0",

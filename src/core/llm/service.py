@@ -195,14 +195,44 @@ class LLMService(BaseService["LLMService"]):
         # No external dependencies for now
         pass
 
+    async def _resolve_default_api_key(self) -> Optional[str]:
+        """Prefer a persisted admin credential; fall back to process env."""
+        try:
+            from src.config.llm_config import CredentialManager, LLMProvider
+
+            from ..services.storage_service import StorageService
+            from ..storage.llm_credential_store import LLMCredentialStore
+
+            storage = await StorageService.get_instance()
+            store = LLMCredentialStore(storage, CredentialManager())
+            provider = LLMProvider(self.config.default_provider.value)
+            stored = await store.load(provider)
+            if stored:
+                self.logger.info(
+                    "Using stored credential for default provider %s",
+                    provider.value,
+                )
+                return stored
+        except Exception as e:
+            self.logger.debug("No stored LLM credential available: %s", e)
+
+        env_key = {
+            LLMProviderType.ANTHROPIC: "ANTHROPIC_API_KEY",
+            LLMProviderType.OPENAI: "OPENAI_API_KEY",
+            LLMProviderType.AZURE_OPENAI: "AZURE_OPENAI_API_KEY",
+        }.get(self.config.default_provider, "ANTHROPIC_API_KEY")
+        return os.getenv(env_key)
+
     async def _initialize_providers(self) -> None:
         """Initialize configured providers."""
         # Initialize default provider if not configured
         if not self.config.providers:
-            # Get API key from environment
-            api_key = os.getenv("ANTHROPIC_API_KEY")
+            api_key = await self._resolve_default_api_key()
             if not api_key:
-                self.logger.error("ANTHROPIC_API_KEY not found in environment")
+                self.logger.error(
+                    "No stored credential or env API key for default provider %s",
+                    self.config.default_provider.value,
+                )
                 return
 
             default_config = LLMProviderConfig(

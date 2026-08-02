@@ -34,6 +34,26 @@ variable "enable_frontend" {
   default     = false
 }
 
+variable "enable_jobs" {
+  description = <<-EOT
+    Provision Redis + Celery worker on each ohm_node. Default false for the
+    multi-peer federation lab (cost). Set true for a self-host stack that needs
+    async generate-from-url.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "environment" {
+  description = <<-EOT
+    Passed to every ohm_node as ENVIRONMENT. Keep "test" for the ephemeral lab.
+    Use "production" when nodes will store LLM API keys (provisions encryption
+    secrets automatically).
+  EOT
+  type        = string
+  default     = "test"
+}
+
 variable "frontend_image" {
   description = "OHM frontend image"
   type        = string

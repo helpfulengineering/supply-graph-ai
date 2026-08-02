@@ -1,63 +1,47 @@
 /**
- * Generate an OKH manifest from a repository URL (Slices A + B + C).
+ * Generate an OKH manifest from one or more repository URLs.
  *
- * Synchronous by design — production has no LLM key, so extraction always
- * degrades to the heuristic layers and finishes inside the ingress timeout.
- * The loading state is honestly indeterminate: no fake progress stages, an
- * up-front warning that it can take about a minute, and a Cancel that really
- * aborts the request.
+ * Submit-then-poll against async Celery jobs so generation can run longer than
+ * the SPA nginx proxy timeout. Each URL is its own job with a real progress bar.
  *
  * The result is not saved to the catalogue. Without user auth there is no owner
  * and no provenance, so a save would put unattributed records into a shared
- * catalogue. Download, or hand the reviewed manifest straight to matching
- * (Slice C) — the API accepts an inline `okh_manifest`, so a design can be
- * matched without existing in the catalogue.
+ * catalogue. Download, or hand the reviewed manifest straight to matching —
+ * the API accepts an inline `okh_manifest`.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { ApiError } from "../../api/ohm/client";
-import { generateOkhFromUrl, type OkhQualityReport } from "../../api/ohm/okh";
+import {
+  getGenerateJobStatus,
+  revokeGenerateJob,
+  submitGenerateJobs,
+  type GenerateJobRef,
+  type GenerateJobStatus,
+  type OkhQualityReport,
+} from "../../api/ohm/okh";
 import { toQualityBanner } from "./qualityBanner";
 import { downloadManifest } from "./serialize";
 import { missingRequired } from "./manifestTiers";
 import { TieredEditor } from "./TieredEditor";
-import { checkRepoUrl } from "./urlValidation";
+import { parseRepoUrlList } from "./urlValidation";
+import {
+  aggregatePercent,
+  isTerminalJobState,
+  progressPercent,
+  stageLabel,
+} from "./jobProgress";
 
 type Manifest = Record<string, unknown>;
-
-/**
- * How long to wait before giving up.
- *
- * The hard ceiling is the SPA's own nginx reverse proxy, which sets
- * `proxy_read_timeout 120s` (frontend/deploy/nginx.conf.template) — past that
- * the browser gets an nginx 504 HTML page rather than anything we can explain.
- * So abort just under it: the user gets our message instead of a raw gateway
- * error, and we do not give up on a repository the server would have finished.
- *
- * Measured in production after the generation speedup: a small repository
- * returns in well under a second, and RespiraWorks/Ventilator — which used to
- * exceed the ceiling and 504 — completes in about 42s. Something substantially
- * larger could still exceed it; that needs async jobs, not a bigger number.
- */
-const TIMEOUT_MS = 115_000;
 
 /**
  * Turn a failure into something a person can act on. The shared-token quota
  * case is called out specifically because it is expected to happen in normal
  * use, and "429" tells a non-technical user nothing.
  */
-export function generationErrorMessage(err: unknown, timedOut = false): string {
-  if (err instanceof DOMException && err.name === "AbortError") {
-    // A timeout and a user cancellation both surface as AbortError, and
-    // reporting a timeout as "you cancelled this" is both wrong and
-    // undiagnosable — the reader has no idea whether to retry, wait, or give up.
-    return timedOut
-      ? "Reading the repository took longer than two minutes, so it was stopped. " +
-          "Very large repositories can exceed the limit — smaller ones usually " +
-          "finish in seconds."
-      : "Generation was cancelled.";
-  }
+export function generationErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     switch (err.status) {
       case 404:
@@ -66,6 +50,8 @@ export function generationErrorMessage(err: unknown, timedOut = false): string {
         return "The shared rate limit for reading repositories has been reached. Please try again in a little while.";
       case 422:
         return `The repository couldn't be processed: ${err.message}`;
+      case 503:
+        return "Background generation isn't available on this node right now. Please try again later.";
       case 504:
       case 408:
         return "The repository took too long to read. Very large repositories can exceed the time limit.";
@@ -78,53 +64,144 @@ export function generationErrorMessage(err: unknown, timedOut = false): string {
   return err instanceof Error ? err.message : "Generation failed.";
 }
 
+function ProgressBar({
+  label,
+  value,
+  id,
+}: {
+  label: string;
+  value: number;
+  id: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between gap-2 text-sm">
+        <span className="text-foreground">{label}</span>
+        <span className="tabular-nums text-muted-foreground">{value}%</span>
+      </div>
+      {/* role on the track so a 0% fill is still an accessible, visible control */}
+      <div
+        id={id}
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={value}
+        aria-label={label}
+        className="h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+      >
+        <div
+          className="h-full rounded-full bg-indigo-600 transition-[width] duration-300"
+          style={{ width: `${value}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function GenerateView() {
   const navigate = useNavigate();
   const [url, setUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<GenerateJobRef[]>([]);
+  const [active, setActive] = useState(false);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [report, setReport] = useState<OkhQualityReport | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+
+  const statusQueries = useQueries({
+    queries: jobs.map((job) => ({
+      queryKey: ["okh-generate-job", job.job_id] as const,
+      queryFn: () => getGenerateJobStatus(job.job_id),
+      enabled: active && jobs.length > 0,
+      refetchInterval: (q: { state: { data: GenerateJobStatus | undefined } }) =>
+        isTerminalJobState(q.state.data?.state) ? false : 1000,
+      retry: false,
+    })),
+  });
+
+  const statuses = useMemo(() => {
+    return jobs.map((job, i) => {
+      const data = statusQueries[i]?.data;
+      return {
+        ...job,
+        state: data?.state ?? "PENDING",
+        stage: data?.stage,
+        fraction: data?.fraction,
+        message: data?.message,
+        error: data?.error,
+        manifest: data?.manifest,
+        quality_report: data?.quality_report,
+      };
+    });
+  }, [jobs, statusQueries]);
+
+  const allTerminal =
+    jobs.length > 0 && statuses.every((s) => isTerminalJobState(s.state));
+
+  useEffect(() => {
+    if (!active || !allTerminal) return;
+    setActive(false);
+    const successes = statuses.filter((s) => s.state === "SUCCESS" && s.manifest);
+    const failures = statuses.filter((s) => s.state === "FAILURE");
+    if (successes.length === 0) {
+      if (failures.length > 0) {
+        setError(
+          failures[0].error
+            ? `Generation failed: ${failures[0].error}`
+            : "Generation failed.",
+        );
+      } else if (!error) {
+        setError("Generation was cancelled.");
+      }
+      return;
+    }
+    const pick = successes[0];
+    setSelectedJobId(pick.job_id);
+    setManifest(pick.manifest as Manifest);
+    setReport((pick.quality_report as OkhQualityReport | null) ?? null);
+    if (failures.length > 0) {
+      setError(
+        `${failures.length} of ${statuses.length} URL${statuses.length === 1 ? "" : "s"} failed. Showing a successful result.`,
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- finalize once when the batch ends
+  }, [active, allTerminal, statuses]);
 
   const run = async () => {
-    const check = checkRepoUrl(url);
-    if (!check.valid) {
-      setUrlError(check.message ?? "That URL can't be used.");
+    const parsed = parseRepoUrlList(url);
+    if (!parsed.valid) {
+      setUrlError(parsed.message ?? "That URL can't be used.");
       return;
     }
     setUrlError(null);
     setError(null);
     setManifest(null);
-    setPending(true);
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-    // Distinguishes "we gave up" from "the user gave up" — both abort the same
-    // request, but they are different messages to the person reading them.
-    let timedOut = false;
-    const timer = setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, TIMEOUT_MS);
+    setReport(null);
+    setSelectedJobId(null);
+    setJobs([]);
+    setActive(true);
 
     try {
-      const result = await generateOkhFromUrl(check.normalized!, controller.signal);
-      setManifest(result.manifest);
-      setReport(result.qualityReport);
+      const batch = await submitGenerateJobs(parsed.urls);
+      setJobs(batch.jobs);
     } catch (err) {
-      setError(generationErrorMessage(err, timedOut));
-    } finally {
-      clearTimeout(timer);
-      abortRef.current = null;
-      setPending(false);
+      setActive(false);
+      setError(generationErrorMessage(err));
     }
+  };
+
+  const cancel = async () => {
+    const running = statuses.filter((s) => !isTerminalJobState(s.state));
+    await Promise.allSettled(running.map((s) => revokeGenerateJob(s.job_id)));
+    setActive(false);
+    setError("Generation was cancelled.");
   };
 
   const banner = manifest ? toQualityBanner(report) : null;
   const missing = manifest ? missingRequired(manifest) : [];
+  const aggregate = aggregatePercent(statuses);
+  const showProgress = active || (jobs.length > 0 && !manifest && !allTerminal);
 
   return (
     <div className="space-y-6 py-4">
@@ -132,65 +209,96 @@ export function GenerateView() {
         <h1 className="text-2xl font-bold text-foreground">Generate a design from a URL</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
           Point OHM at a public GitHub or GitLab repository and it will read what's there
-          into a structured design record. Extraction is imperfect by nature — you review
-          and correct it before doing anything with it.
+          into a structured design record. You can paste several URLs separated by commas.
+          Extraction is imperfect by nature — you review and correct it before doing
+          anything with it.
         </p>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
         <label htmlFor="repo-url" className="block text-sm font-medium text-foreground">
-          Repository URL
+          Repository URL(s)
         </label>
         <div className="mt-1.5 flex gap-2">
           <input
             id="repo-url"
-            type="url"
+            type="text"
             value={url}
-            disabled={pending}
-            placeholder="https://github.com/owner/project"
+            disabled={active}
+            placeholder="https://github.com/owner/project, https://gitlab.com/…"
             onChange={(e) => {
               setUrl(e.target.value);
               if (urlError) setUrlError(null);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !pending) run();
+              if (e.key === "Enter" && !active) void run();
             }}
             aria-invalid={urlError ? true : undefined}
-            aria-describedby={urlError ? "repo-url-error" : undefined}
+            aria-describedby={urlError ? "repo-url-error" : "repo-url-hint"}
             className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
           />
           <button
             type="button"
-            onClick={run}
-            disabled={pending}
+            onClick={() => void run()}
+            disabled={active}
             className="rounded-md bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
           >
-            {pending ? "Reading…" : "Generate"}
+            {active ? "Reading…" : "Generate"}
           </button>
         </div>
+        <p id="repo-url-hint" className="mt-1.5 text-xs text-muted-foreground">
+          Separate multiple repositories with commas.
+        </p>
         {urlError && (
-          <p id="repo-url-error" role="alert" className="mt-1.5 text-sm text-red-600 dark:text-red-400">
+          <p
+            id="repo-url-error"
+            role="alert"
+            className="mt-1.5 text-sm text-red-600 dark:text-red-400"
+          >
             {urlError}
           </p>
         )}
       </div>
 
-      {pending && (
+      {showProgress && (
         <div
           role="status"
-          className="rounded-xl border border-indigo-100 bg-indigo-50 p-5 dark:border-indigo-900 dark:bg-indigo-950/30"
+          className="space-y-4 rounded-xl border border-indigo-100 bg-indigo-50 p-5 dark:border-indigo-900 dark:bg-indigo-950/30"
         >
-          <p className="text-sm text-foreground">
-            Reading the repository. This can take up to a minute — larger repositories
-            take longer.
-          </p>
-          <button
-            type="button"
-            onClick={() => abortRef.current?.abort()}
-            className="mt-3 rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
-          >
-            Cancel
-          </button>
+          <ProgressBar
+            id="generate-aggregate-progress"
+            label={
+              jobs.length > 1
+                ? `Overall progress (${statuses.filter((s) => s.state === "SUCCESS").length}/${jobs.length} done)`
+                : stageLabel(statuses[0]?.stage, statuses[0]?.state)
+            }
+            value={aggregate}
+          />
+          {statuses.length > 1 && (
+            <ul className="space-y-3">
+              {statuses.map((s) => (
+                <li key={s.job_id}>
+                  <p className="mb-1 truncate font-mono text-xs text-muted-foreground">
+                    {s.url}
+                  </p>
+                  <ProgressBar
+                    id={`generate-progress-${s.job_id}`}
+                    label={stageLabel(s.stage, s.state)}
+                    value={progressPercent(s.state, s.fraction)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+          {active && (
+            <button
+              type="button"
+              onClick={() => void cancel()}
+              className="rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       )}
 
@@ -202,6 +310,32 @@ export function GenerateView() {
           {error}
         </p>
       )}
+
+      {allTerminal &&
+        statuses.filter((s) => s.state === "SUCCESS" && s.manifest).length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {statuses
+              .filter((s) => s.state === "SUCCESS" && s.manifest)
+              .map((s) => (
+                <button
+                  key={s.job_id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedJobId(s.job_id);
+                    setManifest(s.manifest as Manifest);
+                    setReport((s.quality_report as OkhQualityReport | null) ?? null);
+                  }}
+                  className={
+                    selectedJobId === s.job_id
+                      ? "rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white"
+                      : "rounded-md border border-slate-300 px-3 py-1.5 text-sm dark:border-slate-600"
+                  }
+                >
+                  Review {s.url?.replace(/^https:\/\//, "")}
+                </button>
+              ))}
+          </div>
+        )}
 
       {manifest && banner && (
         <>

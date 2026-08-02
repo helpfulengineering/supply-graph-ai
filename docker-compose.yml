@@ -57,10 +57,14 @@ services:
       - OHM_FEDERATION_DATA_DIR=${OHM_FEDERATION_DATA_DIR:-/app/storage/federation}
       - OHM_FEDERATION_MANUAL_PEERS=${OHM_FEDERATION_MANUAL_PEERS:-}
       - OHM_FEDERATION_SYNC_INTERVAL_SEC=${OHM_FEDERATION_SYNC_INTERVAL_SEC:-60}
-      # Cache (memory default; set redis + CACHE_REDIS_URL when redis service is up)
+      # Cache (memory default; set CACHE_BACKEND=redis to share across replicas)
       - CACHE_BACKEND=${CACHE_BACKEND:-memory}
       - CACHE_REDIS_URL=${CACHE_REDIS_URL:-redis://redis:6379/0}
       - CACHE_KEY_PREFIX=${CACHE_KEY_PREFIX:-ohm}
+      # Async jobs (Celery). Enable with JOBS_ENABLED=true and run ohm-worker.
+      - JOBS_ENABLED=${JOBS_ENABLED:-true}
+      - JOB_BROKER_URL=${JOB_BROKER_URL:-redis://redis:6379/1}
+      - JOB_RESULT_BACKEND=${JOB_RESULT_BACKEND:-redis://redis:6379/2}
     volumes:
       - ohm-storage:/app/storage
       - ohm-logs:/app/logs
@@ -70,6 +74,9 @@ services:
       - ./test-data:/app/test-data
     networks:
       - ohm-network
+    depends_on:
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       # Note: Healthcheck uses hardcoded port 8001 (default)
@@ -81,9 +88,7 @@ services:
       retries: 3
       start_period: 120s
 
-  # Redis / Valkey for distributed response cache (multi-replica / ACA).
-  # Start with: docker compose up redis
-  # Then set CACHE_BACKEND=redis on ohm-api (or in .env).
+  # Redis for cache + Celery broker/result backend.
   redis:
     image: redis:7-alpine
     container_name: ohm-redis
@@ -92,13 +97,51 @@ services:
     networks:
       - ohm-network
     restart: unless-stopped
-    profiles:
-      - redis
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
+
+  # Celery worker sidecar (same image as ohm-api, worker entrypoint mode).
+  ohm-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ohm-worker
+    command: ["worker"]
+    env_file:
+      - .env
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
+      - LOCAL_STORAGE_PATH=${LOCAL_STORAGE_PATH:-storage}
+      - LLM_ENABLED=${LLM_ENABLED:-false}
+      - JOBS_ENABLED=${JOBS_ENABLED:-true}
+      - JOB_BROKER_URL=${JOB_BROKER_URL:-redis://redis:6379/1}
+      - JOB_RESULT_BACKEND=${JOB_RESULT_BACKEND:-redis://redis:6379/2}
+      - CELERY_CONCURRENCY=${CELERY_CONCURRENCY:-1}
+    volumes:
+      - ohm-storage:/app/storage
+      - ohm-logs:/app/logs
+    networks:
+      - ohm-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    # Image HEALTHCHECK curls the API port; the worker does not serve HTTP.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A src.core.jobs.celery_app.celery_app inspect ping -d celery@$$HOSTNAME | grep -q pong",
+        ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 40s
 
   # Prometheus for metrics collection
   prometheus:

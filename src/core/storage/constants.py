@@ -15,6 +15,7 @@ SPACE_CLAIMS_PREFIX = "identity/space-claims"
 ATTESTATIONS_PREFIX = "identity/attestations"
 BINDINGS_PREFIX = "identity/bindings"
 DIRECTORY_PREFIX = "identity/directory"
+LLM_CREDENTIALS_PREFIX = "llm/credentials"
 
 STORAGE_OBJECT_TYPE_SUPPLY_TREE = "supply_tree"
 STORAGE_OBJECT_TYPE_SUPPLY_TREE_SOLUTION = "supply_tree_solution"
@@ -29,6 +30,7 @@ STORAGE_OBJECT_TYPE_SPACE_CLAIM = "space_claim"
 STORAGE_OBJECT_TYPE_ATTESTATION = "attestation"
 STORAGE_OBJECT_TYPE_BINDING = "identity_binding"
 STORAGE_OBJECT_TYPE_DIRECTORY = "directory_entry"
+STORAGE_OBJECT_TYPE_LLM_CREDENTIAL = "llm_credential"
 
 DEFAULT_SOLUTION_TTL_DAYS = 30
 

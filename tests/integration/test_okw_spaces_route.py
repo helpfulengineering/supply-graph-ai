@@ -7,26 +7,20 @@ unit-tested in tests/unit/test_okw_spaces.py.
 
 from __future__ import annotations
 
-import json
 import os
 import sys
-from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
+from tests.record_fixtures import okw_facility_dict
+
 pytestmark = pytest.mark.integration
 
 
-def _facility_content() -> dict:
-    data_dir = Path(__file__).resolve().parents[2] / "synthetic_data"
-    facility_file = sorted(data_dir.glob("*okw*.json"))[0]
-    return json.loads(facility_file.read_text(encoding="utf-8"))
-
-
 def test_spaces_local_only_returns_unified_shape(client):
-    created = client.post("/api/okw/create", json={"content": _facility_content()})
+    created = client.post("/api/okw/create", json={"content": okw_facility_dict()})
     assert created.status_code == 201, created.text
 
     resp = client.get("/api/okw/spaces", params={"include_mom": "false"})
@@ -56,7 +50,7 @@ def test_spaces_local_only_returns_unified_shape(client):
 
 
 def test_spaces_source_filter_excludes_local(client):
-    client.post("/api/okw/create", json={"content": _facility_content()})
+    client.post("/api/okw/create", json={"content": okw_facility_dict()})
     # Filtering to MoM only, with MoM disabled, yields an empty set (no local leak).
     resp = client.get(
         "/api/okw/spaces", params={"include_mom": "false", "source": "mom"}

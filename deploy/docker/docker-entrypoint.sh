@@ -91,21 +91,35 @@ run_cli() {
     fi
 }
 
+# Function to start the Celery worker (same image, different command)
+start_worker() {
+    echo "Starting Open Hardware Manager Celery worker..."
+    echo "Broker: ${JOB_BROKER_URL:-<unset>}"
+    # Prefork isolates blocking spaCy/NLP work from the API process.
+    exec celery -A src.core.jobs.celery_app.celery_app worker \
+        --loglevel="${LOG_LEVEL:-info}" \
+        --concurrency="${CELERY_CONCURRENCY:-1}"
+}
+
 # Function to show help
 show_help() {
     echo "Open Hardware Manager Container"
     echo ""
     echo "Usage:"
-    echo "  docker run <image> [api|cli] [options]"
+    echo "  docker run <image> [api|cli|worker] [options]"
     echo ""
     echo "Modes:"
     echo "  api     Start the FastAPI server (default)"
     echo "  cli     Run CLI commands"
+    echo "  worker  Start the Celery worker for async jobs"
     echo "  help    Show this help message"
     echo ""
     echo "Examples:"
     echo "  # Start API server"
     echo "  docker run <image> api"
+    echo ""
+    echo "  # Start async job worker"
+    echo "  docker run <image> worker"
     echo ""
     echo "  # Run CLI command"
     echo "  docker run <image> cli okh validate /path/to/file.okh.json"
@@ -123,6 +137,8 @@ show_help() {
     echo "  DEBUG             Enable debug mode (default: false)"
     echo "  CORS_ORIGINS      CORS allowed origins (default: *)"
     echo "  API_KEYS          Comma-separated API keys"
+    echo "  JOB_BROKER_URL    Celery broker URL (worker + API when jobs enabled)"
+    echo "  JOB_RESULT_BACKEND Celery result backend URL"
     echo "  SECRETS_PROVIDER  Secrets provider: env/aws/gcp/azure (default: auto-detect)"
     echo "  USE_SECRETS_MANAGER  Enable secrets manager: true/false (default: false)"
     echo ""
@@ -136,6 +152,9 @@ case "$MODE" in
         ;;
     "cli")
         run_cli "$@"
+        ;;
+    "worker")
+        start_worker
         ;;
     "help"|"-h"|"--help")
         show_help

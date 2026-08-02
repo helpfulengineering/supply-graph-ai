@@ -631,7 +631,7 @@ export interface paths {
          *       - **Layer 1 (Heuristics)**: Fast rule-based categorization using file extensions,
          *         directory paths, and filename patterns
          *       - **Layer 2 (LLM)**: Content-aware categorization with semantic understanding
-         *         (when LLM is available, falls back to Layer 1 if unavailable)
+         *       (when LLM is available, falls back to Layer 1 if unavailable)
          *     - Files are categorized into:
          *       - `making_instructions`: Step-by-step assembly/build guides for humans
          *       - `manufacturing_files`: Machine-readable files (.stl, .3mf, .gcode, etc.)
@@ -644,6 +644,66 @@ export interface paths {
          *     - Optional interactive review for field validation
          */
         post: operations["generate_from_url_api_okh_generate_from_url_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okh/generate-from-url/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit async generate-from-url jobs
+         * @description Enqueue one Celery job per URL. Poll ``GET .../jobs/{job_id}`` for status.
+         */
+        post: operations["submit_generate_from_url_jobs_api_okh_generate_from_url_jobs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okh/generate-from-url/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get generate-from-url job status
+         * @description Return job state and, when finished, the manifest + quality report.
+         */
+        get: operations["get_generate_from_url_job_api_okh_generate_from_url_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/okh/generate-from-url/jobs/{job_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a generate-from-url job
+         * @description Revoke a queued or running job; subsequent polls report REVOKED.
+         */
+        post: operations["revoke_generate_from_url_job_api_okh_generate_from_url_jobs__job_id__revoke_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2489,6 +2549,70 @@ export interface paths {
         get: operations["get_llm_providers_api_llm_providers_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/llm/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List stored LLM credentials
+         * @description Return masked status for all stored provider credentials.
+         */
+        get: operations["list_llm_credentials_api_llm_credentials_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/llm/credentials/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set or rotate an LLM provider credential
+         * @description Encrypt and persist a provider API key; optionally hot-swap into the service.
+         */
+        put: operations["upsert_llm_credential_api_llm_credentials__provider__put"];
+        post?: never;
+        /**
+         * Delete a stored LLM provider credential
+         * @description Remove a stored credential and disconnect it from the running service.
+         */
+        delete: operations["delete_llm_credential_api_llm_credentials__provider__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/llm/credentials/{provider}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Test a stored LLM provider credential
+         * @description Run health_check against the provider using the stored credential.
+         */
+        post: operations["test_llm_credential_api_llm_credentials__provider__test_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5322,6 +5446,122 @@ export interface components {
             display_name: string;
         };
         /**
+         * LLMCredentialListResponse
+         * @description List of stored LLM credentials (masked).
+         * @example {
+         *       "available_providers": [
+         *         "anthropic"
+         *       ],
+         *       "default_provider": "anthropic",
+         *       "message": "Providers retrieved successfully",
+         *       "providers": [
+         *         {
+         *           "available_models": [
+         *             "claude-sonnet-4-5-20250929"
+         *           ],
+         *           "is_connected": true,
+         *           "model": "claude-sonnet-4-5-20250929",
+         *           "name": "anthropic",
+         *           "status": "healthy",
+         *           "type": "anthropic"
+         *         }
+         *       ],
+         *       "status": "success",
+         *       "timestamp": "2024-01-01T12:00:00Z"
+         *     }
+         */
+        LLMCredentialListResponse: {
+            /**
+             * @description Success status
+             * @default success
+             */
+            status: components["schemas"]["APIStatus"];
+            /**
+             * Message
+             * @description Human-readable response message
+             */
+            message: string;
+            /**
+             * Timestamp
+             * Format: date-time
+             * @description Response timestamp
+             */
+            timestamp?: string;
+            /**
+             * Request Id
+             * @description Request identifier if provided
+             */
+            request_id?: string | null;
+            /**
+             * Data
+             * @description Response data payload
+             */
+            data?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Metadata
+             * @description Additional response metadata
+             */
+            metadata?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Credentials
+             * @description Configured provider credentials
+             */
+            credentials?: components["schemas"]["LLMCredentialStatus"][];
+        };
+        /**
+         * LLMCredentialStatus
+         * @description Public view of a stored LLM credential — never includes the full key.
+         */
+        LLMCredentialStatus: {
+            /**
+             * Provider
+             * @description Provider name
+             */
+            provider: string;
+            /**
+             * Model
+             * @description Configured default model
+             */
+            model?: string | null;
+            /**
+             * Masked Key
+             * @description Masked API key suffix
+             */
+            masked_key: string;
+            /**
+             * Configured
+             * @description Whether a credential is stored
+             * @default true
+             */
+            configured: boolean;
+        };
+        /**
+         * LLMCredentialUpsert
+         * @description Set or rotate an LLM provider API key.
+         */
+        LLMCredentialUpsert: {
+            /**
+             * Api Key
+             * @description Provider API key (plaintext)
+             */
+            api_key: string;
+            /**
+             * Model
+             * @description Optional default model for this provider
+             */
+            model?: string | null;
+            /**
+             * Activate
+             * @description When true, hot-swap into the running LLM service as the active provider
+             * @default true
+             */
+            activate: boolean;
+        };
+        /**
          * LLMHealthResponse
          * @description Response model for LLM health check.
          * @example {
@@ -5412,23 +5652,10 @@ export interface components {
          * LLMProvidersResponse
          * @description Response model for LLM providers list.
          * @example {
-         *       "available_providers": [
-         *         "anthropic"
-         *       ],
-         *       "default_provider": "anthropic",
-         *       "message": "Providers retrieved successfully",
-         *       "providers": [
-         *         {
-         *           "available_models": [
-         *             "claude-sonnet-4-5-20250929"
-         *           ],
-         *           "is_connected": true,
-         *           "model": "claude-sonnet-4-5-20250929",
-         *           "name": "anthropic",
-         *           "status": "healthy",
-         *           "type": "anthropic"
-         *         }
-         *       ],
+         *       "data": {},
+         *       "message": "Operation completed successfully",
+         *       "metadata": {},
+         *       "request_id": "req_123456789",
          *       "status": "success",
          *       "timestamp": "2024-01-01T12:00:00Z"
          *     }
@@ -5914,6 +6141,94 @@ export interface components {
             manifest_id: string;
         };
         /**
+         * OKHGenerateJobRef
+         * @description One job within a submitted batch.
+         */
+        OKHGenerateJobRef: {
+            /** Job Id */
+            job_id: string;
+            /** Url */
+            url: string;
+        };
+        /**
+         * OKHGenerateJobStatus
+         * @description Status of a single generate-from-url job.
+         */
+        OKHGenerateJobStatus: {
+            /** Job Id */
+            job_id: string;
+            /** State */
+            state: string;
+            /** Stage */
+            stage?: string | null;
+            /** Fraction */
+            fraction?: number | null;
+            /** Message */
+            message?: string | null;
+            /** Url */
+            url?: string | null;
+            /** Error */
+            error?: string | null;
+            /** Manifest */
+            manifest?: {
+                [key: string]: unknown;
+            } | null;
+            /** Quality Report */
+            quality_report?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * OKHGenerateJobsRequest
+         * @description Submit one or more repository URLs for async OKH generation.
+         */
+        OKHGenerateJobsRequest: {
+            /**
+             * Urls
+             * @description One or more GitHub/GitLab repository URLs (or server-local paths).
+             */
+            urls: string[];
+            /**
+             * Skip Review
+             * @description Skip interactive review (always true for jobs)
+             * @default true
+             */
+            skip_review: boolean;
+            /**
+             * Verbose
+             * @description Include per-field confidence in the manifest
+             * @default false
+             */
+            verbose: boolean;
+            /**
+             * Clone
+             * @description Shallow-clone before extraction
+             * @default true
+             */
+            clone: boolean;
+            /**
+             * Save Clone
+             * @description Persist clone on the server
+             */
+            save_clone?: string | null;
+            /**
+             * No Llm
+             * @description Force heuristic-only generation (no LLM layer)
+             * @default false
+             */
+            no_llm: boolean;
+        };
+        /**
+         * OKHGenerateJobsResponse
+         * @description Accepted async generation batch.
+         */
+        OKHGenerateJobsResponse: {
+            /** Batch Id */
+            batch_id: string;
+            /** Jobs */
+            jobs: components["schemas"]["OKHGenerateJobRef"][];
+        };
+        /**
          * OKHGenerateRequest
          * @description Request model for generating OKH manifest from URL or local path
          */
@@ -5937,8 +6252,8 @@ export interface components {
             verbose: boolean;
             /**
              * Clone
-             * @description Clone the repository locally before extraction (faster, no API rate limits). Ignored when `url` is already a local path.
-             * @default false
+             * @description Clone the repository locally before extraction. Default, and materially faster: a shallow clone is one compressed transfer needing no credential, where the platform API path costs one HTTP round trip per file against a shared, rate-limited token. Set false to force the API path (it fetches selectively, so it can transfer less for repositories dominated by large binaries). A failed clone falls back to the API path automatically. Ignored when `url` is already a local path.
+             * @default true
              */
             clone: boolean;
             /**
@@ -10598,6 +10913,160 @@ export interface operations {
             };
         };
     };
+    submit_generate_from_url_jobs_api_okh_generate_from_url_jobs_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OKHGenerateJobsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKHGenerateJobsResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    get_generate_from_url_job_api_okh_generate_from_url_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Celery task id */
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKHGenerateJobStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    revoke_generate_from_url_job_api_okh_generate_from_url_jobs__job_id__revoke_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Celery task id */
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OKHGenerateJobStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     scaffold_project_api_okh_scaffold_post: {
         parameters: {
             query?: never;
@@ -14758,6 +15227,210 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    list_llm_credentials_api_llm_credentials_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMCredentialListResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    upsert_llm_credential_api_llm_credentials__provider__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Provider name, e.g. anthropic */
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LLMCredentialUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LLMCredentialStatus"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    delete_llm_credential_api_llm_credentials__provider__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Provider name, e.g. anthropic */
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    test_llm_credential_api_llm_credentials__provider__test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Provider name, e.g. anthropic */
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
             /** @description Internal Server Error */
             500: {

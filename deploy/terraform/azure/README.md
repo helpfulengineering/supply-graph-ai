@@ -15,6 +15,8 @@ existing `project_data_rg` apps — **this stack never touches production**.
 | Per-node Container Apps Environment | Regional ACA |
 | Container App (API) | OHM image with federation enabled |
 | Random `API_KEYS` | Per-node admin/write auth |
+| Azure Cache for Redis (optional) | Celery broker + result backend when `enable_jobs=true` |
+| Container App (worker, optional) | Same image, `worker` mode; no ingress |
 
 Default topology (ephemeral federation lab):
 
@@ -33,10 +35,18 @@ Log Analytics and ACA Environment names include the region slug. Changing
 trying to move them — Azure does not allow the same name in a new region inside
 one resource group (`InvalidResourceLocation`).
 
-Ephemeral nodes use `ENVIRONMENT=test` so they boot without
+Ephemeral nodes default to `environment = "test"` so they boot without
 `LLM_ENCRYPTION_*` secrets. For a production-like self-host, set
-`ENVIRONMENT=production` and supply those encryption secrets (and prefer
-`0.5` CPU / `1Gi` or a valid Consumption pair).
+`environment = "production"` — the module then provisions
+`LLM_ENCRYPTION_SALT` / `LLM_ENCRYPTION_PASSWORD` as Container App secrets
+automatically (no circular “need secrets to boot / need boot to set secrets”).
+Prefer `0.5` CPU / `1Gi` or another valid Consumption pair.
+
+Async generate-from-url (Celery + Redis) is **off** by default on the
+multi-peer federation lab (`enable_jobs = false`) to control cost. For a
+self-host node that needs background generation and progress polling, set
+`enable_jobs = true` on the `ohm_node` module (see
+[examples/single-peer](examples/single-peer/README.md)).
 
 ## Prerequisites
 

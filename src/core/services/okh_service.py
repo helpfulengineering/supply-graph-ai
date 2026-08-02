@@ -863,6 +863,7 @@ class OKHService(BaseService["OKHService"]):
         clone: bool = True,
         save_clone: Optional[str] = None,
         no_llm: bool = False,
+        progress=None,
     ) -> Dict[str, Any]:
         """Generate OKH manifest from a repository URL or a local clone path.
 
@@ -883,6 +884,7 @@ class OKHService(BaseService["OKHService"]):
             no_llm: If True, use 3-layer generation only. If False (default), prefer
                 LLM + chunked map-reduce when credentials exist; otherwise degrade to
                 3-layer automatically.
+            progress: Optional ``(stage, fraction, message)`` callback for async jobs.
 
         Returns:
             Response dictionary with ``success``, ``message``, generated ``manifest``,
@@ -897,6 +899,21 @@ class OKHService(BaseService["OKHService"]):
             from pathlib import Path as _Path
 
             from ..generation.platforms.local_git import LocalGitExtractor
+            from ..generation.progress import ProgressEmitter, planned_stages
+
+            # Clone/extract is outside the engine; share one weighted stage plan with
+            # the engine so UI fractions stay aligned across the process boundary.
+            job_emitter: Optional[ProgressEmitter] = None
+            if progress is not None:
+                config_preview = LayerConfig.for_generate_from_url(no_llm=no_llm)
+                use_llm = bool(
+                    config_preview.use_llm and config_preview.is_llm_configured()
+                )
+                job_emitter = ProgressEmitter(
+                    planned_stages(include_clone=True, use_llm=use_llm),
+                    callback=progress,
+                )
+                job_emitter.emit("clone", "Extracting project data")
 
             # --- Local path input: skip all network extraction ---
             local_input = _Path(url)
@@ -943,9 +960,19 @@ class OKHService(BaseService["OKHService"]):
                     "using 3-layer generation (direct/heuristic/NLP)."
                 )
 
+            engine_progress = None
+            if job_emitter is not None:
+
+                def engine_progress(
+                    stage: str, _fraction: float, message: Optional[str] = None
+                ) -> None:
+                    job_emitter.emit(stage, message)
+
             engine = GenerationEngine(config=config)
             result = await engine.generate_manifest_async(
-                project_data, include_file_metadata=verbose
+                project_data,
+                include_file_metadata=verbose,
+                progress=engine_progress,
             )
 
             # Note: Review interface is handled by CLI, not API service

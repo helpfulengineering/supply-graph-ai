@@ -176,6 +176,42 @@ class Settings(BaseSettings):
         # Carries credentials — env/.env / secretRef only, never TOML.
         json_schema_extra={"secret": True},
     )
+    jobs_enabled: bool = Field(
+        default=False,
+        description=(
+            "Enable Celery-backed async jobs (generate-from-url). "
+            "Requires job_broker_url and a worker process."
+        ),
+    )
+    job_broker_url: Optional[str] = Field(
+        default=None,
+        description="Celery broker URL (e.g. redis://redis:6379/1).",
+        json_schema_extra={"secret": True},
+    )
+    job_result_backend: Optional[str] = Field(
+        default=None,
+        description="Celery result backend URL (e.g. redis://redis:6379/2).",
+        json_schema_extra={"secret": True},
+    )
+    generate_from_url_max_concurrent: int = Field(
+        default=2,
+        description="Max concurrent generate-from-url Celery jobs system-wide.",
+    )
+    generate_from_url_max_queued: int = Field(
+        default=20,
+        description="Max queued (reserved/scheduled) generate-from-url jobs.",
+    )
+    generate_from_url_rate_limit_per_minute: int = Field(
+        default=10,
+        description="Per-IP rate limit for generate-from-url job submission.",
+    )
+    generate_from_url_require_auth_for_llm: bool = Field(
+        default=False,
+        description=(
+            "When true, LLM-enabled generation (sync or async) requires a valid "
+            "API key. Heuristic-only runs (no_llm=true) stay public."
+        ),
+    )
     okw_source: Optional[str] = Field(
         default=None,  # unset resolves via okw_source_resolved
         description="OKW facility source: storage | mom. Unset → union (storage ∪ MoM).",

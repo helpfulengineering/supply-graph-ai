@@ -68,3 +68,58 @@ export function checkRepoUrl(raw: string): UrlCheck {
     normalized: `https://${host}/${owner}/${repo}`,
   };
 }
+
+export interface UrlListEntry {
+  raw: string;
+  check: UrlCheck;
+}
+
+export interface UrlListResult {
+  /** Deduplicated normalised URLs in input order (valid only). */
+  urls: string[];
+  entries: UrlListEntry[];
+  /** True when every non-empty token is valid and at least one URL remains. */
+  valid: boolean;
+  /** First human-readable problem, if any. */
+  message?: string;
+}
+
+/**
+ * Parse a comma-separated list of repository URLs.
+ * Empty tokens are ignored; duplicates (by normalised URL) are dropped.
+ */
+export function parseRepoUrlList(raw: string): UrlListResult {
+  const tokens = raw
+    .split(",")
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  if (tokens.length === 0) {
+    const empty = fail("empty");
+    return { urls: [], entries: [], valid: false, message: empty.message };
+  }
+
+  const entries: UrlListEntry[] = [];
+  const urls: string[] = [];
+  const seen = new Set<string>();
+
+  for (const token of tokens) {
+    const check = checkRepoUrl(token);
+    entries.push({ raw: token, check });
+    if (!check.valid || !check.normalized) continue;
+    if (seen.has(check.normalized)) continue;
+    seen.add(check.normalized);
+    urls.push(check.normalized);
+  }
+
+  const firstBad = entries.find((e) => !e.check.valid);
+  if (firstBad) {
+    return {
+      urls,
+      entries,
+      valid: false,
+      message: firstBad.check.message,
+    };
+  }
+  return { urls, entries, valid: urls.length > 0 };
+}

@@ -235,6 +235,10 @@ class LLMProviderSelector:
 
         return selection_result
 
+    def invalidate_availability_cache(self) -> None:
+        """Drop cached provider availability (call after credentials change)."""
+        self._cached_available_providers = None
+
     def _get_available_providers(self) -> List[LLMProviderType]:
         """Get list of available providers based on API keys and configuration."""
         if self._cached_available_providers is not None:

@@ -32,16 +32,19 @@ resource "azurerm_resource_group" "this" {
 }
 
 module "ohm" {
-  source              = "../modules/ohm_node"
+  source              = "../../modules/ohm_node"
   name                = "ohm${random_string.suffix.result}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
-  image               = "touchthesun/openhardwaremanager:0.10.0"
+  image               = "touchthesun/openhardwaremanager:0.10.1"
   node_role           = "peer"
   node_name           = "My OHM Node"
   api_key             = random_password.api_key.result
   manual_peers        = "" # or "https://other-peer.example"
   min_replicas        = 1
+  # Production-like: encrypt stored LLM keys; enable async generate-from-url.
+  environment = "production"
+  enable_jobs = true
 }
 
 output "url" {

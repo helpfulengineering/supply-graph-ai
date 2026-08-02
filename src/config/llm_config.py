@@ -183,7 +183,13 @@ class CredentialManager:
                 raw_key = None
         self.encryption_key = raw_key
         self._fernet = None
+        self._uses_default_encryption = False
         self._initialize_encryption()
+
+    @property
+    def uses_default_encryption(self) -> bool:
+        """True when the Fernet key was derived from built-in default salt/password."""
+        return self._uses_default_encryption
 
     def _initialize_encryption(self):
         """Initialize encryption for credential storage"""
@@ -235,10 +241,16 @@ class CredentialManager:
 
             # Use provided values or defaults (with warning in development)
             # Note: Default values are only used in development mode and are rejected in production
+            using_default_salt = not salt_env or salt_env == DEFAULT_ENCRYPTION_SALT
+            using_default_password = (
+                not password_env or password_env == DEFAULT_ENCRYPTION_PASSWORD
+            )
+            self._uses_default_encryption = using_default_salt or using_default_password
+
             salt = (salt_env or DEFAULT_ENCRYPTION_SALT).encode()
             password = (password_env or DEFAULT_ENCRYPTION_PASSWORD).encode()
 
-            if not is_production and (not salt_env or not password_env):
+            if not is_production and self._uses_default_encryption:
                 logger.warning(
                     "Using default encryption credentials. This is insecure for production. "
                     "Please set LLM_ENCRYPTION_SALT and LLM_ENCRYPTION_PASSWORD environment variables."
@@ -269,22 +281,35 @@ class CredentialManager:
     def store_credential(
         self, provider: LLMProvider, credential_type: str, credential: str
     ) -> str:
-        """Store an encrypted credential"""
+        """Encrypt a credential for persistence.
+
+        Persistence lives in :class:`LLMCredentialStore`. This method only
+        encrypts; callers that need durable storage must use the store.
+        Refuses to encrypt under default salt/password pairs.
+        """
+        if self.uses_default_encryption:
+            raise ValueError(
+                "Refusing to store LLM credentials under default encryption keys. "
+                "Set LLM_ENCRYPTION_KEY or LLM_ENCRYPTION_SALT and "
+                "LLM_ENCRYPTION_PASSWORD to non-default values."
+            )
         encrypted = self.encrypt_credential(credential)
-        # In a real implementation, this would store to a secure credential store
-        # For now, we'll just return the encrypted value
         logger.info(
-            f"Stored encrypted credential for {provider.value}:{credential_type}"
+            "Encrypted credential for %s:%s (persist via LLMCredentialStore)",
+            provider.value,
+            credential_type,
         )
         return encrypted
 
     def retrieve_credential(
         self, provider: LLMProvider, credential_type: str
     ) -> Optional[str]:
-        """Retrieve and decrypt a credential"""
-        # In a real implementation, this would retrieve from a secure credential store
-        # For now, we'll return None to indicate no stored credential
-        logger.debug(f"Retrieving credential for {provider.value}:{credential_type}")
+        """No longer returns credentials — use :class:`LLMCredentialStore.load`."""
+        logger.debug(
+            "retrieve_credential is a no-op; use LLMCredentialStore for %s:%s",
+            provider.value,
+            credential_type,
+        )
         return None
 
 

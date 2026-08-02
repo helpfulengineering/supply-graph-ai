@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Admin-managed LLM provider credentials.** Encrypted keys can be set,
+  rotated, tested, and deleted via `PUT/GET/DELETE /api/llm/credentials/{provider}`
+  (strict admin auth) and **Settings → LLM providers**. Keys hot-swap into the
+  running `LLMService` without a restart; storage refuses default encryption
+  salts/passwords. Env vars remain a fallback at startup.
+- **Celery worker foundation for async jobs.** `celery[redis]` dependency,
+  `src/core/jobs/` Celery app + `generate_from_url` task, Docker entrypoint
+  `worker` mode, and `ohm-worker` + always-on Redis in `docker-compose.yml`.
+  Config: `JOBS_ENABLED`, `JOB_BROKER_URL`, `JOB_RESULT_BACKEND`.
+- **Async generate-from-url job API + CLI.** `POST/GET /api/okh/generate-from-url/jobs`
+  accepts one or many URLs (one Celery job each), with per-IP rate limiting,
+  concurrent/queued caps, and optional auth for LLM-enabled runs
+  (`GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM`). CLI: `ohm okh generate-jobs
+  submit|status|wait`.
+- **Weighted progress for async generation.** `GenerationEngine` and
+  `OKHService.generate_from_url` emit stage/fraction updates (clone → layers →
+  BOM → quality); Celery tasks forward them via `update_state` so job polls
+  can drive a real progress bar.
+- **Generate UI uses async jobs.** `/okh/generate` accepts comma-separated URLs,
+  submits Celery jobs, polls with real progress bars, and cancels via job
+  revoke — no longer blocked by the 120s nginx proxy timeout.
+- **Azure Terraform: optional Redis + Celery worker.** `ohm_node` can provision
+  Azure Cache for Redis and a no-ingress worker Container App (`enable_jobs`).
+  `environment=production` auto-provisions `LLM_ENCRYPTION_*` secrets so stored
+  LLM credentials are not encrypted under default keys.
+
 ### Removed
 
 - **Seven catalogue designs whose file references were exclusively Google Drive

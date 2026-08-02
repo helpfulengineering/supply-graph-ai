@@ -64,6 +64,35 @@ export const handlers = [
       { status: 201 },
     ),
   ),
+  http.post("*/v1/api/okh/generate-from-url/jobs", async ({ request }) => {
+    const body = (await request.json()) as { urls?: string[] };
+    const urls = body.urls ?? ["https://github.com/example/demo"];
+    return HttpResponse.json(
+      {
+        batch_id: "batch-msw",
+        jobs: urls.map((url, i) => ({ job_id: `job-msw-${i}`, url })),
+      },
+      { status: 202 },
+    );
+  }),
+  http.get("*/v1/api/okh/generate-from-url/jobs/:jobId", ({ params }) =>
+    HttpResponse.json({
+      job_id: String(params.jobId),
+      state: "SUCCESS",
+      fraction: 1,
+      message: "ok",
+      url: "https://github.com/example/demo",
+      manifest: okhDetailFixture,
+      quality_report: { missing_required_fields: [], recommendations: [] },
+    }),
+  ),
+  http.post("*/v1/api/okh/generate-from-url/jobs/:jobId/revoke", ({ params }) =>
+    HttpResponse.json({
+      job_id: String(params.jobId),
+      state: "REVOKED",
+      message: "Job cancelled",
+    }),
+  ),
   http.get("*/v1/api/okw/search", () => HttpResponse.json(okwSearchFixture)),
   http.get("*/v1/api/okw/spaces", () => HttpResponse.json(networkSpacesFixture)),
   http.get("*/v1/api/okw/:id/provenance", () => HttpResponse.json(provenanceFixture)),

@@ -8,6 +8,7 @@ import { ReputationPanel } from "../features/settings/ReputationPanel";
 import { BindingsPanel } from "../features/settings/BindingsPanel";
 import { DirectoryPanel } from "../features/settings/DirectoryPanel";
 import { FederationPanel } from "../features/settings/FederationPanel";
+import { LLMCredentialsPanel } from "../features/settings/LLMCredentialsPanel";
 import { SecurityPolicyBadge } from "../features/settings/SecurityPolicyBadge";
 import { useAuth } from "../context/AuthContext";
 
@@ -15,6 +16,7 @@ const sessionTab = { to: "/settings/session", label: "Session" } as const;
 
 const adminTabs = [
   { to: "/settings/keys", label: "Keys & accounts" },
+  { to: "/settings/llm", label: "LLM providers" },
   { to: "/settings/identities", label: "Identities" },
   { to: "/settings/grants", label: "Grants" },
   { to: "/settings/spaces", label: "Spaces" },
@@ -26,6 +28,7 @@ const adminTabs = [
 
 function panelFor(pathname: string) {
   if (pathname.includes("/keys")) return <KeysAccountsPanel />;
+  if (pathname.includes("/llm")) return <LLMCredentialsPanel />;
   if (pathname.includes("/identities")) return <IdentitiesPanel />;
   if (pathname.includes("/grants")) return <GrantsPanel />;
   if (pathname.includes("/spaces")) return <SpacesPanel />;
@@ -47,7 +50,7 @@ export function SettingsPage() {
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {isAdmin
-            ? "Manage session, keys, identities, grants, spaces, bindings, directory, and federation for this OHM instance."
+            ? "Manage session, keys, LLM providers, identities, grants, spaces, bindings, directory, and federation for this OHM instance."
             : "Paste an API key to authenticate this browser tab. Admin tabs appear after whoami reports admin."}
         </p>
       </div>

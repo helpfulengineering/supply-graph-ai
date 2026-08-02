@@ -128,6 +128,25 @@ require_write = require_permission("write")
 require_admin = require_permission("admin")
 
 
+async def require_admin_strict(
+    auth_header: Optional[str] = Depends(API_KEY_HEADER),
+) -> AuthenticatedUser:
+    """Always require a valid admin key — ignores SecurityPolicy write-auth relaxation.
+
+    Use for operations that must never be anonymous even when
+    ``ENVIRONMENT != production`` (e.g. LLM provider credential management).
+    """
+    user = await get_current_user(auth_header)
+    auth_service = await AuthenticationService.get_instance()
+    scope = auth_service.local_node_scope()
+    if not await auth_service.check_permission(user, ["admin"], scope=scope):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This operation requires the 'admin' permission",
+        )
+    return user
+
+
 def created_by(user: Optional[AuthenticatedUser]) -> Optional[str]:
     """Attribution helper: the owning account id for a resolved user, else ``None``."""
     return str(user.account_id) if user else None

@@ -1,9 +1,7 @@
 import { test, expect } from "./mock-api";
 
-// Slices A + B + C: generate an OKH manifest from a repository URL, review it
-// through the guided tiered editor, then hand it to matching unsaved. The mocked lane owns the behaviour; the
-// real-api lane would need a live repository read (up to a minute) and a shared
-// token quota, so it only checks the page loads.
+// Generate an OKH manifest from a repository URL via async jobs, review it
+// through the guided tiered editor, then hand it to matching unsaved.
 
 const MANIFEST = {
   title: "Open Source Rover",
@@ -17,12 +15,89 @@ const MANIFEST = {
   stray_field: "kept",
 };
 
-async function mockGenerate(page: import("@playwright/test").Page, body: unknown, status = 200) {
-  await page.route("**/api/okh/generate-from-url", (route) =>
-    route.fulfill({
-      status,
+/** Mock submit + a multi-poll progression that ends in SUCCESS. */
+async function mockGenerateJobs(
+  page: import("@playwright/test").Page,
+  opts: {
+    manifest?: Record<string, unknown>;
+    quality_report?: Record<string, unknown>;
+    submitStatus?: number;
+    submitBody?: unknown;
+  } = {},
+) {
+  const jobId = "job-e2e-1";
+  const url = "https://github.com/nasa-jpl/rover";
+  let polls = 0;
+
+  if (opts.submitStatus && opts.submitStatus >= 400) {
+    await page.route("**/api/okh/generate-from-url/jobs", (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
+      return route.fulfill({
+        status: opts.submitStatus,
+        contentType: "application/json",
+        body: JSON.stringify(opts.submitBody ?? { detail: "error" }),
+      });
+    });
+    return;
+  }
+
+  await page.route("**/api/okh/generate-from-url/jobs", (route) => {
+    if (route.request().method() !== "POST") return route.fallback();
+    return route.fulfill({
+      status: 202,
       contentType: "application/json",
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        batch_id: "batch-1",
+        jobs: [{ job_id: jobId, url }],
+      }),
+    });
+  });
+
+  await page.route(`**/api/okh/generate-from-url/jobs/${jobId}`, (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    polls += 1;
+    if (polls < 3) {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          job_id: jobId,
+          state: "PROGRESS",
+          stage: polls === 1 ? "clone" : "nlp",
+          fraction: polls === 1 ? 0.2 : 0.55,
+          message: "working",
+          url,
+        }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        job_id: jobId,
+        state: "SUCCESS",
+        stage: null,
+        fraction: 1,
+        message: "ok",
+        url,
+        manifest: opts.manifest ?? MANIFEST,
+        quality_report: opts.quality_report ?? {
+          missing_required_fields: ["function"],
+          recommendations: ["Add a description"],
+        },
+      }),
+    });
+  });
+
+  await page.route(`**/api/okh/generate-from-url/jobs/${jobId}/revoke`, (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        job_id: jobId,
+        state: "REVOKED",
+        message: "Job cancelled",
+      }),
     }),
   );
 }
@@ -34,18 +109,38 @@ test("page loads", async ({ page }) => {
   ).toBeVisible();
 });
 
+test("real API: submit-then-poll completes with a progress bar", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "real-api", "live Compose API only");
+  test.setTimeout(180_000);
+
+  await page.goto("/okh/generate");
+  await page
+    .getByLabel(/Repository URL/i)
+    .fill("https://github.com/blooop/Hello-World");
+  await page.getByRole("button", { name: "Generate" }).click();
+
+  await expect(page.getByRole("progressbar").first()).toBeVisible({
+    timeout: 15_000,
+  });
+  // Heuristic-only path should finish well under the old 120s proxy ceiling.
+  await expect(page.getByLabel("Title")).toBeVisible({ timeout: 120_000 });
+  await expect(page.getByRole("button", { name: "Download YAML" })).toBeVisible();
+});
+
 test("rejects an unsupported host before calling the API (mocked)", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts client-side validation");
   let called = false;
-  await page.route("**/api/okh/generate-from-url", (route) => {
+  await page.route("**/api/okh/generate-from-url/jobs", (route) => {
     called = true;
-    return route.fulfill({ status: 200, body: "{}" });
+    return route.fulfill({ status: 202, body: "{}" });
   });
 
   await page.goto("/okh/generate");
-  await page.getByLabel("Repository URL").fill("https://bitbucket.org/a/b");
+  await page.getByLabel(/Repository URL/i).fill("https://bitbucket.org/a/b");
   await page.getByRole("button", { name: "Generate" }).click();
 
   await expect(page.getByRole("alert")).toContainText(/only public github and gitlab/i);
@@ -56,19 +151,13 @@ test("generates, then guides review of the result (mocked)", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
-  await mockGenerate(page, {
-    success: true,
-    message: "ok",
-    manifest: MANIFEST,
-    quality_report: {
-      missing_required_fields: ["function"],
-      recommendations: ["Add a description"],
-    },
-  });
+  await mockGenerateJobs(page);
 
   await page.goto("/okh/generate");
-  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
+
+  await expect(page.getByRole("progressbar").first()).toBeVisible();
 
   // Quality banner warns about the missing required field without blocking.
   await expect(page.getByText(/1 required field could not be extracted/i)).toBeVisible();
@@ -95,18 +184,15 @@ test("generates, then guides review of the result (mocked)", async ({
 
 test("downloads the reviewed manifest as YAML (mocked)", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
-  await mockGenerate(page, {
-    success: true,
-    message: "ok",
+  await mockGenerateJobs(page, {
     manifest: { ...MANIFEST, function: "Drives around" },
     quality_report: { missing_required_fields: [] },
   });
 
   await page.goto("/okh/generate");
-  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
 
-  // Edits made during review must reach the downloaded file.
   await page.getByLabel("Title").fill("Renamed Rover");
 
   const [download] = await Promise.all([
@@ -120,10 +206,13 @@ test("explains a rate-limited generation in plain language (mocked)", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts mocked failure");
-  await mockGenerate(page, { detail: "Too Many Requests" }, 429);
+  await mockGenerateJobs(page, {
+    submitStatus: 429,
+    submitBody: { detail: "Too Many Requests" },
+  });
 
   await page.goto("/okh/generate");
-  await page.getByLabel("Repository URL").fill("https://github.com/a/b");
+  await page.getByLabel(/Repository URL/i).fill("https://github.com/a/b");
   await page.getByRole("button", { name: "Generate" }).click();
 
   const alert = page.getByRole("alert");
@@ -135,14 +224,11 @@ test("hands the reviewed design off to match without saving it (mocked)", async 
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name === "real-api", "asserts fixture data");
-  await mockGenerate(page, {
-    success: true,
-    message: "ok",
+  await mockGenerateJobs(page, {
     manifest: { ...MANIFEST, function: "Drives around" },
     quality_report: { missing_required_fields: [] },
   });
 
-  // Capture what the match endpoint actually receives.
   let matchBody: Record<string, unknown> | null = null;
   await page.route("**/api/match", async (route) => {
     matchBody = JSON.parse(route.request().postData() ?? "{}");
@@ -154,17 +240,15 @@ test("hands the reviewed design off to match without saving it (mocked)", async 
   });
 
   await page.goto("/okh/generate");
-  await page.getByLabel("Repository URL").fill("https://github.com/nasa-jpl/rover");
+  await page.getByLabel(/Repository URL/i).fill("https://github.com/nasa-jpl/rover");
   await page.getByRole("button", { name: "Generate" }).click();
   await page.getByRole("button", { name: "Find who can build this" }).click();
 
-  // Lands on Match, showing the generated design instead of the picker.
   await expect(page.getByText("Open Source Rover")).toBeVisible();
   await expect(page.getByText(/not been saved to the catalogue/i)).toBeVisible();
 
   await page.getByRole("button", { name: /Run Match/i }).click();
   await expect.poll(() => matchBody).not.toBeNull();
-  // The manifest travels inline; nothing is persisted.
   expect(matchBody!.okh_manifest).toBeTruthy();
   expect(matchBody!.okh_id).toBeUndefined();
   expect(matchBody!.save_solution).toBe(false);
