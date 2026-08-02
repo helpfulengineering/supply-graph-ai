@@ -30,10 +30,12 @@ from .layers.heuristic import HeuristicMatcher
 from .models import (
     FieldGeneration,
     GenerationLayer,
+    GenerationMetadata,
     LayerConfig,
     ManifestGeneration,
     ProjectData,
 )
+from .progress import ProgressCallback, ProgressEmitter
 from .quality import QualityAssessor
 from .utils.intended_use_validation import is_obvious_noise_intended_use
 
@@ -455,8 +457,26 @@ class GenerationEngine:
         self._metrics = EngineMetrics()
         logger.info("Engine metrics reset")
 
+    def _progress_stages(self) -> List[str]:
+        """Ordered stages this engine will emit for the current config."""
+        stages: List[str] = []
+        for layer in self.config.get_enabled_layers():
+            if layer == GenerationLayer.BOM_NORMALIZATION:
+                continue
+            if layer in self._matchers:
+                stages.append(layer.value)
+        if self.config.verify_bom_github_raw:
+            stages.append("bom_verification")
+        if self.config.use_bom_normalization:
+            stages.append("bom_normalization")
+        stages.extend(["quality", "materials_routing"])
+        return stages
+
     async def generate_manifest_async(
-        self, project_data: ProjectData, include_file_metadata: bool = False
+        self,
+        project_data: ProjectData,
+        include_file_metadata: bool = False,
+        progress: Optional[ProgressCallback] = None,
     ) -> ManifestGeneration:
         """
         Async version of generate_manifest for concurrent layer processing.
@@ -467,6 +487,8 @@ class GenerationEngine:
 
         Args:
             project_data: Raw project data from platform
+            include_file_metadata: Include per-file metadata in the manifest
+            progress: Optional ``(stage, fraction, message)`` callback for job UIs
 
         Returns:
             ManifestGeneration containing generated fields and metadata
@@ -497,6 +519,13 @@ class GenerationEngine:
                 project_data.metadata = {}
             project_data.metadata["_include_file_metadata"] = include_file_metadata
 
+            gen_meta = GenerationMetadata(source_url=project_data.url)
+            emitter = ProgressEmitter(
+                self._progress_stages(),
+                callback=progress,
+                metadata=gen_meta,
+            )
+
             # Initialize result containers
             generated_fields: Dict[str, FieldGeneration] = {}
             confidence_scores: Dict[str, float] = {}
@@ -513,6 +542,7 @@ class GenerationEngine:
                     generated_fields,
                     confidence_scores,
                     missing_fields,
+                    progress_emitter=emitter,
                 )
             else:
                 (
@@ -539,6 +569,7 @@ class GenerationEngine:
             missing_fields = self._calculate_missing_fields(generated_fields)
 
             if self.config.verify_bom_github_raw:
+                emitter.emit("bom_verification", "Verifying BOM paths on GitHub")
                 repo = (project_data.url or "").strip()
                 if "github.com" not in repo.lower():
                     project_data.metadata.pop("_bom_http_allowed_paths", None)
@@ -552,6 +583,7 @@ class GenerationEngine:
             # Add BOM normalization if enabled
             full_bom_object = None
             if self.config.use_bom_normalization:
+                emitter.emit("bom_normalization", "Normalizing bill of materials")
                 try:
                     bom = await self._generate_normalized_bom(project_data)
                     full_bom_object = bom  # Store full BOM object for export
@@ -624,6 +656,7 @@ class GenerationEngine:
             missing_fields = self._calculate_missing_fields(generated_fields)
 
             # Generate quality report
+            emitter.emit("quality", "Assessing manifest quality")
             quality_report = self._quality_assessor.generate_quality_report(
                 generated_fields,
                 confidence_scores,
@@ -641,7 +674,12 @@ class GenerationEngine:
                 full_bom=full_bom_object,
                 include_file_metadata=include_file_metadata,
             )
+            emitter.emit("materials_routing", "Routing materials confidence")
             await self._apply_materials_confidence_routing(result)
+
+            project_data.metadata["_generation_processing_logs"] = list(
+                gen_meta.processing_logs
+            )
 
             # Update metrics
             processing_time = time.time() - start_time
@@ -765,6 +803,7 @@ class GenerationEngine:
         generated_fields: Dict[str, FieldGeneration],
         confidence_scores: Dict[str, float],
         missing_fields: List[str],
+        progress_emitter: Optional[ProgressEmitter] = None,
     ) -> Tuple[Dict[str, FieldGeneration], Dict[str, float], List[str]]:
         """
         Apply layers progressively with async support, stopping when quality threshold is met.
@@ -774,6 +813,7 @@ class GenerationEngine:
             generated_fields: Current generated fields
             confidence_scores: Current confidence scores
             missing_fields: Current missing fields
+            progress_emitter: Optional weighted progress reporter
 
         Returns:
             Tuple of (generated_fields, confidence_scores, missing_fields)
@@ -786,6 +826,8 @@ class GenerationEngine:
                 continue
 
             try:
+                if progress_emitter is not None:
+                    progress_emitter.emit(layer.value, f"Running {layer.value} layer")
                 # Apply layer
                 layer_result = await self._matchers[layer].process(project_data)
 

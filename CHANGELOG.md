@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   concurrent/queued caps, and optional auth for LLM-enabled runs
   (`GENERATE_FROM_URL_REQUIRE_AUTH_FOR_LLM`). CLI: `ohm okh generate-jobs
   submit|status|wait`.
+- **Weighted progress for async generation.** `GenerationEngine` and
+  `OKHService.generate_from_url` emit stage/fraction updates (clone → layers →
+  BOM → quality); Celery tasks forward them via `update_state` so job polls
+  can drive a real progress bar.
 
 ### Removed
 
