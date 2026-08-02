@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkRepoUrl } from "./urlValidation";
+import { checkRepoUrl, parseRepoUrlList } from "./urlValidation";
 
 describe("checkRepoUrl", () => {
   it("accepts a github repo and normalises it", () => {
@@ -55,5 +55,37 @@ describe("checkRepoUrl", () => {
       expect(r.valid).toBe(false);
       expect(r.message && r.message.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("parseRepoUrlList", () => {
+  it("accepts a single URL", () => {
+    const r = parseRepoUrlList("https://github.com/a/b");
+    expect(r.valid).toBe(true);
+    expect(r.urls).toEqual(["https://github.com/a/b"]);
+  });
+
+  it("splits on commas, trims, and deduplicates", () => {
+    const r = parseRepoUrlList(
+      "https://github.com/a/one, https://github.com/b/two, https://github.com/a/one.git",
+    );
+    expect(r.valid).toBe(true);
+    expect(r.urls).toEqual([
+      "https://github.com/a/one",
+      "https://github.com/b/two",
+    ]);
+  });
+
+  it("rejects the whole list when any entry is invalid", () => {
+    const r = parseRepoUrlList(
+      "https://github.com/a/one, https://bitbucket.org/a/b",
+    );
+    expect(r.valid).toBe(false);
+    expect(r.message).toMatch(/github and gitlab/i);
+    expect(r.urls).toEqual(["https://github.com/a/one"]);
+  });
+
+  it("rejects empty input", () => {
+    expect(parseRepoUrlList("  ,  ").valid).toBe(false);
   });
 });

@@ -3,11 +3,6 @@ import { ApiError } from "../../api/ohm/client";
 import { generationErrorMessage } from "./GenerateView";
 
 describe("generationErrorMessage", () => {
-  it("says cancelled, not failed, when the user aborts", () => {
-    const abort = new DOMException("aborted", "AbortError");
-    expect(generationErrorMessage(abort)).toBe("Generation was cancelled.");
-  });
-
   it("explains a 404 without blaming the user", () => {
     const msg = generationErrorMessage(new ApiError(404, "Not Found"));
     expect(msg).toContain("private");
@@ -31,9 +26,9 @@ describe("generationErrorMessage", () => {
     expect(msg).toContain("Please try again");
   });
 
-  it("names the size problem on a timeout", () => {
-    expect(generationErrorMessage(new ApiError(504, "gateway timeout"))).toContain(
-      "too long",
+  it("names jobs unavailable on 503", () => {
+    expect(generationErrorMessage(new ApiError(503, "disabled"))).toContain(
+      "Background generation",
     );
   });
 
@@ -43,21 +38,5 @@ describe("generationErrorMessage", () => {
 
   it("handles a non-Error throw", () => {
     expect(generationErrorMessage("boom")).toBe("Generation failed.");
-  });
-});
-
-describe("timeout vs cancellation", () => {
-  const abort = new DOMException("aborted", "AbortError");
-
-  it("says cancelled when the user aborted", () => {
-    expect(generationErrorMessage(abort, false)).toBe("Generation was cancelled.");
-  });
-
-  it("says timed out — not cancelled — when the deadline fired", () => {
-    const msg = generationErrorMessage(abort, true);
-    expect(msg).toContain("longer than two minutes");
-    // Reporting a timeout as the user's own cancellation is misleading and
-    // leaves them with no idea whether to retry.
-    expect(msg).not.toContain("cancelled");
   });
 });

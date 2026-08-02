@@ -170,3 +170,40 @@ async def test_llm_generation_requires_auth_when_flag_set(monkeypatch):
             json={"urls": ["https://github.com/a/one"], "no_llm": False},
         )
     assert resp.status_code == 401, resp.text
+
+
+@pytest.mark.asyncio
+@pytest.mark.contract
+async def test_revoke_job_returns_revoked_state(monkeypatch):
+    monkeypatch.setenv("JOBS_ENABLED", "true")
+    monkeypatch.setenv("JOB_BROKER_URL", "redis://redis:6379/1")
+
+    with (
+        patch("src.core.jobs.generation_jobs.revoke_job") as revoke,
+        patch(
+            "src.core.jobs.generation_jobs.get_job_status",
+            return_value={
+                "job_id": "job-111",
+                "state": "STARTED",
+                "stage": "nlp",
+                "fraction": 0.5,
+                "message": "Running",
+                "url": "https://github.com/a/one",
+                "error": None,
+                "manifest": None,
+                "quality_report": None,
+            },
+        ),
+    ):
+        app, _ = _get_app()
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://testserver"
+        ) as client:
+            resp = await client.post(
+                "/v1/api/okh/generate-from-url/jobs/job-111/revoke"
+            )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["state"] == "REVOKED"
+    revoke.assert_called_once_with("job-111")

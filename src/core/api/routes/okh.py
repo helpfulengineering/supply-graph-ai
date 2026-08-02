@@ -1279,6 +1279,31 @@ async def get_generate_from_url_job(
 
 
 @router.post(
+    "/generate-from-url/jobs/{job_id}/revoke",
+    response_model=OKHGenerateJobStatus,
+    summary="Cancel a generate-from-url job",
+)
+async def revoke_generate_from_url_job(
+    job_id: str = Path(..., description="Celery task id"),
+) -> OKHGenerateJobStatus:
+    """Revoke a queued or running job; subsequent polls report REVOKED."""
+    from src.core.jobs import generation_jobs
+
+    if not generation_jobs.jobs_available():
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Async generation jobs are not enabled on this node.",
+        )
+    generation_jobs.revoke_job(job_id)
+    status_payload = generation_jobs.get_job_status(job_id)
+    # Celery may still report PENDING until workers notice; surface intent.
+    if status_payload.get("state") not in {"SUCCESS", "FAILURE", "REVOKED"}:
+        status_payload["state"] = "REVOKED"
+        status_payload["message"] = status_payload.get("message") or "Job cancelled"
+    return OKHGenerateJobStatus(**status_payload)
+
+
+@router.post(
     "/scaffold",
     summary="Generate OKH project scaffold",
     description="Create an OKH-compliant project structure with documentation stubs and manifest template.",

@@ -120,3 +120,8 @@ def get_job_status(job_id: str) -> Dict[str, Any]:
     elif state == "FAILURE":
         payload["error"] = str(result.result) if result.result else "Job failed"
     return payload
+
+
+def revoke_job(job_id: str) -> None:
+    """Ask Celery to discard/stop a generate-from-url job."""
+    celery_app.control.revoke(job_id, terminate=True, signal="SIGTERM")

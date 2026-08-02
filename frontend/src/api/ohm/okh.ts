@@ -295,3 +295,66 @@ export async function generateOkhFromUrl(
     qualityReport: (data.quality_report ?? null) as OkhQualityReport | null,
   };
 }
+
+// --- async generate-from-URL jobs -----------------------------------------
+
+export type GenerateJobRef = components["schemas"]["OKHGenerateJobRef"];
+export type GenerateJobsBatch = components["schemas"]["OKHGenerateJobsResponse"];
+export type GenerateJobStatus = components["schemas"]["OKHGenerateJobStatus"];
+
+/** Submit one async generation job per URL. */
+export async function submitGenerateJobs(
+  urls: string[],
+  opts: { noLlm?: boolean } = {},
+): Promise<GenerateJobsBatch> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/okh/generate-from-url/jobs",
+    {
+      body: {
+        urls,
+        verbose: true,
+        skip_review: true,
+        clone: true,
+        no_llm: opts.noLlm ?? false,
+      },
+    },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to submit generation jobs (HTTP ${response.status})`),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function getGenerateJobStatus(jobId: string): Promise<GenerateJobStatus> {
+  const { data, error, response } = await apiClient.GET(
+    "/api/okh/generate-from-url/jobs/{job_id}",
+    { params: { path: { job_id: jobId } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to load job status (HTTP ${response.status})`),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}
+
+export async function revokeGenerateJob(jobId: string): Promise<GenerateJobStatus> {
+  const { data, error, response } = await apiClient.POST(
+    "/api/okh/generate-from-url/jobs/{job_id}/revoke",
+    { params: { path: { job_id: jobId } } },
+  );
+  if (error || !response.ok || !data) {
+    throw new ApiError(
+      response.status,
+      errorMessage(error, `Failed to cancel job (HTTP ${response.status})`),
+      requestIdFromError(error, response),
+    );
+  }
+  return data;
+}

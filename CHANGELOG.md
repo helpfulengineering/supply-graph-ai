@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `OKHService.generate_from_url` emit stage/fraction updates (clone → layers →
   BOM → quality); Celery tasks forward them via `update_state` so job polls
   can drive a real progress bar.
+- **Generate UI uses async jobs.** `/okh/generate` accepts comma-separated URLs,
+  submits Celery jobs, polls with real progress bars, and cancels via job
+  revoke — no longer blocked by the 120s nginx proxy timeout.
 
 ### Removed
 

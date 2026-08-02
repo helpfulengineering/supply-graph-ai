@@ -166,3 +166,11 @@ def test_get_job_status_surfaces_progress_meta():
     assert payload["fraction"] == 0.72
     assert payload["message"] == "Running LLM"
     assert payload["manifest"] is None
+
+
+def test_revoke_job_calls_celery_control():
+    from src.core.jobs import generation_jobs
+
+    with patch.object(generation_jobs.celery_app.control, "revoke") as revoke:
+        generation_jobs.revoke_job("job-xyz")
+    revoke.assert_called_once_with("job-xyz", terminate=True, signal="SIGTERM")

@@ -20,9 +20,9 @@ Only the URL is needed. Everything else is decided for you.
 
 Most repositories come back in a few seconds. Large, mature projects — hundreds
 of files, years of documentation — take longer. On nodes with async jobs enabled
-(`JOBS_ENABLED=true` and a Celery worker), generation runs in the background so
-it is no longer capped by the two-minute web proxy timeout. You can also submit
-several URLs at once; each becomes its own job.
+(`JOBS_ENABLED=true` and a Celery worker), the web UI submits background jobs and
+shows real progress, so generation is no longer capped by the two-minute proxy
+timeout. You can paste several URLs separated by commas; each becomes its own job.
 
 Operators and scripts can use the HTTP job API or the CLI:
 
